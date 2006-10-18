@@ -1,0 +1,19 @@
+{
+  super.setUp();
+  myUserModel=new UserModelImpl(getBroadcaster());
+  disposeOnTearDown(myUserModel);
+  myIdeFacade=new MockIDEFacade(getClass());
+  myIdeFacade.setReturnedProjects(new String[]{PROJECT_NAME});
+  myDispatcher=new AsyncMessageDispatcherImpl(getBroadcaster(),myIdeFacade);
+  disposeOnTearDown(myDispatcher);
+  myTransport=new P2PTransport(myDispatcher,myUserModel,WAIT_USER_RESPONSES_TIMEOUT){
+    protected void sendUserAddedCallback(    User user){
+      super.sendUserAddedCallback(user);
+      myLog+="sendUserAddedCallback" + user;
+    }
+  }
+;
+  Pico.getInstance().registerComponentInstance(myTransport);
+  myLog="";
+  myProjectLevelContainer=Pico.getInstance().makeChildContainer();
+}

@@ -1,0 +1,11 @@
+{
+  final MockUser teddy=setTeddyUserIsFound();
+  myUserModelMock.expects(once()).method("hasUser").with(eq(teddy)).will(returnValue(false));
+  myUserModelMock.expects(once()).method("getGroups").will(returnValue(null));
+  myIDEFacade.setReturnedData(new FindUsersCommand.UsersInfo(new User[]{teddy},UserModel.AUTO_GROUP));
+  teddy.setProjects(new String[]{"projectForTeddy"});
+  myUserModelMock.expects(once()).method("findUser").with(eq(teddy.getName()),eq(teddy.getTransportCode())).will(returnValue(teddy));
+  myUserModelMock.expects(once()).method("addUser").with(eq(teddy));
+  myCommand.execute();
+  assertEquals("Group should be set from project name","projectForTeddy",teddy.getGroup());
+}

@@ -1,0 +1,21 @@
+{
+  XMPPConnection conn=createLocalConnectionWithJabberUser("tom" + System.nanoTime(),null);
+  conn.getRoster().createEntry(selfJabberId(),"name",new String[0]);
+  addEventListener();
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() > 1;
+    }
+  }
+;
+  myEvents.clear();
+  setIgnoreList(getUser(conn));
+  conn.createChat(selfJabberId()).sendMessage("hello");
+  new WaitFor(2000){
+    protected boolean condition(){
+      return myEvents.size() > 0;
+    }
+  }
+;
+  assertEquals("Should ignore message (ignore list exists):" + myEvents,0,myEvents.size());
+}

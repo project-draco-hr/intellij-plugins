@@ -1,0 +1,19 @@
+{
+  final boolean[] processed=new boolean[1];
+  MockXmlMessage xmlMessage=new MockXmlMessage(){
+    public void processResponse(    Element responseElement){
+      assertEquals("fee",responseElement.getName());
+      processed[0]=true;
+    }
+  }
+;
+  xmlMessage.setShouldWaitForResponse(true);
+  P2PNetworkXmlMessage p2PNetworkXmlMessage=new P2PNetworkXmlMessage("str",xmlMessage);
+  p2PNetworkXmlMessage.setResponse("<fee/>");
+  p2PNetworkXmlMessage.processResponse();
+  assertTrue("Xml Response should be processed",processed[0]);
+  processed[0]=false;
+  xmlMessage.setShouldWaitForResponse(false);
+  p2PNetworkXmlMessage.processResponse();
+  assertFalse("Xml Response should not be processed",processed[0]);
+}

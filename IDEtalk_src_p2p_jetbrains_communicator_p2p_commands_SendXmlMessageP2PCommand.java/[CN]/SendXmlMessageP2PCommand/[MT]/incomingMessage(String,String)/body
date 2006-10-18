@@ -1,0 +1,15 @@
+{
+  String xml=StringUtil.fromXMLSafeString(messageText);
+  SAXBuilder builder=new SAXBuilder();
+  try {
+    Document document=builder.build(new StringReader(xml));
+    Element rootElement=document.getRootElement();
+    Element response=createResponse(rootElement,StringUtil.fromXMLSafeString(remoteUser));
+    if (response == null)     return "";
+    return new XMLOutputter().outputString(response);
+  }
+ catch (  Throwable e) {
+    LOG.info(e.getMessage(),e);
+    return StringUtil.toXML(e);
+  }
+}

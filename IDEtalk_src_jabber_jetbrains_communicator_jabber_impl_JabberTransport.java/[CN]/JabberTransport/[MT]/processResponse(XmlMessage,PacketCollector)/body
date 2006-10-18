@@ -1,0 +1,18 @@
+{
+  boolean gotResponse=false;
+  while (!gotResponse) {
+    Message response=(Message)collector.nextResult(RESPONSE_TIMEOUT);
+    if (response == null)     break;
+    final Collection<PacketExtension> extensions=response.getExtensions();
+    for (    PacketExtension o : extensions) {
+      if (o instanceof JDOMExtension) {
+        JDOMExtension extension=(JDOMExtension)o;
+        if (RESPONSE.equals(extension.getElement().getName())) {
+          xmlMessage.processResponse(extension.getElement());
+          gotResponse=true;
+          break;
+        }
+      }
+    }
+  }
+}

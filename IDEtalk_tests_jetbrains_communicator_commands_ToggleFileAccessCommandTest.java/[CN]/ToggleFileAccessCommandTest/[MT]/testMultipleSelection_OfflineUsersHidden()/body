@@ -1,0 +1,23 @@
+{
+  final User user1=myUserModel.createUser("user1",MockTransport.NAME);
+  final User user2=myUserModel.createUser("user2",MockTransport.NAME);
+  Pico.getInstance().unregisterComponent(Pico.getInstance().getComponentInstanceOfType(Transport.class));
+  MockTransport mockTransport=new MockTransport(){
+    public UserPresence getUserPresence(    User user){
+      return user == user1 ? new UserPresence(true) : new UserPresence(false);
+    }
+  }
+;
+  Pico.getInstance().registerComponentInstance(mockTransport);
+  myUserListComponent.stubs().method("getSelectedNodes").will(returnValue(new Object[]{"grp",user2}));
+  myUserModel.addUser(user1);
+  myUserModel.addUser(user2);
+  user1.setGroup("grp",myUserModel);
+  user2.setCanAccessMyFiles(true,myUserModel);
+  assertFalse("Different state of canAccess flag",myCommand.isEnabled());
+  OptionFlag.OPTION_HIDE_OFFLINE_USERS.change(true);
+  assertTrue("Only online user should be considered",myCommand.isEnabled());
+  myCommand.execute();
+  assertTrue("Should change online user",user1.canAccessMyFiles());
+  assertTrue("Should keep offline user",user2.canAccessMyFiles());
+}

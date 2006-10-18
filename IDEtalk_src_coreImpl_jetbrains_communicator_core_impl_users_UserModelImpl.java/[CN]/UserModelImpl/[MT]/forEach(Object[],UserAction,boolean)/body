@@ -1,0 +1,29 @@
+{
+  final Set<User> users=new LinkedHashSet<User>();
+  for (  Object node : nodes) {
+    if (node instanceof User) {
+      User user=(User)node;
+      if (!considerOnlyOnlineUsers || user.isOnline()) {
+        users.add(user);
+      }
+    }
+ else     if (node instanceof String) {
+      forEach(getUsers(node.toString()),new UserAction(){
+        public boolean executeAndContinue(        User user){
+          users.add(user);
+          return true;
+        }
+      }
+,considerOnlyOnlineUsers);
+    }
+ else {
+      throw new IllegalArgumentException("Invalid nodes: " + Arrays.asList(nodes));
+    }
+  }
+  for (  User user : users) {
+    if (!userAction.executeAndContinue(user)) {
+      return false;
+    }
+  }
+  return true;
+}

@@ -1,0 +1,12 @@
+{
+  setIgnoreList("erts\r\nsomeId");
+  final XMPPConnection conn=createLocalConnectionWithJabberUser("aaasomeId" + System.nanoTime(),null);
+  conn.getRoster().createEntry(selfJabberId(),"name",new String[0]);
+  new WaitFor(2000){
+    protected boolean condition(){
+      return conn.getRoster().getEntry(selfJabberId()).getType() == RosterPacket.ItemType.BOTH;
+    }
+  }
+;
+  assertEquals("Should not subscribe user from ignore list",RosterPacket.ItemType.NONE,conn.getRoster().getEntry(selfJabberId()).getType());
+}

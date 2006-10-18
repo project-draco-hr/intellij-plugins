@@ -1,0 +1,28 @@
+{
+  XMPPConnection c=new XMPPConnection("localhost");
+  try {
+    try {
+      c.getAccountManager().createAccount("bob","ddd");
+      c.getAccountManager().createAccount("alice","ddd");
+    }
+ catch (    Exception e) {
+    }
+    c.login("bob","ddd");
+    Roster bobRoster=c.getRoster();
+    bobRoster.createEntry("alice@localhost","Alice",new String[0]);
+    RosterGroup someGroup=bobRoster.createGroup("someGroup");
+    RosterEntry entry=bobRoster.getEntry("alice@localhost");
+    Thread.sleep(500);
+    Assert.assertNotNull(entry);
+    someGroup.addEntry(entry);
+    Assert.assertTrue(someGroup.contains(entry));
+    c.close();
+    c=new XMPPConnection("localhost");
+    c.login("bob","ddd");
+    Assert.assertNotNull(c.getRoster().getGroup("someGroup"));
+    Assert.assertEquals(1,c.getRoster().getGroup("someGroup").getEntryCount());
+  }
+  finally {
+    c.getAccountManager().deleteAccount();
+  }
+}

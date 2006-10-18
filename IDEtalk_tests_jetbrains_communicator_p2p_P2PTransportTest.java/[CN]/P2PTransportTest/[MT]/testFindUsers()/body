@@ -1,0 +1,16 @@
+{
+  User[] users=myTransport.findUsers(new NullProgressIndicator());
+  assertTrue("At least self should be found",users.length >= 1);
+  User self=null;
+  for (  User user : users) {
+    if (user.getName().equals(StringUtil.getMyUsername())) {
+      self=user;
+      break;
+    }
+  }
+  assertNotNull("Self user not found in " + Arrays.asList(users),self);
+  assertTrue("Self should be online",self.isOnline());
+  InetAddress address=myTransport.getAddress(self);
+  assertTrue("Self address is expected:" + address,NetworkUtil.isOwnAddress(address));
+  assertEquals("Projects should be set",PROJECT_NAME,self.getProjects()[0]);
+}

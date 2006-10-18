@@ -1,0 +1,9 @@
+{
+  User mockUser=UserImpl.create("mock",P2PTransport.CODE);
+  assertEquals("Sanity check",PresenceMode.UNAVAILABLE,myTransport.getUserPresence(mockUser).getPresenceMode());
+  new AddOnlineUserP2PCommand(myTransport.getUserMonitorThread()).addOnlineUser("localhost","mock",3354,null,new UserPresence(PresenceMode.DND).toVector());
+  myTransport.flushCurrentUsers();
+  assertEquals("User status should be set from available online user",PresenceMode.DND,myTransport.getUserPresence(mockUser).getPresenceMode());
+  myTransport.setOnlineUsers(new HashSet<User>());
+  assertEquals("Presence should be reset",PresenceMode.UNAVAILABLE,myTransport.getUserPresence(mockUser).getPresenceMode());
+}

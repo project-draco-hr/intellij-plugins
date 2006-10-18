@@ -1,0 +1,16 @@
+{
+  VirtualFile file=mySourceRoot.createChildData(this,"some.file");
+  VFile vFile=checkVFile(file,getProject(),"/src/some.file",file.getPath());
+  assertEquals("Wrong src path","/some.file",vFile.getSourcePath());
+  updateRoots(new Updater(){
+    public void update(    ModifiableRootModel modifiableModel){
+      myContentEntry=modifiableModel.getContentEntries()[0];
+      myContentEntry.removeSourceFolder(myContentEntry.getSourceFolders()[0]);
+      myContentEntry.addSourceFolder(myContentRoot,false);
+    }
+  }
+);
+  VirtualFile childData=myContentRoot.createChildData(this,"some.file");
+  VirtualFile virtualFile=VFSUtil.getVirtualFile(vFile);
+  assertSame("Should find source file basing on src path",childData,virtualFile);
+}

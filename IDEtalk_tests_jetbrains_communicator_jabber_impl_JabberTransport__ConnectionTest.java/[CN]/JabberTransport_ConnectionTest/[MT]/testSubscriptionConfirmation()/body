@@ -1,0 +1,39 @@
+{
+  addEventListener();
+  String userName="bob" + System.currentTimeMillis();
+  final XMPPConnection bob=createLocalConnectionWithJabberUser(userName,null);
+  myFacade.getConnection().getRoster().setSubscriptionMode(Roster.SubscriptionMode.manual);
+  myFacade.getMyAccount().setRememberPassword(true);
+  myFacade.saveSettings();
+  myFacade.getConnection().close();
+  myEvents.clear();
+  final String selfName=myUser + "@" + getUser(bob).substring(userName.length() + 1);
+  bob.getRoster().createEntry(selfName,"me",new String[]{"DDD"});
+  myFacade.connect();
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return null != bob.getRoster().getPresence(selfName);
+    }
+  }
+;
+  assertTrue("Sanity check",myFacade.isConnectedAndAuthenticated());
+  Presence presence=bob.getRoster().getPresence(selfName);
+  assertNotNull(presence);
+  assertEquals("Should return good presence",Presence.Type.available,presence.getType());
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() > 1;
+    }
+  }
+;
+  final String bobUserName=getUser(bob);
+  assertEquals("We should get bob in our contact list as well",1,myUserModel.getAllUsers().length);
+  assertEquals("We should get bob in our contact list as well",bobUserName,myUserModel.getAllUsers()[0].getName());
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return getBobEntry(bobUserName) != null && getBobEntry(bobUserName).getType() == RosterPacket.ItemType.BOTH;
+    }
+  }
+;
+  assertEquals("Should add bob as a contact too",RosterPacket.ItemType.BOTH,getBobEntry(bobUserName).getType());
+}

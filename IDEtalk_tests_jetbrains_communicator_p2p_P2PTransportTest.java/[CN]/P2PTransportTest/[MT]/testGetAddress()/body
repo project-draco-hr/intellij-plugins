@@ -1,0 +1,9 @@
+{
+  User mockUser=UserImpl.create("mock",P2PTransport.CODE);
+  assertNull("Sanity check",myTransport.getAddress(mockUser));
+  new AddOnlineUserP2PCommand(myTransport.getUserMonitorThread()).addOnlineUser("localhost","mock",3354,null,null);
+  myTransport.flushCurrentUsers();
+  assertEquals("Inet address should be set from available online user","localhost",myTransport.getAddress(mockUser).getHostName());
+  myTransport.setOnlineUsers(new HashSet<User>());
+  assertNull("Inet address should be reset",myTransport.getAddress(mockUser));
+}

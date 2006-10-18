@@ -1,0 +1,22 @@
+{
+  List usersToDelete=new ArrayList();
+  final List groupsToDelete=new ArrayList();
+  buildListOfDeletedUsersAndGroups(selectedNodes,usersToDelete,groupsToDelete);
+  StringBuffer question=new StringBuffer(QUESTION_PREFIX);
+  final boolean hasBothUsersAndGroups=usersToDelete.size() > 0 && groupsToDelete.size() > 0;
+  appendItems(question,groupsToDelete,"group",hasBothUsersAndGroups,new GroupTextExtractor(groupsToDelete,hasBothUsersAndGroups));
+  if (hasBothUsersAndGroups) {
+    appendAndBetweenGroupsAndUsers(question,groupsToDelete,usersToDelete);
+  }
+  appendItems(question,usersToDelete,"user",hasBothUsersAndGroups,new ItemTextExtractor(){
+    public String getText(    Object item){
+      return ((User)item).getDisplayName();
+    }
+  }
+);
+  if (hasBothUsersAndGroups && usersToDelete.size() > 1) {
+    question.append(" \nfrom other groups");
+  }
+  question.append('?');
+  return question.toString();
+}

@@ -1,0 +1,41 @@
+{
+  StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable(){
+    public void run(){
+      initializeTransports(myProject.getName());
+    }
+  }
+);
+  myUserListComponent=(UserListComponentImpl)myContainer.getComponentInstanceOfType(UserListComponent.class);
+  StatusToolbar statusToolbar=((StatusToolbar)myContainer.getComponentInstanceOfType(StatusToolbar.class));
+  ActionGroup toolbarActions=(ActionGroup)myActionManager.getAction("IDEtalk");
+  ActionGroup treeActions=(ActionGroup)myActionManager.getAction("IDEtalk_Tree");
+  JPanel toolbarPanel=new JPanel();
+  toolbarPanel.setLayout(new BoxLayout(toolbarPanel,BoxLayout.X_AXIS));
+  toolbarActions=buildToolbarActions(toolbarPanel,toolbarActions);
+  if (toolbarActions != null) {
+    JComponent toolbar=myActionManager.createActionToolbar(PLACE_TOOLBAR,toolbarActions,true).getComponent();
+    toolbarPanel.add(toolbar);
+  }
+  toolbarPanel.add(Box.createHorizontalStrut(10));
+  toolbarPanel.add(new SeparatorComponent(Color.lightGray,SeparatorOrientation.VERTICAL));
+  toolbarPanel.add(Box.createHorizontalStrut(3));
+  toolbarPanel.add(OptionsButton.wrap(new OptionsButton()));
+  toolbarPanel.add(statusToolbar.createComponent());
+  toolbarPanel.add(new JPanel(){
+    public Dimension getPreferredSize(){
+      return new Dimension(Short.MAX_VALUE,10);
+    }
+  }
+);
+  if (treeActions != null) {
+    toolbarPanel.add(myActionManager.createActionToolbar(PLACE_TOOLBAR,treeActions,true).getComponent());
+  }
+  toolbarPanel.setAlignmentX(0);
+  myTopPanel.add(toolbarPanel);
+  myPanel.add(myTopPanel,BorderLayout.NORTH);
+  myPanel.add(new JScrollPane(myUserListComponent.getComponent()));
+  ActionGroup group=(ActionGroup)myActionManager.getAction("IDEtalkPopup");
+  if (group != null) {
+    IDEAFacade.installPopupMenu(group,myUserListComponent.getTree(),myActionManager);
+  }
+}

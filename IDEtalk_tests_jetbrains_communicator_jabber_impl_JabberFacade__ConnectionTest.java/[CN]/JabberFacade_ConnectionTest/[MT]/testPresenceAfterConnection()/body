@@ -1,0 +1,18 @@
+{
+  createGoodAccount(myUser,myFacade);
+  final String me=myFacade.getConnection().getUser();
+  myFacade.getConnection().getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
+  final JabberFacadeImpl another=new JabberFacadeImpl(myIDEFacade);
+  createGoodAccount("ddd" + System.currentTimeMillis(),another);
+  another.addUsers("group",Arrays.asList(me));
+  new WaitFor(3000){
+    protected boolean condition(){
+      return another.getConnection().getRoster().getPresence(me) != null;
+    }
+  }
+;
+  Presence presence=another.getConnection().getRoster().getPresence(me);
+  assertNotNull(presence);
+  assertEquals(Presence.Type.available,presence.getType());
+  assertEquals(Presence.Mode.available,presence.getMode());
+}

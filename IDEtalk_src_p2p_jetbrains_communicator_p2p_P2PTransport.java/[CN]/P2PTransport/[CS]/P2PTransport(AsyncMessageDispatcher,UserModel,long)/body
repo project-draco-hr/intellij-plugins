@@ -1,0 +1,25 @@
+{
+  myEventBroadcaster=userModel.getBroadcaster();
+  myAsyncMessageDispatcher=asyncMessageDispatcher;
+  myUserModel=userModel;
+  myUserAddedCallbackListener=new TransportUserListener(this){
+    protected void processAfterChange(    UserEvent event){
+      event.accept(new EventVisitor(){
+        public void visitUserAdded(        UserEvent.Added event){
+          super.visitUserAdded(event);
+          sendUserAddedCallback(event.getUser());
+        }
+      }
+);
+    }
+  }
+;
+  myOwnPresence=new UserPresence(true);
+  startup(waitUserResponsesTimeout);
+  Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
+    public void run(){
+      dispose();
+    }
+  }
+));
+}

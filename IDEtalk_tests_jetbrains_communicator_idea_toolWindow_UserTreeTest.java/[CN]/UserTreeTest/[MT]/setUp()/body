@@ -1,0 +1,22 @@
+{
+  super.setUp();
+  UserModelImpl userModel=new UserModelImpl(getBroadcaster());
+  disposeOnTearDown(userModel);
+  myLocalMessageDispatcher=new LocalMessageDispatcherImpl(getBroadcaster(),new MockIDEFacade(getClass()),userModel);
+  disposeOnTearDown(myLocalMessageDispatcher);
+  myUserTree=new UserTree(myLocalMessageDispatcher){
+    public void treeDidChange(){
+      super.treeDidChange();
+      myTreeChanged=true;
+    }
+    protected void invokeSendMessageAction(){
+      mySendMessageInvoked=true;
+      Thread.dumpStack();
+    }
+  }
+;
+  myUser=new MockUser();
+  myTreePath=new TreePath(myUser);
+  myTreeChanged=false;
+  mySendMessageInvoked=false;
+}

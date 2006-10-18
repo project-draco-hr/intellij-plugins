@@ -1,0 +1,20 @@
+{
+  User[] all=myUserModel.getAllUsers();
+  assertUser("group1","aaa",all[0]);
+  assertUser("group1","ccc",all[1]);
+  assertUser("group2","zzz",all[2]);
+  assertUser("group2","aaaa",all[3]);
+  assertUser("group2","bbb",all[4]);
+  assertSame(all,myUserModel.getAllUsers());
+  all[0].setDisplayName("another name",myUserModel);
+  assertNotSame(all,myUserModel.getAllUsers());
+  all=myUserModel.getAllUsers();
+  getBroadcaster().fireEvent(new UserEvent.Offline(all[0]));
+  assertNotSame(all,myUserModel.getAllUsers());
+  all=myUserModel.getAllUsers();
+  myUserModel.addUser(myUserModel.createUser("a",MockTransport.NAME));
+  assertNotSame(all,myUserModel.getAllUsers());
+  all=myUserModel.getAllUsers();
+  myUserModel.removeUser(all[0]);
+  assertNotSame(all,myUserModel.getAllUsers());
+}

@@ -1,0 +1,26 @@
+{
+  myEditingUser=null;
+  Object originalValue=TreeUtils.convertValueIfUserNode(value,new UserActionWithValue(){
+    public Object execute(    User user){
+      myEditingUser=user;
+      return user.getDisplayName();
+    }
+  }
+);
+  value=originalValue;
+  Component editor=super.getTreeCellEditorComponent(tree,value,isSelected,expanded,leaf,row);
+  ((MyValidatingCellEditor)realEditor).setOriginalValue(originalValue);
+  ((MyValidatingCellEditor)realEditor).setEditingUser(myEditingUser);
+  editingComponent.addKeyListener(new KeyAdapter(){
+    public void keyPressed(    KeyEvent e){
+      super.keyPressed(e);
+      if (myTree.isEditing() && e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+        myTree.cancelEditing();
+        UIUtil.requestFocus(myTree);
+        e.consume();
+      }
+    }
+  }
+);
+  return editor;
+}

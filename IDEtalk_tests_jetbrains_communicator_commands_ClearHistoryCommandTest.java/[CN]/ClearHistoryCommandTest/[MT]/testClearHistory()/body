@@ -1,0 +1,12 @@
+{
+  myIdeMock.expects(once()).method("askQuestion").with(eq(StringUtil.getMsg("ClearHistoryCommand.title")),eq(StringUtil.getMsg("ClearHistoryCommand.text"))).will(returnValue(true));
+  myIdeMock.expects(once()).method("runLongProcess").will(new CustomStub("runner"){
+    public Object invoke(    Invocation invocation) throws Throwable {
+      ((IDEFacade.Process)invocation.parameterValues.get(1)).run(new NullProgressIndicator());
+      return null;
+    }
+  }
+);
+  myDispatcherMock.expects(once()).method("clearHistory");
+  myCommand.execute();
+}

@@ -1,0 +1,18 @@
+{
+  String userName="bob" + System.currentTimeMillis();
+  XMPPConnection bob=createLocalConnectionWithJabberUser(userName,null);
+  userName=getUser(bob);
+  assertFalse("Not in my contact list",myTransport.isUserInMyContactListAndActive(userName));
+  myFacade.addUsers("General",Collections.singletonList(userName));
+  final String userName1=userName;
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myTransport.isUserInMyContactListAndActive(userName1);
+    }
+  }
+;
+  assertTrue("In my contact list and active",myTransport.isUserInMyContactListAndActive(userName));
+  assertTrue("In my contact list and active",myTransport.isUserInMyContactListAndActive(userName + "/somePath"));
+  bob.close();
+  assertFalse("In my contact list and not active",myTransport.isUserInMyContactListAndActive(userName));
+}

@@ -1,0 +1,15 @@
+{
+  User requestingUser=myUserModel.findUser(remoteUser,transport.getName());
+  if (requestingUser == null)   return false;
+  if (!requestingUser.canAccessMyFiles()) {
+    boolean allow=myIdeFacade.askQuestion(StringUtil.getMsg("FileAccessProvider.title"),StringUtil.getMsg("FileAccessProvider.message",requestingUser.getDisplayName()));
+    if (allow) {
+      requestingUser.setCanAccessMyFiles(true,myUserModel);
+    }
+ else {
+      return false;
+    }
+  }
+  doProcess(request,response);
+  return true;
+}

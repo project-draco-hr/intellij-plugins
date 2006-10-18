@@ -1,0 +1,29 @@
+{
+  final String currentProjectId=myIdeFacade.getCurrentProjectId();
+  List<User> users=new ArrayList<User>();
+  if (currentProjectId != null) {
+    try {
+      progressIndicator.setText(StringUtil.getMsg("jabber.findUsers.text"));
+      URL url=new URL(myRegistryUrl + "?id=" + currentProjectId);
+      InputStream inputStream=url.openStream();
+      BufferedReader reader=new BufferedReader(new InputStreamReader(inputStream));
+      String csv=reader.readLine();
+      inputStream.close();
+      if (csv != null) {
+        String[] strings=csv.split(",");
+        for (        String userId : strings) {
+          if (StringUtil.isNotEmpty(userId)) {
+            users.add(myUserModel.createUser(userId,JabberTransport.CODE));
+          }
+        }
+      }
+    }
+ catch (    MalformedURLException e) {
+      LOG.debug(e.getMessage(),e);
+    }
+catch (    IOException e) {
+      LOG.debug(e.getMessage(),e);
+    }
+  }
+  return users.toArray(new User[users.size()]);
+}

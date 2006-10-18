@@ -1,0 +1,31 @@
+{
+  myUseExisting.addItemListener(new ItemListener(){
+    public void itemStateChanged(    ItemEvent e){
+      boolean useExisting=myUseExisting.isSelected();
+      JComponent[] hideableFields=new JComponent[]{myNickname,myNicknameLabel,myFirstName,myFirstNameLabel,myLastName,myLastNameLabel,myPasswordAgain,myPasswordAgainLabel};
+      for (      JComponent hideableField : hideableFields) {
+        hideableField.setVisible(!useExisting);
+      }
+      Window window=SwingUtilities.getWindowAncestor(myPanel);
+      if (window != null) {
+        window.pack();
+      }
+    }
+  }
+);
+  UIUtil.traverse(myPanel,new UIUtil.TraverseAction(){
+    public boolean executeAndContinue(    Component c){
+      if (c instanceof JTextComponent) {
+        JTextComponent textComponent=(JTextComponent)c;
+        textComponent.getDocument().addDocumentListener(new DocumentAdapter(){
+          protected void textChanged(          DocumentEvent e){
+            myErrorLabel.setText(null);
+          }
+        }
+);
+      }
+      return true;
+    }
+  }
+);
+}

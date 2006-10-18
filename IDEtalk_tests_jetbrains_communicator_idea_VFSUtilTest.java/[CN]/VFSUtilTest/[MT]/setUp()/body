@@ -1,0 +1,22 @@
+{
+  super.setUp();
+  final File dir=createTempDir(getClass().getName());
+  updateRoots(new Updater(){
+    public void update(    ModifiableRootModel modifiableModel){
+      myContentRoot=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(dir);
+      try {
+        VirtualFile src=myContentRoot.createChildDirectory(this,"src");
+        myContentEntry=modifiableModel.addContentEntry(myContentRoot);
+        myContentEntry.addSourceFolder(src,false);
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+  ProjectRootManager rootManager=ProjectRootManager.getInstance(getProject());
+  myContentRoot=rootManager.getContentRoots()[0];
+  mySourceRoot=rootManager.getContentSourceRoots()[0];
+  VFSUtil._setProject(getProject());
+}

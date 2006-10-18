@@ -1,0 +1,23 @@
+{
+  addEventListener();
+  myTransport.setOnlineUsers(new HashSet<User>());
+  assertEquals("No online users, no change expected",0,myEvents.size());
+  User bill=myTransport.createUser("bill",new OnlineUserInfo(InetAddress.getLocalHost(),myTransport.getPort()));
+  myEvents.clear();
+  myTransport.setOnlineUsers(Arrays.asList(bill));
+  assertEquals("Online status for bill should have changed:" + myEvents,1,myEvents.size());
+  checkEvent(bill,0,true);
+  myEvents.clear();
+  User john=myTransport.createUser("john",new OnlineUserInfo(InetAddress.getLocalHost(),myTransport.getPort()));
+  myTransport.setOnlineUsers(Arrays.asList(john));
+  assertTrue(john.isOnline());
+  assertTrue(john.getPresence().isOnline());
+  assertFalse(bill.isOnline());
+  assertEquals("Online status for bill and john should have changed: " + myEvents,2,myEvents.size());
+  checkEvent(bill,0,false);
+  checkEvent(john,1,true);
+  myEvents.clear();
+  myTransport.setOnlineUsers(Arrays.asList(myTransport.createUser("john",new OnlineUserInfo(InetAddress.getLocalHost(),myTransport.getPort()))));
+  assertEquals("Online status didn't change - no events expected: " + myEvents,0,myEvents.size());
+  assertEquals("Address should have changed",InetAddress.getLocalHost(),myTransport.getAddress(john));
+}

@@ -1,0 +1,16 @@
+{
+  Mock facadeMock=mock(IDEFacade.class);
+  final String[] params=new String[2];
+  myUserFinder=new JabberUserFinderImpl((IDEFacade)facadeMock.proxy(),myUserModel){
+    protected void doRegister(    final String jabberUserId,    final String currentProjectId){
+      params[0]=jabberUserId;
+      params[1]=currentProjectId;
+    }
+  }
+;
+  facadeMock.expects(atLeastOnce()).method("getCacheDir").will(returnValue(myFacade.getCacheDir()));
+  facadeMock.expects(once()).method("getCurrentProjectId").will(returnValue("id1"));
+  facadeMock.expects(once()).method("askQuestion").will(returnValue(false));
+  myUserFinder.registerForProject("kir@fff");
+  assertNull(params[0]);
+}

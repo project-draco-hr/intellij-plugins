@@ -1,0 +1,11 @@
+{
+  myDispatcher.sendNow(myUser,new MockMessage(new Date()));
+  myDispatcher.sendNow(myUser,new MockMessage(yesterday()));
+  Thread.sleep(SAVE_WAIT_TIMEOUT);
+  assertEquals(2,new File(myIdeFacade.getCacheDir(),"history").listFiles().length);
+  LocalMessageDispatcherImpl localMessageDispatcher=createLocalMessageDispatcher();
+  LocalMessage[] messages=localMessageDispatcher.getHistory(myUser,a_moment_ago());
+  assertEquals(1,messages.length);
+  messages=localMessageDispatcher.getHistory(myUser,new Date(System.currentTimeMillis() - 1000 * 3601 * 24));
+  assertEquals(2,messages.length);
+}

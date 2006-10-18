@@ -1,0 +1,34 @@
+{
+  addEventListener();
+  addUserFred();
+  User user=myUserModel.getAllUsers()[0];
+  final Roster roster=myFacade.getConnection().getRoster();
+  user.setGroup("someOtherGroup",myUserModel);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return roster.getGroupCount() == 1 && roster.getGroup("someOtherGroup") != null;
+    }
+  }
+;
+  assertEquals("One group expected",1,roster.getGroupCount());
+  RosterGroup group=roster.getGroup("someOtherGroup");
+  assertNotNull(group);
+  assertEquals(1,group.getEntryCount());
+  assertNotNull(group.getEntry(FRED));
+  user.setDisplayName("Some new name",myUserModel);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return "Some new name".equals(roster.getEntry(FRED).getName());
+    }
+  }
+;
+  assertEquals("User name in Roster should have changed","Some new name",roster.getEntry(FRED).getName());
+  myUserModel.removeUser(user);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return roster.getEntryCount() == 0;
+    }
+  }
+;
+  assertEquals("User should be removed from Roster",0,roster.getEntryCount());
+}

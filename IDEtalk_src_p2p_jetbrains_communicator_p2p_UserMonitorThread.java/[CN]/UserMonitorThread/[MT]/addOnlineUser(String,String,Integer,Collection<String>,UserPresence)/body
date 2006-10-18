@@ -1,0 +1,17 @@
+{
+  try {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Got Online Response from " + remoteUsername + " at "+ remoteAddress+ '/'+ remotePort);
+    }
+    OnlineUserInfo onlineUserInfo=new OnlineUserInfo(InetAddress.getByName(remoteAddress),remotePort.intValue(),projects,presence);
+    if (!onlineUserInfo.getAddress().isLoopbackAddress() || Pico.isUnitTest()) {
+      User user=myClient.createUser(remoteUsername,onlineUserInfo);
+synchronized (myAvailableUsersLock) {
+        myAvailableUsers.add(user);
+      }
+    }
+  }
+ catch (  UnknownHostException e) {
+    LOG.info("Unable to find host for " + remoteAddress + ", user "+ remoteUsername);
+  }
+}

@@ -1,0 +1,31 @@
+{
+  myContentManager.addContentManagerListener(new ContentManagerAdapter(){
+    public void contentRemoved(    ContentManagerEvent event){
+      super.contentRemoved(event);
+      event.getContent().getDisposer().dispose();
+    }
+    public void selectionChanged(    ContentManagerEvent event){
+      super.selectionChanged(event);
+      UIUtil.invokeLater(new Runnable(){
+        public void run(){
+          processMessagesOfVisibleTab();
+        }
+      }
+);
+    }
+  }
+);
+  myPanel=new NonOpaquePanel(new BorderLayout());
+  UIUtil.runWhenShown(myPanel,new Runnable(){
+    public void run(){
+      showAllTabsOfUsersWithMessages();
+    }
+  }
+);
+  myPanel.add(myContentManager.getComponent());
+  AnAction toolbarGroup=myActionManager.getAction("IDEtalk.MessageWindowToolbar");
+  if (toolbarGroup != null) {
+    ActionToolbar toolbar=myActionManager.createActionToolbar(PLACE_TOOLBAR,(ActionGroup)toolbarGroup,false);
+    myPanel.add(toolbar.getComponent(),BorderLayout.WEST);
+  }
+}

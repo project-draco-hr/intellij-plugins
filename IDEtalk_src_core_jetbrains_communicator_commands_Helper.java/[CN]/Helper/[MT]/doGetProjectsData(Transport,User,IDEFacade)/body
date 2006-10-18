@@ -1,0 +1,29 @@
+{
+  final ProjectsData[] result=new ProjectsData[]{ProjectsData.NULL};
+  if (user.isOnline()) {
+    try {
+      UIUtil.run(ideFacade,StringUtil.getMsg("ViewFilesCommand.title",user.getDisplayName()),new Runnable(){
+        public void run(){
+          final Semaphore semaphore=new Semaphore(1);
+          try {
+            semaphore.acquire();
+            transport.sendXmlMessage(user,new GetProjectsDataXmlMessage(result){
+              public void processResponse(              Element responseElement){
+                super.processResponse(responseElement);
+                semaphore.release();
+              }
+            }
+);
+            semaphore.tryAcquire(getWaitTimeout(),TimeUnit.MILLISECONDS);
+          }
+ catch (          InterruptedException e) {
+          }
+        }
+      }
+);
+    }
+ catch (    CanceledException e) {
+    }
+  }
+  return result[0];
+}

@@ -1,0 +1,9 @@
+{
+  User p2PUser=UserImpl.create("nick",P2PTransport.CODE);
+  List<String> projects=new ArrayList<String>();
+  projects.add("project1");
+  OnlineUserInfo onlineUserInfo=new OnlineUserInfo(InetAddress.getByName("localhost"),PORT,projects,new UserPresence(PresenceMode.AWAY));
+  myUserMonitorClientMock.expects(once()).method("createUser").with(eq("nick"),eq(onlineUserInfo)).will(returnValue(p2PUser));
+  myUserMonitorThread.addOnlineUser("localhost","nick",new Integer(PORT),projects,new UserPresence(PresenceMode.AWAY));
+  myUserMonitorClientMock.expects(once()).method("setOnlineUsers").with(eq(new HashSet(Arrays.asList(p2PUser))));
+}

@@ -1,0 +1,63 @@
+{
+  LOG.info(getName() + ": Start thread.");
+  myDatagramSocket=null;
+  myIsRunning=true;
+  try {
+    myDatagramSocket=new MulticastSocket(MULTICAST_PORT);
+    myDatagramSocket.setInterface(mySelfAddress);
+    myDatagramSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDR));
+    byte[] buffer=new byte[BUFFER_SIZE];
+    while (myIsRunning) {
+      try {
+        DatagramPacket datagramPacket=new DatagramPacket(buffer,buffer.length);
+        LOG.debug(getName() + ": Listening for multicast messages... ");
+        myStarted=true;
+        myDatagramSocket.receive(datagramPacket);
+        String message=new String(buffer,0,datagramPacket.getLength());
+        final InetAddress remoteAddress=datagramPacket.getAddress();
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(getName() + ": Got multicast message '" + message+ "' from "+ remoteAddress);
+        }
+        if (message.startsWith(PING_MESSAGE)) {
+          final int targetPort=extractPort(message);
+          if (shouldAddSelf(datagramPacket,targetPort)) {
+            Thread thread=new Thread(new Runnable(){
+              public void run(){
+                addSelfInfoTo(remoteAddress,targetPort);
+              }
+            }
+,"Registration thread on " + remoteAddress);
+            thread.setDaemon(true);
+            thread.start();
+          }
+        }
+      }
+ catch (      SocketException e) {
+        if (!"Socket closed".equalsIgnoreCase(e.getMessage())) {
+          LOG.error(e.getMessage(),e);
+        }
+ else {
+          myIsRunning=false;
+        }
+      }
+    }
+  }
+ catch (  SocketException e) {
+    final String msg=e.getMessage();
+    if (msg != null) {
+      LOG.info(msg,e);
+    }
+ else {
+      logError(e);
+    }
+  }
+catch (  IOException e) {
+    logError(e);
+  }
+ finally {
+    myIsRunning=false;
+    if (myDatagramSocket != null && !myDatagramSocket.isClosed()) {
+      myDatagramSocket.close();
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  if (!myUI.connectAndLogin(null)) {
+    return;
+  }
+  final String threadId=getThreadId(user);
+  final PacketCollector packetCollector=myFacade.getConnection().createPacketCollector(new ThreadFilter(threadId));
+  doSendMessage(xmlMessage,user,threadId);
+  if (xmlMessage.needsResponse()) {
+    Thread thread=new Thread(new Runnable(){
+      public void run(){
+        try {
+          processResponse(xmlMessage,packetCollector);
+        }
+  finally {
+          packetCollector.cancel();
+        }
+      }
+    }
+,"Jabber message response waiter");
+    thread.start();
+  }
+ else {
+    packetCollector.cancel();
+  }
+}

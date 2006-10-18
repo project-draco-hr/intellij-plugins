@@ -1,0 +1,19 @@
+{
+  FileEditorManager editorManager=FileEditorManager.getInstance(getProject(e));
+  Editor editor=editorManager.getSelectedTextEditor();
+  T command=getCommand(e);
+  MutablePicoContainer container=getContainer(e);
+  if (command != null && editor != null && container != null) {
+    VirtualFile file=FileDocumentManager.getInstance().getFile(editor.getDocument());
+    if (file != null) {
+      VFile vFile=VFSUtil.createFileFrom(file,editor.getProject());
+      if (vFile == null) {
+        return;
+      }
+      command.setVFile(vFile);
+      setUser(container,command);
+      prepareCommand(command,editor,container);
+    }
+  }
+  super.update(e);
+}

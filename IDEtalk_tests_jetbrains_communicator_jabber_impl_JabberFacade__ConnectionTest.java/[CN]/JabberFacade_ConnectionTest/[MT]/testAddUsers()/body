@@ -1,0 +1,22 @@
+{
+  createGoodAccount(myUser,myFacade);
+  final String bob="bob@jabber.org";
+  String self=myFacade.getConnection().getUser();
+  myFacade.addUsers("someGroup",Arrays.asList(self,bob));
+  final Roster roster=myFacade.getConnection().getRoster();
+  new WaitFor(500){
+    protected boolean condition(){
+      return roster.contains(bob);
+    }
+  }
+;
+  assertTrue("User should be added to the Roster",roster.contains(bob));
+  assertFalse("Self should not be added to the Roster",roster.contains(self));
+  new WaitFor(200){
+    protected boolean condition(){
+      return roster.getEntry(bob).getGroups().size() > 0;
+    }
+  }
+;
+  assertEquals("Bad Group","someGroup",((RosterGroup)roster.getEntry(bob).getGroups().iterator().next()).getName());
+}

@@ -1,0 +1,30 @@
+{
+  LOG.debug("Starting " + Thread.currentThread().getName());
+synchronized (myWorkingThreadLock) {
+    myWorkingThread=Thread.currentThread();
+    myThread=Thread.currentThread();
+  }
+  try {
+    LOG.debug("Started Network Message Dispatcher thread");
+    while (notDisposed()) {
+synchronized (myWorkingThreadLock) {
+        while (!myShouldDeliverNow && notDisposed()) {
+          myWorkingThreadLock.wait();
+        }
+        myShouldDeliverNow=false;
+      }
+      LOG.debug("Process pending network messages");
+      if (notDisposed()) {
+        dispatchAllMessages();
+      }
+    }
+  }
+ catch (  InterruptedException e) {
+    LOG.warn(e.getMessage(),e);
+  }
+ finally {
+synchronized (myWorkingThreadLock) {
+      myWorkingThread=null;
+    }
+  }
+}

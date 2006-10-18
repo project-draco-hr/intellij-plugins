@@ -1,0 +1,17 @@
+{
+  super.setUp();
+  myUserMock=mock(User.class);
+  myUser=(User)myUserMock.proxy();
+  final Mock consoleStub=mock(ConsoleView.class);
+  consoleStub.stubs().method(ANYTHING);
+  consoleStub.stubs().method("getComponent").will(returnValue(new JLabel()));
+  LocalMessageDispatcherImpl localMessageDispatcher=new LocalMessageDispatcherImpl(getBroadcaster(),new MockIDEFacade(getClass()),null);
+  disposeOnTearDown(localMessageDispatcher);
+  myMessagesTab=new MessagesTab(null,myUser,localMessageDispatcher,true){
+    protected ConsoleView createConsoleView(    Project project){
+      return (ConsoleView)consoleStub.proxy();
+    }
+  }
+;
+  disposeOnTearDown(myMessagesTab);
+}

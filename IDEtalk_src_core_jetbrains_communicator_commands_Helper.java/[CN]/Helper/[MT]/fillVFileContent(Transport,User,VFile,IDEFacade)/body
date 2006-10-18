@@ -1,0 +1,36 @@
+{
+  if (user.isOnline()) {
+    try {
+      UIUtil.run(ideFacade,StringUtil.getMsg("GetVFileContents.title"),new Runnable(){
+        public void run(){
+          final Semaphore semaphore=new Semaphore(1);
+          try {
+            semaphore.acquire();
+            transport.sendXmlMessage(user,new GetVFileContentsXmlMessage(vFile){
+              public void processResponse(              Element responseElement){
+                super.processResponse(responseElement);
+                semaphore.release();
+              }
+            }
+);
+            semaphore.tryAcquire(getWaitTimeout(),TimeUnit.MILLISECONDS);
+          }
+ catch (          InterruptedException e) {
+          }
+        }
+      }
+);
+    }
+ catch (    CanceledException e) {
+      LOG.info(e.getMessage(),e);
+    }
+    if (vFile.getContents() == null) {
+      String secondParamForFailMessage=user.getDisplayName();
+      String address=transport.getAddressString(user);
+      if (StringUtil.isNotEmpty(address)) {
+        secondParamForFailMessage+=" from " + address;
+      }
+      ideFacade.showMessage(StringUtil.FAILED_TITLE,StringUtil.getMsg("GetVFileContents.fail",vFile.getDisplayName(),secondParamForFailMessage));
+    }
+  }
+}

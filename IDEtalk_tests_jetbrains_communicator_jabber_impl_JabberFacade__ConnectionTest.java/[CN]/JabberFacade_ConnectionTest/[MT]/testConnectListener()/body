@@ -1,0 +1,23 @@
+{
+  final boolean[] connected=new boolean[1];
+  final boolean[] disconnected=new boolean[1];
+  final boolean[] authenticated=new boolean[1];
+  myFacade.addConnectionListener(new ConnectionListener(){
+    public void connected(    XMPPConnection connection){
+      connected[0]=true;
+    }
+    public void disconnected(    boolean onError){
+      disconnected[0]=true;
+    }
+    public void authenticated(){
+      authenticated[0]=true;
+    }
+  }
+);
+  assertFalse("sanity check",connected[0] || disconnected[0] || authenticated[0]);
+  createGoodAccount(myUser,myFacade);
+  assertTrue("should call listener",connected[0] && authenticated[0]);
+  assertFalse(disconnected[0]);
+  myFacade.disconnect();
+  assertTrue(disconnected[0]);
+}

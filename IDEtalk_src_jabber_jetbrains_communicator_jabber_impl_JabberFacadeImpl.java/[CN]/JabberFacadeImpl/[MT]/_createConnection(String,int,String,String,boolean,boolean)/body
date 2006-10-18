@@ -1,0 +1,45 @@
+{
+  try {
+    initSettingsIfNeeded();
+    XMPPConnection.addConnectionListener(new ConnectionEstablishedListener(){
+      public void connectionEstablished(      XMPPConnection connection){
+        XMPPConnection.removeConnectionListener(this);
+        fireConnected(connection);
+      }
+    }
+);
+    String serviceName=server;
+    if ("talk.google.com".equals(server)) {
+      serviceName="gmail.com";
+    }
+    String user=username;
+    int at=username.indexOf('@');
+    if (at > 0) {
+      serviceName=username.substring(at + 1);
+      user=username.substring(0,at);
+    }
+    if (forceOldSSL) {
+      myConnection=new SSLXMPPConnection(server,port,serviceName);
+    }
+ else {
+      myConnection=new XMPPConnection(server,port,serviceName);
+    }
+    if (createAccount && myConnection.getAccountManager().supportsAccountCreation()) {
+      myConnection.getAccountManager().createAccount(user,password.replaceAll("&","&amp;"));
+    }
+    if (!myConnection.isConnected())     return StringUtil.getMsg("unable.to.connect.to",server,port);
+    myConnection.login(user,password,IDETALK_RESOURCE);
+    saveAccountData(server,port,username,password,forceOldSSL);
+    fireAuthenticated();
+    myConnection.addConnectionListener(new SmackConnectionListener());
+  }
+ catch (  XMPPException e) {
+    LOG.info(getMessage(e),e);
+    return getMessage(e);
+  }
+catch (  IllegalStateException e) {
+    LOG.info(e,e);
+    return e.getMessage();
+  }
+  return null;
+}

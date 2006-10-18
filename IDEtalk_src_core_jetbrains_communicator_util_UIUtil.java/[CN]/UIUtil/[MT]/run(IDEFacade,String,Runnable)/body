@@ -1,0 +1,38 @@
+{
+  IDEFacade.Process process=new IDEFacade.Process(){
+    public void run(    ProgressIndicator indicator){
+      indicator.setIndefinite(true);
+      indicator.setText(title);
+      final Object monitor=new Object();
+      final long[] started=new long[1];
+      Thread workerThread=new Thread(new Runnable(){
+        public void run(){
+synchronized (monitor) {
+            monitor.notifyAll();
+            started[0]=System.currentTimeMillis();
+          }
+          runnable.run();
+        }
+      }
+);
+      workerThread.start();
+      indicator.checkCanceled();
+      waitForWorkerThreadStart(monitor,started);
+      while (workerThread.isAlive()) {
+        indicator.checkCanceled();
+        indicator.setFraction(.5f);
+        try {
+          Thread.sleep(100);
+        }
+ catch (        InterruptedException e) {
+          break;
+        }
+      }
+      if (workerThread.isAlive()) {
+        workerThread.interrupt();
+      }
+    }
+  }
+;
+  ideFacade.runLongProcess(title,process);
+}

@@ -1,0 +1,16 @@
+{
+  myFacade=new JabberFacadeImpl(myIdeFacade);
+  myUserFinder=new MockUserFinder();
+  Mock mockUI=createJabberUIMock();
+  myTransport=new JabberTransport((JabberUI)mockUI.proxy(),myFacade,myUserModel,myDispatcher,myUserFinder){
+    public void synchronizeRoster(    boolean removeUsersNotInRoster){
+      super.synchronizeRoster(removeUsersNotInRoster);
+      myUsersSynchronized=true;
+    }
+  }
+;
+  Pico.getInstance().registerComponentInstance(myTransport);
+  disposeOnTearDown(myFacade);
+  disposeOnTearDown(myTransport);
+  return myTransport;
+}

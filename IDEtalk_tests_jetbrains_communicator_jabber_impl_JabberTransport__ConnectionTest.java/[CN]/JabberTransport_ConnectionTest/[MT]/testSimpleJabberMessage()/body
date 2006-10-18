@@ -1,0 +1,18 @@
+{
+  Message message=new Message(mySelf.getName(),Message.Type.NORMAL);
+  String body="some ????? <>#$%^";
+  message.setThread("someThreadId");
+  message.setBody(body);
+  addEventListener();
+  myFacade.getConnection().sendPacket(message);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() > 1;
+    }
+  }
+;
+  IDEtalkEvent event=(IDEtalkEvent)myEvents.get(1);
+  assertTrue("Expect message Event",event instanceof MessageEvent);
+  assertEquals("Expect message text",body,((MessageEvent)event).getMessage());
+  assertEquals("Should remember threadId for incoming messages","someThreadId",myTransport.getThreadId(mySelf));
+}

@@ -1,0 +1,10 @@
+{
+  Element response=new Element(RESPONSE,Transport.NAMESPACE);
+  XmlResponseProvider provider=XmlResponseProvider.getProvider(element,getBroadcaster());
+  if (provider.processAndFillResponse(response,element,JabberTransport.this,getFrom(message))) {
+    Message responseMessage=new Message(getFrom(message));
+    responseMessage.addExtension(new JDOMExtension(response));
+    responseMessage.setThread(message.getThread());
+    myFacade.getConnection().sendPacket(responseMessage);
+  }
+}

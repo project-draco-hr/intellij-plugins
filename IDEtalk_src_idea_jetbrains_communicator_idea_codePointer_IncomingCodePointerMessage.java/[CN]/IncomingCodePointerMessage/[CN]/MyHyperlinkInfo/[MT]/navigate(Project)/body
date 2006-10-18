@@ -1,0 +1,23 @@
+{
+  updateFacade();
+  VirtualFile virtualFile=VFSUtil.getVirtualFile(myRemoteFile);
+  if (virtualFile == null) {
+    LOG.info("Unable to find " + myRemoteFile);
+    myFacade.showMessage(StringUtil.getMsg("no.file"),StringUtil.getMsg("idea.link.nofile",myRemoteFile.getDisplayName()));
+    return;
+  }
+  final Editor editor=openTextEditor(project,virtualFile);
+  if (editor == null) {
+    LOG.info("Unable to open text editor for " + virtualFile.getPresentableUrl());
+    myFacade.showMessage(StringUtil.getMsg("unable.to.open"),StringUtil.getMsg("idea.link.noeditor",virtualFile.getPresentableUrl()));
+    return;
+  }
+  PositionCorrector positionCorrector=createPositionCorrector();
+  int startOffset=editor.logicalPositionToOffset(getStartLogicalPosition(positionCorrector));
+  int endOffset=editor.logicalPositionToOffset(getEndLogicalPosition(positionCorrector));
+  startOffset=moveToTextBounds(startOffset,editor.getDocument().getTextLength());
+  endOffset=moveToTextBounds(endOffset,editor.getDocument().getTextLength());
+  editor.getCaretModel().moveToOffset(startOffset);
+  editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+  editor.getSelectionModel().setSelection(startOffset,endOffset);
+}

@@ -1,0 +1,22 @@
+{
+  super.update(e);
+  Project project=getProject(e);
+  MutablePicoContainer container=getContainer(project);
+  SearchHistoryCommand command=getCommand(e);
+  User selectedUser;
+  if (container != null && project != null && command != null) {
+    boolean focused=false;
+    if (IDEtalkMessagesWindowImpl.PLACE_TOOLBAR.equals(e.getPlace())) {
+      IDEtalkMessagesWindow messagesWindow=project.getComponent(IDEtalkMessagesWindow.class);
+      selectedUser=messagesWindow.getSelectedUser();
+      focused=messagesWindow.hasFocus();
+    }
+ else {
+      UserListComponent userList=(UserListComponent)container.getComponentInstanceOfType(UserListComponent.class);
+      selectedUser=userList.getSelectedUser();
+      focused=userList.getComponent().hasFocus();
+    }
+    command.setUser(selectedUser);
+    e.getPresentation().setEnabled(command.isEnabled() && focused);
+  }
+}

@@ -1,0 +1,19 @@
+{
+  XMPPConnection conn=createLocalConnectionWithJabberUser("fred" + System.nanoTime(),JabberFacadeImpl.IDETALK_RESOURCE);
+  addEventListener();
+  final String fred=getUser(conn);
+  addUser(fred);
+  IDEtalkEvent event=checkEvent(false);
+  assertTrue(event.toString(),event instanceof UserEvent.Added);
+  User user=((UserEvent.Added)event).getUser();
+  assertEquals("Jabber user expected","Jabber",user.getTransportCode());
+  assertEquals("Should add Jabber user",fred,user.getName());
+  assertEquals("Wrong group","aGroup",user.getGroup());
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myFacade.getConnection().getRoster().getPresence(fred) != null;
+    }
+  }
+;
+  assertTrue("User with IDEtalk resource",user.hasIDEtalkClient());
+}

@@ -1,0 +1,22 @@
+{
+  myFacade.disconnect();
+  if (useExistingAccount()) {
+    result[0]=myFacade.connect(getUsername(),getPassword(),getServer(),getPort(),isForceSSL());
+    addErrorPrefixIfNeeded(result);
+  }
+ else {
+    result[0]=checkPassword();
+    if (result[0] == null) {
+      result[0]=myFacade.createAccountAndConnect(getUsername(),getPassword(),getServer(),getPort(),isForceSSL());
+      addErrorPrefixIfNeeded(result);
+    }
+    if (result[0] == null) {
+      try {
+        myFacade.setVCardInfo(myNickname.getText(),myFirstName.getText(),myLastName.getText());
+      }
+ catch (      XMPPException e) {
+        LOG.info(e.getMessage(),e);
+      }
+    }
+  }
+}

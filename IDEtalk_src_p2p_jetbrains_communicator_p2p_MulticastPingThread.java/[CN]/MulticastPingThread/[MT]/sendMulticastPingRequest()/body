@@ -1,0 +1,22 @@
+{
+  if (!myIsRunning)   return;
+  MulticastSocket datagramSocket=null;
+  try {
+    datagramSocket=new MulticastSocket();
+    datagramSocket.setInterface(mySelfAddress);
+    LOG.debug("Sending Multicast ping request: " + mySelfAddress);
+    sendMessage(datagramSocket,PING_MESSAGE + myUserMonitorClient.getPort());
+    myFailuresCounter=0;
+  }
+ catch (  IOException e) {
+    if (++myFailuresCounter > ALLOWED_FAILURES) {
+      LOG.info("Unable to send multicast request on interface " + mySelfAddress + ". I give up after "+ myFailuresCounter+ " attempts.",e);
+      myIsRunning=false;
+    }
+  }
+ finally {
+    if (datagramSocket != null) {
+      datagramSocket.close();
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  myDispatcher.sendNow(myUser,new MockMessage(yesterday(),"someText"));
+  MockMessage message=new MockMessage();
+  myDispatcher.sendNow(myUser,message);
+  Thread.sleep(SAVE_WAIT_TIMEOUT);
+  LocalMessageDispatcherImpl localMessageDispatcher=createLocalMessageDispatcher();
+  localMessageDispatcher.sendNow(myUser,message);
+  Thread.sleep(SAVE_WAIT_TIMEOUT);
+  assertEquals(2,localMessageDispatcher.getHistory(myUser,a_moment_ago()).length);
+  LocalMessage[] messages=localMessageDispatcher.getHistory(myUser,null);
+  assertEquals(3,messages.length);
+  assertEquals("someText",((MockMessage)messages[0]).getMessage());
+}

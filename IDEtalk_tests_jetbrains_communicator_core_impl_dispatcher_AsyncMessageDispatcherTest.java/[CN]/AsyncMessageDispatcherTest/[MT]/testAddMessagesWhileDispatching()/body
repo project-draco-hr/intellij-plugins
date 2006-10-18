@@ -1,0 +1,19 @@
+{
+  NotifyableMessage mockMessage=new NotifyableMessage(true,myLog);
+  MockUser user1=new MockUser("user1",null);
+  MockUser user2=new MockUser("user2",null);
+  user1.setOnline(true);
+  user2.setOnline(true);
+  myDispatcher.sendLater(user1,mockMessage);
+  mockMessage.waitUntilDispatchingStarted();
+  myDispatcher.sendLater(user2,new MockMessage(true));
+  assertEquals("Messages not delivered yet",2,myDispatcher.getUsersWithMessages().length);
+  triggerMessageProcessing(mockMessage);
+  new WaitFor(200){
+    protected boolean condition(){
+      return myDispatcher.getUsersWithMessages().length == 0;
+    }
+  }
+;
+  assertEquals("All messages should be delivered",0,myDispatcher.getUsersWithMessages().length);
+}

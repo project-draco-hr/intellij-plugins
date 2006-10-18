@@ -1,0 +1,30 @@
+{
+  myUserTree=userTree;
+  myGroups=groups;
+  myGroups.setEditable(true);
+  myUserTree.setSelectionRow(0);
+  myUserTree.addTreeSelectionListener(new TreeSelectionListener(){
+    public void valueChanged(    TreeSelectionEvent e){
+      TreePath[] paths=e.getPaths();
+      for (      TreePath path : paths) {
+        if (myUserTree.isPathSelected(path)) {
+          Object userObject=TreeUtils.getUserObject(path);
+          if (userObject instanceof User) {
+            removeGroupSelection(path);
+          }
+ else {
+            removeSelectionOfGroupUsers(path);
+          }
+        }
+      }
+      updateGroupSelector();
+    }
+  }
+);
+  Vector<String> groupsItems=new Vector<String>(Arrays.asList(strings));
+  Collections.sort(groupsItems);
+  groupsItems.add(0,UserModel.AUTO_GROUP);
+  myGroups.setModel(new DefaultComboBoxModel(groupsItems));
+  myGroups.setSelectedItem(UserModel.AUTO_GROUP);
+  updateGroupSelector();
+}

@@ -1,0 +1,41 @@
+{
+  try {
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(new Runnable(){
+      public void run(){
+        final ProgressIndicator progressIndicator=ProgressManager.getInstance().getProgressIndicator();
+        if (progressIndicator == null) {
+          process.run(new NullProgressIndicator(){
+            public void checkCanceled(){
+              super.checkCanceled();
+              throw new ProcessCanceledException();
+            }
+          }
+);
+        }
+ else {
+          progressIndicator.pushState();
+          process.run(new jetbrains.communicator.ide.ProgressIndicator(){
+            public void setIndefinite(            boolean indefinite){
+              progressIndicator.setIndeterminate(indefinite);
+            }
+            public void setText(            String text){
+              progressIndicator.setText(text);
+            }
+            public void setFraction(            double x){
+              progressIndicator.setFraction(x);
+            }
+            public void checkCanceled(){
+              progressIndicator.checkCanceled();
+            }
+          }
+);
+          progressIndicator.popState();
+        }
+      }
+    }
+,processTitle,true,null);
+  }
+ catch (  ProcessCanceledException e) {
+    throw new CanceledException(e);
+  }
+}

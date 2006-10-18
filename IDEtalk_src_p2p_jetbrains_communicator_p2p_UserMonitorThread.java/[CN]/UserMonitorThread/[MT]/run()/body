@@ -1,0 +1,40 @@
+{
+  super.run();
+  LOG.info("Start " + getName());
+  startupMulticastThreads();
+  myThread=Thread.currentThread();
+  while (isRunning()) {
+    try {
+      waitForNextSearch();
+      if (!isRunning())       return;
+synchronized (myLock) {
+        myStartFindingAt=System.currentTimeMillis();
+        LOG.debug("Start finding users ");
+      }
+      try {
+        sendMulticastRequests(getListeningThreads());
+        Thread.sleep(myWaitUserResponsesTimeout);
+        flushOnlineUsers();
+      }
+  finally {
+synchronized (myLock) {
+          myStartFindingAt=0;
+          LOG.debug("Done finding users. Timeout for " + myScansTimeout);
+        }
+      }
+    }
+ catch (    UnknownHostException e) {
+      LOG.error(e.getMessage(),e);
+    }
+catch (    NoRouteToHostException e) {
+      LOG.info(e.getMessage(),e);
+    }
+catch (    IOException e) {
+      LOG.error(e.getMessage(),e);
+    }
+catch (    InterruptedException e) {
+      myThread=null;
+    }
+  }
+  LOG.info("Shut down");
+}

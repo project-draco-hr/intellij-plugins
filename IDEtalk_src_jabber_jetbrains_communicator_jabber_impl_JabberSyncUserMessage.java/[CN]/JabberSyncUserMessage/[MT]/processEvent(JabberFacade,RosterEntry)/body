@@ -1,0 +1,27 @@
+{
+  myEvent.accept(new EventVisitor(){
+    public void visitUserUpdated(    UserEvent.Updated event){
+      try {
+        if (GROUP.equals(event.getPropertyName())) {
+          changeUsersGroup(event,jabberFacade.getConnection().getRoster(),userEntry);
+        }
+ else         if (DISPLAY_NAME.equals(event.getPropertyName())) {
+          userEntry.setName((String)event.getNewValue());
+        }
+      }
+ catch (      XMPPException e) {
+        processXMPPException(e,event);
+      }
+    }
+    public void visitUserRemoved(    UserEvent.Removed event){
+      try {
+        jabberFacade.getConnection().getRoster().removeEntry(userEntry);
+        jabberFacade.changeSubscription(userEntry.getUser(),false);
+      }
+ catch (      XMPPException e) {
+        processXMPPException(e,event);
+      }
+    }
+  }
+);
+}

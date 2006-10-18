@@ -1,0 +1,33 @@
+{
+  addEventListener();
+  String userName="bob" + System.currentTimeMillis();
+  XMPPConnection contact=createLocalConnectionWithJabberUser(userName,null);
+  Roster roster=myTransport.getFacade().getConnection().getRoster();
+  String jabberUser=getUser(contact);
+  final User bob=UserImpl.create(jabberUser,myTransport.getName());
+  myEvents.clear();
+  roster.createEntry(jabberUser,"Bob",new String[0]);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() == 2;
+    }
+  }
+;
+  assertTrue("Bob should be online",bob.isOnline());
+  assertEquals("/ideTalk/jabber.png",myTransport.getIconPath(bob.getPresence()));
+  assertEquals("One user in UserModel expected:" + Arrays.asList(myUserModel.getAllUsers()),1,myUserModel.getAllUsers().length);
+  UserEvent.Online online=((UserEvent.Online)myEvents.get(1));
+  assertEquals("Online event expected",bob,online.getUser());
+  myEvents.clear();
+  Presence presence=new Presence(Presence.Type.unavailable);
+  contact.sendPacket(presence);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() == 1;
+    }
+  }
+;
+  assertFalse("Should become offline",bob.isOnline());
+  assertEquals("/ideTalk/offline.png",myTransport.getIconPath(myTransport.getUserPresence(bob)));
+  assertEquals("Bob should go offline",bob,((UserEvent.Offline)checkEvent(true)).getUser());
+}

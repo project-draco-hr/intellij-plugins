@@ -1,0 +1,33 @@
+{
+  final XMPPConnection conn=new XMPPConnection("localhost");
+  conn.getAccountManager().createAccount(userName,"123456");
+  if (resource == null) {
+    resource="test";
+  }
+  conn.login(userName,"123456",resource);
+  conn.getRoster().setSubscriptionMode(Roster.SubscriptionMode.accept_all);
+  Presence presence=new Presence(Presence.Type.available);
+  conn.sendPacket(presence);
+  disposeOnTearDown(new Disposable(){
+    public void dispose(){
+      try {
+        if (conn.isConnected()) {
+          conn.getAccountManager().deleteAccount();
+        }
+      }
+ catch (      XMPPException e) {
+        throw new RuntimeException(e);
+      }
+ finally {
+        new Thread(){
+          public void run(){
+            conn.close();
+          }
+        }
+.start();
+      }
+    }
+  }
+);
+  return conn;
+}

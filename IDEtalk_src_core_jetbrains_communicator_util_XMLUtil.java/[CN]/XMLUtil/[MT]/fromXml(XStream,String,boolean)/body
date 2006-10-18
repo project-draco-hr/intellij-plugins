@@ -1,0 +1,30 @@
+{
+  Reader fileReader=null;
+  try {
+    BufferedInputStream inputStream=new BufferedInputStream(new FileInputStream(fullFileName));
+    fileReader=new InputStreamReader(inputStream,"UTF-8");
+    return xStream.fromXML(fileReader);
+  }
+ catch (  FileNotFoundException e) {
+    return null;
+  }
+catch (  Throwable e) {
+    if (reportFailureAsError) {
+      LOG.error("Error reading " + fullFileName,e);
+    }
+ else {
+      LOG.info("Error reading " + fullFileName,e);
+    }
+    return null;
+  }
+ finally {
+    if (fileReader != null) {
+      try {
+        fileReader.close();
+      }
+ catch (      IOException e) {
+        processError(e);
+      }
+    }
+  }
+}

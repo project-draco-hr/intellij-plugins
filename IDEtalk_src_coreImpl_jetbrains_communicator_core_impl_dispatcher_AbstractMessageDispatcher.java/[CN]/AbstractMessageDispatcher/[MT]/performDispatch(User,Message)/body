@@ -1,0 +1,28 @@
+{
+  try {
+    myDispatching=true;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Start dispatching " + message + " to "+ user);
+    }
+    boolean result=message.send(user);
+synchronized (myUser2MessagesLock) {
+      List<Message> userMessages=getMessages(user);
+      if (result) {
+        userMessages.remove(message);
+        if (userMessages.size() == 0) {
+          myUser2Messages.remove(user);
+        }
+      }
+ else       if (!userMessages.contains(message)) {
+        userMessages.add(message);
+      }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("End   dispatching " + message + " to "+ user);
+    }
+    return result;
+  }
+  finally {
+    myDispatching=false;
+  }
+}

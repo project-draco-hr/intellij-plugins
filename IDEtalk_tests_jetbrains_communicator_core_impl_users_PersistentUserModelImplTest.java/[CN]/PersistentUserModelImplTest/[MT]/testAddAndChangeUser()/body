@@ -1,0 +1,18 @@
+{
+  myUserModel.addUser(new MockUser("user","group"));
+  checkSaved(true);
+  User user=myUserModel.getAllUsers()[0];
+  user.setDisplayName("dds dds",myUserModel);
+  checkSaved(true);
+  user.setGroup("newGroup",myUserModel);
+  checkSaved(true);
+  user.setCanAccessMyFiles(true,myUserModel);
+  checkSaved(true);
+  getBroadcaster().fireEvent(new UserEvent.Updated(user,"presence",null,null));
+  checkSaved(false);
+  PersistentUserModelImpl modelInstance=createModelInstance();
+  User[] users=modelInstance.getAllUsers();
+  assertEquals(1,users.length);
+  assertEquals("dds dds",users[0].getDisplayName());
+  assertEquals("newGroup",users[0].getGroup());
+}

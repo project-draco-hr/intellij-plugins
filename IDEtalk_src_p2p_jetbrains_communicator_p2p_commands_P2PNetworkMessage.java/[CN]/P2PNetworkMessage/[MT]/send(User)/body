@@ -1,0 +1,12 @@
+{
+  int port=getPort(user);
+  if (port < 0) {
+    return false;
+  }
+  XmlRpcTargetImpl target=new XmlRpcTargetImpl(port,P2PTransport.getInstance().getAddress(user));
+  List<String> parameters=new ArrayList<String>();
+  parameters.add(StringUtil.toXMLSafeString(StringUtil.getMyUsername()));
+  parameters.addAll(myCommandParameters);
+  setResponse(NetworkUtil.sendMessage(target,myCommandId,myCommand,parameters.toArray(new Object[parameters.size()])));
+  return null != myResponse;
+}

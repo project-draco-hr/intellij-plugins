@@ -1,0 +1,13 @@
+{
+  myTransport.setOnlineUsers(new HashSet<User>());
+  User user=myTransport.createUser("someUser",new OnlineUserInfo(null,0,null,new UserPresence(PresenceMode.AWAY)));
+  myTransport.setOnlineUsers(Collections.singleton(user));
+  addEventListener();
+  user=myTransport.createUser("someUser",new OnlineUserInfo(null,0,null,new UserPresence(PresenceMode.AWAY)));
+  myTransport.setOnlineUsers(Collections.singleton(user));
+  assertEquals("Same user data, no events expected: " + myEvents,0,myEvents.size());
+  user=myTransport.createUser("someUser",new OnlineUserInfo(null,0,null,new UserPresence(PresenceMode.EXTENDED_AWAY)));
+  myTransport.setOnlineUsers(Collections.singleton(user));
+  UserEvent.Updated event=(UserEvent.Updated)checkEvent(true);
+  assertEquals("Precense changed: " + myEvents,"presence",event.getPropertyName());
+}

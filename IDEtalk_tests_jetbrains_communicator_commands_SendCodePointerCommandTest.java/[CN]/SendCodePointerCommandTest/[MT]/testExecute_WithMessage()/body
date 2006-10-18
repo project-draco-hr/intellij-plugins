@@ -1,0 +1,21 @@
+{
+  final CodePointer codePointerToSend=new CodePointer(0,0);
+  final VFile fileToSend=VFile.create("a path");
+  final boolean[] sent=new boolean[1];
+  MockUser user=new MockUser(){
+    public void sendCodeIntervalPointer(    VFile file,    CodePointer pointer,    String comment,    EventBroadcaster eventBroadcaster){
+      sent[0]=true;
+      assertSame(fileToSend,file);
+      assertSame(codePointerToSend,pointer);
+      assertEquals("some message",comment);
+    }
+  }
+;
+  myCommand.setCodePointer(codePointerToSend);
+  myCommand.setVFile(fileToSend);
+  myCommand.setUser(user);
+  myFacadeMock.expects(once()).method("getMessage").will(returnValue("some message"));
+  myFacadeMock.expects(once()).method("fillFileContents").with(eq(fileToSend));
+  myCommand.execute();
+  assertTrue("Should call sendCodeIntervalPointer",sent[0]);
+}

@@ -1,0 +1,15 @@
+{
+  String userName="bob" + System.currentTimeMillis();
+  XMPPConnection contact=createLocalConnectionWithJabberUser(userName,null);
+  myTransport.getFacade().addUsers("General",Arrays.asList(getUser(contact)));
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return 1 == myUserModel.getAllUsers().length && myUserModel.getAllUsers()[0].isOnline();
+    }
+  }
+;
+  assertEquals(1,myUserModel.getAllUsers().length);
+  assertTrue(myUserModel.getAllUsers()[0].isOnline());
+  myTransport.getFacade().disconnect();
+  assertFalse("Jabber user should become unavailable",myUserModel.getAllUsers()[0].isOnline());
+}

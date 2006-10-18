@@ -1,0 +1,20 @@
+{
+  TreePath[] selectionPaths=myUserTree.getSelectionPaths();
+  if (selectionPaths == null)   selectionPaths=new TreePath[0];
+  Set<User> result=new HashSet<User>();
+  for (  TreePath selectionPath : selectionPaths) {
+    Object userObject=TreeUtils.getUserObject(selectionPath);
+    if (userObject instanceof User) {
+      result.add((User)userObject);
+    }
+ else {
+      TreeNode treeNode=((TreeNode)selectionPath.getLastPathComponent());
+      Enumeration enumeration=treeNode.children();
+      while (enumeration.hasMoreElements()) {
+        TreeNode node=(TreeNode)enumeration.nextElement();
+        result.add((User)((DefaultMutableTreeNode)node).getUserObject());
+      }
+    }
+  }
+  return result;
+}

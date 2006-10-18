@@ -1,0 +1,20 @@
+{
+  try {
+    while (!myStop) {
+      UserPresence userPresence=calculatePresence();
+      LOG.debug("Calculated own presence: " + userPresence);
+      for (      Object o : Pico.getInstance().getComponentInstancesOfType(Transport.class)) {
+        Transport transport=(Transport)o;
+        if (transport.isOnline()) {
+          transport.setOwnPresence(userPresence);
+        }
+      }
+synchronized (myMonitor) {
+        myMonitor.wait(myRefreshInterval);
+      }
+    }
+  }
+ catch (  InterruptedException e) {
+    LOG.info("Interrupted");
+  }
+}

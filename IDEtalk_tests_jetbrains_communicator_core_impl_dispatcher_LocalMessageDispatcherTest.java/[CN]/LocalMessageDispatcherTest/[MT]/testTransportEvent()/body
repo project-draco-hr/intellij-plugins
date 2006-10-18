@@ -1,0 +1,18 @@
+{
+  MockTransport mockTransport=new MockTransport();
+  MockMessage localMessage=new MockMessage();
+  MockMessage localMessage1=new MockMessage();
+  myIdeFacade.setReturnedMessage(localMessage);
+  getBroadcaster().fireEvent(new TransportEvent(mockTransport,"user"){
+  }
+);
+  myIdeFacade.setReturnedMessage(localMessage1);
+  getBroadcaster().fireEvent(new TransportEvent(mockTransport,"user"){
+  }
+);
+  Message[] pendingMessages=myDispatcher.getPendingMessages(myUser);
+  assertEquals("Expect a local localMessages as a result to TransportEvent",2,pendingMessages.length);
+  assertSame(localMessage,pendingMessages[0]);
+  assertSame(localMessage1,pendingMessages[1]);
+  assertEquals("",localMessage.getLog());
+}

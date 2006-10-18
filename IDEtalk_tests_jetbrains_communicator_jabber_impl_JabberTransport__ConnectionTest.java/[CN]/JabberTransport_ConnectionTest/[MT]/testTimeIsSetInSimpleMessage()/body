@@ -1,0 +1,12 @@
+{
+  Message baseMessage=myTransport.createBaseMessage(mySelf,"some text");
+  myTransport.getFacade().getConnection().sendPacket(baseMessage);
+  new WaitFor(TIMEOUT){
+    protected boolean condition(){
+      return myEvents.size() > 0;
+    }
+  }
+;
+  long diff=((MessageEvent)myEvents.get(1)).getWhen().getTime() - System.currentTimeMillis();
+  assertTrue("Time should be set for simple Jabber messages: " + diff,Math.abs(diff) < 150);
+}

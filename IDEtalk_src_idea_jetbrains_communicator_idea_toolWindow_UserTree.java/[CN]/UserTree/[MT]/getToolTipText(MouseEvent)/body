@@ -1,0 +1,24 @@
+{
+  TreePath pathForLocation=getPathForLocation(e.getX(),e.getY());
+  if (pathForLocation != null) {
+    Object userObject=TreeUtils.getUserObject(pathForLocation);
+    if (userObject instanceof User) {
+      User user=(User)userObject;
+      StringBuffer result=new StringBuffer();
+      if (!user.getName().equals(user.getDisplayName())) {
+        result.append(StringUtil.getMsg("user.tooltip",user.getName())).append("\n");
+      }
+      Message[] pendingMessages=myLocalMessageDispatcher.getPendingMessages(user);
+      if (pendingMessages.length > 0) {
+        IdeaLocalMessage ideaLocalMessage=(IdeaLocalMessage)pendingMessages[0];
+        result.append(ideaLocalMessage.getTitle());
+        if (result.length() > 0 && ideaLocalMessage.getComment().length() > 0) {
+          result.append(": ");
+        }
+        result.append(ideaLocalMessage.getComment());
+      }
+      return result.length() == 0 ? super.getToolTipText(e) : result.toString();
+    }
+  }
+  return super.getToolTipText(e);
+}

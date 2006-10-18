@@ -1,0 +1,35 @@
+{
+  VFile result=null;
+  Document document=FileDocumentManager.getInstance().getDocument(file);
+  Project[] openProjects=getOpenProjects();
+  for (int i=0; i < openProjects.length && result == null; i++) {
+    Project openProject=openProjects[i];
+    if (!openProject.isInitialized() && !ApplicationManager.getApplication().isUnitTestMode())     continue;
+    if (document != null) {
+      PsiFile psiFile=PsiDocumentManager.getInstance(openProject).getPsiFile(document);
+      if (isJavaFile(psiFile)) {
+        PsiJavaFile psiJavaFile=(PsiJavaFile)psiFile;
+        result=createResultIfNeeded(result,file);
+        result.setFQName(psiJavaFile.getClasses()[0].getQualifiedName());
+      }
+    }
+    ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(openProject).getFileIndex();
+    if (projectFileIndex.isInSource(file)) {
+      VirtualFile sourceRoot=projectFileIndex.getSourceRootForFile(file);
+      result=createResultIfNeeded(result,file);
+      result.setSourcePath(getRelativePath(file,sourceRoot));
+    }
+    if (projectFileIndex.isInContent(file)) {
+      VirtualFile contentRoot=projectFileIndex.getContentRootForFile(file);
+      result=createResultIfNeeded(result,file);
+      result.setContentPath(getRelativePath(file,contentRoot));
+    }
+  }
+  if (result == null) {
+    result=VFile.create(file.getPath(),null,file.isWritable());
+  }
+  if (project != null) {
+    result.setProjectName(project.getName());
+  }
+  return result;
+}

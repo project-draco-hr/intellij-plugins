@@ -1,0 +1,29 @@
+{
+  final String[] log=new String[]{""};
+  testCase.getBroadcaster().addListener(new IDEtalkAdapter(){
+    public void afterChange(    IDEtalkEvent event){
+      event.accept(new EventVisitor(){
+        public void visitCodePointerEvent(        CodePointerEvent event){
+          log[0]+=event.getRemoteUser() + ' ';
+          log[0]+=event.getComment();
+          log[0]+=event.getCodePointer().toString();
+          log[0]+=event.getFile().toString();
+        }
+      }
+);
+    }
+  }
+);
+  testCase.markLastListenerForCleanup();
+  log[0]="";
+  CodePointer pointer=new CodePointer(0,1);
+  VFile file=VFile.create("path");
+  self.sendCodeIntervalPointer(file,pointer,"comment???< && 53",testCase.getBroadcaster());
+  new WaitFor(2000){
+    protected boolean condition(){
+      return log[0].length() > 0;
+    }
+  }
+;
+  Assert.assertEquals("Code Pointer expected",self.getName() + " comment???< && 53" + pointer+ file,log[0]);
+}

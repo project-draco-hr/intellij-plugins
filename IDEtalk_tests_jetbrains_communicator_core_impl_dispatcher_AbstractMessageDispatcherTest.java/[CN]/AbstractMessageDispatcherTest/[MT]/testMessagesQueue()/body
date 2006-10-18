@@ -1,0 +1,9 @@
+{
+  assertEquals("No pending messages",0,myDispatcher.getPendingMessages(myUser).length);
+  myDispatcher.performDispatch(myUser,new MockMessage());
+  assertEquals("Sent successfully, queue is still empty",0,myDispatcher.getPendingMessages(myUser).length);
+  MockMessage failedMessage=new MockMessage(false);
+  myDispatcher.performDispatch(myUser,failedMessage);
+  assertEquals("Failed message should be queued",1,myDispatcher.getPendingMessages(myUser).length);
+  assertSame(failedMessage,myDispatcher.getPendingMessages(myUser)[0]);
+}

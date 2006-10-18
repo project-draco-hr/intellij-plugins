@@ -1,0 +1,26 @@
+{
+  Mock facadeMock=mock(IDEFacade.class);
+  final String[] params=new String[2];
+  myUserFinder=new JabberUserFinderImpl((IDEFacade)facadeMock.proxy(),myUserModel){
+    protected void doRegister(    final String jabberUserId,    final String currentProjectId){
+      params[0]=jabberUserId;
+      params[1]=currentProjectId;
+    }
+  }
+;
+  set_project(facadeMock,"id1",true);
+  myUserFinder.registerForProject("kir@fff");
+  assertEquals("kir@fff",params[0]);
+  assertEquals("id1",params[1]);
+  params[0]=params[1]=null;
+  set_project(facadeMock,"id1",false);
+  myUserFinder.registerForProject("kir@fff");
+  assertNull("No questions expected now - same user and project",params[0]);
+  set_project(facadeMock,"id1",true);
+  myUserFinder.registerForProject("kir@fff1");
+  assertEquals("Another user, expect question","kir@fff1",params[0]);
+  params[0]=params[1]=null;
+  set_project(facadeMock,"id2",true);
+  myUserFinder.registerForProject("kir@fff1");
+  assertEquals("Another project, expect question","kir@fff1",params[0]);
+}

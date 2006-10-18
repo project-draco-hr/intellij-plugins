@@ -1,0 +1,39 @@
+{
+  super.setUp();
+  myUserMonitorClientMock=mock(UserMonitorClient.class);
+  final boolean[] started=new boolean[1];
+  myMulticastThread=new MulticastPingThread(InetAddress.getByName("localhost"),null,(UserMonitorClient)myUserMonitorClientMock.proxy()){
+    public void run(){
+      myStarted=true;
+      try {
+        sleep(10000);
+      }
+ catch (      InterruptedException e) {
+      }
+    }
+    public void sendMulticastPingRequest() throws IOException {
+      started[0]=true;
+    }
+  }
+;
+  myUserMonitorClientMock.stubs().method("getPort").will(returnValue(PORT));
+  System.setProperty(UserMonitorThread.SCAN_TIMEOUT_PROPERTY,"" + SECS_BETWEEN_SCANS);
+  myUserMonitorThread=new UserMonitorThread(new MulticastPingThread[]{myMulticastThread},(UserMonitorClient)myUserMonitorClientMock.proxy(),WAIT_USER_RESPONSES_TIMEOUT);
+  myUserMonitorThread.start();
+  System.setProperty(UserMonitorThread.SCAN_TIMEOUT_PROPERTY,"");
+  myUserMonitorThread.triggerFindNow();
+  new WaitFor(){
+    protected boolean condition(){
+      return started[0];
+    }
+  }
+;
+  myUserMonitorClientMock.expects(once()).method("setOnlineUsers").with(eq(Collections.EMPTY_SET));
+  new WaitFor(myUserMonitorThread.getWaitUserResponsesTimeout() + 100){
+    protected boolean condition(){
+      return !myUserMonitorThread.isFinding();
+    }
+  }
+;
+  assertFalse("Sanity check",myUserMonitorThread.isFinding());
+}

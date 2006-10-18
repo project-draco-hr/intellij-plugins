@@ -1,0 +1,48 @@
+{
+  final String[] log=new String[]{""};
+  log[0]="";
+  final String comment="??? mes&&<>sage";
+  MockXmlMessage message=new MockXmlMessage("tagName","myNamespace"){
+    public boolean needsResponse(){
+      return checkResponse;
+    }
+    public void fillRequest(    Element element){
+      element.setText(comment);
+    }
+    public void processResponse(    Element responseElement){
+      log[0]+=responseElement.getAttributeValue("foo");
+    }
+  }
+;
+  final MockXmlResponseProvider mockXmlResponseProvider=new MockXmlResponseProvider("tagName","myNamespace",testCase.getBroadcaster()){
+    public boolean processAndFillResponse(    Element response,    Element request,    Transport transport,    String remoteUser){
+      log[0]+=remoteUser + " " + request.getName()+ " "+ request.getText();
+      assertEquals("root element expected","tagName",request.getName());
+      response.setAttribute("foo","gar");
+      return true;
+    }
+  }
+;
+  Pico.getInstance().registerComponentInstance(mockXmlResponseProvider);
+  testCase.disposeOnTearDown(new Disposable(){
+    public void dispose(){
+      Pico.getInstance().unregisterComponentByInstance(mockXmlResponseProvider);
+    }
+  }
+);
+  self.sendXmlMessage(message);
+  new WaitFor(500){
+    protected boolean condition(){
+      if (checkResponse) {
+        return log[0].endsWith("gar");
+      }
+ else {
+        return log[0].length() > 0;
+      }
+    }
+  }
+;
+  String expectedLog=self.getName() + " tagName " + comment;
+  expectedLog+=checkResponse ? "gar" : "";
+  assertEquals("Message expected",expectedLog,log[0]);
+}

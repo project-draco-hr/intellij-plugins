@@ -1,0 +1,19 @@
+{
+  if (myDragStartedEvent != null) {
+    if (e.getComponent() instanceof JTree) {
+      JTree tree=((JTree)e.getComponent());
+      int startX=myDragStartedEvent.getX();
+      int startY=myDragStartedEvent.getY();
+      TreePath startDragLocation=tree.getPathForLocation(startX,startY);
+      if (!tree.isPathSelected(startDragLocation)) {
+        cancelDrag();
+        return;
+      }
+      if (e.getY() - startY < 5) {
+        tree.getTransferHandler().exportAsDrag((JComponent)e.getComponent(),myDragStartedEvent,TransferHandler.MOVE);
+        e.consume();
+      }
+    }
+  }
+  cancelDrag();
+}

@@ -1,0 +1,13 @@
+{
+  super.setUp();
+  myUserModel=TestFactory.createUserListWithUsers(this);
+  myTree=new JTree();
+  myIDEFacade=new MockIDEFacade(getClass());
+  myLocalMessageDispatcher=new LocalMessageDispatcherImpl(getBroadcaster(),myIDEFacade,myUserModel);
+  disposeOnTearDown(myLocalMessageDispatcher);
+  myUsersTreeModel=new UsersTreeModel(myTree,myUserModel,myLocalMessageDispatcher);
+  disposeOnTearDown(myUsersTreeModel);
+  myTree.setModel(myUsersTreeModel);
+  OptionFlag.OPTION_HIDE_OFFLINE_USERS.change(true);
+  getBroadcaster().fireEvent(new SettingsChanged());
+}

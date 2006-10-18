@@ -1,0 +1,21 @@
+{
+  super(new BorderLayout(2,2));
+  setOpaque(false);
+  myFileTypeManager=fileTypeManager;
+  myIdeFacade=facade;
+  myShowReadOnly=Pico.getOptions().isSet(SHOW_READ_ONLY_KEY,true);
+  myTree=new KirTree(){
+    protected void onEnter(){
+      super.onEnter();
+      if (myOpenFileAction.isEnabled()) {
+        myOpenFileAction.actionPerformed(null);
+      }
+    }
+  }
+;
+  add(new JScrollPane(myTree));
+  add(createActionsToolbar(actionManager),BorderLayout.NORTH);
+  IDEAFacade.installPopupMenu(createActionGroup(),myTree,actionManager);
+  myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
+  setMinimumSize(new Dimension(200,0));
+}

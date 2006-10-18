@@ -1,0 +1,25 @@
+{
+  if (e == null)   return new AnAction[0];
+  final Editor editor=getEditor(e);
+  final VirtualFile file=getFile(e);
+  List<AnAction> result=new ArrayList<AnAction>();
+  final UserModel userModel=getUserModel();
+  String[] groups=userModel.getGroups();
+  List<String> groupsWithUsers=new ArrayList<String>();
+  for (  String group : groups) {
+    if (userModel.getUsers(group).length > 0) {
+      groupsWithUsers.add(group);
+    }
+  }
+  if (groupsWithUsers.size() == 1) {
+    User[] users=userModel.getUsers(groupsWithUsers.get(0));
+    fillWithUserActions(users,result,file,editor);
+  }
+ else {
+    for (    String groupsWithUser : groupsWithUsers) {
+      ActionGroup actionGroup=createGroupWithUsersActionGroup(groupsWithUser,userModel,file,editor);
+      result.add(actionGroup);
+    }
+  }
+  return result.toArray(new AnAction[result.size()]);
+}

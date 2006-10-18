@@ -1,0 +1,20 @@
+{
+  super(RootNode.class);
+  for (  String group : userModel.getGroups()) {
+    DefaultMutableTreeNode groupNode=new DefaultMutableTreeNode(group,true);
+    add(groupNode);
+    for (    final User user : userModel.getUsers(group)) {
+      if (!OptionFlag.OPTION_HIDE_OFFLINE_USERS.isSet() || user.isOnline() || 0 != localMessageDispatcher.getPendingMessages(user).length) {
+        groupNode.add(new DefaultMutableTreeNode(user,false){
+          public String toString(){
+            return user.getDisplayName();
+          }
+        }
+);
+      }
+    }
+    if (groupNode.getChildCount() == 0 && OptionFlag.OPTION_HIDE_OFFLINE_USERS.isSet()) {
+      remove(groupNode);
+    }
+  }
+}

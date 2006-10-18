@@ -1,0 +1,22 @@
+{
+  if (ourCachedInterfaces.size() == 0) {
+    final Enumeration<NetworkInterface> networkInterfaces=NetworkInterface.getNetworkInterfaces();
+    while (networkInterfaces.hasMoreElements()) {
+      NetworkInterface ni=networkInterfaces.nextElement();
+      final Enumeration<InetAddress> inetAddresses=ni.getInetAddresses();
+      while (inetAddresses.hasMoreElements()) {
+        InetAddress inetAddress=inetAddresses.nextElement();
+        if (inetAddress instanceof Inet4Address) {
+          if (!inetAddress.isLoopbackAddress() || Pico.isLocalTesting() || Pico.isUnitTest()) {
+            ourCachedInterfaces.add(inetAddress);
+          }
+        }
+      }
+    }
+  }
+  if (ourReportInterfaces) {
+    LOG.info("Found Network Interfaces: " + ourCachedInterfaces);
+    ourReportInterfaces=false;
+  }
+  return ourCachedInterfaces.toArray(new InetAddress[ourCachedInterfaces.size()]);
+}

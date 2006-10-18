@@ -1,0 +1,15 @@
+{
+  myUserMonitorThread=new UserMonitorThread(this,waitUserResponsesTimeout);
+  initializeXmlRpcPort();
+  myP2PServer=new P2PServer(myPort,new P2PCommand[]{new SendXmlMessageP2PCommand(myEventBroadcaster,this),new AddOnlineUserP2PCommand(myUserMonitorThread)});
+  LOG.info("Internal Web server is bound to port " + myPort);
+  myUserMonitorThread.start();
+  myUserMonitorThread.triggerFindNow();
+  new WaitFor(){
+    protected boolean condition(){
+      return myUserMonitorThread.isRunning();
+    }
+  }
+;
+  myEventBroadcaster.addListener(myUserAddedCallbackListener);
+}

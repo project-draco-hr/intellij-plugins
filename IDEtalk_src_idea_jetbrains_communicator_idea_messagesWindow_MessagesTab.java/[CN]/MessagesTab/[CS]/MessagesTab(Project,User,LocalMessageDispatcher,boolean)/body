@@ -1,0 +1,27 @@
+{
+  myProject=project;
+  myUser=user;
+  myLocalMessageDispatcher=localMessageDispatcher;
+  myConsoleView=createConsoleView(project);
+  myMessages.add(myConsoleView.getComponent());
+  myHardWrapUtil=new HardWrapUtil(myInput);
+  myMainPanel.revalidate();
+  myButtonsUpdater=new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      String s=myHardWrapUtil.getText();
+      boolean enabled=StringUtil.isNotEmpty(s);
+      mySend.setEnabled(enabled);
+    }
+  }
+;
+  mySend.addActionListener(new SendAction());
+  myInput.getDocument().addDocumentListener(myButtonsUpdater);
+  myInput.getActionMap().put(SEND,new SendAction());
+  myInput.getActionMap().put(LF,new LfAction());
+  updateKeyBindings();
+  setupIDEtalkListener();
+  setupDivider();
+  if (loadPreviousHistoryInNewTab) {
+    loadTodaysMessages();
+  }
+}

@@ -1,0 +1,24 @@
+{
+  expectSetOneOnlineUser();
+  Mock mockProgressIndicator=mock(ProgressIndicator.class);
+  mockProgressIndicator.expects(atLeastOnce()).method("setText").with(eq("Found in local network: 1 user"));
+  mockProgressIndicator.expects(atLeastOnce()).method("checkCanceled");
+  final double[] lastFraction=new double[]{-1};
+  mockProgressIndicator.expects(atLeastOnce()).method("setFraction").with(new IsGreaterThan(new Comparable(){
+    public int compareTo(    Object o){
+      double v=((Number)o).doubleValue();
+      int result=(int)((lastFraction[0] - v) * 100);
+      lastFraction[0]=v;
+      if (result >= 0) {
+        System.out.println("result = " + result);
+      }
+      return result;
+    }
+    public String toString(){
+      return "" + lastFraction[0];
+    }
+  }
+));
+  myUserMonitorThread.findNow((ProgressIndicator)mockProgressIndicator.proxy());
+  assertEquals("Should end at 100%",1,lastFraction[0],0.01);
+}
