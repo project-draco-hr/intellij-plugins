@@ -1,15 +1,22 @@
 {
-  LOG.info("Jabber disconnected: " + myFacade.getConnection().getUser());
-  myFacade.getConnection().getRoster().removeRosterListener(myRosterListener);
-  myFacade.getConnection().removePacketListener(mySubscribeListener);
-  myFacade.getConnection().removePacketListener(myMessageListener);
+  final XMPPConnection connection=myFacade.getConnection();
+  LOG.info("Jabber disconnected: " + connection.getUser());
+  connection.removePacketListener(mySubscribeListener);
+  mySubscribeListener=null;
+  connection.removePacketListener(myMessageListener);
+  myMessageListener=null;
+  final Roster roster=connection.getRoster();
+  if (roster != null) {
+    roster.removeRosterListener(myRosterListener);
+  }
+  myRosterListener=null;
   myIDEtalkUsers.clear();
   myUser2Presence.clear();
   myUser2Thread.clear();
   if (onError) {
     UIUtil.invokeLater(new Runnable(){
       public void run(){
-        myUI.connectAndLogin("Jabber server was disconnected");
+        myUI.connectAndLogin(StringUtil.getMsg("jabber.server.was.disconnected"));
       }
     }
 );
