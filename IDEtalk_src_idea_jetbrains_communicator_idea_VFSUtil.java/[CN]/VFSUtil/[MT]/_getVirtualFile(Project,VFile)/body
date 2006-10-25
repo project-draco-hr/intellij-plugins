@@ -1,9 +1,18 @@
 {
   VirtualFile result=findFileByFQName(file,project);
   if (result == null) {
+    final HashSet<VirtualFile> candidates=new HashSet<VirtualFile>();
     Module[] modules=ModuleManager.getInstance(project).getModules();
-    for (int i=0; i < modules.length && result == null; i++) {
-      result=findFileInModule(modules[i],file);
+    for (    Module module : modules) {
+      findFileInModule(candidates,module,file);
+    }
+    int currWeight=0;
+    for (    VirtualFile candidate : candidates) {
+      final int newWeight=weight(candidate,file);
+      if (result == null || newWeight > currWeight) {
+        currWeight=newWeight;
+        result=candidate;
+      }
     }
   }
   return result;
