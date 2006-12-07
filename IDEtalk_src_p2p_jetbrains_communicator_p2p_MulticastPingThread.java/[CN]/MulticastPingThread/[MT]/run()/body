@@ -21,14 +21,13 @@
         if (message.startsWith(PING_MESSAGE)) {
           final int targetPort=extractPort(message);
           if (shouldAddSelf(datagramPacket,targetPort)) {
-            Thread thread=new Thread(new Runnable(){
+            final Runnable registrationTask=new Runnable(){
               public void run(){
                 addSelfInfoTo(remoteAddress,targetPort);
               }
             }
-,"Registration thread on " + remoteAddress);
-            thread.setDaemon(true);
-            thread.start();
+;
+            UIUtil.invokeOnPooledThread(registrationTask);
           }
         }
       }
