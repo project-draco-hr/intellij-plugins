@@ -6,7 +6,7 @@
   final PacketCollector packetCollector=myFacade.getConnection().createPacketCollector(new ThreadFilter(threadId));
   doSendMessage(xmlMessage,user,threadId);
   if (xmlMessage.needsResponse()) {
-    Thread thread=new Thread(new Runnable(){
+    final Runnable responseWaiterRunnable=new Runnable(){
       public void run(){
         try {
           processResponse(xmlMessage,packetCollector);
@@ -16,8 +16,8 @@
         }
       }
     }
-,"Jabber message response waiter");
-    thread.start();
+;
+    UIUtil.invokeOnPooledThread(responseWaiterRunnable);
   }
  else {
     packetCollector.cancel();
