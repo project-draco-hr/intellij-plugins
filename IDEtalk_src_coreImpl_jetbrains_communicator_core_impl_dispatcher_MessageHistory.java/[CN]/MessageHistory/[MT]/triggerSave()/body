@@ -1,10 +1,18 @@
 {
   if (myPendingSave == null) {
-    myPendingSave=UIUtil.scheduleDelayed(new Runnable(){
+    myPendingSave=myFacade.runOnPooledThread(new Runnable(){
       public void run(){
-        saveHistory();
+        try {
+          Thread.sleep(SAVE_TIMEOUT);
+        }
+ catch (        InterruptedException e) {
+        }
+ finally {
+          saveHistory();
+          myPendingSave=null;
+        }
       }
     }
-,SAVE_TIMEOUT,TimeUnit.MILLISECONDS);
+);
   }
 }

@@ -3,16 +3,20 @@
     public void run(    ProgressIndicator indicator){
       indicator.setIndefinite(true);
       indicator.setText(title);
-      Future<?> workerThreadFuture=invokeOnPooledThread(runnable);
+      Future<?> workerThreadFuture=ideFacade.runOnPooledThread(runnable);
       while (!workerThreadFuture.isDone()) {
         try {
           indicator.checkCanceled();
-          indicator.setFraction(.5f);
+          indicator.setFraction(0.5f);
           workerThreadFuture.get(100,TimeUnit.MILLISECONDS);
         }
  catch (        TimeoutException e) {
         }
-catch (        Exception e) {
+catch (        ExecutionException e) {
+          workerThreadFuture.cancel(true);
+          throw new RuntimeException(e);
+        }
+catch (        InterruptedException e) {
           workerThreadFuture.cancel(true);
           break;
         }
