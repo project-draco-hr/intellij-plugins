@@ -18,23 +18,24 @@
       serviceName=username.substring(at + 1);
       user=username.substring(0,at);
     }
+    XMPPConnection connection;
     if (forceOldSSL) {
-      myConnection=new SSLXMPPConnection(server,port,serviceName);
+      connection=new SSLXMPPConnection(server,port,serviceName);
     }
  else {
-      myConnection=new XMPPConnection(server,port,serviceName);
+      connection=new XMPPConnection(server,port,serviceName);
     }
-    if (createAccount && myConnection.getAccountManager().supportsAccountCreation()) {
-      myConnection.getAccountManager().createAccount(user,password.replaceAll("&","&amp;"));
+    if (createAccount && connection.getAccountManager().supportsAccountCreation()) {
+      connection.getAccountManager().createAccount(user,password.replaceAll("&","&amp;"));
     }
-    if (!myConnection.isConnected())     return StringUtil.getMsg("unable.to.connect.to",server,port);
-    myConnection.login(user,password,IDETALK_RESOURCE);
+    if (!connection.isConnected())     return StringUtil.getMsg("unable.to.connect.to",server,port);
+    connection.login(user,password,IDETALK_RESOURCE);
     saveAccountData(server,port,username,password,forceOldSSL);
-    if (rosterIsNotAvailable()) {
-      myConnection.close();
-      myConnection=null;
+    if (rosterIsNotAvailable(connection)) {
+      connection.close();
       return StringUtil.getMsg("no.roster.try.again");
     }
+    myConnection=connection;
     fireAuthenticated();
     myConnection.addConnectionListener(new SmackConnectionListener());
   }

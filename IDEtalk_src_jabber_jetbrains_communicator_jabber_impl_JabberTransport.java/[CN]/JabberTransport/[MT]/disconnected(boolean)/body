@@ -13,7 +13,8 @@
   myIDEtalkUsers.clear();
   myUser2Presence.clear();
   myUser2Thread.clear();
-  if (onError) {
-    myUI.connectAndLoginAsync(StringUtil.getMsg("jabber.server.was.disconnected"),null);
+  if (onError && reconnectEnabledAndNotStarted()) {
+    LOG.warn(StringUtil.getMsg("jabber.server.was.disconnected",myReconnectTimeout / 1000));
+    myReconnectProcess=myIdeFacade.runOnPooledThread(new MyReconnectRunnable());
   }
 }

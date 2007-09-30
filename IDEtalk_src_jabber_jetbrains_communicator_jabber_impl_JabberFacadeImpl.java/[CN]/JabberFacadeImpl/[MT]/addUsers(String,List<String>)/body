@@ -3,7 +3,12 @@
   for (  String id : list) {
     if (!self.startsWith(id)) {
       try {
-        getConnection().getRoster().createEntry(id,JabberTransport.getSimpleId(id),new String[]{group});
+        Roster roster=getConnection().getRoster();
+        RosterEntry oldEntry=roster.getEntry(id);
+        if (oldEntry != null) {
+          roster.removeEntry(oldEntry);
+        }
+        roster.createEntry(id,JabberTransport.getSimpleId(id),new String[]{group});
       }
  catch (      XMPPException e) {
         myIdeFacade.showMessage(StringUtil.getMsg("jabber.error.while.adding.user.title",id),StringUtil.getMsg("jabber.error.while.adding.user.text",id,getMessage(e)));
