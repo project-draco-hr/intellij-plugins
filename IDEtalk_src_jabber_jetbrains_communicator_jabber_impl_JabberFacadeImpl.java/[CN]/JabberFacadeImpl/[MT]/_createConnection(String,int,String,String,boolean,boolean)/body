@@ -30,6 +30,11 @@
     if (!myConnection.isConnected())     return StringUtil.getMsg("unable.to.connect.to",server,port);
     myConnection.login(user,password,IDETALK_RESOURCE);
     saveAccountData(server,port,username,password,forceOldSSL);
+    if (rosterIsNotAvailable()) {
+      myConnection.close();
+      myConnection=null;
+      return StringUtil.getMsg("no.roster.try.again");
+    }
     fireAuthenticated();
     myConnection.addConnectionListener(new SmackConnectionListener());
   }
