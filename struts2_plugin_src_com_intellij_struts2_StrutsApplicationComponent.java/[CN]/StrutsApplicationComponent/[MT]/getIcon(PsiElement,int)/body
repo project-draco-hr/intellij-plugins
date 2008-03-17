@@ -1,0 +1,67 @@
+{
+  if (element instanceof JspFile) {
+    return null;
+  }
+  if (!(element instanceof PsiClass || element instanceof XmlFile)) {
+    return null;
+  }
+  if (!element.isPhysical() || !element.isValid()) {
+    return null;
+  }
+  final StrutsFacet strutsFacet=StrutsFacet.getInstance(element);
+  if (strutsFacet == null) {
+    return null;
+  }
+  if (active) {
+    return null;
+  }
+  active=true;
+  try {
+    TIntObjectHashMap<Icon> icons=element.getUserData(ICON_KEY);
+    if (icons != null) {
+      final Icon icon=icons.get(flags);
+      if (icon != null) {
+        return icon;
+      }
+    }
+    Icon strutsIcon=null;
+    LayeredIcon icon=null;
+    if (element instanceof XmlFile) {
+      final XmlFile xmlFile=(XmlFile)element;
+      final DomManager domManager=DomManager.getDomManager(xmlFile.getProject());
+      if (domManager.getFileElement(xmlFile,StrutsRoot.class) != null) {
+        strutsIcon=StrutsIcons.ACTION_SMALL;
+      }
+ else       if (domManager.getFileElement(xmlFile,Validators.class) != null) {
+        strutsIcon=StrutsIcons.VALIDATOR_SMALL;
+      }
+ else       if (domManager.getFileElement(xmlFile,ValidatorsConfig.class) != null) {
+        strutsIcon=StrutsIcons.VALIDATOR_SMALL;
+      }
+    }
+ else {
+      final PsiClass psiClass=(PsiClass)element;
+      final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
+      final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
+      if (strutsModel != null && !strutsModel.findActionsByClass(psiClass).isEmpty()) {
+        strutsIcon=StrutsIcons.ACTION_SMALL;
+      }
+    }
+    if (strutsIcon != null) {
+      icon=new LayeredIcon(2);
+      final Icon original=element.getIcon(flags & ~Iconable.ICON_FLAG_VISIBILITY);
+      icon.setIcon(original,0);
+      icon.setIcon(strutsIcon,1,0,StrutsIcons.SMALL_ICON_Y_OFFSET);
+    }
+    if (icon != null) {
+      if (icons == null) {
+        element.putUserData(ICON_KEY,icons=new TIntObjectHashMap<Icon>(3));
+      }
+      icons.put(flags,icon);
+    }
+    return icon;
+  }
+  finally {
+    active=false;
+  }
+}

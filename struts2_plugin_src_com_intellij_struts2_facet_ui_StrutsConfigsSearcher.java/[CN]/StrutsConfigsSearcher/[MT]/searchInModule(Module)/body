@@ -1,0 +1,25 @@
+{
+  final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+  final Project project=module.getProject();
+  final StrutsManager strutsManager=StrutsManager.getInstance(project);
+  final PsiShortNamesCache namesCache=JavaPsiFacade.getInstance(project).getShortNamesCache();
+  final String[] fileNames=namesCache.getAllFileNames();
+  for (  final String fileName : fileNames) {
+    if (fileName.endsWith(XML_EXTENSION)) {
+      final PsiFile[] psiFiles=namesCache.getFilesByName(fileName);
+      for (      final PsiFile file : psiFiles) {
+        if (file instanceof XmlFile && strutsManager.isStruts2ConfigFile((XmlFile)file)) {
+          final Module fileModule=ModuleUtil.findModuleForPsiElement(file);
+          if (fileModule != null && (fileModule.equals(module) || rootManager.isDependsOn(fileModule))) {
+            List<PsiFile> list=myFiles.get(fileModule);
+            if (list == null) {
+              list=new ArrayList<PsiFile>();
+              myFiles.put(fileModule,list);
+            }
+            list.add(file);
+          }
+        }
+      }
+    }
+  }
+}

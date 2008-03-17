@@ -1,0 +1,16 @@
+{
+  final SpringModel model=getSpringModel();
+  if (model == null) {
+    return new Object[0];
+  }
+  final List lookups=new ArrayList();
+  final Collection<? extends SpringBeanPointer> list=model.getAllCommonBeans(true);
+  for (  final SpringBeanPointer bean : list) {
+    final String beanName=bean.getName();
+    final PsiFile psiFile=bean.getContainingFile();
+    if (psiFile != null && StringUtil.isNotEmpty(beanName)) {
+      lookups.add(LookupValueFactory.createLookupValueWithHint(beanName,bean.getBeanIcon(),psiFile.getName()));
+    }
+  }
+  return lookups.toArray(new Object[lookups.size()]);
+}

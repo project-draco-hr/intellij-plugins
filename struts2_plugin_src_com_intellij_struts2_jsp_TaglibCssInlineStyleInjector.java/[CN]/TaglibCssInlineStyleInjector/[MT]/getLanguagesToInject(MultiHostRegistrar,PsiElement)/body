@@ -1,0 +1,13 @@
+{
+  final FileType fileType=context.getContainingFile().getFileType();
+  if (fileType != StdFileTypes.JSP && fileType != StdFileTypes.JSPX) {
+    return;
+  }
+  if (ReferenceFilters.NAMESPACE_TAGLIB_STRUTS_UI.isAcceptable(context.getParent().getParent(),null)) {
+    @NonNls final String name=((XmlAttribute)context.getParent()).getName();
+    if (name.equals(CSS_STYLE_ATTRIBUTE_NAME)) {
+      final TextRange range=new TextRange(1,context.getTextLength() - 1);
+      registrar.startInjecting(CssSupportLoader.CSS_FILE_TYPE.getLanguage()).addPlace("inline.style {","}",(PsiLanguageInjectionHost)context,range).doneInjecting();
+    }
+  }
+}

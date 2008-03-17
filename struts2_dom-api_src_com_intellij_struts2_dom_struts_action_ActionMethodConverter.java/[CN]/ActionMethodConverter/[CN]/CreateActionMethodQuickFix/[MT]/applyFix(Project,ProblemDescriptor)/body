@@ -1,0 +1,15 @@
+{
+  try {
+    final PsiElementFactory elementFactory=JavaPsiFacade.getInstance(project).getElementFactory();
+    PsiMethod actionMethod=elementFactory.createMethodFromText("public java.lang.String " + methodName + "() throws java.lang.Exception { return \"success\"; }",actionClass);
+    final JavaCodeStyleManager javaCodeStyleManager=JavaCodeStyleManager.getInstance(project);
+    actionMethod=(PsiMethod)javaCodeStyleManager.shortenClassReferences(actionMethod);
+    final CodeStyleManager codestylemanager=CodeStyleManager.getInstance(project);
+    actionMethod=(PsiMethod)codestylemanager.reformat(actionMethod);
+    final PsiMethod element=(PsiMethod)actionClass.add(actionMethod);
+    OpenSourceUtil.navigate(new Navigatable[]{(Navigatable)element.getBody().getNavigationElement()},true);
+  }
+ catch (  IncorrectOperationException e) {
+    LOG.error("creation of action-method failed",e);
+  }
+}

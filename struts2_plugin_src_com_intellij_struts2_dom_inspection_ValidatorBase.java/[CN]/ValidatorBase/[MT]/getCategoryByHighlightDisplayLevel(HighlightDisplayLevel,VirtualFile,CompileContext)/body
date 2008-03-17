@@ -1,0 +1,20 @@
+{
+  final CompilerMessageCategory level=super.getCategoryByHighlightDisplayLevel(severity,virtualFile,context);
+  if (level == CompilerMessageCategory.ERROR) {
+    final Module module=context.getModuleByFile(virtualFile);
+    if (module != null) {
+      final StrutsFacet facet=StrutsFacet.getInstance(module);
+      if (facet != null) {
+        return facet.getConfiguration().getFeaturesConfiguration().isReportErrorsAsWarning() ? CompilerMessageCategory.WARNING : level;
+      }
+      final List<Module> dependentModules=ModuleUtil.getAllDependentModules(module);
+      for (      final Module dependentModule : dependentModules) {
+        final StrutsFacet strutsFacet=StrutsFacet.getInstance(dependentModule);
+        if (strutsFacet != null) {
+          return strutsFacet.getConfiguration().getFeaturesConfiguration().isReportErrorsAsWarning() ? CompilerMessageCategory.WARNING : level;
+        }
+      }
+    }
+  }
+  return level;
+}

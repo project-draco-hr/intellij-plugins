@@ -1,0 +1,27 @@
+{
+  final PsiFile containingFile=xmlTag.getContainingFile();
+  if (!(containingFile instanceof JspFile)) {
+    return null;
+  }
+  final JspFile jspFile=(JspFile)containingFile;
+  final XmlDocument document=jspFile.getDocument();
+  if (document == null) {
+    return null;
+  }
+  final XmlTag rootTag=document.getRootTag();
+  if (rootTag == null) {
+    return null;
+  }
+  final Set<String> knownTaglibPrefixes=((JspFileViewProvider)jspFile.getViewProvider()).getKnownTaglibPrefixes();
+  for (  final String prefix : knownTaglibPrefixes) {
+    final String namespaceByPrefix=rootTag.getNamespaceByPrefix(prefix);
+    final XmlNSDescriptor descriptor=rootTag.getNSDescriptor(namespaceByPrefix,true);
+    if (descriptor != null && descriptor instanceof TldDescriptor) {
+      final String uri=((TldDescriptor)descriptor).getUri();
+      if (uri != null && uri.equals(ReferenceFilters.TAGLIB_STRUTS_UI_URI)) {
+        return prefix;
+      }
+    }
+  }
+  return null;
+}

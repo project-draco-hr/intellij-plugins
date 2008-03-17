@@ -1,0 +1,19 @@
+{
+  if (s == null) {
+    return null;
+  }
+  final PsiClass psiClass=context.findClass(s,null);
+  if (psiClass != null) {
+    return psiClass;
+  }
+  final XmlElement element=context.getReferenceXmlElement();
+  for (  final ActionClassConverterContributor actionClassConverterContributor : ADDITIONAL_CONTRIBUTORS) {
+    if (actionClassConverterContributor.isSuitable(context)) {
+      final PsiReference[] add=actionClassConverterContributor.getReferencesByElement(element,new ProcessingContext());
+      if (add.length == 1 && add[0].resolve() != null) {
+        return (PsiClass)add[0].resolve();
+      }
+    }
+  }
+  return null;
+}

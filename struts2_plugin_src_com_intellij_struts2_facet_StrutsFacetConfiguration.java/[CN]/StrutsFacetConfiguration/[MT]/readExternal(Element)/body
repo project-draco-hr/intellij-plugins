@@ -1,0 +1,21 @@
+{
+  for (  final Object setElement : element.getChildren(FILESET)) {
+    final String setName=((Element)setElement).getAttributeValue(SET_NAME);
+    final String setId=((Element)setElement).getAttributeValue(SET_ID);
+    final String removed=((Element)setElement).getAttributeValue(SET_REMOVED);
+    if (setName != null && setId != null) {
+      final StrutsFileSet fileSet=new StrutsFileSet(setId,setName);
+      final List files=((Element)setElement).getChildren(FILE);
+      for (      final Object fileElement : files) {
+        final String text=((Element)fileElement).getText();
+        fileSet.addFile(text);
+      }
+      fileSet.setRemoved(Boolean.valueOf(removed));
+      myFileSets.add(fileSet);
+    }
+  }
+  final Element features=element.getChild(FEATURES);
+  validationConfiguration.setReportErrorsAsWarning(Boolean.valueOf(features.getChild(ERRORS_AS_WARNING).getText()));
+  validationConfiguration.setValidateStruts(Boolean.valueOf(features.getChild(VALIDATE_STRUTS).getText()));
+  validationConfiguration.setValidateValidation(Boolean.valueOf(features.getChild(VALIDATE_VALIDATION).getText()));
+}

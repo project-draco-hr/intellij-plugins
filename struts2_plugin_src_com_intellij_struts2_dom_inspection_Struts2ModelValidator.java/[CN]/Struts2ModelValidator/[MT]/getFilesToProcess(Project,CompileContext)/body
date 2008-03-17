@@ -1,0 +1,17 @@
+{
+  final StrutsManager strutsManager=StrutsManager.getInstance(project);
+  final Set<VirtualFile> files=new HashSet<VirtualFile>();
+  final CompileScope scope=context.getCompileScope();
+  for (  final Module module : scope.getAffectedModules()) {
+    final StrutsFacet strutsFacet=StrutsFacet.getInstance(module);
+    if (strutsFacet != null) {
+      for (      final StrutsFileSet fileSet : strutsManager.getAllConfigFileSets(module)) {
+        for (        final VirtualFilePointer pointer : fileSet.getFiles()) {
+          final VirtualFile file=pointer.getFile();
+          ContainerUtil.addIfNotNull(file,files);
+        }
+      }
+    }
+  }
+  return files;
+}

@@ -1,0 +1,23 @@
+{
+  final SimpleNode[] nodes=myTree.getSelectedNodesIfUniform();
+  for (  final SimpleNode node : nodes) {
+    if (node instanceof FileSetNode) {
+      final StrutsFileSet fileSet=((FileSetNode)node).mySet;
+      final int result=Messages.showYesNoDialog(myPanel,"Remove File Set '" + fileSet.getName() + "' ?","Confirm removal",Messages.getQuestionIcon());
+      if (result == DialogWrapper.OK_EXIT_CODE) {
+        if (fileSet.isAutodetected()) {
+          fileSet.setRemoved(true);
+          myBuffer.add(fileSet);
+        }
+ else {
+          myBuffer.remove(fileSet);
+        }
+      }
+    }
+ else     if (node instanceof ConfigFileNode) {
+      final VirtualFilePointer filePointer=((ConfigFileNode)node).myFilePointer;
+      final StrutsFileSet fileSet=((FileSetNode)node.getParent()).mySet;
+      fileSet.removeFile(filePointer);
+    }
+  }
+}

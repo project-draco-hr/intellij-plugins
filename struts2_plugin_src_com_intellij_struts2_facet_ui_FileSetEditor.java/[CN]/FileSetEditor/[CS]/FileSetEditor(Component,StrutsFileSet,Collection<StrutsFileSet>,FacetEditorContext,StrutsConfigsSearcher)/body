@@ -1,0 +1,47 @@
+{
+  super(parent,true);
+  mySetName.setUseTextFieldPreferredSize(true);
+  setTitle("Edit File Set");
+  myOriginalSet=fileSet;
+  myFileSet=new StrutsFileSet(fileSet);
+  myFilesTree.setModel(new DefaultTreeModel(myRoot));
+  searcher.search();
+  final Map<Module,List<PsiFile>> files=searcher.getFilesByModules();
+  final Map<VirtualFile,List<PsiFile>> jars=searcher.getJars();
+  final Set<PsiFile> psiFiles=myFilesTree.buildModuleNodes(files,jars,fileSet);
+  final List<VirtualFile> virtualFiles=searcher.getVirtualFiles();
+  for (  final VirtualFile virtualFile : virtualFiles) {
+    myFilesTree.addFile(virtualFile);
+  }
+  final Project project=context.getProject();
+  if (project != null) {
+    final PsiManager psiManager=PsiManager.getInstance(project);
+    final List<VirtualFilePointer> list=fileSet.getFiles();
+    for (    final VirtualFilePointer pointer : list) {
+      final VirtualFile file=pointer.getFile();
+      if (file != null) {
+        final PsiFile psiFile=psiManager.findFile(file);
+        if (psiFile != null && psiFiles.contains(psiFile)) {
+          continue;
+        }
+        myFilesTree.addFile(file);
+      }
+    }
+  }
+  TreeUtil.expandAll(myFilesTree);
+  myFilesTree.getModel().addTreeModelListener(new TreeModelAdapter(){
+    public void treeNodesChanged(    final TreeModelEvent e){
+      updateFileSet();
+    }
+  }
+);
+  mySetName.setText(fileSet.getName());
+  mySetName.addDocumentListener(new DocumentAdapter(){
+    public void documentChanged(    final DocumentEvent e){
+      updateFileSet();
+    }
+  }
+);
+  init();
+  getOKAction().setEnabled(fileSet.isNew());
+}

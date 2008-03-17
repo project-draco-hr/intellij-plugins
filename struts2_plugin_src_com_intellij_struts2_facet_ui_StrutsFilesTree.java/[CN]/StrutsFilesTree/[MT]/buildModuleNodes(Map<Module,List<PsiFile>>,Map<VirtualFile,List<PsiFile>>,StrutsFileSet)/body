@@ -1,0 +1,44 @@
+{
+  final CheckedTreeNode root=(CheckedTreeNode)getModel().getRoot();
+  final HashSet<PsiFile> psiFiles=new HashSet<PsiFile>();
+  final List<Module> modules=new ArrayList<Module>(files.keySet());
+  Collections.sort(modules,new Comparator<Module>(){
+    public int compare(    final Module o1,    final Module o2){
+      return o1.getName().compareTo(o2.getName());
+    }
+  }
+);
+  for (  final Module module : modules) {
+    final CheckedTreeNode moduleNode=new CheckedTreeNode(module);
+    moduleNode.setChecked(false);
+    root.add(moduleNode);
+    final List<PsiFile> moduleFiles=files.get(module);
+    if (moduleFiles != null) {
+      Collections.sort(moduleFiles,FILE_COMPARATOR);
+      for (      final PsiFile file : moduleFiles) {
+        final CheckedTreeNode fileNode=createFileNode(file,fileSet);
+        moduleNode.add(fileNode);
+        psiFiles.add(file);
+      }
+    }
+  }
+  for (  final VirtualFile file : jars.keySet()) {
+    final List<PsiFile> list=jars.get(file);
+    final VirtualFile jarFile=JarFileSystem.getInstance().getVirtualFileForJar(file);
+    if (jarFile != null) {
+      final PsiFile jar=list.get(0).getManager().findFile(jarFile);
+      if (jar != null) {
+        final CheckedTreeNode jarNode=new CheckedTreeNode(jar);
+        jarNode.setChecked(false);
+        root.add(jarNode);
+        Collections.sort(list,FILE_COMPARATOR);
+        for (        final PsiFile psiFile : list) {
+          final CheckedTreeNode vfNode=createFileNode(psiFile,fileSet);
+          jarNode.add(vfNode);
+          psiFiles.add(psiFile);
+        }
+      }
+    }
+  }
+  return psiFiles;
+}

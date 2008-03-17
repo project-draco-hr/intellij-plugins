@@ -1,0 +1,27 @@
+{
+  this.validator=validator;
+  versionComboBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final StrutsVersion version=getSelectedVersion();
+      if (version != null) {
+        validator.setRequiredLibraries(getRequiredLibraries());
+        validator.getDescription().setDefaultLibraryName("struts2-" + version.getVersion());
+      }
+    }
+  }
+);
+  final Module module=editorContext.getModule();
+  if (module != null) {
+    final String version=StrutsVersionDetector.detectStrutsVersion(module);
+    if (version != null) {
+      versionComboBox.setModel(new DefaultComboBoxModel(new String[]{version}));
+      versionComboBox.getModel().setSelectedItem(version);
+      versionComboBox.setEnabled(false);
+      return;
+    }
+  }
+  versionComboBox.setModel(new EnumComboBoxModel<StrutsVersion>(StrutsVersion.class));
+  versionComboBox.getModel().setSelectedItem(StrutsVersion.STRUTS_2_0_11);
+  validator.setRequiredLibraries(getRequiredLibraries());
+  validator.getDescription().setDefaultLibraryName("struts2-" + StrutsVersion.STRUTS_2_0_11.getVersion());
+}

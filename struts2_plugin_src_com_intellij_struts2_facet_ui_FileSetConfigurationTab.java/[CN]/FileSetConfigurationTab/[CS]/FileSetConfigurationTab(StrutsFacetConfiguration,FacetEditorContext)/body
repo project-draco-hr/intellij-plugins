@@ -1,0 +1,71 @@
+{
+  originalConfiguration=strutsFacetConfiguration;
+  this.facetEditorContext=facetEditorContext;
+  this.myConfigsSearcher=new StrutsConfigsSearcher(facetEditorContext);
+  final SimpleTreeStructure structure=new SimpleTreeStructure(){
+    public Object getRootElement(){
+      return myRootNode;
+    }
+  }
+;
+  myTree.setRootVisible(false);
+  myBuilder=new SimpleTreeBuilder(myTree,(DefaultTreeModel)myTree.getModel(),structure,null);
+  myBuilder.initRoot();
+  myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
+    public void valueChanged(    final TreeSelectionEvent e){
+      final StrutsFileSet fileSet=getCurrentFileSet();
+      myEditButton.setEnabled(fileSet != null);
+      myRemoveButton.setEnabled(fileSet != null);
+    }
+  }
+);
+  myAddSetButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final StrutsFileSet fileSet=new StrutsFileSet(StrutsFileSet.getUniqueId(myBuffer),StrutsFileSet.getUniqueName("My Fileset",myBuffer)){
+        public boolean isNew(){
+          return true;
+        }
+      }
+;
+      final FileSetEditor editor=new FileSetEditor(myPanel,fileSet,myBuffer,facetEditorContext,myConfigsSearcher);
+      editor.show();
+      if (editor.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+        myBuffer.add(editor.getEditedFileSet());
+        myModified=true;
+        myBuilder.updateFromRoot();
+        selectFileSet(fileSet);
+      }
+      myTree.requestFocus();
+    }
+  }
+);
+  myEditButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final StrutsFileSet fileSet=getCurrentFileSet();
+      if (fileSet != null) {
+        final FileSetEditor editor=new FileSetEditor(myPanel,fileSet,myBuffer,facetEditorContext,myConfigsSearcher);
+        editor.show();
+        if (editor.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+          myModified=true;
+          myBuffer.remove(fileSet);
+          final StrutsFileSet edited=editor.getEditedFileSet();
+          myBuffer.add(edited);
+          edited.setAutodetected(false);
+          myBuilder.updateFromRoot();
+          selectFileSet(edited);
+        }
+        myTree.requestFocus();
+      }
+    }
+  }
+);
+  myRemoveButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      remove();
+      myModified=true;
+      myBuilder.updateFromRoot();
+      myTree.requestFocus();
+    }
+  }
+);
+}

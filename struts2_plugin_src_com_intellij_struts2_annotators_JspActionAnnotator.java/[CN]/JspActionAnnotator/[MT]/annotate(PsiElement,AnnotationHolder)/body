@@ -1,0 +1,34 @@
+{
+  if (!(psiElement instanceof XmlTag)) {
+    return;
+  }
+  if (StrutsFacet.getInstance(psiElement) == null) {
+    return;
+  }
+  final XmlTag xmlTag=(XmlTag)psiElement;
+  final String uiTaglibPrefix=getUITaglibPrefix(xmlTag);
+  if (uiTaglibPrefix == null) {
+    return;
+  }
+  if (xmlTag.getNamespacePrefix().equals(uiTaglibPrefix) && Arrays.binarySearch(TAGS_WITH_ACTION_ATTRIBUTE,xmlTag.getLocalName()) > -1) {
+    final String actionPath=xmlTag.getLocalName().equals("action") ? xmlTag.getAttributeValue("name") : xmlTag.getAttributeValue("action");
+    if (actionPath == null) {
+      return;
+    }
+    final StrutsModel strutsModel=StrutsManager.getInstance(psiElement.getProject()).getCombinedModel(ModuleUtil.findModuleForPsiElement(psiElement));
+    if (strutsModel == null) {
+      return;
+    }
+    final String namespace=xmlTag.getAttributeValue("namespace");
+    final List<Action> actions=strutsModel.findActionsByName(actionPath,namespace);
+    if (!actions.isEmpty()) {
+      final List<PsiMethod> navigationTargets=new ArrayList<PsiMethod>(actions.size());
+      for (      final Action action : actions) {
+        ContainerUtil.addIfNotNull(action.searchActionMethod(),navigationTargets);
+      }
+      if (!navigationTargets.isEmpty()) {
+        NavigationGutterIconBuilder.create(ACTION_CLASS_ICON).setTooltipText("Go To Action method").setTargets(navigationTargets).install(annotationHolder,xmlTag);
+      }
+    }
+  }
+}

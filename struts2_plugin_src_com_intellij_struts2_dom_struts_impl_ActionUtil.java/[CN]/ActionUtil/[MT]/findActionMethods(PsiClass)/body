@@ -1,0 +1,41 @@
+{
+  final Project project=actionClass.getProject();
+  final PsiElementFactory psiElementFactory=JavaPsiFacade.getInstance(project).getElementFactory();
+  final GlobalSearchScope projectScope=GlobalSearchScope.allScope(project);
+  final PsiClassType stringType=psiElementFactory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_STRING,projectScope);
+  final PsiClassType resultType=psiElementFactory.createTypeByFQClassName("com.opensymphony.xwork2.Result",projectScope);
+  final PsiClassType exceptionType=psiElementFactory.createTypeByFQClassName("java.lang.Exception",projectScope);
+  final List<PsiMethod> actionMethods=new ArrayList<PsiMethod>();
+  for (  final PsiMethod psiMethod : actionClass.getAllMethods()) {
+    if (psiMethod.isConstructor()) {
+      continue;
+    }
+    final PsiModifierList modifiers=psiMethod.getModifierList();
+    if (!modifiers.hasModifierProperty(PsiModifier.PUBLIC) || modifiers.hasModifierProperty(PsiModifier.STATIC) || modifiers.hasModifierProperty(PsiModifier.ABSTRACT)) {
+      continue;
+    }
+    if (psiMethod.getParameterList().getParametersCount() != 0) {
+      continue;
+    }
+    if (psiMethod.getName().equals("toString")) {
+      continue;
+    }
+    if (PropertyUtil.isSimplePropertyGetter(psiMethod) && actionClass.findFieldByName(PropertyUtil.getPropertyName(psiMethod),true) != null) {
+      continue;
+    }
+    final PsiClassType[] exceptionTypes=psiMethod.getThrowsList().getReferencedTypes();
+    if (exceptionTypes.length > 1) {
+      continue;
+    }
+    if (exceptionTypes.length == 1) {
+      if (!exceptionTypes[0].equals(exceptionType)) {
+        continue;
+      }
+    }
+    final PsiType type=psiMethod.getReturnType();
+    if (type != null && type instanceof PsiClassType && (type.equals(stringType) || type.equals(resultType))) {
+      actionMethods.add(psiMethod);
+    }
+  }
+  return actionMethods;
+}

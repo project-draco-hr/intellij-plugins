@@ -1,0 +1,20 @@
+{
+  final GlobalSearchScope scope=getResolveScope(psiClassGenericDomValue);
+  final JavaClassReferenceProvider javaClassReferenceProvider=new JavaClassReferenceProvider(scope);
+  javaClassReferenceProvider.setOption(JavaClassReferenceProvider.INSTANTIATABLE,Boolean.TRUE);
+  javaClassReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE,Boolean.TRUE);
+  javaClassReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE,Boolean.TRUE);
+  javaClassReferenceProvider.setSoft(true);
+  PsiReference[] javaClassReferences=javaClassReferenceProvider.getReferencesByElement(element);
+  String[] referenceTypes=new String[]{"class"};
+  for (  final ActionClassConverterContributor actionClassConverterContributor : ADDITIONAL_CONTRIBUTORS) {
+    if (actionClassConverterContributor.isSuitable(context)) {
+      final PsiReference[] additionalReferences=actionClassConverterContributor.getReferencesByElement(element,new ProcessingContext());
+      javaClassReferences=ArrayUtil.mergeArrays(javaClassReferences,additionalReferences,PsiReference.class);
+      referenceTypes=ArrayUtil.append(referenceTypes,actionClassConverterContributor.getContributorType());
+    }
+  }
+  psiClassGenericDomValue.putUserData(REFERENCES_KEY,javaClassReferences);
+  psiClassGenericDomValue.putUserData(REFERENCES_TYPES,referenceTypes);
+  return javaClassReferences;
+}

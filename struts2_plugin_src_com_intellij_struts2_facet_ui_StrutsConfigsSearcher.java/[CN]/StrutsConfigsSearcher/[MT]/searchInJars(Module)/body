@@ -1,0 +1,34 @@
+{
+  final Project project=module.getProject();
+  final PsiManager psiManager=PsiManager.getInstance(project);
+  final StrutsManager strutsManager=StrutsManager.getInstance(project);
+  final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+  for (  final VirtualFile virtualFile : rootManager.getFiles(OrderRootType.CLASSES)) {
+    if (isJarFile(virtualFile)) {
+      if (virtualFile.isDirectory()) {
+        final List<PsiFile> list=new ArrayList<PsiFile>();
+        final ContentIterator iterator=new ContentIterator(){
+          public boolean processFile(          final VirtualFile fileOrDir){
+            if (fileOrDir.isDirectory()) {
+              for (              final VirtualFile child : fileOrDir.getChildren()) {
+                processFile(child);
+              }
+            }
+ else             if (fileOrDir.getName().endsWith(XML_EXTENSION)) {
+              final PsiFile psiFile=psiManager.findFile(fileOrDir);
+              if (psiFile instanceof XmlFile && strutsManager.isStruts2ConfigFile((XmlFile)psiFile)) {
+                list.add(psiFile);
+              }
+            }
+            return true;
+          }
+        }
+;
+        iterator.processFile(virtualFile);
+        if (list.size() > 0) {
+          myJars.put(virtualFile,list);
+        }
+      }
+    }
+  }
+}

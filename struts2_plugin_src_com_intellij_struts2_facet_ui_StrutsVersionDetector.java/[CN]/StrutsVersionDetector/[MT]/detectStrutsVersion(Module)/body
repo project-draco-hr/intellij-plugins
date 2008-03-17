@@ -1,0 +1,21 @@
+{
+  final GlobalSearchScope scope=module.getModuleWithDependenciesAndLibrariesScope(false);
+  final JavaPsiFacade psiManager=JavaPsiFacade.getInstance(module.getProject());
+  try {
+    final ZipFile zipFile=getStrutsJar(scope,psiManager);
+    if (zipFile == null) {
+      return null;
+    }
+    final ZipEntry zipEntry=zipFile.getEntry("META-INF/maven/org.apache.struts/struts2-core/pom.properties");
+    if (zipEntry == null) {
+      return null;
+    }
+    final InputStream inputStream=zipFile.getInputStream(zipEntry);
+    final Properties properties=new Properties();
+    properties.load(inputStream);
+    return properties.getProperty("version");
+  }
+ catch (  IOException e) {
+    return null;
+  }
+}

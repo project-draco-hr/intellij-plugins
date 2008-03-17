@@ -1,0 +1,51 @@
+{
+  myFiles.clear();
+  myJars.clear();
+  final Module module=myContext.getModule();
+  if (module != null) {
+    searchInModule(module);
+    searchInJars(module);
+    final Module[] dependencies=ModuleRootManager.getInstance(module).getDependencies();
+    for (    final Module dep : dependencies) {
+      searchInJars(dep);
+    }
+  }
+ else {
+    final ModuleBuilder builder=myContext.getModuleBuilder();
+    if (builder instanceof SourcePathsBuilder) {
+      final String entryPath=((SourcePathsBuilder)builder).getContentEntryPath();
+      if (entryPath != null) {
+        final VirtualFile root=LocalFileSystem.getInstance().findFileByPath(entryPath);
+        if (root != null) {
+          final ContentIterator iterator=new ContentIterator(){
+            public boolean processFile(            final VirtualFile fileOrDir){
+              if (fileOrDir.isDirectory()) {
+                for (                final VirtualFile child : fileOrDir.getChildren()) {
+                  processFile(child);
+                }
+              }
+ else {
+                if (fileOrDir.getName().endsWith(XML_EXTENSION)) {
+                  final NanoXmlUtil.RootTagNameBuilder rootTagNameBuilder=new NanoXmlUtil.RootTagNameBuilder();
+                  try {
+                    NanoXmlUtil.parse(fileOrDir.getInputStream(),rootTagNameBuilder);
+                    final String result=rootTagNameBuilder.getResult();
+                    if (result != null && result.equals(StrutsRoot.TAG_NAME)) {
+                      myVirtualFiles.add(fileOrDir);
+                    }
+                  }
+ catch (                  IOException e) {
+                    return false;
+                  }
+                }
+              }
+              return true;
+            }
+          }
+;
+          iterator.processFile(root);
+        }
+      }
+    }
+  }
+}
