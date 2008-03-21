@@ -1,2 +1,19 @@
 {
+  super.checkDomElement(element,holder,helper);
+  if (element instanceof GenericAttributeValue) {
+    final GenericAttributeValue genericDomValue=(GenericAttributeValue)element;
+    if (genericDomValue.getConverter() instanceof ActionClassConverter) {
+      final XmlElement xmlElement=DomUtil.getValueElement(genericDomValue);
+      if (xmlElement == null)       return;
+      final PsiReference[] psiReferences=xmlElement.getReferences();
+      for (      final PsiReference psiReference : psiReferences) {
+        final PsiElement resolveElement=psiReference.resolve();
+        if (resolveElement != null && resolveElement instanceof PsiClass) {
+          return;
+        }
+      }
+      final String referenceTypes=StringUtil.join(genericDomValue.getUserData(ActionClassConverter.REFERENCES_TYPES),"|");
+      holder.createProblem(genericDomValue,HighlightSeverity.ERROR,"Cannot resolve " + referenceTypes + " '"+ genericDomValue.getStringValue()+ "'");
+    }
+  }
 }
