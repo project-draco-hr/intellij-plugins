@@ -1,7 +1,17 @@
 {
   final String fullActionPath=PathReference.trimPath(getValue());
-  final String namespace=getNamespace(fullActionPath);
-  final List<Action> actionList=strutsModel.getActionsForNamespace(namespace);
+  final String namespace=getNamespace(fullActionPath,getRangeInElement().getStartOffset(),false);
+  final List<Action> actionList;
+  if (StringUtil.isNotEmpty(namespace)) {
+    actionList=strutsModel.getActionsForNamespace(namespace);
+  }
+ else {
+    actionList=new ArrayList<Action>();
+    final List<StrutsPackage> strutsPackages=strutsModel.getStrutsPackages();
+    for (    final StrutsPackage strutsPackage : strutsPackages) {
+      actionList.addAll(strutsPackage.getActions());
+    }
+  }
   final List<Object> variants=new ArrayList<Object>(actionList.size());
   for (  final Action action : actionList) {
     final String actionPath=action.getName().getStringValue();
