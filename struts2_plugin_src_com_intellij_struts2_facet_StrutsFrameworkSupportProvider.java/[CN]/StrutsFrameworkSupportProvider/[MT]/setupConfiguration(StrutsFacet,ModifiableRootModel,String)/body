@@ -1,2 +1,27 @@
 {
+  final Module module=strutsFacet.getModule();
+  StartupManager.getInstance(module.getProject()).runWhenProjectIsInitialized(new Runnable(){
+    public void run(){
+      final VirtualFile[] sourceRoots=ModuleRootManager.getInstance(module).getSourceRoots();
+      if (sourceRoots.length > 0) {
+        final PsiDirectory directory=PsiManager.getInstance(module.getProject()).findDirectory(sourceRoots[0]);
+        if (directory != null && directory.findFile(StrutsConstants.STRUTS_DEFAULT_FILENAME) == null) {
+          final FileTemplate strutsXmlTemplate=FileTemplateManager.getInstance().getJ2eeTemplate("struts.xml");
+          try {
+            final PsiElement psiElement=FileTemplateUtil.createFromTemplate(strutsXmlTemplate,StrutsConstants.STRUTS_DEFAULT_FILENAME,null,directory);
+            if (psiElement instanceof XmlFile) {
+              final Set<StrutsFileSet> empty=Collections.emptySet();
+              final StrutsFileSet fileSet=new StrutsFileSet(StrutsFileSet.getUniqueId(empty),StrutsFileSet.getUniqueName("Default File Set",empty));
+              fileSet.addFile(((XmlFile)psiElement).getVirtualFile());
+              strutsFacet.getConfiguration().getFileSets().add(fileSet);
+            }
+          }
+ catch (          Exception e) {
+            LOG.error("error creating struts.xml from template",e);
+          }
+        }
+      }
+    }
+  }
+);
 }
