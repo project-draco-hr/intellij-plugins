@@ -1,17 +1,15 @@
 {
-  if (StringUtil.isEmpty(value)) {
+  if (value == null) {
     return null;
   }
-  final StrutsModel strutsModel=ConverterUtil.getStrutsModel(context);
-  if (strutsModel == null) {
+  final XmlElement xmlElement=context.getReferenceXmlElement();
+  if (xmlElement == null) {
     return null;
   }
-  final Set<XmlFile> configFiles=strutsModel.getConfigFiles();
-  final String currentFileName=context.getFile().getName();
-  for (  final XmlFile configFile : configFiles) {
-    if (configFile.getName().equals(value) && !currentFileName.equals(value)) {
-      return configFile;
-    }
+  final PsiReference[] references=createReferences((GenericDomValue)context.getInvocationElement(),xmlElement,context);
+  if (references.length == 0) {
+    return null;
   }
-  return null;
+  final PsiElement element=references[references.length - 1].resolve();
+  return element instanceof PsiFile ? (PsiFile)element : null;
 }
