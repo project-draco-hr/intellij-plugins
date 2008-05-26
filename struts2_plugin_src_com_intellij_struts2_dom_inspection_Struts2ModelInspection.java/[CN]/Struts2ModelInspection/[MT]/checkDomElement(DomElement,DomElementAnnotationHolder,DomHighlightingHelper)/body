@@ -1,22 +1,5 @@
 {
   super.checkDomElement(element,holder,helper);
-  if (element instanceof GenericAttributeValue) {
-    final GenericAttributeValue attributeValue=(GenericAttributeValue)element;
-    if (attributeValue.getConverter() instanceof ActionClassConverter) {
-      final XmlElement xmlElement=DomUtil.getValueElement(attributeValue);
-      if (xmlElement == null) {
-        return;
-      }
-      final PsiReference[] psiReferences=xmlElement.getReferences();
-      for (      final PsiReference psiReference : psiReferences) {
-        final PsiElement resolveElement=psiReference.resolve();
-        if (resolveElement != null && resolveElement instanceof PsiClass) {
-          return;
-        }
-      }
-      final String[] referenceTypesUserData=attributeValue.getUserData(ActionClassConverter.REFERENCES_TYPES);
-      final String referenceTypes=referenceTypesUserData != null ? StringUtil.join(referenceTypesUserData,"|") : StrutsBundle.message("dom.actionclass.converter.type.class");
-      holder.createProblem(attributeValue,HighlightSeverity.ERROR,StrutsBundle.message("dom.actionclass.converter.cannot.resolve",referenceTypes,attributeValue.getStringValue()));
-    }
-  }
+  final Struts2DomModelVisitor visitor=new Struts2DomModelVisitor(holder);
+  element.accept(visitor);
 }
