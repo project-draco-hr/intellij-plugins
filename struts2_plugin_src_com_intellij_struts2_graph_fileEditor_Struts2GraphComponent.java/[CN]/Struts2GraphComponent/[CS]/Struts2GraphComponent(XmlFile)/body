@@ -1,0 +1,21 @@
+{
+  final Project project=xmlFile.getProject();
+  final Graph2D graph=GraphManager.getGraphManager().createGraph2D();
+  final Graph2DView view=GraphManager.getGraphManager().createGraph2DView();
+  myDataModel=new StrutsDataModel(xmlFile);
+  final StrutsPresentationModel presentationModel=new StrutsPresentationModel(graph,project);
+  myBuilder=GraphBuilderFactory.getInstance(project).createGraphBuilder(graph,view,myDataModel,presentationModel);
+  setLayout(new BorderLayout());
+  add(createToolbarPanel(),BorderLayout.NORTH);
+  add(myBuilder.getView().getJComponent(),BorderLayout.CENTER);
+  Disposer.register(this,myBuilder);
+  myBuilder.initialize();
+  DomManager.getDomManager(myBuilder.getProject()).addDomEventListener(new DomEventAdapter(){
+    public void eventOccured(    final DomEvent event){
+      if (isShowing()) {
+        myBuilder.queueUpdate();
+      }
+    }
+  }
+,this);
+}
