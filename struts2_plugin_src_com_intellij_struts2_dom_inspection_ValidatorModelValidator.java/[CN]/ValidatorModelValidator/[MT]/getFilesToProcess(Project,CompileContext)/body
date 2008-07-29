@@ -2,7 +2,7 @@
   final PsiManager psiManager=PsiManager.getInstance(project);
   final ValidatorManager validatorManager=ValidatorManager.getInstance(project);
   final Set<VirtualFile> files=new HashSet<VirtualFile>();
-  for (  final VirtualFile file : context.getCompileScope().getFiles(StdFileTypes.XML,true)) {
+  for (  final VirtualFile file : context.getProjectCompileScope().getFiles(StdFileTypes.XML,true)) {
     if (file.getName().endsWith(FILENAME_EXTENSION_VALIDATION_XML)) {
       final PsiFile psiFile=psiManager.findFile(file);
       if (psiFile instanceof XmlFile && validatorManager.isValidatorsFile((XmlFile)psiFile)) {
@@ -13,14 +13,15 @@
       }
     }
   }
-  final CompileScope scope=context.getCompileScope();
-  for (  final Module module : scope.getAffectedModules()) {
+  final THashSet<VirtualFile> descriptorFiles=new THashSet<VirtualFile>();
+  for (  final Module module : ModuleManager.getInstance(project).getModules()) {
     if (StrutsFacet.getInstance(module) != null) {
       final PsiFile psiFile=validatorManager.getValidatorConfigFile(module);
       if (psiFile != null && validatorManager.isCustomValidatorConfigFile(psiFile)) {
-        files.add(psiFile.getVirtualFile());
+        InspectionValidatorUtil.addFile(descriptorFiles,psiFile);
       }
     }
   }
+  files.addAll(InspectionValidatorUtil.expandCompileScopeIfNeeded(descriptorFiles,context));
   return files;
 }
