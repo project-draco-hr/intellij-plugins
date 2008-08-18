@@ -3,19 +3,14 @@
   if (set == null) {
     return true;
   }
-  final DomElement domElement=DomManager.getDomManager(psiElement.getProject()).getDomElement((XmlTag)psiElement);
-  if (domElement == null) {
-    return true;
-  }
-  final StrutsPackage strutsPackage=domElement.getParentOfType(StrutsPackage.class,true);
-  if (strutsPackage == null) {
-    return true;
-  }
   final WebFacet webFacet=WebUtil.getWebFacet(psiElement);
   if (webFacet == null) {
-    return true;
+    return false;
   }
-  final String packageNamespace=strutsPackage.searchNamespace();
+  final String packageNamespace=getNamespace(psiElement);
+  if (packageNamespace == null) {
+    return false;
+  }
   final WebDirectoryUtil directoryUtil=WebDirectoryUtil.getWebDirectoryUtil(psiElement.getProject());
   set.addCustomization(FileReferenceSet.DEFAULT_PATH_EVALUATOR_OPTION,new Function<PsiFile,Collection<PsiFileSystemItem>>(){
     public Collection<PsiFileSystemItem> fun(    final PsiFile file){

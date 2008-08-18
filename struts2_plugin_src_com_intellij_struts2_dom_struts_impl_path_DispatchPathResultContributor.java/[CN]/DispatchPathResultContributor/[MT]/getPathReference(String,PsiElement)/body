@@ -4,17 +4,20 @@
     return null;
   }
   final WebDirectoryUtil webDirectoryUtil=WebDirectoryUtil.getWebDirectoryUtil(element.getProject());
-  final PsiElement psiElement=webDirectoryUtil.findFileByPath(path,webFacet);
+  final PsiElement psiElement=webDirectoryUtil.findFileByPath(PathReference.trimPath(path),webFacet);
+  if (psiElement == null) {
+    return null;
+  }
   final Function<PathReference,Icon> iconFunction=new Function<PathReference,Icon>(){
     public Icon fun(    final PathReference webPath){
       return psiElement.getIcon(Iconable.ICON_FLAG_READ_STATUS);
     }
   }
 ;
-  return psiElement != null ? new PathReference(path,iconFunction){
+  return new PathReference(path,iconFunction){
     public PsiElement resolve(){
-      return webDirectoryUtil.findFileByPath(path,webFacet);
+      return psiElement;
     }
   }
- : null;
+;
 }
