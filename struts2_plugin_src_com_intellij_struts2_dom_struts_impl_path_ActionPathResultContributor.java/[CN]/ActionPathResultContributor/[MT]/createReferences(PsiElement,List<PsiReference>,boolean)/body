@@ -3,13 +3,50 @@
   if (model == null) {
     return false;
   }
-  final String currentPackage=getNamespace(psiElement);
-  if (currentPackage == null) {
+  final DomElement resultElement=DomUtil.getDomElement(psiElement);
+  if (resultElement == null) {
     return false;
   }
+  final StrutsPackage strutsPackage=resultElement.getParentOfType(StrutsPackage.class,true);
+  if (strutsPackage == null) {
+    return false;
+  }
+  final XmlTag resultTag=resultElement.getXmlTag();
+  if (resultTag == null) {
+    return false;
+  }
+  final String dispatcherType=resultTag.getAttributeValue("type");
+  if (ActionChainOrRedirectResultContributor.isActionChainOrRedirectResult(dispatcherType)) {
+    return false;
+  }
+  final String currentPackage=strutsPackage.searchNamespace();
+  final String actionExtension=".action";
   final PsiReference actionReference=new PsiReferenceBase<PsiElement>(psiElement,soft){
     public PsiElement resolve(){
-      return resolveActionPath(psiElement,currentPackage,model);
+      final XmlTagValue tagValue=((XmlTag)psiElement).getValue();
+      final String path=tagValue.getText();
+      final int extensionIndex=path.lastIndexOf(actionExtension);
+      if (extensionIndex == -1) {
+        return null;
+      }
+      final int namespacePrefixIndex=path.lastIndexOf("/");
+      final String namespace;
+      if (namespacePrefixIndex != -1) {
+        namespace=path.substring(0,namespacePrefixIndex);
+      }
+ else {
+        namespace=currentPackage;
+      }
+      if (namespacePrefixIndex > extensionIndex) {
+        return null;
+      }
+      final String strippedPath=path.substring(namespacePrefixIndex != -1 ? namespacePrefixIndex + 1 : 0,extensionIndex);
+      final List<Action> actions=model.findActionsByName(strippedPath,namespace);
+      if (actions.size() == 1) {
+        final Action action=actions.get(0);
+        return action.getXmlTag();
+      }
+      return null;
     }
     public Object[] getVariants(){
       final List<LookupItem<ActionLookupItem>> variants=new ArrayList<LookupItem<ActionLookupItem>>();
@@ -22,10 +59,10 @@
           final String actionNamespace=action.getNamespace();
           final String fullPath;
           if (!actionNamespace.equals(StrutsPackage.DEFAULT_NAMESPACE) && !isInCurrentPackage) {
-            fullPath=actionNamespace + "/" + actionPath+ ACTION_EXTENSION;
+            fullPath=actionNamespace + "/" + actionPath+ actionExtension;
           }
  else {
-            fullPath=actionPath + ACTION_EXTENSION;
+            fullPath=actionPath + actionExtension;
           }
           final LookupItem<ActionLookupItem> item=new LookupItem<ActionLookupItem>(actionItem,fullPath);
           item.setAttribute(LookupItem.OVERWRITE_ON_AUTOCOMPLETE_ATTR,Boolean.TRUE);

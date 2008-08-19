@@ -3,13 +3,42 @@
   if (model == null) {
     return false;
   }
-  final String currentPackage=getNamespace(psiElement);
-  if (currentPackage == null) {
+  final DomElement resultElement=DomUtil.getDomElement(psiElement);
+  if (resultElement == null) {
     return false;
   }
+  final XmlTag resultTag=resultElement.getXmlTag();
+  if (resultTag == null) {
+    return false;
+  }
+  final String dispatcherType=resultTag.getAttributeValue("type");
+  if (!isActionChainOrRedirectResult(dispatcherType)) {
+    return false;
+  }
+  final StrutsPackage strutsPackage=resultElement.getParentOfType(StrutsPackage.class,true);
+  if (strutsPackage == null) {
+    return false;
+  }
+  final String currentPackage=strutsPackage.searchNamespace();
   final PsiReference chainReference=new PsiReferenceBase<PsiElement>(psiElement,soft){
     public PsiElement resolve(){
-      return resolveActionPath(psiElement,currentPackage,model);
+      final XmlTagValue tagValue=((XmlTag)psiElement).getValue();
+      final String path=PathReference.trimPath(tagValue.getText());
+      final int namespacePrefixIndex=path.lastIndexOf("/");
+      final String namespace;
+      if (namespacePrefixIndex != -1) {
+        namespace=path.substring(0,namespacePrefixIndex);
+      }
+ else {
+        namespace=currentPackage;
+      }
+      final String strippedPath=path.substring(namespacePrefixIndex != -1 ? namespacePrefixIndex + 1 : 0);
+      final List<Action> actions=model.findActionsByName(strippedPath,namespace);
+      if (actions.size() == 1) {
+        final Action action=actions.get(0);
+        return action.getXmlTag();
+      }
+      return null;
     }
     public Object[] getVariants(){
       final List<LookupItem<ActionLookupItem>> variants=new ArrayList<LookupItem<ActionLookupItem>>();
