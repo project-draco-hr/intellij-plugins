@@ -1,3 +1,20 @@
 {
-  return new PathReference(path,new PathReference.ConstFunction(StrutsIcons.ACTION));
+  final StrutsModel model=StrutsManager.getInstance(element.getProject()).getModelByFile((XmlFile)element.getContainingFile());
+  if (model == null) {
+    return null;
+  }
+  final String currentPackage=getNamespace(element);
+  if (currentPackage == null) {
+    return null;
+  }
+  final PsiElement actionTag=resolveActionPath(element,currentPackage,model);
+  if (actionTag == null) {
+    return null;
+  }
+  return new PathReference(path,new PathReference.ConstFunction(StrutsIcons.ACTION)){
+    @Override public PsiElement resolve(){
+      return actionTag;
+    }
+  }
+;
 }
