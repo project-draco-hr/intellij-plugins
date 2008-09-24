@@ -7,7 +7,7 @@
       final PsiFile psiFile=psiManager.findFile(file);
       if (psiFile instanceof XmlFile && validatorManager.isValidatorsFile((XmlFile)psiFile)) {
         final Module module=ModuleUtil.findModuleForFile(file,project);
-        if (module != null && StrutsFacet.getInstance(module) != null) {
+        if (module != null && StrutsFacet.getInstance(module) != null && isEnabledForModule(module)) {
           files.add(file);
         }
       }
@@ -15,7 +15,7 @@
   }
   final THashSet<VirtualFile> descriptorFiles=new THashSet<VirtualFile>();
   for (  final Module module : ModuleManager.getInstance(project).getModules()) {
-    if (StrutsFacet.getInstance(module) != null) {
+    if (StrutsFacet.getInstance(module) != null && isEnabledForModule(module)) {
       final PsiFile psiFile=validatorManager.getValidatorConfigFile(module);
       if (psiFile != null && validatorManager.isCustomValidatorConfigFile(psiFile)) {
         InspectionValidatorUtil.addFile(descriptorFiles,psiFile);

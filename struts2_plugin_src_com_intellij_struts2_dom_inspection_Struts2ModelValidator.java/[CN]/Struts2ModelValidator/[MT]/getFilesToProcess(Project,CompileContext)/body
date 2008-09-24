@@ -2,12 +2,14 @@
   final StrutsManager strutsManager=StrutsManager.getInstance(project);
   final Set<VirtualFile> files=new HashSet<VirtualFile>();
   for (  final Module module : ModuleManager.getInstance(project).getModules()) {
-    final StrutsFacet strutsFacet=StrutsFacet.getInstance(module);
-    if (strutsFacet != null) {
-      for (      final StrutsFileSet fileSet : strutsManager.getAllConfigFileSets(module)) {
-        for (        final VirtualFilePointer pointer : fileSet.getFiles()) {
-          final VirtualFile file=pointer.getFile();
-          ContainerUtil.addIfNotNull(file,files);
+    if (isEnabledForModule(module)) {
+      final StrutsFacet strutsFacet=StrutsFacet.getInstance(module);
+      if (strutsFacet != null) {
+        for (        final StrutsFileSet fileSet : strutsManager.getAllConfigFileSets(module)) {
+          for (          final VirtualFilePointer pointer : fileSet.getFiles()) {
+            final VirtualFile file=pointer.getFile();
+            ContainerUtil.addIfNotNull(file,files);
+          }
         }
       }
     }
