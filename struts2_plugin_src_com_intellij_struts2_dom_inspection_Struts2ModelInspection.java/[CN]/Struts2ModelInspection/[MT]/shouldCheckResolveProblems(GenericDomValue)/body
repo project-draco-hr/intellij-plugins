@@ -2,11 +2,14 @@
   if (value.getConverter() instanceof ActionClassConverter) {
     return false;
   }
-  if (value instanceof Result || value instanceof GlobalResult) {
+  final String stringValue=value.getStringValue();
+  if (value.getConverter() instanceof StrutsPathReferenceConverter) {
+    if (stringValue != null && stringValue.contains("://")) {
+      return false;
+    }
     if (!((ParamsElement)value).getParams().isEmpty()) {
       return false;
     }
   }
-  final String stringValue=value.getStringValue();
   return stringValue == null || stringValue.indexOf('{') < 0;
 }
