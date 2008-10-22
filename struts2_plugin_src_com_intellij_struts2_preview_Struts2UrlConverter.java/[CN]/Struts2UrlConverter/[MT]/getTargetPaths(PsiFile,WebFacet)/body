@@ -1,0 +1,26 @@
+{
+  final StrutsModel combinedModel=StrutsManager.getInstance(sourceFile.getProject()).getCombinedModel(webFacet.getModule());
+  @NonNls final ArrayList<String> list=new ArrayList<String>();
+  if (combinedModel != null) {
+    combinedModel.processActions(new Processor<Action>(){
+      public boolean process(      final Action action){
+        for (        Result result : action.getResults()) {
+          final PathReference pathReference=result.getValue();
+          if (pathReference != null) {
+            final PsiElement psiElement=pathReference.resolve();
+            if (psiElement != null && psiElement.equals(sourceFile)) {
+              String namespace=action.getNamespace();
+              if (!namespace.equals(StrutsPackage.DEFAULT_NAMESPACE)) {
+                namespace+="/";
+              }
+              list.add(namespace + action.getName().getStringValue() + ".action");
+            }
+          }
+        }
+        return true;
+      }
+    }
+);
+  }
+  return list;
+}
