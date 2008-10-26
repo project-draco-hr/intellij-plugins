@@ -4,5 +4,15 @@
   if (strutsModel == null) {
     return PsiReference.EMPTY_ARRAY;
   }
-  return new PsiReference[]{new ActionReference((XmlAttributeValue)psiElement,strutsModel)};
+  final XmlAttributeValue xmlAttributeValue=(XmlAttributeValue)psiElement;
+  final String path=xmlAttributeValue.getValue();
+  final String actionName=TaglibUtil.trimActionPath(path);
+  final String namespace=getNamespace(xmlAttributeValue);
+  final List<Action> actions=strutsModel.findActionsByName(actionName,namespace);
+  final Action action=actions.isEmpty() ? null : actions.get(0);
+  final int bangIndex=path.indexOf(TaglibUtil.BANG_SYMBOL);
+  if (bangIndex == -1) {
+    return new PsiReference[]{new ActionReference(xmlAttributeValue,action,namespace,strutsModel)};
+  }
+  return new PsiReference[]{new ActionReference(xmlAttributeValue,action,namespace,strutsModel),new ActionMethodReference(xmlAttributeValue,action,bangIndex)};
 }
