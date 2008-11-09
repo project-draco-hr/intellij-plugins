@@ -1,4 +1,20 @@
 {
   final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
-  return psiFile instanceof XmlFile && StrutsManager.getInstance(project).isStruts2ConfigFile((XmlFile)psiFile);
+  if (!(psiFile instanceof XmlFile)) {
+    return false;
+  }
+  if (!StrutsManager.getInstance(project).isStruts2ConfigFile((XmlFile)psiFile)) {
+    return false;
+  }
+  final Module module=ModuleUtil.findModuleForFile(file,project);
+  if (module == null) {
+    return false;
+  }
+  final Set<StrutsFileSet> fileSets=StrutsManager.getInstance(project).getAllConfigFileSets(module);
+  for (  StrutsFileSet fileSet : fileSets) {
+    if (fileSet.hasFile(file)) {
+      return true;
+    }
+  }
+  return false;
 }
