@@ -2,6 +2,14 @@
   if (value.getConverter() instanceof ActionClassConverter) {
     return false;
   }
+  if (value.getConverter() instanceof ParamsNameConverter) {
+    final Result result=DomUtil.getParentOfType(value,Result.class,false);
+    if (result != null) {
+      if (ResultTypeResolver.isChainOrRedirectType(result.getType().getStringValue())) {
+        return false;
+      }
+    }
+  }
   final String stringValue=value.getStringValue();
   if (value.getConverter() instanceof StrutsPathReferenceConverter) {
     if (stringValue != null && stringValue.contains("://")) {
