@@ -7,11 +7,11 @@
   javaClassReferenceProvider.setSoft(true);
   PsiReference[] javaClassReferences=javaClassReferenceProvider.getReferencesByElement(element);
   @NonNls String[] referenceTypes=new String[]{"class"};
-  for (  final ActionClassConverterContributor actionClassConverterContributor : Extensions.getExtensions(EP_NAME)) {
-    if (actionClassConverterContributor.isSuitable(context)) {
-      final PsiReference[] additionalReferences=actionClassConverterContributor.getReferencesByElement(element,new ProcessingContext());
+  for (  final ExtendableClassConverterContributor contributor : Extensions.getExtensions(EP_NAME)) {
+    if (contributor.isSuitable(context)) {
+      final PsiReference[] additionalReferences=contributor.getReferencesByElement(element,new ProcessingContext());
       javaClassReferences=ArrayUtil.mergeArrays(javaClassReferences,additionalReferences,PsiReference.class);
-      referenceTypes=ArrayUtil.append(referenceTypes,actionClassConverterContributor.getContributorType());
+      referenceTypes=ArrayUtil.append(referenceTypes,contributor.getContributorType());
     }
   }
   psiClassGenericDomValue.putUserData(REFERENCES_TYPES,referenceTypes);
