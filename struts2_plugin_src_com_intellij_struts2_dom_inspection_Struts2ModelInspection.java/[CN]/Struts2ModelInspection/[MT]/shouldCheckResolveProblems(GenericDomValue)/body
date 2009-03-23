@@ -5,7 +5,11 @@
   if (value.getConverter() instanceof ParamsNameConverter) {
     final Result result=DomUtil.getParentOfType(value,Result.class,false);
     if (result != null) {
-      if (ResultTypeResolver.isChainOrRedirectType(result.getType().getStringValue())) {
+      final ResultType resultType=result.getEffectiveResultType();
+      if (resultType == null) {
+        return false;
+      }
+      if (ResultTypeResolver.isChainOrRedirectType(resultType.getName().getStringValue())) {
         return false;
       }
     }
