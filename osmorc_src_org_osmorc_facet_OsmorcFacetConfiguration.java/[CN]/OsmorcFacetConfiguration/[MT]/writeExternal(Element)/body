@@ -1,0 +1,37 @@
+{
+  element.setAttribute(OSMORC_CONTROLS_MANIFEST,String.valueOf(isOsmorcControlsManifest()));
+  element.setAttribute(MANIFEST_LOCATION,getManifestLocation());
+  element.setAttribute(JARFILE_LOCATION,getJarFileLocation());
+  element.setAttribute(ADDITIONAL_BND_ARGS,getAdditionalBndArgs());
+  element.setAttribute(USE_BND_FILE,String.valueOf(isUseBndFile()));
+  element.setAttribute(BND_FILE_LOCATION,getBndFileLocation());
+  element.setAttribute(BUNDLE_ACTIVATOR,getBundleActivator());
+  element.setAttribute(BUNDLE_SYMBOLIC_NAME,getBundleSymbolicName());
+  element.setAttribute(BUNDLE_VERSION,getBundleVersion());
+  element.setAttribute(IGNORE_FILE_PATTERN,getIgnoreFilePattern());
+  element.setAttribute(USE_PROJECT_DEFAULT_MANIFEST_FILE_LOCATION,String.valueOf(isUseProjectDefaultManifestFileLocation()));
+  element.setAttribute(ALWAYS_REBUILD_BUNDLE_JAR,String.valueOf(isAlwaysRebuildBundleJAR()));
+  Element props=new Element(ADDITIONAL_PROPERTIES);
+  String[] lines=getAdditionalProperties().split("\n");
+  for (  String line : lines) {
+    int sep=line.indexOf(':');
+    if (sep != -1) {
+      String key=line.substring(0,sep).trim();
+      String value=line.substring(sep + 1).trim();
+      Element prop=new Element(PROPERTY);
+      prop.setAttribute(KEY,key);
+      prop.setAttribute(VALUE,value);
+      props.addContent(prop);
+    }
+  }
+  element.addContent(props);
+  Element additionalJARContentsElement=new Element("additionalJARContents");
+  List<Pair<String,String>> additionalJARContents=getAdditionalJARContents();
+  for (  Pair<String,String> additionalJARContent : additionalJARContents) {
+    Element entry=new Element("entry");
+    entry.setAttribute("source",additionalJARContent.getFirst());
+    entry.setAttribute("dest",additionalJARContent.getSecond());
+    additionalJARContentsElement.addContent(entry);
+  }
+  element.addContent(additionalJARContentsElement);
+}

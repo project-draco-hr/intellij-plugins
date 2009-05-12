@@ -1,0 +1,34 @@
+{
+  try {
+    File targetDir=new File(getOutputPath(module));
+    File sourceFile=new File(VfsUtil.urlToPath(bundleFileUrl));
+    File targetFile=new File(targetDir.getPath() + File.separator + sourceFile.getName());
+    Map<String,String> additionalProperties=new HashMap<String,String>();
+    long lastModified=Long.MIN_VALUE;
+    ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
+    LibraryBundlificationRule rule=null;
+    for (    LibraryBundlificationRule bundlificationRule : settings.getLibraryBundlificationRules()) {
+      if (bundlificationRule.appliesTo(sourceFile.getName())) {
+        if (bundlificationRule.isDoNotBundle()) {
+          return null;
+        }
+        additionalProperties.putAll(bundlificationRule.getAdditionalPropertiesMap());
+        lastModified=Math.max(lastModified,bundlificationRule.getLastModified());
+      }
+    }
+    if (!targetFile.exists() || targetFile.lastModified() < sourceFile.lastModified() || targetFile.lastModified() < lastModified) {
+      bnd bnd=new bnd();
+      bnd.doWrap(null,sourceFile,targetFile,null,0,additionalProperties);
+    }
+    return VfsUtil.pathToUrl(targetFile.getCanonicalPath());
+  }
+ catch (  final Exception e) {
+    SwingUtilities.invokeLater(new Runnable(){
+      public void run(){
+        Messages.showErrorDialog(OsmorcBundle.getTranslation("bundlecompiler.bundlifying.problem.message",bundleFileUrl,e.toString()),OsmorcBundle.getTranslation("error"));
+      }
+    }
+);
+    return null;
+  }
+}

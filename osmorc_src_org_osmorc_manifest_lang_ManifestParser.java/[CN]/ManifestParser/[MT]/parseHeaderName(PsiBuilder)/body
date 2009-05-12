@@ -1,0 +1,22 @@
+{
+  IElementType tokenType;
+  if (_clauseMarker != null) {
+    _clauseMarker.done(ManifestElementTypes.CLAUSE);
+    _clauseMarker=null;
+  }
+  if (_headerMarker != null) {
+    _headerMarker.done(ManifestElementTypes.HEADER);
+    _headerMarker=null;
+  }
+  _headerMarker=builder.mark();
+  PsiBuilder.Marker headerNameMarker=builder.mark();
+  builder.advanceLexer();
+  tokenType=builder.getTokenType();
+  if (tokenType == ManifestTokenTypes.HEADER_ASSIGNMENT) {
+    headerNameMarker.done(ManifestElementTypes.HEADER_NAME);
+  }
+ else {
+    headerNameMarker.error("':' expected");
+  }
+  builder.advanceLexer();
+}

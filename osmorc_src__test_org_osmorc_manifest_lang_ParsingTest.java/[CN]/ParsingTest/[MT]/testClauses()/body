@@ -1,0 +1,22 @@
+{
+  PsiFile fromText=PsiFileFactory.getInstance(_fixture.getProject()).createFileFromText("DUMMY.MF","Require-Bundle:t1,t2");
+  PsiElement currentElement=fromText.getFirstChild();
+  assertThat(currentElement,is(ManifestHeader.class));
+  currentElement=currentElement.getFirstChild();
+  assertThat(currentElement,is(ManifestHeaderName.class));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(LeafPsiElement.class));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(ManifestClause.class));
+  currentElement=currentElement.getFirstChild();
+  assertThat(currentElement,is(ManifestHeaderValue.class));
+  assertThat(currentElement.getText(),equalTo("t1"));
+  currentElement=currentElement.getParent().getNextSibling();
+  assertThat(currentElement,is(LeafPsiElement.class));
+  assertThat(((LeafPsiElement)currentElement).getElementType(),equalTo(ManifestTokenTypes.CLAUSE_SEPARATOR));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(ManifestClause.class));
+  currentElement=currentElement.getFirstChild();
+  assertThat(currentElement,is(ManifestHeaderValue.class));
+  assertThat(currentElement.getText(),equalTo("t2"));
+}

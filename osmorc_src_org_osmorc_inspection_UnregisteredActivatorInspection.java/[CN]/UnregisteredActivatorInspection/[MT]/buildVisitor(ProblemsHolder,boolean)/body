@@ -1,0 +1,30 @@
+{
+  return new JavaElementVisitor(){
+    public void visitReferenceExpression(    PsiReferenceExpression expression){
+    }
+    @Override public void visitClass(    PsiClass psiClass){
+      if (OsmorcFacet.hasOsmorcFacet(psiClass)) {
+        PsiType[] types=psiClass.getSuperTypes();
+        for (        PsiType type : types) {
+          if (type.equalsToText(BundleActivator.class.getName())) {
+            OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(psiClass).getConfiguration();
+            if (configuration.isManifestManuallyEdited()) {
+              BundleManager bundleManager=ServiceManager.getService(psiClass.getProject(),BundleManager.class);
+              Module module=ModuleUtil.findModuleForPsiElement(psiClass);
+              if (!isActivatorRegistered(bundleManager,module,psiClass.getQualifiedName())) {
+                holder.registerProblem(psiClass.getNameIdentifier(),"Bundle activator is not registered in manifest.",ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+              }
+            }
+ else {
+              String configuredActivator=configuration.getBundleActivator();
+              if (!configuredActivator.equals(psiClass.getQualifiedName())) {
+                holder.registerProblem(psiClass.getNameIdentifier(),"Bundle activator is not set up in facet configuration.",ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+;
+}

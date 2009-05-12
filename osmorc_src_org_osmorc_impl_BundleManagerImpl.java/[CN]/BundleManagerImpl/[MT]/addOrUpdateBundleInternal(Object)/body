@@ -1,0 +1,22 @@
+{
+  BundleManifest bundleManifest=getBundleManifest(bundle);
+  if (bundleManifest != null) {
+    try {
+      BundleDescription oldDescription=getBundleDescription(bundle);
+      BundleDescription bundleDescription=createBundleDescription(bundleManifest,oldDescription != null ? oldDescription.getBundleId() : _state.getHighestBundleId() + 1);
+      if (bundleDescription != null) {
+        getManifestHolder(bundle).setBundleID(bundleDescription.getBundleId());
+        bundleDescription.setUserObject(bundle);
+        if (oldDescription != null) {
+          _state.updateBundle(bundleDescription);
+        }
+ else {
+          _state.addBundle(bundleDescription);
+        }
+      }
+    }
+ catch (    IOException e) {
+      LOG.debug(e);
+    }
+  }
+}

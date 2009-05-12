@@ -1,0 +1,18 @@
+{
+  if (_frameworkInstances.getSelectedItem() != null) {
+    FrameworkInstanceDefinition frameworkInstanceDefinition=(FrameworkInstanceDefinition)_frameworkInstances.getSelectedItem();
+    FrameworkIntegratorRegistry registry=ServiceManager.getService(FrameworkIntegratorRegistry.class);
+    FrameworkIntegrator integrator=registry.findIntegratorByInstanceDefinition(frameworkInstanceDefinition);
+    _additionalFrameworkPropertiesPanel.removeAll();
+    _currentFrameworkRunPropertiesEditor=integrator.createRunPropertiesEditor();
+    if (_currentFrameworkRunPropertiesEditor != null) {
+      _additionalFrameworkPropertiesPanel.removeAll();
+      _additionalFrameworkPropertiesPanel.add(_currentFrameworkRunPropertiesEditor.getUI(),BorderLayout.CENTER);
+      if (_osgiRunConfiguration != null) {
+        _currentFrameworkRunPropertiesEditor.resetEditorFrom(_osgiRunConfiguration);
+      }
+    }
+    RunConfigurationTableModel model=getTableModel();
+    model.removeAllOfType(SelectedBundle.BundleType.FrameworkBundle);
+  }
+}

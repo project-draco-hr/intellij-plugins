@@ -1,0 +1,42 @@
+{
+  final JavaParameters params=new JavaParameters();
+  String path=getRunPath();
+  params.setWorkingDirectory(path);
+  params.configureByProject(project,JavaParameters.JDK_ONLY,projectJdk);
+  FrameworkInstanceDefinition definition=runConfiguration.getInstanceToUse();
+  FrameworkIntegratorRegistry registry=ServiceManager.getService(project,FrameworkIntegratorRegistry.class);
+  FrameworkIntegrator integrator=registry.findIntegratorByInstanceDefinition(definition);
+  FrameworkInstanceManager frameworkInstanceManager=integrator.getFrameworkInstanceManager();
+  _runner=integrator.createFrameworkRunner();
+  List<Library> libs=frameworkInstanceManager.getLibraries(definition);
+  PathsList classpath=params.getClassPath();
+  for (  Library lib : libs) {
+    for (    VirtualFile virtualFile : lib.getFiles(OrderRootType.CLASSES_AND_OUTPUT)) {
+      if (_runner.getFrameworkStarterClasspathPattern().matcher(virtualFile.getName()).matches()) {
+        classpath.add(virtualFile);
+      }
+    }
+  }
+  if (runConfiguration.isIncludeAllBundlesInClassPath()) {
+    SelectedBundle[] bundles=getSelectedBundles();
+    for (    SelectedBundle bundle : bundles) {
+      String bundlePath=bundle.getBundleUrl();
+      bundlePath=bundlePath.substring(FILE_URL_PREFIX.length());
+      if (bundlePath.indexOf(':') < 0 && bundlePath.charAt(0) != '/') {
+        bundlePath="/" + bundlePath;
+      }
+      bundlePath=bundlePath.replace('/',File.separatorChar);
+      classpath.add(bundlePath);
+    }
+  }
+  params.setMainClass(_runner.getMainClass());
+  final ParametersList programParameters=params.getProgramParametersList();
+  SelectedBundle[] bundles=getSelectedBundles();
+  programParameters.addAll(_runner.getCommandlineParameters(bundles,_runner.convertProperties(runConfiguration.getAdditionalProperties())));
+  params.getVMParametersList().addParametersString(runConfiguration.getVmParameters());
+  Map<String,String> systemProperties=_runner.getSystemProperties(bundles,_runner.convertProperties(runConfiguration.getAdditionalProperties()));
+  for (  Map.Entry<String,String> entry : systemProperties.entrySet()) {
+    params.getVMParametersList().defineProperty(entry.getKey(),entry.getValue());
+  }
+  return params;
+}

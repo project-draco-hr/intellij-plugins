@@ -1,0 +1,16 @@
+{
+  ModuleManager moduleManager=ModuleManager.getInstance(_fixture.getProject());
+  Module t0=moduleManager.findModuleByName("t0");
+  Module t1=moduleManager.findModuleByName("t1");
+  Module t2=moduleManager.findModuleByName("t2");
+  Module t3=moduleManager.findModuleByName("t3");
+  assertThat(ModuleRootManager.getInstance(t0).getDependencies().length,equalTo(0));
+  assertThat(ModuleRootManager.getInstance(t1).getDependencies().length,equalTo(0));
+  assertThat(ModuleRootManager.getInstance(t2).getDependencies().length,equalTo(1));
+  assertThat(Arrays.asList(ModuleRootManager.getInstance(t2).getDependencies()),hasItem(t1));
+  assertThat(TestUtil.getOrderEntry(t1,t2).isExported(),equalTo(false));
+  assertThat(ModuleRootManager.getInstance(t3).getDependencies().length,equalTo(2));
+  assertThat(Arrays.asList(ModuleRootManager.getInstance(t3).getDependencies()),hasItem(t2));
+  assertThat(Arrays.asList(ModuleRootManager.getInstance(t3).getDependencies()),hasItem(t0));
+  assertThat(TestUtil.getOrderEntry(t0,t3).isExported(),equalTo(true));
+}

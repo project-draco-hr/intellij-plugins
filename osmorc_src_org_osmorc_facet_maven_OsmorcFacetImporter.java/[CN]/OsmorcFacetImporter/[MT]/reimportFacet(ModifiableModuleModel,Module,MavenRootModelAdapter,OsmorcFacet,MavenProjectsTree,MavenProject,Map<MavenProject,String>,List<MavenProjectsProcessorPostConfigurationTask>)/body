@@ -1,0 +1,24 @@
+{
+  OsmorcFacetConfiguration conf=osmorcFacet.getConfiguration();
+  MavenPlugin p=mavenProject.findPlugin(myPluginGroupID,myPluginArtifactID);
+  MavenId id=mavenProject.getMavenId();
+  conf.setBundleSymbolicName(id.groupId + "." + id.artifactId);
+  conf.setBundleVersion(id.version);
+  if (p != null) {
+    logger.debug("Plugin found.");
+    setConfigProperty(mavenProject,conf,"bundleSymbolicName","instructions." + Constants.BUNDLE_SYMBOLICNAME);
+    setConfigProperty(mavenProject,conf,"bundleVersion","instructions." + Constants.BUNDLE_VERSION);
+    setConfigProperty(mavenProject,conf,"bundleActivator","instructions." + Constants.BUNDLE_ACTIVATOR);
+    Element instructionsNode=findConfigElement(mavenProject,"instructions");
+    Map<String,String> props=new HashMap<String,String>();
+    List<Element> children=instructionsNode.getChildren();
+    for (    Element child : children) {
+      String name=child.getName();
+      String value=child.getValue();
+      if (value != null && !"".equals(value) && !Constants.BUNDLE_SYMBOLICNAME.equals(name) && !Constants.BUNDLE_VERSION.equals(name) && !Constants.BUNDLE_ACTIVATOR.equals(name)) {
+        props.put(name,value);
+      }
+    }
+    conf.importAdditionalProperties(props,false);
+  }
+}

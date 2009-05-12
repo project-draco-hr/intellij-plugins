@@ -1,0 +1,26 @@
+{
+  final VirtualFile installFolder=_fileSystem.findFileByPath(frameworkInstanceDefinition.getBaseFolder());
+  if (installFolder == null) {
+    throw new RuntimeException("The folder " + frameworkInstanceDefinition.getBaseFolder() + " does not exist.");
+  }
+  if (!installFolder.isDirectory()) {
+    throw new RuntimeException(frameworkInstanceDefinition.getBaseFolder() + " is not a folder");
+  }
+  _application.runWriteAction(new Runnable(){
+    public void run(){
+      installFolder.refresh(false,true);
+      ConciergeSourceFinder sourceFinder=new ConciergeSourceFinder(installFolder);
+      _libraryHandler.startLibraryChanges();
+      _libraryHandler.createLibrariesFromBundles(installFolder,frameworkInstanceDefinition.getName(),sourceFinder);
+      VirtualFile bundlesFolder=installFolder.findChild("bundles");
+      if (bundlesFolder != null) {
+        if (!bundlesFolder.isDirectory()) {
+          throw new RuntimeException(bundlesFolder.getPath() + " is not a folder");
+        }
+        _libraryHandler.createLibrariesFromBundles(bundlesFolder,frameworkInstanceDefinition.getName(),sourceFinder);
+      }
+      _libraryHandler.commitLibraryChanges();
+    }
+  }
+);
+}

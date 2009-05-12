@@ -1,0 +1,34 @@
+{
+  Map<String,String> result=new HashMap<String,String>();
+  StringBuilder bundleUrls=new StringBuilder();
+  int level=0;
+  for (  SelectedBundle selectedBundle : bundlesToInstall) {
+    String bundleUrl=selectedBundle.getBundleUrl();
+    bundleUrls.append(bundleUrl);
+    if (selectedBundle.shouldBeStarted()) {
+      bundleUrls.append("@").append(selectedBundle.getStartLevel());
+      if (!CachingBundleInfoProvider.isFragmentBundle(selectedBundle.getBundleUrl())) {
+        bundleUrls.append(":start");
+      }
+    }
+    bundleUrls.append(",");
+    level=Math.max(level,selectedBundle.getStartLevel());
+  }
+  if (bundleUrls.length() > 0) {
+    bundleUrls.delete(bundleUrls.length() - 1,bundleUrls.length());
+  }
+  result.put("osgi.bundles",bundleUrls.toString());
+  result.put("osgi.framework.beginningstartlevel",String.valueOf(level));
+  result.put("osgi.startLevel",String.valueOf(level));
+  String systemPackages=runProperties.getSystemPackages();
+  if (systemPackages != null && !(systemPackages.trim().length() == 0)) {
+    String pkg=result.get("org.osgi.framework.system.packages") + "," + systemPackages;
+    result.put("org.osgi.framework.system.packages",pkg);
+  }
+  String bootDelegation=runProperties.getBootDelegation();
+  if (bootDelegation != null && !(bootDelegation.trim().length() == 0)) {
+    result.put("org.osgi.framework.bootdelegation",bootDelegation);
+  }
+  result.put("eclipse.ignoreApp","true");
+  return result;
+}

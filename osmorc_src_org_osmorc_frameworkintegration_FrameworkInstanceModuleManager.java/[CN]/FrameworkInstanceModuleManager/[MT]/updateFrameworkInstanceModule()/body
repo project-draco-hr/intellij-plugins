@@ -1,0 +1,28 @@
+{
+  if (_projectSettings.isCreateFrameworkInstanceModule()) {
+    ensureFrameworkInstanceModuleExists();
+    updateModuleLibraries(_projectSettings.getFrameworkInstanceName());
+  }
+ else {
+    final Module module=getFrameworkInstanceModule();
+    if (module != null) {
+      _application.runWriteAction(new Runnable(){
+        public void run(){
+          try {
+            final VirtualFile file=module.getModuleFile();
+            final ModifiableModuleModel moduleModel=_moduleManager.getModifiableModel();
+            moduleModel.disposeModule(module);
+            moduleModel.commit();
+            if (file != null && file.exists()) {
+              file.delete(this);
+            }
+          }
+ catch (          IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+);
+    }
+  }
+}

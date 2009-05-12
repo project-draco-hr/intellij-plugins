@@ -1,0 +1,23 @@
+{
+  element.setAttribute(VM_PARAMETERS_ATTRIBUTE,_vmParameters == null ? "" : _vmParameters);
+  element.setAttribute(INCLUDE_ALL_BUNDLES_IN_CLASS_PATH_ATTRIBUTE,Boolean.toString(_includeAllBundlesInClassPath));
+  for (  SelectedBundle selectedBundle : _bundlesToDeploy) {
+    Element bundle=new Element(BUNDLE_ELEMENT);
+    bundle.setAttribute(NAME_ATTRIBUTE,selectedBundle.getName());
+    if (!selectedBundle.isModule()) {
+      bundle.setAttribute(URL_ATTRIBUTE,selectedBundle.getBundleUrl());
+    }
+    bundle.setAttribute(START_LEVEL_ATTRIBUTE,String.valueOf(selectedBundle.getStartLevel()));
+    bundle.setAttribute(TYPE_ATTRIBUTE,selectedBundle.getBundleType().name());
+    element.addContent(bundle);
+  }
+  Element framework=new Element(FRAMEWORK_ELEMENT);
+  framework.setAttribute(INSTANCE_ATTRIBUTE,_instanceToUse != null ? _instanceToUse.getName() : "");
+  element.addContent(framework);
+  Element additionalProperties=new Element(ADDITIONAL_PROPERTIES_ELEMENT);
+  for (  String additionalPropertyName : _additionalProperties.keySet()) {
+    additionalProperties.setAttribute(additionalPropertyName,_additionalProperties.get(additionalPropertyName));
+  }
+  element.addContent(additionalProperties);
+  super.writeExternal(element);
+}

@@ -1,0 +1,35 @@
+{
+  int row=_additionalJARContentsTable.getSelectedRow();
+  Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
+  Project project=_editorContext.getProject();
+  FileChooserDescriptor descriptor=new FileChooserDescriptor(true,true,true,true,false,false);
+  descriptor.setTitle("Choose source file or folder");
+  FileChooserDialog fileChooserDialog=FileChooserFactory.getInstance().createFileChooser(descriptor,project);
+  VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
+  if (preselectedPath == null) {
+    Module module=_editorContext.getModule();
+    VirtualFile[] contentRoots=module != null ? ModuleRootManager.getInstance(module).getContentRoots() : new VirtualFile[0];
+    if (contentRoots.length > 0) {
+      for (      VirtualFile contentRoot : contentRoots) {
+        VirtualFile path=VfsUtil.findRelativeFile(additionalJARContent.getFirst(),contentRoot);
+        if (path != null) {
+          preselectedPath=path;
+          break;
+        }
+      }
+      if (preselectedPath == null) {
+        preselectedPath=contentRoots[0];
+      }
+    }
+ else     if (project != null && project.getBaseDir() != null) {
+      preselectedPath=project.getBaseDir();
+    }
+  }
+  VirtualFile[] files=fileChooserDialog.choose(preselectedPath,project);
+  if (files.length > 0) {
+    String sourcePath=files[0].getPath();
+    String destPath=determineMostLikelyLocationInJAR(files[0]);
+    String newDestPath=Messages.showInputDialog(project,String.format("Change destination file path from \"%s\" to",additionalJARContent.getSecond()),"Change destination file path",Messages.getQuestionIcon(),destPath,null);
+    _additionalJARContentsTableModel.changeAdditionalJARConent(row,sourcePath,newDestPath != null ? newDestPath : additionalJARContent.getSecond());
+  }
+}

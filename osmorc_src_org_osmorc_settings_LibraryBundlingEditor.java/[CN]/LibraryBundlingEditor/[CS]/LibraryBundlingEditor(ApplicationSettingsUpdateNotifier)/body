@@ -1,0 +1,77 @@
+{
+  _applicationSettingsUpdateNotifier=applicationSettingsUpdateNotifier;
+  _addRuleButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent event){
+      List<LibraryBundlificationRule> list=_applicationSettingsWorkingCopy.getLibraryBundlificationRules();
+      LibraryBundlificationRule newRule=new LibraryBundlificationRule();
+      list.add(newRule);
+      _selectedRule.fireIntervalAdded(list.size() - 1,list.size() - 1);
+      _selectedRule.setSelection(newRule);
+      notifyChanged();
+    }
+  }
+);
+  _removeRuleButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent event){
+      List<LibraryBundlificationRule> list=_applicationSettingsWorkingCopy.getLibraryBundlificationRules();
+      if (list.size() == 1) {
+        LibraryBundlificationRule newRule=new LibraryBundlificationRule();
+        list.set(0,newRule);
+        _selectedRule.fireContentsChanged(0,1);
+        _selectedRule.setSelection(newRule);
+      }
+ else {
+        int oldSelectionIndex=_selectedRule.getSelectionIndex();
+        list.remove(_selectedRule.getValue());
+        _selectedRule.fireIntervalRemoved(list.size(),list.size());
+        _selectedRule.setSelectionIndex(oldSelectionIndex > 0 ? oldSelectionIndex - 1 : oldSelectionIndex);
+      }
+      notifyChanged();
+    }
+  }
+);
+  _duplicateButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent event){
+      LibraryBundlificationRule rule=_selectedRule.getSelection();
+      if (rule != null) {
+        LibraryBundlificationRule newRule=rule.copy();
+        List<LibraryBundlificationRule> list=_applicationSettingsWorkingCopy.getLibraryBundlificationRules();
+        int selectedIndex=_selectedRule.getSelectionIndex();
+        list.add(selectedIndex,newRule);
+        _selectedRule.fireIntervalAdded(selectedIndex,selectedIndex);
+        notifyChanged();
+      }
+    }
+  }
+);
+  _upButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent event){
+      List<LibraryBundlificationRule> list=_applicationSettingsWorkingCopy.getLibraryBundlificationRules();
+      int selectionIndex=_selectedRule.getSelectionIndex();
+      if (selectionIndex > 0) {
+        LibraryBundlificationRule ruleToMove=list.get(selectionIndex);
+        list.set(selectionIndex,list.get(selectionIndex - 1));
+        list.set(selectionIndex - 1,ruleToMove);
+        _selectedRule.fireContentsChanged(selectionIndex - 1,selectionIndex);
+        _selectedRule.setSelectionIndex(selectionIndex - 1);
+        notifyChanged();
+      }
+    }
+  }
+);
+  _downButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent event){
+      List<LibraryBundlificationRule> list=_applicationSettingsWorkingCopy.getLibraryBundlificationRules();
+      int selectionIndex=_selectedRule.getSelectionIndex();
+      if (selectionIndex < list.size() - 1) {
+        LibraryBundlificationRule ruleToMove=list.get(selectionIndex);
+        list.set(selectionIndex,list.get(selectionIndex + 1));
+        list.set(selectionIndex + 1,ruleToMove);
+        _selectedRule.fireContentsChanged(selectionIndex,selectionIndex + 1);
+        _selectedRule.setSelectionIndex(selectionIndex + 1);
+        notifyChanged();
+      }
+    }
+  }
+);
+}

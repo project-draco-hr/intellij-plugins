@@ -1,0 +1,37 @@
+{
+  setOsmorcControlsManifest(Boolean.parseBoolean(element.getAttributeValue(OSMORC_CONTROLS_MANIFEST,"true")));
+  setUseBndFile(Boolean.parseBoolean(element.getAttributeValue(USE_BND_FILE,"false")));
+  setBndFileLocation(element.getAttributeValue(BND_FILE_LOCATION));
+  setAdditionalBndArgs(element.getAttributeValue(ADDITIONAL_BND_ARGS));
+  setManifestLocation(element.getAttributeValue(MANIFEST_LOCATION));
+  setJarFileLocation(element.getAttributeValue(JARFILE_LOCATION));
+  setBundleActivator(element.getAttributeValue(BUNDLE_ACTIVATOR));
+  setBundleSymbolicName(element.getAttributeValue(BUNDLE_SYMBOLIC_NAME));
+  setBundleVersion(element.getAttributeValue(BUNDLE_VERSION));
+  setIgnoreFilePattern(element.getAttributeValue(IGNORE_FILE_PATTERN));
+  setUseProjectDefaultManifestFileLocation(Boolean.parseBoolean(element.getAttributeValue(USE_PROJECT_DEFAULT_MANIFEST_FILE_LOCATION,"true")));
+  setAlwaysRebuildBundleJAR(Boolean.parseBoolean(element.getAttributeValue(ALWAYS_REBUILD_BUNDLE_JAR,"false")));
+  Element props=element.getChild(ADDITIONAL_PROPERTIES);
+  if (props != null) {
+    List children=props.getChildren();
+    if (children.isEmpty()) {
+      setAdditionalProperties(props.getText());
+    }
+ else {
+      StringBuilder builder=new StringBuilder();
+      for (      Object child : children) {
+        Element prop=(Element)child;
+        builder.append(prop.getAttributeValue(KEY)).append(":").append(prop.getAttributeValue(VALUE)).append("\n");
+      }
+      setAdditionalProperties(builder.toString());
+    }
+  }
+  List<Pair<String,String>> additionalJARContents=getAdditionalJARContents();
+  Element additionalJARContentsElement=element.getChild("additionalJARContents");
+  if (additionalJARContentsElement != null) {
+    @SuppressWarnings({"unchecked"}) List<Element> children=additionalJARContentsElement.getChildren("entry");
+    for (    Element entryElement : children) {
+      additionalJARContents.add(Pair.create(entryElement.getAttributeValue("source"),entryElement.getAttributeValue("dest")));
+    }
+  }
+}

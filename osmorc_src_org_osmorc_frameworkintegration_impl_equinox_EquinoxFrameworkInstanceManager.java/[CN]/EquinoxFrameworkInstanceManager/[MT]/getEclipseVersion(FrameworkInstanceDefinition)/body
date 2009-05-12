@@ -1,0 +1,21 @@
+{
+  Version result=null;
+  VirtualFile equinoxFolder=_fileSystem.findFileByPath(frameworkInstanceDefinition.getBaseFolder());
+  if (equinoxFolder != null && equinoxFolder.exists() && equinoxFolder.isDirectory()) {
+    VirtualFile eclipseProductFile=equinoxFolder.findChild(".eclipseproduct");
+    if (eclipseProductFile != null && eclipseProductFile.exists() && !eclipseProductFile.isDirectory()) {
+      try {
+        Properties eclipseProductProperties=new Properties();
+        eclipseProductProperties.load(eclipseProductFile.getInputStream());
+        String versionString=eclipseProductProperties.getProperty("version");
+        if (versionString != null) {
+          result=Version.parseVersion(versionString);
+        }
+      }
+ catch (      IOException e) {
+        LOG.warn("Error on reading properties from eclipse product file",e);
+      }
+    }
+  }
+  return result;
+}

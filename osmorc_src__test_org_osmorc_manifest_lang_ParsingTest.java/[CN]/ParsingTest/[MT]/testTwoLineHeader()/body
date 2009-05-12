@@ -1,0 +1,22 @@
+{
+  PsiFile fromText=PsiFileFactory.getInstance(_fixture.getProject()).createFileFromText("DUMMY.MF","test0 : test\n" + " value\n");
+  PsiElement currentElement=fromText.getFirstChild();
+  assertThat(currentElement,is(ManifestHeader.class));
+  currentElement=currentElement.getFirstChild();
+  assertThat(currentElement,is(ManifestHeaderName.class));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(PsiWhiteSpace.class));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(LeafPsiElement.class));
+  assertThat(((LeafPsiElement)currentElement).getElementType(),is(ManifestTokenTypes.HEADER_ASSIGNMENT));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(PsiWhiteSpace.class));
+  currentElement=currentElement.getNextSibling();
+  assertThat(currentElement,is(ManifestClause.class));
+  currentElement=currentElement.getFirstChild();
+  assertThat(currentElement,is(ManifestHeaderValue.class));
+  ManifestHeaderValue headerValue=(ManifestHeaderValue)currentElement;
+  assertThat(headerValue.getText(),equalTo("test\n value"));
+  assertThat(headerValue.getValueText(),equalTo("testvalue"));
+  assertThat(headerValue.getValue(),equalTo((Object)"testvalue"));
+}

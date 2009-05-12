@@ -1,0 +1,15 @@
+{
+  Project project=_editorContext.getProject();
+  Module module=_editorContext.getModule();
+  VirtualFile[] contentRoots=module != null ? ModuleRootManager.getInstance(module).getContentRoots() : new VirtualFile[0];
+  for (  VirtualFile contentRoot : contentRoots) {
+    if (VfsUtil.isAncestor(contentRoot,file,false)) {
+      return VfsUtil.getRelativePath(file,contentRoot,'/');
+    }
+  }
+  VirtualFile projectBaseFolder=project != null ? project.getBaseDir() : null;
+  if (projectBaseFolder != null && VfsUtil.isAncestor(projectBaseFolder,file,false)) {
+    return VfsUtil.getRelativePath(file,projectBaseFolder,'/');
+  }
+  return file.getName();
+}

@@ -1,0 +1,22 @@
+{
+  if (_bundleManifest == null) {
+    VirtualFile[] classRoots=_library.getFiles(OrderRootType.CLASSES);
+    for (    VirtualFile classRoot : classRoots) {
+      VirtualFile classDir;
+      if (classRoot.isDirectory()) {
+        classDir=classRoot;
+      }
+ else {
+        classDir=JarFileSystem.getInstance().getJarRootForLocalFile(classRoot);
+      }
+      if (classDir != null) {
+        VirtualFile manifestFile=classDir.findFileByRelativePath("META-INF/MANIFEST.MF");
+        if (manifestFile != null) {
+          PsiFile psiFile=PsiManager.getInstance(_project).findFile(manifestFile);
+          _bundleManifest=new BundleManifestImpl(psiFile);
+        }
+      }
+    }
+  }
+  return _bundleManifest;
+}

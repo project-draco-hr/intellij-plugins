@@ -1,0 +1,18 @@
+{
+  VirtualFileSystem fileSystem=createMock(VirtualFileSystem.class);
+  VirtualFile rootFolder1=createMock(VirtualFile.class);
+  VirtualFile rootFolder2=createMock(VirtualFile.class);
+  VirtualFile file=createMock(VirtualFile.class);
+  PsiFile psiFile=createMock(PsiFile.class);
+  expect(psiFile.getVirtualFile()).andReturn(file).anyTimes();
+  expect(rootFolder1.getFileSystem()).andReturn(fileSystem).anyTimes();
+  expect(rootFolder2.getFileSystem()).andReturn(fileSystem).anyTimes();
+  expect(file.getFileSystem()).andReturn(fileSystem).anyTimes();
+  expect(file.getParent()).andReturn(rootFolder2).anyTimes();
+  expect(rootFolder1.getParent()).andReturn(null).anyTimes();
+  expect(rootFolder2.getParent()).andReturn(null).anyTimes();
+  replay(fileSystem,rootFolder1,rootFolder2,file,psiFile);
+  SubfolderFileFilter testOject=new SubfolderFileFilter(new VirtualFile[]{rootFolder1});
+  assertFalse(testOject.accept(psiFile));
+  verify(fileSystem,rootFolder1,rootFolder2,file,psiFile);
+}

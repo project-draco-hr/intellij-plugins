@@ -1,0 +1,155 @@
+{
+  final File jarFile=new File(VfsUtil.urlToPath(getJarFileName(module)));
+  if (jarFile.exists()) {
+    jarFile.delete();
+  }
+  FileUtil.createParentDirs(jarFile);
+  final BuildRecipe buildrecipe=(new ReadAction<BuildRecipe>(){
+    protected void run(    Result<BuildRecipe> result){
+      result.setResult(getBuildRecipe(module));
+    }
+  }
+).execute().getResultObject();
+  Manifest manifest=DeploymentUtil.getInstance().createManifest(buildrecipe);
+  if (manifest == null) {
+    manifest=new Manifest();
+  }
+  final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(module).getConfiguration();
+  if (!configuration.isOsmorcControlsManifest()) {
+    progressIndicator.setText2(OsmorcBundle.getTranslation("bundlecompiler.merging.manifest"));
+    final VirtualFile manifestFile=getManifestFile(module);
+    if (manifestFile != null) {
+      try {
+        Manifest fromFile=new Manifest(manifestFile.getInputStream());
+        Attributes atts=fromFile.getMainAttributes();
+        for (        Map.Entry<Object,Object> entry : atts.entrySet()) {
+          manifest.getMainAttributes().put(entry.getKey(),entry.getValue());
+        }
+      }
+ catch (      Exception e) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          public void run(){
+            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The manifest file \"%s\" for module \"%s\" does not exist or is invalid.",manifestFile.getName(),module.getName()),manifestFile.getUrl(),0,0);
+          }
+        }
+);
+        return;
+      }
+    }
+  }
+  String mainClass=null;
+  if (!Comparing.strEqual(mainClass,null)) {
+    manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(),mainClass);
+  }
+  final File tempFile=File.createTempFile("___" + FileUtil.getNameWithoutExtension(jarFile),".jar",jarFile.getParentFile());
+  final JarOutputStream jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)),manifest);
+  final THashSet<String> writtenItems=new THashSet<String>();
+  try {
+    buildrecipe.visitInstructionsWithExceptions(new BuildInstructionVisitor(){
+      public boolean visitInstruction(      BuildInstruction buildinstruction) throws IOException {
+        ProgressManager.getInstance().checkCanceled();
+        if (buildinstruction instanceof FileCopyInstruction) {
+          FileCopyInstruction filecopyinstruction=(FileCopyInstruction)buildinstruction;
+          File file2=filecopyinstruction.getFile();
+          if (file2 == null || !file2.exists()) {
+            return true;
+          }
+          String s2=FileUtil.toSystemDependentName(file2.getPath());
+          if (progressIndicator != null) {
+            progressIndicator.setText2(IdeBundle.message("jar.build.processing.file.progress",s2));
+          }
+        }
+        buildinstruction.addFilesToJar(DummyCompileContext.getInstance(),tempFile,jaroutputstream,buildrecipe,writtenItems,ManifestFileFilter.Instance);
+        return true;
+      }
+    }
+,false);
+  }
+ catch (  ProcessCanceledException e) {
+    return;
+  }
+catch (  Exception e) {
+    throw new RuntimeException(e);
+  }
+  String ignoreFilePatternString=configuration.getIgnoreFilePattern();
+  FileFilter fileFilter=null;
+  if (ignoreFilePatternString != null && ignoreFilePatternString.length() > 0) {
+    final Pattern ignoreFilePattern=Pattern.compile(ignoreFilePatternString);
+    fileFilter=new FileFilter(){
+      public boolean accept(      File pathname){
+        Matcher matcher=ignoreFilePattern.matcher(pathname.getAbsolutePath());
+        return !matcher.find();
+      }
+    }
+;
+  }
+  List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
+  for (  Pair<String,String> jarContent : jarContents) {
+    final File sourceFile=new File(jarContent.getFirst());
+    if (sourceFile.exists()) {
+      ZipUtil.addFileOrDirRecursively(jaroutputstream,tempFile,sourceFile,jarContent.getSecond(),fileFilter,null);
+    }
+ else {
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+          compileContext.addMessage(CompilerMessageCategory.WARNING,String.format("The file \"%s\" does not exist. It will not be copied into the JAR \"%s\"",sourceFile,getJarFileName(module)),null,0,0);
+        }
+      }
+);
+    }
+  }
+  jaroutputstream.close();
+  if (configuration.isOsmorcControlsManifest()) {
+    progressIndicator.setText2(OsmorcBundle.getTranslation("bundlecompiler.creatingmanifest"));
+    bnd bnd=new bnd();
+    Map<String,String> additionalProperties=new HashMap<String,String>();
+    if (configuration.isUseBndFile()) {
+      Properties p=new Properties();
+      try {
+        p.load(new FileInputStream(findFileInModuleContentRoots(configuration.getBndFileLocation(),module)));
+        for (        Object s : p.keySet()) {
+          additionalProperties.put((String)s,p.getProperty((String)s));
+        }
+      }
+ catch (      IOException e) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          public void run(){
+            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist or is invalid.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
+          }
+        }
+);
+        FileUtil.delete(tempFile);
+        return;
+      }
+    }
+ else {
+      additionalProperties.put(Constants.BUNDLE_SYMBOLICNAME,configuration.getBundleSymbolicName());
+      additionalProperties.put(Constants.BUNDLE_ACTIVATOR,configuration.getBundleActivator());
+      additionalProperties.put(Constants.BUNDLE_VERSION,configuration.getBundleVersion());
+      additionalProperties.put(Constants.IMPORT_PACKAGE,"*");
+      Map<String,String> propsFromFacetSetup=configuration.getAdditionalPropertiesAsMap();
+      additionalProperties.putAll(propsFromFacetSetup);
+    }
+    try {
+      bnd.doWrap(null,tempFile,tempFile,null,0,additionalProperties);
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+    }
+  }
+  try {
+    FileUtil.rename(tempFile,jarFile);
+  }
+ catch (  IOException ioexception) {
+    ApplicationManager.getApplication().invokeLater(new Runnable(){
+      public void run(){
+        String s2=IdeBundle.message("jar.build.cannot.overwrite.error",FileUtil.toSystemDependentName(jarFile.getPath()),FileUtil.toSystemDependentName(tempFile.getPath()));
+        Messages.showErrorDialog(module.getProject(),s2,IdeBundle.message("jar.build.error.title"));
+      }
+    }
+);
+  }
+  if (configuration.isOsmorcControlsManifest()) {
+    bundlifyLibraries(module,progressIndicator);
+  }
+}

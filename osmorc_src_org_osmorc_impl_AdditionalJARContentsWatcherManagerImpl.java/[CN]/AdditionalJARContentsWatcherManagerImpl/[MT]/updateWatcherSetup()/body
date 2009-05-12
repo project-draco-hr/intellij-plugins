@@ -1,0 +1,40 @@
+{
+  if (_osmorcFacetUtil.hasOsmorcFacet(_module)) {
+    OsmorcFacet osmorcFacet=_osmorcFacetUtil.getOsmorcFacet(_module);
+    List<VirtualFile> newAdditionalJARContents=new ArrayList<VirtualFile>();
+    OsmorcFacetConfiguration osmorcFacetConfiguration=osmorcFacet.getConfiguration();
+    List<Pair<String,String>> jarContents=osmorcFacetConfiguration.getAdditionalJARContents();
+    for (    Pair<String,String> jarContent : jarContents) {
+      VirtualFile file=_fileSystem.findFileByPath(jarContent.getFirst());
+      if (file != null) {
+        newAdditionalJARContents.add(file);
+      }
+    }
+    for (Iterator<VirtualFile> jarContentsIterator=_additionalBundleJARContents.iterator(); jarContentsIterator.hasNext(); ) {
+      VirtualFile file=jarContentsIterator.next();
+      if (!newAdditionalJARContents.contains(file)) {
+        jarContentsIterator.remove();
+        for (Iterator<LocalFileSystem.WatchRequest> watchIterator=_watchRequests.iterator(); watchIterator.hasNext(); ) {
+          LocalFileSystem.WatchRequest watchRequest=watchIterator.next();
+          if (Comparing.strEqual(file.getPath(),watchRequest.getRootPath())) {
+            _fileSystem.removeWatchedRoot(watchRequest);
+            watchIterator.remove();
+          }
+        }
+      }
+    }
+    for (    VirtualFile newAdditionalJARContent : newAdditionalJARContents) {
+      if (!_additionalBundleJARContents.contains(newAdditionalJARContent)) {
+        _watchRequests.add(_fileSystem.addRootToWatch(newAdditionalJARContent.getPath(),true));
+        _additionalBundleJARContents.add(newAdditionalJARContent);
+      }
+    }
+  }
+ else {
+    _additionalBundleJARContents.clear();
+    for (    LocalFileSystem.WatchRequest watchRequest : _watchRequests) {
+      _fileSystem.removeWatchedRoot(watchRequest);
+    }
+    _watchRequests.clear();
+  }
+}

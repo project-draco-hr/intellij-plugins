@@ -1,0 +1,27 @@
+{
+  Map<String,String> props=new HashMap<String,String>();
+  int level=0;
+  for (  SelectedBundle bundle : bundlesToInstall) {
+    int startLevel=bundle.getStartLevel();
+    level=Math.max(level,startLevel);
+    String installBundles=props.get("osgi.auto.install");
+    installBundles=installBundles != null ? installBundles + " " + bundle.getBundleUrl() : bundle.getBundleUrl();
+    String startBundles=props.get("osgi.auto.start");
+    if (bundle.shouldBeStarted() && !CachingBundleInfoProvider.isFragmentBundle(bundle.getBundleUrl())) {
+      startBundles=startBundles != null ? startBundles + " " + bundle.getBundleUrl() : bundle.getBundleUrl();
+    }
+    if (installBundles != null) {
+      props.put("osgi.auto.install",installBundles);
+    }
+    if (startBundles != null) {
+      props.put("osgi.auto.start",startBundles);
+    }
+  }
+  props.put("osgi.startlevel.framework",String.valueOf(level));
+  props.put("osgi.init","true");
+  props.put("ch.ethz.iks.concierge.storage",_workingDirectory + File.separator + "fwdir");
+  if (runProperties.isDebugMode()) {
+    props.put("ch.ethz.iks.concierge.debug","true");
+  }
+  return props;
+}

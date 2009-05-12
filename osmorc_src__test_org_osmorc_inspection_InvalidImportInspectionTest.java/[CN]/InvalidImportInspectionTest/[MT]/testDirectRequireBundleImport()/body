@@ -1,0 +1,15 @@
+{
+  assertThat(ModuleRootManager.getInstance(_t2).getDependencies().length,equalTo(1));
+  assertThat(Arrays.asList(ModuleRootManager.getInstance(_t2).getDependencies()),hasItem(_t0));
+  assertThat(TestUtil.getOrderEntry(_t0,_t2).isExported(),equalTo(true));
+  PsiFile psiFile=TestUtil.loadPsiFile(_fixture.getProject(),"t2","t2/Importer.java");
+  List<ProblemDescriptor> list=TestUtil.runInspection(new InvalidImportInspection(),psiFile,_fixture.getProject());
+  assertThat(list,notNullValue());
+  assertThat(list.size(),equalTo(3));
+  ProblemDescriptor problem=list.get(0);
+  assertThat(problem.getLineNumber(),equalTo(5));
+  problem=list.get(1);
+  assertThat(problem.getLineNumber(),equalTo(13));
+  problem=list.get(2);
+  assertThat(problem.getLineNumber(),equalTo(13));
+}

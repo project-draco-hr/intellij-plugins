@@ -1,0 +1,44 @@
+{
+  Properties props=new Properties();
+  try {
+    String resourceName="/" + getClass().getPackage().getName().replace('.','/') + "/config.properties";
+    props.load(getClass().getResourceAsStream(resourceName));
+    int level=0;
+    for (    SelectedBundle bundle : bundlesToInstall) {
+      int startLevel=bundle.getStartLevel();
+      level=Math.max(level,startLevel);
+      String installBundles=(String)props.get("felix.auto.install." + startLevel);
+      installBundles=installBundles != null ? installBundles + " " + bundle.getBundleUrl() : bundle.getBundleUrl();
+      String startBundles=(String)props.get("felix.auto.start." + startLevel);
+      if (bundle.shouldBeStarted() && !CachingBundleInfoProvider.isFragmentBundle(bundle.getBundleUrl())) {
+        startBundles=startBundles != null ? startBundles + " " + bundle.getBundleUrl() : bundle.getBundleUrl();
+      }
+      if (installBundles != null) {
+        props.put("felix.auto.install." + startLevel,installBundles);
+      }
+      if (startBundles != null) {
+        props.put("felix.auto.start." + startLevel,startBundles);
+      }
+    }
+    if (runProperties.isDebugMode()) {
+      props.put("felix.log.level","4");
+    }
+ else {
+      props.put("felix.log.level","1");
+    }
+    String systemPackages=runProperties.getSystemPackages();
+    if (systemPackages != null && !(systemPackages.trim().length() == 0)) {
+      String pkg=props.getProperty("org.osgi.framework.system.packages") + "," + systemPackages;
+      props.setProperty("org.osgi.framework.system.packages",pkg);
+    }
+    String bootDelegation=runProperties.getBootDelegation();
+    if (bootDelegation != null && !(bootDelegation.trim().length() == 0)) {
+      props.setProperty("org.osgi.framework.bootdelegation",bootDelegation);
+    }
+    props.put("felix.startlevel.framework",String.valueOf(level));
+    props.store(new FileOutputStream(new File(getPropertiesFilename())),"");
+  }
+ catch (  IOException e) {
+    throw new IllegalStateException(e);
+  }
+}

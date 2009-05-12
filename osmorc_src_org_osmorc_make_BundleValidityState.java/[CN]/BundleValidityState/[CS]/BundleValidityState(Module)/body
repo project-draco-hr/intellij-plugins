@@ -1,0 +1,60 @@
+{
+  moduleName=module.getName();
+  jarUrl=BundleCompiler.getJarFileName(module);
+  alwaysRebuildBundleJAR=OsmorcFacet.hasOsmorcFacet(module) && OsmorcFacet.getInstance(module).getConfiguration().isAlwaysRebuildBundleJAR();
+  if (alwaysRebuildBundleJAR) {
+    jarLastModificationTime=0;
+    fileTimestamps=new long[0];
+    fileUrls=new String[0];
+  }
+ else {
+    jarLastModificationTime=(new File(VfsUtil.urlToPath(jarUrl))).lastModified();
+    final TObjectLongHashMap<String> url2Timestamps=new TObjectLongHashMap<String>();
+    ApplicationManager.getApplication().runReadAction(new Runnable(){
+      public void run(){
+        BuildRecipe buildrecipe=BundleCompiler.getBuildRecipe(module);
+        buildrecipe.visitInstructions(new BuildInstructionVisitor(){
+          public boolean visitFileCopyInstruction(          FileCopyInstruction filecopyinstruction) throws Exception {
+            File file=filecopyinstruction.getFile();
+            VirtualFile virtualfile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(file.getPath()));
+            if (virtualfile != null) {
+              BundleValidityState.registerTimestamps(virtualfile,url2Timestamps);
+            }
+            return true;
+          }
+        }
+,false);
+      }
+    }
+);
+    VirtualFile manifestFile=BundleCompiler.getManifestFile(module);
+    if (manifestFile != null) {
+      registerTimestamps(manifestFile,url2Timestamps);
+    }
+    OsmorcFacetUtil osmorcFacetUtil=ServiceManager.getService(OsmorcFacetUtil.class);
+    if (osmorcFacetUtil.hasOsmorcFacet(module)) {
+      OsmorcFacet facet=osmorcFacetUtil.getOsmorcFacet(module);
+      OsmorcFacetConfiguration configuration=facet.getConfiguration();
+      List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
+      for (      Pair<String,String> jarContent : jarContents) {
+        VirtualFile file=LocalFileSystem.getInstance().findFileByPath(jarContent.getFirst());
+        if (file != null) {
+          registerTimestamps(file,url2Timestamps);
+        }
+      }
+    }
+    fileUrls=new String[url2Timestamps.size()];
+    fileTimestamps=new long[url2Timestamps.size()];
+    TObjectLongProcedure<String> tobjectlongprocedure=new TObjectLongProcedure<String>(){
+      public boolean execute(      String s,      long l){
+        fileUrls[i]=s;
+        fileTimestamps[i]=l;
+        i++;
+        return true;
+      }
+      int i;
+    }
+;
+    url2Timestamps.forEachEntry(tobjectlongprocedure);
+  }
+}

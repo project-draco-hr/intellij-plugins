@@ -1,0 +1,30 @@
+{
+  createInitialState();
+  Collection<Object> result=new HashSet<Object>();
+  BundleDescription bundleDescription=getBundleDescription(bundle);
+  if (bundleDescription == null && bundle instanceof Module && OsmorcFacet.hasOsmorcFacet((Module)bundle)) {
+    addOrUpdateBundle(bundle);
+    bundleDescription=getBundleDescription(bundle);
+  }
+  if (bundleDescription != null) {
+    List<BundleDescription> resolvedRequires=getResolvedRequires(bundle);
+    for (    BundleDescription resolvedRequire : resolvedRequires) {
+      Object resolvedRequiredBundle=resolvedRequire.getUserObject();
+      result.add(resolvedRequiredBundle);
+      result.addAll(determineReexportedRequiredBundlesOnLibraries(resolvedRequiredBundle));
+    }
+    List<ExportPackageDescription> resolvedImports=getResolvedImports(bundle);
+    for (    ExportPackageDescription resolvedImport : resolvedImports) {
+      result.add(resolvedImport.getExporter().getUserObject());
+    }
+    result.addAll(getFragments(result));
+    HostSpecification hostSpecification=bundleDescription.getHost();
+    if (hostSpecification != null && hostSpecification.getHosts() != null) {
+      for (      BundleDescription hostBundleDescription : hostSpecification.getHosts()) {
+        result.add(hostBundleDescription.getUserObject());
+      }
+    }
+    result.remove(bundle);
+  }
+  return result;
+}

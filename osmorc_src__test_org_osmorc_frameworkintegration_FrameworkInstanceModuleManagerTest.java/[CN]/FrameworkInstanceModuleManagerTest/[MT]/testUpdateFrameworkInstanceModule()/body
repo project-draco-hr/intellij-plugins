@@ -1,0 +1,21 @@
+{
+  _projectSettings.setCreateFrameworkInstanceModule(true);
+  _projectSettings.setFrameworkInstanceName("an Instance");
+  _testObject.updateFrameworkInstanceModule();
+  Module module=ModuleManager.getInstance(_project).findModuleByName(FrameworkInstanceModuleManager.FRAMEWORK_INSTANCE_MODULE_NAME);
+  ModifiableRootModel model=ModuleRootManager.getInstance(module).getModifiableModel();
+  OrderEntry[] orderEntries=model.getOrderEntries();
+  model.dispose();
+  assertContainsOnlyGivenLibraries(orderEntries,_libraryA1,_libraryA2);
+  _projectSettings.setFrameworkInstanceName("another Instance");
+  _testObject.updateFrameworkInstanceModule();
+  ModifiableRootModel rootModel=ModuleRootManager.getInstance(module).getModifiableModel();
+  orderEntries=rootModel.getOrderEntries();
+  rootModel.dispose();
+  assertContainsOnlyGivenLibraries(orderEntries,_libraryB1,_libraryB2,_libraryB3);
+  _projectSettings.setCreateFrameworkInstanceModule(false);
+  _projectSettings.setFrameworkInstanceName("an Instance");
+  _testObject.updateFrameworkInstanceModule();
+  module=ModuleManager.getInstance(_project).findModuleByName(FrameworkInstanceModuleManager.FRAMEWORK_INSTANCE_MODULE_NAME);
+  assertThat(module,nullValue());
+}

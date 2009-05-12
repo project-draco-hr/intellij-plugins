@@ -1,0 +1,42 @@
+{
+  final MavenDomDependency dependency=getDependency((XmlTag)problemDescriptor.getPsiElement());
+  final ObrMavenResult mavenResult=ObrSearchDialog.queryForMavenArtifact(project,dependency.getArtifactId().toString());
+  if (mavenResult != null) {
+    final PsiFile psiFile=problemDescriptor.getPsiElement().getContainingFile();
+    new WriteCommandAction(project,psiFile){
+      protected void run(      Result result) throws Throwable {
+        MavenDomProjectModel model=MavenUtil.getMavenModel(getProject(),psiFile.getVirtualFile());
+        MavenDomDependency dummy=model.getDependencies().addDependency();
+        dummy.getArtifactId().setStringValue(mavenResult.getArtifactId());
+        dummy.getVersion().setStringValue(mavenResult.getVersion());
+        dummy.getGroupId().setStringValue(mavenResult.getGroupId());
+        if (!"".equals(dependency.getScope().getStringValue())) {
+          dummy.getScope().setStringValue(dependency.getScope().getStringValue());
+        }
+        PsiElement newDep=dummy.getXmlElement();
+        PsiElement oldDep=dependency.getXmlElement();
+        oldDep.getParent().addAfter(newDep.copy(),oldDep);
+        oldDep.delete();
+        newDep.delete();
+        String[] repoUrls=mavenResult.getBundleRepository().getMavenRepositoryUrls();
+        List<MavenDomRepository> repositories=model.getRepositories().getRepositories();
+        List<String> unknownUrls=new ArrayList<String>(Arrays.asList(repoUrls));
+        for (        MavenDomRepository repository : repositories) {
+          String knownRepoUrl=repository.getUrl().getStringValue();
+          unknownUrls.remove(knownRepoUrl);
+        }
+        for (        String unknownUrl : unknownUrls) {
+          MavenDomRepository repo=model.getRepositories().addRepository();
+          repo.getId().setStringValue(unknownUrl);
+          repo.getUrl().setStringValue(unknownUrl);
+          repo.getName().setStringValue(mavenResult.getBundleRepository().getDisplayName());
+        }
+      }
+    }
+.execute();
+    FileDocumentManager docManager=FileDocumentManager.getInstance();
+    com.intellij.openapi.editor.Document doc=docManager.getDocument(psiFile.getVirtualFile());
+    docManager.saveDocument(doc);
+    PsiDocumentManager.getInstance(project).commitDocument(doc);
+  }
+}

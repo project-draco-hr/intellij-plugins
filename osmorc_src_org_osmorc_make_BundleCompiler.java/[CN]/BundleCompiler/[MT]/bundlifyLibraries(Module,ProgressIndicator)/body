@@ -1,0 +1,35 @@
+{
+  ArrayList<String> result=new ArrayList<String>();
+  final ModuleRootManager manager=ModuleRootManager.getInstance(module);
+  LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
+  OrderEntry[] entries=new ReadAction<OrderEntry[]>(){
+    protected void run(    Result<OrderEntry[]> result) throws Throwable {
+      result.setResult(manager.getModifiableModel().getOrderEntries());
+    }
+  }
+.execute().getResultObject();
+  for (  OrderEntry entry : entries) {
+    if (entry instanceof JdkOrderEntry) {
+      continue;
+    }
+    if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
+      continue;
+    }
+    String[] urls=entry.getUrls(OrderRootType.CLASSES);
+    for (    String url : urls) {
+      url=convertJarUrlToFileUrl(url);
+      if (!CachingBundleInfoProvider.isBundle(url)) {
+        indicator.setText(OsmorcBundle.getTranslation("bundlecompiler.bundlifying.library"));
+        indicator.setText2(url);
+        String bundledLocation=bundlify(url,module);
+        if (bundledLocation != null) {
+          result.add(fixFileURL(bundledLocation));
+        }
+      }
+ else {
+        result.add(fixFileURL(url));
+      }
+    }
+  }
+  return result.toArray(new String[result.size()]);
+}

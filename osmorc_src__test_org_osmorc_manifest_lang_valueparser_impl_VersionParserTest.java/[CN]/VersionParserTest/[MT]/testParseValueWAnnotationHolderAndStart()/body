@@ -1,0 +1,11 @@
+{
+  AnnotationHolder annotationHolderMock=createMock(AnnotationHolder.class);
+  ManifestHeaderValue headerValueMock=createMock(ManifestHeaderValue.class);
+  expect(headerValueMock.getValueText()).andReturn("1.0.0,1-");
+  expect(headerValueMock.getTextRange()).andReturn(new TextRange(10,12));
+  expect(annotationHolderMock.createErrorAnnotation(new TextRange(16,18),"The major component of the defined version is not a valid number")).andReturn(null);
+  replay(headerValueMock,annotationHolderMock);
+  VersionParser testObject=new VersionParser();
+  assertThat(testObject.parseValue(headerValueMock,6,8,annotationHolderMock),equalTo(new Version(0,0,0,"")));
+  verify(headerValueMock,annotationHolderMock);
+}

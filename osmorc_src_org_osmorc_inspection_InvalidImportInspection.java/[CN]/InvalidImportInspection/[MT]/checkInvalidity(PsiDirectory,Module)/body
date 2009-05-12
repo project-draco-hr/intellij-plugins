@@ -1,0 +1,67 @@
+{
+  BundleManager bundleManager=ServiceManager.getService(folder.getProject(),BundleManager.class);
+  final Module containingModule=ModuleUtil.findModuleForFile(folder.getVirtualFile(),usingModule.getProject());
+  boolean result=false;
+  boolean containingModuleIsHost=false;
+  Collection<Object> usingModuleHostBundles=bundleManager.getHostBundles(usingModule);
+  for (  Object usingModuleHostBundle : usingModuleHostBundles) {
+    if (usingModuleHostBundle == containingModule) {
+      containingModuleIsHost=true;
+      break;
+    }
+  }
+  if (!containingModuleIsHost) {
+    final ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(usingModule.getProject()).getFileIndex();
+    final List<OrderEntry> entriesForFile=projectFileIndex.getOrderEntriesForFile(folder.getVirtualFile());
+    Collection<Object> containiingModuleBundleHosts;
+    if (containingModule != null) {
+      containiingModuleBundleHosts=bundleManager.getHostBundles(containingModule);
+    }
+ else {
+      containiingModuleBundleHosts=new ArrayList<Object>();
+    }
+    LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
+    for (    OrderEntry orderEntry : entriesForFile) {
+      Module orderEntryModule=orderEntry.getOwnerModule();
+      if (orderEntryModule == usingModule) {
+        if (orderEntry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary(((LibraryOrderEntry)orderEntry))) {
+          final Library library=((LibraryOrderEntry)orderEntry).getLibrary();
+          if (library != null) {
+            result=!isLibraryExportingPackageTo(library,folder,usingModule,bundleManager);
+          }
+        }
+ else         if (orderEntry instanceof ModuleOrderEntry) {
+          Module module=((ModuleOrderEntry)orderEntry).getModule();
+          if (containingModule != null) {
+            result=!isBundleExportingContainingPackageTo(module,containingModule,usingModule,folder,bundleManager);
+            if (result) {
+              for (              Object containiingBundleHost : containiingModuleBundleHosts) {
+                result=!isBundleExportingContainingPackageTo(containiingBundleHost,containiingBundleHost,usingModule,folder,bundleManager);
+                if (!result) {
+                  break;
+                }
+              }
+            }
+          }
+ else {
+            ProjectSettings projectSettings=ServiceManager.getService(usingModule.getProject(),ProjectSettings.class);
+            String frameworkInstanceName=projectSettings.getFrameworkInstanceName();
+            if (frameworkInstanceName != null) {
+              List<Library> libraries=libraryHandler.getLibraries(frameworkInstanceName);
+              for (              Library library : libraries) {
+                VirtualFile[] files=library.getFiles(OrderRootType.CLASSES);
+                for (                VirtualFile file : files) {
+                  if (VfsUtil.isAncestor(file,folder.getVirtualFile(),false)) {
+                    result=!isLibraryExportingPackageTo(library,folder,usingModule,bundleManager);
+                  }
+                }
+              }
+            }
+          }
+        }
+        break;
+      }
+    }
+  }
+  return result;
+}

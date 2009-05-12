@@ -1,0 +1,53 @@
+{
+  _allAvailableBundles.clear();
+  HashSet<SelectedBundle> hs=new HashSet<SelectedBundle>();
+  Module[] modules=ModuleManager.getInstance(project).getModules();
+  for (  Module module : modules) {
+    if (OsmorcFacet.hasOsmorcFacet(module)) {
+      SelectedBundle selectedBundle=new SelectedBundle(module.getName(),null,SelectedBundle.BundleType.Module);
+      hs.add(selectedBundle);
+    }
+  }
+  if (_usedFramework != null) {
+    LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
+    List<Library> libs=libraryHandler.getLibraries(_usedFramework.getName());
+    for (    Library lib : libs) {
+      String[] urls=lib.getUrls(OrderRootType.CLASSES);
+      for (      String url : urls) {
+        url=BundleCompiler.convertJarUrlToFileUrl(url);
+        url=BundleCompiler.fixFileURL(url);
+        String bundleName=CachingBundleInfoProvider.getBundleSymbolicName(url);
+        if (bundleName != null) {
+          String bundleVersion=CachingBundleInfoProvider.getBundleVersions(url);
+          SelectedBundle b=new SelectedBundle(bundleName + " - " + bundleVersion,url,SelectedBundle.BundleType.FrameworkBundle);
+          hs.add(b);
+        }
+      }
+    }
+    for (    Module module : modules) {
+      ModuleRootManager manager=ModuleRootManager.getInstance(module);
+      OrderEntry[] entries=manager.getModifiableModel().getOrderEntries();
+      for (      OrderEntry entry : entries) {
+        if (entry instanceof JdkOrderEntry) {
+          continue;
+        }
+        if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
+          continue;
+        }
+        String[] urls=entry.getUrls(OrderRootType.CLASSES);
+        for (        String url : urls) {
+          url=BundleCompiler.convertJarUrlToFileUrl(url);
+          url=BundleCompiler.fixFileURL(url);
+          String displayName=CachingBundleInfoProvider.getBundleSymbolicName(url);
+          if (displayName != null) {
+            SelectedBundle selectedBundle=new SelectedBundle(displayName,url,SelectedBundle.BundleType.StartableLibrary);
+            hs.add(selectedBundle);
+          }
+        }
+      }
+    }
+  }
+  hs.removeAll(_hideBundles);
+  _allAvailableBundles.addAll(hs);
+  Collections.sort(_allAvailableBundles,new TypeComparator());
+}

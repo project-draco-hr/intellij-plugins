@@ -1,0 +1,23 @@
+{
+  VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(m).getCompilerOutputPath();
+  if (moduleCompilerOutputPath == null) {
+    String outputPathUrl=CompilerModuleExtension.getInstance(m).getCompilerOutputUrl();
+    try {
+      VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
+    }
+ catch (    IOException e) {
+      Messages.showErrorDialog(m.getProject(),OsmorcBundle.getTranslation("error"),OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"));
+      throw new IllegalStateException("Cannot create output path");
+    }
+    moduleCompilerOutputPath=CompilerModuleExtension.getInstance(m).getCompilerOutputPath();
+    if (moduleCompilerOutputPath == null) {
+      throw new IllegalStateException("Cannot access compiler output path.");
+    }
+  }
+  String path=moduleCompilerOutputPath.getParent().getPath() + File.separator + "bundles";
+  File f=new File(path);
+  if (!f.exists()) {
+    f.mkdirs();
+  }
+  return path;
+}

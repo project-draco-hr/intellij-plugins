@@ -1,0 +1,17 @@
+{
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      try {
+        _root.createChildDirectory(this,"felix");
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+  expect(_fileSystem.findFileByPath(_instanceDefinition.getBaseFolder())).andReturn(_root.findChild("felix"));
+  replay(_fileSystem);
+  assertThat(_testObject.checkValidity(_instanceDefinition),equalTo(MessageFormat.format(FelixFrameworkInstanceManager.NO_BIN_FOLDER,_instanceDefinition.getBaseFolder())));
+  verify(_fileSystem);
+}

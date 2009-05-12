@@ -1,0 +1,28 @@
+{
+  ModifiableRootModel modelMock=createMock(ModifiableRootModel.class);
+  LibraryOrderEntry libraryOrderEntryWithoutLibrary=createMock(LibraryOrderEntry.class);
+  expect(libraryOrderEntryWithoutLibrary.getLibrary()).andReturn(null).anyTimes();
+  expect(libraryOrderEntryWithoutLibrary.getLibraryName()).andReturn("test").anyTimes();
+  expect(_library2.getName()).andReturn("test").anyTimes();
+  expect(_osmorcFacetUtil.hasOsmorcFacet(_module1)).andReturn(true).anyTimes();
+  expect(_osmorcFacetUtil.hasOsmorcFacet(_module2)).andReturn(true).anyTimes();
+  expect(_libraryHandler.isFrameworkInstanceLibrary(_libraryOrderEntry1)).andReturn(true).anyTimes();
+  expect(_libraryHandler.isFrameworkInstanceLibrary(libraryOrderEntryWithoutLibrary)).andReturn(true).anyTimes();
+  expect(modelMock.getOrderEntries()).andReturn(new OrderEntry[]{_moduleOrderEntry1,_moduleOrderEntry2,_libraryOrderEntry1,libraryOrderEntryWithoutLibrary});
+  expect(_bundleManager.isReexported(_module1,_module)).andReturn(true).anyTimes();
+  expect(_bundleManager.isReexported(_module2,_module)).andReturn(false).anyTimes();
+  expect(_bundleManager.isReexported(_library1,_module)).andReturn(true).anyTimes();
+  expect(_bundleManager.isReexported(_library2,_module)).andReturn(false).anyTimes();
+  expect(_moduleOrderEntry1.isExported()).andReturn(false);
+  _moduleOrderEntry1.setExported(true);
+  expect(_moduleOrderEntry2.isExported()).andReturn(false);
+  expect(_libraryOrderEntry1.isExported()).andReturn(false);
+  _libraryOrderEntry1.setExported(true);
+  expect(libraryOrderEntryWithoutLibrary.isExported()).andReturn(false);
+  replay(_bundleManager,_moduleRootManager,_application,_libraryHandler,_modifiableRootModel,_module,_osmorcFacetUtil,_module1,_module2,_module3,_module4,_moduleOrderEntry1,_moduleOrderEntry2,_library1,_library2,_library3,_library4,_libraryOrderEntry1,_libraryOrderEntry2,modelMock,libraryOrderEntryWithoutLibrary);
+  List<Object> newBundles=new ArrayList<Object>();
+  newBundles.add(_library2);
+  ModuleDependencySynchronizer testObject=new ModuleDependencySynchronizer(_bundleManager,_moduleRootManager,_application,_libraryHandler,_osmorcFacetUtil);
+  assertThat(testObject.checkAndSetReexport(modelMock,newBundles),equalTo(true));
+  verify(_bundleManager,_moduleRootManager,_application,_libraryHandler,_modifiableRootModel,_module,_osmorcFacetUtil,_module1,_module2,_module3,_module4,_moduleOrderEntry1,_moduleOrderEntry2,_library1,_library2,_library3,_library4,_libraryOrderEntry1,_libraryOrderEntry2,modelMock,libraryOrderEntryWithoutLibrary);
+}

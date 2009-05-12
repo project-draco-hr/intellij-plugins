@@ -1,0 +1,26 @@
+{
+  return new XmlElementVisitor(){
+    public void visitXmlTag(    XmlTag xmltag){
+      MavenDomDependency dependency=getDependency(xmltag);
+      if (dependency != null) {
+        String scope=dependency.getScope().getStringValue();
+        if ("test".equals(scope)) {
+          return;
+        }
+        MavenProjectsManager manager=MavenProjectsManager.getInstance(xmltag.getProject());
+        File artifactFile=MavenArtifactUtil.getArtifactFile(manager.getLocalRepository(),dependency.getGroupId().getStringValue(),dependency.getArtifactId().getStringValue(),dependency.getVersion().getStringValue(),"jar");
+        if (artifactFile.exists()) {
+          try {
+            String url=artifactFile.toURL().toString();
+            if (!CachingBundleInfoProvider.isBundle(url)) {
+              problemsHolder.registerProblem(xmltag,"Dependency is not OSGi-ready",new FindOsgiCapableMavenDependencyQuickFix());
+            }
+          }
+ catch (          MalformedURLException e) {
+          }
+        }
+      }
+    }
+  }
+;
+}

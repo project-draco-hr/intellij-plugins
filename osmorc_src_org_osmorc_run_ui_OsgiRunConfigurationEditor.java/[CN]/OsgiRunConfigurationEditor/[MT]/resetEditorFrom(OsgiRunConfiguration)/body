@@ -1,0 +1,18 @@
+{
+  _osgiRunConfiguration=osgiRunConfiguration;
+  _vmParams.setText(osgiRunConfiguration.getVmParameters());
+  _frameworkInstances.setSelectedItem(osgiRunConfiguration.getInstanceToUse());
+  _includeAllBundlesinClassPath.setSelected(osgiRunConfiguration.isIncludeAllBundlesInClassPath());
+  if (_currentFrameworkRunPropertiesEditor != null) {
+    _currentFrameworkRunPropertiesEditor.resetEditorFrom(osgiRunConfiguration);
+  }
+  List<SelectedBundle> modules=osgiRunConfiguration.getBundlesToDeploy();
+  RunConfigurationTableModel model=getTableModel();
+  while (model.getRowCount() > 0) {
+    model.removeRow(0);
+  }
+  for (  SelectedBundle module : modules) {
+    model.addModule(module);
+  }
+  _modulesList.getColumnModel().getColumn(1).setPreferredWidth(100);
+}

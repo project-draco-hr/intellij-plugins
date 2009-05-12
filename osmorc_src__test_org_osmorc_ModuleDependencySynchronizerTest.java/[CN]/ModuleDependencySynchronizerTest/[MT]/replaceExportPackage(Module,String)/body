@@ -1,0 +1,24 @@
+{
+  VirtualFile contentRoot=ModuleRootManager.getInstance(module).getContentRoots()[0];
+  VirtualFile manifestFile=contentRoot.findFileByRelativePath("META-INF/MANIFEST.MF");
+  PsiFile manifestPsiFile=PsiManager.getInstance(_fixture.getProject()).findFile(manifestFile);
+  ManifestHeader lastHeader=null;
+  for (  PsiElement psiElement : manifestPsiFile.getChildren()) {
+    if (psiElement instanceof ManifestHeader) {
+      lastHeader=(ManifestHeader)psiElement;
+    }
+  }
+  ManifestClause clause=(ManifestClause)lastHeader.getLastChild();
+  final ManifestHeaderValueImpl value=(ManifestHeaderValueImpl)clause.getLastChild();
+  CommandProcessor.getInstance().executeCommand(_fixture.getProject(),new Runnable(){
+    public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          ReplaceUtil.replace(value,replacement);
+        }
+      }
+);
+    }
+  }
+,"test","testid");
+}

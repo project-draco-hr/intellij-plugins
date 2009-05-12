@@ -1,0 +1,23 @@
+{
+  if (_osmorcFacetUtil.hasOsmorcFacet(_module) && !_osmorcFacetUtil.getOsmorcFacet(_module).getConfiguration().isOsmorcControlsManifest()) {
+    _application.runWriteAction(new Runnable(){
+      public void run(){
+        ModifiableRootModel model=_moduleRootManager.getModifiableModel();
+        Collection<Object> newBundles=_bundleManager.determineBundleDependencies(_module);
+        List<OrderEntry> oldOrderEntries=determineOldModuleDependencies(model);
+        List<OrderEntry> obsoleteOrderEntries=determineObsoleteModuleDependencies(oldOrderEntries,newBundles);
+        boolean commitNeeded=false;
+        commitNeeded|=removeObsoleteModuleDependencies(model,obsoleteOrderEntries);
+        commitNeeded|=addNewModuleDependencies(model,newBundles);
+        commitNeeded|=checkAndSetReexport(model,newBundles);
+        if (commitNeeded) {
+          model.commit();
+        }
+ else {
+          model.dispose();
+        }
+      }
+    }
+);
+  }
+}

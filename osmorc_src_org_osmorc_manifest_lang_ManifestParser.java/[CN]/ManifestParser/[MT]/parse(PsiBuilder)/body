@@ -1,0 +1,49 @@
+{
+  IElementType tokenType=builder.getTokenType();
+  if (tokenType == ManifestTokenTypes.HEADER_NAME) {
+    closeBinMarker(null);
+    parseHeaderName(builder);
+  }
+ else   if (isValueAttributeOrDirective(tokenType)) {
+    if (_clauseMarker == null) {
+      _clauseMarker=builder.mark();
+    }
+    _headerValuePartMarker=builder.mark();
+    builder.advanceLexer();
+    tokenType=builder.getTokenType();
+    if (isValueAttributeOrDirective(tokenType)) {
+      _headerValuePartMarker.error("Separator between header value parts missing");
+    }
+ else {
+      _headerValuePartMarker.done(ManifestElementTypes.HEADER_VALUE);
+    }
+    closeBinMarker(null);
+  }
+ else   if (tokenType == ManifestTokenTypes.DIRECTIVE_ASSIGNMENT || tokenType == ManifestTokenTypes.ATTRIBUTE_ASSIGNMENT) {
+    closeBinMarker("Cannot concatenate or cascade directives or attribute assignements.");
+    if (_headerValuePartMarker != null) {
+      _binMarker=_headerValuePartMarker.precede();
+      _binMarkerType=tokenType == ManifestTokenTypes.DIRECTIVE_ASSIGNMENT ? ManifestElementTypes.DIRECTIVE : ManifestElementTypes.ATTRIBUTE;
+    }
+ else {
+      builder.error("Missing left side value");
+    }
+    builder.advanceLexer();
+  }
+ else   if (tokenType == ManifestTokenTypes.CLAUSE_SEPARATOR) {
+    closeBinMarker(null);
+    if (_clauseMarker != null) {
+      _clauseMarker.done(ManifestElementTypes.CLAUSE);
+      _clauseMarker=null;
+    }
+    builder.advanceLexer();
+  }
+ else   if (tokenType == ManifestTokenTypes.PARAMETER_SEPARATOR) {
+    closeBinMarker(null);
+    builder.advanceLexer();
+  }
+ else   if (tokenType == ManifestTokenTypes.HEADER_ASSIGNMENT) {
+    builder.error("Header assignment not allowed here.");
+    builder.advanceLexer();
+  }
+}

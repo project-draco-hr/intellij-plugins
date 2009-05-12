@@ -1,0 +1,23 @@
+{
+  final List<BundleDescription> resolvedRequires=bundleManager.getResolvedRequires(requirer.getUserObject());
+  for (  BundleDescription resolvedRequire : resolvedRequires) {
+    if (required == resolvedRequire) {
+      return true;
+    }
+  }
+  for (  BundleDescription resolvedRequire : resolvedRequires) {
+    final BundleSpecification[] requiredBundles=resolvedRequire.getRequiredBundles();
+    for (    BundleSpecification requiredBundle : requiredBundles) {
+      if (requiredBundle.isExported()) {
+        final BundleDescription supplier=(BundleDescription)requiredBundle.getSupplier();
+        if (supplier == required) {
+          return true;
+        }
+ else         if (supplier != null && isRecursiveRequired(supplier,required,bundleManager)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
