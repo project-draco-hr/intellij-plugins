@@ -1,15 +1,18 @@
 {
-  _application.invokeLater(new Runnable(){
+  final PsiFile file=event.getFile();
+  if (!(file instanceof ManifestFile))   return;
+  Runnable onChangeRunnable=new Runnable(){
     public void run(){
-      final PsiFile file=event.getFile();
-      if (file instanceof ManifestFile) {
-        Module moduleOfChangedManifest=ModuleUtil.findModuleForPsiElement(file);
-        if (moduleOfChangedManifest != null) {
-          _bundleManager.addOrUpdateBundle(moduleOfChangedManifest);
-          syncAllModuleDependencies();
-        }
+      Module moduleOfChangedManifest=ModuleUtil.findModuleForPsiElement(file);
+      if (moduleOfChangedManifest != null) {
+        _bundleManager.addOrUpdateBundle(moduleOfChangedManifest);
+        syncAllModuleDependencies();
       }
     }
   }
-);
+;
+  if (ApplicationManager.getApplication().isCommandLine())   onChangeRunnable.run();
+ else {
+    _application.invokeLater(onChangeRunnable);
+  }
 }
