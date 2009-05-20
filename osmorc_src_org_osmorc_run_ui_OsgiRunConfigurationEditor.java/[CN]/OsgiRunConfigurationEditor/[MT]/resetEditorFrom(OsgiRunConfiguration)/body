@@ -1,18 +1,26 @@
 {
-  _osgiRunConfiguration=osgiRunConfiguration;
-  _vmParams.setText(osgiRunConfiguration.getVmParameters());
-  _frameworkInstances.setSelectedItem(osgiRunConfiguration.getInstanceToUse());
-  _includeAllBundlesinClassPath.setSelected(osgiRunConfiguration.isIncludeAllBundlesInClassPath());
-  if (_currentFrameworkRunPropertiesEditor != null) {
-    _currentFrameworkRunPropertiesEditor.resetEditorFrom(osgiRunConfiguration);
+  this.osgiRunConfiguration=osgiRunConfiguration;
+  vmParams.setText(osgiRunConfiguration.getVmParameters());
+  programParameters.setText(osgiRunConfiguration.getProgramParameters());
+  frameworkInstances.setSelectedItem(osgiRunConfiguration.getInstanceToUse());
+  includeAllBundlesinClassPath.setSelected(osgiRunConfiguration.isIncludeAllBundlesInClassPath());
+  if (currentFrameworkRunPropertiesEditor != null) {
+    currentFrameworkRunPropertiesEditor.resetEditorFrom(osgiRunConfiguration);
   }
   List<SelectedBundle> modules=osgiRunConfiguration.getBundlesToDeploy();
   RunConfigurationTableModel model=getTableModel();
   while (model.getRowCount() > 0) {
-    model.removeRow(0);
+    model.removeBundleAt(0);
   }
   for (  SelectedBundle module : modules) {
-    model.addModule(module);
+    model.addBundle(module);
   }
-  _modulesList.getColumnModel().getColumn(1).setPreferredWidth(100);
+  modulesList.getColumnModel().getColumn(1).setPreferredWidth(100);
+  boolean useUserDefinedFields=osgiRunConfiguration.getFrameworkDir().length() > 0 || osgiRunConfiguration.getWorkingDir().length() > 0;
+  workingDirField.setText(osgiRunConfiguration.getWorkingDir());
+  workingDirField.setEnabled(useUserDefinedFields);
+  frameworkDirField.setText(osgiRunConfiguration.getFrameworkDir());
+  frameworkDirField.setEnabled(useUserDefinedFields);
+  userDefinedRadioButton.setSelected(useUserDefinedFields);
+  osmorcControlledRadioButton.setSelected(!useUserDefinedFields);
 }

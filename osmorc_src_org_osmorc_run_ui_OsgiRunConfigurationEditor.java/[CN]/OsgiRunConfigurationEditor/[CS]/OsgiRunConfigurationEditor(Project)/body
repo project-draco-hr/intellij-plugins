@@ -1,30 +1,44 @@
 {
   ApplicationSettings registry=ServiceManager.getService(ApplicationSettings.class);
   DefaultComboBoxModel cbmodel=new DefaultComboBoxModel(registry.getFrameworkInstanceDefinitions().toArray());
-  _frameworkInstances.setModel(cbmodel);
-  _frameworkInstances.addActionListener(new ActionListener(){
+  frameworkInstances.setModel(cbmodel);
+  frameworkInstances.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onFrameworkChange();
     }
   }
 );
-  this._project=project;
-  DefaultTableModel model=new RunConfigurationTableModel();
-  model.addColumn(OsmorcBundle.getTranslation("runconfiguration.bundlename"));
-  model.addColumn(OsmorcBundle.getTranslation("runconfiguration.bundlestartlevel"));
-  _modulesList.setModel(model);
-  _modulesList.setRowSelectionAllowed(true);
-  _modulesList.setColumnSelectionAllowed(false);
-  _addButton.addActionListener(new ActionListener(){
+  this.project=project;
+  RunConfigurationTableModel model=new RunConfigurationTableModel();
+  modulesList.setModel(model);
+  modulesList.setRowSelectionAllowed(true);
+  modulesList.setColumnSelectionAllowed(false);
+  addButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onAddClick();
     }
   }
 );
-  _removeButton.addActionListener(new ActionListener(){
+  removeButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onRemoveClick();
     }
   }
 );
+  osmorcControlledRadioButton.addChangeListener(new ChangeListener(){
+    public void stateChanged(    ChangeEvent e){
+      boolean isUserDefined=!osmorcControlledRadioButton.isSelected();
+      frameworkDirField.setEnabled(isUserDefined);
+      workingDirField.setEnabled(isUserDefined);
+      if (osmorcControlledRadioButton.isSelected()) {
+        frameworkDirField.setText("");
+        workingDirField.setText("");
+      }
+    }
+  }
+);
+  workingDirField.addBrowseFolderListener("Choose a working directory","The working directory is the directory from which the framework is started",null,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  workingDirField.getTextField().setColumns(30);
+  frameworkDirField.addBrowseFolderListener("Choose a framework directory","The framework directory is the directory that is used fro framework specific stuff like caches and" + " configuration files",null,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  frameworkDirField.getTextField().setColumns(30);
 }

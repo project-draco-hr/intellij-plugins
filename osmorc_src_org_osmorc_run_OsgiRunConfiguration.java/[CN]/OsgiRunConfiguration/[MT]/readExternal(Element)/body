@@ -1,6 +1,11 @@
 {
+  workingDir=element.getAttributeValue(WORKING_DIR_ATTRIBUTE);
+  frameworkDir=element.getAttributeValue(FRAMEWORK_DIR_ATTRIBUTE);
+  vmParameters=element.getAttributeValue(VM_PARAMETERS_ATTRIBUTE);
+  programParameters=element.getAttributeValue(PROGRAM_PARAMETERS_ATTRIBUTE);
+  includeAllBundlesInClassPath=Boolean.valueOf(element.getAttributeValue(INCLUDE_ALL_BUNDLES_IN_CLASS_PATH_ATTRIBUTE,"false"));
   List<Element> children=element.getChildren(BUNDLE_ELEMENT);
-  _bundlesToDeploy.clear();
+  bundlesToDeploy.clear();
   for (  Element child : children) {
     String name=child.getAttributeValue(NAME_ATTRIBUTE);
     String url=child.getAttributeValue(URL_ATTRIBUTE);
@@ -21,27 +26,26 @@
  catch (      NumberFormatException e) {
       }
     }
-    _bundlesToDeploy.add(selectedBundle);
-  }
-  _vmParameters=element.getAttributeValue(VM_PARAMETERS_ATTRIBUTE);
-  if (_vmParameters == null) {
-    _vmParameters="";
+    String startAfterInstallationString=child.getAttributeValue(START_AFTER_INSTALLATION_ATTRIBUTE);
+    if (startAfterInstallationString != null) {
+      selectedBundle.setStartAfterInstallation(Boolean.parseBoolean(startAfterInstallationString));
+    }
+    bundlesToDeploy.add(selectedBundle);
   }
   Element framework=element.getChild(FRAMEWORK_ELEMENT);
   if (framework != null) {
     String name=framework.getAttributeValue(INSTANCE_ATTRIBUTE);
     if (name != null) {
       ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
-      _instanceToUse=settings.getFrameworkInstance(name);
+      instanceToUse=settings.getFrameworkInstance(name);
     }
   }
   Element additionalProperties=element.getChild(ADDITIONAL_PROPERTIES_ELEMENT);
   if (additionalProperties != null) {
     List<Attribute> attributes=additionalProperties.getAttributes();
     for (    Attribute attribute : attributes) {
-      _additionalProperties.put(attribute.getName(),attribute.getValue());
+      this.additionalProperties.put(attribute.getName(),attribute.getValue());
     }
   }
-  _includeAllBundlesInClassPath=Boolean.valueOf(element.getAttributeValue(INCLUDE_ALL_BUNDLES_IN_CLASS_PATH_ATTRIBUTE,"false"));
   super.readExternal(element);
 }

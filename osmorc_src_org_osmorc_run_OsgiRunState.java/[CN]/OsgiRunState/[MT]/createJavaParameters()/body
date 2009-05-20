@@ -1,21 +1,10 @@
 {
   final JavaParameters params=new JavaParameters();
-  String path=getRunPath();
-  params.setWorkingDirectory(path);
+  params.setWorkingDirectory(runner.getWorkingDir());
   params.configureByProject(project,JavaParameters.JDK_ONLY,projectJdk);
-  FrameworkInstanceDefinition definition=runConfiguration.getInstanceToUse();
-  FrameworkIntegratorRegistry registry=ServiceManager.getService(project,FrameworkIntegratorRegistry.class);
-  FrameworkIntegrator integrator=registry.findIntegratorByInstanceDefinition(definition);
-  FrameworkInstanceManager frameworkInstanceManager=integrator.getFrameworkInstanceManager();
-  _runner=integrator.createFrameworkRunner();
-  List<Library> libs=frameworkInstanceManager.getLibraries(definition);
   PathsList classpath=params.getClassPath();
-  for (  Library lib : libs) {
-    for (    VirtualFile virtualFile : lib.getFiles(OrderRootType.CLASSES_AND_OUTPUT)) {
-      if (_runner.getFrameworkStarterClasspathPattern().matcher(virtualFile.getName()).matches()) {
-        classpath.add(virtualFile);
-      }
-    }
+  for (  VirtualFile libraryFile : runner.getFrameworkStarterLibraries()) {
+    classpath.add(libraryFile);
   }
   if (runConfiguration.isIncludeAllBundlesInClassPath()) {
     SelectedBundle[] bundles=getSelectedBundles();
@@ -29,12 +18,13 @@
       classpath.add(bundlePath);
     }
   }
-  params.setMainClass(_runner.getMainClass());
+  params.setMainClass(runner.getMainClass());
   final ParametersList programParameters=params.getProgramParametersList();
   SelectedBundle[] bundles=getSelectedBundles();
-  programParameters.addAll(_runner.getCommandlineParameters(bundles,_runner.convertProperties(runConfiguration.getAdditionalProperties())));
+  runner.fillCommandLineParameters(programParameters,bundles);
+  programParameters.addParametersString(runConfiguration.getProgramParameters());
   params.getVMParametersList().addParametersString(runConfiguration.getVmParameters());
-  Map<String,String> systemProperties=_runner.getSystemProperties(bundles,_runner.convertProperties(runConfiguration.getAdditionalProperties()));
+  Map<String,String> systemProperties=runner.getSystemProperties(bundles);
   for (  Map.Entry<String,String> entry : systemProperties.entrySet()) {
     params.getVMParametersList().defineProperty(entry.getKey(),entry.getValue());
   }
