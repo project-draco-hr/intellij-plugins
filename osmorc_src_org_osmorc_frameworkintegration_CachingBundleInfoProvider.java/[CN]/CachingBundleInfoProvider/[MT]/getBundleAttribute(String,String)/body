@@ -2,8 +2,18 @@
   bundleUrl=normalize(bundleUrl);
   if (!_cache.containsKey(bundleUrl)) {
     try {
-      JarFile file=new JarFile(VfsUtil.urlToPath(bundleUrl));
-      _cache.put(bundleUrl,file.getManifest());
+      File bundleFile=new File(VfsUtil.urlToPath(bundleUrl));
+      if (bundleFile.isDirectory()) {
+        File manifestFile=new File(bundleFile,"META-INF/MANIFEST.MF");
+        if (manifestFile.exists() && !manifestFile.isDirectory()) {
+          Manifest manifest=new Manifest(new FileInputStream(manifestFile));
+          _cache.put(bundleUrl,manifest);
+        }
+      }
+ else {
+        JarFile file=new JarFile(bundleFile);
+        _cache.put(bundleUrl,file.getManifest());
+      }
     }
  catch (    IOException e) {
       return null;
