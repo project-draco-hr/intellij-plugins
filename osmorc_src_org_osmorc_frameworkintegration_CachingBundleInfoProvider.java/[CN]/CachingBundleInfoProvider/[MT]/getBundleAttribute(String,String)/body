@@ -6,13 +6,16 @@
       if (bundleFile.isDirectory()) {
         File manifestFile=new File(bundleFile,"META-INF/MANIFEST.MF");
         if (manifestFile.exists() && !manifestFile.isDirectory()) {
-          Manifest manifest=new Manifest(new FileInputStream(manifestFile));
+          FileInputStream fileInputStream=new FileInputStream(manifestFile);
+          Manifest manifest=new Manifest(fileInputStream);
+          fileInputStream.close();
           _cache.put(bundleUrl,manifest);
         }
       }
  else {
         JarFile file=new JarFile(bundleFile);
         _cache.put(bundleUrl,file.getManifest());
+        file.close();
       }
     }
  catch (    IOException e) {
