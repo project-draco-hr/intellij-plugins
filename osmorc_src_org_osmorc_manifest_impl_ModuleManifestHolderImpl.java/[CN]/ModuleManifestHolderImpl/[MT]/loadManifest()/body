@@ -2,6 +2,10 @@
   VirtualFile manifestFile=getManifestFile();
   if (manifestFile != null) {
     PsiFile psiFile=PsiManager.getInstance(_module.getProject()).findFile(manifestFile);
+    if (psiFile == null) {
+      Messages.showMessageDialog(_module.getProject(),String.format("The manifest file %s could not be loaded. " + "Please make sure that it is not located in an excluded directory",manifestFile.getPath()),"Error while loading manifest",Messages.getInformationIcon());
+      return null;
+    }
     return new BundleManifestImpl(psiFile);
   }
   return null;
