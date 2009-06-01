@@ -42,7 +42,27 @@
       }
       OsmorcFacetConfiguration osmorcFacetConfiguration=createDefaultConfiguration();
       osmorcFacetConfiguration.setOsmorcControlsManifest(false);
+      osmorcFacetConfiguration.setManifestLocation(source.getPath());
+      osmorcFacetConfiguration.setUseProjectDefaultManifestFileLocation(false);
       return osmorcFacetConfiguration;
+    }
+    @Override public void beforeFacetAdded(    @NotNull Facet facet,    FacetModel facetModel,    @NotNull ModifiableRootModel modifiableRootModel){
+      super.beforeFacetAdded(facet,facetModel,modifiableRootModel);
+      VirtualFile[] contentRoots=modifiableRootModel.getContentRoots();
+      OsmorcFacet osmorcFacet=(OsmorcFacet)facet;
+      OsmorcFacetConfiguration osmorcFacetConfiguration=osmorcFacet.getConfiguration();
+      VirtualFile manifestFile=LocalFileSystem.getInstance().findFileByPath(osmorcFacetConfiguration.getManifestLocation());
+      if (manifestFile != null) {
+        for (        VirtualFile contentRoot : contentRoots) {
+          if (VfsUtil.isAncestor(contentRoot,manifestFile,false)) {
+            osmorcFacetConfiguration.setManifestLocation(VfsUtil.getRelativePath(manifestFile.getParent(),contentRoot,'/'));
+          }
+        }
+      }
+ else {
+        osmorcFacetConfiguration.setManifestLocation("");
+        osmorcFacetConfiguration.setUseProjectDefaultManifestFileLocation(true);
+      }
     }
   }
 ;

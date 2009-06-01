@@ -1,0 +1,18 @@
+{
+  final List<Object> arguments=new ArrayList<Object>();
+  FacetDetectorRegistry registry=createMock(FacetDetectorRegistry.class);
+  registry.registerUniversalDetector(same(ManifestFileTypeFactory.MANIFEST),(VirtualFileFilter)anyObject(),(FacetDetector)anyObject());
+  expectLastCall().andAnswer(new IAnswer<Object>(){
+    public Object answer() throws Throwable {
+      arguments.addAll(Arrays.asList(getCurrentArguments()));
+      return null;
+    }
+  }
+);
+  replay(registry);
+  OsmorcFacetType.INSTANCE.registerDetectors(registry);
+  VirtualFileFilter filter=(VirtualFileFilter)arguments.get(1);
+  VirtualFile manifestFile=myTempDirFixture.getFile("t1/src/META-INF/MANIFEST.MF");
+  assertThat(filter.accept(manifestFile),equalTo(false));
+  verify(registry);
+}

@@ -1,0 +1,29 @@
+{
+  ModuleManager moduleManager=ModuleManager.getInstance(fixture.getProject());
+  final List<Object> arguments=new ArrayList<Object>();
+  Module t0=moduleManager.findModuleByName("t0");
+  FacetDetectorRegistry registry=createMock(FacetDetectorRegistry.class);
+  registry.registerUniversalDetector(same(ManifestFileTypeFactory.MANIFEST),(VirtualFileFilter)anyObject(),(FacetDetector)anyObject());
+  expectLastCall().andAnswer(new IAnswer<Object>(){
+    public Object answer() throws Throwable {
+      arguments.addAll(Arrays.asList(getCurrentArguments()));
+      return null;
+    }
+  }
+);
+  replay(registry);
+  OsmorcFacetType.INSTANCE.registerDetectors(registry);
+  VirtualFileFilter filter=(VirtualFileFilter)arguments.get(1);
+  FacetDetector<VirtualFile,OsmorcFacetConfiguration> detector=(FacetDetector<VirtualFile,OsmorcFacetConfiguration>)arguments.get(2);
+  VirtualFile manifestFile=myTempDirFixture.getFile("t0/src/META-INF/MANIFEST.MF");
+  assertThat(filter.accept(manifestFile),equalTo(true));
+  OsmorcFacetConfiguration osmorcFacetConfiguration=detector.detectFacet(manifestFile,new ArrayList<OsmorcFacetConfiguration>());
+  assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo(manifestFile.getPath()));
+  assertThat(osmorcFacetConfiguration.isUseProjectDefaultManifestFileLocation(),equalTo(false));
+  OsmorcFacet osmorcFacet=OsmorcFacetType.INSTANCE.createFacet(t0,"OSGi",osmorcFacetConfiguration,null);
+  ModifiableRootModel model=ModuleRootManager.getInstance(t0).getModifiableModel();
+  detector.beforeFacetAdded(osmorcFacet,FacetManager.getInstance(t0),model);
+  assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo("src/META-INF"));
+  model.dispose();
+  verify(registry);
+}
