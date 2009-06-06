@@ -1,2 +1,32 @@
 {
+  String application=element.getAttributeValue(APPLICATION_ATTRIBUTE);
+  String product=element.getAttributeValue(PRODUCT_ATTRIBUTE);
+  String workingDir=element.getAttributeValue(WORKING_DIR_ATTRIBUTE);
+  String configDir=element.getAttributeValue(CONFIG_DIR_ATTRIBUTE);
+  String jvmArgs=element.getAttributeValue(JVM_ARGS_ATTRIBUTE);
+  String additionalEquinoxArgs=element.getAttributeValue(ADDITIONAL_ARGS_ATTRIBUTE);
+  boolean equinoxConsole=Boolean.valueOf(element.getAttributeValue(EQUINOX_CONSOLE,"false"));
+  boolean equinoxDebug=Boolean.valueOf(element.getAttributeValue(EQUINOX_DEBUG,"false"));
+  boolean useUpdateConfigurator=Boolean.valueOf(element.getAttributeValue(USE_UPDATE_CONFIGURATOR,"true"));
+  boolean clean=Boolean.valueOf(element.getAttributeValue(CLEAN,"true"));
+  osgiRunConfiguration.setWorkingDir(workingDir);
+  osgiRunConfiguration.setFrameworkDir(configDir);
+  osgiRunConfiguration.setVmParameters(jvmArgs);
+  osgiRunConfiguration.setProgramParameters(additionalEquinoxArgs);
+  EquinoxRunProperties runProperties=new EquinoxRunProperties(osgiRunConfiguration.getAdditionalProperties());
+  runProperties.setEquinoxApplication(application);
+  runProperties.setEquinoxProduct(product);
+  runProperties.setStartEquinoxOSGIConsole(equinoxConsole);
+  runProperties.setDebugMode(equinoxDebug);
+  runProperties.setCleanEquinoxCache(clean);
+  runProperties.setRecreateEquinoxConfigIni(clean);
+  osgiRunConfiguration.putAdditionalProperties(runProperties.getProperties());
+  List<SelectedBundle> bundlesToDeploy=osgiRunConfiguration.getBundlesToDeploy();
+  bundlesToDeploy.clear();
+  FrameworkInstanceDefinition frameworkInstanceDefinition=getFrameworkInstance(osgiRunConfiguration.getProject());
+  if (frameworkInstanceDefinition != null) {
+    osgiRunConfiguration.setInstanceToUse(frameworkInstanceDefinition);
+    addFrameworkBundle(bundlesToDeploy,frameworkInstanceDefinition,useUpdateConfigurator);
+  }
+  return true;
 }
