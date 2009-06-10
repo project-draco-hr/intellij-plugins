@@ -9,6 +9,7 @@
   }
 ;
   myTree.setRootVisible(false);
+  myTree.setShowsRootHandles(true);
   myBuilder=new SimpleTreeBuilder(myTree,(DefaultTreeModel)myTree.getModel(),structure,null);
   myBuilder.initRoot();
   myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
@@ -21,7 +22,7 @@
 );
   myAddSetButton.addActionListener(new ActionListener(){
     public void actionPerformed(    final ActionEvent e){
-      final StrutsFileSet fileSet=new StrutsFileSet(StrutsFileSet.getUniqueId(myBuffer),StrutsFileSet.getUniqueName(StrutsBundle.message("facet.fileset.myfileset"),myBuffer)){
+      final StrutsFileSet fileSet=new StrutsFileSet(StrutsFileSet.getUniqueId(myBuffer),StrutsFileSet.getUniqueName(StrutsBundle.message("facet.fileset.myfileset"),myBuffer),originalConfiguration){
         public boolean isNew(){
           return true;
         }
@@ -30,7 +31,9 @@
       final FileSetEditor editor=new FileSetEditor(myPanel,fileSet,facetEditorContext,myConfigsSearcher);
       editor.show();
       if (editor.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-        myBuffer.add(editor.getEditedFileSet());
+        final StrutsFileSet editedFileSet=editor.getEditedFileSet();
+        Disposer.register(strutsFacetConfiguration,editedFileSet);
+        myBuffer.add(editedFileSet);
         myModified=true;
         myBuilder.updateFromRoot();
         selectFileSet(fileSet);
@@ -49,6 +52,7 @@
           myModified=true;
           myBuffer.remove(fileSet);
           final StrutsFileSet edited=editor.getEditedFileSet();
+          Disposer.register(strutsFacetConfiguration,edited);
           myBuffer.add(edited);
           edited.setAutodetected(false);
           myBuilder.updateFromRoot();
