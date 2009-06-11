@@ -103,18 +103,13 @@ catch (  Exception e) {
     progressIndicator.setText2(OsmorcBundle.getTranslation("bundlecompiler.creatingmanifest"));
     bnd bnd=new bnd();
     Map<String,String> additionalProperties=new HashMap<String,String>();
+    File bndFile=null;
     if (configuration.isUseBndFile()) {
-      Properties p=new Properties();
-      try {
-        p.load(new FileInputStream(findFileInModuleContentRoots(configuration.getBndFileLocation(),module)));
-        for (        Object s : p.keySet()) {
-          additionalProperties.put((String)s,p.getProperty((String)s));
-        }
-      }
- catch (      IOException e) {
+      bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
+      if (!bndFile.exists()) {
         ApplicationManager.getApplication().invokeLater(new Runnable(){
           public void run(){
-            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist or is invalid.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
+            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
           }
         }
 );
@@ -131,7 +126,7 @@ catch (  Exception e) {
       additionalProperties.putAll(propsFromFacetSetup);
     }
     try {
-      bnd.doWrap(null,tempFile,tempFile,null,0,additionalProperties);
+      bnd.doWrap(bndFile,tempFile,tempFile,null,0,additionalProperties);
     }
  catch (    Exception e) {
       e.printStackTrace();
