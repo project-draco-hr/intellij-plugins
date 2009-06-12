@@ -10,39 +10,36 @@
     }
   }
 ).execute().getResultObject();
-  Manifest manifest=DeploymentUtil.getInstance().createManifest(buildrecipe);
-  if (manifest == null) {
-    manifest=new Manifest();
-  }
   final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(module).getConfiguration();
-  if (!configuration.isOsmorcControlsManifest()) {
-    progressIndicator.setText2(OsmorcBundle.getTranslation("bundlecompiler.merging.manifest"));
-    final VirtualFile manifestFile=getManifestFile(module);
+  final File tempFile=File.createTempFile("___" + FileUtil.getNameWithoutExtension(jarFile),".jar",jarFile.getParentFile());
+  final JarOutputStream jaroutputstream;
+  if (configuration.isOsmorcControlsManifest()) {
+    Manifest manifest=DeploymentUtil.getInstance().createManifest(buildrecipe);
+    if (manifest == null) {
+      manifest=new Manifest();
+    }
+    String mainClass=null;
+    if (!Comparing.strEqual(mainClass,null)) {
+      manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(),mainClass);
+    }
+    jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)),manifest);
+  }
+ else {
+    jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)));
+    VirtualFile manifestFile=getManifestFile(module);
     if (manifestFile != null) {
-      try {
-        Manifest fromFile=new Manifest(manifestFile.getInputStream());
-        Attributes atts=fromFile.getMainAttributes();
-        for (        Map.Entry<Object,Object> entry : atts.entrySet()) {
-          manifest.getMainAttributes().put(entry.getKey(),entry.getValue());
+      String sourceFilePath=manifestFile.getPath();
+      addFileToJar(module,compileContext,tempFile,jaroutputstream,null,sourceFilePath,JarFile.MANIFEST_NAME);
+    }
+ else {
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+          compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The manifest file at \"%s\" for module \"%s\" does not exist or is invalid.",configuration.getManifestLocation(),module.getName()),configuration.getManifestLocation(),0,0);
         }
       }
- catch (      Exception e) {
-        ApplicationManager.getApplication().invokeLater(new Runnable(){
-          public void run(){
-            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The manifest file \"%s\" for module \"%s\" does not exist or is invalid.",manifestFile.getName(),module.getName()),manifestFile.getUrl(),0,0);
-          }
-        }
 );
-        return;
-      }
     }
   }
-  String mainClass=null;
-  if (!Comparing.strEqual(mainClass,null)) {
-    manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(),mainClass);
-  }
-  final File tempFile=File.createTempFile("___" + FileUtil.getNameWithoutExtension(jarFile),".jar",jarFile.getParentFile());
-  final JarOutputStream jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)),manifest);
   final THashSet<String> writtenItems=new THashSet<String>();
   try {
     buildrecipe.visitInstructionsWithExceptions(new BuildInstructionVisitor(){
@@ -85,18 +82,9 @@ catch (  Exception e) {
   }
   List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
   for (  Pair<String,String> jarContent : jarContents) {
-    final File sourceFile=new File(jarContent.getFirst());
-    if (sourceFile.exists()) {
-      ZipUtil.addFileOrDirRecursively(jaroutputstream,tempFile,sourceFile,jarContent.getSecond(),fileFilter,null);
-    }
- else {
-      ApplicationManager.getApplication().invokeLater(new Runnable(){
-        public void run(){
-          compileContext.addMessage(CompilerMessageCategory.WARNING,String.format("The file \"%s\" does not exist. It will not be copied into the JAR \"%s\"",sourceFile,getJarFileName(module)),null,0,0);
-        }
-      }
-);
-    }
+    String sourceFilePath=jarContent.getFirst();
+    String destFilePath=jarContent.getSecond();
+    addFileToJar(module,compileContext,tempFile,jaroutputstream,fileFilter,sourceFilePath,destFilePath);
   }
   jaroutputstream.close();
   if (configuration.isOsmorcControlsManifest()) {
