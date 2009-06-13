@@ -1,0 +1,16 @@
+{
+  if (headerValue.getParent() instanceof ManifestClause) {
+    Module module=ModuleUtil.findModuleForPsiElement(headerValue);
+    JavaClassReferenceProvider provider;
+    if (module != null) {
+      provider=new JavaClassReferenceProvider(GlobalSearchScope.moduleScope(module),headerValue.getProject());
+    }
+ else {
+      provider=new JavaClassReferenceProvider(headerValue.getProject());
+    }
+    provider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES,new String[]{"org.osgi.framework.BundleActivator"});
+    provider.setOption(JavaClassReferenceProvider.CONCRETE,true);
+    return provider.getReferencesByElement(headerValue);
+  }
+  return EMPTY_PSI_REFERENCE_ARRAY;
+}
