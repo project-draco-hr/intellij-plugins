@@ -1,8 +1,12 @@
 {
-  String text=file.getText();
-  if (text.charAt(text.length() - 1) != '\n') {
-    ManifestHeaderValueImpl headerValue=PsiTreeUtil.findElementOfClassAtOffset(file,text.length() - 1,ManifestHeaderValueImpl.class,false);
-    return new ProblemDescriptor[]{manager.createProblemDescriptor(headerValue,"Manifest file doen't end with a final newline",new AddNewlineQuickFix(headerValue),ProblemHighlightType.GENERIC_ERROR_OR_WARNING)};
+  if (file instanceof ManifestFile) {
+    String text=file.getText();
+    if (text.charAt(text.length() - 1) != '\n') {
+      ManifestHeaderValueImpl headerValue=PsiTreeUtil.findElementOfClassAtOffset(file,text.length() - 1,ManifestHeaderValueImpl.class,false);
+      if (headerValue != null) {
+        return new ProblemDescriptor[]{manager.createProblemDescriptor(headerValue,"Manifest file doen't end with a final newline",new AddNewlineQuickFix(headerValue),ProblemHighlightType.GENERIC_ERROR_OR_WARNING)};
+      }
+    }
   }
   return new ProblemDescriptor[0];
 }
