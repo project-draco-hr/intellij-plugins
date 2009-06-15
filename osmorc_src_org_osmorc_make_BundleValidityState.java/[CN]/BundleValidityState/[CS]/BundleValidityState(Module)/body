@@ -1,7 +1,8 @@
 {
   moduleName=module.getName();
   jarUrl=BundleCompiler.getJarFileName(module);
-  alwaysRebuildBundleJAR=OsmorcFacet.hasOsmorcFacet(module) && OsmorcFacet.getInstance(module).getConfiguration().isAlwaysRebuildBundleJAR();
+  final OsmorcFacet osmorcFacet=OsmorcFacet.getInstance(module);
+  alwaysRebuildBundleJAR=OsmorcFacet.hasOsmorcFacet(module) && osmorcFacet.getConfiguration().isAlwaysRebuildBundleJAR();
   if (alwaysRebuildBundleJAR) {
     jarLastModificationTime=0;
     fileTimestamps=new long[0];
@@ -31,15 +32,21 @@
     if (manifestFile != null) {
       registerTimestamps(manifestFile,url2Timestamps);
     }
-    OsmorcFacetUtil osmorcFacetUtil=ServiceManager.getService(OsmorcFacetUtil.class);
-    if (osmorcFacetUtil.hasOsmorcFacet(module)) {
-      OsmorcFacet facet=osmorcFacetUtil.getOsmorcFacet(module);
-      OsmorcFacetConfiguration configuration=facet.getConfiguration();
+    if (osmorcFacet != null) {
+      OsmorcFacetConfiguration configuration=osmorcFacet.getConfiguration();
       List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
       for (      Pair<String,String> jarContent : jarContents) {
         VirtualFile file=LocalFileSystem.getInstance().findFileByPath(jarContent.getFirst());
         if (file != null) {
           registerTimestamps(file,url2Timestamps);
+        }
+      }
+      if (configuration.isUseBndFile()) {
+        String bndFileLocation=configuration.getBndFileLocation();
+        VirtualFile bndFile=LocalFileSystem.getInstance().findFileByIoFile(BundleCompiler.findFileInModuleContentRoots(bndFileLocation,module));
+        if (bndFile != null && bndFile.exists()) {
+          registerTimestamps(bndFile,url2Timestamps);
+          registerDependencies(bndFile,url2Timestamps);
         }
       }
     }

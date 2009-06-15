@@ -1,0 +1,22 @@
+{
+  try {
+    String contents=VfsUtil.loadText(bndFile);
+    Pattern p=Pattern.compile("-include (.*)");
+    Matcher m=p.matcher(contents);
+    while (m.find()) {
+      String dependentFileLocation=m.group(1);
+      VirtualFile dependentFile=VfsUtil.findRelativeFile(dependentFileLocation,bndFile);
+      if (dependentFile != null && dependentFile.exists()) {
+        if (url2Timestamps.containsKey(dependentFile.getUrl())) {
+          return;
+        }
+ else {
+          registerTimestamps(dependentFile,url2Timestamps);
+          registerDependencies(dependentFile,url2Timestamps);
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+  }
+}
