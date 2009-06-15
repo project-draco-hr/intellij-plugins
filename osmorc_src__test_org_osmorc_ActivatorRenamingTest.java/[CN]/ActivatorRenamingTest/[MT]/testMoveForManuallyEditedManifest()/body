@@ -1,0 +1,21 @@
+{
+  PsiFile activatorClassFile=TestUtil.loadPsiFile(fixture.getProject(),"t1","t1/Activator.java");
+  PsiFile manifest=TestUtil.loadPsiFileUnderContent(fixture.getProject(),"t1","META-INF/MANIFEST.MF");
+  final PsiClass activatorClass=PsiTreeUtil.getChildOfType(activatorClassFile,PsiClass.class);
+  assertThat(manifest.getText(),endsWith("Bundle-Activator: t1.Activator\n"));
+  CommandProcessor.getInstance().executeCommand(fixture.getProject(),new Runnable(){
+    public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          final ModuleRootManager rootManager=TestUtil.getModuleRootManager(fixture.getProject(),"t1");
+          final VirtualFile root=rootManager.getSourceRoots()[0];
+          MoveDestination moveDestination=JavaRefactoringFactory.getInstance(fixture.getProject()).createSourceRootMoveDestination("tx",root);
+          JavaRefactoringFactory.getInstance(fixture.getProject()).createMoveClassesOrPackages(new PsiElement[]{activatorClass},moveDestination).run();
+        }
+      }
+);
+    }
+  }
+,"test","testid");
+  assertThat(manifest.getText(),endsWith("Bundle-Activator: tx.Activator\n"));
+}

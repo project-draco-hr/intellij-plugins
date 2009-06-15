@@ -1,0 +1,24 @@
+{
+  PsiFile activatorClassFile=TestUtil.loadPsiFile(fixture.getProject(),"t1","t1/Activator.java");
+  final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(activatorClassFile).getConfiguration();
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      configuration.setOsmorcControlsManifest(true);
+      configuration.setBundleActivator("t1.Activator");
+    }
+  }
+);
+  final PsiClass activatorClass=PsiTreeUtil.getChildOfType(activatorClassFile,PsiClass.class);
+  CommandProcessor.getInstance().executeCommand(fixture.getProject(),new Runnable(){
+    public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          RefactoringFactory.getInstance(fixture.getProject()).createRename(activatorClass,"RenamedActivator").run();
+        }
+      }
+);
+    }
+  }
+,"test","testid");
+  assertThat(configuration.getBundleActivator(),equalTo("t1.RenamedActivator"));
+}
