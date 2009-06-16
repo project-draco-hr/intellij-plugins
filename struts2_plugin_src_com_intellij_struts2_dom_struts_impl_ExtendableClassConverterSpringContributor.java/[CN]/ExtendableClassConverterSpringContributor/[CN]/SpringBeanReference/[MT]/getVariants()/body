@@ -1,12 +1,18 @@
 {
-  final Collection<? extends SpringBeanPointer> list=springModel.getAllCommonBeans(true);
-  final List lookups=new ArrayList(list.size());
+  final Collection<? extends SpringBeanPointer> list;
+  if (subClass != null) {
+    list=springModel.findBeansByPsiClassWithInheritance(subClass);
+  }
+ else {
+    list=springModel.getAllCommonBeans(true);
+  }
+  final List variants=new ArrayList(list.size());
   for (  final SpringBeanPointer bean : list) {
     final String beanName=bean.getName();
     final PsiFile psiFile=bean.getContainingFile();
     if (psiFile != null && StringUtil.isNotEmpty(beanName)) {
-      lookups.add(LookupValueFactory.createLookupValueWithHint(beanName,bean.getBeanIcon(),psiFile.getName()));
+      variants.add(LookupValueFactory.createLookupValueWithHint(beanName,bean.getBeanIcon(),psiFile.getName()));
     }
   }
-  return ArrayUtil.toObjectArray(lookups);
+  return ArrayUtil.toObjectArray(variants);
 }

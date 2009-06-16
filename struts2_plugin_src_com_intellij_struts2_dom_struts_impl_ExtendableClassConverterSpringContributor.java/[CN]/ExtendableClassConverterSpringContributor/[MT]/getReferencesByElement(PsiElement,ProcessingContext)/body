@@ -1,7 +1,11 @@
 {
-  final SpringModel springModel=getSpringModel(element);
+  final Module module=ModuleUtil.findModuleForPsiElement(element);
+  if (module == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final SpringModel springModel=SpringManager.getInstance(module.getProject()).getCombinedModel(module);
   if (springModel == null) {
     return PsiReference.EMPTY_ARRAY;
   }
-  return new PsiReference[]{new SpringBeanReference((XmlAttributeValue)element,springModel)};
+  return new PsiReference[]{new SpringBeanReference((XmlAttributeValue)element,springModel,getPossibleSubClass(element,module))};
 }
