@@ -7,5 +7,19 @@
   if (validatorsConfigElement == null) {
     return Collections.emptyList();
   }
-  return validatorsConfigElement.getRootElement().getValidatorConfigs();
+  final List<ValidatorConfig> validatorConfigs=validatorsConfigElement.getRootElement().getValidatorConfigs();
+  if (!isCustomValidatorConfigFile(validatorsFile)) {
+    return validatorConfigs;
+  }
+  final String version=StrutsVersionDetector.detectStrutsVersion(module);
+  if (StringUtil.compareVersionNumbers(version,"2.0.8") == 1) {
+    final XmlFile defaultValidatorFile=findDefaultValidatorsFile(module);
+    if (defaultValidatorFile != null) {
+      final List<ValidatorConfig> defaultValidators=getValidatorsConfigFileElement(defaultValidatorFile).getRootElement().getValidatorConfigs();
+      final List<ValidatorConfig> allValidatorConfigs=new ArrayList<ValidatorConfig>(defaultValidators);
+      allValidatorConfigs.addAll(validatorConfigs);
+      return allValidatorConfigs;
+    }
+  }
+  return validatorConfigs;
 }

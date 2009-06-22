@@ -1,2 +1,12 @@
 {
+  final Project project=module.getProject();
+  final PsiManager psiManager=PsiManager.getInstance(project);
+  final VirtualFile validatorsVirtualFile=ResourceFileUtil.findResourceFileInScope(VALIDATORS_XML,project,GlobalSearchScope.moduleRuntimeScope(module,false));
+  if (validatorsVirtualFile != null) {
+    final PsiFile file=psiManager.findFile(validatorsVirtualFile);
+    if (file != null && getValidatorsConfigFileElement((XmlFile)file) != null) {
+      return (XmlFile)file;
+    }
+  }
+  return findDefaultValidatorsFile(module);
 }
