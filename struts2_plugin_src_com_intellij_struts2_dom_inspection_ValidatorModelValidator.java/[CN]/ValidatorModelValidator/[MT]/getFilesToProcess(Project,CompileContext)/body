@@ -1,21 +1,27 @@
 {
   final PsiManager psiManager=PsiManager.getInstance(project);
   final ValidatorManager validatorManager=ValidatorManager.getInstance(project);
-  final Set<VirtualFile> files=new HashSet<VirtualFile>();
+  final FactoryMap<Module,Boolean> enabledForModule=new FactoryMap<Module,Boolean>(){
+    protected Boolean create(    final Module module){
+      return isEnabledForModule(module) && StrutsFacet.getInstance(module) != null;
+    }
+  }
+;
+  final Set<VirtualFile> files=new THashSet<VirtualFile>();
   for (  final VirtualFile file : context.getProjectCompileScope().getFiles(StdFileTypes.XML,true)) {
     if (file.getName().endsWith(FILENAME_EXTENSION_VALIDATION_XML)) {
       final PsiFile psiFile=psiManager.findFile(file);
       if (psiFile instanceof XmlFile && validatorManager.isValidatorsFile((XmlFile)psiFile)) {
         final Module module=ModuleUtil.findModuleForFile(file,project);
-        if (module != null && StrutsFacet.getInstance(module) != null && isEnabledForModule(module)) {
+        if (module != null && enabledForModule.get(module)) {
           files.add(file);
         }
       }
     }
   }
-  final THashSet<VirtualFile> descriptorFiles=new THashSet<VirtualFile>();
+  final Set<VirtualFile> descriptorFiles=new THashSet<VirtualFile>();
   for (  final Module module : ModuleManager.getInstance(project).getModules()) {
-    if (StrutsFacet.getInstance(module) != null && isEnabledForModule(module)) {
+    if (enabledForModule.get(module)) {
       final PsiFile psiFile=validatorManager.getValidatorConfigFile(module);
       if (psiFile != null && validatorManager.isCustomValidatorConfigFile(psiFile)) {
         InspectionValidatorUtil.addFile(descriptorFiles,psiFile);

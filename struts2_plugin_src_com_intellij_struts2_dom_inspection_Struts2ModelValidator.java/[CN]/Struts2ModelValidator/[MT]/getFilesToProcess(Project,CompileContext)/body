@@ -1,14 +1,22 @@
 {
   final StrutsManager strutsManager=StrutsManager.getInstance(project);
-  final Set<VirtualFile> files=new HashSet<VirtualFile>();
-  for (  final Module module : ModuleManager.getInstance(project).getModules()) {
-    if (isEnabledForModule(module)) {
-      final StrutsFacet strutsFacet=StrutsFacet.getInstance(module);
-      if (strutsFacet != null) {
-        for (        final StrutsFileSet fileSet : strutsManager.getAllConfigFileSets(module)) {
-          for (          final VirtualFilePointer pointer : fileSet.getFiles()) {
-            final VirtualFile file=pointer.getFile();
-            ContainerUtil.addIfNotNull(file,files);
+  final PsiManager psiManager=PsiManager.getInstance(project);
+  final FactoryMap<Module,Boolean> enabledForModule=new FactoryMap<Module,Boolean>(){
+    protected Boolean create(    final Module module){
+      return isEnabledForModule(module);
+    }
+  }
+;
+  final Set<VirtualFile> files=new THashSet<VirtualFile>();
+  for (  final VirtualFile file : context.getCompileScope().getFiles(StdFileTypes.XML,false)) {
+    final Module module=context.getModuleByFile(file);
+    if (module != null && enabledForModule.get(module)) {
+      final PsiFile psiFile=psiManager.findFile(file);
+      if (psiFile instanceof XmlFile) {
+        final StrutsModel model=strutsManager.getModelByFile((XmlFile)psiFile);
+        if (model != null) {
+          for (          final XmlFile configFile : model.getConfigFiles()) {
+            ContainerUtil.addIfNotNull(configFile.getVirtualFile(),files);
           }
         }
       }
