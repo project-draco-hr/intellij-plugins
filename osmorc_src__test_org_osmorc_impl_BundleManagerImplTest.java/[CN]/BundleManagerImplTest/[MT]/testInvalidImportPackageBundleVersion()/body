@@ -1,0 +1,20 @@
+{
+  ProjectSettings projectSettings=new ProjectSettings();
+  projectSettings.setFrameworkInstanceName(null);
+  Module module=createMock(Module.class);
+  ManifestHolderRegistry holderRegistry=createMock(ManifestHolderRegistry.class);
+  ManifestHolder holder=createMock(ManifestHolder.class);
+  BundleManifest bundleManifest=createMock(BundleManifest.class);
+  PsiFile manifestFile=createMock(PsiFile.class);
+  ModuleManager moduleManager=createMock(ModuleManager.class);
+  expect(moduleManager.getModules()).andReturn(new Module[0]).anyTimes();
+  expect(holderRegistry.getManifestHolder(same(module))).andReturn(holder).anyTimes();
+  expect(holder.getBundleManifest()).andReturn(bundleManifest).anyTimes();
+  expect(holder.getBundleID()).andReturn(0L).anyTimes();
+  expect(bundleManifest.getManifestFile()).andReturn(manifestFile).anyTimes();
+  expect(manifestFile.getText()).andReturn("Manifest-Version: 1.0\n" + "Bundle-Name: Test\n" + "Import-Package: org.osgi.framework, services.myservices; bundle-symbolic-name = service0; bundle-version = 1.\n"+ "Bundle-SymbolicName: test\n"+ "Bundle-Version: 1.0.0 \n"+ "Bundle-ManifestVersion: 2\n");
+  BundleManagerImpl testObject=new BundleManagerImpl(moduleManager,holderRegistry,null,projectSettings,null);
+  replay(module,holderRegistry,holder,bundleManifest,manifestFile,moduleManager);
+  testObject.addOrUpdateBundle(module);
+  verify(module,holderRegistry,holder,bundleManifest,manifestFile,moduleManager);
+}
