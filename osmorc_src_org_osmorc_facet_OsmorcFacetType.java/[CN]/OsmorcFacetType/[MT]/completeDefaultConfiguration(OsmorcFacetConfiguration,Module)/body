@@ -1,19 +1,24 @@
 {
   if (configuration.getJarFileLocation().length() == 0) {
-    String outputPathUrl=CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-    try {
-      VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
+    final String outputPathUrl=CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
+    SwingUtilities.invokeLater(new Runnable(){
+      public void run(){
+        try {
+          VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
+        }
+ catch (        IOException e) {
+          return;
+        }
+        VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
+        if (moduleCompilerOutputPath == null) {
+          return;
+        }
+        String jarFileName=module.getName();
+        jarFileName=jarFileName.replaceAll("[\\s]","_");
+        String jarFilePath=new File(moduleCompilerOutputPath.getParent().getPath(),jarFileName + ".jar").getAbsolutePath().replace('\\','/');
+        configuration.setJarFileLocation(jarFilePath);
+      }
     }
- catch (    IOException e) {
-      return;
-    }
-    VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
-    if (moduleCompilerOutputPath == null) {
-      return;
-    }
-    String jarFileName=module.getName();
-    jarFileName=jarFileName.replaceAll("[\\s]","_");
-    String jarFilePath=new File(moduleCompilerOutputPath.getParent().getPath(),jarFileName + ".jar").getAbsolutePath().replace('\\','/');
-    configuration.setJarFileLocation(jarFilePath);
+);
   }
 }
