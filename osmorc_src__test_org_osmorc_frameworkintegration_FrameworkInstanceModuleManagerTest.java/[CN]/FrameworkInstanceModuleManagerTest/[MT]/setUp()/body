@@ -1,9 +1,17 @@
 {
+  TestFixtureBuilder<IdeaProjectTestFixture> fixtureBuilder=JavaTestFixtureFactory.createFixtureBuilder();
+  final JavaModuleFixtureBuilder moduleBuilder=fixtureBuilder.addModule(JavaModuleFixtureBuilder.class);
+  myTempDirFixture=IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture();
+  myTempDirFixture.setUp();
+  moduleBuilder.addContentRoot(myTempDirFixture.getTempDirPath());
+  fixture=fixtureBuilder.getFixture();
   fixture.setUp();
+  osmorcFacetUtil=createMock(OsmorcFacetUtil.class);
   Application application=ApplicationManager.getApplication();
   projectSettings=new ProjectSettings();
-  testObject=new FrameworkInstanceModuleManager(ServiceManager.getService(LibraryHandler.class),projectSettings,application,fixture.getProject(),ModuleManager.getInstance(fixture.getProject()));
+  testObject=new FrameworkInstanceModuleManager(ServiceManager.getService(LibraryHandler.class),projectSettings,application,fixture.getProject(),ModuleManager.getInstance(fixture.getProject()),osmorcFacetUtil);
   project=fixture.getProject();
+  module=fixture.getModule();
   application.runWriteAction(new Runnable(){
     public void run(){
       LibraryTable.ModifiableModel modifiableModel=LibraryTablesRegistrar.getInstance().getLibraryTable().getModifiableModel();
