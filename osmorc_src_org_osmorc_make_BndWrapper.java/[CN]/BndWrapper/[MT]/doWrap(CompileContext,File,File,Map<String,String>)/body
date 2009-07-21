@@ -1,0 +1,46 @@
+{
+  String sourceFileUrl=VfsUtil.pathToUrl(inputJar.getPath());
+  Analyzer analyzer=new ReportingAnalyzer(compileContext,sourceFileUrl);
+  analyzer.setPedantic(false);
+  analyzer.setJar(inputJar);
+  Jar dot=analyzer.getJar();
+  analyzer.putAll(properties,false);
+  if (analyzer.getProperty(Constants.IMPORT_PACKAGE) == null) {
+    analyzer.setProperty(Constants.IMPORT_PACKAGE,"*;resolution:=optional");
+  }
+  if (analyzer.getProperty(Constants.BUNDLE_SYMBOLICNAME) == null) {
+    Pattern p=Pattern.compile("(" + Verifier.SYMBOLICNAME.pattern() + ")(-[0-9])?.*\\.jar");
+    String base=inputJar.getName();
+    Matcher m=p.matcher(base);
+    if (m.matches()) {
+      base=m.group(1);
+    }
+ else {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Can not calculate name of output bundle, rename jar or use -properties",sourceFileUrl,0,0);
+      return false;
+    }
+    analyzer.setProperty(Constants.BUNDLE_SYMBOLICNAME,base);
+  }
+  if (analyzer.getProperty(Constants.EXPORT_PACKAGE) == null) {
+    String export=analyzer.calculateExportsFromContents(dot).replaceFirst("^\\s*,","");
+    analyzer.setProperty(Constants.EXPORT_PACKAGE,export);
+  }
+  analyzer.mergeManifest(dot.getManifest());
+  String version=analyzer.getProperty(Constants.BUNDLE_VERSION);
+  if (version != null) {
+    version=Builder.cleanupVersion(version);
+    analyzer.setProperty(Constants.BUNDLE_VERSION,version);
+  }
+  Manifest mf=analyzer.calcManifest();
+  Jar jar=analyzer.getJar();
+  File f=File.createTempFile("tmpbnd",".jar");
+  jar.write(f);
+  jar.close();
+  analyzer.close();
+  if (!f.renameTo(outputJar)) {
+    VirtualFile src=LocalFileSystem.getInstance().findFileByIoFile(f);
+    VirtualFile target=LocalFileSystem.getInstance().findFileByIoFile(outputJar);
+    VfsUtil.copyFile(this,src,target);
+  }
+  return true;
+}

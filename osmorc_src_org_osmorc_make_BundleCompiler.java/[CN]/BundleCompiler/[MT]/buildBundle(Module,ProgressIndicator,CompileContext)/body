@@ -10,37 +10,9 @@
     }
   }
 ).execute().getResultObject();
+  final BndWrapper wrapper=new BndWrapper();
   final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(module).getConfiguration();
-  final File tempFile=File.createTempFile("___" + FileUtil.getNameWithoutExtension(jarFile),".jar",jarFile.getParentFile());
-  final JarOutputStream jaroutputstream;
-  if (configuration.isOsmorcControlsManifest()) {
-    Manifest manifest=DeploymentUtil.getInstance().createManifest(buildrecipe);
-    if (manifest == null) {
-      manifest=new Manifest();
-    }
-    String mainClass=null;
-    if (!Comparing.strEqual(mainClass,null)) {
-      manifest.getMainAttributes().putValue(Attributes.Name.MAIN_CLASS.toString(),mainClass);
-    }
-    jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)),manifest);
-  }
- else {
-    jaroutputstream=new JarOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)));
-    VirtualFile manifestFile=getManifestFile(module);
-    if (manifestFile != null) {
-      String sourceFilePath=manifestFile.getPath();
-      addFileToJar(module,compileContext,tempFile,jaroutputstream,null,sourceFilePath,JarFile.MANIFEST_NAME);
-    }
- else {
-      ApplicationManager.getApplication().invokeLater(new Runnable(){
-        public void run(){
-          compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The manifest file at \"%s\" for module \"%s\" does not exist or is invalid.",configuration.getManifestLocation(),module.getName()),configuration.getManifestLocation(),0,0);
-        }
-      }
-);
-    }
-  }
-  final THashSet<String> writtenItems=new THashSet<String>();
+  final List<String> classPaths=new ArrayList<String>();
   try {
     buildrecipe.visitInstructionsWithExceptions(new BuildInstructionVisitor(){
       public boolean visitInstruction(      BuildInstruction buildinstruction) throws IOException {
@@ -52,88 +24,64 @@
             return true;
           }
           String s2=FileUtil.toSystemDependentName(file2.getPath());
-          if (progressIndicator != null) {
-            progressIndicator.setText2(IdeBundle.message("jar.build.processing.file.progress",s2));
-          }
+          classPaths.add(VfsUtil.pathToUrl(s2));
         }
-        buildinstruction.addFilesToJar(DummyCompileContext.getInstance(),tempFile,jaroutputstream,buildrecipe,writtenItems,ManifestFileFilter.Instance);
         return true;
       }
     }
 ,false);
   }
  catch (  ProcessCanceledException e) {
+    compileContext.addMessage(CompilerMessageCategory.INFORMATION,"Process canceled.",null,0,0);
     return;
   }
 catch (  Exception e) {
     throw new RuntimeException(e);
   }
-  String ignoreFilePatternString=configuration.getIgnoreFilePattern();
-  FileFilter fileFilter=null;
-  if (ignoreFilePatternString != null && ignoreFilePatternString.length() > 0) {
-    final Pattern ignoreFilePattern=Pattern.compile(ignoreFilePatternString);
-    fileFilter=new FileFilter(){
-      public boolean accept(      File pathname){
-        Matcher matcher=ignoreFilePattern.matcher(pathname.getAbsolutePath());
-        return !matcher.find();
-      }
-    }
-;
-  }
-  List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
-  for (  Pair<String,String> jarContent : jarContents) {
-    String sourceFilePath=jarContent.getFirst();
-    String destFilePath=jarContent.getSecond();
-    addFileToJar(module,compileContext,tempFile,jaroutputstream,fileFilter,sourceFilePath,destFilePath);
-  }
-  jaroutputstream.close();
+  String bndFileUrl="";
+  Map<String,String> additionalProperties=new HashMap<String,String>();
   if (configuration.isOsmorcControlsManifest()) {
-    progressIndicator.setText2(OsmorcBundle.getTranslation("bundlecompiler.creatingmanifest"));
-    bnd bnd=new bnd();
-    Map<String,String> additionalProperties=new HashMap<String,String>();
-    File bndFile=null;
     if (configuration.isUseBndFile()) {
-      bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
-      if (!bndFile.exists()) {
-        ApplicationManager.getApplication().invokeLater(new Runnable(){
-          public void run(){
-            compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
-          }
-        }
-);
-        FileUtil.delete(tempFile);
+      File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
+      if (bndFile == null || !bndFile.exists()) {
+        compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
         return;
+      }
+ else {
+        bndFileUrl=VfsUtil.pathToUrl(bndFile.getPath());
       }
     }
  else {
-      additionalProperties.put(Constants.BUNDLE_SYMBOLICNAME,configuration.getBundleSymbolicName());
-      additionalProperties.put(Constants.BUNDLE_ACTIVATOR,configuration.getBundleActivator());
-      additionalProperties.put(Constants.BUNDLE_VERSION,configuration.getBundleVersion());
-      additionalProperties.put(Constants.IMPORT_PACKAGE,"*");
-      Map<String,String> propsFromFacetSetup=configuration.getAdditionalPropertiesAsMap();
-      additionalProperties.putAll(propsFromFacetSetup);
-    }
-    try {
-      bnd.doWrap(bndFile,tempFile,tempFile,null,0,additionalProperties);
-    }
- catch (    Exception e) {
-      e.printStackTrace();
+      bndFileUrl=makeBndFile(module,configuration.asManifestString());
     }
   }
-  try {
-    FileUtil.rename(tempFile,jarFile);
-  }
- catch (  IOException ioexception) {
-    ApplicationManager.getApplication().invokeLater(new Runnable(){
-      public void run(){
-        String s2=IdeBundle.message("jar.build.cannot.overwrite.error",FileUtil.toSystemDependentName(jarFile.getPath()),FileUtil.toSystemDependentName(tempFile.getPath()));
-        Messages.showErrorDialog(module.getProject(),s2,IdeBundle.message("jar.build.error.title"));
-      }
+ else {
+    File manifestFile=findFileInModuleContentRoots(configuration.getManifestLocation() + File.separator + ManifestFileFilter.MANIFEST_FILENAME,module);
+    if (manifestFile == null || !manifestFile.exists()) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Manifest file " + configuration.getManifestLocation() + " does not exist.",null,0,0);
+      return;
     }
-);
+    bndFileUrl=makeBndFile(module,"-manifest " + manifestFile.getPath() + "\n");
   }
+  if (!configuration.isOsmorcControlsManifest() || (configuration.isOsmorcControlsManifest() && !configuration.isUseBndFile())) {
+    StringBuilder pathBuilder=new StringBuilder();
+    for (int i=0; i < classPaths.size(); i++) {
+      String classPath=classPaths.get(i);
+      String relPath=FileUtil.getRelativePath(new File(VfsUtil.urlToPath(bndFileUrl)),new File(VfsUtil.urlToPath(classPath)));
+      if (i != 0)       pathBuilder.append(",");
+      pathBuilder.append(relPath);
+    }
+    List<Pair<String,String>> list=configuration.getAdditionalJARContents();
+    for (    Pair<String,String> stringStringPair : list) {
+      pathBuilder.append(",").append(stringStringPair.second).append(" = ").append(stringStringPair.first);
+    }
+    additionalProperties.put("Include-Resource",pathBuilder.toString());
+    if (!"".equals(configuration.getIgnoreFilePattern())) {
+      additionalProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
+    }
+  }
+  wrapper.build(compileContext,bndFileUrl,classPaths.toArray(new String[classPaths.size()]),jarFile.getPath(),additionalProperties);
   if (configuration.isOsmorcControlsManifest()) {
-    bundlifyLibraries(module,progressIndicator);
+    bundlifyLibraries(module,progressIndicator,compileContext);
   }
-  compileContext.addMessage(CompilerMessageCategory.INFORMATION,String.format("Module \"%s\" successfully (re-)built.",module.getName()),null,0,0);
 }

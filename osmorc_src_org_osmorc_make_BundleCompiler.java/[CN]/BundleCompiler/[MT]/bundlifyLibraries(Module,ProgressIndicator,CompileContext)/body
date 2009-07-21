@@ -15,13 +15,14 @@
     if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
       continue;
     }
+    BndWrapper wrapper=new BndWrapper();
     String[] urls=entry.getUrls(OrderRootType.CLASSES);
     for (    String url : urls) {
       url=convertJarUrlToFileUrl(url);
       if (!CachingBundleInfoProvider.isBundle(url)) {
-        indicator.setText(OsmorcBundle.getTranslation("bundlecompiler.bundlifying.library"));
+        indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
         indicator.setText2(url);
-        String bundledLocation=bundlify(url,module);
+        String bundledLocation=wrapper.wrapLibrary(compileContext,url,getOutputPath(module));
         if (bundledLocation != null) {
           result.add(fixFileURL(bundledLocation));
         }
