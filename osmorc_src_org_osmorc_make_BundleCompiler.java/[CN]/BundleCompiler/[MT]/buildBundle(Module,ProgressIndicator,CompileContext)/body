@@ -56,12 +56,23 @@ catch (  Exception e) {
     }
   }
  else {
-    File manifestFile=findFileInModuleContentRoots(configuration.getManifestLocation() + File.separator + ManifestFileFilter.MANIFEST_FILENAME,module);
-    if (manifestFile == null || !manifestFile.exists()) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"Manifest file " + configuration.getManifestLocation() + " does not exist.",null,0,0);
+    boolean manifestExists=false;
+    BundleManager bundleManager=ServiceManager.getService(module.getProject(),BundleManager.class);
+    BundleManifest bundleManifest=bundleManager.getBundleManifest(module);
+    if (bundleManifest != null) {
+      PsiFile manifestFile=bundleManifest.getManifestFile();
+      if (manifestFile != null) {
+        String manifestFilePath=manifestFile.getVirtualFile().getPath();
+        if (manifestFilePath != null) {
+          bndFileUrl=makeBndFile(module,"-manifest " + manifestFilePath + "\n");
+          manifestExists=true;
+        }
+      }
+    }
+    if (!manifestExists) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Manifest file in " + OsmorcFacet.getInstance(module).getManifestLocation() + " does not exist.",null,0,0);
       return;
     }
-    bndFileUrl=makeBndFile(module,"-manifest " + manifestFile.getPath() + "\n");
   }
   if (!configuration.isOsmorcControlsManifest() || (configuration.isOsmorcControlsManifest() && !configuration.isUseBndFile())) {
     StringBuilder pathBuilder=new StringBuilder();
