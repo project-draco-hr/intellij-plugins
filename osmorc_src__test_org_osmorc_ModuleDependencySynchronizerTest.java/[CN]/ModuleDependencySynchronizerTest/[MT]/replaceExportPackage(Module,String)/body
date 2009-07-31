@@ -2,14 +2,15 @@
   VirtualFile contentRoot=ModuleRootManager.getInstance(module).getContentRoots()[0];
   VirtualFile manifestFile=contentRoot.findFileByRelativePath("META-INF/MANIFEST.MF");
   PsiFile manifestPsiFile=PsiManager.getInstance(fixture.getProject()).findFile(manifestFile);
-  ManifestHeader lastHeader=null;
-  for (  PsiElement psiElement : manifestPsiFile.getChildren()) {
-    if (psiElement instanceof ManifestHeader) {
-      lastHeader=(ManifestHeader)psiElement;
+  Section section=(Section)manifestPsiFile.getFirstChild();
+  Header lastHeader=null;
+  for (  PsiElement psiElement : section.getChildren()) {
+    if (psiElement instanceof Header) {
+      lastHeader=(Header)psiElement;
     }
   }
-  ManifestClause clause=(ManifestClause)lastHeader.getLastChild();
-  final ManifestHeaderValueImpl value=(ManifestHeaderValueImpl)clause.getLastChild();
+  Clause clause=(Clause)lastHeader.getLastChild();
+  final HeaderValuePart value=(HeaderValuePart)clause.getLastChild();
   CommandProcessor.getInstance().executeCommand(fixture.getProject(),new Runnable(){
     public void run(){
       ApplicationManager.getApplication().runWriteAction(new Runnable(){

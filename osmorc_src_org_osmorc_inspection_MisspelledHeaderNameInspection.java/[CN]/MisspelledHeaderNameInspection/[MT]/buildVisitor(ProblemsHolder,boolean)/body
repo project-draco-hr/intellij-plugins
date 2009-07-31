@@ -1,20 +1,20 @@
 {
   return new PsiElementVisitor(){
     public void visitElement(    PsiElement element){
-      if (element instanceof ManifestHeaderName) {
-        final ManifestHeaderName headerName=(ManifestHeaderName)element;
-        String name=headerName.getName();
-        if (name != null) {
+      if (element instanceof Header) {
+        final Header header=(Header)element;
+        String name=header.getName();
+        if (name != null && name.length() > 0) {
           final List<HeaderNameSpellingQuickFix> quickFixes=new ArrayList<HeaderNameSpellingQuickFix>();
           final Collection<HeaderNameMatch> matches=getHeaderParserRepository().getMatches(name);
           for (          HeaderNameMatch match : matches) {
-            quickFixes.add(new HeaderNameSpellingQuickFix(headerName,match));
+            quickFixes.add(new HeaderNameSpellingQuickFix(header,match));
             if (quickFixes.size() > 20) {
               break;
             }
           }
           if (quickFixes.size() > 0) {
-            holder.registerProblem(headerName,"Header name is spelled incorrectly",ProblemHighlightType.GENERIC_ERROR_OR_WARNING,quickFixes.toArray(new HeaderNameSpellingQuickFix[quickFixes.size()]));
+            holder.registerProblem(header.getNameToken(),"Header name is spelled incorrectly",ProblemHighlightType.GENERIC_ERROR_OR_WARNING,quickFixes.toArray(new HeaderNameSpellingQuickFix[quickFixes.size()]));
           }
         }
       }

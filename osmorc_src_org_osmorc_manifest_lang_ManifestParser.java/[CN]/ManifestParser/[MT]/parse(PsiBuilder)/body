@@ -1,49 +1,24 @@
 {
-  IElementType tokenType=builder.getTokenType();
-  if (tokenType == ManifestTokenTypes.HEADER_NAME) {
-    closeBinMarker(null);
+  if (sectionMarker == null) {
+    sectionMarker=builder.mark();
+  }
+  if (builder.getTokenType() == ManifestTokenType.HEADER_NAME) {
     parseHeaderName(builder);
   }
- else   if (isValueAttributeOrDirective(tokenType)) {
-    if (_clauseMarker == null) {
-      _clauseMarker=builder.mark();
-    }
-    _headerValuePartMarker=builder.mark();
-    builder.advanceLexer();
-    tokenType=builder.getTokenType();
-    if (isValueAttributeOrDirective(tokenType)) {
-      _headerValuePartMarker.error("Separator between header value parts missing");
+ else   if (builder.getTokenType() == ManifestTokenType.HEADER_VALUE_PART) {
+    HeaderParser headerParser=headerParserRepository.getHeaderParser(currentHeaderName);
+    if (headerParser != null && !headerParser.isSimpleHeader()) {
+      parseComplexHeaderValue(builder);
     }
  else {
-      _headerValuePartMarker.done(ManifestElementTypes.HEADER_VALUE);
+      parseSimpleHeaderValue(builder);
     }
-    closeBinMarker(null);
   }
- else   if (tokenType == ManifestTokenTypes.DIRECTIVE_ASSIGNMENT || tokenType == ManifestTokenTypes.ATTRIBUTE_ASSIGNMENT) {
-    closeBinMarker("Cannot concatenate or cascade directives or attribute assignements.");
-    if (_headerValuePartMarker != null) {
-      _binMarker=_headerValuePartMarker.precede();
-      _binMarkerType=tokenType == ManifestTokenTypes.DIRECTIVE_ASSIGNMENT ? ManifestElementTypes.DIRECTIVE : ManifestElementTypes.ATTRIBUTE;
-    }
- else {
-      builder.error("Missing left side value");
-    }
+ else   if (builder.getTokenType() == ManifestTokenType.SECTION_END) {
+    closeSection();
     builder.advanceLexer();
   }
- else   if (tokenType == ManifestTokenTypes.CLAUSE_SEPARATOR) {
-    closeBinMarker(null);
-    if (_clauseMarker != null) {
-      _clauseMarker.done(ManifestElementTypes.CLAUSE);
-      _clauseMarker=null;
-    }
-    builder.advanceLexer();
-  }
- else   if (tokenType == ManifestTokenTypes.PARAMETER_SEPARATOR) {
-    closeBinMarker(null);
-    builder.advanceLexer();
-  }
- else   if (tokenType == ManifestTokenTypes.HEADER_ASSIGNMENT) {
-    builder.error("Header assignment not allowed here.");
+ else   if (builder.getTokenType() == ManifestTokenType.SIGNIFICANT_SPACE || builder.getTokenType() == TokenType.BAD_CHARACTER || builder.getTokenType() == ManifestTokenType.NEWLINE) {
     builder.advanceLexer();
   }
 }

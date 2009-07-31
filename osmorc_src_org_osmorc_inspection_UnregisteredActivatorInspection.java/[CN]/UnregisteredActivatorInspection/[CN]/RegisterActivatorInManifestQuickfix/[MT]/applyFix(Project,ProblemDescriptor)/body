@@ -1,2 +1,17 @@
 {
+  Section mainSection=(Section)manifestFile.getFirstChild();
+  Header activatorHeader=null;
+  Header currentHeader=PsiTreeUtil.getChildOfType(mainSection,Header.class);
+  while (activatorHeader == null && currentHeader != null) {
+    if ("Bundle-Activator".equalsIgnoreCase(currentHeader.getName())) {
+      activatorHeader=currentHeader;
+    }
+    currentHeader=PsiTreeUtil.getNextSiblingOfType(currentHeader,Header.class);
+  }
+  if (activatorHeader != null) {
+    replaceExistingActivatorHeader(activatorHeader);
+  }
+ else {
+    addActivatorHeader();
+  }
 }

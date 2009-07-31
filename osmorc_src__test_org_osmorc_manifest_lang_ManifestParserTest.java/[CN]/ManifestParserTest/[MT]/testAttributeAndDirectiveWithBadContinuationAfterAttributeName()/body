@@ -1,0 +1,17 @@
+{
+  PsiBuilder builder=new PsiBuilderImpl(lexer,TokenSet.EMPTY,TokenSet.EMPTY,"Import-Package: com.acme;att\n=attvlue;dir:=dirvalue\n");
+  ASTNode node=testObject.parse(ManifestElementTypes.FILE,builder);
+  assertThat(node.getElementType(),sameInstance((IElementType)ManifestElementTypes.FILE));
+  checkContainsNodes(node,ManifestElementTypes.SECTION);
+  node=node.getChildren(null)[0];
+  checkContainsNodes(node,ManifestElementTypes.HEADER,ManifestElementTypes.HEADER);
+  ASTNode section=node;
+  node=section.getChildren(null)[0];
+  checkContainsNodes(node,ManifestTokenType.HEADER_NAME,ManifestTokenType.COLON,ManifestTokenType.SIGNIFICANT_SPACE,ManifestElementTypes.CLAUSE);
+  node=node.getChildren(null)[3];
+  checkContainsNodes(node,ManifestElementTypes.HEADER_VALUE_PART,ManifestTokenType.SEMICOLON,ManifestElementTypes.HEADER_VALUE_PART);
+  node=section.getChildren(null)[1];
+  checkContainsNodes(node,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,TokenType.BAD_CHARACTER,ManifestTokenType.COLON,TokenType.BAD_CHARACTER,ManifestElementTypes.CLAUSE);
+  node=node.getChildren(null)[14];
+  checkContainsNodes(node,ManifestElementTypes.HEADER_VALUE_PART);
+}

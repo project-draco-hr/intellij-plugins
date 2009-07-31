@@ -1,0 +1,18 @@
+{
+  while (!builder.eof() && builder.getTokenType() != ManifestTokenType.SECTION_END && builder.getTokenType() != ManifestTokenType.HEADER_NAME) {
+    if (clauseMarker == null) {
+      clauseMarker=builder.mark();
+    }
+    if (headerValuePartMarker == null) {
+      headerValuePartMarker=builder.mark();
+    }
+    boolean lexerAdvanced=parseQuotedString(builder) || parseClause(builder) || parseParameter(builder)|| parseDirective(builder)|| parseAttribute(builder);
+    if (!lexerAdvanced) {
+      builder.advanceLexer();
+    }
+  }
+  closeHeaderValuePart();
+  closeAssignmentMarker(null);
+  closeClause();
+  closeHeader();
+}
