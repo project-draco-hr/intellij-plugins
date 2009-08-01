@@ -1,0 +1,13 @@
+{
+  PsiBuilder builder=new PsiBuilderImpl(lexer,TokenSet.EMPTY,TokenSet.EMPTY,"simpleHeader: :value\n");
+  ASTNode node=testObject.parse(ManifestElementTypes.FILE,builder);
+  assertThat(node.getElementType(),sameInstance((IElementType)ManifestElementTypes.FILE));
+  checkContainsNodes(node,ManifestElementTypes.SECTION);
+  ASTNode fileNode=node;
+  node=fileNode.getChildren(null)[0];
+  checkContainsNodes(node,ManifestElementTypes.HEADER);
+  node=node.getChildren(null)[0];
+  checkContainsNodes(node,ManifestTokenType.HEADER_NAME,ManifestTokenType.COLON,ManifestTokenType.SIGNIFICANT_SPACE,ManifestElementTypes.CLAUSE);
+  node=node.getChildren(null)[3];
+  checkContainsNodes(node,ManifestElementTypes.HEADER_VALUE_PART);
+}

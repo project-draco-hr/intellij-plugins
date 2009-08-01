@@ -5,15 +5,6 @@
   if (builder.getTokenType() == ManifestTokenType.HEADER_NAME) {
     parseHeaderName(builder);
   }
- else   if (builder.getTokenType() == ManifestTokenType.HEADER_VALUE_PART) {
-    HeaderParser headerParser=headerParserRepository.getHeaderParser(currentHeaderName);
-    if (headerParser != null && !headerParser.isSimpleHeader()) {
-      parseComplexHeaderValue(builder);
-    }
- else {
-      parseSimpleHeaderValue(builder);
-    }
-  }
  else   if (builder.getTokenType() == ManifestTokenType.SECTION_END) {
     closeSection();
     builder.advanceLexer();
@@ -21,7 +12,10 @@
  else   if (builder.getTokenType() == ManifestTokenType.SIGNIFICANT_SPACE || builder.getTokenType() == TokenType.BAD_CHARACTER || builder.getTokenType() == ManifestTokenType.NEWLINE) {
     builder.advanceLexer();
   }
+ else   if (currentHeaderIsSimpleHeader) {
+    parseSimpleHeaderValue(builder);
+  }
  else {
-    builder.advanceLexer();
+    parseComplexHeaderValue(builder);
   }
 }
