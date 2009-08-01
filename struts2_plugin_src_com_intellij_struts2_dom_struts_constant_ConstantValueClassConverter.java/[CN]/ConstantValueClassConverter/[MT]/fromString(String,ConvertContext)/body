@@ -1,0 +1,18 @@
+{
+  if (s == null) {
+    return null;
+  }
+  if (hasShortCuts) {
+    final String shortCutClassName=shortCutToPsiClassMap.get(s);
+    if (StringUtil.isNotEmpty(shortCutClassName)) {
+      return super.fromString(shortCutClassName,convertContext);
+    }
+  }
+  for (  final ConstantValueConverterClassContributor converterClassContributor : Extensions.getExtensions(ConstantValueConverter.EP_NAME)) {
+    final PsiClass contributorClass=converterClassContributor.fromString(s,convertContext);
+    if (contributorClass != null) {
+      return contributorClass;
+    }
+  }
+  return super.fromString(s,convertContext);
+}
