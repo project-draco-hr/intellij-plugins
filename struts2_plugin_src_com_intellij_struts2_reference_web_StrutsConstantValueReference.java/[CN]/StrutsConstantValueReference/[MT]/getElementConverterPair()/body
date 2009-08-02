@@ -1,0 +1,29 @@
+{
+  final DomElement paramValueElement=DomUtil.getDomElement(myElement);
+  if (paramValueElement == null) {
+    return null;
+  }
+  final DomElement domElement=paramValueElement.getParent();
+  if (!(domElement instanceof ParamValue)) {
+    return null;
+  }
+  final ParamValue initParamElement=(ParamValue)domElement;
+  final String paramName=initParamElement.getParamName().getStringValue();
+  if (StringUtil.isEmpty(paramName)) {
+    return null;
+  }
+  final Module module=ModuleUtil.findModuleForPsiElement(myElement);
+  if (module == null) {
+    return null;
+  }
+  final StrutsConstantManager constantManager=StrutsConstantManager.getInstance(myElement.getProject());
+  @SuppressWarnings({"ConstantConditions"}) final StrutsConstant strutsConstant=constantManager.findByName(module,paramName);
+  if (strutsConstant == null) {
+    return null;
+  }
+  final Converter converter=strutsConstant.getConverter();
+  if (converter == null) {
+    return null;
+  }
+  return new Pair<DomElement,Converter>(paramValueElement,converter);
+}

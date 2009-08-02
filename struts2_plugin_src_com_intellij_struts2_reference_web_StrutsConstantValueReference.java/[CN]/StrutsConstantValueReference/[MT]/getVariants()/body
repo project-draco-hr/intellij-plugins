@@ -1,0 +1,22 @@
+{
+  final Pair<DomElement,Converter> domElementConverterPair=getElementConverterPair();
+  if (domElementConverterPair == null) {
+    return EMPTY_ARRAY;
+  }
+  final Converter converter=domElementConverterPair.second;
+  if (!(converter instanceof ResolvingConverter)) {
+    return EMPTY_ARRAY;
+  }
+  final ResolvingConverter resolvingConverter=(ResolvingConverter)converter;
+  final DomElement paramValueElement=domElementConverterPair.first;
+  final ConvertContext convertContext=AbstractConvertContext.createConvertContext(paramValueElement);
+  final Collection variants=new SmartList(resolvingConverter.getVariants(convertContext));
+  variants.addAll(resolvingConverter.getAdditionalVariants(convertContext));
+  if (resolvingConverter instanceof CustomReferenceConverter) {
+    final PsiReference[] references=((CustomReferenceConverter)resolvingConverter).createReferences((GenericDomValue)paramValueElement,myElement,convertContext);
+    for (    final PsiReference customReference : references) {
+      Collections.addAll(variants,customReference.getVariants());
+    }
+  }
+  return variants.toArray(new Object[variants.size()]);
+}

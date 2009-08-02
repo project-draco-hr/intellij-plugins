@@ -1,0 +1,22 @@
+{
+  final Pair<DomElement,Converter> pair=getElementConverterPair();
+  if (pair == null) {
+    return myElement;
+  }
+  final Converter converter=pair.getSecond();
+  final ConvertContext convertContext=AbstractConvertContext.createConvertContext(pair.first);
+  if (converter instanceof ResolvingConverter) {
+    final Set additionalVariants=((ResolvingConverter)converter).getAdditionalVariants(convertContext);
+    if (additionalVariants.contains(getValue())) {
+      return myElement;
+    }
+  }
+  final Object resolveObject=converter.fromString(getValue(),convertContext);
+  if (resolveObject == null) {
+    return null;
+  }
+  if (!(resolveObject instanceof PsiElement)) {
+    return myElement;
+  }
+  return (PsiElement)resolveObject;
+}
