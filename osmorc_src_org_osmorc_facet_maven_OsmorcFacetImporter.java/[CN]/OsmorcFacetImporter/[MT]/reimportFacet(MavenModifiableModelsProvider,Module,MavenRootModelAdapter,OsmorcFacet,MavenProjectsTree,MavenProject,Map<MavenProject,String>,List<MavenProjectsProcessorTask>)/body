@@ -10,15 +10,17 @@
     setConfigProperty(mavenProject,conf,"bundleVersion","instructions." + Constants.BUNDLE_VERSION);
     setConfigProperty(mavenProject,conf,"bundleActivator","instructions." + Constants.BUNDLE_ACTIVATOR);
     Element instructionsNode=findConfigElement(mavenProject,"instructions");
-    Map<String,String> props=new HashMap<String,String>();
-    List<Element> children=instructionsNode.getChildren();
-    for (    Element child : children) {
-      String name=child.getName();
-      String value=child.getValue();
-      if (value != null && !"".equals(value) && !Constants.BUNDLE_SYMBOLICNAME.equals(name) && !Constants.BUNDLE_VERSION.equals(name) && !Constants.BUNDLE_ACTIVATOR.equals(name)) {
-        props.put(name,value);
+    if (instructionsNode != null) {
+      Map<String,String> props=new HashMap<String,String>();
+      @SuppressWarnings({"unchecked"}) List<Element> children=instructionsNode.getChildren();
+      for (      Element child : children) {
+        String name=child.getName();
+        String value=child.getValue();
+        if (value != null && !"".equals(value) && !Constants.BUNDLE_SYMBOLICNAME.equals(name) && !Constants.BUNDLE_VERSION.equals(name) && !Constants.BUNDLE_ACTIVATOR.equals(name)) {
+          props.put(name,value);
+        }
       }
+      conf.importAdditionalProperties(props,false);
     }
-    conf.importAdditionalProperties(props,false);
   }
 }
