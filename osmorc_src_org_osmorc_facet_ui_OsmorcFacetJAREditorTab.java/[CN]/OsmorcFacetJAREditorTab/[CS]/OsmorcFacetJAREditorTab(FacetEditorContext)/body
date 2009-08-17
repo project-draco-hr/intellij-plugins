@@ -1,5 +1,14 @@
 {
   _editorContext=editorContext;
+  final Project project=editorContext.getProject();
+  _ignoreFilePatternTextField=new EditorTextField("",project,FileTypes.PLAIN_TEXT);
+  FileType fileType=FileTypeManager.getInstance().getFileTypeByFileName("*.regexp");
+  if (fileType == FileTypes.UNKNOWN) {
+    fileType=FileTypeManager.getInstance().getFileTypeByFileName("*.txt");
+  }
+  final PsiFile file=PsiFileFactory.getInstance(project).createFileFromText("*.regexp",fileType,_ignoreFilePatternTextField.getText(),-1,true);
+  _ignoreFilePatternTextField.setNewDocumentAndFileType(fileType,PsiDocumentManager.getInstance(project).getDocument(file));
+  _ignoreFilePatternPanel.add(_ignoreFilePatternTextField,BorderLayout.CENTER);
   UserActivityWatcher watcher=new UserActivityWatcher();
   watcher.addUserActivityListener(new UserActivityListener(){
     public void stateChanged(){
