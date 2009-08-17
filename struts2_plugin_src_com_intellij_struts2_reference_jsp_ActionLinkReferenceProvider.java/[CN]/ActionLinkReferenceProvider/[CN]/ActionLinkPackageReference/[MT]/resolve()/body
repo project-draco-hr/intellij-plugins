@@ -1,9 +1,15 @@
 {
-  if (!fullActionPath.endsWith(ACTION_EXTENSION)) {
+  final String validExtension=ContainerUtil.find(actionExtensions,new Condition<String>(){
+    public boolean value(    final String s){
+      return StringUtil.endsWith(fullActionPath,s);
+    }
+  }
+);
+  if (validExtension == null) {
     return null;
   }
   for (  final StrutsPackage strutsPackage : allStrutsPackages) {
-    if (namespace.equals(strutsPackage.searchNamespace())) {
+    if (Comparing.equal(namespace,strutsPackage.searchNamespace())) {
       return strutsPackage.getXmlTag();
     }
   }

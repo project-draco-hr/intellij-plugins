@@ -1,0 +1,24 @@
+{
+  final List<LookupItem<ActionLookupItem>> variants=new ArrayList<LookupItem<ActionLookupItem>>();
+  final String firstExtension=actionExtensions.get(0);
+  final List<Action> allActions=model.getActionsForNamespace(null);
+  for (  final Action action : allActions) {
+    final String actionPath=action.getName().getStringValue();
+    if (actionPath != null) {
+      final boolean isInCurrentPackage=action.getNamespace().equals(currentPackage);
+      final ActionLookupItem actionItem=new ActionLookupItem(action,isInCurrentPackage);
+      final String actionNamespace=action.getNamespace();
+      final String fullPath;
+      if (!actionNamespace.equals(StrutsPackage.DEFAULT_NAMESPACE) && !isInCurrentPackage) {
+        fullPath=actionNamespace + "/" + actionPath+ firstExtension;
+      }
+ else {
+        fullPath=actionPath + firstExtension;
+      }
+      final LookupItem<ActionLookupItem> item=new LookupItem<ActionLookupItem>(actionItem,fullPath);
+      item.putUserData(LookupItem.OVERWRITE_ON_AUTOCOMPLETE_ATTR,Boolean.TRUE);
+      variants.add(item);
+    }
+  }
+  return ArrayUtil.toObjectArray(variants);
+}
