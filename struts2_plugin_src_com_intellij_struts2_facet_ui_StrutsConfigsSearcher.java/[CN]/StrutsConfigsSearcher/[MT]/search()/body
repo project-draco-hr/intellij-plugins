@@ -1,44 +1,13 @@
 {
   myFiles.clear();
   myJars.clear();
-  final Module module=myContext.getModule();
-  if (module != null) {
-    searchInModule(module);
-    searchInJars(module);
-    final Module[] dependencies=ModuleRootManager.getInstance(module).getDependencies();
-    for (    final Module dep : dependencies) {
-      searchInJars(dep);
-    }
+  final Module[] dependencies=ModuleRootManager.getInstance(module).getDependencies();
+  searchInModule(module);
+  for (  final Module dependentModule : dependencies) {
+    searchInModule(dependentModule);
   }
- else {
-    final ModuleBuilder builder=myContext.getModuleBuilder();
-    if (builder instanceof SourcePathsBuilder) {
-      final String entryPath=((SourcePathsBuilder)builder).getContentEntryPath();
-      if (entryPath != null) {
-        final VirtualFile root=LocalFileSystem.getInstance().findFileByPath(entryPath);
-        if (root != null) {
-          final ContentIterator iterator=new ContentIterator(){
-            public boolean processFile(            final VirtualFile fileOrDir){
-              if (fileOrDir.isDirectory()) {
-                for (                final VirtualFile child : fileOrDir.getChildren()) {
-                  processFile(child);
-                }
-              }
- else {
-                if (fileOrDir.getName().endsWith(XML_EXTENSION)) {
-                  final String result=NanoXmlUtil.parseHeader(fileOrDir).getRootTagLocalName();
-                  if (result != null && result.equals(StrutsRoot.TAG_NAME)) {
-                    myVirtualFiles.add(fileOrDir);
-                  }
-                }
-              }
-              return true;
-            }
-          }
-;
-          iterator.processFile(root);
-        }
-      }
-    }
+  searchInJars(module);
+  for (  final Module dependentModule : dependencies) {
+    searchInJars(dependentModule);
   }
 }
