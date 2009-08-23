@@ -1,19 +1,19 @@
 {
   Version result=null;
-  VirtualFile equinoxFolder=_fileSystem.findFileByPath(frameworkInstanceDefinition.getBaseFolder());
+  VirtualFile equinoxFolder=fileSystem.findFileByPath(frameworkInstanceDefinition.getBaseFolder());
   if (equinoxFolder != null && equinoxFolder.exists() && equinoxFolder.isDirectory()) {
-    VirtualFile eclipseProductFile=equinoxFolder.findChild(".eclipseproduct");
-    if (eclipseProductFile != null && eclipseProductFile.exists() && !eclipseProductFile.isDirectory()) {
-      try {
-        Properties eclipseProductProperties=new Properties();
-        eclipseProductProperties.load(eclipseProductFile.getInputStream());
-        String versionString=eclipseProductProperties.getProperty("version");
-        if (versionString != null) {
-          result=Version.parseVersion(versionString);
+    VirtualFile pluginsFolder=equinoxFolder.findChild("plugins");
+    if (pluginsFolder != null && pluginsFolder.exists() && pluginsFolder.isDirectory()) {
+      VirtualFile[] files=pluginsFolder.getChildren();
+      for (      VirtualFile file : files) {
+        String name=file.getName();
+        if (name.startsWith(ECLIPSE_VERSIONCHECK_PREFIX) && name.endsWith(ECLIPSE_VERSIONCHECK_POSTFIX)) {
+          String versionString=name.substring(ECLIPSE_VERSIONCHECK_PREFIX.length(),name.length() - ECLIPSE_VERSIONCHECK_POSTFIX.length());
+          if (versionString != null) {
+            result=Version.parseVersion(versionString);
+            break;
+          }
         }
-      }
- catch (      IOException e) {
-        LOG.warn("Error on reading properties from eclipse product file",e);
       }
     }
   }
