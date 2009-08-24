@@ -18,18 +18,25 @@
         oldDep.getParent().addAfter(newDep.copy(),oldDep);
         oldDep.delete();
         newDep.delete();
-        String[] repoUrls=mavenResult.getBundleRepository().getMavenRepositoryUrls();
+        MavenRepository[] repos=mavenResult.getBundleRepository().getMavenRepositories();
         List<MavenDomRepository> repositories=model.getRepositories().getRepositories();
-        List<String> unknownUrls=new ArrayList<String>(Arrays.asList(repoUrls));
+        List<MavenRepository> knownRepositories=new ArrayList<MavenRepository>();
         for (        MavenDomRepository repository : repositories) {
           String knownRepoUrl=repository.getUrl().getStringValue();
-          unknownUrls.remove(knownRepoUrl);
+          for (          MavenRepository repo : repos) {
+            if (repo.getRepositoryUrl().equals(knownRepoUrl)) {
+              knownRepositories.add(repo);
+              break;
+            }
+          }
         }
-        for (        String unknownUrl : unknownUrls) {
+        List<MavenRepository> unknownRepositories=new ArrayList<MavenRepository>(Arrays.asList(repos));
+        unknownRepositories.removeAll(knownRepositories);
+        for (        MavenRepository unknownRepository : unknownRepositories) {
           MavenDomRepository repo=model.getRepositories().addRepository();
-          repo.getId().setStringValue(unknownUrl);
-          repo.getUrl().setStringValue(unknownUrl);
-          repo.getName().setStringValue(mavenResult.getBundleRepository().getDisplayName());
+          repo.getId().setStringValue(unknownRepository.getRepositoryId());
+          repo.getUrl().setStringValue(unknownRepository.getRepositoryUrl());
+          repo.getName().setStringValue(unknownRepository.getRepositoryDescription());
         }
       }
     }
