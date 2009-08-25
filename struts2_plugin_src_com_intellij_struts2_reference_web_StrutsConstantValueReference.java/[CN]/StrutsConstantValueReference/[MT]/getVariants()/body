@@ -10,7 +10,14 @@
   final ResolvingConverter resolvingConverter=(ResolvingConverter)converter;
   final DomElement paramValueElement=domElementConverterPair.first;
   final ConvertContext convertContext=AbstractConvertContext.createConvertContext(paramValueElement);
-  final Collection variants=new SmartList(resolvingConverter.getVariants(convertContext));
+  final Collection converterVariants=resolvingConverter.getVariants(convertContext);
+  final Collection variants;
+  if (!converterVariants.isEmpty() && converterVariants.iterator().next() instanceof DomElement) {
+    variants=Arrays.asList(ElementPresentationManager.getInstance().createVariants(converterVariants));
+  }
+ else {
+    variants=converterVariants;
+  }
   variants.addAll(resolvingConverter.getAdditionalVariants(convertContext));
   if (resolvingConverter instanceof CustomReferenceConverter) {
     final PsiReference[] references=((CustomReferenceConverter)resolvingConverter).createReferences((GenericDomValue)paramValueElement,myElement,convertContext);
