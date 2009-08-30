@@ -1,0 +1,18 @@
+{
+  final PsiFile containingFile=context.getContainingFile();
+  final StrutsModel strutsModel=getStrutsModel(containingFile);
+  if (strutsModel == null) {
+    return null;
+  }
+  final String stringValue=getStringValue(containingFile,strutsModel,strutsConstantKey.getKey());
+  if (stringValue == null) {
+    return null;
+  }
+  final Converter<T> converter=findConverter(context,strutsConstantKey);
+  if (converter == null) {
+    return (T)stringValue;
+  }
+  final DomFileElement<StrutsRoot> first=strutsModel.getRoots().iterator().next();
+  final ConvertContext convertContext=AbstractConvertContext.createConvertContext(first);
+  return converter.fromString(stringValue,convertContext);
+}

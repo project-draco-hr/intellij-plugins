@@ -1,14 +1,3 @@
 {
-  ContainerUtil.process(model.getRoots(),new FilteringProcessor<DomFileElement<StrutsRoot>>(new Condition<DomFileElement<StrutsRoot>>(){
-    public boolean value(    final DomFileElement<StrutsRoot> strutsRootDomFileElement){
-      final XmlFile xmlFile=strutsRootDomFileElement.getFile();
-      final boolean nameMatch=Comparing.equal(xmlFile.getName(),strutsXmlName);
-      if (!onlyInJARs) {
-        return nameMatch;
-      }
-      final VirtualFile virtualFile=xmlFile.getVirtualFile();
-      return nameMatch && virtualFile != null && virtualFile.getFileSystem() instanceof JarFileSystem;
-    }
-  }
-,new CommonProcessors.CollectProcessor<DomFileElement<StrutsRoot>>(domFileElements)));
+  ContainerUtil.process(model.getRoots(),new FilteringProcessor<DomFileElement<StrutsRoot>>(getStrutsXmlCondition(strutsXmlName,onlyInJARs),new CommonProcessors.CollectProcessor<DomFileElement<StrutsRoot>>(domFileElements)));
 }
