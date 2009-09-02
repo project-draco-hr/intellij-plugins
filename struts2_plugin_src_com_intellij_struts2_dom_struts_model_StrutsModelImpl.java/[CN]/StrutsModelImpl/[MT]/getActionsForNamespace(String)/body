@@ -1,9 +1,8 @@
 {
-  final List<Action> actionResultList=new ArrayList<Action>();
-  for (  final StrutsPackage strutsPackage : getStrutsPackages()) {
-    if (namespace == null || namespace.equals(strutsPackage.searchNamespace())) {
-      actionResultList.addAll(strutsPackage.getActions());
-    }
+  CachedValue<Map<String,List<Action>>> packageToActionMap=myMergedModel.getUserData(ACTIONS_FOR_NAMESPACE);
+  if (packageToActionMap == null) {
+    packageToActionMap=CachedValuesManager.getManager(myMergedModel.getManager().getProject()).createCachedValue(actionsCachedValueProvider,false);
+    myMergedModel.putUserData(ACTIONS_FOR_NAMESPACE,packageToActionMap);
   }
-  return actionResultList;
+  return packageToActionMap.getValue().get(StringUtil.notNullize(namespace,EMPTY_NAMESPACE));
 }
