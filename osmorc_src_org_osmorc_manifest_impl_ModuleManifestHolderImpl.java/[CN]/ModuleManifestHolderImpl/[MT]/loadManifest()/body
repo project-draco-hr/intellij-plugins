@@ -1,12 +1,19 @@
 {
-  VirtualFile manifestFile=getManifestFile();
+  final VirtualFile manifestFile=getManifestFile();
   if (manifestFile != null) {
-    PsiFile psiFile=PsiManager.getInstance(_module.getProject()).findFile(manifestFile);
-    if (psiFile == null) {
-      Messages.showMessageDialog(_module.getProject(),String.format("The manifest file %s could not be loaded. " + "Please make sure that it is not located in an excluded directory",manifestFile.getPath()),"Error while loading manifest",Messages.getInformationIcon());
-      return null;
+    return application.runReadAction(new Computable<BundleManifest>(){
+      public BundleManifest compute(){
+        PsiFile psiFile=PsiManager.getInstance(module.getProject()).findFile(manifestFile);
+        if (psiFile == null) {
+          if (application.isDispatchThread() || application.isUnitTestMode()) {
+            Messages.showMessageDialog(module.getProject(),String.format("The manifest file %s could not be loaded. " + "Please make sure that it is not located in an excluded directory",manifestFile.getPath()),"Error while loading manifest",Messages.getInformationIcon());
+          }
+          return null;
+        }
+        return new BundleManifestImpl(psiFile);
+      }
     }
-    return new BundleManifestImpl(psiFile);
+);
   }
   return null;
 }

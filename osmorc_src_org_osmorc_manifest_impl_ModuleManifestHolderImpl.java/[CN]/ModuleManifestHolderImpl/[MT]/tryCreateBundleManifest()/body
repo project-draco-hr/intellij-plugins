@@ -8,22 +8,25 @@
     return;
   }
   if (getContentRoots().length > 0) {
-    if (!_askedQuestions.containsKey(manifestPath)) {
-      int result=Messages.showYesNoDialog(_module.getProject(),OsmorcBundle.getTranslation("manifestholder.createmanifest.question",manifestPath),OsmorcBundle.getTranslation("manifestholder.createmanifest.title"),Messages.getQuestionIcon());
+    if (!askedQuestions.containsKey(manifestPath)) {
+      int result=DialogWrapper.CANCEL_EXIT_CODE;
+      if (application.isDispatchThread() || application.isUnitTestMode()) {
+        result=Messages.showYesNoDialog(module.getProject(),OsmorcBundle.getTranslation("manifestholder.createmanifest.question",manifestPath),OsmorcBundle.getTranslation("manifestholder.createmanifest.title"),Messages.getQuestionIcon());
+      }
       if (result == DialogWrapper.CANCEL_EXIT_CODE) {
-        _askedQuestions.put(manifestPath,Boolean.FALSE);
+        askedQuestions.put(manifestPath,Boolean.FALSE);
         return;
       }
  else {
-        _askedQuestions.put(manifestPath,Boolean.TRUE);
+        askedQuestions.put(manifestPath,Boolean.TRUE);
       }
     }
  else {
-      if (_askedQuestions.get(manifestPath) == Boolean.FALSE) {
+      if (askedQuestions.get(manifestPath) == Boolean.FALSE) {
         return;
       }
     }
-    _application.runWriteAction(new Runnable(){
+    application.runWriteAction(new Runnable(){
       public void run(){
         try {
           VirtualFile[] contentRoots=getContentRoots();
@@ -35,7 +38,7 @@
           String filename=completePath.substring(lastPathSep + 1);
           VfsUtil.createDirectories(path);
           VirtualFile parentFolder=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
-          String bundleName=_module.getName();
+          String bundleName=module.getName();
           Version bundleVersion=null;
           int nextDotPos=bundleName.indexOf('.');
           while (bundleVersion == null && nextDotPos >= 0) {
