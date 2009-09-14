@@ -2,7 +2,18 @@
   super(env);
   this.runConfiguration=configuration;
   this.project=project;
-  this.projectJdk=projectJdk;
+  if (configuration.isUseAlternativeJre()) {
+    String path=configuration.getAlternativeJrePath();
+    if (path == null || "".equals(path) || !JdkUtil.checkForJre(path)) {
+      this.jdkForRun=null;
+    }
+ else {
+      this.jdkForRun=JavaSdk.getInstance().createJdk("",configuration.getAlternativeJrePath());
+    }
+  }
+ else {
+    this.jdkForRun=projectJdk;
+  }
   setConsoleBuilder(new TextConsoleBuilderImpl(project));
   FrameworkInstanceDefinition definition=runConfiguration.getInstanceToUse();
   FrameworkIntegratorRegistry registry=ServiceManager.getService(project,FrameworkIntegratorRegistry.class);

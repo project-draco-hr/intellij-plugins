@@ -2,11 +2,14 @@
   VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(m).getCompilerOutputPath();
   if (moduleCompilerOutputPath == null) {
     String outputPathUrl=CompilerModuleExtension.getInstance(m).getCompilerOutputUrl();
-    try {
-      VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
-    }
- catch (    IOException e) {
-      Messages.showErrorDialog(m.getProject(),OsmorcBundle.getTranslation("error"),OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"));
+    File f=new File(VfsUtil.urlToPath(outputPathUrl));
+    if (!f.mkdirs()) {
+      SwingUtilities.invokeLater(new Runnable(){
+        public void run(){
+          Messages.showErrorDialog(m.getProject(),OsmorcBundle.getTranslation("error"),OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"));
+        }
+      }
+);
       throw new IllegalStateException("Cannot create output path");
     }
     moduleCompilerOutputPath=CompilerModuleExtension.getInstance(m).getCompilerOutputPath();
