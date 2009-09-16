@@ -1,16 +1,15 @@
 {
-  @NonNls final Set<String> tilesConfigNames=new HashSet<String>();
-  final List<ParamValue> params=webApp.getContextParams();
-  for (  final ParamValue param : params) {
-    if (Comparing.equal(TILES_CONTEXT_PARAM,param.getParamName().getStringValue())) {
-      final String paramValue=param.getParamValue().getStringValue();
-      if (paramValue != null) {
-        for (        final String file : paramValue.split(",")) {
-          tilesConfigNames.add(file.trim());
-        }
-      }
-      break;
-    }
+  @NonNls final Set<String> tilesConfigNames=new THashSet<String>();
+  final ParamValue tilesParamValue=ContainerUtil.find(webApp.getContextParams(),TILES_CONTEXT_PARAM_CONDITION);
+  if (tilesParamValue == null) {
+    return tilesConfigNames;
+  }
+  final String paramValue=tilesParamValue.getParamValue().getStringValue();
+  if (paramValue == null) {
+    return tilesConfigNames;
+  }
+  for (  final String file : StringUtil.split(paramValue,",")) {
+    tilesConfigNames.add(file.trim());
   }
   return tilesConfigNames;
 }

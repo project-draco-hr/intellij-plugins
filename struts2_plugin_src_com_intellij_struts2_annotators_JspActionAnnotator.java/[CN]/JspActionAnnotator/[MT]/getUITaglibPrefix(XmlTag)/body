@@ -13,15 +13,16 @@
     return null;
   }
   final Set<String> knownTaglibPrefixes=((JspFileViewProvider)jspFile.getViewProvider()).getKnownTaglibPrefixes();
-  for (  final String prefix : knownTaglibPrefixes) {
-    final String namespaceByPrefix=rootTag.getNamespaceByPrefix(prefix);
-    final XmlNSDescriptor descriptor=rootTag.getNSDescriptor(namespaceByPrefix,true);
-    if (descriptor != null && descriptor instanceof TldDescriptor) {
-      final String uri=((TldDescriptor)descriptor).getUri();
-      if (Comparing.equal(uri,StrutsConstants.TAGLIB_STRUTS_UI_URI)) {
-        return prefix;
+  return ContainerUtil.find(knownTaglibPrefixes,new Condition<String>(){
+    public boolean value(    final String s){
+      final String namespaceByPrefix=rootTag.getNamespaceByPrefix(s);
+      final XmlNSDescriptor descriptor=rootTag.getNSDescriptor(namespaceByPrefix,true);
+      if (descriptor instanceof TldDescriptor) {
+        final String uri=((TldDescriptor)descriptor).getUri();
+        return Comparing.equal(uri,StrutsConstants.TAGLIB_STRUTS_UI_URI);
       }
+      return false;
     }
   }
-  return null;
+);
 }
