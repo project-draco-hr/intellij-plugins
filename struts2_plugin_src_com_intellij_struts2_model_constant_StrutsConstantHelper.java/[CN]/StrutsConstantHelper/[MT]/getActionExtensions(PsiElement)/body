@@ -7,7 +7,12 @@
       public Result<AtomicNotNullLazyValue<List<String>>> compute(){
         final AtomicNotNullLazyValue<List<String>> lazyValue=new AtomicNotNullLazyValue<List<String>>(){
           @NotNull @Override protected List<String> compute(){
-            final List<String> extensions=StrutsConstantManager.getInstance(project).getConvertedValue(psiElement,StrutsCoreConstantContributor.ACTION_EXTENSION);
+            final List<String> extensions=ApplicationManager.getApplication().runReadAction(new Computable<List<String>>(){
+              public List<String> compute(){
+                return StrutsConstantManager.getInstance(project).getConvertedValue(psiElement,StrutsCoreConstantContributor.ACTION_EXTENSION);
+              }
+            }
+);
             final List<String> processedExtensions;
             if (extensions == null) {
               processedExtensions=Collections.emptyList();
