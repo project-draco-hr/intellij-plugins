@@ -1,13 +1,18 @@
 {
   myFiles.clear();
   myJars.clear();
-  final Module[] dependencies=ModuleRootManager.getInstance(module).getDependencies();
-  searchInModule(module);
-  for (  final Module dependentModule : dependencies) {
-    searchInModule(dependentModule);
-  }
-  searchInJars(module);
-  for (  final Module dependentModule : dependencies) {
-    searchInJars(dependentModule);
+  final List<DomFileElement<StrutsRoot>> elements=DomService.getInstance().getFileElements(StrutsRoot.class,module.getProject(),GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module));
+  for (  final DomFileElement<StrutsRoot> element : elements) {
+    final XmlFile file=element.getFile();
+    final VirtualFile jar=JarFileSystem.getInstance().getVirtualFileForJar(file.getVirtualFile());
+    if (jar != null) {
+      myJars.putValue(jar,file);
+    }
+ else {
+      final Module module=ModuleUtil.findModuleForPsiElement(file);
+      if (module != null) {
+        myFiles.putValue(module,file);
+      }
+    }
   }
 }
