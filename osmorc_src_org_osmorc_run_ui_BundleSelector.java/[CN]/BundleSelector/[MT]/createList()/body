@@ -1,5 +1,5 @@
 {
-  _allAvailableBundles.clear();
+  allAvailableBundles.clear();
   HashSet<SelectedBundle> hs=new HashSet<SelectedBundle>();
   Module[] modules=ModuleManager.getInstance(project).getModules();
   for (  Module module : modules) {
@@ -8,9 +8,9 @@
       hs.add(selectedBundle);
     }
   }
-  if (_usedFramework != null) {
+  if (usedFramework != null) {
     LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
-    List<Library> libs=libraryHandler.getLibraries(_usedFramework.getName());
+    List<Library> libs=libraryHandler.getLibraries(usedFramework.getName());
     for (    Library lib : libs) {
       String[] urls=lib.getUrls(OrderRootType.CLASSES);
       for (      String url : urls) {
@@ -26,7 +26,9 @@
     }
     for (    Module module : modules) {
       ModuleRootManager manager=ModuleRootManager.getInstance(module);
-      OrderEntry[] entries=manager.getModifiableModel().getOrderEntries();
+      ModifiableRootModel model=manager.getModifiableModel();
+      OrderEntry[] entries=model.getOrderEntries();
+      model.dispose();
       for (      OrderEntry entry : entries) {
         if (entry instanceof JdkOrderEntry) {
           continue;
@@ -47,7 +49,7 @@
       }
     }
   }
-  hs.removeAll(_hideBundles);
-  _allAvailableBundles.addAll(hs);
-  Collections.sort(_allAvailableBundles,new TypeComparator());
+  hs.removeAll(hideBundles);
+  allAvailableBundles.addAll(hs);
+  Collections.sort(allAvailableBundles,new TypeComparator());
 }
