@@ -1,54 +1,67 @@
 {
-  if (legacyOsgiRunConfigurationLoader == null || !legacyOsgiRunConfigurationLoader.readExternal(element,this)) {
-    workingDir=element.getAttributeValue(WORKING_DIR_ATTRIBUTE);
-    frameworkDir=element.getAttributeValue(FRAMEWORK_DIR_ATTRIBUTE);
-    vmParameters=element.getAttributeValue(VM_PARAMETERS_ATTRIBUTE);
-    programParameters=element.getAttributeValue(PROGRAM_PARAMETERS_ATTRIBUTE);
-    includeAllBundlesInClassPath=Boolean.valueOf(element.getAttributeValue(INCLUDE_ALL_BUNDLES_IN_CLASS_PATH_ATTRIBUTE,"false"));
-    useAlternativeJre=Boolean.valueOf(element.getAttributeValue(USE_ALTERNATIVE_JRE_ATTRIBUTE,"false"));
-    alternativeJrePath=element.getAttributeValue(ALTERNATIVE_JRE_PATH,"");
-    List<Element> children=element.getChildren(BUNDLE_ELEMENT);
-    bundlesToDeploy.clear();
-    for (    Element child : children) {
-      String name=child.getAttributeValue(NAME_ATTRIBUTE);
-      String url=child.getAttributeValue(URL_ATTRIBUTE);
-      String startLevel=child.getAttributeValue(START_LEVEL_ATTRIBUTE);
-      String typeName=child.getAttributeValue(TYPE_ATTRIBUTE);
-      SelectedBundle.BundleType type;
+  workingDir=element.getAttributeValue(WORKING_DIR_ATTRIBUTE);
+  frameworkDir=element.getAttributeValue(FRAMEWORK_DIR_ATTRIBUTE);
+  vmParameters=element.getAttributeValue(VM_PARAMETERS_ATTRIBUTE);
+  programParameters=element.getAttributeValue(PROGRAM_PARAMETERS_ATTRIBUTE);
+  includeAllBundlesInClassPath=Boolean.valueOf(element.getAttributeValue(INCLUDE_ALL_BUNDLES_IN_CLASS_PATH_ATTRIBUTE,"false"));
+  useAlternativeJre=Boolean.valueOf(element.getAttributeValue(USE_ALTERNATIVE_JRE_ATTRIBUTE,"false"));
+  alternativeJrePath=element.getAttributeValue(ALTERNATIVE_JRE_PATH,"");
+  List<Element> children=element.getChildren(BUNDLE_ELEMENT);
+  bundlesToDeploy.clear();
+  for (  Element child : children) {
+    String name=child.getAttributeValue(NAME_ATTRIBUTE);
+    String url=child.getAttributeValue(URL_ATTRIBUTE);
+    String startLevel=child.getAttributeValue(START_LEVEL_ATTRIBUTE);
+    String typeName=child.getAttributeValue(TYPE_ATTRIBUTE);
+    if ("legacyLoader".equals(name)) {
       try {
-        type=SelectedBundle.BundleType.valueOf(typeName);
+        legacyOsgiRunConfigurationLoader=(LegacyOsgiRunConfigurationLoader)Class.forName(url).newInstance();
       }
- catch (      Exception e) {
-        type=SelectedBundle.BundleType.Module;
+ catch (      InstantiationException e) {
+        throw new InvalidDataException(e);
       }
-      SelectedBundle selectedBundle=new SelectedBundle(name,url,type);
-      if (startLevel != null) {
-        try {
-          selectedBundle.setStartLevel(Integer.parseInt(startLevel));
-        }
- catch (        NumberFormatException e) {
-        }
+catch (      IllegalAccessException e) {
+        throw new InvalidDataException(e);
       }
-      String startAfterInstallationString=child.getAttributeValue(START_AFTER_INSTALLATION_ATTRIBUTE);
-      if (startAfterInstallationString != null) {
-        selectedBundle.setStartAfterInstallation(Boolean.parseBoolean(startAfterInstallationString));
+catch (      ClassNotFoundException e) {
+        throw new InvalidDataException(e);
       }
-      bundlesToDeploy.add(selectedBundle);
+      break;
     }
-    Element framework=element.getChild(FRAMEWORK_ELEMENT);
-    if (framework != null) {
-      String name=framework.getAttributeValue(INSTANCE_ATTRIBUTE);
-      if (name != null) {
-        ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
-        instanceToUse=settings.getFrameworkInstance(name);
+    SelectedBundle.BundleType type;
+    try {
+      type=SelectedBundle.BundleType.valueOf(typeName);
+    }
+ catch (    Exception e) {
+      type=SelectedBundle.BundleType.Module;
+    }
+    SelectedBundle selectedBundle=new SelectedBundle(name,url,type);
+    if (startLevel != null) {
+      try {
+        selectedBundle.setStartLevel(Integer.parseInt(startLevel));
+      }
+ catch (      NumberFormatException e) {
       }
     }
-    Element additionalProperties=element.getChild(ADDITIONAL_PROPERTIES_ELEMENT);
-    if (additionalProperties != null) {
-      List<Attribute> attributes=additionalProperties.getAttributes();
-      for (      Attribute attribute : attributes) {
-        this.additionalProperties.put(attribute.getName(),attribute.getValue());
-      }
+    String startAfterInstallationString=child.getAttributeValue(START_AFTER_INSTALLATION_ATTRIBUTE);
+    if (startAfterInstallationString != null) {
+      selectedBundle.setStartAfterInstallation(Boolean.parseBoolean(startAfterInstallationString));
+    }
+    bundlesToDeploy.add(selectedBundle);
+  }
+  Element framework=element.getChild(FRAMEWORK_ELEMENT);
+  if (framework != null) {
+    String name=framework.getAttributeValue(INSTANCE_ATTRIBUTE);
+    if (name != null) {
+      ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
+      instanceToUse=settings.getFrameworkInstance(name);
+    }
+  }
+  Element additionalProperties=element.getChild(ADDITIONAL_PROPERTIES_ELEMENT);
+  if (additionalProperties != null) {
+    List<Attribute> attributes=additionalProperties.getAttributes();
+    for (    Attribute attribute : attributes) {
+      this.additionalProperties.put(attribute.getName(),attribute.getValue());
     }
   }
   super.readExternal(element);
