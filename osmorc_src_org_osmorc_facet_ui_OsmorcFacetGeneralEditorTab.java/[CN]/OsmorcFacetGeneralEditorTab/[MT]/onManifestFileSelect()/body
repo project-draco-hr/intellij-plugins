@@ -1,14 +1,22 @@
 {
   VirtualFile[] roots=ModuleRootManager.getInstance(_editorContext.getModule()).getContentRoots();
-  TreeFileChooserDialog dialog=new TreeFileChooserDialog(_editorContext.getProject(),OsmorcBundle.getTranslation("faceteditor.select.manifest"),null,FileTypeManager.getInstance().getFileTypeByFileName("MANIFEST.MF"),new SubfolderFileFilter(roots),false,false);
-  dialog.showDialog();
-  PsiFile file=dialog.getSelectedFile();
-  if (file != null) {
-    VirtualFile manifestFileLocation=file.getVirtualFile();
+  VirtualFile currentFile=null;
+  for (  VirtualFile root : roots) {
+    currentFile=VfsUtil.findRelativeFile(_manifestFileChooser.getText(),root);
+    if (currentFile != null) {
+      break;
+    }
+  }
+  VirtualFile[] result=FileChooser.chooseFiles(_editorContext.getProject(),new FileChooserDescriptor(true,true,false,false,false,false),currentFile);
+  if (result.length == 1) {
+    VirtualFile manifestFileLocation=result[0];
     if (manifestFileLocation != null) {
       for (      VirtualFile root : roots) {
         String relativePath=VfsUtil.getRelativePath(manifestFileLocation,root,File.separatorChar);
         if (relativePath != null) {
+          if (manifestFileLocation.isDirectory()) {
+            relativePath+="/MANIFEST.MF";
+          }
           _manifestFileChooser.setText(relativePath);
           break;
         }
