@@ -2,37 +2,42 @@
   ArrayList<String> result=new ArrayList<String>();
   final ModuleRootManager manager=ModuleRootManager.getInstance(module);
   LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
-  OrderEntry[] entries=new ReadAction<OrderEntry[]>(){
-    protected void run(    Result<OrderEntry[]> result) throws Throwable {
+  ModifiableRootModel model=new ReadAction<ModifiableRootModel>(){
+    protected void run(    Result<ModifiableRootModel> result) throws Throwable {
       ModifiableRootModel model=manager.getModifiableModel();
-      result.setResult(model.getOrderEntries());
-      model.dispose();
+      result.setResult(model);
     }
   }
 .execute().getResultObject();
-  for (  OrderEntry entry : entries) {
-    if (entry instanceof JdkOrderEntry) {
-      continue;
-    }
-    if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
-      continue;
-    }
-    BndWrapper wrapper=new BndWrapper();
-    String[] urls=entry.getUrls(OrderRootType.CLASSES);
-    for (    String url : urls) {
-      url=convertJarUrlToFileUrl(url);
-      if (!CachingBundleInfoProvider.isBundle(url)) {
-        indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
-        indicator.setText2(url);
-        String bundledLocation=wrapper.wrapLibrary(compileContext,url,getOutputPath(module));
-        if (bundledLocation != null) {
-          result.add(fixFileURL(bundledLocation));
+  OrderEntry[] entries=model.getOrderEntries();
+  try {
+    for (    OrderEntry entry : entries) {
+      if (entry instanceof JdkOrderEntry) {
+        continue;
+      }
+      if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
+        continue;
+      }
+      BndWrapper wrapper=new BndWrapper();
+      String[] urls=entry.getUrls(OrderRootType.CLASSES);
+      for (      String url : urls) {
+        url=convertJarUrlToFileUrl(url);
+        if (!CachingBundleInfoProvider.isBundle(url)) {
+          indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
+          indicator.setText2(url);
+          String bundledLocation=wrapper.wrapLibrary(compileContext,url,getOutputPath(module));
+          if (bundledLocation != null) {
+            result.add(fixFileURL(bundledLocation));
+          }
+        }
+ else {
+          result.add(fixFileURL(url));
         }
       }
- else {
-        result.add(fixFileURL(url));
-      }
     }
+    return result.toArray(new String[result.size()]);
   }
-  return result.toArray(new String[result.size()]);
+  finally {
+    model.dispose();
+  }
 }
