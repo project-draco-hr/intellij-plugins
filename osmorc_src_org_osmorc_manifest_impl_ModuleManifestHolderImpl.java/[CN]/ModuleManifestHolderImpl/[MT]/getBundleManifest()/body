@@ -1,8 +1,12 @@
 {
+  final VirtualFile cachedFile=bundleManifest != null ? bundleManifest.getManifestFile().getVirtualFile() : null;
+  final VirtualFile fileFromSettings=getManifestFile();
+  if (bundleManifest != null && (cachedFile == null || fileFromSettings == null || !cachedFile.getPath().equals(fileFromSettings.getPath()))) {
+    bundleManifest=null;
+  }
   if (bundleManifest == null && OsmorcFacet.hasOsmorcFacet(module)) {
     OsmorcFacet facet=OsmorcFacet.getInstance(module);
     if (facet.getConfiguration().isManifestManuallyEdited()) {
-      tryCreateBundleManifest();
       bundleManifest=loadManifest();
     }
   }

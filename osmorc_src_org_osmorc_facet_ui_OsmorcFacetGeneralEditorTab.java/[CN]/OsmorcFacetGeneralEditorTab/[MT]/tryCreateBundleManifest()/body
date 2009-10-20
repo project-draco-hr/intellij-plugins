@@ -1,35 +1,14 @@
 {
-  VirtualFile file=getManifestFile();
-  if (file != null && file.exists()) {
-    return;
-  }
-  final String manifestPath=getManifestPath();
+  final String manifestPath=getManifestLocation();
   if (StringUtil.isEmpty(manifestPath)) {
     return;
   }
-  if (getContentRoots().length > 0) {
-    if (!askedQuestions.containsKey(manifestPath)) {
-      int result=DialogWrapper.CANCEL_EXIT_CODE;
-      if (application.isDispatchThread() || application.isUnitTestMode()) {
-        result=Messages.showYesNoDialog(module.getProject(),OsmorcBundle.getTranslation("manifestholder.createmanifest.question",manifestPath),OsmorcBundle.getTranslation("manifestholder.createmanifest.title"),Messages.getQuestionIcon());
-      }
-      if (result == DialogWrapper.CANCEL_EXIT_CODE) {
-        askedQuestions.put(manifestPath,Boolean.FALSE);
-        return;
-      }
- else {
-        askedQuestions.put(manifestPath,Boolean.TRUE);
-      }
-    }
- else {
-      if (askedQuestions.get(manifestPath) == Boolean.FALSE) {
-        return;
-      }
-    }
+  final VirtualFile[] contentRoots=getContentRoots(_module);
+  if (contentRoots.length > 0) {
+    Application application=ApplicationManager.getApplication();
     application.runWriteAction(new Runnable(){
       public void run(){
         try {
-          VirtualFile[] contentRoots=getContentRoots();
           VirtualFile contentRoot=contentRoots[0];
           String completePath=contentRoot.getPath() + File.separator + manifestPath;
           completePath=completePath.replace('\\','/');
@@ -38,7 +17,7 @@
           String filename=completePath.substring(lastPathSep + 1);
           VfsUtil.createDirectories(path);
           VirtualFile parentFolder=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
-          String bundleName=module.getName();
+          String bundleName=_module.getName();
           Version bundleVersion=null;
           int nextDotPos=bundleName.indexOf('.');
           while (bundleVersion == null && nextDotPos >= 0) {
