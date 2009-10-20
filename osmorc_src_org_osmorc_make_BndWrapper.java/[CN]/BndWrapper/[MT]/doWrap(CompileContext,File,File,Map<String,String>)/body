@@ -38,7 +38,21 @@
   analyzer.close();
   if (!f.renameTo(outputJar)) {
     VirtualFile src=LocalFileSystem.getInstance().findFileByIoFile(f);
+    if (src == null) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"No jar file was created. This should not happen. Is " + f.getPath() + " writable?",null,0,0);
+      return false;
+    }
+    if (!outputJar.exists()) {
+      if (!outputJar.createNewFile()) {
+        compileContext.addMessage(CompilerMessageCategory.ERROR,"Could not create output jar file. Is " + outputJar.getPath() + " writable?",null,0,0);
+        return false;
+      }
+    }
     VirtualFile target=LocalFileSystem.getInstance().findFileByIoFile(outputJar);
+    if (target == null) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Output jar file " + outputJar.getPath() + " was created but cannot be found anymore. This should not happen.",null,0,0);
+      return false;
+    }
     VfsUtil.copyFile(this,src,target);
   }
   return true;
