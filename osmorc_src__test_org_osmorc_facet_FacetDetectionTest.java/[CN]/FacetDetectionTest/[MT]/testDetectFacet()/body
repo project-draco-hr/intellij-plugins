@@ -22,8 +22,12 @@
   assertThat(osmorcFacetConfiguration.isUseProjectDefaultManifestFileLocation(),equalTo(false));
   OsmorcFacet osmorcFacet=OsmorcFacetType.INSTANCE.createFacet(t0,"OSGi",osmorcFacetConfiguration,null);
   ModifiableRootModel model=ModuleRootManager.getInstance(t0).getModifiableModel();
-  detector.beforeFacetAdded(osmorcFacet,FacetManager.getInstance(t0),model);
-  assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo("src/META-INF"));
-  model.dispose();
+  try {
+    detector.beforeFacetAdded(osmorcFacet,FacetManager.getInstance(t0),model);
+    assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo("src/META-INF/MANIFEST.MF"));
+  }
+  finally {
+    model.dispose();
+  }
   verify(registry);
 }
