@@ -7,11 +7,25 @@
         ModuleManager moduleManager=ModuleManager.getInstance(project);
         int bundleCount=runConfiguration.getBundlesToDeploy().size();
         for (int i=0; i < bundleCount; i++) {
-          SelectedBundle selectedBundle=runConfiguration.getBundlesToDeploy().get(i);
+          final SelectedBundle selectedBundle=runConfiguration.getBundlesToDeploy().get(i);
           progressIndicator.setFraction(i / bundleCount);
           if (selectedBundle.isModule()) {
             try {
               final Module module=moduleManager.findModuleByName(selectedBundle.getName());
+              if (!OsmorcFacet.hasOsmorcFacet(module)) {
+                try {
+                  SwingUtilities.invokeAndWait(new Runnable(){
+                    public void run(){
+                      Messages.showErrorDialog("Module '" + selectedBundle.getName() + "' has no OSGi facet, but should have. Please re-add the OSGi facet to this module.","Error");
+                    }
+                  }
+);
+                }
+ catch (                Exception e) {
+                }
+                _selectedBundles=null;
+                return;
+              }
               selectedBundle.setBundleUrl(new URL("file","/",BundleCompiler.getJarFileName(module)).toString());
               String[] depUrls=BundleCompiler.bundlifyLibraries(module,progressIndicator,DummyCompileContext.getInstance());
               for (              String depUrl : depUrls) {
