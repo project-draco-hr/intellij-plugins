@@ -1,0 +1,26 @@
+{
+  @Nullable Project project=PlatformDataKeys.PROJECT.getData(e.getDataContext());
+  if (project == null) {
+    return;
+  }
+  VirtualFile jarFile=LocalFileSystem.getInstance().refreshAndFindFileByPath(pathToJar);
+  if (jarFile == null) {
+    Messages.showErrorDialog(project,"It seems that the bundle JAR does not exist. Please rebuild the project and try again.","Cannot open manifest");
+    return;
+  }
+  VirtualFile jarRoot=JarFileSystem.getInstance().getJarRootForLocalFile(jarFile);
+  if (jarRoot != null) {
+    final VirtualFile manifestFile=jarRoot.findFileByRelativePath("META-INF/MANIFEST.MF");
+    if (manifestFile == null) {
+      Messages.showErrorDialog(project,"There is no manifest in the bundle jar. Please check the facet settings, rebuild and try again.","Cannot open manifest");
+      return;
+    }
+    FileEditorProviderManager editorProviderManager=FileEditorProviderManager.getInstance();
+    if (editorProviderManager.getProviders(project,manifestFile).length == 0) {
+      Messages.showMessageDialog(project,IdeBundle.message("error.files.of.this.type.cannot.be.opened",ApplicationNamesInfo.getInstance().getProductName()),IdeBundle.message("title.cannot.open.file"),Messages.getErrorIcon());
+      return;
+    }
+    OpenFileDescriptor descriptor=new OpenFileDescriptor(project,manifestFile);
+    FileEditorManager.getInstance(project).openTextEditor(descriptor,true);
+  }
+}

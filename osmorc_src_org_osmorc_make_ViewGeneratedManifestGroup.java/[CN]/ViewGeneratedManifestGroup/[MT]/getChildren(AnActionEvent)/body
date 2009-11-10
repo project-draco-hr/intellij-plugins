@@ -1,0 +1,21 @@
+{
+  if (e == null)   return EMPTY_ACTIONS_LIST;
+  @Nullable Project project=PlatformDataKeys.PROJECT.getData(e.getDataContext());
+  if (project == null) {
+    return EMPTY_ACTIONS_LIST;
+  }
+  final List<AnAction> actions=new ArrayList<AnAction>();
+  final Module[] modules=ModuleManager.getInstance(project).getModules();
+  for (  Module module : modules) {
+    if (OsmorcFacet.hasOsmorcFacet(module)) {
+      OsmorcFacet facet=OsmorcFacet.getInstance(module);
+      if (facet == null)       continue;
+      String jarFile=facet.getConfiguration().getJarFileLocation();
+      File theFile=new File(jarFile);
+      String fileName="[" + module.getName() + "] "+ jarFile.substring(jarFile.lastIndexOf('/') + 1);
+      ViewManifestAction action=new ViewManifestAction(fileName,jarFile);
+      actions.add(action);
+    }
+  }
+  return actions.toArray(new AnAction[actions.size()]);
+}
