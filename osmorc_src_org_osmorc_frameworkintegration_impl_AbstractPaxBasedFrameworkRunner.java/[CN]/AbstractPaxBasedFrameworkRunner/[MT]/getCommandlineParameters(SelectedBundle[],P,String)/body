@@ -27,9 +27,18 @@
  else {
     params.add("--noConsole");
   }
+  StringBuilder vmOptionsParam=new StringBuilder();
+  vmOptionsParam.append("--vmOptions=");
   if (vmParameters != null && vmParameters.length() > 0) {
-    params.add("--vmOptions=" + vmParameters);
+    vmOptionsParam.append(" ").append(vmParameters);
   }
+  String additionalVmOptions=getAdditionalTargetVMProperties(bundlesToInstall,runProperties);
+  if (additionalVmOptions.length() > 0) {
+    vmOptionsParam.append(" ").append(additionalVmOptions);
+  }
+  String debugParams="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=39999";
+  vmOptionsParam.append(" ").append(debugParams);
+  params.add(vmOptionsParam.toString());
   params.add("--keepOriginalUrls");
   params.add("--skipInvalidBundles");
   return ArrayUtil.toStringArray(params);

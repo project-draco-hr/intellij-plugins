@@ -1,6 +1,21 @@
 {
   @SuppressWarnings({"ConstantConditions"}) final String paxLib=PluginManager.getPlugin(PluginId.getId("Osmorc")).getPath().getPath() + "/lib/pax-runner-1.3.0.jar";
   List<VirtualFile> libs=new ArrayList<VirtualFile>(1);
-  libs.add(LocalFileSystem.getInstance().findFileByPath(paxLib));
+  VirtualFile path=LocalFileSystem.getInstance().findFileByPath(paxLib);
+  if (path == null) {
+    String[] classpath=System.getProperty("java.class.path").split(File.pathSeparator);
+    for (    String s : classpath) {
+      if (s.contains("pax-runner-1.3.0.jar")) {
+        path=LocalFileSystem.getInstance().findFileByPath(s);
+        if (path != null) {
+          libs.add(path);
+          break;
+        }
+      }
+    }
+  }
+ else {
+    libs.add(path);
+  }
   return libs;
 }

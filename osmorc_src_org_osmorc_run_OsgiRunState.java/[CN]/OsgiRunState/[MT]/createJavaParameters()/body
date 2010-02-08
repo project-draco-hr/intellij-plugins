@@ -27,9 +27,11 @@
   if (bundles == null) {
     throw new CantRunException("One or more modules seem to be missing their OSGi facets. Please re-add the OSGi facets and try again.");
   }
-  runner.fillCommandLineParameters(programParameters,bundles,runConfiguration.getVmParameters());
+  if (runner instanceof ExternalVMFrameworkRunner) {
+    ((ExternalVMFrameworkRunner)runner).fillCommandLineParameters(programParameters,bundles,runConfiguration.getVmParameters());
+  }
   programParameters.addParametersString(runConfiguration.getProgramParameters());
-  if (!runner.launchesOwnVM()) {
+  if (!(runner instanceof ExternalVMFrameworkRunner)) {
     params.getVMParametersList().addParametersString(runConfiguration.getVmParameters());
   }
   Map<String,String> systemProperties=runner.getSystemProperties(bundles);
