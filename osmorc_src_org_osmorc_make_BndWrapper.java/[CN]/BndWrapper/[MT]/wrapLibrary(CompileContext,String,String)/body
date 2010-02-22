@@ -2,6 +2,9 @@
   try {
     File targetDir=new File(outputPath);
     File sourceFile=new File(VfsUtil.urlToPath(sourceJarUrl));
+    if (sourceFile.isDirectory()) {
+      return null;
+    }
     File targetFile=new File(targetDir.getPath() + File.separator + sourceFile.getName());
     Map<String,String> additionalProperties=new HashMap<String,String>();
     long lastModified=Long.MIN_VALUE;
@@ -28,7 +31,7 @@
     }
   }
  catch (  final Exception e) {
-    compileContext.addMessage(CompilerMessageCategory.ERROR,OsmorcBundle.getTranslation("bundlecompiler.bundlifying.problem.message",sourceJarUrl,e.toString()),null,0,0);
+    compileContext.addMessage(CompilerMessageCategory.ERROR,OsmorcBundle.getTranslation("bundlecompiler.bundlifying.problem.message",sourceJarUrl,StacktraceUtil.stackTraceToString(e)),null,0,0);
   }
   return null;
 }
