@@ -1,0 +1,15 @@
+{
+  return new PsiReference[]{new IdRefReference(element){
+    @Override public PsiElement resolve(){
+      final PsiElement resolve=super.resolve();
+      if (resolve != null) {
+        return resolve;
+      }
+      return Arrays.binarySearch(additionalVariants,((XmlAttributeValue)myElement).getValue()) > -1 ? myElement : null;
+    }
+    @NotNull @Override public Object[] getVariants(){
+      return ArrayUtil.mergeArrays(super.getVariants(),additionalVariants,Object.class);
+    }
+  }
+};
+}
