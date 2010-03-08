@@ -1,0 +1,53 @@
+{
+  commandLineParameters.add("--p=" + getOsgiFrameworkName().toLowerCase());
+  for (  SelectedBundle bundle : bundlesToInstall) {
+    if (bundle.isStartAfterInstallation() && !CachingBundleInfoProvider.isFragmentBundle(bundle.getBundleUrl())) {
+      commandLineParameters.add(bundle.getBundleUrl() + "@" + bundle.getStartLevel());
+    }
+ else {
+      if (CachingBundleInfoProvider.isFragmentBundle(bundle.getBundleUrl())) {
+        commandLineParameters.add(bundle.getBundleUrl() + "@nostart");
+      }
+ else {
+        commandLineParameters.add(bundle.getBundleUrl());
+      }
+    }
+  }
+  final P frameworkProperties=getFrameworkProperties();
+  String bootDelegation=frameworkProperties.getBootDelegation();
+  if (bootDelegation != null && !(bootDelegation.trim().length() == 0)) {
+    commandLineParameters.add("--bd=" + bootDelegation);
+  }
+  String systemPackages=frameworkProperties.getSystemPackages();
+  if (systemPackages != null && !(systemPackages.trim().length() == 0)) {
+    commandLineParameters.add("--sp=" + systemPackages);
+  }
+  int startLevel=getFrameworkStartLevel(bundlesToInstall);
+  commandLineParameters.add("--sl=" + startLevel);
+  if (frameworkProperties.isDebugMode()) {
+    commandLineParameters.add("--log=DEBUG");
+  }
+  if (frameworkProperties.isStartConsole()) {
+    commandLineParameters.add("--console");
+  }
+ else {
+    commandLineParameters.add("--noConsole");
+  }
+  StringBuilder vmOptionsParam=new StringBuilder();
+  vmOptionsParam.append("--vmOptions=");
+  String vmParameters=getRunConfiguration().getVmParameters();
+  if (vmParameters.length() > 0) {
+    vmOptionsParam.append(vmParameters);
+  }
+  String additionalVmOptions=getAdditionalTargetVMProperties(bundlesToInstall);
+  if (additionalVmOptions.length() > 0) {
+    vmOptionsParam.append(" ").append(additionalVmOptions);
+  }
+  if (isDebugRun()) {
+    String debugParams="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=" + getDebugPort();
+    vmOptionsParam.append(" ").append(debugParams);
+  }
+  commandLineParameters.add(vmOptionsParam.toString());
+  commandLineParameters.add("--keepOriginalUrls");
+  commandLineParameters.add("--skipInvalidBundles");
+}

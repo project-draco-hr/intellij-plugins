@@ -1,7 +1,22 @@
 {
   OsgiRunState runState=(OsgiRunState)state;
+  final RunnerSettings myRunnerSettings=state.getRunnerSettings();
   if (runState.requiresRemoteDebugger()) {
-    final RemoteConnection connection=createRemoteDebugConnection((RemoteState)state,state.getRunnerSettings());
+    String myDebugPort=null;
+    if (myRunnerSettings.getData() instanceof DebuggingRunnerData) {
+      myDebugPort=((DebuggingRunnerData)myRunnerSettings.getData()).getDebugPort();
+      if (myDebugPort.length() == 0) {
+        try {
+          myDebugPort=DebuggerUtils.getInstance().findAvailableDebugAddress(true);
+        }
+ catch (        ExecutionException e) {
+          logger.error(e);
+        }
+        ((DebuggingRunnerData)myRunnerSettings.getData()).setDebugPort(myDebugPort);
+      }
+      ((DebuggingRunnerData)myRunnerSettings.getData()).setLocal(false);
+    }
+    final RemoteConnection connection=new RemoteConnection(true,"127.0.0.1",myDebugPort,true);
     return attachVirtualMachine(project,executor,state,contentToReuse,env,connection,false);
   }
  else {
