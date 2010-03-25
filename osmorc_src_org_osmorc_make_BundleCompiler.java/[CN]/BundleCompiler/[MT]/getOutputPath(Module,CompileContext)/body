@@ -1,0 +1,25 @@
+{
+  final CompilerModuleExtension extension=CompilerModuleExtension.getInstance(m);
+  VirtualFile moduleCompilerOutputPath=extension.getCompilerOutputPath();
+  String path;
+  if (moduleCompilerOutputPath == null) {
+    String outputPathUrl=extension.getCompilerOutputUrl();
+    File f=new File(VfsUtil.urlToPath(outputPathUrl));
+    if (!f.exists() && !f.mkdirs()) {
+      context.addMessage(CompilerMessageCategory.ERROR,OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"),null,0,0);
+      return null;
+    }
+    path=f.getParentFile().getPath() + File.separator + "bundles";
+  }
+ else {
+    path=moduleCompilerOutputPath.getParent().getPath() + File.separator + "bundles";
+  }
+  File f=new File(path);
+  if (!f.exists()) {
+    if (!f.mkdirs()) {
+      context.addMessage(CompilerMessageCategory.ERROR,"Could not create output path: " + path + " Please check file permissions.",null,0,0);
+      return null;
+    }
+  }
+  return path;
+}

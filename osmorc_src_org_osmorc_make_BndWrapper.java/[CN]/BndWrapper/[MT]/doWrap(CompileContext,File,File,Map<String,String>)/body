@@ -36,24 +36,31 @@
   jar.write(f);
   jar.close();
   analyzer.close();
+  if (outputJar.exists()) {
+    if (!outputJar.delete()) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Could not delete outdated generated bundle. Is " + outputJar.getPath() + " writable?",null,0,0);
+      return false;
+    }
+  }
   if (!f.renameTo(outputJar)) {
     VirtualFile src=LocalFileSystem.getInstance().findFileByIoFile(f);
     if (src == null) {
       compileContext.addMessage(CompilerMessageCategory.ERROR,"No jar file was created. This should not happen. Is " + f.getPath() + " writable?",null,0,0);
       return false;
     }
-    if (!outputJar.exists()) {
-      if (!outputJar.createNewFile()) {
-        compileContext.addMessage(CompilerMessageCategory.ERROR,"Could not create output jar file. Is " + outputJar.getPath() + " writable?",null,0,0);
+    File parentFolder=outputJar.getParentFile();
+    if (!parentFolder.exists()) {
+      if (!parentFolder.mkdirs()) {
+        compileContext.addMessage(CompilerMessageCategory.ERROR,"Cannot create output folder. Is " + parentFolder.getPath() + " writable?",null,0,0);
         return false;
       }
     }
-    VirtualFile target=LocalFileSystem.getInstance().findFileByIoFile(outputJar);
+    VirtualFile target=LocalFileSystem.getInstance().findFileByIoFile(parentFolder);
     if (target == null) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"Output jar file " + outputJar.getPath() + " was created but cannot be found anymore. This should not happen.",null,0,0);
+      compileContext.addMessage(CompilerMessageCategory.ERROR,"Output path " + parentFolder.getPath() + " was created but cannot be found anymore. This should not happen.",null,0,0);
       return false;
     }
-    VfsUtil.copyFile(this,src,target);
+    VfsUtil.copyFile(this,src,target,outputJar.getName());
   }
   return true;
 }

@@ -40,7 +40,7 @@ catch (  Exception e) {
   }
   String bndFileUrl="";
   Map<String,String> additionalProperties=new HashMap<String,String>();
-  if (configuration.isOsmorcControlsManifest()) {
+  if (configuration.isOsmorcControlsManifest() || configuration.isUseBndFile()) {
     if (configuration.isUseBndFile()) {
       File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
       if (bndFile == null || !bndFile.exists()) {
@@ -52,7 +52,10 @@ catch (  Exception e) {
       }
     }
  else {
-      bndFileUrl=makeBndFile(module,configuration.asManifestString());
+      bndFileUrl=makeBndFile(module,configuration.asManifestString(),compileContext);
+      if (bndFileUrl == null) {
+        return;
+      }
     }
   }
  else {
@@ -64,7 +67,7 @@ catch (  Exception e) {
       if (manifestFile != null) {
         String manifestFilePath=manifestFile.getVirtualFile().getPath();
         if (manifestFilePath != null) {
-          bndFileUrl=makeBndFile(module,"-manifest " + manifestFilePath + "\n");
+          bndFileUrl=makeBndFile(module,"-manifest " + manifestFilePath + "\n",compileContext);
           manifestExists=true;
         }
       }
