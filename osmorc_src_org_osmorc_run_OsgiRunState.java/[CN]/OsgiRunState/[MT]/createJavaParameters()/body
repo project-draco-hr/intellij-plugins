@@ -22,17 +22,13 @@
     }
   }
   params.setMainClass(runner.getMainClass());
-  final ParametersList programParameters=params.getProgramParametersList();
   SelectedBundle[] bundles=getSelectedBundles();
   if (bundles == null) {
     throw new CantRunException("One or more modules seem to be missing their OSGi facets. Please re-add the OSGi facets and try again.");
   }
+  final ParametersList programParameters=params.getProgramParametersList();
   runner.fillCommandLineParameters(programParameters,bundles);
-  programParameters.addParametersString(runConfiguration.getProgramParameters());
-  params.getVMParametersList().addParametersString(runConfiguration.getVmParameters());
-  Map<String,String> systemProperties=runner.getSystemProperties(bundles);
-  for (  Map.Entry<String,String> entry : systemProperties.entrySet()) {
-    params.getVMParametersList().defineProperty(entry.getKey(),entry.getValue());
-  }
+  final ParametersList vmParameters=params.getVMParametersList();
+  runner.fillVmParameters(vmParameters,bundles);
   return params;
 }

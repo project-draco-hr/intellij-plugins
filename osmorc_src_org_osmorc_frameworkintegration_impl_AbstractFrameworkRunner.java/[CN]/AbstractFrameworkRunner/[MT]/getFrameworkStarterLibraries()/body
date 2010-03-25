@@ -1,0 +1,17 @@
+{
+  List<VirtualFile> result=new ArrayList<VirtualFile>();
+  FrameworkInstanceDefinition definition=getRunConfiguration().getInstanceToUse();
+  FrameworkIntegratorRegistry registry=ServiceManager.getService(getProject(),FrameworkIntegratorRegistry.class);
+  FrameworkIntegrator integrator=registry.findIntegratorByInstanceDefinition(definition);
+  FrameworkInstanceManager frameworkInstanceManager=integrator.getFrameworkInstanceManager();
+  List<Library> libs=frameworkInstanceManager.getLibraries(definition);
+  final Pattern starterClasspathPattern=getFrameworkStarterClasspathPattern();
+  for (  Library lib : libs) {
+    for (    VirtualFile virtualFile : lib.getFiles(OrderRootType.CLASSES_AND_OUTPUT)) {
+      if (starterClasspathPattern == null || starterClasspathPattern.matcher(virtualFile.getName()).matches()) {
+        result.add(virtualFile);
+      }
+    }
+  }
+  return result;
+}
