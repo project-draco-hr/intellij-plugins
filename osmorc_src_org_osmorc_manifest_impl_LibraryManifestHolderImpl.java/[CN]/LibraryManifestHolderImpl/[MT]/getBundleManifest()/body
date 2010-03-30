@@ -10,9 +10,14 @@
         classDir=JarFileSystem.getInstance().getJarRootForLocalFile(classRoot);
       }
       if (classDir != null) {
-        VirtualFile manifestFile=classDir.findFileByRelativePath("META-INF/MANIFEST.MF");
+        final VirtualFile manifestFile=classDir.findFileByRelativePath("META-INF/MANIFEST.MF");
         if (manifestFile != null) {
-          PsiFile psiFile=PsiManager.getInstance(_project).findFile(manifestFile);
+          PsiFile psiFile=new ReadAction<PsiFile>(){
+            @Override protected void run(            Result<PsiFile> psiFileResult) throws Throwable {
+              psiFileResult.setResult(PsiManager.getInstance(_project).findFile(manifestFile));
+            }
+          }
+.execute().getResultObject();
           _bundleManifest=new BundleManifestImpl(psiFile);
         }
       }
