@@ -33,18 +33,20 @@
     }
     public void editingStopped(    ChangeEvent e){
       int row=_additionalJARContentsTable.getSelectedRow();
-      Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
-      VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
-      String destinationName;
-      if (preselectedPath != null) {
-        destinationName=determineMostLikelyLocationInJAR(preselectedPath);
-      }
+      if (row > -1) {
+        Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
+        VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
+        String destinationName;
+        if (preselectedPath != null) {
+          destinationName=determineMostLikelyLocationInJAR(preselectedPath);
+        }
  else {
-        destinationName="";
+          destinationName="";
+        }
+        _additionalJARContentsTableModel.changeAdditionalJARConent(row,additionalJARContent.first,destinationName);
+        _additionalJARContentsTable.editCellAt(row,1);
+        _additionalJARContentsTable.getEditorComponent().requestFocus();
       }
-      _additionalJARContentsTableModel.changeAdditionalJARConent(row,additionalJARContent.first,destinationName);
-      _additionalJARContentsTable.editCellAt(row,1);
-      _additionalJARContentsTable.getEditorComponent().requestFocus();
     }
   }
 );

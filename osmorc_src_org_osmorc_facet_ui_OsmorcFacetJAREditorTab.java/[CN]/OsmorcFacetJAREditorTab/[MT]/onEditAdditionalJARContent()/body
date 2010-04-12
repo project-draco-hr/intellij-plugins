@@ -1,36 +1,38 @@
 {
   int row=_additionalJARContentsTable.getSelectedRow();
-  Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
-  Project project=_editorContext.getProject();
-  FileChooserDescriptor descriptor=new FileChooserDescriptor(true,true,true,true,false,false);
-  descriptor.setTitle("Choose source file or folder");
-  FileChooserDialog fileChooserDialog=FileChooserFactory.getInstance().createFileChooser(descriptor,project);
-  VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
-  if (preselectedPath == null) {
-    Module module=_editorContext.getModule();
-    VirtualFile[] contentRoots=ModuleRootManager.getInstance(module).getContentRoots();
-    if (contentRoots.length > 0) {
-      for (      VirtualFile contentRoot : contentRoots) {
-        VirtualFile path=VfsUtil.findRelativeFile(additionalJARContent.getFirst(),contentRoot);
-        if (path != null) {
-          preselectedPath=path;
-          break;
+  if (row > -1) {
+    Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
+    Project project=_editorContext.getProject();
+    FileChooserDescriptor descriptor=new FileChooserDescriptor(true,true,true,true,false,false);
+    descriptor.setTitle("Choose source file or folder");
+    FileChooserDialog fileChooserDialog=FileChooserFactory.getInstance().createFileChooser(descriptor,project);
+    VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
+    if (preselectedPath == null) {
+      Module module=_editorContext.getModule();
+      VirtualFile[] contentRoots=ModuleRootManager.getInstance(module).getContentRoots();
+      if (contentRoots.length > 0) {
+        for (        VirtualFile contentRoot : contentRoots) {
+          VirtualFile path=VfsUtil.findRelativeFile(additionalJARContent.getFirst(),contentRoot);
+          if (path != null) {
+            preselectedPath=path;
+            break;
+          }
+        }
+        if (preselectedPath == null) {
+          preselectedPath=contentRoots[0];
         }
       }
-      if (preselectedPath == null) {
-        preselectedPath=contentRoots[0];
+ else       if (project.getBaseDir() != null) {
+        preselectedPath=project.getBaseDir();
       }
     }
- else     if (project.getBaseDir() != null) {
-      preselectedPath=project.getBaseDir();
+    VirtualFile[] files=fileChooserDialog.choose(preselectedPath,project);
+    if (files.length > 0) {
+      String sourcePath=files[0].getPath();
+      String destPath=determineMostLikelyLocationInJAR(files[0]);
+      _additionalJARContentsTableModel.changeAdditionalJARConent(row,sourcePath,destPath);
+      _additionalJARContentsTable.editCellAt(row,1);
+      _additionalJARContentsTable.getEditorComponent().requestFocus();
     }
-  }
-  VirtualFile[] files=fileChooserDialog.choose(preselectedPath,project);
-  if (files.length > 0) {
-    String sourcePath=files[0].getPath();
-    String destPath=determineMostLikelyLocationInJAR(files[0]);
-    _additionalJARContentsTableModel.changeAdditionalJARConent(row,sourcePath,destPath);
-    _additionalJARContentsTable.editCellAt(row,1);
-    _additionalJARContentsTable.getEditorComponent().requestFocus();
   }
 }
