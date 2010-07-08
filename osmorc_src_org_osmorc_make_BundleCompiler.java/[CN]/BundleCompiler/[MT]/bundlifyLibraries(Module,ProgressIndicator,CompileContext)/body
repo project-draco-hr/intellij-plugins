@@ -1,34 +1,23 @@
 {
   ArrayList<String> result=new ArrayList<String>();
-  final ModuleRootManager manager=ModuleRootManager.getInstance(module);
-  LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
-  OrderEntry[] entries=manager.getOrderEntries();
-  for (  OrderEntry entry : entries) {
-    if (entry instanceof JdkOrderEntry) {
-      continue;
-    }
-    if (entry instanceof LibraryOrderEntry && libraryHandler.isFrameworkInstanceLibrary((LibraryOrderEntry)entry)) {
-      continue;
-    }
-    BndWrapper wrapper=new BndWrapper();
-    String[] urls=entry.getUrls(OrderRootType.CLASSES);
-    for (    String url : urls) {
-      url=convertJarUrlToFileUrl(url);
-      if (!CachingBundleInfoProvider.isBundle(url)) {
-        indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
-        indicator.setText2(url);
-        final String outputPath=getOutputPath(module,compileContext);
-        if (outputPath == null) {
-          break;
-        }
-        String bundledLocation=wrapper.wrapLibrary(compileContext,url,outputPath);
-        if (bundledLocation != null) {
-          result.add(fixFileURL(bundledLocation));
-        }
+  final String[] urls=OrderEnumerator.orderEntries(module).withoutSdk().withoutModuleSourceEntries().satisfying(NOT_FRAMEWORK_LIBRARY_CONDITION).recursively().exportedOnly().classes().getUrls();
+  BndWrapper wrapper=new BndWrapper();
+  for (  String url : urls) {
+    url=convertJarUrlToFileUrl(url);
+    if (!CachingBundleInfoProvider.isBundle(url)) {
+      indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
+      indicator.setText2(url);
+      final String outputPath=getOutputPath(module,compileContext);
+      if (outputPath == null) {
+        break;
       }
+      String bundledLocation=wrapper.wrapLibrary(compileContext,url,outputPath);
+      if (bundledLocation != null) {
+        result.add(fixFileURL(bundledLocation));
+      }
+    }
  else {
-        result.add(fixFileURL(url));
-      }
+      result.add(fixFileURL(url));
     }
   }
   return ArrayUtil.toStringArray(result);
