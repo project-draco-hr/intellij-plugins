@@ -1,6 +1,10 @@
 {
-  Task.Backgroundable task=new Task.Backgroundable(myModule.getProject(),"Updating OSGi dependency index for module '" + myModule.getName() + "'"){
-    public void run(    @NotNull ProgressIndicator indicator){
+  myApplication.invokeLater(new Runnable(){
+    public void run(){
+      ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.setText("Updating OSGi dependency index for module '" + myModule.getName() + "'");
+      }
       ModifiableRootModel model=new ReadAction<ModifiableRootModel>(){
         protected void run(        Result<ModifiableRootModel> result) throws Throwable {
           ModifiableRootModel model=ModuleRootManager.getInstance(myModule).getModifiableModel();
@@ -11,7 +15,9 @@
       OrderEntry[] entries=model.getOrderEntries();
       try {
         for (int i=0, entriesLength=entries.length; i < entriesLength; i++) {
-          indicator.setFraction(i / entriesLength);
+          if (indicator != null) {
+            indicator.setFraction(i / entriesLength);
+          }
           OrderEntry entry=entries[i];
           if (entry instanceof LibraryOrderEntry) {
             final Library library=((LibraryOrderEntry)entry).getLibrary();
@@ -26,6 +32,5 @@
       }
     }
   }
-;
-  task.queue();
+);
 }
