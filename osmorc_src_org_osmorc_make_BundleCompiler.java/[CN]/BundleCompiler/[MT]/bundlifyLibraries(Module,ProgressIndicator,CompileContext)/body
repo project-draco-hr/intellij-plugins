@@ -4,7 +4,7 @@
   BndWrapper wrapper=new BndWrapper();
   for (  String url : urls) {
     url=convertJarUrlToFileUrl(url);
-    if (!CachingBundleInfoProvider.isBundle(url)) {
+    if (CachingBundleInfoProvider.canBeBundlified(url)) {
       indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
       indicator.setText2(url);
       final String outputPath=getOutputPath(module,compileContext);
@@ -17,7 +17,9 @@
       }
     }
  else {
-      result.add(fixFileURL(url));
+      if (CachingBundleInfoProvider.isBundle(url)) {
+        result.add(fixFileURL(url));
+      }
     }
   }
   return ArrayUtil.toStringArray(result);
