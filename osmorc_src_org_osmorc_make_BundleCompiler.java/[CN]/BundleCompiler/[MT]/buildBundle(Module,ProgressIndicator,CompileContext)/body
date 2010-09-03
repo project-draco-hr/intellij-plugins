@@ -40,7 +40,7 @@ catch (  Exception e) {
   }
   String bndFileUrl="";
   Map<String,String> additionalProperties=new HashMap<String,String>();
-  if (configuration.isOsmorcControlsManifest() || configuration.isUseBndFile()) {
+  if (configuration.isOsmorcControlsManifest() || configuration.isUseBndFile() || configuration.isUseBundlorFile()) {
     if (configuration.isUseBndFile()) {
       File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
       if (bndFile == null || !bndFile.exists()) {
@@ -49,6 +49,12 @@ catch (  Exception e) {
       }
  else {
         bndFileUrl=VfsUtil.pathToUrl(bndFile.getPath());
+      }
+    }
+ else     if (configuration.isUseBundlorFile()) {
+      bndFileUrl=makeBndFile(module,"",compileContext);
+      if (bndFileUrl == null) {
+        return;
       }
     }
  else {
@@ -77,7 +83,7 @@ catch (  Exception e) {
       return;
     }
   }
-  if (!configuration.isOsmorcControlsManifest() || (configuration.isOsmorcControlsManifest() && !configuration.isUseBndFile())) {
+  if (!configuration.isOsmorcControlsManifest() || (configuration.isOsmorcControlsManifest() && !configuration.isUseBndFile() && !configuration.isUseBundlorFile())) {
     StringBuilder pathBuilder=new StringBuilder();
     for (int i=0; i < classPaths.size(); i++) {
       String classPath=classPaths.get(i);
@@ -100,8 +106,34 @@ catch (  Exception e) {
       additionalProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
     }
   }
-  wrapper.build(compileContext,bndFileUrl,ArrayUtil.toStringArray(classPaths),jarFile.getPath(),additionalProperties);
-  if (!configuration.isUseBndFile()) {
+  String outputPath=jarFile.getPath();
+  if (configuration.isUseBundlorFile()) {
+    outputPath+=".tmp.jar";
+  }
+  wrapper.build(compileContext,bndFileUrl,ArrayUtil.toStringArray(classPaths),outputPath,additionalProperties);
+  if (configuration.isUseBundlorFile()) {
+    File bundlorFile=findFileInModuleContentRoots(configuration.getBundlorFileLocation(),module);
+    if (bundlorFile == null || !bundlorFile.exists()) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The Bundlor file \"%s\" for module \"%s\" does not exist.",configuration.getBundlorFileLocation(),module.getName()),configuration.getBundlorFileLocation(),0,0);
+      return;
+    }
+    BundlorWrapper bw=new BundlorWrapper();
+    try {
+      if (!bw.wrapModule(compileContext,outputPath,jarFile.getPath(),bundlorFile.getPath())) {
+        compileContext.addMessage(CompilerMessageCategory.ERROR,"Bundlifying the file " + jarFile.getPath() + " with Bundlor failed.",null,0,0);
+        return;
+      }
+    }
+  finally {
+      File tempJar=new File(outputPath);
+      if (tempJar.exists()) {
+        if (!tempJar.delete()) {
+          compileContext.addMessage(CompilerMessageCategory.WARNING,"Could not delete temporary file: " + tempJar.getPath(),null,0,0);
+        }
+      }
+    }
+  }
+  if (!configuration.isUseBndFile() && !configuration.isUseBundlorFile()) {
     bundlifyLibraries(module,progressIndicator,compileContext);
   }
 }

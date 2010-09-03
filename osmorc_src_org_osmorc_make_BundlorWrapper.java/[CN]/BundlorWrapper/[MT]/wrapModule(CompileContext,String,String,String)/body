@@ -1,0 +1,21 @@
+{
+  ManifestWriter manifestWriter=new StandardManifestWriterFactory().create(inputJar,outputJar);
+  ManifestGenerator manifestGenerator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create());
+  StandardManifestValidator manifestValidator=new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create());
+  ManifestContents manifest=manifestGenerator.generate(new StandardManifestTemplateFactory().create(manifestTemplateFile,null,null,null));
+  try {
+    manifestWriter.write(manifest);
+  }
+ catch (  Exception e) {
+    compileContext.addMessage(CompilerMessageCategory.ERROR,"Error writing manifest: " + e.getMessage(),null,0,0);
+    return false;
+  }
+ finally {
+    manifestWriter.close();
+  }
+  final List<String> warningsList=manifestValidator.validate(manifest);
+  for (  String s : warningsList) {
+    compileContext.addMessage(CompilerMessageCategory.WARNING,s,VfsUtil.pathToUrl(manifestTemplateFile),0,0);
+  }
+  return true;
+}
