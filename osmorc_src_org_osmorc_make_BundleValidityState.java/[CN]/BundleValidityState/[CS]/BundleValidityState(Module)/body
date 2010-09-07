@@ -13,18 +13,10 @@
     final TObjectLongHashMap<String> url2Timestamps=new TObjectLongHashMap<String>();
     ApplicationManager.getApplication().runReadAction(new Runnable(){
       public void run(){
-        BuildRecipe buildrecipe=BundleCompiler.getBuildRecipe(module);
-        buildrecipe.visitInstructions(new BuildInstructionVisitor(){
-          public boolean visitFileCopyInstruction(          FileCopyInstruction filecopyinstruction) throws Exception {
-            File file=filecopyinstruction.getFile();
-            VirtualFile virtualfile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(file.getPath()));
-            if (virtualfile != null) {
-              BundleValidityState.registerTimestamps(virtualfile,url2Timestamps);
-            }
-            return true;
-          }
+        VirtualFile moduleOutputDir=BundleCompiler.getModuleOutputUrl(module);
+        if (moduleOutputDir != null) {
+          registerTimestamps(moduleOutputDir,url2Timestamps);
         }
-,false);
       }
     }
 );

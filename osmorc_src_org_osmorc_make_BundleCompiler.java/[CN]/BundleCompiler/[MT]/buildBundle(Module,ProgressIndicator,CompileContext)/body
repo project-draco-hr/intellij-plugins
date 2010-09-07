@@ -4,39 +4,17 @@
     jarFile.delete();
   }
   FileUtil.createParentDirs(jarFile);
-  final BuildRecipe buildrecipe=(new ReadAction<BuildRecipe>(){
-    protected void run(    Result<BuildRecipe> result){
-      result.setResult(getBuildRecipe(module));
+  final VirtualFile moduleOutputDir=new ReadAction<VirtualFile>(){
+    protected void run(    Result<VirtualFile> result){
+      result.setResult(getModuleOutputUrl(module));
     }
   }
-).execute().getResultObject();
+.execute().getResultObject();
   final BndWrapper wrapper=new BndWrapper();
   final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(module).getConfiguration();
   final List<String> classPaths=new ArrayList<String>();
-  try {
-    buildrecipe.visitInstructionsWithExceptions(new BuildInstructionVisitor(){
-      public boolean visitInstruction(      BuildInstruction buildinstruction) throws IOException {
-        ProgressManager.checkCanceled();
-        if (buildinstruction instanceof FileCopyInstruction) {
-          FileCopyInstruction filecopyinstruction=(FileCopyInstruction)buildinstruction;
-          File file2=filecopyinstruction.getFile();
-          if (file2 == null || !file2.exists()) {
-            return true;
-          }
-          String s2=FileUtil.toSystemDependentName(file2.getPath());
-          classPaths.add(VfsUtil.pathToUrl(s2));
-        }
-        return true;
-      }
-    }
-,false);
-  }
- catch (  ProcessCanceledException e) {
-    compileContext.addMessage(CompilerMessageCategory.INFORMATION,"Process canceled.",null,0,0);
-    return;
-  }
-catch (  Exception e) {
-    throw new RuntimeException(e);
+  if (moduleOutputDir != null) {
+    classPaths.add(moduleOutputDir.getUrl());
   }
   String bndFileUrl="";
   Map<String,String> additionalProperties=new HashMap<String,String>();
