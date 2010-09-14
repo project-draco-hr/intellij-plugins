@@ -2,10 +2,10 @@
   this.validator=validator;
   versionComboBox.addActionListener(new ActionListener(){
     public void actionPerformed(    final ActionEvent e){
-      final StrutsVersion version=getSelectedVersion();
+      final Version version=getSelectedVersion();
       if (version != null) {
         validator.setRequiredLibraries(getRequiredLibraries());
-        validator.setDescription(new StrutsFacetLibrariesValidatorDescription(version.getVersion()));
+        validator.setDescription(new StrutsFacetLibrariesValidatorDescription(version.getId()));
       }
     }
   }
@@ -18,8 +18,12 @@
     versionComboBox.setEnabled(false);
     return;
   }
-  versionComboBox.setModel(new EnumComboBoxModel<StrutsVersion>(StrutsVersion.class));
-  versionComboBox.getModel().setSelectedItem(StrutsVersion.STRUTS_2_2_1);
-  validator.setRequiredLibraries(getRequiredLibraries());
-  validator.setDescription(new StrutsFacetLibrariesValidatorDescription(StrutsVersion.STRUTS_2_2_1.getVersion()));
+  final Version[] versions=LibrariesDownloadAssistant.getVersions(StrutsFrameworkSupportProvider.getLibrariesUrl());
+  versionComboBox.setModel(new DefaultComboBoxModel(versions));
+  if (versions.length > 0) {
+    final Version item=versions[0];
+    versionComboBox.getModel().setSelectedItem(item);
+    validator.setRequiredLibraries(getRequiredLibraries());
+    validator.setDescription(new StrutsFacetLibrariesValidatorDescription(item.getId()));
+  }
 }
