@@ -22,6 +22,15 @@
   myDefaultStartLevel.setValue(osgiRunConfiguration.getDefaultStartLevel());
   boolean useUserDefinedFields=!osgiRunConfiguration.isGenerateWorkingDir();
   workingDirField.setText(osgiRunConfiguration.getWorkingDir());
+  if (workingDirField.getText().length() == 0) {
+    final CompilerProjectExtension extension=CompilerProjectExtension.getInstance(project);
+    if (extension != null) {
+      final VirtualFilePointer outputDirPointer=extension.getCompilerOutputPointer();
+      if (outputDirPointer != null) {
+        workingDirField.setText(VfsUtil.urlToPath(outputDirPointer.getUrl() + "/run.osgi/"));
+      }
+    }
+  }
   workingDirField.setEnabled(useUserDefinedFields);
   userDefinedRadioButton.setSelected(useUserDefinedFields);
   osmorcControlledRadioButton.setSelected(!useUserDefinedFields);
