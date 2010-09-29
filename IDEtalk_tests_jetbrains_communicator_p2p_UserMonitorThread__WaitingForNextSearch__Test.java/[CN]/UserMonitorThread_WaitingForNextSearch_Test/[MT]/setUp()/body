@@ -3,7 +3,7 @@
   myUserMonitorClientMock=mock(UserMonitorClient.class);
   final boolean[] started=new boolean[1];
   myMulticastThread=new MulticastPingThread(InetAddress.getByName("localhost"),null,(UserMonitorClient)myUserMonitorClientMock.proxy()){
-    public void run(){
+    @Override public void run(){
       myStarted=true;
       try {
         sleep(10000);
@@ -11,7 +11,7 @@
  catch (      InterruptedException e) {
       }
     }
-    public void sendMulticastPingRequest() throws IOException {
+    @Override public void sendMulticastPingRequest() throws IOException {
       started[0]=true;
     }
   }
@@ -23,14 +23,14 @@
   System.setProperty(UserMonitorThread.SCAN_TIMEOUT_PROPERTY,"");
   myUserMonitorThread.triggerFindNow();
   new WaitFor(){
-    protected boolean condition(){
+    @Override protected boolean condition(){
       return started[0];
     }
   }
 ;
   myUserMonitorClientMock.expects(once()).method("setOnlineUsers").with(eq(Collections.emptySet()));
   new WaitFor(myUserMonitorThread.getWaitUserResponsesTimeout() + 100){
-    protected boolean condition(){
+    @Override protected boolean condition(){
       return !myUserMonitorThread.isFinding();
     }
   }

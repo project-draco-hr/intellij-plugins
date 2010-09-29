@@ -3,19 +3,19 @@
   log[0]="";
   final String comment="????????? mes&&<>sage";
   MockXmlMessage message=new MockXmlMessage("tagName","myNamespace"){
-    public boolean needsResponse(){
+    @Override public boolean needsResponse(){
       return checkResponse;
     }
-    public void fillRequest(    Element element){
+    @Override public void fillRequest(    Element element){
       element.setText(comment);
     }
-    public void processResponse(    Element responseElement){
+    @Override public void processResponse(    Element responseElement){
       log[0]+=responseElement.getAttributeValue("foo");
     }
   }
 ;
   final MockXmlResponseProvider mockXmlResponseProvider=new MockXmlResponseProvider("tagName","myNamespace",testCase.getBroadcaster()){
-    public boolean processAndFillResponse(    Element response,    Element request,    Transport transport,    String remoteUser){
+    @Override public boolean processAndFillResponse(    Element response,    Element request,    Transport transport,    String remoteUser){
       log[0]+=remoteUser + " " + request.getName()+ " "+ request.getText();
       assertEquals("root element expected","tagName",request.getName());
       response.setAttribute("foo","gar");
@@ -25,14 +25,14 @@
 ;
   Pico.getInstance().registerComponentInstance(mockXmlResponseProvider);
   testCase.disposeOnTearDown(new Disposable(){
-    public void dispose(){
+    @Override public void dispose(){
       Pico.getInstance().unregisterComponentByInstance(mockXmlResponseProvider);
     }
   }
 );
   self.sendXmlMessage(message);
   new WaitFor(500){
-    protected boolean condition(){
+    @Override protected boolean condition(){
       if (checkResponse) {
         return log[0].endsWith("gar");
       }
