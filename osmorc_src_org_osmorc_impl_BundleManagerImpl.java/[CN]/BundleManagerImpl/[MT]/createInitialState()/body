@@ -1,6 +1,23 @@
 {
   if (_state == null) {
     _state=StateObjectFactory.defaultFactory.createState(true);
+    Resolver resolver=_state.getResolver();
+    if (resolver instanceof ResolverImpl) {
+      try {
+        Field minTime=ResolverImpl.class.getDeclaredField("MAX_USES_TIME_BASE");
+        minTime.setAccessible(true);
+        minTime.set(null,1000);
+        Field maxTime=ResolverImpl.class.getDeclaredField("MAX_USES_TIME_LIMIT");
+        maxTime.setAccessible(true);
+        maxTime.set(null,3000);
+      }
+ catch (      NoSuchFieldException e) {
+        LOG.warn(e);
+      }
+catch (      IllegalAccessException e) {
+        LOG.warn(e);
+      }
+    }
     Module[] modules=moduleManager.getModules();
     for (    Module module : modules) {
       addOrUpdateBundleInternal(module);
