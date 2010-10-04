@@ -11,4 +11,11 @@
     }
   }
   checkFrameworkSpecifics(runConfiguration);
+  final FrameworkInstanceDefinition frameworkInstanceDefinition=runConfiguration.getInstanceToUse();
+  if (frameworkInstanceDefinition != null) {
+    String version=frameworkInstanceDefinition.getVersion();
+    if (version == null || version.length() == 0 && !(runConfiguration.getProgramParameters().contains("--v=") || runConfiguration.getProgramParameters().contains("--version="))) {
+      throw new RuntimeConfigurationWarning("You did not specify a version to be used for '" + frameworkInstanceDefinition.getName() + "'. The runner will download and use the latest available version for this framework.");
+    }
+  }
 }
