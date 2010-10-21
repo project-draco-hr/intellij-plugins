@@ -32,7 +32,7 @@
   }
   Manifest mf=analyzer.calcManifest();
   Jar jar=analyzer.getJar();
-  File f=File.createTempFile("tmpbnd",".jar");
+  final File f=File.createTempFile("tmpbnd",".jar");
   jar.write(f);
   jar.close();
   analyzer.close();
@@ -42,25 +42,43 @@
       return false;
     }
   }
-  if (!f.renameTo(outputJar)) {
-    VirtualFile src=LocalFileSystem.getInstance().findFileByIoFile(f);
-    if (src == null) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"No jar file was created. This should not happen. Is " + f.getPath() + " writable?",null,0,0);
-      return false;
-    }
-    File parentFolder=outputJar.getParentFile();
-    if (!parentFolder.exists()) {
-      if (!parentFolder.mkdirs()) {
-        compileContext.addMessage(CompilerMessageCategory.ERROR,"Cannot create output folder. Is " + parentFolder.getPath() + " writable?",null,0,0);
-        return false;
+  final Ref<Boolean> result=new Ref<Boolean>(false);
+  ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+    public void run(){
+      result.set(ApplicationManager.getApplication().runWriteAction(new Computable<Boolean>(){
+        public Boolean compute(){
+          if (!f.renameTo(outputJar)) {
+            VirtualFile src=LocalFileSystem.getInstance().findFileByIoFile(f);
+            if (src == null) {
+              compileContext.addMessage(CompilerMessageCategory.ERROR,"No jar file was created. This should not happen. Is " + f.getPath() + " writable?",null,0,0);
+              return false;
+            }
+            File parentFolder=outputJar.getParentFile();
+            if (!parentFolder.exists()) {
+              if (!parentFolder.mkdirs()) {
+                compileContext.addMessage(CompilerMessageCategory.ERROR,"Cannot create output folder. Is " + parentFolder.getPath() + " writable?",null,0,0);
+                return false;
+              }
+            }
+            VirtualFile target=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(parentFolder);
+            if (target == null) {
+              compileContext.addMessage(CompilerMessageCategory.ERROR,"Output path " + parentFolder.getPath() + " was created but cannot be found anymore. This should not happen.",null,0,0);
+              return false;
+            }
+            try {
+              VfsUtil.copyFile(this,src,target,outputJar.getName());
+            }
+ catch (            IOException e) {
+              compileContext.addMessage(CompilerMessageCategory.ERROR,"Could not copy " + src + " to "+ target,null,0,0);
+              return false;
+            }
+          }
+          return true;
+        }
       }
+));
     }
-    VirtualFile target=LocalFileSystem.getInstance().findFileByIoFile(parentFolder);
-    if (target == null) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"Output path " + parentFolder.getPath() + " was created but cannot be found anymore. This should not happen.",null,0,0);
-      return false;
-    }
-    VfsUtil.copyFile(this,src,target,outputJar.getName());
   }
-  return true;
+,ModalityState.defaultModalityState());
+  return result.get();
 }
