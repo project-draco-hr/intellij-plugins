@@ -1,0 +1,123 @@
+{
+  for (  Method method : configClass.getDeclaredMethods()) {
+    if (method.getParameterTypes().length != 0 || !Modifier.isPublic(method.getModifiers())) {
+      continue;
+    }
+    String methodName=method.getName();
+    if (methodName.equals("getLoadConfig") || methodName.equals("getDumpConfig")) {
+      continue;
+    }
+    Object value=method.invoke(configuration);
+    if (value == null) {
+      continue;
+    }
+    Class<?> returnType=method.getReturnType();
+    String name=parseName(methodName);
+    if (value instanceof IFlexConfiguration) {
+      String configurationName=name.substring(0,name.length() - 14);
+      out.append(indent).append('<').append(configurationName).append('>');
+      build(value,returnType,indent + "\t");
+      out.append(indent).append("</").append(configurationName).append('>');
+    }
+ else     if (configuration instanceof IASDocConfiguration && "footer".equals(name)) {
+      throw new UnsupportedOperationException();
+    }
+ else     if (configuration instanceof IFontsConfiguration && "managers".equals(name)) {
+      throw new UnsupportedOperationException();
+    }
+ else     if (value instanceof IRuntimeSharedLibraryPath || value instanceof IRuntimeSharedLibraryPath[]) {
+      final IRuntimeSharedLibraryPath[] values;
+      if (returnType.isArray()) {
+        values=(IRuntimeSharedLibraryPath[])value;
+      }
+ else {
+        values=new IRuntimeSharedLibraryPath[]{(IRuntimeSharedLibraryPath)value};
+      }
+      for (      IRuntimeSharedLibraryPath arg : values) {
+        out.write("\n\t<");
+        out.write(name);
+        out.write(">\n\t\t<path-element>");
+        out.write(arg.pathElement());
+        out.write("</path-element>");
+        for (        Map.Entry<String,String> entry : (Set<Map.Entry<String,String>>)arg.rslUrl().entrySet()) {
+          out.write("\n\t\t<rsl-url>");
+          out.write(entry.getKey());
+          out.write("</rsl-url>");
+          if (entry.getValue() != null) {
+            out.write("\n\t\t<policy-file-url>");
+            out.write(entry.getValue());
+            out.write("</policy-file-url>");
+          }
+        }
+        out.write("\n\t</");
+        out.write(name);
+        out.write('>');
+      }
+    }
+ else     if (value instanceof IFlexArgument || value instanceof IFlexArgument[]) {
+      IFlexArgument[] values;
+      Class<?> type=returnType;
+      if (type.isArray()) {
+        values=(IFlexArgument[])value;
+        type=returnType.getComponentType();
+      }
+ else {
+        values=new IFlexArgument[]{(IFlexArgument)value};
+        type=returnType;
+      }
+      for (      IFlexArgument iFlexArgument : values) {
+        out.append(indent).append('<').append(name).append('>');
+        for (        String argMethodName : (String[])type.getField("ORDER").get(iFlexArgument)) {
+          Object argValue=type.getDeclaredMethod(argMethodName).invoke(iFlexArgument);
+          if (argValue == null) {
+            throw new UnsupportedOperationException();
+          }
+ else           if (argValue instanceof Collection<?> || argValue.getClass().isArray()) {
+            throw new UnsupportedOperationException();
+          }
+ else           if (argValue instanceof Map<?,?>) {
+            throw new UnsupportedOperationException();
+          }
+ else {
+            writeTag(indent,argMethodName,(String)argValue);
+          }
+        }
+        out.append(indent).append("</").append(name).append('>');
+      }
+    }
+ else     if (configuration instanceof IMetadataConfiguration && (name.equals("language") || name.equals("creator") || name.equals("publisher"))) {
+      for (      String v : (String[])value) {
+        out.append(indent).append("<").append(name).append(">").append(v).append("</").append(name).append('>');
+      }
+    }
+ else     if (returnType.isArray() || value instanceof Collection<?>) {
+      Object[] values;
+      if (returnType.isArray()) {
+        values=(Object[])value;
+      }
+ else {
+        values=((Collection<?>)value).toArray();
+      }
+      out.append(indent).append('<').append(name);
+      if (values.length == 0) {
+        out.write("/>");
+      }
+ else {
+        out.write('>');
+        String childTagName=childTagNameMap.get(name);
+        if (childTagName == null) {
+          childTagName="path-element";
+        }
+        for (        Object v : values) {
+          writeTag(indent,childTagName,v.toString());
+        }
+        out.append(indent).append("</").append(name).append('>');
+      }
+    }
+ else {
+      out.append(indent).append('<').append(name).append('>');
+      out.write(value.toString());
+      out.append("</").append(name).append('>');
+    }
+  }
+}
