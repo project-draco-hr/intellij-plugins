@@ -7,35 +7,7 @@
   if (currentPackage == null) {
     return false;
   }
-  final PsiReference chainReference=new PsiReferenceBase<PsiElement>(psiElement,soft){
-    public PsiElement resolve(){
-      return resolveActionPath(psiElement,currentPackage,model);
-    }
-    @NotNull public Object[] getVariants(){
-      final List<LookupItem<ActionLookupItem>> variants=new ArrayList<LookupItem<ActionLookupItem>>();
-      final List<Action> allActions=model.getActionsForNamespace(null);
-      for (      final Action action : allActions) {
-        final String actionPath=action.getName().getStringValue();
-        if (actionPath != null) {
-          final boolean isInCurrentPackage=Comparing.equal(action.getNamespace(),currentPackage);
-          final ActionLookupItem actionItem=new ActionLookupItem(action,isInCurrentPackage);
-          final String actionNamespace=action.getNamespace();
-          final String fullPath;
-          if (!Comparing.equal(actionNamespace,StrutsPackage.DEFAULT_NAMESPACE) && !isInCurrentPackage) {
-            fullPath=actionNamespace + "/" + actionPath;
-          }
- else {
-            fullPath=actionPath;
-          }
-          final LookupItem<ActionLookupItem> item=new LookupItem<ActionLookupItem>(actionItem,fullPath);
-          item.putUserData(LookupItem.OVERWRITE_ON_AUTOCOMPLETE_ATTR,Boolean.TRUE);
-          variants.add(item);
-        }
-      }
-      return ArrayUtil.toObjectArray(variants);
-    }
-  }
-;
+  final PsiReference chainReference=new ActionChainReference(psiElement,currentPackage,model);
   references.add(chainReference);
   return false;
 }
