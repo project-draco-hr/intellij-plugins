@@ -1,12 +1,11 @@
 {
-  final List<LookupItem<ActionLookupItem>> variants=new ArrayList<LookupItem<ActionLookupItem>>();
   final String firstExtension=actionExtensions.get(0);
   final List<Action> allActions=model.getActionsForNamespace(null);
+  final List<LookupElementBuilder> variants=new ArrayList<LookupElementBuilder>(allActions.size());
   for (  final Action action : allActions) {
     final String actionPath=action.getName().getStringValue();
     if (actionPath != null) {
       final boolean isInCurrentPackage=Comparing.equal(action.getNamespace(),currentPackage);
-      final ActionLookupItem actionItem=new ActionLookupItem(action,isInCurrentPackage);
       final String actionNamespace=action.getNamespace();
       final String fullPath;
       if (!Comparing.equal(actionNamespace,StrutsPackage.DEFAULT_NAMESPACE) && !isInCurrentPackage) {
@@ -15,9 +14,8 @@
  else {
         fullPath=actionPath + firstExtension;
       }
-      final LookupItem<ActionLookupItem> item=new LookupItem<ActionLookupItem>(actionItem,fullPath);
-      item.putUserData(LookupItem.OVERWRITE_ON_AUTOCOMPLETE_ATTR,Boolean.TRUE);
-      variants.add(item);
+      final LookupElementBuilder builder=LookupElementBuilder.create(action.getXmlTag(),fullPath).setBold(isInCurrentPackage).setIcon(StrutsIcons.ACTION).setTypeText(action.getNamespace());
+      variants.add(builder);
     }
   }
   return ArrayUtil.toObjectArray(variants);
