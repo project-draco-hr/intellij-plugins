@@ -1,3 +1,22 @@
 {
-  return _jarFileLocation != null ? _jarFileLocation : "";
+  String nullSafeLocation=myJarFileLocation != null ? myJarFileLocation : "";
+  if (myOutputPathType == null) {
+    return nullSafeLocation;
+  }
+switch (myOutputPathType) {
+case CompilerOutputPath:
+    VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(myFacet.getModule()).getCompilerOutputPath();
+  if (moduleCompilerOutputPath != null) {
+    return moduleCompilerOutputPath.getParent().getPath() + "/" + nullSafeLocation;
+  }
+ else {
+    return nullSafeLocation;
+  }
+case OsgiOutputPath:
+ProjectSettings projectSettings=ModuleServiceManager.getService(myFacet.getModule(),ProjectSettings.class);
+return projectSettings.getBundlesOutputPath() + "/" + nullSafeLocation;
+case SpecificOutputPath:
+default :
+return nullSafeLocation;
+}
 }

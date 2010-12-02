@@ -1,0 +1,31 @@
+{
+  String currentFile=myJarOutputPathChooser.getText();
+  VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputPath();
+  if (moduleCompilerOutputPath == null) {
+    String outputPathUrl=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputUrl();
+    try {
+      VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
+    }
+ catch (    IOException e) {
+      Messages.showErrorDialog(myRoot,OsmorcBundle.getTranslation("error"),OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"));
+      return;
+    }
+    moduleCompilerOutputPath=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputPath();
+    if (moduleCompilerOutputPath == null) {
+      throw new IllegalStateException("Cannot access compiler output path.");
+    }
+  }
+  VirtualFile preselectedFile=StringUtil.isNotEmpty(currentFile) ? LocalFileSystem.getInstance().findFileByPath(currentFile) : moduleCompilerOutputPath;
+  FileChooserDescriptor descriptor=new FileChooserDescriptor(false,true,false,false,false,false);
+  descriptor.setTitle("Select bundle output directory");
+  VirtualFile[] virtualFiles=FileChooser.chooseFiles(myEditorContext.getProject(),descriptor,preselectedFile);
+  if (virtualFiles.length == 1) {
+    VirtualFile file=virtualFiles[0];
+    if (VfsUtil.isAncestor(moduleCompilerOutputPath,file,false)) {
+      Messages.showErrorDialog(myEditorContext.getProject(),OsmorcBundle.getTranslation("error"),OsmorcBundle.getTranslation("faceteditor.jar.cannot.be.in.output.path"));
+      myJarOutputPathChooser.setText("");
+      return;
+    }
+    myJarOutputPathChooser.setText(file.getPath().replace(File.separatorChar,'/'));
+  }
+}

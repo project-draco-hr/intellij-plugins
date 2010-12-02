@@ -1,40 +1,49 @@
 {
-  _editorContext=editorContext;
+  myEditorContext=editorContext;
   final Project project=editorContext.getProject();
-  _ignoreFilePatternTextField=new EditorTextField("",project,FileTypes.PLAIN_TEXT);
+  myIgnoreFilePatternTextField=new EditorTextField("",project,FileTypes.PLAIN_TEXT);
   FileType fileType=FileTypeManager.getInstance().getFileTypeByFileName("*.regexp");
   if (fileType == FileTypes.UNKNOWN) {
     fileType=FileTypeManager.getInstance().getFileTypeByFileName("*.txt");
   }
-  final PsiFile file=PsiFileFactory.getInstance(project).createFileFromText("*.regexp",fileType,_ignoreFilePatternTextField.getText(),-1,true);
-  _ignoreFilePatternTextField.setNewDocumentAndFileType(fileType,PsiDocumentManager.getInstance(project).getDocument(file));
-  _ignoreFilePatternPanel.add(_ignoreFilePatternTextField,BorderLayout.CENTER);
+  final PsiFile file=PsiFileFactory.getInstance(project).createFileFromText("*.regexp",fileType,myIgnoreFilePatternTextField.getText(),-1,true);
+  myIgnoreFilePatternTextField.setNewDocumentAndFileType(fileType,PsiDocumentManager.getInstance(project).getDocument(file));
+  myIgnoreFilePatternPanel.add(myIgnoreFilePatternTextField,BorderLayout.CENTER);
   UserActivityWatcher watcher=new UserActivityWatcher();
   watcher.addUserActivityListener(new UserActivityListener(){
     public void stateChanged(){
-      _modified=true;
+      myModified=true;
     }
   }
 );
-  watcher.register(_root);
-  _jarFileChooser.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      onJarFileSelect();
+  myJarOutputPathChooser.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent actionEvent){
+      onOutputPathSelect();
     }
   }
 );
-  _additionalJARContentsTableModel=new AdditionalJARContentsTableModel();
-  _additionalJARContentsTable.setModel(_additionalJARContentsTableModel);
-  TableColumn col=_additionalJARContentsTable.getColumnModel().getColumn(0);
-  final FileSelectorTableCellEditor selectorTableCellEditor=new FileSelectorTableCellEditor(project,_editorContext.getModule());
+  ChangeListener listener=new ChangeListener(){
+    public void stateChanged(    ChangeEvent e){
+      updateGui();
+    }
+  }
+;
+  myPlaceInProjectWideRadioButton.addChangeListener(listener);
+  myPlaceInThisPathRadioButton.addChangeListener(listener);
+  myPlaceInCompilerOutputPathRadioButton.addChangeListener(listener);
+  watcher.register(myRoot);
+  myAdditionalJARContentsTableModel=new AdditionalJARContentsTableModel();
+  myAdditionalJARContentsTable.setModel(myAdditionalJARContentsTableModel);
+  TableColumn col=myAdditionalJARContentsTable.getColumnModel().getColumn(0);
+  final FileSelectorTableCellEditor selectorTableCellEditor=new FileSelectorTableCellEditor(project,myEditorContext.getModule());
   col.setCellEditor(selectorTableCellEditor);
   selectorTableCellEditor.addCellEditorListener(new CellEditorListener(){
     public void editingCanceled(    ChangeEvent e){
     }
     public void editingStopped(    ChangeEvent e){
-      int row=_additionalJARContentsTable.getSelectedRow();
+      int row=myAdditionalJARContentsTable.getSelectedRow();
       if (row > -1) {
-        Pair<String,String> additionalJARContent=_additionalJARContentsTableModel.getAdditionalJARContent(row);
+        Pair<String,String> additionalJARContent=myAdditionalJARContentsTableModel.getAdditionalJARContent(row);
         VirtualFile preselectedPath=LocalFileSystem.getInstance().findFileByPath(additionalJARContent.getFirst());
         String destinationName;
         if (preselectedPath != null) {
@@ -43,38 +52,38 @@
  else {
           destinationName="";
         }
-        _additionalJARContentsTableModel.changeAdditionalJARConent(row,additionalJARContent.first,destinationName);
-        _additionalJARContentsTable.editCellAt(row,1);
-        _additionalJARContentsTable.getEditorComponent().requestFocus();
+        myAdditionalJARContentsTableModel.changeAdditionalJARConent(row,additionalJARContent.first,destinationName);
+        myAdditionalJARContentsTable.editCellAt(row,1);
+        myAdditionalJARContentsTable.getEditorComponent().requestFocus();
       }
     }
   }
 );
-  _additionalJARContentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+  myAdditionalJARContentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
     public void valueChanged(    ListSelectionEvent e){
-      _removeButton.setEnabled(_additionalJARContentsTable.getSelectedRowCount() > 0);
-      _editButton.setEnabled(_additionalJARContentsTable.getSelectedRowCount() > 0);
+      myRemoveButton.setEnabled(myAdditionalJARContentsTable.getSelectedRowCount() > 0);
+      myEditButton.setEnabled(myAdditionalJARContentsTable.getSelectedRowCount() > 0);
     }
   }
 );
-  _addButton.addActionListener(new ActionListener(){
+  myAddButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onAddAdditionalJARContent();
     }
   }
 );
-  _removeButton.addActionListener(new ActionListener(){
+  myRemoveButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onRemoveAdditionalJARContent();
     }
   }
 );
-  _editButton.addActionListener(new ActionListener(){
+  myEditButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onEditAdditionalJARContent();
     }
   }
 );
-  _editButton.setEnabled(false);
-  _removeButton.setEnabled(false);
+  myEditButton.setEnabled(false);
+  myRemoveButton.setEnabled(false);
 }

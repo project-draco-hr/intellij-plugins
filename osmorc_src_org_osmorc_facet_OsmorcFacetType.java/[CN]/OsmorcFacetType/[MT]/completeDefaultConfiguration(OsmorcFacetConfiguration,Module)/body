@@ -15,8 +15,16 @@
         }
         String jarFileName=module.getName();
         jarFileName=jarFileName.replaceAll("[\\s]","_");
-        String jarFilePath=new File(moduleCompilerOutputPath.getParent().getPath(),jarFileName + ".jar").getAbsolutePath().replace('\\','/');
-        configuration.setJarFileLocation(jarFilePath);
+        String jarFilePath=new File(jarFileName + ".jar").getAbsolutePath().replace('\\','/');
+        OsmorcFacetConfiguration.OutputPathType outputPathType=OsmorcFacetConfiguration.OutputPathType.CompilerOutputPath;
+        final ProjectSettings projectSettings=ModuleServiceManager.getService(module,ProjectSettings.class);
+        if (projectSettings != null) {
+          String bundlesOutputPath=projectSettings.getBundlesOutputPath();
+          if (bundlesOutputPath != null && bundlesOutputPath.length() > 0) {
+            outputPathType=OsmorcFacetConfiguration.OutputPathType.OsgiOutputPath;
+          }
+        }
+        configuration.setJarFileLocation(jarFilePath,outputPathType);
       }
     }
 );

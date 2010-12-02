@@ -1,8 +1,24 @@
 {
-  OsmorcFacetConfiguration configuration=(OsmorcFacetConfiguration)_editorContext.getFacet().getConfiguration();
-  _jarFileChooser.setText(configuration.getJarFileLocation());
-  _additionalJARContentsTableModel.replaceContent(configuration.getAdditionalJARContents());
-  _ignoreFilePatternTextField.setText(configuration.getIgnoreFilePattern());
-  _alwaysRebuildBundleJARCheckBox.setSelected(configuration.isAlwaysRebuildBundleJAR());
+  OsmorcFacetConfiguration configuration=(OsmorcFacetConfiguration)myEditorContext.getFacet().getConfiguration();
+  String completeOutputPath=configuration.getJarFileLocation();
+  OsmorcFacetConfiguration.OutputPathType outputPathType=configuration.getOutputPathType();
+  myPlaceInCompilerOutputPathRadioButton.setSelected(outputPathType == CompilerOutputPath);
+  myPlaceInProjectWideRadioButton.setSelected(outputPathType == OsgiOutputPath);
+  myPlaceInThisPathRadioButton.setSelected(outputPathType == SpecificOutputPath);
+  completeOutputPath=completeOutputPath.replace('\\','/');
+  int idx=completeOutputPath.lastIndexOf('/');
+  String path=completeOutputPath.substring(0,idx);
+  String name=completeOutputPath.substring(idx + 1);
+  if (outputPathType == SpecificOutputPath) {
+    myJarOutputPathChooser.setText(path);
+    myJarFileTextField.setText(name);
+  }
+ else {
+    myJarFileTextField.setText(name);
+    myJarOutputPathChooser.setText("");
+  }
+  myAdditionalJARContentsTableModel.replaceContent(configuration.getAdditionalJARContents());
+  myIgnoreFilePatternTextField.setText(configuration.getIgnoreFilePattern());
+  myAlwaysRebuildBundleJARCheckBox.setSelected(configuration.isAlwaysRebuildBundleJAR());
   updateGui();
 }
