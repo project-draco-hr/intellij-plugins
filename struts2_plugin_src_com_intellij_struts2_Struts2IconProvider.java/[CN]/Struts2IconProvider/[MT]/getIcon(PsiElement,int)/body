@@ -1,5 +1,5 @@
 {
-  if (active) {
+  if (computingLayeredIcon) {
     return null;
   }
   if (element instanceof JspFile) {
@@ -15,40 +15,35 @@
   if (strutsFacet == null) {
     return null;
   }
-  active=true;
+  if (element instanceof XmlFile) {
+    final XmlFile xmlFile=(XmlFile)element;
+    final DomManager domManager=DomManager.getDomManager(xmlFile.getProject());
+    if (domManager.getFileElement(xmlFile,StrutsRoot.class) != null) {
+      return StrutsIcons.STRUTS_CONFIG_FILE_ICON;
+    }
+    if (domManager.getFileElement(xmlFile,Validators.class) != null) {
+      return StrutsIcons.VALIDATION_CONFIG_FILE_ICON;
+    }
+    if (domManager.getFileElement(xmlFile,ValidatorsConfig.class) != null) {
+      return StrutsIcons.VALIDATION_CONFIG_FILE_ICON;
+    }
+    return null;
+  }
   try {
-    Icon strutsIcon=null;
-    if (element instanceof XmlFile) {
-      final XmlFile xmlFile=(XmlFile)element;
-      final DomManager domManager=DomManager.getDomManager(xmlFile.getProject());
-      if (domManager.getFileElement(xmlFile,StrutsRoot.class) != null) {
-        strutsIcon=StrutsIcons.ACTION_SMALL;
-      }
- else       if (domManager.getFileElement(xmlFile,Validators.class) != null) {
-        strutsIcon=StrutsIcons.VALIDATOR_SMALL;
-      }
- else       if (domManager.getFileElement(xmlFile,ValidatorsConfig.class) != null) {
-        strutsIcon=StrutsIcons.VALIDATOR_SMALL;
-      }
-    }
- else {
-      final PsiClass psiClass=(PsiClass)element;
-      final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
-      final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
-      if (strutsModel != null && !strutsModel.findActionsByClass(psiClass).isEmpty()) {
-        strutsIcon=StrutsIcons.ACTION_SMALL;
-      }
-    }
-    if (strutsIcon == null) {
+    computingLayeredIcon=true;
+    final PsiClass psiClass=(PsiClass)element;
+    final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
+    final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
+    if (strutsModel == null || strutsModel.findActionsByClass(psiClass).isEmpty()) {
       return null;
     }
     final LayeredIcon layeredIcon=new LayeredIcon(2);
     final Icon original=element.getIcon(flags & ~Iconable.ICON_FLAG_VISIBILITY);
     layeredIcon.setIcon(original,0);
-    layeredIcon.setIcon(strutsIcon,1,0,StrutsIcons.SMALL_ICON_Y_OFFSET);
+    layeredIcon.setIcon(StrutsIcons.ACTION_SMALL,1,0,StrutsIcons.OVERLAY_Y_OFFSET);
     return layeredIcon;
   }
   finally {
-    active=false;
+    computingLayeredIcon=false;
   }
 }
