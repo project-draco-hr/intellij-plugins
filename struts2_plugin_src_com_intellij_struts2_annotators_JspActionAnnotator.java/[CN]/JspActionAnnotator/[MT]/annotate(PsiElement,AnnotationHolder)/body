@@ -6,28 +6,31 @@
     return;
   }
   final XmlTag xmlTag=(XmlTag)psiElement;
-  final String uiTaglibPrefix=getUITaglibPrefix(xmlTag);
-  if (uiTaglibPrefix == null) {
+  final String tagName=xmlTag.getLocalName();
+  if (Arrays.binarySearch(TAGS_WITH_ACTION_ATTRIBUTE,tagName) < 0) {
     return;
   }
-  if (Comparing.equal(xmlTag.getNamespacePrefix(),uiTaglibPrefix) && Arrays.binarySearch(TAGS_WITH_ACTION_ATTRIBUTE,xmlTag.getLocalName()) > -1) {
-    final String actionPath=Comparing.equal(xmlTag.getLocalName(),ACTION_ATTRIBUTE_NAME) ? xmlTag.getAttributeValue("name") : xmlTag.getAttributeValue(ACTION_ATTRIBUTE_NAME);
-    if (actionPath == null) {
-      return;
-    }
-    final StrutsModel strutsModel=StrutsManager.getInstance(psiElement.getProject()).getCombinedModel(ModuleUtil.findModuleForPsiElement(psiElement));
-    if (strutsModel == null) {
-      return;
-    }
-    final String namespace=xmlTag.getAttributeValue("namespace");
-    final List<Action> actions=strutsModel.findActionsByName(actionPath,namespace);
-    if (!actions.isEmpty()) {
-      NavigationGutterIconBuilder.create(StrutsIcons.ACTION_CLASS_ICON).setTooltipText(StrutsBundle.message("annotators.jsp.goto.action.method")).setEmptyPopupText(StrutsBundle.message("annotators.jsp.goto.action.method.notfound")).setTargets(new NotNullLazyValue<Collection<? extends PsiElement>>(){
-        @NotNull protected Collection<PsiMethod> compute(){
-          return ContainerUtil.mapNotNull(actions,ACTION_METHOD_FUNCTION);
-        }
-      }
-).install(annotationHolder,xmlTag);
+  final String uiTaglibPrefix=getUITaglibPrefix(xmlTag);
+  if (uiTaglibPrefix == null || !Comparing.equal(xmlTag.getNamespacePrefix(),uiTaglibPrefix)) {
+    return;
+  }
+  final String actionPath=Comparing.equal(tagName,ACTION_ATTRIBUTE_NAME) ? xmlTag.getAttributeValue("name") : xmlTag.getAttributeValue(ACTION_ATTRIBUTE_NAME);
+  if (actionPath == null) {
+    return;
+  }
+  final StrutsModel strutsModel=StrutsManager.getInstance(psiElement.getProject()).getCombinedModel(ModuleUtil.findModuleForPsiElement(psiElement));
+  if (strutsModel == null) {
+    return;
+  }
+  final String namespace=xmlTag.getAttributeValue("namespace");
+  final List<Action> actions=strutsModel.findActionsByName(actionPath,namespace);
+  if (actions.isEmpty()) {
+    return;
+  }
+  NavigationGutterIconBuilder.create(StrutsIcons.ACTION_CLASS_ICON).setTooltipText(StrutsBundle.message("annotators.jsp.goto.action.method")).setEmptyPopupText(StrutsBundle.message("annotators.jsp.goto.action.method.notfound")).setTargets(new NotNullLazyValue<Collection<? extends PsiElement>>(){
+    @NotNull protected Collection<PsiMethod> compute(){
+      return ContainerUtil.mapNotNull(actions,ACTION_METHOD_FUNCTION);
     }
   }
+).install(annotationHolder,xmlTag);
 }
