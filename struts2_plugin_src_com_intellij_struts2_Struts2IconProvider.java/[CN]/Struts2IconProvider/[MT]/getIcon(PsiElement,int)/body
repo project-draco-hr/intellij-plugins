@@ -1,7 +1,4 @@
 {
-  if (computingLayeredIcon) {
-    return null;
-  }
   if (element instanceof JspFile) {
     return null;
   }
@@ -29,21 +26,15 @@
     }
     return null;
   }
-  try {
-    computingLayeredIcon=true;
-    final PsiClass psiClass=(PsiClass)element;
-    final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
-    final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
-    if (strutsModel == null || strutsModel.findActionsByClass(psiClass).isEmpty()) {
-      return null;
-    }
-    final LayeredIcon layeredIcon=new LayeredIcon(2);
-    final Icon original=element.getIcon(flags & ~Iconable.ICON_FLAG_VISIBILITY);
-    layeredIcon.setIcon(original,0);
-    layeredIcon.setIcon(StrutsIcons.ACTION_SMALL,1,0,StrutsIcons.OVERLAY_Y_OFFSET);
-    return layeredIcon;
+  final PsiClass psiClass=(PsiClass)element;
+  final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
+  final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
+  if (strutsModel == null || strutsModel.findActionsByClass(psiClass).isEmpty()) {
+    return null;
   }
-  finally {
-    computingLayeredIcon=false;
-  }
+  final LayeredIcon layeredIcon=new LayeredIcon(2);
+  final Icon original=PsiClassImplUtil.getClassIcon(flags,psiClass);
+  layeredIcon.setIcon(original,0);
+  layeredIcon.setIcon(StrutsIcons.ACTION_SMALL,1,0,StrutsIcons.OVERLAY_Y_OFFSET);
+  return layeredIcon;
 }
