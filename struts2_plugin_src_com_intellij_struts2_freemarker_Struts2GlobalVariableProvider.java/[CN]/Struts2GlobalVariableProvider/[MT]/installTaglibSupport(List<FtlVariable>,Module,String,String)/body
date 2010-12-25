@@ -1,14 +1,19 @@
 {
   final XmlFile xmlFile=JspManager.getInstance(module.getProject()).getTldFileByUri(taglibUri,module,null);
-  if (xmlFile != null) {
-    final XmlDocument document=xmlFile.getDocument();
-    if (document != null) {
-      final XmlNSDescriptor descriptor=(XmlNSDescriptor)document.getMetaData();
-      if (descriptor != null) {
-        PsiElement declaration=descriptor.getDeclaration();
-        if (declaration == null)         declaration=xmlFile;
-        result.add(new FtlLightVariable(taglibPrefix,declaration,new FtlXmlNamespaceType(descriptor)));
-      }
-    }
+  if (xmlFile == null) {
+    return;
   }
+  final XmlDocument document=xmlFile.getDocument();
+  if (document == null) {
+    return;
+  }
+  final XmlNSDescriptor descriptor=(XmlNSDescriptor)document.getMetaData();
+  if (descriptor == null) {
+    return;
+  }
+  PsiElement declaration=descriptor.getDeclaration();
+  if (declaration == null) {
+    declaration=xmlFile;
+  }
+  result.add(new FtlLightVariable(taglibPrefix,declaration,new FtlXmlNamespaceType(descriptor)));
 }

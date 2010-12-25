@@ -1,8 +1,12 @@
 {
   final Module module=ModuleUtil.findModuleForPsiElement(file);
-  if (module == null)   return Collections.emptyList();
-  if (StrutsFacet.getInstance(module) == null)   return Collections.emptyList();
-  List<FtlVariable> result=new ArrayList<FtlVariable>();
+  if (module == null) {
+    return Collections.emptyList();
+  }
+  if (StrutsFacet.getInstance(module) == null) {
+    return Collections.emptyList();
+  }
+  final List<FtlVariable> result=new ArrayList<FtlVariable>();
   result.add(new FtlLightVariable("stack",file,(FtlType)null));
   result.add(new FtlLightVariable("action",file,(FtlType)null));
   result.add(new FtlLightVariable("response",file,"javax.servlet.http.HttpServletResponse"));
@@ -15,25 +19,29 @@
   installTaglibSupport(result,module,StrutsConstants.TAGLIB_STRUTS_UI_URI,StrutsConstants.TAGLIB_STRUTS_UI_PREFIX);
   installTaglibSupport(result,module,StrutsConstants.TAGLIB_JQUERY_PLUGIN_URI,StrutsConstants.TAGLIB_JQUERY_PLUGIN_PREFIX);
   installTaglibSupport(result,module,StrutsConstants.TAGLIB_JQUERY_RICHTEXT_PLUGIN_URI,StrutsConstants.TAGLIB_JQUERY_RICHTEXT_PLUGIN_PREFIX);
-  for (  final StrutsModel model : StrutsManager.getInstance(file.getProject()).getAllModels(module)) {
-    for (    final StrutsPackage strutsPackage : model.getStrutsPackages()) {
-      for (      final Action action : strutsPackage.getActions()) {
-        final PsiClass actionClass=action.getActionClass().getValue();
-        if (actionClass != null) {
-          final PsiClassType actionType=JavaPsiFacade.getInstance(actionClass.getProject()).getElementFactory().createType(actionClass);
-          for (          final Result result1 : action.getResults()) {
-            if ("freemarker".equals(result1.getType().getStringValue())) {
-              final PathReference reference=result1.getValue();
-              final PsiElement target=reference == null ? null : reference.resolve();
-              if (target != null && (file.getManager().areElementsEquivalent(file,target) || file.getManager().areElementsEquivalent(file.getOriginalFile(),target))) {
-                result.add(new FtlLightVariable("",action.getXmlTag(),FtlPsiType.wrap(actionType)));
-                break;
-              }
+  final Processor<Action> processor=new Processor<Action>(){
+    @Override public boolean process(    final Action action){
+      final PsiClass actionClass=action.getActionClass().getValue();
+      if (actionClass != null) {
+        for (        final Result result1 : action.getResults()) {
+          final ResultType resultType=result1.getEffectiveResultType();
+          if (resultType != null && FreeMarkerStrutsResultContributor.FREEMARKER.equals(resultType.getName().getStringValue())) {
+            final PathReference reference=result1.getValue();
+            final PsiElement target=reference == null ? null : reference.resolve();
+            if (target != null && (file.getManager().areElementsEquivalent(file,target) || file.getManager().areElementsEquivalent(file.getOriginalFile(),target))) {
+              final PsiClassType actionType=JavaPsiFacade.getInstance(actionClass.getProject()).getElementFactory().createType(actionClass);
+              result.add(new FtlLightVariable("",action.getXmlTag(),FtlPsiType.wrap(actionType)));
+              return false;
             }
           }
         }
       }
+      return true;
     }
+  }
+;
+  for (  final StrutsModel model : StrutsManager.getInstance(file.getProject()).getAllModels(module)) {
+    model.processActions(processor);
   }
   return result;
 }
