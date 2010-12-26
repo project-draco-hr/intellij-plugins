@@ -1,0 +1,15 @@
+{
+  final String namespace=getNamespace(psiElement);
+  if (namespace == null) {
+    return false;
+  }
+  final WebFacet webFacet=WebUtil.getWebFacet(psiElement);
+  if (webFacet == null) {
+    return false;
+  }
+  final FileReferenceSet set=FileReferenceSetHelper.createRestrictedByFileType(psiElement,VtlFileType.INSTANCE);
+  FileReferenceSetHelper.addWebDirectoryAndCurrentNamespaceAsRoots(psiElement,namespace,webFacet,set);
+  set.setEmptyPathAllowed(false);
+  Collections.addAll(references,set.getAllReferences());
+  return true;
+}
