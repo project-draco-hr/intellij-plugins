@@ -1,0 +1,35 @@
+{
+  try {
+    mySdkSpecificHandler.initThreadLocals(myLogger);
+    final Configuration configuration=mySdkSpecificHandler.processConfiguration(myParams);
+    final Builder builder=mySdkSpecificHandler.createBuilder(configuration);
+    builder.setLogger(myLogger);
+    builder.setPathResolver(SdkFilesResolver.INSTANCE);
+    final long outputFileSize;
+    final boolean omitTrace=mySdkSpecificHandler.omitTrace(configuration);
+    try {
+      acquire(omitTrace);
+      mySdkSpecificHandler.setupOmitTraceOption(omitTrace);
+      outputFileSize=builder.build(true);
+    }
+  finally {
+      release(omitTrace);
+    }
+    if (outputFileSize > 0) {
+      final File outputFile=(builder instanceof Application) ? ((Application)builder).getOutput() : ((Library)builder).getOutput();
+      myLogger.log(outputFile.getCanonicalPath() + " (" + outputFileSize+ " bytes)");
+    }
+  }
+ catch (  final Exception e) {
+    logError(e);
+  }
+catch (  final Throwable t) {
+    logError(t);
+    System.exit(1);
+  }
+ finally {
+    myLogger.log(FlexCompiler.COMPILATION_FINISHED);
+    mySdkSpecificHandler.cleanThreadLocals();
+    System.gc();
+  }
+}

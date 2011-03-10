@@ -1,0 +1,37 @@
+{
+  final Sdk newSdk;
+  try {
+    newSdk=(Sdk)currentSdk.clone();
+  }
+ catch (  CloneNotSupportedException e) {
+    throw new RuntimeException(e);
+  }
+  final SdkModificator modificator1=newSdk.getSdkModificator();
+  final VirtualFile[] roots=modificator1.getRoots(OrderRootType.CLASSES);
+  for (  final VirtualFile root : roots) {
+    if (root.getPath().contains("/frameworks/libs/player/") && root.getPath().endsWith("/playerglobal.swc!/")) {
+      modificator1.removeRoot(root,OrderRootType.CLASSES);
+    }
+  }
+  modificator1.addRoot(requiredPlayerglobalSwc,OrderRootType.CLASSES);
+  modificator1.commitChanges();
+  final SdkModificator modificator2=newSdk.getSdkModificator();
+  final String currentSdkName=currentSdk.getName();
+  final String postfixRegexp=" [(]player [0-9]+(\\.[0-9]+)?[)]";
+  final Pair<String,String> majorMinor=getPlayerMajorMinorVersion(getTargetPlayerVersion(newSdk));
+  final String suggestedPostfix=" (player " + majorMinor.first + "."+ majorMinor.second+ ")";
+  final String suggestedSdkName=currentSdkName.matches(".*" + postfixRegexp + ".*") ? currentSdkName.replaceAll(postfixRegexp,suggestedPostfix) : currentSdkName + suggestedPostfix;
+  modificator2.setName(createUniqueSdkName(suggestedSdkName));
+  modificator2.commitChanges();
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      ProjectJdkTable.getInstance().addJdk(newSdk);
+    }
+  }
+);
+  final ProjectSdksModel projectJdksModel=ProjectStructureConfigurable.getInstance(project).getProjectJdksModel();
+  projectJdksModel.getProjectSdks().put(newSdk,newSdk);
+  JdkListConfigurable.getInstance(project).addJdkNode(newSdk,true);
+  projectJdksModel.getMulticaster().sdkAdded(newSdk);
+  return newSdk;
+}

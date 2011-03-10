@@ -1,0 +1,39 @@
+{
+  StringBuffer sb=new StringBuffer();
+  String arg=null;
+  try {
+    waitForMetaData();
+    if (hasMoreTokens()) {
+      arg=nextToken();
+      int id=arg.equals(".") ? propertyGet(LIST_MODULE) : parseFileArg(-1,arg);
+      SourceFile m=m_fileInfo.getFile(id);
+      listFunctionsFor(sb,m);
+    }
+ else {
+      SourceFile[] ar=m_fileInfo.getFileList();
+      if (ar == null)       err(getLocalizationManager().getLocalizedTextString("noSourceFilesFound"));
+ else {
+        for (int i=0; ar != null && i < ar.length; i++) {
+          SourceFile m=ar[i];
+          listFunctionsFor(sb,m);
+        }
+      }
+    }
+    out(sb.toString());
+  }
+ catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("noFunctionsFound"));
+  }
+catch (  ParseException pe) {
+    err(pe.getMessage());
+  }
+catch (  NoMatchException nme) {
+    err(nme.getMessage());
+  }
+catch (  AmbiguousException ae) {
+    err(ae.getMessage());
+  }
+catch (  InProgressException ipe) {
+    err(getLocalizationManager().getLocalizedTextString("functionListBeingPrepared"));
+  }
+}

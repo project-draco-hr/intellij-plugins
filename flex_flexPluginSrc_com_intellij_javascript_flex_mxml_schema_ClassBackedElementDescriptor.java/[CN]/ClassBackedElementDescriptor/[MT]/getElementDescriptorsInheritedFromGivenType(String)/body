@@ -1,0 +1,32 @@
+{
+  final PsiElement declaration=getDeclaration();
+  if (declaration == null) {
+    return EMPTY_ARRAY;
+  }
+  final PsiElement clazz=JSResolveUtil.unwrapProxy(JSResolveUtil.findClassByQName(arrayElementType,declaration));
+  if (!(clazz instanceof JSClass)) {
+    return EMPTY_ARRAY;
+  }
+  final JSClass jsClass=(JSClass)clazz;
+  final JSAttributeList attributeList=jsClass.getAttributeList();
+  final boolean isFinalClass=attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.FINAL);
+  final List<XmlElementDescriptor> result=new ArrayList<XmlElementDescriptor>();
+  if (isFinalClass) {
+    final String jsClassName=jsClass.getName();
+    if (jsClassName != null) {
+      final XmlElementDescriptor descriptor=context.getElementDescriptor(jsClassName,jsClass.getQualifiedName());
+      ContainerUtil.addIfNotNull(descriptor,result);
+    }
+  }
+ else {
+    for (    final XmlElementDescriptor descriptor : context.getAllDescriptors()) {
+      if (descriptor instanceof ClassBackedElementDescriptor && !((ClassBackedElementDescriptor)descriptor).predefined) {
+        final PsiElement decl=descriptor.getDeclaration();
+        if (decl instanceof JSClass && (decl.isEquivalentTo(jsClass) || JSResolveUtil.checkClassHasParentOfAnotherOne((JSClass)decl,jsClass,null))) {
+          result.add(descriptor);
+        }
+      }
+    }
+  }
+  return result.toArray(new XmlElementDescriptor[result.size()]);
+}

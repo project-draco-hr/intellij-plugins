@@ -1,0 +1,11 @@
+{
+  final Editor topEditor=InjectedLanguageUtil.getTopLevelEditor(someEditor);
+  final PsiElement lastElement=PsiTreeUtil.getDeepestLast(addedElement);
+  final PsiElement prevElement=lastElement.getPrevSibling();
+  final int offset=(prevElement != null ? prevElement : lastElement).getTextOffset();
+  final int offsetToNavigate=InjectedLanguageManager.getInstance(addedElement.getProject()).injectedToHost(addedElement,offset);
+  final PsiFile psiFile=addedElement.getContainingFile();
+  final PsiElement context=psiFile.getContext();
+  final PsiFile baseFile=context == null ? psiFile : context.getContainingFile();
+  BaseCreateFix.navigate(addedElement.getProject(),topEditor,offsetToNavigate,baseFile.getVirtualFile());
+}

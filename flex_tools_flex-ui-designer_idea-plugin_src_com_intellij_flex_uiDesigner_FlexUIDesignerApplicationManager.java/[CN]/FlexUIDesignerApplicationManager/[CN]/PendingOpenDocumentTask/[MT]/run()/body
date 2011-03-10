@@ -1,0 +1,19 @@
+{
+  try {
+    client.initStringRegistry();
+    initLibrarySets(myProject,myModule);
+    client.openDocument(myModule,myPsiFile);
+    client.flush();
+    ApplicationManager.getApplication().getMessageBus().syncPublisher(MESSAGE_TOPIC).initialDocumentOpened();
+  }
+ catch (  IOException e) {
+    try {
+      server.close();
+      serverClosed();
+    }
+ catch (    IOException innerError) {
+      LOG.error(innerError);
+    }
+    LOG.error(e);
+  }
+}

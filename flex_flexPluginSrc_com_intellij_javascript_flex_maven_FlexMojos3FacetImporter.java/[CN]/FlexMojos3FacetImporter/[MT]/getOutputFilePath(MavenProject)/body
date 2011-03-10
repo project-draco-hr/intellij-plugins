@@ -1,0 +1,15 @@
+{
+  final Element configurationElement=mavenProject.getPluginConfiguration(FLEXMOJOS_GROUP_ID,FLEXMOJOS_ARTIFACT_ID);
+  String overriddenTargetFileName=configurationElement == null ? null : configurationElement.getChildTextNormalize("output",configurationElement.getNamespace());
+  if (!StringUtil.isEmpty(overriddenTargetFileName) && !FileUtil.isAbsolute(overriddenTargetFileName)) {
+    overriddenTargetFileName=mavenProject.getDirectory() + "/" + overriddenTargetFileName;
+  }
+  if (overriddenTargetFileName != null) {
+    return FileUtil.toSystemIndependentName(overriddenTargetFileName);
+  }
+ else {
+    final Element classifierElement=configurationElement == null ? null : configurationElement.getChild("classifier",configurationElement.getNamespace());
+    final String suffix=classifierElement == null ? "" : "-" + classifierElement.getTextNormalize();
+    return FileUtil.toSystemIndependentName(mavenProject.getBuildDirectory()) + "/" + mavenProject.getFinalName()+ suffix+ "."+ mavenProject.getPackaging();
+  }
+}

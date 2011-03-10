@@ -1,0 +1,18 @@
+{
+  String s=ActionScriptProfileProvider.ACTIONSCRIPT_SNAPSHOT;
+  FileEditorManager editorManager=FileEditorManager.getInstance(state.getProject());
+  ActionScriptProfileView profileView;
+  for (  FileEditor fe : editorManager.getAllEditors()) {
+    if (fe instanceof ActionScriptProfileView && (profileView=(ActionScriptProfileView)fe).getFile().getName().equals(s)) {
+      profileView.disposeNonguiResources();
+      editorManager.closeFile(profileView.getFile());
+    }
+  }
+  Module[] modules=state.getModules();
+  Sdk sdk=modules.length > 0 ? FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(modules[0]) : IdeaFacade.getInstance().getProjectSdk(ProjectRootManager.getInstance(state.getProject()));
+  initProfilingAgent(sdk,profileSettings.getHost(),profileSettings.getPort());
+  VirtualFile virtualFile=new LightVirtualFile(s,"");
+  virtualFile.putUserData(ActionScriptProfileView.ourProfilingManagerKey,new ProfilingManager(profileSettings.getPort()));
+  OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(state.getProject(),virtualFile);
+  openFileDescriptor.navigate(true);
+}

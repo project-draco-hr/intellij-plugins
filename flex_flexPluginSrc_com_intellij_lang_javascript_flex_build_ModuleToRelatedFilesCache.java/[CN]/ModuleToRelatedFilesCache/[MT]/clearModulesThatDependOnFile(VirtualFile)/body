@@ -1,0 +1,15 @@
+{
+  final Collection<Module> modulesToClear=new ArrayList<Module>();
+  for (  Map.Entry<Module,Set<VirtualFile>> entry : myModuleToRelatedFiles.entrySet()) {
+    final Set<VirtualFile> files=entry.getValue();
+    for (    VirtualFile dependencyFile : files) {
+      if (dependencyFile.equals(file) || (dependencyFile.isDirectory() && VfsUtil.isAncestor(dependencyFile,file,false)) || (file.isDirectory() && VfsUtil.isAncestor(file,dependencyFile,false))) {
+        modulesToClear.add(entry.getKey());
+        break;
+      }
+    }
+  }
+  for (  Module module : modulesToClear) {
+    markModuleAndDependentModulesDirty(module);
+  }
+}

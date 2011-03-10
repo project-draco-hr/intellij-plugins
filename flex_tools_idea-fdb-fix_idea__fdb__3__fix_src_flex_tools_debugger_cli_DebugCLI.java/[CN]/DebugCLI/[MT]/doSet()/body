@@ -1,0 +1,25 @@
+{
+  try {
+    Object result=null;
+    ValueExp exp=null;
+    if (!hasMoreTokens())     err(getLocalizationManager().getLocalizedTextString("setCommand"));
+ else {
+      String s=restOfLine();
+      if ((exp=parseExpression(s)) == null)       ;
+ else       if (!exp.containsInstanceOf(AssignmentExp.class))       throw new IllegalAccessException("=");
+ else       if ((result=evalExpression(exp)) == null)       ;
+    }
+    StringBuffer sb=new StringBuffer();
+    if (result == null)     ;
+ else     if (result instanceof Boolean && !((Boolean)result).booleanValue())     sb.append(getLocalizationManager().getLocalizedTextString("assignmentFailed"));
+    if (exp != null && sb.length() > 0)     out(sb.toString());
+  }
+ catch (  IllegalAccessException iae) {
+    Map args=new HashMap();
+    args.put("operator",iae.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("missingOperator",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

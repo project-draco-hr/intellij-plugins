@@ -1,0 +1,21 @@
+{
+  displayStartMessage();
+  Thread t=new Thread(this,"Keyboard input");
+  t.start();
+  while (haveStreams()) {
+    try {
+      m_in=popStream();
+      process();
+    }
+ catch (    EOFException eof) {
+      ;
+    }
+catch (    IOException io) {
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("exceptionMessage",io);
+      err(getLocalizationManager().getLocalizedTextString("errorWhileProcessingFile",args));
+    }
+  }
+  exitSession();
+  m_keyboardStream=null;
+}

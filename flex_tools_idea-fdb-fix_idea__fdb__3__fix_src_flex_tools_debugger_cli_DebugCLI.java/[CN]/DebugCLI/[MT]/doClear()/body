@@ -1,0 +1,30 @@
+{
+  int module=propertyGet(LIST_MODULE);
+  int line=propertyGet(LIST_LINE);
+  String arg=null;
+  waitTilHalted();
+  try {
+    if (hasMoreTokens()) {
+      arg=nextToken();
+      int[] result=parseLocationArg(module,line,arg);
+      module=result[0];
+      line=result[1];
+    }
+    removeBreakpoint(module,line);
+  }
+ catch (  ParseException pe) {
+    err(pe.getMessage());
+  }
+catch (  NoMatchException nme) {
+    if (removeUnresolvedBreakpoint(arg) == null)     err(getLocalizationManager().getLocalizedTextString("breakpointLocationUnknown"));
+  }
+catch (  AmbiguousException ae) {
+    err(ae.getMessage());
+  }
+catch (  ArrayIndexOutOfBoundsException aio) {
+    err(getLocalizationManager().getLocalizedTextString("breakpointLocationUnknown"));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("breakpointNotCleared"));
+  }
+}

@@ -1,0 +1,20 @@
+{
+  final Sdk sdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+  if (sdk != null) {
+    if (sdk.getSdkType() instanceof FlexmojosSdkType) {
+      final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+      for (      OrderEntry orderEntry : rootManager.getOrderEntries()) {
+        if (orderEntry instanceof LibraryOrderEntry) {
+          final String libName=((LibraryOrderEntry)orderEntry).getLibraryName();
+          if (libName != null && (libName.contains("airglobal") || libName.contains("airframework"))) {
+            return true;
+          }
+        }
+      }
+    }
+ else {
+      return sdk.getSdkType() instanceof AirSdkType;
+    }
+  }
+  return false;
+}

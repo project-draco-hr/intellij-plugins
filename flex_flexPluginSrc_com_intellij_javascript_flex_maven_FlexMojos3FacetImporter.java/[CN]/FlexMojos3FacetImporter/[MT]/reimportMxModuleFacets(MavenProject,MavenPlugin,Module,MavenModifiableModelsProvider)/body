@@ -1,0 +1,24 @@
+{
+  final FacetModel facetModel=modelsProvider.getFacetModel(module);
+  if (!isApplication(project)) {
+    return;
+  }
+  for (  final FlexFacet facet : facetModel.getFacetsByType(myFacetType.getId())) {
+    if (!isMxModuleFacet(facet))     continue;
+    final String mxModuleFilePath=FileUtil.toSystemIndependentName(getMxModuleFileRelativePath(facet));
+    final int dotIndex=mxModuleFilePath.lastIndexOf('.');
+    final int slashIndex=mxModuleFilePath.lastIndexOf('/');
+    final String mxModuleName=mxModuleFilePath.substring(slashIndex + 1,dotIndex > slashIndex ? dotIndex : mxModuleFilePath.length());
+    final String outputPath=getTargetFilePath(project,"-" + mxModuleName + ".swf");
+    final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(facet);
+    config.OUTPUT_TYPE=FlexBuildConfiguration.APPLICATION;
+    config.OUTPUT_FILE_NAME=outputPath.substring(outputPath.substring(0,outputPath.lastIndexOf("/")).length() + 1);
+    config.MAIN_CLASS=mxModuleFilePath.substring(0,dotIndex > 0 ? dotIndex : mxModuleFilePath.length()).replace('/','.');
+    config.USE_FACET_COMPILE_OUTPUT_PATH=true;
+    config.FACET_COMPILE_OUTPUT_PATH=outputPath.substring(0,outputPath.lastIndexOf("/"));
+    config.FACET_COMPILE_OUTPUT_PATH_FOR_TESTS=FileUtil.toSystemIndependentName(project.getTestOutputDirectory());
+    config.USE_DEFAULT_SDK_CONFIG_FILE=false;
+    config.USE_CUSTOM_CONFIG_FILE=true;
+    config.CUSTOM_CONFIG_FILE=outputPath.replace(".swf",getCompilerConfigXmlSuffix(flexmojosPlugin));
+  }
+}

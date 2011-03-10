@@ -1,0 +1,27 @@
+{
+  AddItems override=new AddItems(writer.getBlockOut().startRange(),context,autoDestruction);
+  writer.writeObjectHeader(ADD_ITEMS);
+  DynamicObjectContext parentScopeOwner=parentContext.getScope().getOwner();
+  if (parentScopeOwner != null && parentScopeOwner != parentContext) {
+    writeDeferredInstanceFromObjectReference(DESTINATION,parentContext,parentContext);
+  }
+ else {
+    writer.writeObjectReference(DESTINATION,parentContext);
+  }
+  final int position;
+  if (parentContext.getBackSibling() == null) {
+    position=FIRST;
+  }
+ else {
+    position=AFTER;
+    if (parentContext.ownerIsDynamic()) {
+      writeDeferredInstanceFromObjectReference(RELATIVE_TO,parentContext.getBackSibling(),parentContext);
+    }
+ else {
+      writer.writeObjectReference(RELATIVE_TO,parentContext.getBackSibling());
+    }
+  }
+  writer.writeStringReference(POSITION,position);
+  writer.getBlockOut().endRange(override.dataRange);
+  return override;
+}

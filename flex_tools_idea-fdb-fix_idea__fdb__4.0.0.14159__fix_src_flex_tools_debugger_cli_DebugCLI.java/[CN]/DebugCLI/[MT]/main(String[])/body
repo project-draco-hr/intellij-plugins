@@ -1,0 +1,28 @@
+{
+  DebugCLI cli=new DebugCLI();
+  cli.m_err=System.err;
+  cli.m_out=System.out;
+  cli.initSourceDirectoriesList();
+  cli.m_keyboardStream=new LineNumberReader(new InputStreamReader(System.in));
+  cli.pushStream(cli.m_keyboardStream);
+  cli.processArgs(args);
+  String userHome=System.getProperty("user.home");
+  String userDir=System.getProperty("user.dir");
+  if (userDir != null && !userDir.equals(userHome)) {
+    try {
+      FileReader sr=new FileReader(new File(userDir,".fdbinit"));
+      cli.pushStream(new LineNumberReader(sr));
+    }
+ catch (    FileNotFoundException fnf) {
+    }
+  }
+  if (userHome != null) {
+    try {
+      FileReader sr=new FileReader(new File(userHome,".fdbinit"));
+      cli.pushStream(new LineNumberReader(sr));
+    }
+ catch (    FileNotFoundException fnf) {
+    }
+  }
+  cli.execute();
+}

@@ -1,0 +1,16 @@
+{
+  int timeout=m_session.getPreference(SessionManager.PREF_RESPONSE_TIMEOUT);
+  long timeoutTime=System.currentTimeMillis() + timeout;
+  step.step();
+  while (System.currentTimeMillis() < timeoutTime && !m_session.isSuspended()) {
+    processEvents();
+    if (!m_session.isSuspended()) {
+      try {
+        Thread.sleep(1);
+      }
+ catch (      InterruptedException e) {
+      }
+    }
+  }
+  if (System.currentTimeMillis() >= timeoutTime && !m_session.isSuspended())   throw new NoResponseException(timeout);
+}

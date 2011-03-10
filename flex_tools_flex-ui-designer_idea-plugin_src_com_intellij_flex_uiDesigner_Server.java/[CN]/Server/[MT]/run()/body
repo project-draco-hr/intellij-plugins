@@ -1,0 +1,24 @@
+{
+  try {
+    socket=serverSocket.accept();
+    serverSocket.close();
+    myPendingTask.setOutput(socket.getOutputStream());
+    ApplicationManager.getApplication().runReadAction(myPendingTask);
+    myPendingTask=null;
+    ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream());
+  }
+ catch (  IOException e) {
+    if (!(e instanceof SocketException && socket.isClosed())) {
+      LOG.error(e);
+    }
+  }
+ finally {
+    try {
+      close();
+      applicationManager.serverClosed();
+    }
+ catch (    IOException e) {
+      LOG.error(e);
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  element=JSResolveUtil.unwrapProxy(element);
+  if (element instanceof JSPackageStatement) {
+    return null;
+  }
+  if (element instanceof XmlBackedJSClassImpl) {
+    return (JSQualifiedNamedElement)element;
+  }
+  if (element instanceof JSQualifiedNamedElement) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    if (parent instanceof JSPackageStatement || (parent instanceof JSFile && JSResolveUtil.getXmlBackedClass((JSFile)parent) == null)) {
+      return (JSQualifiedNamedElement)element;
+    }
+  }
+  if (element instanceof JSVarStatement && ((JSVarStatement)element).getVariables().length == 1) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    if (parent instanceof JSPackageStatement || (parent instanceof JSFile && JSResolveUtil.getXmlBackedClass((JSFile)parent) == null)) {
+      return ((JSVarStatement)element).getVariables()[0];
+    }
+  }
+  if (element instanceof JSFile) {
+    final XmlBackedJSClassImpl xmlBackedClass=JSResolveUtil.getXmlBackedClass((JSFile)element);
+    if (xmlBackedClass != null) {
+      return xmlBackedClass;
+    }
+    return JSPsiImplUtils.findQualifiedElement((JSFile)element);
+  }
+  if (element instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+    return XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)element);
+  }
+  return null;
+}

@@ -1,0 +1,120 @@
+{
+  StringBuffer sb=new StringBuffer();
+  sb.append("Num Type           Disp Enb Address    What" + m_newline);
+  int count=breakpointCount();
+  for (int i=0; i < count; i++) {
+    BreakAction b=breakpointAt(i);
+    int status=b.getStatus();
+    boolean isResolved=(status == BreakAction.RESOLVED);
+    Location l=b.getLocation();
+    SourceFile file=(l != null) ? l.getFile() : null;
+    String funcName=(file == null) ? null : file.getFunctionNameForLine(m_session,l.getLine());
+    boolean singleSwf=b.isSingleSwf();
+    int cmdCount=b.getCommandCount();
+    int hits=b.getHits();
+    String cond=b.getConditionString();
+    boolean silent=b.isSilent();
+    int offset=adjustOffsetForUnitTests((file == null) ? 0 : file.getOffsetForLine(l.getLine()));
+    int num=b.getId();
+    FieldFormat.formatLong(sb,num,3);
+    sb.append(" breakpoint     ");
+    if (b.isAutoDisable())     sb.append("dis  ");
+ else     if (b.isAutoDelete())     sb.append("del  ");
+ else     sb.append("keep ");
+    if (b.isEnabled())     sb.append("y   ");
+ else     sb.append("n   ");
+    sb.append("0x");
+    FieldFormat.formatLongToHex(sb,offset,8);
+    sb.append(' ');
+    if (funcName != null) {
+      Map args=new HashMap();
+      args.put("functionName",funcName);
+      sb.append(getLocalizationManager().getLocalizedTextString("inFunctionAt",args));
+    }
+    if (file != null) {
+      sb.append(file.getName());
+      if (isResolved && singleSwf) {
+        sb.append("#");
+        sb.append(file.getId());
+      }
+      sb.append(':');
+      sb.append(l.getLine());
+    }
+ else {
+      String expr=b.getBreakpointExpression();
+      if (expr != null)       sb.append(expr);
+    }
+switch (status) {
+case BreakAction.UNRESOLVED:
+      sb.append(getLocalizationManager().getLocalizedTextString("breakpointNotYetResolved"));
+    break;
+case BreakAction.AMBIGUOUS:
+  sb.append(getLocalizationManager().getLocalizedTextString("breakpointAmbiguous"));
+break;
+case BreakAction.NOCODE:
+sb.append(getLocalizationManager().getLocalizedTextString("breakpointNoCode"));
+break;
+}
+if (singleSwf && isResolved) {
+try {
+SwfInfo info=m_fileInfo.swfForFile(file);
+Map swfArgs=new HashMap();
+swfArgs.put("swf",FileInfoCache.nameOfSwf(info));
+sb.append(getLocalizationManager().getLocalizedTextString("inSwf",swfArgs));
+}
+ catch (NullPointerException npe) {
+sb.append(getLocalizationManager().getLocalizedTextString("nonRestorable"));
+}
+}
+sb.append(m_newline);
+final String INDENT="        ";
+if (cond != null && cond.length() > 0) {
+sb.append(INDENT);
+Map args=new HashMap();
+args.put("breakpointCondition",cond);
+sb.append(getLocalizationManager().getLocalizedTextString(getLocalizationManager().getLocalizedTextString("stopOnlyIfConditionMet",args)));
+sb.append(m_newline);
+}
+if (hits > 0) {
+sb.append(INDENT);
+Map args=new HashMap();
+args.put("count",Integer.toString(hits));
+sb.append(getLocalizationManager().getLocalizedTextString("breakpointAlreadyHit",args));
+sb.append(m_newline);
+}
+if (silent) {
+sb.append(INDENT);
+sb.append(getLocalizationManager().getLocalizedTextString("silentBreakpoint") + m_newline);
+}
+for (int j=0; j < cmdCount; j++) {
+sb.append(INDENT);
+sb.append(b.commandAt(j));
+sb.append(m_newline);
+}
+}
+int wcount=watchpointCount();
+for (int k=0; k < wcount; k++) {
+WatchAction b=watchpointAt(k);
+int id=b.getId();
+FieldFormat.formatLong(sb,id,4);
+int flags=b.getKind();
+switch (flags) {
+case WatchKind.READ:
+sb.append("rd watchpoint  ");
+break;
+case WatchKind.WRITE:
+sb.append("wr watchpoint  ");
+break;
+case WatchKind.READWRITE:
+default :
+sb.append("watchpoint     ");
+break;
+}
+sb.append("keep ");
+sb.append("y   ");
+sb.append("           ");
+sb.append(b.getExpr());
+sb.append(m_newline);
+}
+out(sb.toString());
+}

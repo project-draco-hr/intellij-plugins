@@ -1,0 +1,16 @@
+{
+  attrText=super.buildFunctionAttrText(attrText,attributeList,function);
+  final PsiElement element=JSResolveUtil.findParent(function);
+  attrText=StringUtil.replace(attrText,"override","").trim();
+  if (element instanceof JSClass && !"Object".equals(((JSClass)element).getQualifiedName())) {
+    final PsiElement typeElement=attributeList != null ? attributeList.findAccessTypeElement() : null;
+    if (typeElement == null) {
+      attrText+=" override";
+    }
+ else {
+      final int index=attrText.indexOf(typeElement.getText());
+      attrText=attrText.substring(0,index) + ((index > 0) ? " " : "") + "override "+ attrText.substring(index);
+    }
+  }
+  return attrText;
+}

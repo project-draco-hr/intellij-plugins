@@ -1,0 +1,67 @@
+{
+  if (!CreateClassOrInterfaceAction.FLEX_CLASSIFIER_TEMPLATES.contains(templateName)) {
+    return;
+  }
+  if (!(file instanceof XmlFile) || ((XmlFile)file).getDocument() == null) {
+    return;
+  }
+  String parentComponent=customProperties != null ? customProperties.get(NewFlexComponentDialog.PARENT_COMPONENT) : null;
+  if (StringUtil.isNotEmpty(parentComponent)) {
+    final XmlTag rootTag=((XmlFile)file).getDocument().getRootTag();
+    if (rootTag == null) {
+      return;
+    }
+    Pair<String,String> requiredPrefixAndNamespace=getPrefixAndNamespace(rootTag,parentComponent);
+    XmlBackedJSClassImpl.setBaseComponent(rootTag,parentComponent,requiredPrefixAndNamespace.first,requiredPrefixAndNamespace.second);
+  }
+ else {
+    Document document=PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
+    if (document == null) {
+      return;
+    }
+    final Runnable runnable=new Runnable(){
+      public void run(){
+        XmlTag rootTag=((XmlFile)file).getDocument().getRootTag();
+        if (rootTag == null) {
+          return;
+        }
+        XmlToken openingNode=XmlTagUtil.getStartTagNameElement(rootTag);
+        if (openingNode == null) {
+          return;
+        }
+        XmlToken closingNode=XmlTagUtil.getEndTagNameElement(rootTag);
+        if (closingNode == null) {
+          return;
+        }
+        TemplateBuilderImpl builder=new TemplateBuilderImpl(rootTag);
+        builder.replaceElement(openingNode,new MacroCallNode(new CompleteMacro()));
+        builder.replaceElement(closingNode,new Expression(){
+          @Override public Result calculateResult(          ExpressionContext context){
+            final TemplateState templateState=TemplateManagerImpl.getTemplateState(context.getEditor());
+            return templateState.getVariableValue(templateState.getTemplate().getVariableNameAt(0));
+          }
+          @Override public Result calculateQuickResult(          ExpressionContext context){
+            return calculateResult(context);
+          }
+          @Override public LookupElement[] calculateLookupItems(          ExpressionContext context){
+            return new LookupElement[0];
+          }
+        }
+,false);
+        builder.run();
+      }
+    }
+;
+    if (ModalityState.current().equals(ModalityState.NON_MODAL)) {
+      runnable.run();
+    }
+ else {
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        @Override public void run(){
+          ApplicationManager.getApplication().runWriteAction(runnable);
+        }
+      }
+,ModalityState.NON_MODAL);
+    }
+  }
+}

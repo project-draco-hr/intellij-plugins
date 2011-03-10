@@ -1,0 +1,23 @@
+{
+  FileBasedIndex fileBasedIndex=FileBasedIndex.getInstance();
+  GlobalSearchScope scope=module.getModuleWithDependenciesAndLibrariesScope(false);
+  Set<JSClass> visited=new HashSet<JSClass>();
+  Set<String> result=new HashSet<String>();
+  Project project=module.getProject();
+  for (  String shortClassName : shortClassNames) {
+    Collection<JSQualifiedNamedElement> candidates=JSResolveUtil.findElementsByName(shortClassName,project,scope);
+    for (    JSQualifiedNamedElement candidate : candidates) {
+      if (candidate instanceof JSClass) {
+        fillPropertyNamesDinamically((JSClass)candidate,visited,result);
+      }
+    }
+  }
+  for (Iterator<String> iterator=result.iterator(); iterator.hasNext(); ) {
+    String propertyName=iterator.next();
+    List<Set<FlexStyleIndexInfo>> values=fileBasedIndex.getValues(FlexStyleIndex.INDEX_ID,propertyName,scope);
+    if (values.size() == 0) {
+      iterator.remove();
+    }
+  }
+  return ArrayUtil.toStringArray(result);
+}

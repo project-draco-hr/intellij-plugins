@@ -1,0 +1,14 @@
+{
+  final List<String> mxModuleFilePaths=getMxModuleFilePaths(mavenProject);
+  final ModifiableFacetModel model=modifiableModelsProvider.getFacetModel(module);
+  deleteUnusedMxModuleFacets(model,mxModuleFilePaths);
+  for (  final String mxModuleFilePath : mxModuleFilePaths) {
+    final String facetName=getMxModuleFacetName(mxModuleFilePath);
+    FlexFacet facet=model.findFacet(myFacetType.getId(),facetName);
+    if (facet == null) {
+      facet=myFacetType.createFacet(module,facetName,myFacetType.createDefaultConfiguration(),null);
+      model.addFacet(facet);
+      setupFacet(facet,mavenProject);
+    }
+  }
+}

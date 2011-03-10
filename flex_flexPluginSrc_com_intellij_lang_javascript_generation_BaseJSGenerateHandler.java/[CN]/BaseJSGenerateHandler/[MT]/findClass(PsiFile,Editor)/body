@@ -1,0 +1,24 @@
+{
+  if (file instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile(file)) {
+    return XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)file);
+  }
+  if (!(file instanceof JSFile))   return null;
+  final PsiElement at=file.findElementAt(editor.getCaretModel().getOffset());
+  if (at == null)   return null;
+  JSClass clazz=PsiTreeUtil.getParentOfType(at,JSClass.class);
+  if (clazz == null) {
+    final PsiFile containingFile=at.getContainingFile();
+    final PsiElement element=JSResolveUtil.getClassReferenceForXmlFromContext(containingFile);
+    if (element instanceof JSClass)     clazz=(JSClass)element;
+  }
+ else   if (JSResolveUtil.isArtificialClassUsedForReferenceList(clazz)) {
+    final PsiElement context=clazz.getContainingFile().getContext();
+    if (context != null && context.getContainingFile() instanceof XmlFile) {
+      clazz=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)context.getContainingFile());
+    }
+ else {
+      clazz=null;
+    }
+  }
+  return clazz;
+}

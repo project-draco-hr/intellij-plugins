@@ -1,0 +1,15 @@
+{
+  final JSClass jsClass=BaseJSGenerateHandler.findClass(file,editor);
+  if (jsClass == null)   return;
+  final PsiElement element=file.findElementAt(editor.getCaretModel().getOffset());
+  final JSVariable variable=getVariable(element);
+  final JSNamedElementNode node=variable == null ? null : new JSNamedElementNode(variable);
+  final JavaScriptGenerateAccessorHandler handler=new JavaScriptGenerateAccessorHandler(getGenerationMode()){
+    protected void collectCandidates(    final JSClass clazz,    final Collection<JSNamedElementNode> candidates){
+      ContainerUtil.addIfNotNull(node,candidates);
+    }
+  }
+;
+  handler.setSkipMemberChooserDialog(true);
+  handler.invoke(project,editor,file);
+}

@@ -1,0 +1,17 @@
+{
+  if (!(element.getContainingFile() instanceof JSFile)) {
+    return false;
+  }
+  final JSVariable variable=getVariable(element);
+  final PsiElement parent=variable == null ? null : variable.getParent();
+  final PsiElement parentParent=parent instanceof JSVarStatement ? parent.getParent() : null;
+  final PsiElement context=parentParent == null ? null : parentParent.getContext();
+  final JSClass jsClass=parentParent instanceof JSClass ? ((JSClass)parentParent) : (parentParent instanceof JSFile && context instanceof XmlText) ? XmlBackedJSClassImpl.getContainingComponent((XmlText)context) : null;
+  final String varName=variable == null ? null : variable.getName();
+  if (jsClass != null && StringUtil.isNotEmpty(varName)) {
+    setText(FlexBundle.message(getMessageKey(),varName));
+    final String accessorName=JSResolveUtil.transformVarNameToAccessorName(varName,project);
+    return isAvailableFor(jsClass,accessorName);
+  }
+  return false;
+}

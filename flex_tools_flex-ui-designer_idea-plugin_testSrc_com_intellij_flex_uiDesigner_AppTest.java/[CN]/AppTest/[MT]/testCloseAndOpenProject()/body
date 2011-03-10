@@ -1,0 +1,23 @@
+{
+  ((MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer()).unregisterComponent(SocketInputHandler.class.getName());
+  ((MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer()).registerComponentImplementation(SocketInputHandler.class.getName(),MySocketInputHandler.class);
+  configureByFiles(null,LocalFileSystem.getInstance().findFileByPath(getTestMxmlPath() + "/injectedAS/Transitions.mxml"));
+  ApplicationManager.getApplication().getMessageBus().connect().subscribe(FlexUIDesignerApplicationManager.MESSAGE_TOPIC,new FlexUIDesignerApplicationListener(){
+    @Override public void initialDocumentOpened(){
+      lock.countDown();
+    }
+  }
+);
+  copySwfAndDescriptor(new File(PathManager.getSystemPath(),"flexUIDesigner"));
+  FlexUIDesignerApplicationManager designerAppManager=FlexUIDesignerApplicationManager.getInstance();
+  designerAppManager.openDocument(myProject,myModule,(XmlFile)myFile,false);
+  assertTrue(lock.await(10,TimeUnit.SECONDS));
+  designerAppManager.myProjectManagerListener.projectClosed(myProject);
+  lock=new CountDownLatch(1);
+  AmfOutputStream out=designerAppManager.getClient().getOutput();
+  out.write(1);
+  out.writeAmfUTF("close",false);
+  out.write(3);
+  designerAppManager.getClient().flush();
+  assertTrue(lock.await(10,TimeUnit.SECONDS));
+}

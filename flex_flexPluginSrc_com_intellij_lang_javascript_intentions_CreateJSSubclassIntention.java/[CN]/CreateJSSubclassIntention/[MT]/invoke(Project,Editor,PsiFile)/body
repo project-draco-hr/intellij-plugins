@@ -1,0 +1,36 @@
+{
+  final PsiElement element=file.findElementAt(editor.getCaretModel().getOffset());
+  final JSClass jsClass=PsiTreeUtil.getParentOfType(element,JSClass.class);
+  if (jsClass == null)   return;
+  final PsiElement parent=jsClass.getParent();
+  if (!(parent instanceof JSPackageStatement))   return;
+  final JSPackageStatement jsPackageStatement=(JSPackageStatement)parent;
+  final String defaultTemplateName=JavaScriptSupportLoader.ACTION_SCRIPT_CLASS_TEMPLATE_NAME;
+  final String className;
+  final String packageName;
+  final String templateName;
+  final PsiDirectory targetDirectory;
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    className=suggestSubclassName(jsClass.getName());
+    packageName="foo";
+    templateName=defaultTemplateName;
+    targetDirectory=ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>(){
+      @Override public PsiDirectory compute(){
+        return CreateClassOrInterfaceAction.findOrCreateDirectory(packageName,jsPackageStatement);
+      }
+    }
+);
+  }
+ else {
+    final CreateClassDialog dialog=new CreateClassDialog(project,suggestSubclassName(jsClass.getName()),true,jsPackageStatement.getQualifiedName(),false,null,defaultTemplateName,jsClass,false);
+    dialog.show();
+    if (!dialog.isOK()) {
+      return;
+    }
+    className=dialog.getClassName();
+    packageName=dialog.getPackageName();
+    templateName=dialog.getTemplateName();
+    targetDirectory=dialog.getTargetDirectory();
+  }
+  doCreateSubclass(jsClass,className,packageName,templateName,targetDirectory);
+}

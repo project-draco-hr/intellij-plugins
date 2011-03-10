@@ -1,0 +1,31 @@
+{
+  final AirInstallerParameters parameters=AirInstallerParameters.getInstance(myProject).getState();
+  if (parameters != null) {
+    if (!StringUtil.isEmpty(parameters.AIR_DESCRIPTOR_PATH)) {
+      final JComboBox comboBox=myAirDescriptorComponent.getComponent().getComboBox();
+      comboBox.setSelectedItem(parameters.AIR_DESCRIPTOR_PATH);
+      myInstallerFileNameComponent.getComponent().setText(parameters.INSTALLER_FILE_NAME);
+      myInstallerLocationComponent.getComponent().setText(parameters.INSTALLER_FILE_LOCATION);
+      myFilesToPackage.clear();
+      myFilesToPackage.addAll(parameters.FILES_TO_PACKAGE);
+      myDoNotSignCheckBox.setSelected(parameters.DO_NOT_SIGN);
+      myKeystoreFileTextWithBrowse.setText(parameters.KEYSTORE_PATH);
+      myKeystoreTypeCombo.setSelectedItem(parameters.KEYSTORE_TYPE);
+      myKeyAliasTextField.setText(parameters.KEY_ALIAS);
+      myProviderClassNameTextField.setText(parameters.PROVIDER_CLASS);
+      myTsaUrlTextField.setText(parameters.TSA);
+      if (!parameters.DO_NOT_SIGN) {
+        try {
+          final PasswordSafe passwordSafe=PasswordSafe.getInstance();
+          myKeystorePasswordField.setText(passwordSafe.getPassword(myProject,getClass(),AIR_INSTALLER_KEYSTORE_PASSWORD_KEY));
+          myKeyPasswordField.setText(passwordSafe.getPassword(myProject,getClass(),AIR_INSTALLER_KEY_PASSWORD_KEY));
+        }
+ catch (        PasswordSafeException ignored) {
+        }
+        if (StringUtil.isNotEmpty(parameters.KEY_ALIAS) || StringUtil.isNotEmpty(parameters.PROVIDER_CLASS) || StringUtil.isNotEmpty(parameters.TSA)) {
+          showMoreOptions(true);
+        }
+      }
+    }
+  }
+}

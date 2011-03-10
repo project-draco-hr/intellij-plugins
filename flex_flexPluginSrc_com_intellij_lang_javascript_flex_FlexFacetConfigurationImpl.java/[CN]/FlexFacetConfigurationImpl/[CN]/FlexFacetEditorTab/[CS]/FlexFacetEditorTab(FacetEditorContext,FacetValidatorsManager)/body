@@ -1,0 +1,36 @@
+{
+  myModule=context.getModule();
+  if (myFlexSdkName.equals(FLEX_SDK_NOT_YET_SELECTED_FOR_NEW_FACET) && !context.isNewFacet()) {
+    myFlexSdkName="";
+  }
+  myFlexSdkComboBox.setRenderer(new DefaultListCellRenderer(){
+    public Component getListCellRendererComponent(    JList list,    Object value,    int index,    boolean isSelected,    boolean cellHasFocus){
+      super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
+      if (value instanceof Sdk) {
+        setText(((Sdk)value).getName());
+        setIcon(((Sdk)value).getSdkType().getIcon());
+      }
+ else {
+        setIcon(Icons.ERROR_INTRODUCTION_ICON);
+      }
+      return this;
+    }
+  }
+);
+  initConfigureSdksButton();
+  validatorsManager.registerValidator(new FacetEditorValidator(){
+    public ValidationResult check(){
+      if (myFlexSdkComboBox.getSelectedItem() instanceof Sdk) {
+        return ValidationResult.OK;
+      }
+ else       if (myFlexSdkComboBox.getSelectedItem() instanceof String && myFlexSdkComboBox.getSelectedItem().toString().length() > 0) {
+        return new ValidationResult(FlexBundle.message("flex.sdk.not.configured",myFlexSdkComboBox.getSelectedItem().toString()));
+      }
+      return new ValidationResult(FlexBundle.message("flex.sdk.not.specified"));
+    }
+  }
+,myFlexSdkComboBox);
+  myCompilerSettingsEditor=new FlexCompilerSettingsEditor(context.getModule(),(FlexFacet)context.getFacet(),context.getModifiableRootModel().getModuleExtension(CompilerModuleExtension.class));
+  myExtPanel.setLayout(new BorderLayout());
+  myExtPanel.add(myCompilerSettingsEditor.createComponent());
+}

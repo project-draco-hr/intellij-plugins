@@ -1,0 +1,51 @@
+{
+  processSamples(profile,new GroupHandler<T,String>(){
+    public void process(    Map<String,Set<T>> data){
+      processSamples(data.get(data.keySet().iterator().next()),new GroupHandler<T,String>(){
+        public void process(        final Map<String,Set<T>> data){
+          List<String> traces=new ArrayList<String>(data.keySet());
+          Collections.sort(traces,new Comparator<String>(){
+            public int compare(            String o1,            String o2){
+              return data.get(o2).size() - data.get(o1).size();
+            }
+          }
+);
+          int index=0;
+          for (          String i : traces) {
+            model.insertNodeInto(new MergedCallNode<T>(stripCallDelims(i),countMap,data.get(i),model,callers),MergedCallNode.this,index++);
+          }
+        }
+        final boolean skipSystemStuff=myFilterSystemStuff.isSelected();
+        public String getCategory(        T sample){
+          final String[] frames=sample.frames;
+          for (int i=frames.length - 1; i >= 0; --i) {
+            if (referencesFrame(frames[i],frame)) {
+              String nextFrame;
+              if (callers) {
+                nextFrame=i + 1 < frames.length ? frames[i + 1] : null;
+              }
+ else {
+                nextFrame=i > 0 ? frames[i - 1] : null;
+              }
+              if (nextFrame != null) {
+                if (!skipSystemStuff || !nextFrame.startsWith("["))                 return nextFrame;
+              }
+              break;
+            }
+          }
+          return null;
+        }
+      }
+);
+    }
+    public String getCategory(    T sample){
+      for (      String _s : sample.frames) {
+        if (referencesFrame(_s,frame)) {
+          return _s;
+        }
+      }
+      return null;
+    }
+  }
+);
+}

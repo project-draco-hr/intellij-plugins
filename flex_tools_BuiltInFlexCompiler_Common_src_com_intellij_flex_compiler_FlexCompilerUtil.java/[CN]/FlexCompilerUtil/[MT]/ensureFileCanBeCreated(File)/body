@@ -1,0 +1,21 @@
+{
+  if (file.isDirectory()) {
+    throw new ConfigurationException(file + " is a directory");
+  }
+  if (!file.exists()) {
+    final File parent=file.getParentFile();
+    if (parent != null && !parent.exists()) {
+      final boolean ok=parent.mkdirs();
+      if (!ok && !parent.exists()) {
+        throw new ConfigurationException("Can't create directory '" + parent + "'");
+      }
+    }
+    try {
+      new FileOutputStream(file).close();
+      file.delete();
+    }
+ catch (    IOException e) {
+      throw new ConfigurationException("Can't create file '" + file.getPath() + "': "+ e.getMessage());
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  List<CssPropertyValue> children=new ArrayList<CssPropertyValue>();
+  Set<String> formats=addValuesFromFormats(infos,children);
+  addValuesFromEnumerations(infos,children);
+  addValuesFromTypes(infos,formats,children);
+  CssPropertyValueImpl value=null;
+  if (children.size() >= 1) {
+    value=new FlexCssPropertyValue(shorthand,false);
+    for (    CssPropertyValue child : children) {
+      value.addChild(child);
+    }
+  }
+  if (value == null) {
+    value=new FlexCssPropertyValue(shorthand,true);
+  }
+ else   if (!formats.contains(COLOR_FORMAT)) {
+    value.addChild(new FlexStringPropertyValue());
+  }
+  value.addChild(new FlexCssPropertyValue("undefined"));
+  return value;
+}

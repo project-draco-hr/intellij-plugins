@@ -1,0 +1,22 @@
+{
+  myCurrentErrorMessage=null;
+  final Module module=(Module)myModuleComboBox.getSelectedItem();
+  if (module == null) {
+    myCurrentErrorMessage="No module selected";
+    setOnlyModuleRelatedControlsEnabled();
+    return;
+  }
+  if (!FlexUtils.isFlexModuleOrContainsFlexFacet(module)) {
+    setOnlyModuleRelatedControlsEnabled();
+    myCurrentErrorMessage=FlexBundle.message("not.flex.module.no.flex.facet",module.getName());
+    return;
+  }
+  final Sdk flexSdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+  myFlexSdkLabel.setEnabled(true);
+  myFlexSdkComboWithBrowse.setEnabled(true);
+  if (flexSdk != null) {
+    myFlexSdkComboWithBrowse.setSelectedSdkRaw(flexSdk.getName());
+  }
+  suggestHTMLWrapperProperties(module);
+  updateHTMLWrapperTypeAndSubsequentControls();
+}

@@ -1,0 +1,53 @@
+{
+  final Project project=baseClass.getProject();
+  final Ref<PsiElement> createdElementRef=new Ref<PsiElement>();
+  final String error=ApplicationManager.getApplication().runWriteAction(new NullableComputable<String>(){
+    public String compute(){
+      try {
+        final Properties additionalTemplateProperties=new Properties();
+        final String propName=baseClass.isInterface() ? "Implemented_interface_name" : "Super_class_name";
+        final String superClassQname=baseClass.getQualifiedName();
+        additionalTemplateProperties.setProperty(propName,superClassQname);
+        final PsiElement createdElement=CreateClassOrInterfaceAction.createClass(className,packageName,targetDirectory,templateName,additionalTemplateProperties);
+        createdElementRef.set(createdElement);
+        final String superClassPackage=StringUtil.getPackageName(superClassQname);
+        final JSClass createdClass=JSPsiImplUtils.findClass((JSFile)createdElement);
+        if (!StringUtil.isEmpty(superClassPackage) && !superClassPackage.equals(packageName) && createdClass != null) {
+          ImportUtils.insertImportStatements(createdClass,Collections.singletonList(superClassQname));
+        }
+        new ECMAScriptImportOptimizer().processFile(createdElement.getContainingFile()).run();
+      }
+ catch (      IncorrectOperationException e) {
+        return e.getMessage();
+      }
+catch (      Exception e) {
+        Logger.getInstance(getClass().getName()).error(e);
+      }
+      return null;
+    }
+  }
+);
+  if (error != null) {
+    Messages.showErrorDialog(project,error,getTitle(baseClass));
+    return;
+  }
+  final PsiElement createdElement=createdElementRef.get();
+  final VirtualFile createdFile=createdElement == null ? null : createdElement.getContainingFile().getVirtualFile();
+  if (createdFile != null) {
+    final Editor newEditor=FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,createdFile),true);
+    if (createdElement instanceof JSFile && newEditor != null) {
+      final JSClass createdClass=JSPsiImplUtils.findClass((JSFile)createdElement);
+      if (createdClass != null) {
+        newEditor.getCaretModel().moveToOffset(createdClass.getTextOffset());
+        if (baseClass.isInterface()) {
+          final JavaScriptImplementMethodsHandler implementMethodsHandler=new JavaScriptImplementMethodsHandler();
+          implementMethodsHandler.setSkipMemberChooserDialog(true);
+          implementMethodsHandler.invoke(project,newEditor,createdElement.getContainingFile());
+        }
+ else {
+          CreateClassOrInterfaceAction.makeSureConstructorMatchesSuper(createdClass);
+        }
+      }
+    }
+  }
+}

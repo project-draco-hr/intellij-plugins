@@ -1,0 +1,22 @@
+{
+  Element localesElement=getConfig(mavenProject,(compiled ? "compiled" : "runtime") + "Locales");
+  if (compiled && localesElement == null) {
+    localesElement=getConfig(mavenProject,"locales");
+    if (localesElement == null && isApplication(mavenProject)) {
+      final String defaultLocale=getDefaultLocale(mavenProject);
+      if (defaultLocale != null) {
+        return Collections.singletonList(defaultLocale);
+      }
+    }
+  }
+  if (localesElement == null) {
+    return Collections.emptyList();
+  }
+  List<String> result=new ArrayList<String>();
+  for (  Element eachChild : (Iterable<Element>)localesElement.getChildren()) {
+    String name=eachChild.getTextNormalize();
+    if (StringUtil.isEmptyOrSpaces(name))     continue;
+    result.add(name);
+  }
+  return result;
+}

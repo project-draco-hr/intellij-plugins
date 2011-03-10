@@ -1,0 +1,35 @@
+{
+  final ModuleWithDependenciesScope moduleScope=new ModuleWithDependenciesScope(moduleInfo.getModule(),true,false,false,false);
+  final LocalStyleWriter localStyleWriter=new LocalStyleWriter(stringWriter);
+  final Processor<JSClass> processor=new Processor<JSClass>(){
+    @Override public boolean process(    JSClass jsClass){
+      PsiFile containingFile=jsClass.getNavigationElement().getContainingFile();
+      if (containingFile instanceof XmlFile) {
+        XmlTag rootTag=((XmlFile)containingFile).getRootTag();
+        if (rootTag != null) {
+          for (          final XmlTag subTag : rootTag.getSubTags()) {
+            if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
+              if (localStyleWriter.write(subTag,moduleInfo.getModule())) {
+                moduleInfo.addLocalStyleHolder(new LocalStyleHolder(containingFile.getVirtualFile(),localStyleWriter.getData()));
+              }
+              break;
+            }
+          }
+        }
+      }
+      return true;
+    }
+  }
+;
+  final GlobalSearchScope moduleWithDependenciesAndLibrariesScope=moduleInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false);
+  if (flexSdkVersion.charAt(0) > '3') {
+    JSClass sparkApplicationClass=((JSClass)JSResolveUtil.findClassByQName("spark.components.Application",moduleWithDependenciesAndLibrariesScope));
+    if (sparkApplicationClass != null) {
+      JSClassSearch.searchClassInheritors(new JSClassSearch.SearchParameters(sparkApplicationClass,true,moduleScope)).forEach(processor);
+    }
+  }
+  JSClass mxApplicationClass=((JSClass)JSResolveUtil.findClassByQName("mx.core.Application",moduleWithDependenciesAndLibrariesScope));
+  if (mxApplicationClass != null) {
+    JSClassSearch.searchClassInheritors(new JSClassSearch.SearchParameters(mxApplicationClass,true,moduleScope)).forEach(processor);
+  }
+}

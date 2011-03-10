@@ -1,0 +1,22 @@
+{
+  waitTilHalted();
+  StringBuffer sb=new StringBuffer();
+  try {
+    int num=propertyGet(DISPLAY_FRAME_NUMBER);
+    Frame[] ar=m_session.getFrames();
+    Frame ctx=ar[num];
+    Variable[] scopes=ctx.getScopeChain(m_session);
+    for (int i=0; i < scopes.length; i++) {
+      Variable scope=scopes[i];
+      ExpressionCache.appendVariable(sb,scope);
+      sb.append(m_newline);
+    }
+  }
+ catch (  NullPointerException npe) {
+    sb.append(getLocalizationManager().getLocalizedTextString("noScopeChain"));
+  }
+catch (  ArrayIndexOutOfBoundsException aix) {
+    sb.append(getLocalizationManager().getLocalizedTextString("notInValidFrame"));
+  }
+  out(sb.toString());
+}

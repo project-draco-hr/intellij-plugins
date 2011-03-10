@@ -1,0 +1,49 @@
+{
+  if (hasIdType()) {
+    final NamesValidator namesValidator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+    if (!namesValidator.isIdentifier(value,context.getProject())) {
+      return JSBundle.message("invalid.identifier.value");
+    }
+  }
+  if (value.indexOf('{') != -1)   return null;
+  if (isEnumerated()) {
+    boolean inEnumeration=false;
+    for (    String s : getEnumeratedValues()) {
+      if (Comparing.strEqual(value,s,myEnumeratedValuesCaseSensitive)) {
+        inEnumeration=true;
+        break;
+      }
+    }
+    if (!inEnumeration)     return FlexBundle.message("flex.invalid.enumeration.value",value);
+  }
+  if (isAllowsPercentage() && value != null && value.endsWith("%"))   value=value.substring(0,value.length() - 1);
+  if ("int".equals(type) || "uint".equals(type)) {
+    try {
+      boolean startWithSharp=false;
+      if (value != null && ((startWithSharp=value.startsWith("#")) || value.startsWith("0x"))) {
+        Integer.parseInt(value.substring(startWithSharp ? 1 : 2),16);
+      }
+ else       if (!"Color".equals(format) || (value != null && value.length() > 0 && !Character.isLetter(value.charAt(0)))) {
+        Integer.parseInt(value);
+      }
+    }
+ catch (    NumberFormatException ex) {
+      return FlexBundle.message("flex.invalid.integer.value");
+    }
+  }
+ else   if ("Number".equals(type)) {
+    try {
+      boolean startWithSharp=false;
+      if (value != null && ((startWithSharp=value.startsWith("#")) || value.startsWith("0x"))) {
+        Integer.parseInt(value.substring(startWithSharp ? 1 : 2),16);
+      }
+ else {
+        Double.parseDouble(value);
+      }
+    }
+ catch (    NumberFormatException ex) {
+      return FlexBundle.message("flex.invalid.number.value");
+    }
+  }
+  return null;
+}

@@ -1,0 +1,58 @@
+{
+  final VirtualFile localesDirInSdk=flexSdkRoot.findFileByRelativePath("frameworks/locale");
+  if (localesDirInSdk != null) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      public void run(){
+        localesDirInSdk.refresh(false,false);
+      }
+    }
+);
+    final String[] selectedLocales=selectedLocalesCommaSeparated.split(",");
+    for (int i=0; i < selectedLocales.length; i++) {
+      selectedLocales[i]=selectedLocales[i].trim();
+    }
+    Arrays.sort(selectedLocales);
+    final VirtualFile[] localeDirsInSdk=localesDirInSdk.getChildren();
+    locales=new LocaleInfo[localeDirsInSdk.length];
+    for (int i=0; i < localeDirsInSdk.length; i++) {
+      locales[i]=new LocaleInfo(localeDirsInSdk[i].getName(),Arrays.binarySearch(selectedLocales,localeDirsInSdk[i].getName()) >= 0);
+    }
+    Arrays.sort(locales);
+    myLocalesTable.setModel(new DefaultTableModel(){
+      public String getColumnName(      int column){
+        return null;
+      }
+      public int getColumnCount(){
+        return 2;
+      }
+      public int getRowCount(){
+        return locales.length;
+      }
+      public Class<?> getColumnClass(      int columnIndex){
+        return columnIndex == 0 ? Boolean.class : String.class;
+      }
+      @Override public boolean isCellEditable(      int row,      int column){
+        return column == 0;
+      }
+      public Object getValueAt(      int row,      int column){
+        return column == 0 ? locales[row].isSelected() : locales[row].getLocale();
+      }
+      public void setValueAt(      Object aValue,      int row,      int column){
+        if (column == 0) {
+          locales[row].setSelected(((Boolean)aValue).booleanValue());
+        }
+      }
+    }
+);
+    myLocalesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myLocalesTable.getColumnModel().getColumn(0).setMaxWidth(45);
+    myLocalesTable.setDefaultRenderer(Boolean.class,new NoBackgroundBooleanTableCellRenderer());
+    myLocalesTable.setDefaultRenderer(String.class,new DefaultTableCellRenderer(){
+      public Component getTableCellRendererComponent(      JTable table,      Object value,      boolean isSelected,      boolean hasFocus,      int row,      int column){
+        setHorizontalAlignment(CENTER);
+        return super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
+      }
+    }
+);
+  }
+}

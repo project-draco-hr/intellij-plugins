@@ -1,0 +1,38 @@
+{
+  final String filePath=FileUtil.toSystemIndependentName(_filePath);
+  final String fileName=filePath.substring(filePath.lastIndexOf("/") + 1);
+  final String fileNameWithoutExtension=FileUtil.getNameWithoutExtension(fileName);
+  final String AT="at ";
+  final int atIndex=line.indexOf(AT);
+  final int slashIndex=line.indexOf("/",atIndex);
+  if (atIndex >= 0 && slashIndex > atIndex) {
+    final String somethingLikeFqn=line.substring(atIndex + AT.length(),slashIndex);
+    if (somethingLikeFqn.equals(fileNameWithoutExtension) || somethingLikeFqn.endsWith("::" + fileNameWithoutExtension)) {
+      final StringTokenizer tokenizer=new StringTokenizer(somethingLikeFqn,".:",false);
+      final StringBuilder relativePathBuffer=new StringBuilder();
+      while (tokenizer.hasMoreTokens()) {
+        if (relativePathBuffer.length() > 0) {
+          relativePathBuffer.append('/');
+        }
+        relativePathBuffer.append(tokenizer.nextToken());
+      }
+      relativePathBuffer.append('.');
+      relativePathBuffer.append(FileUtil.getExtension(fileName));
+      final String relativePathToLookFor=relativePathBuffer.toString();
+      if (filePath.endsWith(relativePathToLookFor)) {
+        final Collection<VirtualFile> result=new ArrayList<VirtualFile>();
+        final Collection<VirtualFile> files=FilenameIndex.getVirtualFilesByName(myProject,fileName,GlobalSearchScope.allScope(myProject));
+        for (        final VirtualFile file : files) {
+          if (file.getPath().endsWith(relativePathToLookFor)) {
+            result.add(file);
+          }
+        }
+        if (!result.isEmpty()) {
+          final int highlightStartOffset=highlightEndOffset - relativePathToLookFor.length() - (lineNumber > 0 ? (String.valueOf(lineNumber).length() + 1) : 0);
+          return new Result(highlightStartOffset,highlightEndOffset,new OpenOneOfSeveralFilesHyperlinkInfo(result,lineNumber));
+        }
+      }
+    }
+  }
+  return null;
+}

@@ -1,0 +1,54 @@
+{
+  Source s1, s2, s3;
+  VirtualFile o1, o2, o3;
+  ResourceFile rf1, rf2, rf3;
+  s1=(sourceList != null) ? sourceList.findSource(namespaceURI,localPart) : null;
+  o1=(s1 != null) ? s1.getBackingFile() : null;
+  if (o1 instanceof InMemoryFile) {
+    return findResourceBundleHelper(sources,s1);
+  }
+  rf1=(ResourceFile)o1;
+  if (rf1 != null && rf1.complete()) {
+    return findResourceBundleHelper(sources,s1);
+  }
+ else {
+    s2=(sourcePath != null) ? sourcePath.findSource(namespaceURI,localPart) : null;
+    o2=(s2 != null) ? s2.getBackingFile() : null;
+    if (rf1 == null && o2 instanceof InMemoryFile) {
+      return findResourceBundleHelper(sources,s2);
+    }
+ else     if (o2 instanceof InMemoryFile) {
+      o2=null;
+    }
+    rf2=(ResourceFile)o2;
+    if (rf1 != null) {
+      rf1.merge(rf2);
+    }
+ else {
+      rf1=rf2;
+      s1=s2;
+    }
+  }
+  if (rf1 != null && rf1.complete()) {
+    return findResourceBundleHelper(sources,s1);
+  }
+ else {
+    s3=(swcContext != null) ? swcContext.getResourceBundle(locales,namespaceURI,localPart) : null;
+    o3=(s3 != null) ? s3.getBackingFile() : null;
+    if (rf1 == null && o3 instanceof InMemoryFile) {
+      return findResourceBundleHelper(sources,s3);
+    }
+ else     if (o3 instanceof InMemoryFile) {
+      o3=null;
+    }
+    rf3=(ResourceFile)o3;
+    if (rf1 != null) {
+      rf1.merge(rf3);
+    }
+ else {
+      rf1=rf3;
+      s1=s3;
+    }
+  }
+  return findResourceBundleHelper(sources,s1);
+}

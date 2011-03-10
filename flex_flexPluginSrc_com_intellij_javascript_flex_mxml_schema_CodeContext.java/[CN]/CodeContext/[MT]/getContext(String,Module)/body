@@ -1,0 +1,15 @@
+{
+  if (StringUtil.isEmptyOrSpaces(namespace) || module == null || module.isDisposed())   return CodeContextHolder.EMPTY;
+  if (isStdNamespace(namespace)) {
+    return getStdCodeContext(namespace,module);
+  }
+  final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
+  CodeContext codeContext=contextHolder.getCodeContext(namespace,module);
+  if (codeContext == null) {
+    codeContext=createCodeContext(namespace,module,module.getProject());
+    if (codeContext.getAllDescriptorsSize() > 0) {
+      contextHolder.putCodeContext(namespace,module,codeContext);
+    }
+  }
+  return codeContext;
+}

@@ -1,0 +1,30 @@
+{
+  oemConfig.setDefaultBackgroundColor(c.backgroundColor());
+  oemConfig.setDefaultFrameRate(c.getFrameRate());
+  oemConfig.setDefaultScriptLimits(c.getScriptRecursionLimit(),c.getScriptTimeLimit());
+  oemConfig.setDefaultSize(c.defaultWidth(),c.defaultHeight());
+  oemConfig.setExterns(toStrings(c.getExterns()));
+  oemConfig.setIncludes(toStrings(c.getIncludes()));
+  oemConfig.setTargetPlayer(c.getTargetPlayerMajorVersion(),c.getTargetPlayerMinorVersion(),c.getTargetPlayerRevision());
+  oemConfig.enableDigestVerification(c.getVerifyDigests());
+  List rslList=c.getRslPathInfo();
+  boolean first=true;
+  for (Iterator iter=rslList.iterator(); iter.hasNext(); ) {
+    Configuration.RslPathInfo info=(Configuration.RslPathInfo)iter.next();
+    String[] rslUrls=(String[])info.getRslUrls().toArray(new String[0]);
+    String[] policyUrls=(String[])info.getPolicyFileUrls().toArray(new String[0]);
+    if (first) {
+      oemConfig.setRuntimeSharedLibraryPath(info.getSwcVirtualFile().getName(),rslUrls,policyUrls);
+      first=false;
+    }
+ else {
+      oemConfig.addRuntimeSharedLibraryPath(info.getSwcVirtualFile().getName(),rslUrls,policyUrls);
+    }
+  }
+  oemConfig.setSWFMetaData(c.getMetadata());
+  oemConfig.setRuntimeSharedLibraries(toStrings(c.getRuntimeSharedLibraries()));
+  oemConfig.useNetwork(c.useNetwork());
+  populateDefaults(oemConfig,c,c.getCompilerConfiguration());
+  populateDefaults(oemConfig,c.getFramesConfiguration());
+  populateDefaults(oemConfig,c.getLicensesConfiguration());
+}

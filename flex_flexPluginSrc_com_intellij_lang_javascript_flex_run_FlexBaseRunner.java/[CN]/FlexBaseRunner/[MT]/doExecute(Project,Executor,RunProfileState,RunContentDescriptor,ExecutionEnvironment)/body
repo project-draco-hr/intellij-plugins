@@ -1,0 +1,23 @@
+{
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final RunProfile runProfile=env.getRunProfile();
+  final FlexRunnerParameters flexRunnerParameters=((FlexRunConfiguration)runProfile).getRunnerParameters();
+  final Module module=ModuleManager.getInstance(project).findModuleByName(flexRunnerParameters.getModuleName());
+  final Sdk flexSdk=module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+  if (flexSdk == null) {
+    throw new CantRunException(FlexBundle.message("cannot.find.flex.sdk"));
+  }
+  final boolean ok=isRunAsAir(flexRunnerParameters) ? checkAirParams((AirRunnerParameters)flexRunnerParameters,flexSdk) : checkFlexParams(module,flexRunnerParameters);
+  if (ok) {
+    final boolean isDebug=this instanceof FlexDebugRunner;
+    if (isDebug) {
+      checkDebugInfoEnabled((FlexRunConfiguration)runProfile);
+    }
+    if (needToCheckThatCompilationEnabled(flexRunnerParameters)) {
+      checkIfCompilationEnabled(module,(FlexRunConfiguration)runProfile,isDebug);
+    }
+    FlashPlayerTrustUtil.trustSwfIfNeeded(project,isDebug,flexRunnerParameters);
+    return doLaunch(project,executor,state,contentToReuse,env,flexSdk,flexRunnerParameters);
+  }
+  return null;
+}

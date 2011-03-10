@@ -1,0 +1,35 @@
+{
+  final Module module=modifiableRootModel.getModule();
+  setupResourceFilePatterns(module.getProject());
+  if (TargetPlayerUtils.needToChangeSdk(mySdk,myTargetPlayerVersion)) {
+    final Sdk sdk=TargetPlayerUtils.findOrCreateProperSdk(module.getProject(),mySdk,myTargetPlayerVersion);
+    if (sdk != null) {
+      mySdk=sdk;
+    }
+  }
+  modifiableRootModel.setSdk(mySdk);
+  if (myContentRootPath == null)   return;
+  final VirtualFile moduleContentRoot=LocalFileSystem.getInstance().refreshAndFindFileByPath(myContentRootPath.replace('\\','/'));
+  if (moduleContentRoot == null)   return;
+  final ContentEntry contentEntry=modifiableRootModel.addContentEntry(moduleContentRoot);
+  if (mySourcePaths == null)   return;
+  final FlexBuildConfiguration config=setupFlexBuildConfiguration(module);
+  final VirtualFile sourceRootForFlexSetup=setupSourceRoots(contentEntry);
+  if (sourceRootForFlexSetup != null) {
+    try {
+      FlexUtils.setupFlexConfigFileAndSampleCode(module,config,mySdk,myCreateCustomCompilerConfig ? myCustomCompilerConfigFileName : null,moduleContentRoot,myCreateSampleApp ? mySampleAppFileName : null,sourceRootForFlexSetup);
+    }
+ catch (    IOException ex) {
+      throw new ConfigurationException(ex.getMessage());
+    }
+    if (myCreateHtmlWrapper) {
+      scheduleHtmlWrapperCreation(module,sourceRootForFlexSetup,myCreateRunConfiguration);
+    }
+ else     if (myCreateRunConfiguration) {
+      createRunConfiguration(module,sourceRootForFlexSetup);
+    }
+    if (myCreateAirDescriptor) {
+      createAirDescriptor(sourceRootForFlexSetup.getPath(),config);
+    }
+  }
+}

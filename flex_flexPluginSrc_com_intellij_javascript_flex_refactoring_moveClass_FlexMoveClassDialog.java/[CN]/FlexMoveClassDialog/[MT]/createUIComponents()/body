@@ -1,0 +1,18 @@
+{
+  String initialPackage;
+  if (myTargetContainer instanceof PsiDirectoryContainer) {
+    initialPackage=DirectoryIndex.getInstance(myProject).getPackageName(((PsiDirectoryContainer)myTargetContainer).getDirectories()[0].getVirtualFile());
+  }
+ else   if (myTargetContainer instanceof PsiDirectory) {
+    initialPackage=DirectoryIndex.getInstance(myProject).getPackageName(((PsiDirectory)myTargetContainer).getVirtualFile());
+  }
+ else {
+    if (myFileLocal) {
+      initialPackage=StringUtil.getPackageName(myElements.iterator().next().getQualifiedName());
+    }
+ else {
+      initialPackage=JSResolveUtil.getExpectedPackageNameFromFile(myElements.iterator().next().getContainingFile().getVirtualFile(),myProject);
+    }
+  }
+  myTargetPackageField=JSReferenceEditor.forPackageName(initialPackage,myProject,FlexMoveClassDialog.class.getName() + ".target_package",GlobalSearchScope.projectScope(myProject),RefactoringBundle.message("choose.destination.package"));
+}

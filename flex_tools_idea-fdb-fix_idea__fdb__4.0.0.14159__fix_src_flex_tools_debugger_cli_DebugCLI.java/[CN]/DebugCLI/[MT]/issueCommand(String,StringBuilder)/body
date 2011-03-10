@@ -1,0 +1,36 @@
+{
+  ByteArrayOutputStream ba=new ByteArrayOutputStream();
+  PrintStream ps=new PrintStream(ba);
+  PrintStream oldOut=m_out;
+  PrintStream oldErr=m_err;
+  m_out=ps;
+  m_err=ps;
+  try {
+    setCurrentLine(cmd);
+    processLine();
+  }
+ catch (  AmbiguousException ae) {
+  }
+catch (  IllegalStateException ise) {
+    err(getLocalizationManager().getLocalizedTextString("illegalStateException"));
+  }
+catch (  IllegalMonitorStateException ime) {
+    err(getLocalizationManager().getLocalizedTextString("commandNotValidUntilPlayerSuspended"));
+  }
+catch (  NoSuchElementException nse) {
+    err(getLocalizationManager().getLocalizedTextString("noSuchElementException"));
+  }
+catch (  SocketException se) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("socketErrorMessage",se.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("problemWithConnection",args));
+  }
+catch (  Exception e) {
+    err(getLocalizationManager().getLocalizedTextString("unexpectedErrorWithStackTrace"));
+    if (Trace.error)     e.printStackTrace();
+  }
+  ps.flush();
+  output.append(ba.toString());
+  m_err=oldErr;
+  m_out=oldOut;
+}

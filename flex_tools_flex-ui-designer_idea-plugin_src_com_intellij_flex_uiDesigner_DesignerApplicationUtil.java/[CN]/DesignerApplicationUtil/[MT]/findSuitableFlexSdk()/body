@@ -1,0 +1,29 @@
+{
+  String adlPath;
+  String runtime=null;
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    return new AdlRunConfiguration(System.getProperty("fud.adl"),System.getProperty("fud.air"));
+  }
+  for (  Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+    SdkType sdkType=sdk.getSdkType();
+    if (!(sdkType instanceof IFlexSdkType)) {
+      continue;
+    }
+    String version=sdk.getVersionString();
+    if (version == null || !(version.length() >= 3 && (version.charAt(0) > '4' || (version.charAt(0) == '4' && version.charAt(2) >= '1')))) {
+      continue;
+    }
+    adlPath=FlexSdkUtils.getAdlPath(sdk);
+    if (StringUtil.isEmpty(adlPath)) {
+      continue;
+    }
+    if (sdkType instanceof FlexmojosSdkType) {
+      runtime=FlexSdkUtils.getAirRuntimePathForFlexmojosSdk(sdk);
+      if (StringUtil.isEmpty(runtime)) {
+        continue;
+      }
+    }
+    return new AdlRunConfiguration(adlPath,runtime);
+  }
+  return null;
+}

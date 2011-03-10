@@ -1,0 +1,23 @@
+{
+  LOG.debug("RECEIVED: [" + line + "]");
+  final int colonPos=line.indexOf(":");
+  if (colonPos <= 0) {
+    LOG.error("Incorrect command: [" + line + "]");
+    return;
+  }
+  final String prefix=line.substring(0,colonPos + 1);
+  final Listener listener=myActiveListeners.get(prefix);
+  if (listener == null) {
+    LOG.warn("No active listener for input line: [" + line + "]");
+  }
+ else {
+    final String text=line.substring(colonPos + 1);
+    if (text.startsWith(COMPILATION_FINISHED)) {
+      listener.compilationFinished();
+      myActiveListeners.remove(prefix);
+    }
+ else {
+      listener.textAvailable(text);
+    }
+  }
+}

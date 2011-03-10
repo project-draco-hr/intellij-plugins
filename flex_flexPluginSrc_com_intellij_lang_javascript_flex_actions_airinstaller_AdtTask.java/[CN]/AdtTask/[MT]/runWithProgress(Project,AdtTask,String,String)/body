@@ -1,0 +1,32 @@
+{
+  final Runnable process=new Runnable(){
+    public void run(){
+      final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.setIndeterminate(true);
+      }
+      task.start();
+      while (!task.isFinished()) {
+        if (indicator != null && indicator.isCanceled()) {
+          task.cancel();
+          break;
+        }
+        try {
+          Thread.sleep(200);
+        }
+ catch (        InterruptedException e) {
+        }
+      }
+    }
+  }
+;
+  final boolean ok=ProgressManager.getInstance().runProcessWithProgressSynchronously(process,progressTitle,true,project);
+  if (ok) {
+    final List<String> messages=task.getMessages();
+    if (messages.isEmpty()) {
+      return true;
+    }
+    Messages.showErrorDialog(project,StringUtil.join(messages,"\n"),frameTitle);
+  }
+  return false;
+}

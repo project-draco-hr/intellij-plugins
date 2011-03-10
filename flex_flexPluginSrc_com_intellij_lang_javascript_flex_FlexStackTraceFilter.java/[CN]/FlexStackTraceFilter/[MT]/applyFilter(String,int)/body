@@ -1,0 +1,41 @@
+{
+  if (line.indexOf('[') < 0) {
+    return null;
+  }
+  Pattern p=SystemInfo.isWindows ? WIN_CPATTERN : UNIX_CPATTERN;
+  Matcher m=p.matcher(line);
+  if (!m.find()) {
+    p=SystemInfo.isWindows ? UNIX_CPATTERN : WIN_CPATTERN;
+    m=p.matcher(line);
+    if (!m.find()) {
+      return null;
+    }
+  }
+  final int textStartOffset=entireLength - line.length();
+  final int highlightStartOffset=textStartOffset + m.start(1);
+  final int highlightEndOffset=textStartOffset + m.end(1);
+  int lineNumber=StringUtil.isEmpty(m.group(3)) ? 0 : Integer.parseInt(m.group(3)) - 1;
+  final String filePath=m.group(2);
+  final File file=new File(filePath);
+  if (!file.isFile()) {
+    return applyFlexStackTraceFilter(line,filePath,highlightEndOffset,lineNumber);
+  }
+  final Ref<VirtualFile> vFile=new Ref<VirtualFile>();
+  try {
+    GuiUtils.runOrInvokeAndWait(new Runnable(){
+      public void run(){
+        vFile.set(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file));
+      }
+    }
+);
+  }
+ catch (  InvocationTargetException e) {
+  }
+catch (  InterruptedException e) {
+  }
+  if (vFile.isNull()) {
+    return null;
+  }
+  final OpenFileHyperlinkInfo info=new OpenFileHyperlinkInfo(myProject,vFile.get(),lineNumber);
+  return new Result(highlightStartOffset,highlightEndOffset,info);
+}

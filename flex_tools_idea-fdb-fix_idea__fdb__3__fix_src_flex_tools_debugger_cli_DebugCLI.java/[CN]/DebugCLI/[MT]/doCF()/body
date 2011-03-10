@@ -1,0 +1,32 @@
+{
+  try {
+    int module=propertyGet(LIST_MODULE);
+    int currentLine=propertyGet(LIST_LINE);
+    if (hasMoreTokens()) {
+      String arg=nextToken();
+      module=parseFileArg(module,arg);
+      currentLine=1;
+      setListingPosition(module,currentLine);
+    }
+    SourceFile sourceFile=m_fileInfo.getFile(module);
+    StringBuffer sb=new StringBuffer();
+    sb.append(sourceFile.getName());
+    sb.append('#');
+    sb.append(sourceFile.getId());
+    sb.append(':');
+    sb.append(currentLine);
+    out(sb.toString());
+  }
+ catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("noFilesFound"));
+  }
+catch (  ParseException pe) {
+    err(pe.getMessage());
+  }
+catch (  AmbiguousException ae) {
+    err(ae.getMessage());
+  }
+catch (  NoMatchException nme) {
+    err(nme.getMessage());
+  }
+}

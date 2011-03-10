@@ -1,0 +1,22 @@
+{
+  final Module module=ModuleUtil.findModuleForPsiElement(element);
+  if (element instanceof PsiDirectoryContainer || element instanceof JSPackage || element instanceof JSPackageStatement) {
+    return new PackageRefactoringListener(module,getPackageName(element));
+  }
+  if (module != null && FlexUtils.isFlexModuleOrContainsFlexFacet(module)) {
+    final JSClass jsClass=getJSClass(element);
+    if (jsClass != null) {
+      return new JSClassRefactoringListener(module,jsClass.getQualifiedName());
+    }
+    final VirtualFile file=element instanceof PsiFile ? element.getContainingFile().getVirtualFile() : null;
+    if (file != null) {
+      if ("css".equalsIgnoreCase(file.getExtension())) {
+        return new CssFileRefactoringListener(module,file.getPath());
+      }
+ else       if ("xml".equalsIgnoreCase(file.getExtension())) {
+        return new XmlFileRefactoringListener(module,file.getPath());
+      }
+    }
+  }
+  return null;
+}

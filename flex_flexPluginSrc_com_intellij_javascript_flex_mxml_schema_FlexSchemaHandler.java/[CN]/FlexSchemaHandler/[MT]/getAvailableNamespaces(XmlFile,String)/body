@@ -1,0 +1,55 @@
+{
+  PsiFile originalFile=_file.getOriginalFile();
+  if (originalFile instanceof XmlFile)   _file=(XmlFile)originalFile;
+  final XmlFile file=_file;
+  final Project project=file.getProject();
+  final Module module=ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(file.getVirtualFile());
+  final Collection<String> illegalNamespaces=getIllegalNamespaces(file);
+  final Set<String> result=new THashSet<String>();
+  if (tagName == null) {
+    for (    final String namespace : CodeContextHolder.getInstance(project).getNamespaces(module)) {
+      if (!illegalNamespaces.contains(namespace)) {
+        result.add(namespace);
+      }
+    }
+    if (!illegalNamespaces.contains(JavaScriptSupportLoader.MXML_URI)) {
+      result.add(JavaScriptSupportLoader.MXML_URI);
+    }
+  }
+  if (XmlBackedJSClassImpl.SCRIPT_TAG_NAME.equals(tagName) || "Style".equals(tagName))   return result;
+  if (DumbService.isDumb(project))   return result;
+  final JavaScriptIndex index=JavaScriptIndex.getInstance(project);
+  index.processAllSymbols(new JavaScriptSymbolProcessor.DefaultSymbolProcessor(){
+    protected boolean process(    final PsiElement namedElement,    final JSNamespace namespace){
+      if (namedElement instanceof JSNamedElementProxy) {
+        final JSNamedElementIndexItem proxy=((JSNamedElementProxy)namedElement).getIndexItem();
+        if (proxy.getType() == JSNamedElementProxy.NamedItemType.Clazz && proxy.getAccessType() == JSAttributeList.AccessType.PUBLIC) {
+          final @NonNls String packageName=proxy.getNamespace().getQualifiedName();
+          result.add(getNamespaceForClass(module,packageName,tagName,illegalNamespaces));
+        }
+      }
+      return true;
+    }
+    public PsiFile getBaseFile(){
+      return file;
+    }
+    public int getRequiredNameId(){
+      return index.getIndexOf(tagName);
+    }
+  }
+);
+  final GlobalSearchScope scope=module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.projectScope(project);
+  FlexResolveHelper.processAllMxmlAndFxgFiles(scope,project,new FlexResolveHelper.MxmlAndFxgFilesProcessor(){
+    public void addDependency(    final PsiDirectory directory){
+    }
+    public boolean processFile(    final VirtualFile file,    final VirtualFile root){
+      final String packageName=VfsUtil.getRelativePath(file.getParent(),root,'.');
+      if (packageName != null) {
+        result.add(getNamespaceForClass(module,packageName,tagName,illegalNamespaces));
+      }
+      return true;
+    }
+  }
+,tagName);
+  return result;
+}

@@ -1,0 +1,24 @@
+{
+  final VirtualFile flexSdkRoot=flexSdk == null ? null : flexSdk.getHomeDirectory();
+  final VirtualFile frameworksDir=flexSdkRoot != null && flexSdkRoot.isValid() ? flexSdkRoot.findChild("frameworks") : null;
+  final VirtualFile flexConfigFile=frameworksDir != null ? frameworksDir.findChild("flex-config.xml") : null;
+  if (flexConfigFile == null)   return;
+  final XmlFile flexConfigXmlFile=(XmlFile)PsiManager.getInstance(module.getProject()).findFile(flexConfigFile);
+  final XmlDocument document=flexConfigXmlFile != null ? flexConfigXmlFile.getDocument() : null;
+  final XmlTag rootTag=document != null ? document.getRootTag() : null;
+  final XmlTag[] compilerTags=rootTag != null ? rootTag.findSubTags("compiler") : XmlTag.EMPTY;
+  for (  final XmlTag compilerTag : compilerTags) {
+    for (    final XmlTag namespacesTag : compilerTag.findSubTags("namespaces")) {
+      for (      final XmlTag namespaceTag : namespacesTag.findSubTags("namespace")) {
+        final String namespace=namespaceTag.getSubTagText("uri");
+        final String pathToManifest=namespaceTag.getSubTagText("manifest");
+        if (namespace != null && pathToManifest != null) {
+          final VirtualFile manifestFile=VfsUtil.findRelativeFile(pathToManifest,frameworksDir);
+          if (manifestFile != null) {
+            handleStandardManifest(module,namespace,manifestFile,flexSdkRoot);
+          }
+        }
+      }
+    }
+  }
+}

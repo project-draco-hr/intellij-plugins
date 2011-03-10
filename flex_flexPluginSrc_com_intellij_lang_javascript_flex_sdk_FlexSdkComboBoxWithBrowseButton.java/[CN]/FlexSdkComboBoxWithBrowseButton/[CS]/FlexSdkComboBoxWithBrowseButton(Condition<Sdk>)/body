@@ -1,0 +1,74 @@
+{
+  this.mySdkEvaluator=sdkEvaluator;
+  rebuildSdkListAndSelectSdk(null);
+  final JComboBox sdkCombo=getComboBox();
+  sdkCombo.setRenderer(new DefaultListCellRenderer(){
+    public Component getListCellRendererComponent(    JList list,    Object value,    int index,    boolean isSelected,    boolean cellHasFocus){
+      super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
+      if (value instanceof ModuleSdk) {
+        final Sdk sdk=((ModuleSdk)value).mySdk;
+        if (sdk == null) {
+          if (sdkCombo.isEnabled()) {
+            setText("<html><font color='red'>Module SDK [not set]</font></html>");
+            setIcon(Icons.ERROR_INTRODUCTION_ICON);
+          }
+ else {
+            setText("Module SDK [not set]");
+            setIcon(IconLoader.getDisabledIcon(Icons.ERROR_INTRODUCTION_ICON));
+          }
+        }
+ else {
+          setText("Module SDK [" + sdk.getName() + "]");
+          setIcon(((ModuleSdk)value).mySdk.getSdkType().getIcon());
+        }
+      }
+ else       if (value instanceof String) {
+        if (sdkCombo.isEnabled()) {
+          setText("<html><font color='red'>" + value + " [Invalid]</font></html>");
+          setIcon(Icons.ERROR_INTRODUCTION_ICON);
+        }
+ else {
+          setText(value + " [Invalid]");
+          setIcon(IconLoader.getDisabledIcon(Icons.ERROR_INTRODUCTION_ICON));
+        }
+      }
+ else       if (value instanceof Sdk) {
+        setText(((Sdk)value).getName());
+        setIcon(((Sdk)value).getSdkType().getIcon());
+      }
+ else {
+        if (sdkCombo.isEnabled()) {
+          setText("<html><font color='red'>[none]</font></html>");
+        }
+ else {
+          setText("[none]");
+        }
+      }
+      return this;
+    }
+  }
+);
+  addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      Project project=PlatformDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
+      if (project == null) {
+        project=ProjectManager.getInstance().getDefaultProject();
+      }
+      final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,FlexSdkComboBoxWithBrowseButton.this);
+      editor.show();
+      if (editor.isOK()) {
+        final Sdk selectedSdk=editor.getSelectedJdk();
+        if (mySdkEvaluator.value(selectedSdk)) {
+          rebuildSdkListAndSelectSdk(selectedSdk);
+        }
+ else {
+          rebuildSdkListAndSelectSdk(null);
+          if (selectedSdk != null) {
+            Messages.showErrorDialog(FlexSdkComboBoxWithBrowseButton.this,FlexBundle.message("sdk.can.not.be.selected",selectedSdk.getName()),FlexBundle.message("select.flex.sdk"));
+          }
+        }
+      }
+    }
+  }
+);
+}

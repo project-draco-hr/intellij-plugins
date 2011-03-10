@@ -1,0 +1,43 @@
+{
+  indicator.setText(FlexBundle.message("generating.flex.config.for",myMavenProject.getDisplayName()));
+  final MavenProjectsTree.EmbedderTask task=new MavenProjectsTree.EmbedderTask(){
+    public void run(    MavenEmbedderWrapper embedder) throws MavenProcessCanceledException {
+      Map<MavenId,VirtualFile> mavenIdToFileMapping=null;
+      final IgnoredFileBean[] filesToIgnoreOriginal=ChangeListManager.getInstance(project).getFilesToIgnore();
+      try {
+        mavenIdToFileMapping=getMavenIdToOutputFileMapping(project,myTree.getProjects());
+        embedder.customizeForStrictResolve(convertFileMap(mavenIdToFileMapping),console,indicator);
+        final String generateConfigGoal=flexmojosGroupId + ":" + flexmojosArtifactId+ ":generate-config-"+ myMavenProject.getPackaging();
+        MavenServerExecutionResult result=embedder.execute(myMavenProject.getFile(),myMavenProject.getActivatedProfilesIds(),Collections.singletonList(generateConfigGoal));
+        if (result.projectData == null) {
+          myFlexConfigInformer.showFlexConfigWarningIfNeeded(project,myMavenProject,myFlexFacet);
+        }
+        MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
+          public void run(){
+            final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(FlexBuildConfiguration.getInstance(myFlexFacet).CUSTOM_CONFIG_FILE);
+            if (file != null) {
+              file.refresh(false,false);
+            }
+          }
+        }
+);
+      }
+ catch (      MavenProcessCanceledException e) {
+        throw e;
+      }
+catch (      Exception e) {
+        myFlexConfigInformer.showFlexConfigWarningIfNeeded(project,myMavenProject,myFlexFacet);
+        console.printException(e);
+        MavenLog.LOG.warn(e);
+      }
+ finally {
+        ChangeListManager.getInstance(project).setFilesToIgnore(filesToIgnoreOriginal);
+        if (mavenIdToFileMapping != null) {
+          removeTemporaryFiles(project,mavenIdToFileMapping.values());
+        }
+      }
+    }
+  }
+;
+  myTree.executeWithEmbedder(myMavenProject,embeddersManager,MavenEmbeddersManager.FOR_POST_PROCESSING,console,indicator,task);
+}

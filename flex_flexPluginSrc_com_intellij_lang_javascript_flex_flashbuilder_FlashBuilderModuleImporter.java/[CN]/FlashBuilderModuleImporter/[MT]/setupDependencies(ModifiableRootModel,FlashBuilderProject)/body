@@ -1,0 +1,34 @@
+{
+  final LibraryTable libraryTable=rootModel.getModuleLibraryTable();
+  for (  final Library library : libraryTable.getLibraries()) {
+    if (isImportedFromFlashBuilder(library)) {
+      libraryTable.removeLibrary(library);
+    }
+  }
+  for (  final String libraryPathOrig : flashBuilderProject.getLibraryPaths()) {
+    final boolean moduleDependency=setupModuleDependencyIfApplicable(rootModel,libraryPathOrig,myAllImportedModuleNames);
+    if (!moduleDependency) {
+      final String libraryPath=getAbsolutePathWithLinksHandled(flashBuilderProject,libraryPathOrig);
+      final int slashIndex=libraryPath.lastIndexOf('/');
+      final int dotIndex=libraryPath.lastIndexOf('.');
+      final String libraryName=dotIndex > slashIndex ? libraryPath.substring(slashIndex + 1,dotIndex) : libraryPath.substring(slashIndex + 1);
+      final Library library=libraryTable.createLibrary(LIBRARY_NAME_PREFIX + libraryName);
+      final Library.ModifiableModel libraryModel=library.getModifiableModel();
+      if (libraryPath.toLowerCase().endsWith(".swc")) {
+        libraryModel.addRoot(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL,libraryPath) + JarFileSystem.JAR_SEPARATOR,OrderRootType.CLASSES);
+      }
+ else {
+        libraryModel.addJarDirectory(VfsUtil.pathToUrl(libraryPath),false);
+      }
+      for (      final String librarySourcePath : flashBuilderProject.getLibrarySourcePaths(libraryPathOrig)) {
+        libraryModel.addRoot(VfsUtil.pathToUrl(getAbsolutePathWithLinksHandled(flashBuilderProject,librarySourcePath)),OrderRootType.SOURCES);
+      }
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          libraryModel.commit();
+        }
+      }
+);
+    }
+  }
+}

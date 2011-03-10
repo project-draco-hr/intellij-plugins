@@ -1,0 +1,42 @@
+{
+  createReader(inputStream);
+  final FlexUIDesignerApplicationManager designerAppManager=FlexUIDesignerApplicationManager.getInstance();
+  readProcess:   while (true) {
+    final int command=reader.read();
+switch (command) {
+case -1:
+      break readProcess;
+case ServerMethod.goToClass:
+    final Module module=designerAppManager.getClient().getModule(reader.readInt());
+  final String className=reader.readUTF();
+ApplicationManager.getApplication().invokeLater(new Runnable(){
+  @Override public void run(){
+    JSClass classElement=((JSClass)JSResolveUtil.findClassByQName(className,module.getModuleWithDependenciesAndLibrariesScope(false)));
+    classElement.navigate(true);
+    ProjectUtil.focusProjectWindow(classElement.getProject(),true);
+  }
+}
+);
+break;
+case ServerMethod.openFile:
+final Project project=designerAppManager.getClient().getModule(reader.readInt()).getProject();
+final OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(project,reader.readFile(),reader.readInt());
+ApplicationManager.getApplication().invokeLater(new Runnable(){
+@Override public void run(){
+openFileDescriptor.navigate(true);
+ProjectUtil.focusProjectWindow(project,true);
+}
+}
+);
+break;
+case ServerMethod.resolveExternalInlineStyleDeclarationSource:
+ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,designerAppManager.getClient().getModule(reader.readInt())));
+break;
+case ServerMethod.showError:
+FlexUIDesignerApplicationManager.LOG.error(reader.readUTF());
+break;
+default :
+throw new IllegalArgumentException("unknown client command: " + command);
+}
+}
+}

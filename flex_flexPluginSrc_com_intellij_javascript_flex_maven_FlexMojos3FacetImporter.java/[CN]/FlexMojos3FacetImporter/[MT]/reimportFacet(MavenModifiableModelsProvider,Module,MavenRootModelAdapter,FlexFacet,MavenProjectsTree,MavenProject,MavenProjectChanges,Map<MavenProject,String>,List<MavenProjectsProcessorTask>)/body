@@ -1,0 +1,26 @@
+{
+  super.reimportFacet(modelsProvider,module,rootModel,facet,mavenTree,project,changes,mavenProjectToModuleName,postTasks);
+  final MavenPlugin flexmojosPlugin=getFlexmojosPlugin(project);
+  final MavenId flexCompilerId=new MavenId(FLEX_COMPILER_GROUP_ID,FLEX_COMPILER_ARTIFACT_ID,getFlexCompilerPomVersion(flexmojosPlugin));
+  final String path=getArtifactFilePath(project,flexCompilerId,MavenConstants.TYPE_POM);
+  final Sdk flexSdk=FlexSdkUtils.createOrGetSdk(FlexmojosSdkType.getInstance(),path);
+  if (flexSdk != null) {
+    ensureSdkHasRequiredAdditionalJarPaths(flexSdk,project,flexmojosPlugin);
+  }
+  final ModifiableFacetModel facetModel=modelsProvider.getFacetModel(module);
+  for (  FlexFacet flexFacet : facetModel.getFacetsByType(myFacetType.getId())) {
+    flexFacet.getConfiguration().setFlexSdk(flexSdk,rootModel.getRootModel());
+  }
+  if (StringUtil.compareVersionNumbers(flexmojosPlugin.getVersion(),"3.4") >= 0) {
+    postTasks.add(new GenerateFlexConfigTask(facet,project,mavenTree,FLEXMOJOS_GROUP_ID,FLEXMOJOS_ARTIFACT_ID,this));
+  }
+ else {
+    showFlexConfigWarningIfNeeded(module.getProject(),project,facet);
+  }
+  for (  final FlexFacet flexFacet : facetModel.getFacetsByType(myFacetType.getId())) {
+    if (isMxModuleFacet(flexFacet)) {
+      postTasks.add(new GenerateFlexConfigFilesForMxModulesTask(module,project,mavenTree));
+      break;
+    }
+  }
+}

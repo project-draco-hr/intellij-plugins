@@ -1,0 +1,28 @@
+{
+  super(project,provider);
+  myEditorFile=file;
+  spManager=SmartPointerManager.getInstance(project);
+  if (element instanceof JSClass) {
+    initialPackage=null;
+    myInitialElement=spManager.createSmartPsiElementPointer((JSClass)element);
+    JSClass psiClass=(JSClass)element;
+    classesAddedByUser.put(psiClass.getQualifiedName(),(SmartPsiElementPointer<JSClass>)myInitialElement);
+    final Collection<JSClass> classes=JSInheritanceUtil.findAllParentsForClass(psiClass,true);
+    for (    JSClass aClass : classes) {
+      classesAddedByUser.put(aClass.getQualifiedName(),spManager.createSmartPsiElementPointer(aClass));
+    }
+  }
+ else   if (element instanceof String) {
+    initialPackage=(String)element;
+    final GlobalSearchScope searchScope=GlobalSearchScope.allScope(project);
+    for (    String aPackage : getSubPackages(initialPackage,searchScope)) {
+      packages.add(aPackage);
+    }
+    for (    JSClass jsClass : getClasses(initialPackage,searchScope)) {
+      classesAddedByUser.put(jsClass.getQualifiedName(),spManager.createSmartPsiElementPointer(jsClass));
+    }
+  }
+ else {
+    initialPackage=null;
+  }
+}

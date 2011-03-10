@@ -1,0 +1,36 @@
+{
+  try {
+    final LocalFileSystem localFileSystem=LocalFileSystem.getInstance();
+    final VirtualFile configFile=configFiles.get(configFiles.size() - 1);
+    final String outputFilePath=FlexUtils.findXMLElement(configFile.getInputStream(),OUTPUT_FILE_TAG);
+    if (outputFilePath == null)     return null;
+    final VirtualFile outputFile=FlexCompilationManager.refreshAndFindFileInWriteAction(myProject,outputFilePath,configFile.getParent().getPath());
+    if (outputFile == null)     return null;
+    for (    final CompilerMessage message : messages) {
+      final String text=message.getMessage();
+      final Matcher matcher1=FlexCompilationManager.OUTPUT_FILE_CREATED_PATTERN.matcher(text);
+      if (matcher1.matches()) {
+        final String outputFilePath1=matcher1.group(2);
+        final int size;
+        size=Integer.parseInt(matcher1.group(3));
+        if (outputFile.equals(localFileSystem.findFileByPath(outputFilePath1)) && size == outputFile.getLength()) {
+          return outputFile;
+        }
+      }
+ else {
+        final Matcher matcher2=OUTPUT_FILE_IS_UP_TO_DATE.matcher(text);
+        if (matcher2.matches()) {
+          final String outputFilePath2=matcher2.group(2);
+          if (outputFile.equals(localFileSystem.findFileByPath(outputFilePath2))) {
+            return outputFile;
+          }
+        }
+      }
+    }
+  }
+ catch (  NumberFormatException e) {
+  }
+catch (  IOException e) {
+  }
+  return null;
+}

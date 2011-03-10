@@ -1,0 +1,51 @@
+{
+  myProject=project;
+  final ActionListener radioButtonListener=new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      updateControls();
+      updateFocus();
+    }
+  }
+;
+  myUseHtmlOrSwfRadioButton.addActionListener(radioButtonListener);
+  myUseUrlRadioButton.addActionListener(radioButtonListener);
+  myUseMainClassRadioButton.addActionListener(radioButtonListener);
+  myConnectToRunningPlayerRadioButton.addActionListener(radioButtonListener);
+  myHtmlOrSwfComboWithBrowse.getComboBox().setPrototypeDisplayValue("12345678901234567890123546789012345678901234567890");
+  myHtmlOrSwfComboWithBrowse.getComboBox().setEditable(true);
+  myHtmlOrSwfComboWithBrowse.addBrowseFolderListener(project,new FileChooserDescriptor(true,false,false,false,false,false){
+    public boolean isFileVisible(    VirtualFile file,    boolean showHiddenFiles){
+      return super.isFileVisible(file,showHiddenFiles) && (file.isDirectory() || isApplicableExtension(file));
+    }
+  }
+);
+  myModuleComboboxWrapper=new ModulesComboboxWrapper(myModuleComboBox);
+  myModuleComboboxWrapper.addActionListener(new ModulesComboboxWrapper.Listener(){
+    public void moduleChanged(){
+      fillHtmlOrSwfCombo();
+      final Module module=myModuleComboboxWrapper.getSelectedModule();
+      myDebuggerSdkCombo.setModuleSdk(module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module));
+      updateMainClassField();
+    }
+  }
+);
+  myLaunchWithTextWithBrowse.getTextField().setEditable(false);
+  myLaunchWithTextWithBrowse.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final FlexLauncherDialog dialog=new FlexLauncherDialog(myProject,myLauncherType,myBrowserFamily,myPlayerPath);
+      dialog.show();
+      if (dialog.isOK()) {
+        myLauncherType=dialog.getLauncherType();
+        final BrowsersConfiguration.BrowserFamily browser=dialog.getBrowserFamily();
+        if (browser != null) {
+          myBrowserFamily=browser;
+        }
+        myPlayerPath=dialog.getPlayerPath();
+        updateControls();
+      }
+    }
+  }
+);
+  myDebuggerSdkCombo.showModuleSdk(true);
+  updateMainClassField();
+}

@@ -1,0 +1,16 @@
+{
+  appDir=new File(PathManager.getSystemPath(),"flexUIDesigner");
+  File designerAppFile=new File(appDir,"designer.swf");
+  if (System.getProperty("fud.debug") == null && designerAppFile.lastModified() < APP_LAST_MODIFIED) {
+    designerAppFile.getParentFile().mkdirs();
+    try {
+      FileUtil.copy(getClass().getClassLoader().getResourceAsStream("descriptor.xml"),new FileOutputStream(new File(appDir,"descriptor.xml")));
+      FileUtil.copy(getClass().getClassLoader().getResourceAsStream("designer.swf"),new FileOutputStream(designerAppFile));
+    }
+ catch (    IOException e) {
+      LOG.error(e);
+    }
+  }
+  myProjectManagerListener=new MyProjectManagerListener();
+  ProjectManager.getInstance().addProjectManagerListener(myProjectManagerListener);
+}

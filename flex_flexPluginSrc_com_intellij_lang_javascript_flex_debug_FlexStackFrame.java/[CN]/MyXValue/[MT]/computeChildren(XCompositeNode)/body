@@ -1,0 +1,43 @@
+{
+  final String str=OBJECT_MARKER;
+  final int i=myResult.indexOf(str);
+  if (i == -1)   super.computeChildren(node);
+  final EvaluateCommand command=new EvaluateCommand(referenceObjectBase(i,str),null){
+    @Override CommandOutputProcessingMode doOnTextAvailable(    @NonNls final String resultS){
+      StringTokenizer tokenizer=new StringTokenizer(resultS,"\r\n");
+      String evaluationInfo=tokenizer.nextToken();
+      final List<MyXValue> result1=new ArrayList<MyXValue>(tokenizer.countTokens());
+      while (tokenizer.hasMoreElements()) {
+        final String s=tokenizer.nextToken().trim();
+        if (s.length() == 0)         continue;
+        final int i1=s.indexOf(DELIM);
+        if (i1 == -1) {
+          FlexDebugProcess.log("Unrecognized string:" + s);
+          continue;
+        }
+        final String fieldName=s.substring(0,i1);
+        String evaluatedPath=myExpression;
+        if (fieldName.length() > 0 && Character.isDigit(fieldName.charAt(0))) {
+          evaluatedPath+="[\"" + fieldName + "\"]";
+        }
+ else {
+          evaluatedPath+="." + fieldName;
+        }
+        final String type=getTypeAndAdditionalInfo(myResult).first;
+        final ValueType valueType=type != null && type.indexOf('/') > -1 ? ValueType.Parameter : ValueType.Field;
+        result1.add(new MyXValue(fieldName,evaluatedPath,s.substring(i1 + DELIM.length()),MyXValue.this.myResult,valueType));
+      }
+      if (evaluationInfo != null && toSortNumerically(evaluationInfo)) {
+        Collections.sort(result1,myArrayElementsComparator);
+      }
+      final XValueChildrenList children=new XValueChildrenList();
+      for (      MyXValue value : result1) {
+        children.add(value.myName,value);
+      }
+      node.addChildren(children,true);
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+;
+  myDebugProcess.sendCommand(command);
+}

@@ -1,0 +1,38 @@
+{
+  final List<VirtualFile> result=new ArrayList<VirtualFile>();
+  final LocalFileSystem localFileSystem=LocalFileSystem.getInstance();
+  final VirtualFile[] sourceRoots=ModuleRootManager.getInstance(module).getSourceRoots();
+  try {
+    final Map<String,List<String>> elementsMap=FlexUtils.findXMLElements(configFile.getInputStream(),Arrays.asList(TAGS_FOR_FILE_PATHS_IN_CONFIG_FILE));
+    for (    List<String> filePathList : elementsMap.values()) {
+      for (      String filePath : filePathList) {
+        if (filePath.endsWith(FlexCompilerHandler.LOCALE_TOKEN)) {
+          filePath=filePath.substring(0,filePath.length() - FlexCompilerHandler.LOCALE_TOKEN.length());
+        }
+        VirtualFile file=localFileSystem.findFileByPath(filePath);
+        if (file == null) {
+          final VirtualFile dir=FlexUtils.getFlexCompilerWorkDir(module.getProject(),null);
+          file=VfsUtil.findRelativeFile(filePath,dir);
+          if (file == null && dir != configFile.getParent()) {
+            file=VfsUtil.findRelativeFile(filePath,configFile.getParent());
+          }
+        }
+        if (file != null) {
+          boolean inSourceRoot=false;
+          for (          VirtualFile sourceRoot : sourceRoots) {
+            if (VfsUtil.isAncestor(sourceRoot,file,false)) {
+              inSourceRoot=true;
+              break;
+            }
+          }
+          if (!inSourceRoot) {
+            result.add(file);
+          }
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+  }
+  return result;
+}

@@ -1,0 +1,39 @@
+{
+  final Iterator<FlexCompilationTask> iterator=myInProgressTasks.iterator();
+  while (iterator.hasNext()) {
+    FlexCompilationTask task=iterator.next();
+    if (task.isFinished()) {
+      iterator.remove();
+      myFinishedTasks.add(task);
+      if (task.isCompilationFailed()) {
+        if (hasNotStartedDependentTasks(task)) {
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed.dependent.will.be.skipped"),null,-1,-1);
+          cancelNotStartedDependentTasks(task);
+        }
+ else {
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed"),null,-1,-1);
+        }
+      }
+ else {
+        addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.successfull"),null,-1,-1);
+      }
+      if (task.getConfig().getType() == FlexBuildConfiguration.Type.Default) {
+        final Module module=task.getModule();
+        if (task.isCompilationFailed()) {
+          myModuleToRelatedFilesCache.markModuleAndDependentModulesDirty(module);
+        }
+ else         if (areAllModuleCompilationsSuccessful(module)) {
+          final Collection<List<VirtualFile>> allConfigFiles=new ArrayList<List<VirtualFile>>();
+          for (          final FlexCompilationTask t : myFinishedTasks) {
+            if (!(t instanceof CssCompilationTask) && t.getModule().equals(module)) {
+              allConfigFiles.add(t.getConfigFiles());
+            }
+          }
+synchronized (this) {
+            myModuleToRelatedFilesCache.cacheModuleWithDependencies(myCompileContext,module,allConfigFiles);
+          }
+        }
+      }
+    }
+  }
+}

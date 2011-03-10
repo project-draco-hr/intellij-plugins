@@ -1,0 +1,17 @@
+{
+  final String mainClassName=myRunnerParameters.getMainClassName();
+  if (StringUtil.isEmpty(mainClassName)) {
+    throw new RuntimeConfigurationError(FlexBundle.message("class.not.specified"));
+  }
+  if (!DumbService.getInstance(module.getProject()).isDumb()) {
+    final PsiElement psiElement=JSResolveUtil.findClassByQName(mainClassName,GlobalSearchScope.moduleScope(module));
+    if (!(psiElement instanceof JSClass)) {
+      throw new RuntimeConfigurationError(FlexBundle.message("class.not.found",mainClassName));
+    }
+    final JSClass jsClass=(JSClass)psiElement;
+    final JSAttributeList attributeList=jsClass.getAttributeList();
+    if (attributeList == null || attributeList.getAccessType() != JSAttributeList.AccessType.PUBLIC) {
+      throw new RuntimeConfigurationError(FlexBundle.message("class.not.public",mainClassName));
+    }
+  }
+}

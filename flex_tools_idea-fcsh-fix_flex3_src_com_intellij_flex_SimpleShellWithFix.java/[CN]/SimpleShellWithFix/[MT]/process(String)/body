@@ -1,0 +1,162 @@
+{
+  LocalizationManager l10n=ThreadLocalToolkit.getLocalizationManager();
+  if (s.startsWith("mxmlc")) {
+    StringTokenizer t=new CommandLineArgumentsTokenizer(s.substring("mxmlc".length()).trim()," ");
+    String[] args=new String[t.countTokens()];
+    for (int i=0; t.hasMoreTokens(); i++) {
+      args[i]=t.nextToken();
+    }
+    if (args.length == 1) {
+      try {
+        int id=Integer.parseInt(args[0]);
+        Target target=(Target)targets.get("" + id);
+        if (target == null) {
+          ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new TargetNotFound("" + id)));
+        }
+ else {
+          mxmlc(target.args,id);
+        }
+      }
+ catch (      NumberFormatException ex) {
+        ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new AssignTargetID(counter)));
+        mxmlc(args,counter++);
+      }
+    }
+ else {
+      ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new AssignTargetID(counter)));
+      mxmlc(args,counter++);
+    }
+  }
+ else   if (s.startsWith("compc")) {
+    StringTokenizer t=new CommandLineArgumentsTokenizer(s.substring("compc".length()).trim()," ");
+    String[] args=new String[t.countTokens()];
+    for (int i=0; t.hasMoreTokens(); i++) {
+      args[i]=t.nextToken();
+    }
+    if (args.length == 1) {
+      try {
+        int id=Integer.parseInt(args[0]);
+        Target target=(Target)targets.get("" + id);
+        if (target == null) {
+          ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new TargetNotFound("" + id)));
+        }
+ else {
+          compc(target.args,id);
+        }
+      }
+ catch (      NumberFormatException ex) {
+        ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new AssignTargetID(counter)));
+        compc(args,counter++);
+      }
+    }
+ else {
+      ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new AssignTargetID(counter)));
+      compc(args,counter++);
+    }
+  }
+ else   if (s.startsWith("compile")) {
+    String id=s.substring("compile".length()).trim();
+    if (targets.containsKey(id)) {
+      compile(id);
+      if (ThreadLocalToolkit.errorCount() == 0) {
+        link(id,true);
+      }
+    }
+ else {
+      ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new TargetNotFound(id)));
+    }
+  }
+ else   if (s.startsWith("clear")) {
+    String id=s.substring("clear".length()).trim();
+    if (id.length() == 0) {
+      HashSet keys=new HashSet(targets.keySet());
+      for (Iterator i=keys.iterator(); i.hasNext(); ) {
+        clear((String)i.next());
+      }
+    }
+ else     if (targets.containsKey(id)) {
+      clear(id);
+    }
+ else {
+      ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new TargetNotFound(id)));
+    }
+  }
+ else   if (s.startsWith("info")) {
+    String id=s.substring("info".length()).trim();
+    if (id.length() == 0) {
+      HashSet keys=new HashSet(targets.keySet());
+      for (Iterator i=keys.iterator(); i.hasNext(); ) {
+        info((String)i.next());
+      }
+    }
+ else     if (targets.containsKey(id)) {
+      info(id);
+    }
+ else {
+      ThreadLocalToolkit.logInfo(l10n.getLocalizedTextString(new TargetNotFound(id)));
+    }
+  }
+ else   if (s.startsWith("touch")) {
+    String args=s.substring("touch".length()).trim();
+    StringTokenizer stok=new CommandLineArgumentsTokenizer(args);
+    while (stok.hasMoreTokens()) {
+      String f=stok.nextToken();
+      if (!new File(f).canWrite()) {
+        ThreadLocalToolkit.logInfo("touch: cannot write " + f);
+      }
+ else {
+        new File(f).setLastModified(System.currentTimeMillis());
+      }
+    }
+  }
+ else   if (s.startsWith("cp")) {
+    String args=s.substring("cp".length()).trim();
+    StringTokenizer stok=new CommandLineArgumentsTokenizer(args);
+    if (stok.countTokens() != 2) {
+      ThreadLocalToolkit.logInfo("cp fileFrom fileTo");
+    }
+ else {
+      String copyFrom=stok.nextToken();
+      String copyTo=stok.nextToken();
+      try {
+        FileUtil.writeBinaryFile(new File(copyTo),FileUtil.openStream(copyFrom));
+      }
+ catch (      IOException e) {
+        ThreadLocalToolkit.logInfo(e.getMessage());
+      }
+    }
+  }
+ else   if (s.startsWith("mv")) {
+    String args=s.substring("mv".length()).trim();
+    StringTokenizer stok=new CommandLineArgumentsTokenizer(args);
+    if (stok.countTokens() != 2) {
+      ThreadLocalToolkit.logInfo("mv fileFrom fileTo");
+    }
+ else {
+      String moveFrom=stok.nextToken();
+      String moveTo=stok.nextToken();
+      new File(moveFrom).renameTo(new File(moveTo));
+    }
+  }
+ else   if (s.startsWith("rm")) {
+    String args=s.substring("rm".length()).trim();
+    StringTokenizer stok=new CommandLineArgumentsTokenizer(args);
+    if (stok.countTokens() != 1) {
+      ThreadLocalToolkit.logInfo("rm file");
+    }
+ else {
+      String rmFile=stok.nextToken();
+      new File(rmFile).delete();
+    }
+  }
+ else   if (s.equals("quit")) {
+    Set names=new HashSet(targets.keySet());
+    for (Iterator i=names.iterator(); i.hasNext(); ) {
+      process("clear " + (String)i.next());
+    }
+    exit=true;
+  }
+ else {
+    cmdList();
+  }
+}

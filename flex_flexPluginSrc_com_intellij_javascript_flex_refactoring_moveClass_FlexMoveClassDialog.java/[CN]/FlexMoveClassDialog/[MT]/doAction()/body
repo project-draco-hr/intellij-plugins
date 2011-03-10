@@ -1,0 +1,55 @@
+{
+  final NamesValidator namesValidator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+  if (myFileLocal) {
+    final String className=myClassNameField.getText();
+    if (StringUtil.isEmpty(className)) {
+      setErrorText(FlexBundle.message("element.name.empty",JSBundle.message(JSNamedElementKind.kind(myElements.iterator().next()).humanReadableKey())));
+      return;
+    }
+    if (!namesValidator.isIdentifier(className,myProject)) {
+      setErrorText(FlexBundle.message("invalid.element.name",StringUtil.decapitalize(JSBundle.message(JSNamedElementKind.kind(myElements.iterator().next()).humanReadableKey())),className));
+      return;
+    }
+  }
+  final String packageName=myTargetPackageField.getText();
+  for (  final String s : StringUtil.split(packageName,".")) {
+    if (!namesValidator.isIdentifier(s,myProject)) {
+      setErrorText(FlexBundle.message("invalid.package",packageName));
+      return;
+    }
+  }
+  myTargetPackageField.updateRecents();
+  PsiElement firstElement=myElements.iterator().next();
+  PsiDirectory baseDir;
+  if (myTargetContainer instanceof PsiDirectory) {
+    baseDir=(PsiDirectory)myTargetContainer;
+  }
+ else {
+    baseDir=PlatformPackageUtil.getDirectory(firstElement);
+  }
+  String nameToCheck=myFileLocal ? myClassNameField.getText() : null;
+  PsiDirectory targetDirectory=JSRefactoringUtil.chooseOrCreateDirectoryForClass(myProject,ModuleUtil.findModuleForPsiElement(firstElement),GlobalSearchScope.projectScope(myProject),packageName,nameToCheck,baseDir,myCbMoveToAnotherSourceFolder.isSelected() ? ThreeState.YES : ThreeState.NO);
+  if (targetDirectory == null) {
+    return;
+  }
+  if (!myFileLocal) {
+    PsiManager manager=PsiManager.getInstance(myProject);
+    try {
+      for (      PsiElement element : myElements) {
+        manager.checkMove(element.getContainingFile(),targetDirectory);
+      }
+    }
+ catch (    IncorrectOperationException e) {
+      CommonRefactoringUtil.showErrorMessage(RefactoringBundle.message("error.title"),e.getMessage(),getHelpId(),myProject);
+      return;
+    }
+  }
+  BaseRefactoringProcessor processor;
+  if (myFileLocal) {
+    processor=new FlexMoveInnerClassProcessor(myElements.iterator().next(),targetDirectory,myClassNameField.getText(),myTargetPackageField.getText(),myCbSearchInComments.isSelected(),myCbSearchTextOccurences.isSelected(),myCallback);
+  }
+ else {
+    processor=new FlexMoveClassProcessor(myElements,targetDirectory,myTargetPackageField.getText(),myCbSearchInComments.isSelected(),myCbSearchTextOccurences.isSelected(),myCallback);
+  }
+  invokeRefactoring(processor);
+}

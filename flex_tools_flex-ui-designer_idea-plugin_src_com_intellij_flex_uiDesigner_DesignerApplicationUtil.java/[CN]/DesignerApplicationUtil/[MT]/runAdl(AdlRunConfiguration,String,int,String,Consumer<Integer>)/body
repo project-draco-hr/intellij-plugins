@@ -1,0 +1,88 @@
+{
+  ensureExecutable(runConfiguration.adlPath);
+  List<String> command=new ArrayList<String>();
+  command.add(runConfiguration.adlPath);
+  if (runConfiguration.runtime != null) {
+    command.add("-runtime");
+    command.add(runConfiguration.runtime);
+  }
+  if (!runConfiguration.debug) {
+  }
+  command.add(descriptor);
+  if (root != null) {
+    command.add(root);
+  }
+  command.add("--");
+  command.add(String.valueOf(port));
+  if (runConfiguration.arguments != null) {
+    command.addAll(runConfiguration.arguments);
+  }
+  final Process process=new ProcessBuilder(command).start();
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      InputStreamReader reader=new InputStreamReader(process.getInputStream());
+      int exitCode=0;
+      try {
+        char[] buf=new char[1024];
+        int read;
+        while ((read=reader.read(buf,0,buf.length)) >= 0) {
+          String message=new String(buf,0,read);
+          LOG.debug("[adl input stream]: " + message);
+        }
+        try {
+          exitCode=process.waitFor();
+        }
+ catch (        InterruptedException ignored) {
+        }
+switch (exitCode) {
+case 0:
+          break;
+case 137:
+        LOG.debug("ADL terminated, " + exitCode);
+      break;
+default :
+    LOG.error("ADL finished with exit code " + exitCode);
+}
+}
+ catch (IOException e) {
+LOG.error("adl input stream reading error",e);
+}
+ finally {
+if (adlExitHandler != null) {
+  adlExitHandler.consume(exitCode);
+}
+try {
+  reader.close();
+}
+ catch (IOException ignored) {
+}
+}
+}
+}
+);
+ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+public void run(){
+InputStreamReader reader=new InputStreamReader(process.getErrorStream());
+try {
+char[] buf=new char[1024];
+int read;
+while ((read=reader.read(buf,0,buf.length)) >= 0) {
+  String message=new String(buf,0,read);
+  LOG.debug("[adl error stream]: " + message);
+}
+}
+ catch (IOException e) {
+LOG.error("adl error stream reading error",e);
+}
+ finally {
+try {
+  reader.close();
+}
+ catch (IOException ignored) {
+}
+}
+}
+}
+);
+return process;
+}

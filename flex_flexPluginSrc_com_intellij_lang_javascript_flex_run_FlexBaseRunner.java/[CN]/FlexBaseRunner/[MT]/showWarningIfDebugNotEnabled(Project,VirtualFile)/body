@@ -1,0 +1,18 @@
+{
+  try {
+    final String debug=FlexUtils.findXMLElement(configFile.getInputStream(),"<flex-config><compiler><debug>");
+    if (!"true".equals(debug)) {
+      final HyperlinkListener listener=new HyperlinkListener(){
+        public void hyperlinkUpdate(        final HyperlinkEvent e){
+          if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && configFile.isValid()) {
+            FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,configFile),true);
+          }
+        }
+      }
+;
+      ToolWindowManager.getInstance(project).notifyByBalloon(ToolWindowId.DEBUG,MessageType.WARNING,FlexBundle.message("custom.config.without.debug.info",configFile.getName()),null,listener);
+    }
+  }
+ catch (  IOException e) {
+  }
+}

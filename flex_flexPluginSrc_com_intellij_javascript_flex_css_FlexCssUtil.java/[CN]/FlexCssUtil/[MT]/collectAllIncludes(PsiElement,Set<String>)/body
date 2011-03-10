@@ -1,0 +1,25 @@
+{
+  if (element instanceof JSClass) {
+    PsiElement e=element.getPrevSibling();
+    while (e != null) {
+      if (e instanceof JSIncludeDirective) {
+        String text=((JSIncludeDirective)e).getIncludeText();
+        if (text != null) {
+          result.add(text);
+        }
+      }
+      e=e.getPrevSibling();
+    }
+  }
+  for (  PsiElement child : element.getChildren()) {
+    if (child instanceof JSIncludeDirective) {
+      String text=((JSIncludeDirective)child).getIncludeText();
+      if (text != null) {
+        result.add(text);
+      }
+    }
+ else     if (child instanceof JSAttributeList || child instanceof JSAttributeListOwner) {
+      collectAllIncludes(child,result);
+    }
+  }
+}

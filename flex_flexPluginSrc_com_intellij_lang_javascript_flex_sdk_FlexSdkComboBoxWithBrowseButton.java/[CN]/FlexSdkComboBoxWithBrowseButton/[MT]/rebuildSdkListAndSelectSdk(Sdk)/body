@@ -1,0 +1,25 @@
+{
+  final String previousSelectedSdkName=getSelectedSdkRaw();
+  final List<Object> sdkList=new ArrayList<Object>();
+  if (myShowModuleSdk) {
+    sdkList.add(myModuleSdk);
+  }
+  final Sdk[] sdks=ProjectJdkTable.getInstance().getAllJdks();
+  for (  final Sdk sdk : sdks) {
+    if (mySdkEvaluator.value(sdk)) {
+      sdkList.add(sdk);
+    }
+  }
+  if (!sdkList.isEmpty()) {
+    getComboBox().setModel(new DefaultComboBoxModel(ArrayUtil.toObjectArray(sdkList)));
+    if (selectedSdk != null) {
+      setSelectedSdkRaw(selectedSdk.getName(),false);
+    }
+ else     if (previousSelectedSdkName != null) {
+      setSelectedSdkRaw(previousSelectedSdkName,false);
+    }
+  }
+ else {
+    getComboBox().setModel(new DefaultComboBoxModel(new Object[]{null}));
+  }
+}

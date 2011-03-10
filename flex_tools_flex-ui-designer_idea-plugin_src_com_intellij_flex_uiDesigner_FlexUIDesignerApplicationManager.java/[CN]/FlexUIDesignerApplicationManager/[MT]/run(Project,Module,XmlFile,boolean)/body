@@ -1,0 +1,64 @@
+{
+  DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
+  if (adlRunConfiguration == null) {
+    Messages.showMessageDialog(project,FlexUIDesignerBundle.message("error.suitable.fdk.not.found",SystemInfo.isLinux ? FlexUIDesignerBundle.message("error.suitable.fdk.not.found.linux") : ""),CommonBundle.getErrorTitle(),Messages.getErrorIcon());
+    final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,WindowManager.getInstance().suggestParentWindow(project));
+    editor.show();
+    if (editor.isOK()) {
+      adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
+    }
+    if (adlRunConfiguration == null) {
+      return;
+    }
+  }
+  final List<String> arguments=new ArrayList<String>();
+  final String fudHome=DebugPathManager.getFudHome();
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    arguments.add("-p");
+    arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
+  }
+  if (Boolean.valueOf(System.getProperty("fud.debug"))) {
+    arguments.add("-cdd");
+    arguments.add(fudHome + "/flex-injection/target");
+  }
+  if (!arguments.isEmpty()) {
+    adlRunConfiguration.arguments=arguments;
+  }
+  server=new Server(new PendingOpenDocumentTask(project,module,psiFile),this);
+  DesignerApplicationUtil.AdlRunTask task=new DesignerApplicationUtil.AdlRunTask(adlRunConfiguration){
+    @Override public void run(){
+      try {
+        adlProcess=DesignerApplicationUtil.runAdl(runConfiguration,appDir.getPath() + "/descriptor.xml",server.listen(),new Consumer<Integer>(){
+          @Override public void consume(          Integer integer){
+            adlProcess=null;
+            if (onAdlExit != null) {
+              ApplicationManager.getApplication().invokeLater(onAdlExit);
+            }
+          }
+        }
+);
+      }
+ catch (      IOException e) {
+        LOG.error(e);
+        try {
+          server.close();
+        }
+ catch (        IOException ignored) {
+        }
+      }
+    }
+  }
+;
+  if (debug) {
+    adlRunConfiguration.debug=true;
+    try {
+      DesignerApplicationUtil.runDebugger(module,task);
+    }
+ catch (    ExecutionException e) {
+      LOG.error(e);
+    }
+  }
+ else {
+    task.run();
+  }
+}

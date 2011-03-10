@@ -1,0 +1,18 @@
+{
+  if (sdkHomePath == null || LocalFileSystem.getInstance().refreshAndFindFileByPath(sdkHomePath) == null) {
+    return null;
+  }
+  final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
+  for (  final Sdk flexSdk : projectJdkTable.getSdksOfType(sdkType)) {
+    if (sdkHomePath.replace('\\','/').equals(flexSdk.getHomePath().replace('\\','/'))) {
+      if (sdkType instanceof FlexmojosSdkType) {
+        final SdkAdditionalData data=flexSdk.getSdkAdditionalData();
+        if (data == null || ((FlexmojosSdkAdditionalData)data).getFlexCompilerClasspath().isEmpty()) {
+          sdkType.setupSdkPaths(flexSdk);
+        }
+      }
+      return flexSdk;
+    }
+  }
+  return createSdk(sdkType,sdkHomePath);
+}

@@ -1,0 +1,29 @@
+{
+  final Ref<JSClass> result=new Ref<JSClass>();
+  final String expectedPackage=link.equals(className) ? "" : link.substring(0,link.length() - className.length() - 1);
+  final ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final PsiManager manager=PsiManager.getInstance(project);
+  final FileBasedIndex.ValueProcessor<Void> processor=new FileBasedIndex.ValueProcessor<Void>(){
+    public boolean process(    VirtualFile file,    Void value){
+      VirtualFile rootForFile=projectFileIndex.getSourceRootForFile(file);
+      if (rootForFile == null)       return true;
+      if (expectedPackage.equals(VfsUtil.getRelativePath(file.getParent(),rootForFile,'.'))) {
+        final JSClass clazz=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)manager.findFile(file));
+        if (clazz != null) {
+          result.set(clazz);
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+;
+  FileBasedIndex.getInstance().processValues(FilenameIndex.NAME,className + JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT,null,processor,scope);
+  if (result.isNull()) {
+    FileBasedIndex.getInstance().processValues(FilenameIndex.NAME,className + JavaScriptSupportLoader.MXML_FILE_EXTENSION2_DOT,null,processor,scope);
+  }
+  if (result.isNull()) {
+    FileBasedIndex.getInstance().processValues(FilenameIndex.NAME,className + JavaScriptSupportLoader.FXG_FILE_EXTENSION_DOT,null,processor,scope);
+  }
+  return result.get();
+}

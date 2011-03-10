@@ -1,0 +1,42 @@
+{
+  final Map<String,Integer> countMap=new THashMap<String,Integer>();
+  final boolean skipSystemStuff=myFilterSystemStuff.isSelected();
+  processSamples(profile,new GroupHandler<T,String>(){
+    int level;
+    public void process(    Map<String,Set<T>> data){
+      if (data.size() == 0)       return;
+      for (      String s : data.keySet()) {
+        if (skipSystemStuff && s.startsWith("["))         continue;
+        String path=stripCallDelims(s);
+        final Integer integer=countMap.get(path);
+        int d=data.get(s).size();
+        countMap.put(path,integer != null ? integer + d : d);
+      }
+      ++level;
+      processSamples(profile,this);
+      --level;
+    }
+    public String getCategory(    T sample){
+      if (level >= sample.frames.length)       return null;
+      return sample.frames[level];
+    }
+  }
+);
+  List<String> traces=new ArrayList<String>(countMap.keySet());
+  Collections.sort(traces,new Comparator<String>(){
+    public int compare(    String o1,    String o2){
+      return countMap.get(o2) - countMap.get(o1);
+    }
+  }
+);
+  final MutableTreeNode root=(MutableTreeNode)model.getRoot();
+  int index=0;
+  final SearchScope _selectedScope=filterScope.getSelectedScope();
+  GlobalSearchScope scope=_selectedScope instanceof GlobalSearchScope ? (GlobalSearchScope)_selectedScope : GlobalSearchScope.allScope(getProject());
+  for (  final String s : traces) {
+    SampleLocationResolver.LocationInfo l=SampleLocationResolver.buildMethodInfo(s);
+    final PsiElement classByQName=JSResolveUtil.findClassByQName(l.clazz,scope);
+    if (classByQName == null)     continue;
+    model.insertNodeInto(new MergedCallNode<T>(s,countMap,profile,model,true),root,index++);
+  }
+}

@@ -1,0 +1,30 @@
+{
+  waitTilHalted();
+  if (!allowedToStep())   return;
+  int count=1;
+  if (hasMoreTokens())   count=nextIntToken();
+  while (count-- > 0) {
+    stepWithTimeout(new AnyKindOfStep(){
+      public void step() throws PlayerDebugException {
+        m_session.stepInto();
+      }
+    }
+);
+    for (; ; ) {
+      dumpStep();
+      if (m_requestResume) {
+        m_requestResume=false;
+        stepWithTimeout(new AnyKindOfStep(){
+          public void step() throws PlayerDebugException {
+            m_session.stepContinue();
+          }
+        }
+);
+      }
+ else {
+        break;
+      }
+    }
+  }
+  m_repeatLine=m_currentLine;
+}

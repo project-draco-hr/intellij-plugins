@@ -1,0 +1,31 @@
+{
+  final String childNs=childTag.getNamespace();
+  if (!sameNs(childNs,context.namespace)) {
+    final XmlNSDescriptor descriptor=childTag.getNSDescriptor(childNs,true);
+    return descriptor != null ? descriptor.getElementDescriptor(childTag) : null;
+  }
+  getAttributesDescriptors(childTag);
+  @NonNls String localName=childTag.getLocalName();
+  localName=skipStateNamePart(localName);
+  XmlElementDescriptor descriptor=myDescriptors != null ? myDescriptors.get(localName) : null;
+  if (descriptor == null && myPackageToInternalDescriptors != null && !myPackageToInternalDescriptors.isEmpty()) {
+    final String contextPackage=JSResolveUtil.getPackageNameFromPlace(childTag);
+    final Map<String,AnnotationBackedDescriptor> internalDescriptors=myPackageToInternalDescriptors.get(contextPackage);
+    if (internalDescriptors != null) {
+      descriptor=internalDescriptors.get(localName);
+    }
+  }
+  if (descriptor != null)   return descriptor;
+  final @NonNls String name=getName();
+  if ("WebService".equals(name) && "operation".equals(localName)) {
+    return context.getElementDescriptor("WebServiceOperation",(XmlTag)null);
+  }
+ else   if ("RemoteObject".equals(name) && "method".equals(localName)) {
+    return context.getElementDescriptor("RemoteObjectOperation",(XmlTag)null);
+  }
+  XmlElementDescriptor xmlElementDescriptor=context.getElementDescriptor(localName,childTag);
+  if (xmlElementDescriptor == null && !predefined) {
+    xmlElementDescriptor=getClassIfDynamic(localName,getDeclaration());
+  }
+  return xmlElementDescriptor;
+}

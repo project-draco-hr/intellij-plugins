@@ -1,0 +1,34 @@
+{
+  final Sdk flexSdk=myFlexSdkComboWithBrowse.getSelectedSdk();
+  final FlexFacet flexFacet=FlexUtils.addFlexFacet(module,flexSdk,model);
+  String mainClassName=module.getName().replaceAll("[^\\p{Alnum}]","_");
+  if (mainClassName.length() > 0 && Character.isLowerCase(mainClassName.charAt(0))) {
+    mainClassName=Character.toUpperCase(mainClassName.charAt(0)) + mainClassName.substring(1);
+  }
+  final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(flexFacet);
+  config.MAIN_CLASS=mainClassName;
+  config.OUTPUT_FILE_NAME=mainClassName + ".swf";
+  final Ref<String> mainClassNameRef=Ref.create(mainClassName);
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    public void run(){
+      if (module.isDisposed())       return;
+      final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+      final VirtualFile[] contentRoots=rootManager.getContentRoots();
+      final VirtualFile[] sourceRoots=rootManager.getSourceRoots();
+      if (contentRoots.length == 0 || sourceRoots.length == 0)       return;
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          try {
+            FlexUtils.setupFlexConfigFileAndSampleCode(module,config,flexSdk,null,contentRoots[0],mainClassNameRef.get() + ".mxml",sourceRoots[0]);
+            FlexModuleBuilder.createFlexRunConfiguration(module,config.OUTPUT_FILE_NAME);
+          }
+ catch (          IOException ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      }
+);
+    }
+  }
+,ModalityState.NON_MODAL);
+}

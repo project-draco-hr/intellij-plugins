@@ -1,0 +1,34 @@
+{
+  final LibraryCollector libraryCollector=new LibraryCollector();
+  final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter(ServiceManager.getService(StringRegistry.class),16384);
+  stringWriter.startChange();
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      final LibraryStyleInfoCollector styleInfoCollector=new LibraryStyleInfoCollector(project,module,stringWriter);
+      libraryCollector.collect(module,new Consumer<OriginalLibrary>(){
+        @Override public void consume(        OriginalLibrary originalLibrary){
+          styleInfoCollector.collect(originalLibrary);
+        }
+      }
+);
+    }
+  }
+);
+  final LibrarySet externalLibrarySet;
+  ProjectInfo projectInfo=project.getUserData(PROJECT_INFO);
+  if (projectInfo == null) {
+    String librarySetId=project.getLocationHash();
+    externalLibrarySet=new LibrarySet(librarySetId,ApplicationDomainCreationPolicy.ONE,new SwcDependenciesSorter(appDir).sort(libraryCollector.getExternalLibraries(),librarySetId,libraryCollector.getFlexSdkVersion(),ABC_INJECTION_LAST_MODIFIED));
+    projectInfo=new ProjectInfo(externalLibrarySet);
+    project.putUserData(PROJECT_INFO,projectInfo);
+    client.openProject(project);
+    client.registerLibrarySet(externalLibrarySet,stringWriter);
+  }
+ else {
+    externalLibrarySet=projectInfo.getLibrarySet();
+  }
+  ModuleInfo moduleInfo=new ModuleInfo(module);
+  stringWriter.startChange();
+  ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter);
+  client.registerModule(project,moduleInfo,new String[]{externalLibrarySet.getId()},stringWriter);
+}

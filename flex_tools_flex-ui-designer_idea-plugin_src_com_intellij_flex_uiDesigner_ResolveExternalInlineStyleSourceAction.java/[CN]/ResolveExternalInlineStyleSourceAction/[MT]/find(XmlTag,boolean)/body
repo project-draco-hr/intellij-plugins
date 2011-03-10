@@ -1,0 +1,23 @@
+{
+  for (  XmlTag xmlTag : parent.getSubTags()) {
+    String localName=xmlTag.getLocalName();
+    if (firstLevel && ignoredRootTags.contains(localName)) {
+      continue;
+    }
+    XmlElementDescriptor xmlTagDescriptor=xmlTag.getDescriptor();
+    if (xmlTagDescriptor instanceof ClassBackedElementDescriptor) {
+      Navigatable result;
+      if (xmlTagDescriptor.getQualifiedName().equals(elementFqn)) {
+        result=findTargetIfStyleDeclarationOwner(xmlTag);
+        if (result != null) {
+          return result;
+        }
+      }
+      result=find(xmlTag,false);
+      if (result != null) {
+        return result;
+      }
+    }
+  }
+  return null;
+}

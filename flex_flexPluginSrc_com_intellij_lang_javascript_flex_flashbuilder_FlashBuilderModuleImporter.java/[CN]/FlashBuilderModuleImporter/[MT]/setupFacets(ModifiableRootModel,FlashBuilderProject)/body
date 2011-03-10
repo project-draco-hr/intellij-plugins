@@ -1,0 +1,19 @@
+{
+  final Sdk flexSdk=flashBuilderProject.isSdkUsed() ? mySdkFinder.findSdk(flashBuilderProject) : null;
+  final ModifiableFacetModel facetModel=FacetManager.getInstance(rootModel.getModule()).createModifiableModel();
+  for (  final Facet flexFacet : facetModel.getFacetsByType(FlexFacet.ID)) {
+    facetModel.removeFacet(flexFacet);
+  }
+  final FlexFacet mainFacet=createFlexFacet(rootModel.getModule(),facetModel,suggestMainFacetName(flashBuilderProject));
+  setupMainFacetConfig(FlexBuildConfiguration.getInstance(mainFacet),flashBuilderProject,flexSdk,rootModel.getSourceRoots());
+  setupOtherAppsAndModulesFacets(rootModel,facetModel,flashBuilderProject,flexSdk);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      facetModel.commit();
+    }
+  }
+);
+  if (flashBuilderProject.isSdkUsed()) {
+    mainFacet.getFlexConfiguration().setFlexSdk(mySdkFinder.findSdk(flashBuilderProject),rootModel);
+  }
+}

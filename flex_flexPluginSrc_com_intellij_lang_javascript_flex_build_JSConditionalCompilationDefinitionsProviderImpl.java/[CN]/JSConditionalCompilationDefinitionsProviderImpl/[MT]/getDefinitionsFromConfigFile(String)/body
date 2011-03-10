@@ -1,0 +1,43 @@
+{
+  if (!StringUtil.isEmpty(configFilePath)) {
+    final VirtualFile customConfigFile=LocalFileSystem.getInstance().findFileByPath(configFilePath);
+    if (customConfigFile != null && !customConfigFile.isDirectory()) {
+      final Long currentTimestamp=customConfigFile.getModificationCount();
+      final Long cachedTimestamp=configFileToTimestamp.get(customConfigFile);
+      if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+        configFileToTimestamp.remove(customConfigFile);
+        configFileToConditionalCompilerDefinitions.remove(customConfigFile);
+        try {
+          final Document document=JDOMUtil.loadDocument(customConfigFile.getInputStream());
+          final Collection<ConditionalCompilationDefinition> result=new ArrayList<ConditionalCompilationDefinition>();
+          final Element rootElement=document.getRootElement();
+          if (rootElement.getName().equals(FLEX_CONFIG)) {
+            for (            Element compilerElement : ((Iterable<Element>)rootElement.getChildren(COMPILER,rootElement.getNamespace()))) {
+              for (              Element defineElement : ((Iterable<Element>)compilerElement.getChildren(DEFINE,rootElement.getNamespace()))) {
+                final String name=defineElement.getChildText(NAME,rootElement.getNamespace());
+                final String value=defineElement.getChildText(VALUE,rootElement.getNamespace());
+                if (!StringUtil.isEmpty(name) && value != null) {
+                  final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
+                  definition.NAME=name;
+                  definition.VALUE=value;
+                  result.add(definition);
+                }
+              }
+            }
+          }
+          configFileToTimestamp.put(customConfigFile,currentTimestamp);
+          configFileToConditionalCompilerDefinitions.put(customConfigFile,result);
+          return result;
+        }
+ catch (        JDOMException e) {
+        }
+catch (        IOException e) {
+        }
+      }
+ else {
+        return configFileToConditionalCompilerDefinitions.get(customConfigFile);
+      }
+    }
+  }
+  return Collections.emptyList();
+}

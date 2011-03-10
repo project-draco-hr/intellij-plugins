@@ -1,0 +1,14 @@
+{
+  List<String> runtimeLocales=getLocales(mavenProject,false);
+  ModifiableFacetModel model=modifiableModelsProvider.getFacetModel(module);
+  deleteUnusedResourceFacets(model,runtimeLocales);
+  for (  String eachLocale : runtimeLocales) {
+    String facetName=getResourceFacetName(eachLocale);
+    FlexFacet f=model.findFacet(myFacetType.getId(),facetName);
+    if (f == null) {
+      f=myFacetType.createFacet(module,facetName,myFacetType.createDefaultConfiguration(),null);
+      model.addFacet(f);
+      setupFacet(f,mavenProject);
+    }
+  }
+}

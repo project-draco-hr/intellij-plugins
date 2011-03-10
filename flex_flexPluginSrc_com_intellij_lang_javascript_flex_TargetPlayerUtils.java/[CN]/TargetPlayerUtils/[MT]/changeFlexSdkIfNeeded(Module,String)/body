@@ -1,0 +1,25 @@
+{
+  if (!(module.getModuleType() instanceof FlexModuleType)) {
+    return;
+  }
+  final ModuleEditor moduleEditor=FlexUtils.getModuleEditor(module,ModuleStructureConfigurable.getInstance(module.getProject()));
+  final ModifiableRootModel modifiableRootModel=moduleEditor == null ? null : moduleEditor.getModifiableRootModel();
+  final Sdk sdk=modifiableRootModel == null ? null : modifiableRootModel.getSdk();
+  if (needToChangeSdk(sdk,targetPlayerVersion)) {
+    final Sdk newSdk=findOrCreateProperSdk(module.getProject(),sdk,targetPlayerVersion);
+    if (modifiableRootModel != null && newSdk != null) {
+      modifiableRootModel.setSdk(newSdk);
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+          ProjectStructureConfigurable.getInstance(module.getProject()).getProjectJdksModel().getMulticaster().sdkChanged(newSdk,newSdk.getName());
+        }
+      }
+,ModalityState.current(),new Condition(){
+        public boolean value(        Object o){
+          return module.isDisposed() || FlexUtils.getModuleEditor(module,ModuleStructureConfigurable.getInstance(module.getProject())) == null;
+        }
+      }
+);
+    }
+  }
+}

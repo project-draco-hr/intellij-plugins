@@ -1,0 +1,32 @@
+{
+  if (existingConfigurations.length == 0)   return null;
+  if (!(location instanceof PsiLocation))   return null;
+  final PsiElement psiElement=location.getPsiElement();
+  final Module module=ModuleUtil.findModuleForPsiElement(psiElement);
+  if (module == null || !FlexSdkUtils.hasDependencyOnAir(module)) {
+    return null;
+  }
+  final PsiFile psiFile=psiElement.getContainingFile();
+  final VirtualFile virtualFile=psiFile == null ? null : psiFile.getVirtualFile();
+  if (virtualFile != null && FlexUtils.isAirDescriptorFile(virtualFile)) {
+    final FlexBuildConfiguration config=FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module).iterator().next();
+    for (    final RunnerAndConfigurationSettings existingConfiguration : existingConfigurations) {
+      final AirRunnerParameters runnerParameters=((AirRunConfiguration)existingConfiguration.getConfiguration()).getRunnerParameters();
+      if (module.getName().equals(runnerParameters.getModuleName()) && AirRunnerParameters.AirRunMode.AppDescriptor == runnerParameters.getAirRunMode() && virtualFile.getPath().equals(runnerParameters.getAirDescriptorPath()) && config.getCompileOutputPath().equals(runnerParameters.getAirRootDirPath())) {
+        return existingConfiguration;
+      }
+    }
+  }
+ else {
+    final JSClass jsClass=FlexRuntimeConfigurationProducer.getJSClass(psiElement);
+    if (jsClass != null && FlexRuntimeConfigurationProducer.isAcceptedMainClass(jsClass,module,true)) {
+      for (      final RunnerAndConfigurationSettings existingConfiguration : existingConfigurations) {
+        final AirRunnerParameters runnerParameters=((AirRunConfiguration)existingConfiguration.getConfiguration()).getRunnerParameters();
+        if (module.getName().equals(runnerParameters.getModuleName()) && AirRunnerParameters.AirRunMode.MainClass == runnerParameters.getAirRunMode() && runnerParameters.getMainClassName().equals(jsClass.getQualifiedName())) {
+          return existingConfiguration;
+        }
+      }
+    }
+  }
+  return null;
+}

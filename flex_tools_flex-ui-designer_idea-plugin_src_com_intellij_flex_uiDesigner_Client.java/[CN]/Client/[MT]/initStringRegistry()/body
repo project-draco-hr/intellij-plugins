@@ -1,0 +1,17 @@
+{
+  StringRegistry stringRegistry=ServiceManager.getService(StringRegistry.class);
+  if (stringRegistry.isEmpty()) {
+    return;
+  }
+  out.write(ClientMethod.METHOD_CLASS);
+  out.write(ClientMethod.initStringRegistry);
+  int size=stringRegistry.getSize();
+  TObjectIntIterator<String> iterator=stringRegistry.getIterator();
+  String[] strings=new String[size];
+  for (int i=size; i-- > 0; ) {
+    iterator.advance();
+    strings[iterator.value() - 1]=iterator.key();
+  }
+  out.write(strings);
+  blockOut.end();
+}

@@ -1,0 +1,52 @@
+{
+  QName qName=symbolTable.isMultiNameResolved(multiName), qName2=null;
+  Source source=null, source2=null;
+  boolean hasAmbiguity=false;
+  if (qName != null) {
+    return qName;
+  }
+  String[] namespaceURI=multiName.getNamespace();
+  String localPart=multiName.getLocalPart();
+  for (int j=0, length=namespaceURI.length; j < length; j++) {
+    Source s=symbolTable.findSourceByQName(namespaceURI[j],localPart);
+    int where=-1;
+    if (s == null) {
+      try {
+        where=findDefinition(sources,sourceList,sourcePath,resources,swcContext,namespaceURI[j],localPart);
+      }
+ catch (      CompilerException ex) {
+        ThreadLocalToolkit.logError(ex.getMessage());
+      }
+      if (where != -1) {
+        s=(Source)sources.get(where);
+      }
+    }
+    if (s != null) {
+      if (qName == null) {
+        qName=new QName(namespaceURI[j],localPart);
+        source=s;
+      }
+ else       if (!qName.equals(namespaceURI[j],localPart)) {
+        hasAmbiguity=true;
+        qName2=new QName(namespaceURI[j],localPart);
+        source2=s;
+        break;
+      }
+    }
+  }
+  if (hasAmbiguity) {
+    CompilerMessage msg=new AmbiguousMultiname(qName,source.getName(),qName2,source2.getName());
+    if (nameForReporting != null) {
+      ThreadLocalToolkit.log(msg,nameForReporting);
+    }
+ else {
+      ThreadLocalToolkit.log(msg);
+    }
+    return null;
+  }
+ else   if (source != null) {
+    symbolTable.registerMultiName(multiName,qName);
+    symbolTable.registerQName(qName,source);
+  }
+  return qName;
+}

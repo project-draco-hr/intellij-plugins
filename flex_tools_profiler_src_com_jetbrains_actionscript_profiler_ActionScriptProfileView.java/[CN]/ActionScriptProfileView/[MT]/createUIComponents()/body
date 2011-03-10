@@ -1,0 +1,41 @@
+{
+  myHotSpotsTree=new JTree(){
+    @Override public String convertValueToText(    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      if (value instanceof MergedCallNode) {
+        final SampleLocationResolver.LocationInfo locationInfo=SampleLocationResolver.buildMethodInfo(fixUserObjectStringForNode(value));
+        return locationInfo.name != null ? locationInfo.name : locationInfo.clazz;
+      }
+      return super.convertValueToText(value,selected,expanded,leaf,row,hasFocus);
+    }
+  }
+;
+  myHotSpotsTree.setCellRenderer(new DefaultTreeCellRenderer(){
+    @Override public Component getTreeCellRendererComponent(    JTree tree,    Object value,    boolean sel,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      if (value instanceof MergedCallNode) {
+        value=((MergedCallNode)value).getUserObject();
+      }
+      return super.getTreeCellRendererComponent(tree,value,sel,expanded,leaf,row,hasFocus);
+    }
+  }
+);
+  myAlarm=new Alarm(Alarm.ThreadToUse.SWING_THREAD,this);
+  myHotSpotsTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
+    public void valueChanged(    TreeSelectionEvent e){
+      final TreePath path=e.getPath();
+      final Object lastPathComponent=path.getLastPathComponent();
+      myAlarm.cancelAllRequests();
+      if (!(lastPathComponent instanceof MergedCallNode))       return;
+      final MergedCallNode mergedCallNode=(MergedCallNode)lastPathComponent;
+      myAlarm.addRequest(new Runnable(){
+        public void run(){
+          final DefaultTreeModel treeModel=new DefaultTreeModel(new DefaultMutableTreeNode());
+          myTraces.setModel(treeModel);
+          treeModel.setRoot(new MergedCallNode(fixUserObjectStringForNode(lastPathComponent),mergedCallNode.countMap,mergedCallNode.profile,treeModel,false));
+        }
+      }
+,500);
+    }
+  }
+);
+  filterScope=new ScopeChooserCombo(getProject(),true,false,"Project Files");
+}

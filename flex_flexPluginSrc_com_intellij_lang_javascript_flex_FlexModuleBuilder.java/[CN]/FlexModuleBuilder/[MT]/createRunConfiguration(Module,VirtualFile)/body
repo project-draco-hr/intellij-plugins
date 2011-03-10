@@ -1,0 +1,29 @@
+{
+  final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(module);
+  if (mySdk != null && mySdk.getSdkType() instanceof AirSdkType) {
+    final RunManagerEx runManager=RunManagerEx.getInstanceEx(module.getProject());
+    final CompilerModuleExtension moduleExtension=CompilerModuleExtension.getInstance(module);
+    final String outputDirPath=moduleExtension == null ? "" : VfsUtil.urlToPath(moduleExtension.getCompilerOutputUrl());
+    final RunnerAndConfigurationSettings settings=runManager.createConfiguration("",AirRunConfigurationType.getFactory());
+    settings.setTemporary(false);
+    runManager.addConfiguration(settings,false);
+    runManager.setActiveConfiguration(settings);
+    final AirRunConfiguration runConfiguration=(AirRunConfiguration)settings.getConfiguration();
+    final AirRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+    runnerParameters.setModuleName(module.getName());
+    if (myCreateAirDescriptor) {
+      runConfiguration.setName(myAirDescriptorFileName);
+      runnerParameters.setAirRunMode(AirRunnerParameters.AirRunMode.AppDescriptor);
+      runnerParameters.setAirDescriptorPath(sourceRoot.getPath() + "/" + myAirDescriptorFileName);
+      runnerParameters.setAirRootDirPath(outputDirPath);
+    }
+ else {
+      runConfiguration.setName(config.MAIN_CLASS);
+      runnerParameters.setAirRunMode(AirRunnerParameters.AirRunMode.MainClass);
+      runnerParameters.setMainClassName(config.MAIN_CLASS);
+    }
+  }
+ else {
+    createFlexRunConfiguration(module,config.OUTPUT_FILE_NAME);
+  }
+}

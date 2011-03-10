@@ -1,0 +1,33 @@
+{
+  String content=new String(ideaCfgFile.contentsToByteArray());
+  for (  final String trustedSwfPath : trustedSwfPaths) {
+    int startIndex=content.indexOf(trustedSwfPath);
+    int endIndex=startIndex + trustedSwfPath.length();
+    if (startIndex != -1 && (startIndex == 0 || content.charAt(startIndex - 1) == '\n' || content.charAt(startIndex - 1) == '\r') && (endIndex == content.length() || content.charAt(endIndex) == '\n' || content.charAt(endIndex) == '\r')) {
+      if (!runTrusted) {
+        final StringBuilder newContent=new StringBuilder();
+        newContent.append(content,0,startIndex);
+        while (endIndex < content.length() && (content.charAt(endIndex) == '\n' || content.charAt(endIndex) == '\r')) {
+          endIndex++;
+        }
+        if (endIndex < content.length()) {
+          newContent.append(content,endIndex,content.length());
+        }
+        content=newContent.toString();
+        VfsUtil.saveText(ideaCfgFile,content);
+      }
+    }
+ else {
+      if (runTrusted) {
+        final StringBuilder newContent=new StringBuilder(content);
+        if (content.length() > 0 && content.charAt(content.length() - 1) != '\n') {
+          newContent.append('\n');
+        }
+        newContent.append(trustedSwfPath);
+        newContent.append('\n');
+        content=newContent.toString();
+        VfsUtil.saveText(ideaCfgFile,content);
+      }
+    }
+  }
+}

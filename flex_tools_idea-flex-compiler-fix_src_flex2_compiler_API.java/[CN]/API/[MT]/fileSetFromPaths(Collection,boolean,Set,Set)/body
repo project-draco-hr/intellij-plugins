@@ -1,0 +1,30 @@
+{
+  boolean topLevel;
+  if (topLevel=(fileSet == null)) {
+    fileSet=new HashSet(paths.size());
+  }
+  for (Iterator iter=paths.iterator(); iter.hasNext(); ) {
+    Object next=iter.next();
+    VirtualFile file;
+    if (next instanceof VirtualFile) {
+      file=(VirtualFile)next;
+    }
+ else {
+      String path=(next instanceof File) ? ((File)next).getAbsolutePath() : (String)next;
+      file=getVirtualFile(path);
+    }
+    if (file != null) {
+      if (recurse && file.isDirectory()) {
+        File dir=FileUtil.openFile(file.getName());
+        if (dir == null) {
+          throw new ConfigurationException.IOError(file.getName());
+        }
+        fileSetFromPaths(Arrays.asList(dir.listFiles()),true,mimeTypes,fileSet);
+      }
+ else       if (topLevel || mimeTypes == null || mimeTypes.contains(file.getMimeType())) {
+        fileSet.add(file);
+      }
+    }
+  }
+  return fileSet;
+}

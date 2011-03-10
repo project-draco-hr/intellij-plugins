@@ -1,0 +1,35 @@
+{
+  try {
+    int id=nextIntToken();
+    int at=breakpointIndexOf(id);
+    BreakAction a=breakpointAt(at);
+    if (hasMoreTokens()) {
+      String line=restOfLine();
+      ValueExp exp=parseExpression(line);
+      if (exp.containsAssignment() && !yesNoQuery(getLocalizationManager().getLocalizedTextString("askExpressionContainsAssignment")))       throw new IllegalAccessException("=");
+      a.setCondition(exp,line);
+    }
+ else {
+      a.clearCondition();
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("breakpointNumber",Integer.toString(id));
+      out(getLocalizationManager().getLocalizedTextString("breakpointNowUnconditional",args));
+    }
+  }
+ catch (  IllegalAccessException iae) {
+    err(getLocalizationManager().getLocalizedTextString("breakpointNotChanged"));
+  }
+catch (  IndexOutOfBoundsException iob) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("breakpointNumber",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("noBreakpointNumber",args));
+  }
+catch (  NumberFormatException nfe) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("token",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("badBreakpointNumber",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("commandFailed"));
+  }
+}

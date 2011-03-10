@@ -1,0 +1,32 @@
+{
+  final List<ProcessingItem> myItems=new ArrayList<ProcessingItem>();
+  boolean doneSave=false;
+  for (  final Module module : context.getCompileScope().getAffectedModules()) {
+    for (    final FlexBuildConfiguration config : FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module)) {
+      if (config.DO_BUILD) {
+        myItems.add(new MyProcessingItem(module));
+        doneSave=ensureDocumentsSaved(doneSave);
+        break;
+      }
+    }
+  }
+  final ProcessingItem[] items=myItems.toArray(new ProcessingItem[myItems.size()]);
+  if (items.length > 0 && context.isRebuild()) {
+    final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(context.getProject());
+    flexCompilerHandler.quitCompilerShell();
+    flexCompilerHandler.getModuleToRelatedFilesCache().clear();
+  }
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    public void run(){
+      Arrays.sort(items,new Comparator<ProcessingItem>(){
+        final Comparator<Module> moduleComparator=ModuleManager.getInstance(context.getProject()).moduleDependencyComparator();
+        public int compare(        final ProcessingItem o1,        final ProcessingItem o2){
+          return moduleComparator.compare(((MyProcessingItem)o1).myModule,((MyProcessingItem)o2).myModule);
+        }
+      }
+);
+    }
+  }
+);
+  return items;
+}

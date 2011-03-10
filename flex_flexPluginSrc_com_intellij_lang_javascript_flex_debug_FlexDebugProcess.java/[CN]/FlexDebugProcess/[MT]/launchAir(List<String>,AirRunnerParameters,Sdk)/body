@@ -1,0 +1,41 @@
+{
+  ensureExecutable(fdbLaunchCommand.get(0));
+  myFdbLaunchCommand=StringUtil.join(fdbLaunchCommand,new Function<String,String>(){
+    public String fun(    final String s){
+      return s.indexOf(' ') >= 0 && !(s.startsWith("\"") && s.endsWith("\"")) ? '\"' + s + '\"' : s;
+    }
+  }
+," ");
+  final Process process=Runtime.getRuntime().exec(ArrayUtil.toStringArray(fdbLaunchCommand));
+  final String adlPath=FlexSdkUtils.getAdlPath(flexSdk);
+  ensureExecutable(adlPath);
+  sendCommand(new ReadGreetingCommand());
+  final List<String> airLaunchCommand=new ArrayList<String>();
+  airLaunchCommand.add(adlPath);
+  final boolean needToRemoveAirRuntimeDir;
+  final VirtualFile airRuntimeDirForFlexmojosSdk;
+  if (flexSdk.getSdkType() instanceof FlexmojosSdkType) {
+    final Pair<VirtualFile,Boolean> airRuntimeDirInfo=FlexSdkUtils.getAirRuntimeDirInfoForFlexmojosSdk(flexSdk);
+    airRuntimeDirForFlexmojosSdk=airRuntimeDirInfo.first;
+    needToRemoveAirRuntimeDir=airRuntimeDirInfo.second;
+    airLaunchCommand.add("-runtime");
+    airLaunchCommand.add(airRuntimeDirForFlexmojosSdk.getPath());
+  }
+ else {
+    needToRemoveAirRuntimeDir=false;
+    airRuntimeDirForFlexmojosSdk=null;
+  }
+  final String adlOptions=airRunnerParameters.getAdlOptions();
+  if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
+    airLaunchCommand.addAll(StringUtil.split(adlOptions," "));
+  }
+  airLaunchCommand.add(airRunnerParameters.getAirDescriptorPath());
+  airLaunchCommand.add(airRunnerParameters.getAirRootDirPath());
+  final String programParameters=airRunnerParameters.getAirProgramParameters();
+  if (!StringUtil.isEmptyOrSpaces(programParameters)) {
+    airLaunchCommand.add("--");
+    airLaunchCommand.addAll(StringUtil.split(programParameters," "));
+  }
+  sendCommand(new StartAirAppDebuggingCommand(ArrayUtil.toStringArray(airLaunchCommand),needToRemoveAirRuntimeDir ? airRuntimeDirForFlexmojosSdk : null));
+  return process;
+}

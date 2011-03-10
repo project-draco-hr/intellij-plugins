@@ -1,0 +1,17 @@
+{
+  headerByteOutput=new ByteArrayOutputStreamEx(headerBufferSize);
+  byteOutput=new ByteArrayOutputStreamEx(bodyBufferSize);
+  headerOutput=new AmfOutputStream(headerByteOutput);
+  out=new AmfOutputStream(byteOutput);
+  isReferenceTablesShared=sharedReferenceTablesOwner != null;
+  if (isReferenceTablesShared) {
+    if (sharedReferenceTablesOwner.headerOutput.stringTable == null) {
+      sharedReferenceTablesOwner.headerOutput.stringTable=sharedReferenceTablesOwner.out.stringTable=new ObjectIntHashMap<String>();
+    }
+    if (sharedReferenceTablesOwner.headerOutput.traitsTable == null) {
+      sharedReferenceTablesOwner.headerOutput.traitsTable=sharedReferenceTablesOwner.out.traitsTable=new ObjectIntHashMap<String>();
+    }
+    headerOutput.stringTable=out.stringTable=sharedReferenceTablesOwner.headerOutput.stringTable;
+    headerOutput.traitsTable=out.traitsTable=sharedReferenceTablesOwner.headerOutput.traitsTable;
+  }
+}

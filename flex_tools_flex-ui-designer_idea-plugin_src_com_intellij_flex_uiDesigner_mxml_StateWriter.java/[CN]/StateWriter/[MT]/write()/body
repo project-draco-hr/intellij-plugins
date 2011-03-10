@@ -1,0 +1,21 @@
+{
+  writer.getOut().write(states.size());
+  if (states.isEmpty()) {
+    return;
+  }
+  for (  State state : states) {
+    writer.getBlockOut().allocate(2);
+    writer.writeProperty(NAME,state.name);
+    OverrideBase override=state.overrides.getFirst();
+    if (override != null) {
+      writer.writeFixedArrayHeader(OVERRIDES,state.overrides.size());
+      do {
+        override.write(writer,this);
+        writer.getOut().write(MxmlWriter.EMPTY_CLASS_OR_PROPERTY_NAME);
+      }
+ while ((override=override.next) != null);
+    }
+    writer.getOut().write(MxmlWriter.EMPTY_CLASS_OR_PROPERTY_NAME);
+  }
+  reset();
+}

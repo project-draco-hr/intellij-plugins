@@ -1,0 +1,30 @@
+{
+  if (context instanceof XmlTag && FlexSdkUtils.isFlex4Sdk(FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(parentDescriptor.context.module))) {
+    MxmlLanguageTagsUtil.checkFlex4Attributes((XmlTag)context,host,false);
+  }
+  if (predefined)   return;
+  String value;
+  if (context instanceof XmlTag) {
+    value=((XmlTag)context).getValue().getTrimmedText();
+  }
+ else {
+    value=((XmlAttribute)context).getDisplayValue();
+  }
+  final String message=validateValue(context,value);
+  if (message != null)   host.addMessage(context,message,ValidationHost.ERROR);
+  if (context instanceof XmlTag && FlexStateElementNames.STATES.equals(((XmlTag)context).getLocalName()) && JavaScriptSupportLoader.isMxmlNs(((XmlTag)context).getNamespace())) {
+    XmlTag[] tags=((XmlTag)context).findSubTags("State",((XmlTag)context).getNamespace());
+    XmlUtil.doDuplicationCheckForElements(tags,new HashMap<String,XmlTag>(tags.length),new XmlUtil.DuplicationInfoProvider<XmlTag>(){
+      public String getName(      @NotNull XmlTag xmlTag){
+        return xmlTag.getAttributeValue(FlexStateElementNames.NAME);
+      }
+      @NotNull public String getNameKey(      @NotNull XmlTag xmlTag,      @NotNull String name){
+        return getName(xmlTag);
+      }
+      @NotNull public PsiElement getNodeForMessage(      @NotNull XmlTag xmlTag){
+        return xmlTag.getAttribute(FlexStateElementNames.NAME).getValueElement();
+      }
+    }
+,host);
+  }
+}

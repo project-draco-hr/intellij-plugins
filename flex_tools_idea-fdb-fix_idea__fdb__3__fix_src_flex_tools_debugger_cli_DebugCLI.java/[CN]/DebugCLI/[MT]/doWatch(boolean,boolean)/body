@@ -1,0 +1,61 @@
+{
+  try {
+    StringBuffer sb=new StringBuffer();
+    String s=restOfLine();
+    int flags=3;
+    if (read && write)     flags=WatchKind.READWRITE;
+ else     if (read)     flags=WatchKind.READ;
+ else     if (write)     flags=WatchKind.WRITE;
+    Watch[] list=m_session.getWatchList();
+    ValueExp expr=parseExpression(s);
+    VariableFacade result=(VariableFacade)evalExpression(expr);
+    int varId=result.getContext();
+    String memberName=result.getName();
+    Value v=m_session.getValue(varId);
+    Watch w=m_session.setWatch(v,memberName,flags);
+    if (w == null) {
+      Map args=new HashMap();
+      args.put("expression",s);
+      err(getLocalizationManager().getLocalizedTextString("watchpointCouldNotBeSet",args));
+    }
+ else {
+      Watch[] newList=m_session.getWatchList();
+      if (newList.length == list.length) {
+        int at=missingWatchpointIndexOf(newList);
+        WatchAction a=null;
+        try {
+          a=watchpointAt(at);
+        }
+ catch (        ArrayIndexOutOfBoundsException aio) {
+          a=new WatchAction(w);
+        }
+        int id=a.getId();
+        a.resetWatch(w);
+        Map args=new HashMap();
+        args.put("watchpointNumber",Integer.toString(id));
+        args.put("expression",s);
+        args.put("watchpointMode",getWatchpointModeString(a.getKind()));
+        sb.append(getLocalizationManager().getLocalizedTextString("changedWatchpointMode",args));
+      }
+ else {
+        WatchAction a=new WatchAction(w);
+        watchpointAdd(a);
+        int which=a.getId();
+        Map args=new HashMap();
+        args.put("watchpointNumber",Integer.toString(which));
+        args.put("expression",s);
+        sb.append(getLocalizationManager().getLocalizedTextString("createdWatchpoint",args));
+      }
+      out(sb.toString());
+    }
+  }
+ catch (  ArrayIndexOutOfBoundsException aio) {
+    err(getLocalizationManager().getLocalizedTextString("badWatchpointNumber"));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+catch (  ClassCastException cce) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotResolveExpression"));
+  }
+}

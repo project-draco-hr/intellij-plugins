@@ -1,0 +1,24 @@
+{
+  boolean result=true;
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    if (s.isPreprocessed()) {
+      continue;
+    }
+    if ((s=preprocess(s,compilers,suppressWarnings)) == null) {
+      result=false;
+    }
+ else {
+      sources.set(i,s);
+    }
+    if (tooManyErrors()) {
+      ThreadLocalToolkit.log(new TooManyErrors());
+      break;
+    }
+    if (forcedToStop()) {
+      ThreadLocalToolkit.log(new ForcedToStop());
+      break;
+    }
+  }
+  return result;
+}

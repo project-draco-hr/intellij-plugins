@@ -1,0 +1,40 @@
+{
+  Location l=getCurrentLocation();
+  if (l == null || l.getFile() == null)   return false;
+  int fileId=l.getFile().getId();
+  int line=l.getLine();
+  boolean isSilent=false;
+  boolean bpHit=false;
+  boolean stoppedDueToBp=false;
+  int count=breakpointCount();
+  boolean[] markedForRemoval=new boolean[count];
+  boolean previousResume=m_requestResume;
+  for (int i=0; i < count; i++) {
+    BreakAction a=breakpointAt(i);
+    if (a.locationMatches(fileId,line)) {
+      stoppedDueToBp=(m_session.suspendReason() == SuspendReason.Breakpoint);
+      if (shouldBreak(a,fileId,line)) {
+        bpHit=true;
+        a.hit();
+        isSilent=(isSilent) ? true : a.isSilent();
+        if (a.isAutoDisable())         disableBreakpointAt(i);
+        if (a.isAutoDelete())         markedForRemoval[i]=true;
+        int n=a.getCommandCount();
+        for (int j=0; j < n; j++)         issueCommand(a.commandAt(j),sb);
+      }
+    }
+  }
+  for (int i=markedForRemoval.length - 1; i > -1; i--)   if (markedForRemoval[i])   removeBreakpointAt(i);
+  if (stoppedDueToBp && !bpHit) {
+    m_requestResume=true;
+    m_stepResume=postStep;
+    isSilent=true;
+  }
+ else   if (stoppedDueToBp && bpHit && m_requestResume&& !previousResume) {
+    m_requestResume=true;
+    m_stepResume=postStep;
+    processDisplay(sb);
+  }
+  if (!m_requestResume)   processDisplay(sb);
+  return isSilent;
+}

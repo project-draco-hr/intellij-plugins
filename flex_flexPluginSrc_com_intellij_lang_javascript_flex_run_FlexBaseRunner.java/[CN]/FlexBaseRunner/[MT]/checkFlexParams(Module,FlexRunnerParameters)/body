@@ -1,0 +1,91 @@
+{
+switch (flexRunnerParameters.getRunMode()) {
+case HtmlOrSwfFile:
+    VirtualFile originalFile=null;
+  if (flexRunnerParameters.getHtmlOrSwfFilePath().length() > 0) {
+    originalFile=LocalFileSystem.getInstance().refreshAndFindFileByPath(flexRunnerParameters.getHtmlOrSwfFilePath());
+  }
+VirtualFile file=originalFile;
+if (file == null) {
+final String[] availableHtmlWrappersAndSwfs=collectHTMLWrappersAndSwfFilesFromOutputFolder(module);
+if (availableHtmlWrappersAndSwfs.length == 0) {
+  throw new CantRunException(FlexBundle.message("no.file.to.run"));
+}
+ else {
+  final String missingPath=LocalFileSystem.getInstance().extractPresentableUrl(flexRunnerParameters.getHtmlOrSwfFilePath());
+  int selected=Messages.showChooseDialog(FlexBundle.message("choose.swf.html.wrapper.file.to.run",missingPath),FlexBundle.message("choose.file.to.run.title"),availableHtmlWrappersAndSwfs,availableHtmlWrappersAndSwfs[0],Messages.getQuestionIcon());
+  if (selected != -1) {
+    file=LocalFileSystem.getInstance().findFileByPath(availableHtmlWrappersAndSwfs[selected]);
+  }
+}
+}
+if (file == null) throw new CantRunException(FlexBundle.message("no.file.to.run"));
+if (file != originalFile) flexRunnerParameters.setHtmlOrSwfFilePath(file.getPath());
+break;
+case Url:
+final String flexUrl=flexRunnerParameters.getUrlToLaunch();
+final Ref<IOException> ioExceptionRef=new Ref<IOException>();
+final Runnable inProgressRunnable=new Runnable(){
+public void run(){
+final Semaphore semaphore=new Semaphore();
+semaphore.down();
+final Runnable urlCheckRunnable=new Runnable(){
+public void run(){
+try {
+final URL url=new URL(flexUrl);
+final URLConnection urlConnection=url.openConnection();
+urlConnection.setConnectTimeout(URL_CHECK_TIMEOUT);
+final InputStream inputStream;
+try {
+inputStream=urlConnection.getInputStream();
+inputStream.close();
+}
+ catch (IllegalArgumentException e) {
+throw new MalformedURLException(FlexBundle.message("bad.url",flexUrl));
+}
+catch (NullPointerException e) {
+throw new MalformedURLException(FlexBundle.message("bad.url",flexUrl));
+}
+}
+ catch (SSLHandshakeException e) {
+}
+catch (IOException e) {
+final String message=e.getMessage();
+if (message == null || !message.contains("HTTP response code: 401")) {
+ioExceptionRef.set(e);
+}
+}
+ finally {
+semaphore.up();
+}
+}
+}
+;
+ApplicationManager.getApplication().executeOnPooledThread(urlCheckRunnable);
+final boolean urlCheckThreadFinished=semaphore.waitFor(URL_CHECK_TIMEOUT);
+ProgressManager.checkCanceled();
+if (!urlCheckThreadFinished) {
+ioExceptionRef.set(new IOException(FlexBundle.message("no.response.from.server",URL_CHECK_TIMEOUT / 1000)));
+}
+}
+}
+;
+final boolean ok=ProgressManager.getInstance().runProcessWithProgressSynchronously(inProgressRunnable,FlexBundle.message("checking.url",flexUrl),true,module.getProject());
+if (!ok) {
+return false;
+}
+if (!ioExceptionRef.isNull()) {
+final int choice=Messages.showYesNoDialog(FlexBundle.message("remote.url.is.not.accessible.message",flexUrl,ioExceptionRef.get().toString()),FlexBundle.message("remote.url.is.not.accessible.title"),Messages.getQuestionIcon());
+if (choice != 0) {
+return false;
+}
+}
+break;
+case MainClass:
+if (LocalFileSystem.getInstance().refreshAndFindFileByPath(flexRunnerParameters.getHtmlOrSwfFilePath()) == null) {
+throw new CantRunException(FlexBundle.message("file.not.found",flexRunnerParameters.getHtmlOrSwfFilePath()));
+}
+break;
+}
+return true;
+}

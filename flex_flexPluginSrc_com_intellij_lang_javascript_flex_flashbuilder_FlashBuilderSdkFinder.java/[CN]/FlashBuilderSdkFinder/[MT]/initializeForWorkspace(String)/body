@@ -1,0 +1,24 @@
+{
+  if (!initializeSdksConfiguredInWorkspace(workspacePath)) {
+    final FlashBuilderSdkDialog dialog=new FlashBuilderSdkDialog(myProject,false);
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      dialog.show();
+    }
+ else {
+      dialog.close(DialogWrapper.OK_EXIT_CODE);
+    }
+    if (dialog.isOK()) {
+      if (dialog.isUseIdeaSdkSelected()) {
+        myWhereToLookForSdkInfo=WhereToLookForSdkInfo.UseIdeaSdk;
+        mySdk=dialog.getSdk();
+      }
+ else {
+        initializeForFBInstallationDir(dialog.getFBInstallationPath());
+      }
+    }
+ else {
+      myWhereToLookForSdkInfo=WhereToLookForSdkInfo.UseIdeaSdk;
+      mySdk=null;
+    }
+  }
+}

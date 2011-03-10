@@ -1,0 +1,39 @@
+{
+  waitTilHalted();
+  try {
+    if (!hasMoreTokens()) {
+      int count=breakpointCount();
+      for (int i=0; i < count; i++)       disableBreakpointAt(i);
+    }
+ else {
+      String arg=nextToken();
+      int cmd=disableCommandFor(arg);
+      int id=-1;
+      if (cmd == CMD_DISPLAY)       doDisableDisplay();
+ else {
+        if (cmd == CMD_BREAK)         id=nextIntToken();
+ else         id=Integer.parseInt(arg);
+        do {
+          int at=breakpointIndexOf(id);
+          disableBreakpointAt(at);
+          if (hasMoreTokens())           id=nextIntToken();
+ else           id=-1;
+        }
+ while (id > -1);
+      }
+    }
+  }
+ catch (  IndexOutOfBoundsException iob) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("breakpointNumber",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("noBreakpointNumber",args));
+  }
+catch (  NumberFormatException nfe) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("token",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("badBreakpointNumber",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("commandFailed"));
+  }
+}

@@ -1,0 +1,38 @@
+{
+  String swfRelPath=null;
+  if (OBJECT_TAG_NAME.equals(tag.getName())) {
+    final String typeAttrValue=tag.getAttributeValue(TYPE_ATTR_NAME);
+    final String dataAttrValue=tag.getAttributeValue(DATA_ATTR_NAME);
+    if (TYPE_ATTR_VALUE.equals(typeAttrValue) && !StringUtil.isEmptyOrSpaces(dataAttrValue)) {
+      swfRelPath=dataAttrValue;
+    }
+  }
+ else   if (PARAM_TAG_NAME.equals(tag.getName())) {
+    final XmlTag parentTag=tag.getParentTag();
+    final String nameAttrValue=tag.getAttributeValue(NAME_ATTR_NAME);
+    final String valueAttrValue=tag.getAttributeValue(VALUE_ATTR_NAME);
+    if (parentTag != null && OBJECT_TAG_NAME.equals(parentTag.getName()) && MOVIE_ATTR_VALUE.equals(nameAttrValue) && !StringUtil.isEmptyOrSpaces(valueAttrValue)) {
+      swfRelPath=valueAttrValue;
+    }
+  }
+ else   if (EMBED_TAG_NAME.equals(tag.getName())) {
+    final XmlTag parentTag=tag.getParentTag();
+    final String typeAttrValue=tag.getAttributeValue(TYPE_ATTR_NAME);
+    final String srcAttrValue=tag.getAttributeValue(SRC_ATTR_NAME);
+    if (parentTag != null && OBJECT_TAG_NAME.equals(parentTag.getName()) && TYPE_ATTR_VALUE.equals(typeAttrValue) && !StringUtil.isEmptyOrSpaces(srcAttrValue)) {
+      swfRelPath=srcAttrValue;
+    }
+  }
+  if (swfRelPath != null) {
+    final File absFile=new File(swfRelPath);
+    if (absFile.isAbsolute()) {
+      swfFilePaths.add(absFile.getCanonicalPath());
+    }
+ else {
+      swfFilePaths.add(new File(baseDirPath,swfRelPath).getCanonicalPath());
+    }
+  }
+  for (  final XmlTag subTag : tag.getSubTags()) {
+    appendSwfFilesPathsRecursively(swfFilePaths,baseDirPath,subTag);
+  }
+}

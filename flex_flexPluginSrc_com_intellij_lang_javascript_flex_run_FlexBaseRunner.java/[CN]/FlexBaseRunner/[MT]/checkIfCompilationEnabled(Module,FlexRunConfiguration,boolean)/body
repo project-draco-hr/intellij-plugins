@@ -1,0 +1,18 @@
+{
+  final FlexBuildConfiguration config=FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module).iterator().next();
+  if (!config.DO_BUILD) {
+    showIdeBuilderTurnedOffWarning(module,isDebug);
+  }
+ else {
+    final CompileStepBeforeRun.MakeBeforeRunTask runTask=RunManagerEx.getInstanceEx(module.getProject()).getBeforeRunTask(runProfile,CompileStepBeforeRun.ID);
+    final boolean isMakeBeforeRun=runTask != null && runTask.isEnabled();
+    if (!isMakeBeforeRun) {
+      for (      final RunnerAndConfigurationSettings settings : RunManagerEx.getInstanceEx(module.getProject()).getConfigurationSettings(runProfile.getType())) {
+        if (settings.getConfiguration() == runProfile) {
+          showCompileBeforeRunTurnedOffWarning(module.getProject(),settings,isDebug);
+          break;
+        }
+      }
+    }
+  }
+}

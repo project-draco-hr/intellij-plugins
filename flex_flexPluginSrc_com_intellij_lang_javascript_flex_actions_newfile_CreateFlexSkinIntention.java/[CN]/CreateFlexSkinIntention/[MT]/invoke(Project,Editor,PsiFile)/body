@@ -1,0 +1,52 @@
+{
+  final JSClass hostComponentClass=getHostComponentClass();
+  final Module module=ModuleUtil.findModuleForPsiElement(file);
+  if (module == null) {
+    return;
+  }
+  final String packageName;
+  final String hostComponent;
+  final PsiDirectory targetDirectory;
+  final String defaultHostComponent=hostComponentClass == null ? "" : hostComponentClass.getQualifiedName();
+  if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    final CreateFlexSkinDialog dialog=new CreateFlexSkinDialog(module,mySkinName,myPackageName,defaultHostComponent,myElement.getContainingFile());
+    dialog.show();
+    if (!dialog.isOK()) {
+      return;
+    }
+    packageName=dialog.getPackageName();
+    hostComponent=dialog.getHostComponent();
+    targetDirectory=dialog.getTargetDirectory();
+  }
+ else {
+    packageName=myPackageName;
+    hostComponent=defaultHostComponent;
+    targetDirectory=ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>(){
+      @Override public PsiDirectory compute(){
+        return CreateClassOrInterfaceAction.findOrCreateDirectory(packageName,file);
+      }
+    }
+);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      try {
+        final String skinFileName=mySkinName + JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT;
+        final PsiFile newFile=targetDirectory.createFile(skinFileName);
+        final PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(project);
+        final Document document=psiDocumentManager.getDocument(newFile);
+        document.setText(getSkinContent(hostComponent));
+        psiDocumentManager.commitDocument(document);
+        CodeStyleManager.getInstance(project).reformat(newFile);
+        FileEditorManager.getInstance(project).openFile(newFile.getVirtualFile(),true);
+        if (myCreatedClassFqnConsumer != null) {
+          myCreatedClassFqnConsumer.consume(packageName + (packageName.isEmpty() ? "" : ".") + mySkinName);
+        }
+      }
+ catch (      IncorrectOperationException e) {
+        Messages.showErrorDialog(project,e.getMessage(),getText());
+      }
+    }
+  }
+);
+}

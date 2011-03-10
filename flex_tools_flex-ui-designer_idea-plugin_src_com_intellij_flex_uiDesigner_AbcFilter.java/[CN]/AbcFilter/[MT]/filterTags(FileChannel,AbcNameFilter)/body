@@ -1,0 +1,79 @@
+{
+  int lastWrittenPosition=0;
+  while (byteBuffer.position() < byteBuffer.limit()) {
+    int tagCodeAndLength=byteBuffer.getShort();
+    int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=byteBuffer.getInt();
+    }
+switch (type) {
+case endTag:
+      byteBuffer.position(lastWrittenPosition);
+    outputFileChannel.write(byteBuffer);
+  return;
+case symbolClass:
+{
+  final int tagStartPosition=byteBuffer.position();
+  if (replaceMainClass) {
+    lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,outputFileChannel,length);
+  }
+  byteBuffer.position(tagStartPosition + length);
+}
+break;
+case stagDoABC2:
+String name=readAbcName(byteBuffer.position() + 4);
+if (!abcNameFilter.accept(name)) {
+byteBuffer.limit(byteBuffer.position() - 6);
+byteBuffer.position(lastWrittenPosition);
+outputFileChannel.write(byteBuffer);
+lastWrittenPosition=byteBuffer.limit() + length + 6;
+byteBuffer.limit(byteBuffer.capacity());
+byteBuffer.position(lastWrittenPosition);
+continue;
+}
+ else if (flexSdkVersion != null && !flexInjected) {
+boolean isStyleProtoChain=name.equals("mx.styles:StyleProtoChain");
+if (isStyleProtoChain) {
+final int oldPosition=byteBuffer.position();
+byteBuffer.position(byteBuffer.position() + 4 + name.length()+ 1);
+parseCPoolAndRenameStyleProtoChain();
+byteBuffer.position(oldPosition + 4 + 10);
+byteBuffer.put((byte)'F');
+byteBuffer.position(oldPosition);
+}
+if (isStyleProtoChain ? flexSdkVersion.equals("4.5") : (flexSdkVersion.equals("4.1") && name.equals("mx.styles:CSSStyleDeclaration"))) {
+flexInjected=true;
+byteBuffer.limit(byteBuffer.position() + length);
+byteBuffer.position(lastWrittenPosition);
+outputFileChannel.write(byteBuffer);
+lastWrittenPosition=byteBuffer.limit();
+byteBuffer.limit(byteBuffer.capacity());
+final String injectionFileName="flex-injection-" + flexSdkVersion + ".abc";
+if (System.getProperty("fud.debug") == null) {
+InputStream inputStream=getClass().getClassLoader().getResourceAsStream(injectionFileName);
+try {
+  outputFileChannel.write(ByteBuffer.wrap(FileUtil.loadBytes(inputStream)));
+}
+  finally {
+  inputStream.close();
+}
+}
+ else {
+final FileChannel injection=new FileInputStream(new File("/Users/develar/workspace/idea/plugins/flex/tools/flex-ui-designer/flex-injection/target/" + injectionFileName)).getChannel();
+try {
+  injection.transferTo(0,injection.size(),outputFileChannel);
+}
+  finally {
+  injection.close();
+}
+}
+continue;
+}
+}
+default :
+byteBuffer.position(byteBuffer.position() + length);
+break;
+}
+}
+}

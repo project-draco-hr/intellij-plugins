@@ -1,0 +1,27 @@
+{
+  if (!(element instanceof XmlAttribute) || !JavaScriptSupportLoader.isFlexMxmFile(element.getContainingFile())) {
+    return;
+  }
+  final WebEditorOptions webEditorOptions=WebEditorOptions.getInstance();
+  if (webEditorOptions == null || !webEditorOptions.isShowCssColorPreviewInGutter()) {
+    return;
+  }
+  XmlAttribute attribute=(XmlAttribute)element;
+  XmlAttributeDescriptor descriptor=attribute.getDescriptor();
+  if (!(descriptor instanceof AnnotationBackedDescriptorImpl)) {
+    return;
+  }
+  AnnotationBackedDescriptorImpl annotationBackedDescriptor=(AnnotationBackedDescriptorImpl)descriptor;
+  String format=annotationBackedDescriptor.getFormat();
+  if (!FlexCssPropertyDescriptor.COLOR_FORMAT.equals(format)) {
+    return;
+  }
+  final String value=attribute.getValue();
+  if (value == null || value.length() == 0) {
+    return;
+  }
+  if (!JSCommonTypeNames.ARRAY_CLASS_NAME.equals(annotationBackedDescriptor.getType())) {
+    Annotation annotation=holder.createInfoAnnotation(attribute.getValueElement(),null);
+    annotation.setGutterIconRenderer(new MyRenderer(value,attribute));
+  }
+}

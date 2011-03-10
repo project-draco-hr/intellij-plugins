@@ -1,0 +1,27 @@
+{
+  final ModuleManager moduleManager=ModuleManager.getInstance(project);
+  final Module[] modules=moduleManager.getModules();
+  Module selectedModule;
+  if (StringUtil.isEmpty(selectedModuleName)) {
+    selectedModule=modules.length > 0 ? modules[0] : null;
+    for (    final Module module : modules) {
+      if (FlexUtils.isFlexModuleOrContainsFlexFacet(module)) {
+        selectedModule=module;
+        break;
+      }
+    }
+  }
+ else {
+    selectedModule=moduleManager.findModuleByName(selectedModuleName);
+  }
+  if (selectedModule != null && ArrayUtil.contains(selectedModule,modules)) {
+    myComboBox.setModel(new DefaultComboBoxModel(modules));
+    myComboBox.setSelectedItem(selectedModule);
+  }
+ else {
+    final Object[] modulesEx=new Object[modules.length + 1];
+    modulesEx[0]=selectedModuleName;
+    System.arraycopy(modules,0,modulesEx,1,modules.length);
+    myComboBox.setModel(new DefaultComboBoxModel(modulesEx));
+  }
+}

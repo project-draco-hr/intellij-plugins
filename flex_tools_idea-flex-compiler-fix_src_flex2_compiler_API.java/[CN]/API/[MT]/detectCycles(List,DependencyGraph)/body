@@ -1,0 +1,27 @@
+{
+  final Map tsort=new HashMap(sources.size());
+  for (int i=0, size=sources.size(); i < size; i++) {
+    Source s=(Source)sources.get(i);
+    tsort.put(s.getName(),s);
+  }
+  Algorithms.topologicalSort(graph,new Visitor(){
+    public void visit(    Object v){
+      String name=(String)((Vertex)v).getWeight();
+      tsort.remove(name);
+    }
+  }
+);
+  if (tsort.size() > 0) {
+    for (Iterator i=tsort.keySet().iterator(); i.hasNext(); ) {
+      String name=(String)i.next();
+      Source s=(Source)tsort.get(name);
+      if (!s.hasError()) {
+        ThreadLocalToolkit.log(new CircularInheritance(),name);
+      }
+    }
+    return true;
+  }
+ else {
+    return false;
+  }
+}

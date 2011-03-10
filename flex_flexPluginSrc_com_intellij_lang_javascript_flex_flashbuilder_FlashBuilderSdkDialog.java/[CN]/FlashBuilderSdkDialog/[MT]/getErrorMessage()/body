@@ -1,0 +1,31 @@
+{
+  if (myImportSdkSettingsRadioButton.isSelected()) {
+    if (myWorkspaceDirectoryComponent.isVisible()) {
+      final String workspacePath=getWorkspacePath();
+      if (workspacePath.length() == 0) {
+        return FlexBundle.message("specify.flash.builder.workspace");
+      }
+      final VirtualFile workspaceDir=LocalFileSystem.getInstance().findFileByPath(workspacePath);
+      if (workspaceDir == null || !workspaceDir.isDirectory()) {
+        return FlexBundle.message("folder.does.not.exist",workspacePath);
+      }
+      if (!FlashBuilderProjectFinder.isFlashBuilderWorkspace(workspaceDir)) {
+        return FlexBundle.message("not.flash.builder.workspace",workspacePath);
+      }
+    }
+ else {
+      final String installationPath=getFBInstallationPath();
+      if (installationPath.length() == 0) {
+        return FlexBundle.message("specify.flash.builder.installation.dir");
+      }
+      final VirtualFile workspaceDir=LocalFileSystem.getInstance().findFileByPath(installationPath);
+      if (workspaceDir == null || !workspaceDir.isDirectory()) {
+        return FlexBundle.message("folder.does.not.exist",installationPath);
+      }
+      if (!FlashBuilderProjectFinder.isFlashBuilderInstallationDir(workspaceDir)) {
+        return FlexBundle.message("not.flash.builder.installation.dir",installationPath);
+      }
+    }
+  }
+  return null;
+}

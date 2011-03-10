@@ -1,0 +1,24 @@
+{
+  final String flexSdkHome=System.getProperty("application.home");
+  if (flexSdkHome == null) {
+    return null;
+  }
+  final File flexSdkDescriptionFile=new File(flexSdkHome + File.separatorChar + "flex-sdk-description.xml");
+  if (!flexSdkDescriptionFile.exists()) {
+    return null;
+  }
+  final String versionElement="<flex-sdk-description><version>";
+  final String buildElement="<flex-sdk-description><build>";
+  FileInputStream xmlInputStream=null;
+  try {
+    xmlInputStream=new FileInputStream(flexSdkDescriptionFile);
+    final Map<String,List<String>> versionInfo=findXMLElements(xmlInputStream,Arrays.asList(versionElement,buildElement));
+    return (versionInfo.get(versionElement).isEmpty() ? null : versionInfo.get(versionElement).get(0)) + (versionInfo.get(buildElement).isEmpty() ? "" : (" build " + versionInfo.get(buildElement).get(0)));
+  }
+ catch (  IOException e) {
+    return null;
+  }
+ finally {
+    close(xmlInputStream);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  do {
+    units.clear();
+    if (useFileSpec || configuration.getCompilerConfiguration().useConservativeAlgorithm()) {
+      batch1(sources,units,igraph,dgraph,symbolTable,compilers,sourceList,sourcePath,resources,swcContext,configuration);
+    }
+ else {
+      batch2(sources,units,igraph,dgraph,symbolTable,compilers,sourceList,sourcePath,resources,swcContext,configuration);
+    }
+    symbolTable.perCompileData.reuse();
+    if (swcContext.errorLocations().size() > 0) {
+      for (Iterator it=swcContext.errorLocations().iterator(); it.hasNext(); ) {
+        ThreadLocalToolkit.log(new IncompatibleSWCArchive((String)it.next()));
+      }
+    }
+    if (ThreadLocalToolkit.errorCount() > 0) {
+      throw new CompilerException();
+    }
+    if (forcedToStop())     break;
+  }
+ while (unitsReset(units) > 0);
+}

@@ -1,0 +1,17 @@
+{
+  String newName=JSResolveUtil.transformVarNameToAccessorName(super.buildName(jsVariable),codeStyleSettings);
+  String varName=jsVariable.getName();
+  if (newName.equals(varName) && codeStyleSettings.FIELD_PREFIX.length() > 0 && varName != null && !varName.startsWith(codeStyleSettings.FIELD_PREFIX)) {
+    JSVariable copy=(JSVariable)jsVariable.copy();
+    String newVarName=codeStyleSettings.FIELD_PREFIX + varName;
+    copy.setName(newVarName);
+    for (    PsiReference ref : ReferencesSearch.search(jsVariable,GlobalSearchScope.fileScope(jsVariable.getContainingFile())).findAll()) {
+      if (JSResolveUtil.getClassOfContext(ref.getElement()) != myJsClass)       continue;
+      if (ref.getElement().getParent() != jsVariable)       ref.bindToElement(copy);
+    }
+    jsVariable.setName(newVarName);
+  }
+  if (myMakePrivate) {
+    JSVisibilityUtil.setVisibility(jsVariable.getAttributeList(),JSAttributeList.AccessType.PRIVATE);
+  }
+}

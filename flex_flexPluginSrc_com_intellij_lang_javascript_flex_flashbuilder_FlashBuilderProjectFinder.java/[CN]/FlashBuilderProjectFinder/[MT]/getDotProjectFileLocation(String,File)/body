@@ -1,0 +1,41 @@
+{
+  final String projectName=projectCacheDir.getName();
+  final File dotLocationFile=new File(projectCacheDir + "/" + DOT_LOCATION);
+  if (dotLocationFile.isFile()) {
+    DataInputStream input=null;
+    try {
+      input=new DataInputStream(new FileInputStream(dotLocationFile));
+      final int CHUNK_START_LENGTH=16;
+      final String URI_PREFIX="URI//";
+      final long skipped=input.skip(CHUNK_START_LENGTH);
+      if (skipped == CHUNK_START_LENGTH) {
+        final String projectUriUri=input.readUTF();
+        if (projectUriUri != null && projectUriUri.startsWith(URI_PREFIX)) {
+          final URI dotProjectUri=new URI(projectUriUri.substring(URI_PREFIX.length()) + "/" + FlashBuilderImporter.DOT_PROJECT);
+          final File dotProjectFile=new File(dotProjectUri);
+          if (isFlashBuilderProject(dotProjectFile)) {
+            return dotProjectFile.getPath();
+          }
+        }
+      }
+    }
+ catch (    IOException e) {
+    }
+catch (    URISyntaxException e) {
+    }
+ finally {
+      if (input != null) {
+        try {
+          input.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  final File dotProjectFile=new File(workspacePath + "/" + projectName+ "/"+ FlashBuilderImporter.DOT_PROJECT);
+  if (isFlashBuilderProject(dotProjectFile)) {
+    return dotProjectFile.getPath();
+  }
+  return null;
+}

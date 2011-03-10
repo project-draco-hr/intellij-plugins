@@ -1,0 +1,17 @@
+{
+  final FlexRunnerParameters params=runConfiguration.getRunnerParameters();
+  final boolean isFlexUnit=params instanceof FlexUnitRunnerParameters;
+  if (isFlexUnit) {
+    if (((FlexUnitRunnerParameters)params).getScope() == FlexUnitRunnerParameters.Scope.Package) {
+      ((FlexUnitRunnerParameters)params).setPackageName(newPackage);
+    }
+ else {
+      final String oldFqn=((FlexUnitRunnerParameters)params).getClassName();
+      ((FlexUnitRunnerParameters)params).setClassName(newPackage + (StringUtil.isEmpty(newPackage) ? "" : ".") + StringUtil.getShortName(oldFqn));
+    }
+  }
+ else {
+    final String oldFqn=params.getMainClassName();
+    params.setMainClassName(newPackage + (StringUtil.isEmpty(newPackage) ? "" : ".") + StringUtil.getShortName(oldFqn));
+  }
+}

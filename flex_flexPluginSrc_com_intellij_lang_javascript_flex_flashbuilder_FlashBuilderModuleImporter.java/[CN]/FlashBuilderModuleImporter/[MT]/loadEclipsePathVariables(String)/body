@@ -1,0 +1,18 @@
+{
+  final Map<String,String> eclipsePathVariables=new THashMap<String,String>();
+  final VirtualFile prefsFile=LocalFileSystem.getInstance().findFileByPath(workspacePath + CORE_RESOURCES_PREFS_REL_PATH);
+  if (prefsFile == null)   return eclipsePathVariables;
+  final Properties properties=new Properties();
+  try {
+    properties.load(prefsFile.getInputStream());
+    for (    final Map.Entry<Object,Object> entry : properties.entrySet()) {
+      final String key=(String)entry.getKey();
+      if (key.startsWith(PATHVARIABLE_DOT)) {
+        eclipsePathVariables.put(key.substring(PATHVARIABLE_DOT.length()),(String)entry.getValue());
+      }
+    }
+  }
+ catch (  IOException e) {
+  }
+  return eclipsePathVariables;
+}

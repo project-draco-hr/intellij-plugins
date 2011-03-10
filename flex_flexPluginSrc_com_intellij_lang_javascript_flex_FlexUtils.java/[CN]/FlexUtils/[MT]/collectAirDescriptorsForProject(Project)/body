@@ -1,0 +1,23 @@
+{
+  final List<String> result=new ArrayList<String>();
+  final ContentIterator contentIterator=new ContentIterator(){
+    public boolean processFile(    final VirtualFile file){
+      if (isAirDescriptorFile(file)) {
+        result.add(FileUtil.toSystemDependentName(file.getPath()));
+      }
+      return true;
+    }
+  }
+;
+  final ProjectRootManager projectRootManager=ProjectRootManager.getInstance(project);
+  projectRootManager.getFileIndex().iterateContent(contentIterator);
+  final VirtualFile projectBaseDir=project.getBaseDir();
+  if (projectBaseDir != null && !ArrayUtil.contains(projectBaseDir,projectRootManager.getContentRoots())) {
+    for (    final VirtualFile file : projectBaseDir.getChildren()) {
+      if (isAirDescriptorFile(file)) {
+        result.add(FileUtil.toSystemDependentName(file.getPath()));
+      }
+    }
+  }
+  return ArrayUtil.toStringArray(result);
+}

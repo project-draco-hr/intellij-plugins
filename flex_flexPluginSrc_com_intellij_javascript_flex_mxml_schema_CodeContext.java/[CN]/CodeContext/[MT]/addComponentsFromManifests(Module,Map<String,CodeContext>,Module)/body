@@ -1,0 +1,22 @@
+{
+  for (  FlexBuildConfiguration config : FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module1)) {
+    final Collection<NamespaceAndManifestFileInfo> namespaceAndManifestFileInfos;
+    final VirtualFile configFile;
+    if (config.USE_CUSTOM_CONFIG_FILE) {
+      configFile=LocalFileSystem.getInstance().findFileByPath(config.CUSTOM_CONFIG_FILE);
+      namespaceAndManifestFileInfos=FlexCompilerConfigFileUtil.getNamespaceAndManifestFileInfoFromCustomConfig(configFile);
+    }
+ else {
+      configFile=null;
+      namespaceAndManifestFileInfos=config.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST;
+    }
+    for (    final NamespaceAndManifestFileInfo info : namespaceAndManifestFileInfos) {
+      if (module == module1 || (FlexBuildConfiguration.LIBRARY.equals(config.OUTPUT_TYPE) && info.INCLUDE_IN_SWC)) {
+        final VirtualFile manifestFile=getManifestFile(info.MANIFEST_FILE_PATH,config);
+        if (manifestFile != null) {
+          processManifestFile(module,contextsOfModule,manifestFile,info.NAMESPACE,configFile);
+        }
+      }
+    }
+  }
+}

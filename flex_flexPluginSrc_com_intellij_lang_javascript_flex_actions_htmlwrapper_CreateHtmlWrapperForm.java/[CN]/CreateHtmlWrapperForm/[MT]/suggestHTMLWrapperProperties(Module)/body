@@ -1,0 +1,37 @@
+{
+  myHtmlWrapperFileNameTextField.setText(module.getName().replaceAll("[^\\p{Alnum}]","_") + ".html");
+  final VirtualFile[] srcRoots=ModuleRootManager.getInstance(module).getSourceRoots();
+  if (srcRoots.length > 0) {
+    myHtmlWrapperFileLocationTextWithBrowse.setText(srcRoots[0].getPath());
+  }
+ else {
+    final VirtualFile moduleFile=module.getModuleFile();
+    if (moduleFile != null) {
+      myHtmlWrapperFileLocationTextWithBrowse.setText(moduleFile.getParent().getPath());
+    }
+  }
+  String outputFileName="";
+  for (  FlexBuildConfiguration config : FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module)) {
+    if (!config.USE_CUSTOM_CONFIG_FILE && config.OUTPUT_FILE_NAME.endsWith(".swf")) {
+      outputFileName=config.OUTPUT_FILE_NAME;
+      break;
+    }
+  }
+  final String htmlPageAndFlexAppName;
+  if (outputFileName.length() > 0) {
+    if (outputFileName.indexOf('.') > 0) {
+      htmlPageAndFlexAppName=outputFileName.substring(0,outputFileName.indexOf('.'));
+    }
+ else {
+      htmlPageAndFlexAppName=outputFileName;
+    }
+  }
+ else {
+    htmlPageAndFlexAppName=module.getName();
+  }
+  myHTMLPageTitleTextField.setText(htmlPageAndFlexAppName);
+  myFlexApplicationNameTextField.setText(htmlPageAndFlexAppName);
+  mySWFFileNameTextField.setText(outputFileName);
+  final Sdk flexSdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+  suggestPlayerVersion(flexSdk);
+}

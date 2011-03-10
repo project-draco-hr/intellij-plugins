@@ -1,0 +1,28 @@
+{
+  final VirtualFile outputFile=getOutputFile(context.getMessages(CompilerMessageCategory.INFORMATION),configFiles);
+  if (outputFile != null) {
+    final HashSet<VirtualFile> dependencies=new HashSet<VirtualFile>();
+    dependencies.add(outputFile);
+    final Sdk sdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+    if (sdk != null) {
+      dependencies.add(sdk.getHomeDirectory());
+    }
+    for (    VirtualFile configFile : configFiles) {
+      dependencies.add(configFile);
+      dependencies.addAll(getDependenciesExceptSourceRootsFromConfigFile(module,configFile));
+    }
+    appendCssAndRespectiveSwfFiles(dependencies,module);
+    if (append) {
+      final Set<VirtualFile> files=myModuleToRelatedFiles.get(module);
+      if (files == null) {
+        myModuleToRelatedFiles.put(module,dependencies);
+      }
+ else {
+        files.addAll(dependencies);
+      }
+    }
+ else {
+      myModuleToRelatedFiles.put(module,dependencies);
+    }
+  }
+}

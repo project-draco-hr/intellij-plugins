@@ -1,0 +1,22 @@
+{
+  if (!myCompilationFinished) {
+    if (message.contains(COULD_NOT_CREATE_JVM)) {
+      category=CompilerMessageCategory.ERROR;
+    }
+    if (category == CompilerMessageCategory.INFORMATION) {
+      final Matcher matcher=FlexCompilationManager.OUTPUT_FILE_CREATED_PATTERN.matcher(message);
+      if (matcher.matches()) {
+        final String outputFilePath=matcher.group(2);
+        refreshAndFindFileInWriteAction(myCompileContext.getProject(),outputFilePath);
+      }
+    }
+    final String prefix="[" + task.getPresentableName() + "] ";
+    myCompileContext.addMessage(category,prefix + message,url,lineNum,columnNum);
+    if (message.contains(OUT_OF_MEMORY) || message.contains(JAVA_HEAP_SPACE)) {
+      final Sdk flexSdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(task.getModule());
+      if (flexSdk != null) {
+        myCompileContext.addMessage(CompilerMessageCategory.ERROR,prefix + FlexBundle.message("increase.flex.compiler.heap"),null,-1,-1);
+      }
+    }
+  }
+}

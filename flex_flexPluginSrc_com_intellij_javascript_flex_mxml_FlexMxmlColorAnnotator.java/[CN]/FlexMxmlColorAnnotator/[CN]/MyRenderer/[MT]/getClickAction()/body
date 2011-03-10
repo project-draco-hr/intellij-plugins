@@ -1,0 +1,26 @@
+{
+  return new AnAction(){
+    public void actionPerformed(    final AnActionEvent e){
+      final Editor editor=PlatformDataKeys.EDITOR.getData(e.getDataContext());
+      if (editor != null) {
+        Color currentColor=getColor(myColorValue);
+        final Color color=ColorChooser.chooseColor(editor.getComponent(),FlexBundle.message("flex.choose.color.dialog.title"),currentColor);
+        if (color != null && !color.equals(currentColor)) {
+          final PsiFile psiFile=myAttribute.getContainingFile();
+          if (!CodeInsightUtilBase.prepareFileForWrite(psiFile))           return;
+          final String hex=CssUtil.toHexColor(color);
+          if (hex != null) {
+            final String mxmlStyleHex=toCannonicalHex(hex,false);
+            ApplicationManager.getApplication().runWriteAction(new Runnable(){
+              @Override public void run(){
+                myAttribute.setValue(mxmlStyleHex);
+              }
+            }
+);
+          }
+        }
+      }
+    }
+  }
+;
+}

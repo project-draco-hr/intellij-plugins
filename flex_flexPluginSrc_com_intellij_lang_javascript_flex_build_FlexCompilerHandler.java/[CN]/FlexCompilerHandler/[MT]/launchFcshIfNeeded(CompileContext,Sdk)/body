@@ -1,0 +1,19 @@
+{
+  if (!processIsAlive() || myRequestedQuit) {
+    String classpath=FileUtil.toSystemDependentName(PathManager.getHomePath() + "/plugins/flex/lib/idea-fcsh-fix.jar");
+    if (!(flexSdk.getSdkType() instanceof FlexmojosSdkType)) {
+      classpath+=File.pathSeparator + FileUtil.toSystemDependentName(flexSdk.getHomePath() + "/lib/fcsh.jar");
+    }
+    final List<String> cmdLineParams=FlexSdkUtils.getCommandLineForSdkTool(myProject,flexSdk,classpath,"com.intellij.flex.FcshLauncher",null);
+    context.addMessage(CompilerMessageCategory.INFORMATION,StringUtil.join(cmdLineParams," "),null,-1,-1);
+    final ProcessBuilder builder=new ProcessBuilder(cmdLineParams);
+    builder.directory(new File(FlexUtils.getFlexCompilerWorkDirPath(myProject,flexSdk)));
+    process=builder.start();
+    is=process.getOutputStream();
+    out=new InputStreamReader(process.getInputStream());
+    err=new LineNumberReader(new InputStreamReader(process.getErrorStream()));
+    consumeOutput(null,new CompilerMessagesBuffer(context,false));
+    clearFcshRelatedCache();
+    myRequestedQuit=false;
+  }
+}

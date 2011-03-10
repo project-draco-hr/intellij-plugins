@@ -1,0 +1,16 @@
+{
+  final FlexRunnerParameters.RunMode runMode=flexRunnerParameters.getRunMode();
+  connectToRunningFlashPlayerMode=runMode == FlexRunnerParameters.RunMode.ConnectToRunningFlashPlayer;
+  final String url=runMode == FlexRunnerParameters.RunMode.HtmlOrSwfFile ? flexRunnerParameters.getHtmlOrSwfFilePath() : runMode == FlexRunnerParameters.RunMode.Url ? flexRunnerParameters.getUrlToLaunch() : runMode == FlexRunnerParameters.RunMode.MainClass ? flexRunnerParameters.getHtmlOrSwfFilePath() : null;
+  ensureExecutable(fdbLaunchCommand.get(0));
+  myFdbLaunchCommand=StringUtil.join(fdbLaunchCommand,new Function<String,String>(){
+    public String fun(    final String s){
+      return s.indexOf(' ') >= 0 && !(s.startsWith("\"") && s.endsWith("\"")) ? '\"' + s + '\"' : s;
+    }
+  }
+," ");
+  final Process process=Runtime.getRuntime().exec(ArrayUtil.toStringArray(fdbLaunchCommand));
+  sendCommand(new ReadGreetingCommand());
+  sendCommand(new LaunchBrowserCommand(url,flexRunnerParameters));
+  return process;
+}

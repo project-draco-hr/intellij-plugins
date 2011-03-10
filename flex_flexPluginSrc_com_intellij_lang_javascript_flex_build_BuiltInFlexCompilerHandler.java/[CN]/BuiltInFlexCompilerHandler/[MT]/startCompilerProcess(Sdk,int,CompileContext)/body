@@ -1,0 +1,26 @@
+{
+  final StringBuilder classpath=new StringBuilder();
+  final String sdkVersion=flexSdk.getVersionString();
+  if (!StringUtil.isEmpty(sdkVersion) && StringUtil.compareVersionNumbers(sdkVersion,"3.2") >= 0 && StringUtil.compareVersionNumbers(sdkVersion,"4") < 0) {
+    classpath.append(FileUtil.toSystemDependentName(PathManager.getHomePath() + "/plugins/flex/lib/idea-flex-compiler-fix.jar"));
+    classpath.append(File.pathSeparatorChar);
+  }
+  classpath.append(FileUtil.toSystemDependentName(PathManager.getHomePath() + "/plugins/flex/lib/flex-compiler.jar"));
+  if (!(flexSdk.getSdkType() instanceof FlexmojosSdkType)) {
+    classpath.append(File.pathSeparator).append(FileUtil.toSystemDependentName(flexSdk.getHomePath() + "/lib/flex-compiler-oem.jar"));
+  }
+  final List<String> commandLine=FlexSdkUtils.getCommandLineForSdkTool(myProject,flexSdk,classpath.toString(),"com.intellij.flex.compiler.FlexCompiler",null);
+  commandLine.add(String.valueOf(port));
+  final ProcessBuilder processBuilder=new ProcessBuilder(commandLine);
+  processBuilder.redirectErrorStream(true);
+  processBuilder.directory(new File(FlexUtils.getFlexCompilerWorkDirPath(myProject,flexSdk)));
+  final String plainCommand=StringUtil.join(processBuilder.command(),new Function<String,String>(){
+    public String fun(    final String s){
+      return s.contains(" ") ? "\"" + s + "\"" : s;
+    }
+  }
+," ");
+  context.addMessage(CompilerMessageCategory.INFORMATION,"Starting Flex compiler:\n" + plainCommand,null,-1,-1);
+  final Process process=processBuilder.start();
+  readInputStreamUntilConnected(process,context);
+}

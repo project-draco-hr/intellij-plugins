@@ -1,0 +1,27 @@
+{
+  waitTilHalted();
+  try {
+    Object result=null;
+    String s=restOfLine();
+    ValueExp expr=parseExpression(s);
+    if (expr.hasSideEffectsOtherThanGetters())     throw new IllegalAccessException();
+    result=evalExpression(expr);
+    StringBuffer sb=new StringBuffer();
+    if (result instanceof Variable) {
+      Variable v=(Variable)result;
+      if (v.isAttributeSet(VariableAttribute.IS_LOCAL))       s=getLocalizationManager().getLocalizedTextString("localVariable");
+ else       if (v.isAttributeSet(VariableAttribute.IS_ARGUMENT))       s=getLocalizationManager().getLocalizedTextString("functionArgumentVariable");
+ else       if ((v instanceof VariableFacade) && (s=((VariableFacade)v).getPath()) != null && s.length() > 0)       ;
+ else       s="_global";
+      sb.append(s);
+    }
+ else     sb.append(getLocalizationManager().getLocalizedTextString("mustBeOnlyOneVariable"));
+    out(sb.toString());
+  }
+ catch (  IllegalAccessException iae) {
+    err(getLocalizationManager().getLocalizedTextString("noSideEffectsAllowed"));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

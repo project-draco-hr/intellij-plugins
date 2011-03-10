@@ -1,0 +1,29 @@
+{
+  final List<StructureViewTreeElement> result=new ArrayList<StructureViewTreeElement>();
+  final ResolveProcessor processor=new ResolveProcessor(null){
+    @Override public boolean execute(    final PsiElement element,    final ResolveState state){
+      result.add(new JSStructureViewElement(element));
+      return true;
+    }
+  }
+;
+  processor.setLocalResolve(true);
+  myElement.processDeclarations(processor,ResolveState.initial(),myElement,myElement);
+  myFile.acceptChildren(new XmlRecursiveElementVisitor(){
+    @Override public void visitXmlTag(    final XmlTag tag){
+      if ("style".equalsIgnoreCase(tag.getLocalName())) {
+        for (        StructureViewExtension ext : StructureViewFactoryEx.getInstanceEx(myFile.getProject()).getAllExtensions(XmlTag.class)) {
+          final StructureViewTreeElement[] structureViewTreeElements=ext.getChildren(tag);
+          if (structureViewTreeElements != null && structureViewTreeElements.length > 0) {
+            ContainerUtil.addAll(result,structureViewTreeElements);
+          }
+        }
+      }
+ else {
+        super.visitXmlTag(tag);
+      }
+    }
+  }
+);
+  return result;
+}

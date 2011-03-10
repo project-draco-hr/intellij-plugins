@@ -1,0 +1,29 @@
+{
+  int lastEnd=insertPosition;
+  if (markers.isEmpty()) {
+    out.write(buffer,insertPosition,count - insertPosition);
+  }
+ else {
+    for (    Marker marker : markers) {
+      if (marker.getEnd() < lastEnd) {
+        continue;
+      }
+      int length=marker.getStart() - lastEnd;
+      if (length > 0) {
+        out.write(buffer,lastEnd,length);
+      }
+      ByteRange dataRange=marker.getDataRange();
+      if (dataRange != null) {
+        writeDataRange(dataRange);
+      }
+      lastEnd=marker.getEnd();
+    }
+    markers.clear();
+    int tailLength=count - lastEnd;
+    if (tailLength > 0) {
+      out.write(buffer,lastEnd,tailLength);
+    }
+  }
+  lastBlockBegin=0;
+  count=SERVICE_DATA_SIZE;
+}

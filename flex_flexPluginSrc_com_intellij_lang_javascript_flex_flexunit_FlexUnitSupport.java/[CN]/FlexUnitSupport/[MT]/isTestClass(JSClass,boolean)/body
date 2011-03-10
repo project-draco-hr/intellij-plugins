@@ -1,0 +1,24 @@
+{
+  if (clazz instanceof XmlBackedJSClassImpl)   return false;
+  if (clazz.getAttributeList() == null)   return false;
+  if (clazz.getAttributeList().getAccessType() != JSAttributeList.AccessType.PUBLIC)   return false;
+  if (allowSuite && isSuite(clazz))   return true;
+  final boolean flexUnit1Subclass=isFlexUnit1Subclass(clazz);
+  if (!flexUnit1Subclass && !flexUnit4Present)   return false;
+  if (getCustomRunner(clazz) == null) {
+    for (    JSFunction method : clazz.getFunctions()) {
+      if (method.getKind() == JSFunction.FunctionKind.CONSTRUCTOR && ValidateTypesUtil.hasRequiredParameters(method))       return false;
+    }
+  }
+  if (!flexUnit1Subclass && !isFlunitSubclass(clazz)) {
+    boolean hasTests=false;
+    for (    JSFunction method : clazz.getFunctions()) {
+      if (isTestMethod(method)) {
+        hasTests=true;
+        break;
+      }
+    }
+    if (!hasTests)     return false;
+  }
+  return true;
+}

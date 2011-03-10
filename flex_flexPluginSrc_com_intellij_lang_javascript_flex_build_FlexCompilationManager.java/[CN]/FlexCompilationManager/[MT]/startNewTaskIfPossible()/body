@@ -1,0 +1,33 @@
+{
+  FlexCompilationTask taskToStart=null;
+  if (!myNotStartedTasks.isEmpty() && myInProgressTasks.size() < myMaxParallelCompilations) {
+    boolean allTasksHaveDependenciesOnlyInNotStarted=true;
+    for (    FlexCompilationTask task : myNotStartedTasks) {
+      if (hasDependenciesIn(task,myInProgressTasks)) {
+        allTasksHaveDependenciesOnlyInNotStarted=false;
+        continue;
+      }
+      if (hasDependenciesIn(task,myNotStartedTasks)) {
+        continue;
+      }
+      taskToStart=task;
+      break;
+    }
+    if (taskToStart == null && allTasksHaveDependenciesOnlyInNotStarted) {
+      taskToStart=myNotStartedTasks.iterator().next();
+    }
+    if (taskToStart != null) {
+      myNotStartedTasks.remove(taskToStart);
+      if (taskToStart.getConfig().getType() == FlexBuildConfiguration.Type.Default && isMake() && myModuleToRelatedFilesCache.isNothingChangedSincePreviousCompilation(taskToStart.getModule())) {
+        addMessage(taskToStart,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped.because.nothing.changed"),null,-1,-1);
+        taskToStart.cancel();
+        myFinishedTasks.add(taskToStart);
+      }
+ else {
+        taskToStart.start(this);
+        myInProgressTasks.add(taskToStart);
+      }
+      startNewTaskIfPossible();
+    }
+  }
+}

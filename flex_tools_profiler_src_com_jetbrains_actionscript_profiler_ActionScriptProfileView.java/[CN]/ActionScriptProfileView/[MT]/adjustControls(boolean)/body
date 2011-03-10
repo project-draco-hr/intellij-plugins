@@ -1,0 +1,41 @@
+{
+  switchToState(State.SIMPLE_WORKING);
+  if (myProfilingManager != null) {
+    ProfilingManager.Callback callback=new ProfilingManager.Callback(){
+      public void finished(      String str,      IOException ex){
+        if (str != null) {
+          SwingUtilities.invokeLater(new Runnable(){
+            public void run(){
+              if (b) {
+                myStatus.setText("Stopped sampling");
+                switchToState(State.NONE);
+                resetDependents(true);
+              }
+ else {
+                myStatus.setText("Started sampling");
+                switchToState(State.CPU_PROFILING);
+                resetDependents(false);
+              }
+              if (!b) {
+                resetCpuUsageData();
+                return;
+              }
+              dumpCurrentData(data);
+            }
+          }
+);
+        }
+        reportProblem(ex);
+      }
+    }
+;
+    if (b) {
+      myStatus.setText("About to stop profiling");
+      myProfilingManager.stopCpuProfiling(callback);
+    }
+ else {
+      myStatus.setText("About to start profiling");
+      myProfilingManager.startCpuProfiling(callback);
+    }
+  }
+}

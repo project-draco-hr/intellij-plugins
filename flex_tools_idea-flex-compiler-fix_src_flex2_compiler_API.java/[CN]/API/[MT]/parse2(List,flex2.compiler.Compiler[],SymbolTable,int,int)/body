@@ -1,0 +1,24 @@
+{
+  boolean result=true;
+  for (int i=start; i < end; i++) {
+    Source source=(Source)sources.get(i);
+    CompilationUnit u=source.getCompilationUnit();
+    if ((u.getWorkflow() & parse2) != 0) {
+      continue;
+    }
+    if (!parse2(u,compilers,symbolTable)) {
+      result=false;
+      u.getSource().disconnectLogger();
+    }
+    calculateProgress(sources,symbolTable);
+    if (tooManyErrors()) {
+      ThreadLocalToolkit.log(new TooManyErrors());
+      break;
+    }
+    if (forcedToStop()) {
+      ThreadLocalToolkit.log(new ForcedToStop());
+      break;
+    }
+  }
+  return result;
+}

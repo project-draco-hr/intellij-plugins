@@ -1,0 +1,22 @@
+{
+  final Collection<FlexCompilationTask> tasksToCancel=new ArrayList<FlexCompilationTask>();
+  final Iterator<Module> dependentModulesIterator=myModuleGraph.getOut(failedTask.getModule());
+  while (dependentModulesIterator.hasNext()) {
+    final Module dependentModule=dependentModulesIterator.next();
+    for (    FlexCompilationTask task : myNotStartedTasks) {
+      if (dependentModule.equals(task.getModule())) {
+        tasksToCancel.add(task);
+      }
+    }
+  }
+  if (!tasksToCancel.isEmpty()) {
+    for (    FlexCompilationTask taskToCancel : tasksToCancel) {
+      taskToCancel.cancel();
+      if (myNotStartedTasks.remove(taskToCancel)) {
+        myFinishedTasks.add(taskToCancel);
+        addMessage(taskToCancel,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped"),null,-1,-1);
+        cancelNotStartedDependentTasks(taskToCancel);
+      }
+    }
+  }
+}

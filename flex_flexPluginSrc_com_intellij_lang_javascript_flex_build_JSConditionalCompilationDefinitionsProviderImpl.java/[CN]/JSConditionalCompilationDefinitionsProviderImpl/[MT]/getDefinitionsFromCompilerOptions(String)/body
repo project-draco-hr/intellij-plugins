@@ -1,0 +1,25 @@
+{
+  if (StringUtil.isEmpty(compilerOptions)) {
+    return Collections.emptyList();
+  }
+  final Collection<ConditionalCompilationDefinition> result=new ArrayList<ConditionalCompilationDefinition>();
+  for (StringTokenizer stringTokenizer=new CommandLineTokenizer(compilerOptions); stringTokenizer.hasMoreTokens(); ) {
+    final String token=stringTokenizer.nextToken();
+    for (    String option : CONDITIONAL_COMPILATION_DEFINITION_OPTION_ALIASES) {
+      if (token.startsWith("-" + option + "=") || token.startsWith("-" + option + "+=")) {
+        final String optionValue=token.substring(token.indexOf("=") + 1);
+        final int commaIndex=optionValue.indexOf(',');
+        if (commaIndex > 0) {
+          final String name=optionValue.substring(0,commaIndex);
+          if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
+            final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
+            definition.NAME=name;
+            definition.VALUE=optionValue.substring(commaIndex + 1);
+            result.add(definition);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}

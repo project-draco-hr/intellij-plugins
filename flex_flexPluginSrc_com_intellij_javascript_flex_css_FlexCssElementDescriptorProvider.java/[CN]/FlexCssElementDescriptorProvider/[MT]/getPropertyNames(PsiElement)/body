@@ -1,0 +1,18 @@
+{
+  List<String> simpleSelectors=findSimpleSelectorsAbove(context);
+  if (simpleSelectors.size() > 0 && !containsGlobalSelectors(simpleSelectors)) {
+    Module module=ModuleUtil.findModuleForPsiElement(context);
+    if (module != null) {
+      return getPropertyNamesDynamically(simpleSelectors,module);
+    }
+  }
+  FileBasedIndex index=FileBasedIndex.getInstance();
+  Collection<String> keys=index.getAllKeys(FlexStyleIndex.INDEX_ID,context.getProject());
+  List<String> result=new ArrayList<String>();
+  for (  String key : keys) {
+    if (!isInClassicForm(key)) {
+      result.add(key);
+    }
+  }
+  return ArrayUtil.toStringArray(result);
+}

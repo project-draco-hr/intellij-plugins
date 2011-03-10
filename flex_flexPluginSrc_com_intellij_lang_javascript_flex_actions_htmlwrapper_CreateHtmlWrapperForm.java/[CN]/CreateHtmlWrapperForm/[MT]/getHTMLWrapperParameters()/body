@@ -1,0 +1,60 @@
+{
+  if (!myHtmlWrapperTypeComboBox.isEnabled()) {
+    return null;
+  }
+  final VirtualFile htmlWrapperRootDir=(VirtualFile)myHtmlWrapperTypeComboBox.getSelectedItem();
+  if (htmlWrapperRootDir == null) {
+    myCurrentErrorMessage="Select HTML wrapper type";
+    return null;
+  }
+  final String htmlWrapperFileName=myHtmlWrapperFileNameTextField.getText();
+  if (htmlWrapperFileName.length() == 0) {
+    myCurrentErrorMessage="Specify HTML wrapper file name";
+    return null;
+  }
+  if (!VfsUtil.isValidName(htmlWrapperFileName)) {
+    myCurrentErrorMessage="Invalid HTML wrapper file name";
+    return null;
+  }
+  final String htmlWrapperLocationPath=myHtmlWrapperFileLocationTextWithBrowse.getText();
+  final VirtualFile htmlWrapperFileLocation=LocalFileSystem.getInstance().refreshAndFindFileByPath(htmlWrapperLocationPath);
+  if (htmlWrapperLocationPath.trim().length() == 0 || htmlWrapperFileLocation == null) {
+    myCurrentErrorMessage="Choose existing directory for HTML wrapper";
+    return null;
+  }
+  final String htmlPageTitle=myHTMLPageTitleTextField.getText();
+  final String flexAppName=myFlexApplicationNameTextField.getText().trim();
+  if (flexAppName.length() == 0) {
+    myCurrentErrorMessage="Specify Flex application name";
+    return null;
+  }
+  final String swfFileName=mySWFFileNameTextField.getText();
+  if (swfFileName.length() == 0) {
+    myCurrentErrorMessage="Specify SWF file to wrap";
+    return null;
+  }
+  if (swfFileName.length() < 5 || !swfFileName.endsWith(".swf")) {
+    myCurrentErrorMessage="SWF file must have '.swf' extension";
+    return null;
+  }
+  final String swfFileNameWithoutExtension=swfFileName.substring(0,swfFileName.lastIndexOf('.'));
+  final String width=myWidthTextField.getText();
+  final String height=myHeightTextField.getText();
+  final String bgColor=myBgColorTextField.getText();
+  int playerVersionMajor=0;
+  int playerVersionMinor=0;
+  int playerVersionRevision=0;
+  if (myFlashPlayerVersionForm.isEnabled()) {
+    try {
+      playerVersionMajor=Integer.parseInt(myFlashPlayerVersionForm.getPlayerVersionMajor());
+      playerVersionMinor=Integer.parseInt(myFlashPlayerVersionForm.getPlayerVersionMinor());
+      playerVersionRevision=Integer.parseInt(myFlashPlayerVersionForm.getPlayerVersionRevision());
+    }
+ catch (    NumberFormatException e) {
+      myCurrentErrorMessage="Flash player version is invalid";
+      return null;
+    }
+  }
+  myCurrentErrorMessage=null;
+  return new HTMLWrapperParameters(htmlWrapperRootDir,htmlWrapperFileName,htmlWrapperFileLocation,htmlPageTitle,flexAppName,swfFileNameWithoutExtension,width,height,bgColor,playerVersionMajor,playerVersionMinor,playerVersionRevision);
+}

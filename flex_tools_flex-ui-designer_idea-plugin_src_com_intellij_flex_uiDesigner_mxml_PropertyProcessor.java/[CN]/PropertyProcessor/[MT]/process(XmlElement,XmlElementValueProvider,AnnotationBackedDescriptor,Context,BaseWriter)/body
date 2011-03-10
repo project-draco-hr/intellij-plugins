@@ -1,0 +1,33 @@
+{
+  if (descriptor.isPredefined()) {
+    LOG.error("unknown language element " + descriptor.getName());
+    return null;
+  }
+  name=descriptor.getName();
+  isStyle=descriptor.isStyle();
+  final @Nullable String type=descriptor.getType();
+  final String typeName=descriptor.getTypeName();
+  if (type == null) {
+    if (typeName.equals(FlexAnnotationNames.EFFECT)) {
+      isStyle=true;
+    }
+ else {
+      if (!typeName.equals(FlexAnnotationNames.BINDABLE)) {
+        LOG.error("unsupported element: " + element.getText());
+      }
+      return null;
+    }
+  }
+ else   if (typeName.equals(FlexAnnotationNames.EVENT)) {
+    return null;
+  }
+  if (injectedASWriter.processProperty(valueProvider,name,type,isStyle,context)) {
+    return null;
+  }
+  if (descriptor.isAllowsPercentage()) {
+    return processPercentable(valueProvider,descriptor);
+  }
+ else {
+    return new ValueWriterImpl(valueProvider,descriptor,writer);
+  }
+}

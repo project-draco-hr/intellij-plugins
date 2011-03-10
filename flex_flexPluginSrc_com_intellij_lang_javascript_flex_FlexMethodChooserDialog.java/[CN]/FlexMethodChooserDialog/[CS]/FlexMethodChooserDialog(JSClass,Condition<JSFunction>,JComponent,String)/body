@@ -1,0 +1,38 @@
+{
+  super(parent,false);
+  createList(clazz.getFunctions(),filter);
+  myWholePanel.add(ScrollPaneFactory.createScrollPane(myList));
+  myList.setCellRenderer(new ColoredListCellRenderer(){
+    protected void customizeCellRenderer(    final JList list,    final Object value,    final int index,    final boolean selected,    final boolean hasFocus){
+      final JSFunction method=(JSFunction)value;
+      append(method.getName());
+    }
+  }
+);
+  myList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+  myList.addMouseListener(new MouseAdapter(){
+    @Override public void mouseClicked(    MouseEvent e){
+      if (e.getClickCount() == 2) {
+        FlexMethodChooserDialog.this.close(OK_EXIT_CODE);
+        e.consume();
+      }
+    }
+  }
+);
+  int index=getIndexToSelect(clazz,initialSelection);
+  if (index == -1) {
+    myList.clearSelection();
+  }
+ else {
+    ListScrollingUtil.selectItem(myList,index);
+  }
+  setTitle(ExecutionBundle.message("choose.test.method.dialog.title"));
+  init();
+  myList.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+    public void valueChanged(    ListSelectionEvent e){
+      updateOkAction();
+    }
+  }
+);
+  updateOkAction();
+}

@@ -1,0 +1,25 @@
+{
+  try {
+    myConfigFiles=createConfigFiles();
+    if (!compilationManager.isMake()) {
+      final VirtualFile configFile=myConfigFiles.get(myConfigFiles.size() - 1);
+      final String outputFilePath=FlexUtils.findXMLElement(configFile.getInputStream(),"<flex-config><output>");
+      FlexCompilationUtils.deleteCacheForFile(outputFilePath);
+    }
+    final List<String> compilerCommand=Collections.singletonList(myConfig.OUTPUT_TYPE.equals(FlexBuildConfiguration.APPLICATION) ? "mxmlc" : "compc");
+    final List<String> command=FlexCompilationUtils.buildCommand(compilerCommand,myConfigFiles,myModule,myConfig);
+    final String plainCommand=StringUtil.join(command,new Function<String,String>(){
+      public String fun(      final String s){
+        return s.indexOf(' ') >= 0 && !(s.startsWith("\"") && s.endsWith("\"")) ? '\"' + s + '\"' : s;
+      }
+    }
+," ");
+    compilationManager.addMessage(this,CompilerMessageCategory.INFORMATION,plainCommand,null,-1,-1);
+    myListener=createListener(compilationManager);
+    myBuiltInFlexCompilerHandler.sendCompilationCommand(plainCommand,myListener);
+  }
+ catch (  IOException e) {
+    compilationManager.addMessage(this,CompilerMessageCategory.ERROR,e.getMessage(),null,-1,-1);
+    myCompilationFailed=true;
+  }
+}

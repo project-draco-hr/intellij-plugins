@@ -1,0 +1,23 @@
+{
+  if (!visited.add(c))   return false;
+  JSAttributeNameValuePair result=null;
+  String qName=c.getQualifiedName();
+  if (myClassNames.contains(qName) || checkIncludes(c)) {
+    MyMetaDataProcessor processor=new MyMetaDataProcessor();
+    FlexUtils.processMetaAttributesForClass(c,processor);
+    result=processor.myResult;
+  }
+  PsiElement navElement=result != null ? result.getNavigationElement() : null;
+  if (result == null || navElement == null) {
+    boolean found=false;
+    for (    JSClass superClass : c.getSupers()) {
+      found=found || findStyleAttributesInClassOrSuper(superClass,visited,navElement2pair);
+    }
+    if (found)     return true;
+  }
+  if (result != null) {
+    navElement2pair.put(navElement != null ? navElement : result,new PairInfo(result,qName));
+    return true;
+  }
+  return false;
+}

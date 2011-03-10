@@ -1,0 +1,41 @@
+{
+  if (config.DO_BUILD != myUseIDEBuilderCheckBox.isSelected())   return true;
+  if (!config.OUTPUT_TYPE.equals(getOutputType()))   return true;
+  if (config.USE_DEFAULT_SDK_CONFIG_FILE != myUseDefaultSdkConfigFileCheckBox.isSelected())   return true;
+  if (config.USE_CUSTOM_CONFIG_FILE != myUseCustomConfigFileCheckBox.isSelected())   return true;
+  if (!config.CUSTOM_CONFIG_FILE.equals(FileUtil.toSystemIndependentName(myCustomConfigFileTextField.getText().trim())))   return true;
+  if (config.USE_CUSTOM_CONFIG_FILE_FOR_TESTS != myCustomConfigFileForTestsCheckBox.isSelected())   return true;
+  if (!config.CUSTOM_CONFIG_FILE_FOR_TESTS.equals(FileUtil.toSystemIndependentName(myCustomConfigFileForTestsTextWithBrowse.getText().trim()))) {
+    return true;
+  }
+  if (!config.MAIN_CLASS.equals(myMainClassTextWithBrowse.getText().trim()))   return true;
+  if (!config.OUTPUT_FILE_NAME.equals(myOutputFileNameTextField.getText().trim()))   return true;
+  if (myFlexFacet == null) {
+    final String moduleSpecificOutputDir=myCompilerExtension.getCompilerOutputPointer() == null ? "" : VfsUtil.urlToPath(myCompilerExtension.getCompilerOutputPointer().getUrl());
+    final String moduleSpecificTestOutputDir=myCompilerExtension.getCompilerOutputForTestsPointer() == null ? "" : VfsUtil.urlToPath(myCompilerExtension.getCompilerOutputForTestsPointer().getUrl());
+    if (myCompilerExtension.isCompilerOutputPathInherited() != myInheritProjectCompileOutputRadioButton.isSelected())     return true;
+    if (!myCompilerExtension.isCompilerOutputPathInherited() && (!moduleSpecificOutputDir.equals(FileUtil.toSystemIndependentName(myModuleSpecificOutputPathTextField.getText().trim())) || !moduleSpecificTestOutputDir.equals(FileUtil.toSystemIndependentName(myModuleSpecificOutputPathForTestsTextField.getText().trim())) || myCompilerExtension.isExcludeOutput() != myExcludeOutputPathsCheckBox.isSelected())) {
+      return true;
+    }
+  }
+ else {
+    if (config.USE_FACET_COMPILE_OUTPUT_PATH != myUseFacetCompileOutputPathCheckBox.isSelected())     return true;
+    if (config.USE_FACET_COMPILE_OUTPUT_PATH && (!config.FACET_COMPILE_OUTPUT_PATH.equals(FileUtil.toSystemIndependentName(myFacetSpecificOutputPathTextField.getText().trim())) || !config.FACET_COMPILE_OUTPUT_PATH_FOR_TESTS.equals(FileUtil.toSystemIndependentName(myFacetSpecificOutputPathForTestsTextField.getText().trim())))) {
+      return true;
+    }
+  }
+  if (config.INCLUDE_RESOURCE_FILES_IN_SWC != myIncludeResourceFilesInSwcCheckBox.isSelected())   return true;
+  if (config.STATIC_LINK_RUNTIME_SHARED_LIBRARIES == myUseFrameworkAsRsl.isSelected())   return true;
+  if (!TargetPlayerUtils.isEqual(config.TARGET_PLAYER_VERSION,myTargetPlayerVersionForm.getPlayerVersion()))   return true;
+  if (config.USE_LOCALE_SETTINGS != myLocaleCheckBox.isSelected())   return true;
+  if (!config.LOCALE.equals(myLocaleTextFieldWithBrowse.getText()))   return true;
+  if (!config.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST.equals(myNamespaceAndManifestFileInfoList))   return true;
+  if (!config.CSS_FILES_LIST.equals(myCssFilesList))   return true;
+  if (!config.CONDITIONAL_COMPILATION_DEFINITION_LIST.equals(myConditionalCompilationDefinitionList))   return true;
+  if (!config.PATH_TO_SERVICES_CONFIG_XML.equals(FileUtil.toSystemIndependentName(myServerTechnologyForm.getPathToServicesConfigXml()))) {
+    return true;
+  }
+  if (!config.CONTEXT_ROOT.equals(myServerTechnologyForm.getContextRoot()))   return true;
+  if (!config.ADDITIONAL_COMPILER_OPTIONS.equals(myAdditionalCompilerOptionsTextField.getText()))   return true;
+  return false;
+}

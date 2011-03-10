@@ -1,0 +1,51 @@
+{
+  StringBuilder builder=new StringBuilder(s.length());
+  StringTokenizer tokenizer=new StringTokenizer(s,"\r\n");
+  while (tokenizer.hasMoreTokens()) {
+    String next=tokenizer.nextToken();
+    if (next.indexOf("type 'continue'") == -1) {
+      builder.append(next + "\n");
+    }
+  }
+  s=builder.toString();
+  myConsoleView.print(s,ConsoleViewContentType.SYSTEM_OUTPUT);
+  if (s.indexOf("Another Flash debugger is probably running") != -1) {
+    reportProblem(s);
+    getProcessHandler().detachProcess();
+    return CommandOutputProcessingMode.DONE;
+  }
+  if (s.indexOf("Failed to connect") != -1) {
+    reportProblem(s);
+    handleProbablyUnexpectedStop(s);
+    return CommandOutputProcessingMode.DONE;
+  }
+  if (s.indexOf(WAITING_PLAYER_MARKER) != -1) {
+    fdbWaitingForPlayerStateReached=true;
+    getSession().rebuildViews();
+    if (connectToRunningFlashPlayerMode) {
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+          final ToolWindowManager manager=ToolWindowManager.getInstance(getSession().getProject());
+          manager.notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,FlexBundle.message("flash.player.right.click.debugger"));
+        }
+      }
+);
+    }
+    try {
+      launchDebuggedApplication();
+    }
+ catch (    IOException e) {
+      reportProblem(s);
+      handleProbablyUnexpectedStop(s);
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+ else {
+    startupDone=(s.indexOf("Player connected; session starting.") != -1);
+    if (startupDone) {
+      getSession().rebuildViews();
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+  return CommandOutputProcessingMode.PROCEEDING;
+}

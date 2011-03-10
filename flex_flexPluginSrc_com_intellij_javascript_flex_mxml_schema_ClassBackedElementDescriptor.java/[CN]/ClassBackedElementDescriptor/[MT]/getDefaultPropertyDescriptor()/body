@@ -1,0 +1,22 @@
+{
+  if (!defaultPropertyDescriptorInitialized) {
+    PsiElement element=predefined ? null : JSResolveUtil.unwrapProxy(getDeclaration());
+    if (element instanceof JSClass) {
+      JSClass jsClass=(JSClass)element;
+      do {
+        AnnotationBackedDescriptor descriptor=getDefaultPropertyDescriptor(jsClass);
+        if (descriptor == null) {
+          final JSClass[] superClasses=jsClass.getSuperClasses();
+          jsClass=superClasses.length > 0 ? superClasses[0] : null;
+        }
+ else {
+          defaultPropertyDescriptor=descriptor;
+          break;
+        }
+      }
+ while (jsClass != null);
+    }
+    defaultPropertyDescriptorInitialized=true;
+  }
+  return defaultPropertyDescriptor;
+}

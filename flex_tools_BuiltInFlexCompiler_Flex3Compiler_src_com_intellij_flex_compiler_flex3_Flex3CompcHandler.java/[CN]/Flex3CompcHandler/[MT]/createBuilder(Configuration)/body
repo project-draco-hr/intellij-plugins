@@ -1,0 +1,36 @@
+{
+  final Library library=new Library();
+  Flex3MxmlcHandler.setupConfiguration(library,configuration);
+  final String outputFilePath=((CompcConfiguration)configuration).getOutput();
+  if (outputFilePath == null) {
+    throw new ConfigurationException("Output file not set");
+  }
+  final File outputFile=new File(outputFilePath);
+  FlexCompilerUtil.ensureFileCanBeCreated(outputFile);
+  library.setOutput(outputFile);
+  final CompcConfiguration compcConfiguration=(CompcConfiguration)configuration;
+  for (  final Object includedClass : compcConfiguration.getClasses()) {
+    library.addComponent((String)includedClass);
+  }
+  final List fileList=flex2.compiler.API.getVirtualFileList(compcConfiguration.getIncludeSources(),new HashSet<String>(Arrays.asList(flex2.tools.API.getSourcePathMimeTypes())));
+  for (  final Object includedSource : fileList) {
+    library.addComponent(new File(((VirtualFile)includedSource).getName()));
+  }
+  final Map stylesheetNameToPathMap=compcConfiguration.getStylesheets();
+  for (  final Object stylesheetNameToPath : stylesheetNameToPathMap.entrySet()) {
+    final Map.Entry stylesheetNameToPathEntry=(Map.Entry)stylesheetNameToPath;
+    library.addStyleSheet((String)stylesheetNameToPathEntry.getKey(),new File(((VirtualFile)stylesheetNameToPathEntry.getValue()).getName()));
+  }
+  for (  final Object includedResourceBundle : compcConfiguration.getIncludeResourceBundles()) {
+    library.addResourceBundle((String)includedResourceBundle);
+  }
+  for (  final Object includedNamespace : compcConfiguration.getNamespaces()) {
+    library.addComponent(new URI((String)includedNamespace));
+  }
+  final Map includedFileNameToPathMap=compcConfiguration.getFiles();
+  for (  final Object includedFileNameToPath : includedFileNameToPathMap.entrySet()) {
+    Map.Entry includedFileNameToPathEntry=(Map.Entry)includedFileNameToPath;
+    library.addArchiveFile((String)includedFileNameToPathEntry.getKey(),new File(((VirtualFile)includedFileNameToPathEntry.getValue()).getName()));
+  }
+  return library;
+}

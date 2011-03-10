@@ -1,0 +1,30 @@
+{
+  if (dataRange.getOwnLength() != -1) {
+    return dataRange.getOwnLength();
+  }
+  int childIndex=dataRange.getIndex() + 1;
+  int start=dataRange.getStart();
+  final int ownEnd=dataRange.getEnd();
+  int ownLength=0;
+  while (true) {
+    if (childIndex == markers.size()) {
+      ownLength+=ownEnd - start;
+      break;
+    }
+    Marker possibleChild=markers.get(childIndex++);
+    int childEnd=possibleChild.getEnd();
+    if (childEnd < ownEnd) {
+      int length=possibleChild.getStart() - start;
+      if (length > -1) {
+        ownLength+=length;
+        start=childEnd;
+      }
+    }
+ else {
+      ownLength+=ownEnd - start;
+      break;
+    }
+  }
+  dataRange.setOwnLength(ownLength);
+  return ownLength;
+}

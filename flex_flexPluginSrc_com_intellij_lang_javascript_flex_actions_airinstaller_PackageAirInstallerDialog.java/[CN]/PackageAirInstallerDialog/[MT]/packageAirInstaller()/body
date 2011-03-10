@@ -1,0 +1,11 @@
+{
+  final AirInstallerParameters parameters=getAirInstallerParameters();
+  saveAsDefaultParameters(parameters);
+  final boolean ok=AdtTask.runWithProgress(myProject,createAirInstallerTask(myProject,parameters),"Packaging AIR installer",TITLE);
+  if (ok) {
+    final ToolWindowManager manager=ToolWindowManager.getInstance(myProject);
+    final String message=parameters.DO_NOT_SIGN ? MessageFormat.format("Unsigned AIR package created: {0}",parameters.INSTALLER_FILE_NAME) : MessageFormat.format("AIR installation file created: {0}",parameters.INSTALLER_FILE_NAME);
+    manager.notifyByBalloon(ToolWindowId.PROJECT_VIEW,MessageType.INFO,message);
+  }
+  return ok;
+}

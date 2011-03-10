@@ -1,0 +1,15 @@
+{
+  InputStreamReader reader=new InputStreamReader(inputStream);
+  BufferExposingByteArrayOutputStream buffer=new BufferExposingByteArrayOutputStream(100);
+  while (!isStopped()) {
+    int i=reader.read();
+    if (i == -1)     return;
+    if (i == 0)     break;
+    buffer.write(i);
+  }
+  final String request=new String(buffer.getInternalBuffer(),0,buffer.size());
+  LOG.debug("Policy file request: " + request);
+  if (POLICY_FILE_REQUEST.equals(request)) {
+    write(myContent);
+  }
+}

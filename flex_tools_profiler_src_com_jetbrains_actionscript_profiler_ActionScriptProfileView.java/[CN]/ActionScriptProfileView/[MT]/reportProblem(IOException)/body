@@ -1,0 +1,24 @@
+{
+  if (ex != null) {
+    if (!(ex instanceof EOFException) && !myEOFReached)     Logging.log(ex);
+    Runnable runnable=new Runnable(){
+      public void run(){
+        if (myEOFReached)         return;
+        boolean agentVersionMismatch=ex instanceof AgentVersionMismatchProblem;
+        if (myStopCpuButton.isEnabled() && !agentVersionMismatch) {
+          resetDependents(true);
+          dumpCurrentData(data);
+        }
+        switchToState(State.SIMPLE_WORKING);
+        if (ex instanceof EOFException) {
+          myEOFReached=true;
+          myStatus.setText("Profiler agent disconnected" + (agentVersionMismatch ? " , agent version is different" : ""));
+          return;
+        }
+        Notifications.Bus.notify(new Notification("ASProfiler","IOProblem",ex.getLocalizedMessage(),NotificationType.ERROR));
+      }
+    }
+;
+    invokeOnEdt(runnable);
+  }
+}

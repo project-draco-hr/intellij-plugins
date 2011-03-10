@@ -1,0 +1,22 @@
+{
+  if (descriptor.isRichTextContent()) {
+    writeString(valueProvider,descriptor);
+    return;
+  }
+  final CharSequence charSequence=writeIfEmpty(valueProvider);
+  if (charSequence == null) {
+    return;
+  }
+  final String value=charSequence.toString();
+  try {
+    writer.getOut().writeAmfInt(Integer.parseInt(value));
+  }
+ catch (  NumberFormatException e) {
+    try {
+      writer.getOut().writeAmfDouble(Double.parseDouble(value));
+    }
+ catch (    NumberFormatException ignored) {
+      writer.writeString(charSequence);
+    }
+  }
+}

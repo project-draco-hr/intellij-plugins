@@ -1,0 +1,20 @@
+{
+  if (!visited.add(jsClass)) {
+    return null;
+  }
+  for (  final JSClass superClass : jsClass.getSuperClasses()) {
+    if (superClass instanceof XmlBackedJSClassImpl) {
+      final PsiFile psiFile=superClass.getContainingFile();
+      if (psiFile instanceof XmlFile) {
+        final XmlAttributeValue result=findDeclarationByIdAttributeValue(psiFile,visited);
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+ else {
+      return findDeclarationByIdAttributeValueInSuperClass(superClass,visited);
+    }
+  }
+  return null;
+}

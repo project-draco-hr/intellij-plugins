@@ -1,0 +1,23 @@
+{
+  if (myQualifiedFunctionName == null) {
+    final XSourcePosition position=getSourcePosition();
+    if (position != null) {
+      final FlexDebugProcess flexDebugProcess=getDebugProcess();
+      final Project project=flexDebugProcess.getSession().getProject();
+      final VirtualFile file=position.getFile();
+      final JSFunction function=ApplicationManager.getApplication().runReadAction(new NullableComputable<JSFunction>(){
+        public JSFunction compute(){
+          final PsiElement element=JSDebuggerSupportUtils.getContextElement(file,position.getOffset(),project);
+          return PsiTreeUtil.getParentOfType(element,JSFunction.class);
+        }
+      }
+);
+      String name;
+      myQualifiedFunctionName=file.getPath() + (function != null ? "#" + ((name=function.getName()) != null ? name : function.getTextOffset()) : "");
+    }
+ else {
+      myQualifiedFunctionName="unknown";
+    }
+  }
+  return myQualifiedFunctionName;
+}

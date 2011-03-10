@@ -1,0 +1,17 @@
+{
+  final XmlTag parentTag=tag.getParentTag();
+  if (parentTag == null || !(parentTag.getParent() instanceof XmlDocument) || tag != parentTag.getSubTags()[0]) {
+    addErrorMessage(tag,JSBundle.message("javascript.validation.tag.must.be.first.child.of.root.tag",tag.getName()),host);
+    return;
+  }
+  for (  XmlAttribute attribute : tag.getAttributes()) {
+    addErrorMessage(attribute,XmlErrorMessages.message("attribute.is.not.allowed.here",attribute.getName()),host);
+  }
+  for (  XmlTag subTag : tag.getSubTags()) {
+    if (!isFxDefinitionTag(subTag)) {
+      final String prefix=tag.getNamespacePrefix();
+      final String fxDefinitionTag=StringUtil.isEmpty(prefix) ? CodeContext.DEFINITION_TAG_NAME : (prefix + ":" + CodeContext.DEFINITION_TAG_NAME);
+      addErrorMessage(subTag,JSBundle.message("javascript.validation.only.this.tag.is.allowed.here",fxDefinitionTag),host);
+    }
+  }
+}

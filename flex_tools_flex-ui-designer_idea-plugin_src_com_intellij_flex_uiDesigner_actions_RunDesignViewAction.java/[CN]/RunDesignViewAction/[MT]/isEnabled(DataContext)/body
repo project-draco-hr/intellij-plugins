@@ -1,0 +1,25 @@
+{
+  final Project project=LangDataKeys.PROJECT.getData(dataContext);
+  if (project == null) {
+    return false;
+  }
+  Editor editor=LangDataKeys.EDITOR.getData(dataContext);
+  if (editor == null) {
+    editor=FileEditorManager.getInstance(project).getSelectedTextEditor();
+    if (editor == null) {
+      return false;
+    }
+  }
+  final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+  if (!(psiFile instanceof XmlFile) || !psiFile.isValid()) {
+    return false;
+  }
+ else {
+    final VirtualFile file=psiFile.getVirtualFile();
+    if (file == null || !file.getName().endsWith(JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT) || !ProjectRootManager.getInstance(project).getFileIndex().isInContent(file)) {
+      return false;
+    }
+    JSClass jsClass=(JSClass)JSResolveUtil.unwrapProxy(XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)psiFile));
+    return jsClass != null && JSResolveUtil.isAssignableType("mx.core.IUIComponent",jsClass.getQualifiedName(),jsClass);
+  }
+}

@@ -1,0 +1,25 @@
+{
+  Object result=null;
+  try {
+    result=m_exprCache.evaluate(expr);
+  }
+ catch (  NoSuchVariableException nsv) {
+    if (displayExceptions) {
+      Map args=new HashMap();
+      args.put("variable",nsv.getMessage());
+      err(getLocalizationManager().getLocalizedTextString("variableUnknown",args));
+    }
+  }
+catch (  NumberFormatException nfe) {
+    if (displayExceptions) {
+      Map args=new HashMap();
+      args.put("value",nfe.getMessage());
+      err(getLocalizationManager().getLocalizedTextString("couldNotConvertToNumber",args));
+    }
+  }
+catch (  PlayerFaultException pfe) {
+    if (displayExceptions)     err(pfe.getMessage());
+  }
+  if (result == null)   throw new NullPointerException();
+  return result;
+}

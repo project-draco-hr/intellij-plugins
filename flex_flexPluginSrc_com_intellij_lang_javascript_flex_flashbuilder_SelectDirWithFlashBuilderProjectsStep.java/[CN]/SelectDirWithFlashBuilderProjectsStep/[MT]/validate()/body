@@ -1,0 +1,14 @@
+{
+  final String dirPath=myWorkspaceOrDirWithProjectsComponent.getComponent().getText().trim();
+  if (dirPath.length() == 0) {
+    throw new ConfigurationException(FlexBundle.message("specify.flash.builder.workspace.or.project.dir"),CommonBundle.getErrorTitle());
+  }
+  final VirtualFile dir=LocalFileSystem.getInstance().refreshAndFindFileByPath(dirPath);
+  if (dir == null || !dir.isDirectory()) {
+    throw new ConfigurationException(FlexBundle.message("folder.does.not.exist",dirPath),CommonBundle.getErrorTitle());
+  }
+  final List<String> projectPaths=new ArrayList<String>();
+  final boolean ok=FlashBuilderProjectFinder.collectAllProjectPaths(getWizardContext().getProject(),projectPaths,dirPath);
+  ((FlashBuilderImporter)getBuilder()).setList(projectPaths);
+  return ok;
+}

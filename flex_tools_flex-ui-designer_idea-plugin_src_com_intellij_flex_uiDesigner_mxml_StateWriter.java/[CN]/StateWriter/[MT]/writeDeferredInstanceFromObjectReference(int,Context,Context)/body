@@ -1,0 +1,22 @@
+{
+  int referenceInstanceReference=context.getId();
+  if (referenceInstanceReference == -1) {
+    int objectInstanceReference=parentContext.getScope().referenceCounter++;
+    context.setId(objectInstanceReference);
+    context.referenceInitialized();
+    referenceInstanceReference=writer.getRootScope().referenceCounter++;
+    context.setId(referenceInstanceReference);
+    writeDeferredInstanceFromObjectReference(propertyName,objectInstanceReference,writer.getObjectId(parentContext.getScope().getOwner()),referenceInstanceReference);
+  }
+ else {
+    DeferredInstanceFromObjectReference reference=context.getDeferredInstanceFromObjectReference();
+    if (reference == null) {
+      writer.writeObjectReference(propertyName,referenceInstanceReference);
+    }
+ else {
+      writeDeferredInstanceFromObjectReference(propertyName,reference.getObjectInstance(),reference.getDeferredParentInstance(),referenceInstanceReference);
+      reference.markAsWritten();
+      context.setDeferredInstanceFromObjectReference(null);
+    }
+  }
+}

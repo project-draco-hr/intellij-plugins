@@ -1,0 +1,25 @@
+{
+  if (FlexBaseRunner.isRunAsAir(runnerParameters)) {
+    return;
+  }
+  final FlexRunnerParameters.RunMode mode=runnerParameters.getRunMode();
+  if (mode != FlexRunnerParameters.RunMode.HtmlOrSwfFile && mode != FlexRunnerParameters.RunMode.MainClass) {
+    return;
+  }
+  final String[] trustedSwfPaths=getSwfFilesCanonicalPaths(project,runnerParameters);
+  if (trustedSwfPaths.length == 0) {
+    showWarningBalloonIfNeeded(project,isDebug,runnerParameters.isRunTrusted(),FlexBundle.message("could.not.find.swf.to.trust"));
+    return;
+  }
+  final VirtualFile ideaCfgFile=getIdeaUserTrustConfigFile(project,isDebug,runnerParameters.isRunTrusted());
+  if (ideaCfgFile == null) {
+    return;
+  }
+  try {
+    fixIdeaCfgFileContentIfNeeded(ideaCfgFile,trustedSwfPaths,runnerParameters.isRunTrusted());
+  }
+ catch (  IOException e) {
+    final ToolWindowManager manager=ToolWindowManager.getInstance(project);
+    manager.notifyByBalloon(isDebug ? ToolWindowId.DEBUG : ToolWindowId.RUN,MessageType.WARNING,FlexBundle.message("failed.to.update.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,e.getMessage()));
+  }
+}

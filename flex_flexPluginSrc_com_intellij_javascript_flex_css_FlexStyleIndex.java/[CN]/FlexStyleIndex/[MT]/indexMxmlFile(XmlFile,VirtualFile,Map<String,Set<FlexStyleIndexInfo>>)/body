@@ -1,0 +1,32 @@
+{
+  final JSResolveUtil.JSInjectedFilesVisitor jsFilesVisitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+    @Override protected void process(    JSFile file){
+      indexAttributes(file,file.getName(),false,map);
+    }
+  }
+;
+  final Project project=file.getProject();
+  final PsiFileFactory factory=PsiFileFactory.getInstance(project);
+  Processor<XmlTag> processor=new Processor<XmlTag>(){
+    public boolean process(    XmlTag tag){
+      for (      XmlTagChild child : tag.getValue().getChildren()) {
+        if (child instanceof XmlText) {
+          String text=((XmlText)child).getValue();
+          if (text != null) {
+            JSLanguageDialect dialect=JavaScriptSupportLoader.ECMA_SCRIPT_L4;
+            PsiFile dummyFile=factory.createFileFromText("dummy." + dialect.getFileExtension(),dialect,text);
+            if (dummyFile instanceof JSFile) {
+              indexAttributes(dummyFile,getQualifiedNameByMxmlFile(virtualFile,project),true,map);
+            }
+          }
+        }
+      }
+      return true;
+    }
+  }
+;
+  XmlTag rootTag=getRootTag(file);
+  if (rootTag != null) {
+    FlexUtils.processMxmlTags(rootTag,jsFilesVisitor,processor);
+  }
+}

@@ -1,0 +1,32 @@
+{
+  s.setSourceLocator(this);
+  m_fileInfo=new FileInfoCache();
+  m_exprCache.clear();
+  m_fileInfo.bind(s);
+  m_exprCache.bind(s);
+  boolean correctVersion=true;
+  try {
+    s.bind();
+  }
+ catch (  VersionException ve) {
+    correctVersion=false;
+  }
+  propertyPut(LIST_LINE,1);
+  propertyPut(LIST_MODULE,1);
+  propertyPut(BPNUM,0);
+  propertyPut(LAST_FRAME_DEPTH,0);
+  propertyPut(CURRENT_FRAME_DEPTH,0);
+  propertyPut(DISPLAY_FRAME_NUMBER,0);
+  propertyPut(METADATA_ATTEMPTS_PERIOD,250);
+  propertyPut(METADATA_NOT_AVAILABLE,0);
+  propertyPut(METADATA_ATTEMPTS,METADATA_RETRIES);
+  propertyPut(PLAYER_FULL_SUPPORT,correctVersion ? 1 : 0);
+  String previousURI=m_mruURI;
+  m_mruURI=m_session.getURI();
+  if (previousURI != null && m_mruURI != null && previousURI.equalsIgnoreCase(m_mruURI))   reapplyBreakpoints();
+ else {
+    while (m_breakpoints.size() > 0)     m_breakpoints.removeElementAt(0);
+  }
+  m_requestResume=false;
+  m_stepResume=false;
+}

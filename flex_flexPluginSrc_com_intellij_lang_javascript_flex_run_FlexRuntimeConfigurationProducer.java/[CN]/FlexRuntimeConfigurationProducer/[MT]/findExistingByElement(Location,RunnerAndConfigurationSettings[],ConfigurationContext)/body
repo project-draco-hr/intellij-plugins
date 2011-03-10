@@ -1,0 +1,25 @@
+{
+  if (existingConfigurations.length == 0)   return null;
+  final Module module=context.getModule();
+  if (!(location instanceof PsiLocation) || module == null)   return null;
+  final PsiElement psiElement=location.getPsiElement();
+  final String htmlWrapperAbsolutePath=getHtmlWrapperAbsolutePath(module,psiElement);
+  if (htmlWrapperAbsolutePath != null) {
+    for (    final RunnerAndConfigurationSettings existingConfiguration : existingConfigurations) {
+      final FlexRunnerParameters runnerParameters=((FlexRunConfiguration)existingConfiguration.getConfiguration()).getRunnerParameters();
+      if (module.getName().equals(runnerParameters.getModuleName()) && FlexRunnerParameters.RunMode.HtmlOrSwfFile == runnerParameters.getRunMode() && runnerParameters.getHtmlOrSwfFilePath().equals(htmlWrapperAbsolutePath)) {
+        return existingConfiguration;
+      }
+    }
+  }
+  final JSClass jsClass=getJSClass(psiElement);
+  if (jsClass != null && isAcceptedMainClass(jsClass,module,false)) {
+    for (    final RunnerAndConfigurationSettings existingConfiguration : existingConfigurations) {
+      final FlexRunnerParameters runnerParameters=((FlexRunConfiguration)existingConfiguration.getConfiguration()).getRunnerParameters();
+      if (module.getName().equals(runnerParameters.getModuleName()) && FlexRunnerParameters.RunMode.MainClass == runnerParameters.getRunMode() && runnerParameters.getMainClassName().equals(jsClass.getQualifiedName())) {
+        return existingConfiguration;
+      }
+    }
+  }
+  return null;
+}

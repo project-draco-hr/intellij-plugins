@@ -1,0 +1,15 @@
+{
+  if (visited.contains(jsClass))   return null;
+  visited.add(jsClass);
+  final JSVariable field=jsClass.findFieldByName(name);
+  if (field != null)   return field;
+  final JSFunction getter=jsClass.findFunctionByNameAndKind(name,JSFunction.FunctionKind.GETTER);
+  if (getter != null)   return getter;
+  for (  final JSClass superClass : jsClass.getSuperClasses()) {
+    final JSQualifiedNamedElement inSuper=findFieldOrGetterInClassOrSupers(name,superClass,visited);
+    if (inSuper != null) {
+      return inSuper;
+    }
+  }
+  return null;
+}

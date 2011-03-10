@@ -1,0 +1,78 @@
+{
+  int update=propertyGet(UPDATE_DELAY);
+  boolean nowait=(propertyGet(NO_WAITING) == 1) ? true : false;
+  boolean stop=false;
+  if (!haveConnection() || (m_session.isSuspended() && !m_requestResume)) {
+    processEvents();
+    stop=true;
+  }
+  while (!stop) {
+    if (!nowait)     m_keyboardReadRequest=true;
+    if (m_requestResume) {
+      try {
+        if (m_stepResume)         m_session.stepContinue();
+ else         m_session.resume();
+      }
+ catch (      NotSuspendedException nse) {
+        err(getLocalizationManager().getLocalizedTextString("playerAlreadyRunning"));
+      }
+      m_requestResume=false;
+      m_requestHalt=false;
+      m_stepResume=false;
+    }
+    try {
+      Thread.sleep(update);
+    }
+ catch (    InterruptedException ie) {
+    }
+    processEvents();
+    if (!haveConnection()) {
+      stop=true;
+      dumpHaltState(false);
+    }
+ else     if (m_session.isSuspended()) {
+      int tries=3;
+      while (tries-- > 0 && m_session.suspendReason() == SuspendReason.Unknown)       try {
+        Thread.sleep(100);
+        processEvents();
+      }
+ catch (      InterruptedException ie) {
+      }
+      dumpHaltState(false);
+      if (!m_requestResume)       stop=true;
+    }
+ else     if (nowait) {
+      stop=true;
+    }
+ else {
+      if (!m_keyboardInput.isEmpty() && System.getProperty("fdbunit") == null) {
+        m_keyboardInput.clear();
+        try {
+          if (yesNoQuery(getLocalizationManager().getLocalizedTextString("doYouWantToHalt"))) {
+            out(getLocalizationManager().getLocalizedTextString("attemptingToHalt"));
+            m_session.suspend();
+            m_requestHalt=true;
+            if (!haveConnection()) {
+              dumpHaltState(false);
+              stop=true;
+            }
+ else             if (!m_session.isSuspended())             err(getLocalizationManager().getLocalizedTextString("couldNotHalt"));
+          }
+        }
+ catch (        IllegalArgumentException iae) {
+          out(getLocalizationManager().getLocalizedTextString("escapingFromDebuggerPendingLoop"));
+          propertyPut(NO_WAITING,1);
+          stop=true;
+        }
+catch (        IOException io) {
+          Map args=new HashMap();
+          args.put("error",io.getMessage());
+          err(getLocalizationManager().getLocalizedTextString("continuingDueToError",args));
+        }
+catch (        SuspendedException se) {
+        }
+      }
+    }
+  }
+  if (nowait)   processEvents();
+}

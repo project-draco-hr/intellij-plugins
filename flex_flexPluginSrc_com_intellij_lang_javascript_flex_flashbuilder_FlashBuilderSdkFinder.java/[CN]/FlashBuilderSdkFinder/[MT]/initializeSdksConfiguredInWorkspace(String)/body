@@ -1,0 +1,23 @@
+{
+  final Document sdkInfoDocument=loadSdkInfoDocument(flashBuilderWorkspacePath);
+  if (sdkInfoDocument == null) {
+    return false;
+  }
+  final Element sdksElement=sdkInfoDocument.getRootElement();
+  if (!sdksElement.getName().equals(SDKS_ELEMENT))   return false;
+  for (  final Element sdkElement : ((Iterable<Element>)sdksElement.getChildren(SDK_ELEMENT))) {
+    final Attribute defaultSdkAttr=sdkElement.getAttribute(DEFAULT_SDK_ATTR);
+    final Attribute sdkNameAttr=sdkElement.getAttribute(SDK_NAME_ATTR);
+    final Attribute sdkLocationAttr=sdkElement.getAttribute(SDK_LOCATION_ATTR);
+    if (sdkLocationAttr != null) {
+      if (defaultSdkAttr != null && defaultSdkAttr.getValue().equalsIgnoreCase("true")) {
+        mySdkNameToRootPath.put("",sdkLocationAttr.getValue());
+      }
+      if (sdkNameAttr != null) {
+        mySdkNameToRootPath.put(sdkNameAttr.getValue(),sdkLocationAttr.getValue());
+      }
+    }
+  }
+  myWhereToLookForSdkInfo=WhereToLookForSdkInfo.InWorkspace;
+  return true;
+}

@@ -1,0 +1,21 @@
+{
+  final String sdkName=flashBuilderProject.getSdkName();
+  if ("".equals(sdkName) && !mySdkRootsFromFBInstallation.isEmpty()) {
+    VirtualFile latestSdkRoot=mySdkRootsFromFBInstallation.iterator().next();
+    for (    VirtualFile nextSdkRoot : mySdkRootsFromFBInstallation) {
+      if (StringUtil.compareVersionNumbers(nextSdkRoot.getName(),latestSdkRoot.getName()) > 0) {
+        latestSdkRoot=nextSdkRoot;
+      }
+    }
+    return createOrGetSdk(latestSdkRoot.getPath(),flashBuilderProject.getProjectType());
+  }
+  if (sdkName.startsWith(COMMON_SDK_NAME_BEGINNING)) {
+    final String sdkVersion=sdkName.substring(COMMON_SDK_NAME_BEGINNING.length());
+    for (    VirtualFile sdkRoot : mySdkRootsFromFBInstallation) {
+      if (sdkRoot.getName().startsWith(sdkVersion)) {
+        return createOrGetSdk(sdkRoot.getPath(),flashBuilderProject.getProjectType());
+      }
+    }
+  }
+  return mySdkRootsFromFBInstallation.isEmpty() ? null : createOrGetSdk(mySdkRootsFromFBInstallation.iterator().next().getPath(),flashBuilderProject.getProjectType());
+}

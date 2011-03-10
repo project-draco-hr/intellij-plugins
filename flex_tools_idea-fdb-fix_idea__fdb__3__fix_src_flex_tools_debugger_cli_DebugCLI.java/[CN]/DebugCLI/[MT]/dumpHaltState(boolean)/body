@@ -1,0 +1,29 @@
+{
+  processEvents();
+  if (m_requestResume && !postStep)   return;
+  if (!m_session.isConnected()) {
+    out(getLocalizationManager().getLocalizedTextString("sessionTerminated"));
+    exitSession();
+  }
+ else {
+    if (m_session.isSuspended()) {
+      StringBuffer sbLine=new StringBuffer();
+      dumpBreakLine(postStep,sbLine);
+      StringBuffer sbBreak=new StringBuffer();
+      boolean silent=processBreak(postStep,sbBreak);
+      StringBuffer sb=new StringBuffer();
+      if (silent) {
+        dumpBreakLine(postStep,sb);
+      }
+ else {
+        sb.append(sbLine);
+        if (sbLine.length() > 0 && sbLine.charAt(sbLine.length() - 1) != '\n')         sb.append(m_newline);
+        sb.append(sbBreak);
+      }
+      if (sb.length() > 0)       out(sb.toString());
+    }
+ else {
+      out(getLocalizationManager().getLocalizedTextString("playerDidNotStop"));
+    }
+  }
+}

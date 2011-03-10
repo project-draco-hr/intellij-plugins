@@ -1,0 +1,20 @@
+{
+  if (myBecomeObsolete) {
+    return CommandOutputProcessingMode.DONE;
+  }
+  final CommandOutputProcessingMode b=myCommands[myCurrentIndex].onTextAvailable(s);
+  if (b == CommandOutputProcessingMode.DONE) {
+    if (myObsolescent != null && myObsolescent.isObsolete()) {
+      dispatchObsolete();
+      return CommandOutputProcessingMode.DONE;
+    }
+    ++myCurrentIndex;
+    if (myCurrentIndex != myCommands.length) {
+      myFlexDebugProcess.insertCommand(this);
+    }
+ else {
+      succeeded();
+    }
+  }
+  return b;
+}

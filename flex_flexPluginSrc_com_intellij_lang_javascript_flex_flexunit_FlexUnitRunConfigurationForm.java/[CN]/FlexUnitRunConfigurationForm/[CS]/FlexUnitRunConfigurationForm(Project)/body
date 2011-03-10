@@ -1,0 +1,58 @@
+{
+  myProject=project;
+  new MethodChooserActionListener().setField(myMethodField);
+  myModulesComboboxWrapper=new ModulesComboboxWrapper(myModuleCombo);
+  myModulesComboboxWrapper.addActionListener(new ModulesComboboxWrapper.Listener(){
+    public void moduleChanged(){
+      updateOnModuleChange();
+      updateRunTrustedOptionVisibility();
+      updateLauncherTextWithBrowse();
+      final Module module=myModulesComboboxWrapper.getSelectedModule();
+      myDebuggerSdkCombo.setModuleSdk(module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module));
+    }
+  }
+);
+  ChangeListener scopeChangeListener=new ChangeListener(){
+    public void stateChanged(    ChangeEvent e){
+      updateOnScopeChange();
+    }
+  }
+;
+  myClassRadioButton.addChangeListener(scopeChangeListener);
+  myPackageRadioButton.addChangeListener(scopeChangeListener);
+  myMethodRadioButton.addChangeListener(scopeChangeListener);
+  myShowLogCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      if (myShowLogCheckBox.isSelected()) {
+        myLogLevelCombo.setEnabled(true);
+        if (myLogLevelCombo.getSelectedItem() == null) {
+          myLogLevelCombo.setSelectedItem(FlexUnitRunnerParameters.OutputLogLevel.values()[0]);
+        }
+        IdeFocusManager.getInstance(project).requestFocus(myLogLevelCombo,false);
+      }
+ else {
+        myLogLevelCombo.setEnabled(false);
+      }
+    }
+  }
+);
+  myLogLevelCombo.setModel(new EnumComboBoxModel<FlexUnitRunnerParameters.OutputLogLevel>(FlexUnitRunnerParameters.OutputLogLevel.class));
+  myLaunchWithTextWithBrowse.getTextField().setEditable(false);
+  myLaunchWithTextWithBrowse.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final FlexLauncherDialog dialog=new FlexLauncherDialog(myProject,myLauncherType,myBrowserFamily,myPlayerPath);
+      dialog.show();
+      if (dialog.isOK()) {
+        myLauncherType=dialog.getLauncherType();
+        final BrowsersConfiguration.BrowserFamily browser=dialog.getBrowserFamily();
+        if (browser != null) {
+          myBrowserFamily=browser;
+        }
+        myPlayerPath=dialog.getPlayerPath();
+        updateLauncherTextWithBrowse();
+      }
+    }
+  }
+);
+  myDebuggerSdkCombo.showModuleSdk(true);
+}

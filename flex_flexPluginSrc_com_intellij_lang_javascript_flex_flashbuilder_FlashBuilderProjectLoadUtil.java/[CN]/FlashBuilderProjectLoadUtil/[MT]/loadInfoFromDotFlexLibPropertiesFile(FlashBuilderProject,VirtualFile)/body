@@ -1,0 +1,23 @@
+{
+  final VirtualFile dotFlexLibPropertiesFile=dotProjectFile.getParent().findChild(FlashBuilderImporter.DOT_FLEX_LIB_PROPERTIES);
+  if (dotFlexLibPropertiesFile != null) {
+    try {
+      final Document dotFlexLibPropertiesDocument=JDOMUtil.loadDocument(dotFlexLibPropertiesFile.getInputStream());
+      final Element flexLibPropertiesElement=dotFlexLibPropertiesDocument.getRootElement();
+      if (flexLibPropertiesElement == null || !FLEX_LIB_PROPERTIES_TAG.equals(flexLibPropertiesElement.getName()))       return;
+      for (      final Element namespaceManifestsElement : (Iterable<Element>)flexLibPropertiesElement.getChildren(NAMESPACE_MANIFESTS_TAG,flexLibPropertiesElement.getNamespace())) {
+        for (        final Element namespaceManifestEntryElement : (Iterable<Element>)namespaceManifestsElement.getChildren(NAMESPACE_MANIFEST_ENTRY_TAG,namespaceManifestsElement.getNamespace())) {
+          final String namespace=namespaceManifestEntryElement.getAttributeValue(NAMESPACE_ATTR);
+          final String manifestPath=namespaceManifestEntryElement.getAttributeValue(MANIFEST_ATTR);
+          if (!StringUtil.isEmpty(manifestPath) && !StringUtil.isEmpty(namespace)) {
+            project.addNamespaceAndManifestPath(namespace,manifestPath);
+          }
+        }
+      }
+    }
+ catch (    JDOMException e) {
+    }
+catch (    IOException e) {
+    }
+  }
+}

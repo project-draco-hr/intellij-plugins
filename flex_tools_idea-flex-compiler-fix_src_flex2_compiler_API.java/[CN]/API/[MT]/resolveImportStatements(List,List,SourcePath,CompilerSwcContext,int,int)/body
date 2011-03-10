@@ -1,0 +1,24 @@
+{
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    CompilationUnit u=(s != null) ? s.getCompilationUnit() : (CompilationUnit)units.get(i);
+    if ((u.getWorkflow() & resolveImportStatements) != 0) {
+      continue;
+    }
+ else {
+      u.setWorkflow(resolveImportStatements);
+    }
+    for (Iterator k=u.importPackageStatements.iterator(); k.hasNext(); ) {
+      String packageName=(String)k.next();
+      if (!hasPackage(sourcePath,swcContext,packageName)) {
+        k.remove();
+      }
+    }
+    for (Iterator k=u.importDefinitionStatements.iterator(); k.hasNext(); ) {
+      QName defName=(QName)k.next();
+      if (!hasDefinition(sourcePath,swcContext,defName)) {
+        k.remove();
+      }
+    }
+  }
+}

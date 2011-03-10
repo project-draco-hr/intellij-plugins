@@ -1,0 +1,33 @@
+{
+  final List<String> result=new ArrayList<String>();
+  for (  final Module module : ModuleManager.getInstance(project).getModules()) {
+    if (FlexUtils.isFlexModuleOrContainsFlexFacet(module)) {
+      final Sdk sdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+      if (sdk != null && sdk.getSdkType() instanceof AirSdkType) {
+        for (        final FlexBuildConfiguration config : FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module)) {
+          if (config.DO_BUILD && config.OUTPUT_TYPE.equals(FlexBuildConfiguration.APPLICATION)) {
+            if (config.USE_CUSTOM_CONFIG_FILE) {
+              final VirtualFile configFile=LocalFileSystem.getInstance().findFileByPath(config.CUSTOM_CONFIG_FILE);
+              if (configFile != null) {
+                try {
+                  final String outputPath=FlexUtils.findXMLElement(configFile.getInputStream(),"<flex-config><output>");
+                  if (outputPath != null) {
+                    result.add(outputPath.substring(FileUtil.toSystemIndependentName(outputPath).lastIndexOf("/") + 1));
+                  }
+                }
+ catch (                IOException e) {
+                }
+              }
+            }
+ else {
+              if (config.OUTPUT_FILE_NAME.length() > 0) {
+                result.add(config.OUTPUT_FILE_NAME);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return ArrayUtil.toStringArray(result);
+}

@@ -1,0 +1,30 @@
+{
+  FlexModuleBuilder.setupResourceFilePatterns(project);
+  final ModifiableModuleModel moduleModel=model != null ? model : ModuleManager.getInstance(project).getModifiableModel();
+  final Collection<FlashBuilderProject> flashBuilderProjects=FlashBuilderProjectLoadUtil.loadProjects(getList());
+  final List<Module> modules=new ArrayList<Module>(flashBuilderProjects.size());
+  final Collection<ModifiableRootModel> rootModels=new ArrayList<ModifiableRootModel>(flashBuilderProjects.size());
+  final Collection<String> allImportedModuleNames=new ArrayList<String>(flashBuilderProjects.size());
+  final Set<String> pathVariables=new THashSet<String>();
+  for (  final FlashBuilderProject flashBuilderProject : flashBuilderProjects) {
+    allImportedModuleNames.add(flashBuilderProject.getName());
+    pathVariables.addAll(flashBuilderProject.getUsedPathVariables());
+  }
+  final FlashBuilderSdkFinder sdkFinder=new FlashBuilderSdkFinder(project,getParameters().initiallySelectedDirPath,flashBuilderProjects);
+  final FlashBuilderModuleImporter flashBuilderModuleImporter=new FlashBuilderModuleImporter(project,allImportedModuleNames,sdkFinder,pathVariables);
+  for (  final FlashBuilderProject flashBuilderProject : flashBuilderProjects) {
+    final String moduleFilePath=flashBuilderProject.getProjectRootPath() + "/" + flashBuilderProject.getName()+ ModuleFileType.DOT_DEFAULT_EXTENSION;
+    final Module module=moduleModel.newModule(moduleFilePath,StdModuleTypes.JAVA);
+    final ModifiableRootModel rootModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    rootModels.add(rootModel);
+    flashBuilderModuleImporter.setupModule(rootModel,flashBuilderProject);
+    modules.add(module);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      ProjectRootManager.getInstance(project).multiCommit(moduleModel,rootModels.toArray(new ModifiableRootModel[rootModels.size()]));
+    }
+  }
+);
+  return modules;
+}

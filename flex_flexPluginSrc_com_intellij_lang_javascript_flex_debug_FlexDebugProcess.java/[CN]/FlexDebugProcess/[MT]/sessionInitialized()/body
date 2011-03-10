@@ -1,0 +1,22 @@
+{
+  super.sessionInitialized();
+  sendCommand(new ContinueCommand(){
+    @Override public CommandOutputProcessingType getOutputProcessingMode(){
+      myCheckForUnexpectedStartupStop=true;
+      return super.getOutputProcessingMode();
+    }
+  }
+);
+  myConsoleView=(ConsoleView)getSession().getRunContentDescriptor().getExecutionConsole();
+  if (myFdbLaunchCommand != null) {
+    myConsoleView.print(myFdbLaunchCommand + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+  }
+  myOutputAlarm=new Alarm(Alarm.ThreadToUse.SHARED_THREAD,myConsoleView);
+  scheduleOutputReading();
+  scheduleFdbErrorStreamReading();
+  getSession().setPauseActionSupported(true);
+synchronized (this) {
+    debugSessionInitialized=true;
+    notifyAll();
+  }
+}

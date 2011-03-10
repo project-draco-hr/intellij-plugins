@@ -1,0 +1,15 @@
+{
+  Map resourceIncludes=swcContext.getResourceIncludes();
+  String[] locales=configuration.getCompilerConfiguration().getLocales();
+  for (Iterator it=resourceIncludes.keySet().iterator(); it.hasNext(); ) {
+    String rbName=NameFormatter.toColon((String)it.next());
+    QName[] qNames=resolveResourceBundleName(rbName,sources,null,bundlePath,null,swcContext,symbolTable,locales);
+    if (qNames != null) {
+      Source source=symbolTable.findSourceByResourceBundleName(rbName);
+      addVertexToGraphs(source,source.getCompilationUnit(),igraph,dgraph);
+      for (int i=0; i < qNames.length; i++) {
+        configuration.getIncludes().add(qNames[i].toString());
+      }
+    }
+  }
+}

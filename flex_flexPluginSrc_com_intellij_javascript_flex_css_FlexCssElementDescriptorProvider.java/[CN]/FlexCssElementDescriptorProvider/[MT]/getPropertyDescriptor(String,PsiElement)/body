@@ -1,0 +1,13 @@
+{
+  if (context != null) {
+    Module module=ModuleUtil.findModuleForPsiElement(context);
+    GlobalSearchScope scope=module != null ? module.getModuleWithDependenciesAndLibrariesScope(false) : context.getResolveScope();
+    List<Set<FlexStyleIndexInfo>> lists=FileBasedIndex.getInstance().getValues(FlexStyleIndex.INDEX_ID,propertyName,scope);
+    List<String> selectors=findSimpleSelectorsAbove(context);
+    List<FlexStyleIndexInfo> infos=filter(lists,selectors,scope);
+    if (infos.size() > 0) {
+      return new FlexCssPropertyDescriptor(infos);
+    }
+  }
+  return null;
+}

@@ -1,0 +1,39 @@
+{
+  String[] frames=splitStackFrames(s);
+  final XStackFrame[] allFrames=new XStackFrame[frames.length];
+  int i=0;
+  final FlexDebugProcess flexDebugProcess=myTopFrame.getDebugProcess();
+  if (frames.length == 0) {
+    container.addStackFrames(Collections.<XStackFrame>emptyList(),true);
+    return;
+  }
+  String stackFrame=frames[i];
+  myTopFrame.setScope(extractScope(stackFrame));
+  myTopFrame.setFrameIndex(0);
+  allFrames[i++]=myTopFrame;
+  while (i < frames.length) {
+    stackFrame=frames[i];
+    VirtualFile file=null;
+    final Trinity<String,String,Integer> fileNameAndIndexAndLine=getFileNameAndIndexAndLine(frames[i]);
+    final String fileName=fileNameAndIndexAndLine.first;
+    final String fileId=fileNameAndIndexAndLine.second;
+    int line=fileNameAndIndexAndLine.third;
+    if (!StringUtil.isEmpty(fileName)) {
+      String packageName=null;
+      final int classMarkerPosition=stackFrame.indexOf(FlexStackFrame.CLASS_MARKER);
+      final int packageEndPosition=stackFrame.indexOf("::",classMarkerPosition);
+      if (classMarkerPosition > 0 && packageEndPosition > classMarkerPosition) {
+        packageName=stackFrame.substring(classMarkerPosition + FlexStackFrame.CLASS_MARKER.length(),packageEndPosition);
+      }
+      file=flexDebugProcess.findFileByNameOrId(fileName,packageName,fileId);
+      if (file == null) {
+      }
+    }
+    final FlexStackFrame flexStackFrame=new FlexStackFrame(flexDebugProcess,file != null ? XDebuggerUtil.getInstance().createPosition(file,line > 0 ? line - 1 : line) : null);
+    allFrames[i]=flexStackFrame;
+    flexStackFrame.setScope(extractScope(stackFrame));
+    flexStackFrame.setFrameIndex(i);
+    i++;
+  }
+  container.addStackFrames(Arrays.asList(allFrames).subList(frameIndex,allFrames.length),true);
+}

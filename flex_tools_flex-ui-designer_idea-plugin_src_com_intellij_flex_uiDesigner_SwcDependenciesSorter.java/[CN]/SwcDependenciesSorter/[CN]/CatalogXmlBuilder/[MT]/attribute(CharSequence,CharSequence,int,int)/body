@@ -1,0 +1,39 @@
+{
+  if (name.equals("mod")) {
+    mod=value;
+  }
+ else   if (processDependencies) {
+    if (name.equals("id") && !(StringUtil.startsWith(value,"flash.") || value.charAt(0) == '_' || !StringUtil.contains(value,1,value.length() - 1,':'))) {
+      dependencies.add(value);
+    }
+  }
+ else   if (definition != null) {
+    if (value.charAt(0) != '_') {
+      Definition oldDefinition=definitionMap.get(value);
+      if (oldDefinition == null) {
+        definition.setTimeAsCharSequence(mod);
+      }
+ else {
+        definition.time=Long.parseLong(mod.toString());
+        if (definition.time > oldDefinition.getTime()) {
+          oldDefinition.getLibrary().definitionCounter--;
+          oldDefinition.getLibrary().getUnresolvedDefinitions().add(value);
+        }
+ else {
+          definition=null;
+          library.getUnresolvedDefinitions().add(value);
+          return;
+        }
+      }
+      definitionMap.put(value,definition);
+      library.definitionCounter++;
+      processDependencies=true;
+    }
+ else     if (StringUtil.endsWith(value,"_mx_core_FlexModuleFactory")) {
+      library.mxCoreFlexModuleFactoryClassName=value;
+    }
+ else {
+      definition=null;
+    }
+  }
+}

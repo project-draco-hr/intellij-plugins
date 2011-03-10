@@ -1,0 +1,21 @@
+{
+  if (rootTag != null) {
+    final JSResolveUtil.JSInjectedFilesVisitor injectedFilesVisitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+      protected void process(      final JSFile file){
+        collectMyAttributes(file,map,packageToInternalDescriptors);
+      }
+    }
+;
+    FlexUtils.processMxmlTags(rootTag,injectedFilesVisitor);
+    processClassBackedTagsWithIdAttribute(rootTag,new Processor<Pair<XmlAttribute,String>>(){
+      public boolean process(      final Pair<XmlAttribute,String> idAttributeAndItsType){
+        final XmlAttribute idAttribute=idAttributeAndItsType.first;
+        final String idAttributeValue=idAttribute.getValue();
+        final String type=idAttributeAndItsType.second;
+        map.put(idAttributeValue,new AnnotationBackedDescriptorImpl(idAttributeValue,ClassBackedElementDescriptor.this,false,type,null,idAttribute));
+        return true;
+      }
+    }
+);
+  }
+}

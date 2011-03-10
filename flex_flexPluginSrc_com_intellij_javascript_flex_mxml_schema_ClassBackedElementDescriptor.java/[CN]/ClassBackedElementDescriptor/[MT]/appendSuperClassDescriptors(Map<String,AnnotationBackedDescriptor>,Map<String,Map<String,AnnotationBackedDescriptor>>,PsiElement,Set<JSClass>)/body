@@ -1,0 +1,19 @@
+{
+  if (_clazz instanceof JSClass) {
+    final JSClass clazz=(JSClass)_clazz;
+    ClassBackedElementDescriptor parentDescriptor=context.getElementDescriptor(clazz.getName(),clazz.getQualifiedName());
+    if (parentDescriptor == null) {
+      parentDescriptor=new ClassBackedElementDescriptor(null,clazz.getQualifiedName(),context,project);
+    }
+    parentDescriptor.ensureDescriptorsMapsInitialized(clazz,visited);
+    map.putAll(parentDescriptor.myDescriptors);
+    for (    final Map.Entry<String,Map<String,AnnotationBackedDescriptor>> entry : parentDescriptor.myPackageToInternalDescriptors.entrySet()) {
+      Map<String,AnnotationBackedDescriptor> descriptorMap=packageToInternalDescriptors.get(entry.getKey());
+      if (descriptorMap == null) {
+        descriptorMap=new THashMap<String,AnnotationBackedDescriptor>();
+        packageToInternalDescriptors.put(entry.getKey(),descriptorMap);
+      }
+      descriptorMap.putAll(entry.getValue());
+    }
+  }
+}

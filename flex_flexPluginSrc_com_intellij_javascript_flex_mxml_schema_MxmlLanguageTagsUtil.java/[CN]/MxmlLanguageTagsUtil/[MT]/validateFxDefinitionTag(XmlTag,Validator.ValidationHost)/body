@@ -1,0 +1,16 @@
+{
+  final XmlTag parentTag=tag.getParentTag();
+  if (!isFxLibraryTag(parentTag)) {
+    final String prefix=tag.getNamespacePrefix();
+    final String fxLibraryTag=StringUtil.isEmpty(prefix) ? FlexPredefinedTagNames.LIBRARY : (prefix + ":" + FlexPredefinedTagNames.LIBRARY);
+    addErrorMessage(tag,JSBundle.message("javascript.validation.tag.must.be.direct.child.of.fx.library.tag",tag.getName(),fxLibraryTag),host);
+    return;
+  }
+  if (tag.getAttribute(NAME_ATTRIBUTE) == null) {
+    addErrorMessage(tag,XmlErrorMessages.message("element.doesnt.have.required.attribute",tag.getName(),NAME_ATTRIBUTE),host);
+    return;
+  }
+  if (tag.getSubTags().length != 1) {
+    addErrorMessage(tag,JSBundle.message("javascript.validation.tag.must.have.exactly.one.child.tag",tag.getName()),host);
+  }
+}

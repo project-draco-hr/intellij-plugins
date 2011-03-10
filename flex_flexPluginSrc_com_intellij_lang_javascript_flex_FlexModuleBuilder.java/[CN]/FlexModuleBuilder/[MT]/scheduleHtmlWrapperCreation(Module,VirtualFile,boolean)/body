@@ -1,0 +1,28 @@
+{
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    boolean runConfigurationCreated=false;
+    public void run(){
+      final CreateHtmlWrapperDialog dialog=new CreateHtmlWrapperDialog(module.getProject());
+      dialog.setModuleAndSdkAndWrapperLocation(module,mySdk,sourceRoot.getPath());
+      dialog.suggestToCreateRunConfiguration(false);
+      dialog.show();
+      if (dialog.isOK()) {
+        try {
+          final HTMLWrapperParameters htmlWrapperParameters=dialog.getHTMLWrapperParameters();
+          final VirtualFile htmlFile=CreateHtmlWrapperAction.createHtmlWrapper(htmlWrapperParameters);
+          if (createRunConfiguration && htmlFile != null) {
+            createFlexRunConfiguration(module.getProject(),htmlFile);
+            runConfigurationCreated=true;
+          }
+        }
+ catch (        IOException ex) {
+          Messages.showErrorDialog(module.getProject(),MessageFormat.format("Failed to create HTML wrapper\n{0}",ex.getMessage()),"Error");
+        }
+      }
+      if (myCreateRunConfiguration && !runConfigurationCreated) {
+        createFlexRunConfiguration(module,FlexBuildConfiguration.getInstance(module).OUTPUT_FILE_NAME);
+      }
+    }
+  }
+);
+}

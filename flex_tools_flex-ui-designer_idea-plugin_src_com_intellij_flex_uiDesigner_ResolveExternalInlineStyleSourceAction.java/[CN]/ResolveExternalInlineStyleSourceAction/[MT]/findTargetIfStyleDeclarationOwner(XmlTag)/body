@@ -1,0 +1,39 @@
+{
+  int foundCount=0;
+  Navigatable target=null;
+  for (  XmlAttribute attribute : parent.getAttributes()) {
+    XmlAttributeDescriptor descriptor=attribute.getDescriptor();
+    if (descriptor instanceof AnnotationBackedDescriptor) {
+      String ourValue=properties.get(descriptor.getName());
+      if (ourValue != null) {
+        if (attribute.getDisplayValue().equals(ourValue)) {
+          foundCount++;
+          if (descriptor.getName().equals(targetStyleName)) {
+            target=(Navigatable)attribute;
+          }
+          if (foundCount == properties.size()) {
+            return target;
+          }
+        }
+      }
+    }
+  }
+  for (  XmlTag tag : parent.getSubTags()) {
+    XmlElementDescriptor descriptor=tag.getDescriptor();
+    if (descriptor instanceof AnnotationBackedDescriptor && ((PsiPresentableMetaData)descriptor).getTypeName().equals(FlexAnnotationNames.STYLE)) {
+      String ourValue=properties.get(descriptor.getName());
+      if (ourValue != null) {
+        if (tag.getSubTags().length == 0 && tag.getValue().getTrimmedText().equals(ourValue)) {
+          foundCount++;
+          if (descriptor.getName().equals(targetStyleName)) {
+            target=(Navigatable)tag;
+          }
+          if (foundCount == properties.size()) {
+            return target;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}

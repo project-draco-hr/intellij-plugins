@@ -1,0 +1,29 @@
+{
+  myWorkspacePath=findWorkspacePath();
+  if (myWorkspacePath != null) {
+    initializeForWorkspace(myWorkspacePath);
+  }
+ else {
+    final FlashBuilderSdkDialog dialog=new FlashBuilderSdkDialog(myProject,true);
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      dialog.show();
+    }
+ else {
+      dialog.close(DialogWrapper.OK_EXIT_CODE);
+    }
+    if (dialog.isOK()) {
+      if (dialog.isUseIdeaSdkSelected()) {
+        myWhereToLookForSdkInfo=WhereToLookForSdkInfo.UseIdeaSdk;
+        mySdk=dialog.getSdk();
+      }
+ else {
+        myWorkspacePath=dialog.getWorkspacePath();
+        initializeForWorkspace(myWorkspacePath);
+      }
+    }
+ else {
+      myWhereToLookForSdkInfo=WhereToLookForSdkInfo.UseIdeaSdk;
+      mySdk=null;
+    }
+  }
+}

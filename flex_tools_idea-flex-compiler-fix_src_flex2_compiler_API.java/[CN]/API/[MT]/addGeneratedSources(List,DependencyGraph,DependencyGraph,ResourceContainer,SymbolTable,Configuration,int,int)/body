@@ -1,0 +1,36 @@
+{
+  for (int i=start; i < end; i++) {
+    Source source=(Source)sources.get(i);
+    CompilationUnit u=source.getCompilationUnit();
+    if (u != null) {
+      Map generatedSources=u.getGeneratedSources();
+      if (generatedSources != null) {
+        for (Iterator j=generatedSources.keySet().iterator(); j.hasNext(); ) {
+          QName qN=(QName)j.next();
+          MultiName mN=new MultiName(qN.getNamespace(),qN.getLocalPart());
+          Source gSource=(Source)generatedSources.get(qN);
+          String gName=gSource.getName();
+          if (!igraph.containsVertex(gName)) {
+            gSource=resources.addResource(gSource);
+            addVertexToGraphs(gSource,gSource.getCompilationUnit(),igraph,dgraph);
+            sources.add(gSource);
+            symbolTable.registerMultiName(mN,qN);
+            symbolTable.registerQName(qN,gSource);
+          }
+          u.expressions.add(mN);
+        }
+        u.clearGeneratedSources();
+      }
+      Map archiveFiles=(Map)u.getContext().getAttribute(Context.CSS_ARCHIVE_FILES);
+      if (archiveFiles != null && archiveFiles.size() > 0) {
+        configuration.addCSSArchiveFiles(archiveFiles);
+        archiveFiles.clear();
+      }
+      archiveFiles=(Map)u.getContext().getAttribute(Context.L10N_ARCHIVE_FILES);
+      if (archiveFiles != null && archiveFiles.size() > 0) {
+        configuration.addL10nArchiveFiles(archiveFiles);
+        archiveFiles.clear();
+      }
+    }
+  }
+}

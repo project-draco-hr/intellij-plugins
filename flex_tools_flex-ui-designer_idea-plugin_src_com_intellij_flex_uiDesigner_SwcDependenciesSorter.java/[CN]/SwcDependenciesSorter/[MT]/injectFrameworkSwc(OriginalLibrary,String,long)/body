@@ -1,0 +1,15 @@
+{
+  VirtualFile swfFile=library.getSwfFile();
+  File modifiedSwf=createSwfOutFile(library);
+  final long timeStamp=swfFile.getTimeStamp();
+  if (((timeStamp > injectionLastModified ? timeStamp : injectionLastModified) - modifiedSwf.lastModified()) > 2000) {
+    THashSet<CharSequence> definitions=new THashSet<CharSequence>(5);
+    definitions.add("FrameworkClasses");
+    definitions.add("mx.managers.systemClasses:MarshallingSupport");
+    definitions.add("mx.managers:SystemManagerProxy");
+    definitions.add("mx.styles:StyleManager");
+    definitions.add("mx.styles:StyleManagerImpl");
+    new AbcFilter().inject(swfFile,modifiedSwf,flexSdkVersion,new AbcNameFilterByNameSetAndStartsWith(definitions,new String[]{"mx.managers.marshalClasses:"}));
+    modifiedSwf.setLastModified(timeStamp);
+  }
+}

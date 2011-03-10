@@ -1,0 +1,18 @@
+{
+  ServicesDependencies services=configuration.getCompilerConfiguration().getServicesDependencies();
+  if (services != null) {
+    for (Iterator i=services.getChannelClasses().iterator(); i.hasNext(); ) {
+      String clientType=(String)i.next();
+      if (clientType != null) {
+        QName qName=resolveMultiName("messaging",new MultiName(NameFormatter.toColon(clientType)),sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+        if (qName == null) {
+          ThreadLocalToolkit.log(new ChannelDefinitionNotFound(clientType),configuration.getCompilerConfiguration().getServices().getNameForReporting());
+        }
+ else {
+          Source s=symbolTable.findSourceByQName(qName);
+          addVertexToGraphs(s,s.getCompilationUnit(),igraph,dgraph);
+        }
+      }
+    }
+  }
+}

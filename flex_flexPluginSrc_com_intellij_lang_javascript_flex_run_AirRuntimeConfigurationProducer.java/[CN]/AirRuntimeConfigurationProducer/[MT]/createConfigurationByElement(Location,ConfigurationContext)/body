@@ -1,0 +1,34 @@
+{
+  if (!(location instanceof PsiLocation))   return null;
+  mySourceElement=location.getPsiElement();
+  final Module module=context.getModule();
+  if (module == null || !FlexSdkUtils.hasDependencyOnAir(module)) {
+    return null;
+  }
+  final PsiFile psiFile=mySourceElement.getContainingFile();
+  final VirtualFile virtualFile=psiFile == null ? null : psiFile.getVirtualFile();
+  if (virtualFile != null && FlexUtils.isAirDescriptorFile(virtualFile)) {
+    final FlexBuildConfiguration config=FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module).iterator().next();
+    final RunnerAndConfigurationSettings settings=RunManagerEx.getInstanceEx(location.getProject()).createConfiguration(virtualFile.getNameWithoutExtension(),AirRunConfigurationType.getFactory());
+    final AirRunConfiguration runConfiguration=(AirRunConfiguration)settings.getConfiguration();
+    final AirRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+    runnerParameters.setModuleName(module.getName());
+    runnerParameters.setAirRunMode(AirRunnerParameters.AirRunMode.AppDescriptor);
+    runnerParameters.setAirDescriptorPath(virtualFile.getPath());
+    runnerParameters.setAirRootDirPath(config.getCompileOutputPath());
+    return settings;
+  }
+ else {
+    final JSClass jsClass=FlexRuntimeConfigurationProducer.getJSClass(mySourceElement);
+    if (jsClass != null && FlexRuntimeConfigurationProducer.isAcceptedMainClass(jsClass,module,true)) {
+      final RunnerAndConfigurationSettings settings=RunManagerEx.getInstanceEx(location.getProject()).createConfiguration(jsClass.getName(),AirRunConfigurationType.getFactory());
+      final AirRunConfiguration runConfiguration=(AirRunConfiguration)settings.getConfiguration();
+      final AirRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+      runnerParameters.setModuleName(module.getName());
+      runnerParameters.setAirRunMode(AirRunnerParameters.AirRunMode.MainClass);
+      runnerParameters.setMainClassName(jsClass.getQualifiedName());
+      return settings;
+    }
+  }
+  return null;
+}

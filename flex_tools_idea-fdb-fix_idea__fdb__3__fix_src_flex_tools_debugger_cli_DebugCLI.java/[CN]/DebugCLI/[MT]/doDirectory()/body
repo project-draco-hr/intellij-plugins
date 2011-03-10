@@ -1,0 +1,42 @@
+{
+  if (hasMoreTokens()) {
+    StringTokenizer dirs=new StringTokenizer(restOfLine(),File.pathSeparator);
+    int insertPos=0;
+    while (dirs.hasMoreTokens()) {
+      String dir=dirs.nextToken();
+      if (dir.length() > 2 && dir.charAt(0) == '"' && dir.charAt(dir.length() - 1) == '"')       dir=dir.substring(1,dir.length() - 1);
+      dir=dir.trim();
+      if (dir.length() > 0) {
+        if (!System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+          if (dir.matches("^.*[~$].*$")) {
+            try {
+              Process p=Runtime.getRuntime().exec(new String[]{"/bin/sh","-c","echo " + dir});
+              BufferedReader r=new BufferedReader(new InputStreamReader(p.getInputStream()));
+              String line=r.readLine();
+              if (line != null) {
+                line=line.trim();
+                if (line.length() > 0)                 dir=line;
+              }
+            }
+ catch (            IOException e) {
+            }
+          }
+        }
+        try {
+          dir=new File(dir).getCanonicalPath();
+          m_sourceDirectories.add(insertPos++,dir);
+        }
+ catch (        IOException e) {
+          err(e.getMessage());
+        }
+      }
+    }
+    ++m_sourceDirectoriesChangeCount;
+  }
+ else {
+    if (yesNoQuery(getLocalizationManager().getLocalizedTextString("askReinitSourcePath"))) {
+      initSourceDirectoriesList();
+    }
+  }
+  doShowDirectories();
+}

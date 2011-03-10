@@ -1,0 +1,20 @@
+{
+  waitTilHalted();
+  StringBuffer sb=new StringBuffer();
+  try {
+    int num=propertyGet(DISPLAY_FRAME_NUMBER);
+    Frame[] frames=m_session.getFrames();
+    Variable[] vars=frames[num].getArguments(m_session);
+    for (int i=0; i < vars.length; i++) {
+      ExpressionCache.appendVariable(sb,vars[i]);
+      sb.append(m_newline);
+    }
+  }
+ catch (  NullPointerException npe) {
+    sb.append(getLocalizationManager().getLocalizedTextString("noArguments"));
+  }
+catch (  ArrayIndexOutOfBoundsException aix) {
+    sb.append(getLocalizationManager().getLocalizedTextString("notInValidFrame"));
+  }
+  out(sb.toString());
+}

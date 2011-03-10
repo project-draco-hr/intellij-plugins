@@ -1,0 +1,18 @@
+{
+  PropertyProcessor.ValueWriter valueWriter=propertyProcessor.process(element,valueProvider,descriptor,context,writer);
+  if (valueWriter == null) {
+    return PropertyProcessor.IGNORE;
+  }
+  writer.write(propertyProcessor.getName());
+  if (propertyProcessor.isStyle()) {
+    out.write(PropertyClassifier.STYLE);
+    if (!cssDeclarationSourceDefined) {
+      defineInlineCssDeclaration(element.getParent());
+    }
+    out.writeUInt29(element.getTextOffset());
+  }
+ else {
+    out.write(PropertyClassifier.PROPERTY);
+  }
+  return valueWriter.write(out,propertyProcessor.isStyle());
+}

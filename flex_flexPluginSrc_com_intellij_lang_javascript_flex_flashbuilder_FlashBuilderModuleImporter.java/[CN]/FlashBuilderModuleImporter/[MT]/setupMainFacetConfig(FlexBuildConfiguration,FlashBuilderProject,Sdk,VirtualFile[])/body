@@ -1,0 +1,20 @@
+{
+  commonSetupConfig(config,flashBuilderProject,flexSdk);
+  config.OUTPUT_TYPE=flashBuilderProject.getCompilerOutputType();
+  config.MAIN_CLASS=flashBuilderProject.getMainAppClassName();
+  config.OUTPUT_FILE_NAME=FlexBuildConfiguration.APPLICATION.equals(config.OUTPUT_TYPE) ? StringUtil.getShortName(config.MAIN_CLASS) + ".swf" : flashBuilderProject.getName() + ".swc";
+  OUTER:   for (  final Pair<String,String> namespaceAndManifestPath : flashBuilderProject.getNamespacesAndManifestPaths()) {
+    final String manifestPath=namespaceAndManifestPath.second;
+    for (    final VirtualFile sourceRoot : sourceRoots) {
+      VirtualFile manifestFile;
+      if ((manifestFile=sourceRoot.findFileByRelativePath(manifestPath)) != null) {
+        addNamespaceAndManifestFileInfo(config,namespaceAndManifestPath.first,manifestFile.getPath());
+        break OUTER;
+      }
+    }
+    addNamespaceAndManifestFileInfo(config,namespaceAndManifestPath.first,getAbsolutePathWithLinksHandled(flashBuilderProject,FileUtil.toSystemIndependentName(manifestPath)));
+  }
+  for (  final String path : flashBuilderProject.getCssFilesToCompile()) {
+    config.CSS_FILES_LIST.add(getAbsolutePathWithLinksHandled(flashBuilderProject,path));
+  }
+}

@@ -1,0 +1,28 @@
+{
+  if (!KEEP_TEMP_FILES) {
+    final Collection<String> filesToDelete=context.getUserData(FlexUnitPrecompileTask.FILES_TO_DELETE);
+    if (filesToDelete != null) {
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+          ApplicationManager.getApplication().runWriteAction(new Runnable(){
+            public void run(){
+              for (              String path : filesToDelete) {
+                VirtualFile file=LocalFileSystem.getInstance().findFileByPath(path);
+                if (file != null && file.exists()) {
+                  try {
+                    file.delete(this);
+                  }
+ catch (                  IOException e) {
+                    LOG.warn("Failed to delete FlexUnit launcher file: " + path,e);
+                  }
+                }
+              }
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+}

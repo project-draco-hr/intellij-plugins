@@ -1,0 +1,32 @@
+{
+  final DiagramBuilder builder=model.getBuilder();
+  String aPackage=null;
+  PsiDirectory directory=null;
+  final List<Node> nodes=GraphViewUtil.getSelectedNodes(builder.getGraph());
+  if (nodes.size() == 1) {
+    DiagramNode node=builder.getNodeObject(nodes.get(0));
+    if (node != null) {
+      if (node.getIdentifyingElement() instanceof String) {
+        aPackage=(String)node.getIdentifyingElement();
+        directory=null;
+      }
+ else {
+        final JSClass selectedClass=(JSClass)node.getIdentifyingElement();
+        directory=PlatformPackageUtil.getDirectory(selectedClass);
+        aPackage=StringUtil.getPackageName(selectedClass.getQualifiedName());
+      }
+    }
+  }
+  if (aPackage == null) {
+    JSClass initialClass=(JSClass)model.getInitialElement();
+    if (initialClass != null) {
+      directory=PlatformPackageUtil.getDirectory(initialClass);
+      aPackage=StringUtil.getPackageName(initialClass.getQualifiedName());
+    }
+ else {
+      directory=null;
+      aPackage=model.getInitialPackage();
+    }
+  }
+  return Pair.create(directory,aPackage);
+}

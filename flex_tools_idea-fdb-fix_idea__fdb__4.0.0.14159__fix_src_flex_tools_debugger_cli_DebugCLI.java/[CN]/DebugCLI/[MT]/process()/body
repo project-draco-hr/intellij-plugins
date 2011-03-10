@@ -1,0 +1,55 @@
+{
+  boolean done=false;
+  while (!done) {
+    try {
+      runningLoop();
+      if (!haveStreams())       displayPrompt();
+      readLine();
+      if (m_currentLine == null)       break;
+      done=processLine();
+    }
+ catch (    NoResponseException nre) {
+      err(getLocalizationManager().getLocalizedTextString("noResponseException"));
+    }
+catch (    NotSuspendedException nse) {
+      err(getLocalizationManager().getLocalizedTextString("notSuspendedException"));
+    }
+catch (    AmbiguousException ae) {
+    }
+catch (    IllegalStateException ise) {
+      err(getLocalizationManager().getLocalizedTextString("illegalStateException"));
+    }
+catch (    IllegalMonitorStateException ime) {
+      err(getLocalizationManager().getLocalizedTextString("illegalMonitorStateException"));
+    }
+catch (    NoSuchElementException nse) {
+      err(getLocalizationManager().getLocalizedTextString("noSuchElementException"));
+    }
+catch (    NumberFormatException nfe) {
+      err(getLocalizationManager().getLocalizedTextString("numberFormatException"));
+    }
+catch (    SocketException se) {
+      Map<String,Object> socketArgs=new HashMap<String,Object>();
+      socketArgs.put("message",se.getMessage());
+      err(getLocalizationManager().getLocalizedTextString("socketException",socketArgs));
+    }
+catch (    VersionException ve) {
+      err(getLocalizationManager().getLocalizedTextString("versionException"));
+    }
+catch (    NotConnectedException nce) {
+    }
+catch (    Exception e) {
+      err(getLocalizationManager().getLocalizedTextString("unexpectedError"));
+      err(getLocalizationManager().getLocalizedTextString("stackTraceFollows"));
+      e.printStackTrace();
+    }
+    if (isConnectionLost()) {
+      try {
+        dumpHaltState(false);
+      }
+ catch (      PlayerDebugException pde) {
+        err(getLocalizationManager().getLocalizedTextString("sessionEndedAbruptly"));
+      }
+    }
+  }
+}

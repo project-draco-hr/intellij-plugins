@@ -1,0 +1,42 @@
+{
+  super.setUp();
+  final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter(ServiceManager.getService(StringRegistry.class));
+  final LibraryStyleInfoCollector styleInfoCollector=new LibraryStyleInfoCollector(myProject,myModule,stringWriter);
+  stringWriter.startChange();
+  appRootDir=getAppRootDir();
+  libraries=new SwcDependenciesSorter(appRootDir).sort(getLibraries(new Consumer<OriginalLibrary>(){
+    @Override public void consume(    OriginalLibrary originalLibrary){
+      styleInfoCollector.collect(originalLibrary);
+    }
+  }
+),myProject.getLocationHash(),getFlexVersion(),0);
+  final ServerSocket serverSocket=new ServerSocket(0,1);
+  DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration=new DesignerApplicationUtil.AdlRunConfiguration(System.getProperty("fud.adl"),System.getProperty("fud.air"));
+  adlRunConfiguration.arguments=new ArrayList<String>();
+  adlRunConfiguration.arguments.add("-p");
+  adlRunConfiguration.arguments.add(getFudHome() + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
+  adlRunConfiguration.arguments.add("-cdd");
+  adlRunConfiguration.arguments.add(getFudHome() + "/flex-injection/target");
+  adlProcess=DesignerApplicationUtil.runAdl(adlRunConfiguration,getFudHome() + "/designer/src/main/resources/descriptor.xml",serverSocket.getLocalPort(),appRootDir.getPath(),new Consumer<Integer>(){
+    @Override public void consume(    Integer exitCode){
+      if (exitCode != 0) {
+        try {
+          serverSocket.close();
+        }
+ catch (        IOException ignored) {
+        }
+        fail("adl return " + exitCode);
+      }
+    }
+  }
+);
+  socket=serverSocket.accept();
+  reader=new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+  client=new TestClient(socket.getOutputStream());
+  client.openProject(myProject);
+  librarySet=new LibrarySet(myProject.getLocationHash(),ApplicationDomainCreationPolicy.ONE,libraries);
+  client.registerLibrarySet(librarySet,stringWriter);
+  if (!isRequireLocalStyleHolder()) {
+    registerModule(new ModuleInfo(myModule),stringWriter);
+  }
+}

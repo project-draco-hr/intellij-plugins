@@ -1,0 +1,27 @@
+{
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    return;
+  }
+  final VirtualFile sdkRoot=sdk.getHomeDirectory();
+  if (sdkRoot == null || !sdkRoot.isValid()) {
+    return;
+  }
+  sdkRoot.refresh(false,true);
+  final SdkModificator sdkModificator=sdk.getSdkModificator();
+  sdkModificator.setVersionString(readFlexSdkVersion(sdkRoot));
+  final String configFileRelativePath=sdk.getSdkType() instanceof AirSdkType ? "frameworks/air-config.xml" : "frameworks/flex-config.xml";
+  final VirtualFile configFile=sdkRoot.findFileByRelativePath(configFileRelativePath);
+  if (configFile == null) {
+    return;
+  }
+  try {
+    setupSdkLibraries(sdkModificator,configFile);
+  }
+ catch (  IOException e) {
+  }
+  final VirtualFile projectsDir=VfsUtil.findRelativeFile("frameworks/projects",sdkRoot);
+  if (projectsDir != null && projectsDir.isDirectory()) {
+    findSourceRoots(projectsDir,sdkModificator);
+  }
+  sdkModificator.commitChanges();
+}

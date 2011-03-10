@@ -1,0 +1,21 @@
+{
+  if (!(_childDescriptor instanceof ClassBackedElementDescriptor) || !(_parentDescriptor instanceof ClassBackedElementDescriptor)) {
+    return false;
+  }
+  final ClassBackedElementDescriptor childDescriptor=(ClassBackedElementDescriptor)_childDescriptor;
+  final ClassBackedElementDescriptor parentDescriptor=(ClassBackedElementDescriptor)_parentDescriptor;
+  if (childDescriptor.predefined) {
+    return false;
+  }
+  if (MxmlLanguageTagsUtil.isFxDeclarationsTag(parentTag) || MxmlLanguageTagsUtil.isFxDefinitionTag(parentTag)) {
+    return false;
+  }
+  final PsiElement parent=parentTag.getParent();
+  if (!ArrayUtil.contains(JavaScriptSupportLoader.MXML_URI3,parentTag.knownNamespaces()) && (parent instanceof XmlDocument || (parent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)parent)))) {
+    return false;
+  }
+  if (JSResolveUtil.isAssignableType(RADIO_BUTTON_GROUP_CLASS,childDescriptor.className,parentTag)) {
+    return false;
+  }
+  return isContainerClass(parentDescriptor);
+}

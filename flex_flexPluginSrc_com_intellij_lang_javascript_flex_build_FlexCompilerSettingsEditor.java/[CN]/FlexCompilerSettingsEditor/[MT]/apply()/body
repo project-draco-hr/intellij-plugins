@@ -1,0 +1,47 @@
+{
+  if (!isModified()) {
+    return;
+  }
+  final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(myModule.getProject());
+  flexCompilerHandler.quitCompilerShell();
+  flexCompilerHandler.getModuleToRelatedFilesCache().markModuleAndDependentModulesDirty(myModule);
+  config.DO_BUILD=myUseIDEBuilderCheckBox.isSelected();
+  config.OUTPUT_TYPE=getOutputType();
+  config.USE_DEFAULT_SDK_CONFIG_FILE=myUseDefaultSdkConfigFileCheckBox.isSelected();
+  config.USE_CUSTOM_CONFIG_FILE=myUseCustomConfigFileCheckBox.isSelected();
+  config.CUSTOM_CONFIG_FILE=FileUtil.toSystemIndependentName(myCustomConfigFileTextField.getText().trim());
+  config.USE_CUSTOM_CONFIG_FILE_FOR_TESTS=myCustomConfigFileForTestsCheckBox.isSelected();
+  config.CUSTOM_CONFIG_FILE_FOR_TESTS=FileUtil.toSystemIndependentName(myCustomConfigFileForTestsTextWithBrowse.getText().trim());
+  config.MAIN_CLASS=myMainClassTextWithBrowse.getText().trim();
+  config.OUTPUT_FILE_NAME=myOutputFileNameTextField.getText().trim();
+  if (myFlexFacet == null) {
+    final boolean inherit=myInheritProjectCompileOutputRadioButton.isSelected();
+    myCompilerExtension.inheritCompilerOutputPath(inherit);
+    if (!inherit) {
+      myCompilerExtension.setCompilerOutputPath(getCompilerOutputUrl(myModuleSpecificOutputPathTextField.getText().trim()));
+      myCompilerExtension.setCompilerOutputPathForTests(getCompilerOutputUrl(myModuleSpecificOutputPathForTestsTextField.getText().trim()));
+      myCompilerExtension.setExcludeOutput(myExcludeOutputPathsCheckBox.isSelected());
+    }
+    myCompilerExtension.commit();
+  }
+ else {
+    config.USE_FACET_COMPILE_OUTPUT_PATH=myUseFacetCompileOutputPathCheckBox.isSelected();
+    config.FACET_COMPILE_OUTPUT_PATH=FileUtil.toSystemIndependentName(myFacetSpecificOutputPathTextField.getText().trim());
+    config.FACET_COMPILE_OUTPUT_PATH_FOR_TESTS=FileUtil.toSystemIndependentName(myFacetSpecificOutputPathForTestsTextField.getText().trim());
+  }
+  config.INCLUDE_RESOURCE_FILES_IN_SWC=myIncludeResourceFilesInSwcCheckBox.isSelected();
+  config.STATIC_LINK_RUNTIME_SHARED_LIBRARIES=!myUseFrameworkAsRsl.isSelected();
+  final boolean targetPlayerMajorOrMinorVersionChanged=!TargetPlayerUtils.majorAndMinorVersionEqual(config.TARGET_PLAYER_VERSION,myTargetPlayerVersionForm.getPlayerVersion());
+  config.TARGET_PLAYER_VERSION=myTargetPlayerVersionForm.getPlayerVersion();
+  if (targetPlayerMajorOrMinorVersionChanged && myFlexFacet == null) {
+    TargetPlayerUtils.changeFlexSdkIfNeeded(myModule,config.TARGET_PLAYER_VERSION);
+  }
+  config.USE_LOCALE_SETTINGS=myLocaleCheckBox.isSelected();
+  config.LOCALE=myLocaleTextFieldWithBrowse.getText();
+  config.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST=myNamespaceAndManifestFileInfoList;
+  config.CONDITIONAL_COMPILATION_DEFINITION_LIST=myConditionalCompilationDefinitionList;
+  config.CSS_FILES_LIST=myCssFilesList;
+  config.PATH_TO_SERVICES_CONFIG_XML=myServerTechnologyForm.getPathToServicesConfigXml();
+  config.CONTEXT_ROOT=myServerTechnologyForm.getContextRoot();
+  config.ADDITIONAL_COMPILER_OPTIONS=myAdditionalCompilerOptionsTextField.getText();
+}

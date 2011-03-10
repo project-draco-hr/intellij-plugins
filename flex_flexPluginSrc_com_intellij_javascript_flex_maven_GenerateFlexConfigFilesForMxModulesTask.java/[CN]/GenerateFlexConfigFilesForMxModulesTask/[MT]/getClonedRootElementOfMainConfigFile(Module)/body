@@ -1,0 +1,23 @@
+{
+  for (  final FlexFacet flexFacet : FacetManager.getInstance(module).getFacetsByType(FlexFacet.ID)) {
+    if (flexFacet.getName().equals(FlexFacetImporter.FLEX_FACET_DEFAULT_NAME)) {
+      final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(flexFacet);
+      final VirtualFile configFile=LocalFileSystem.getInstance().findFileByPath(config.CUSTOM_CONFIG_FILE);
+      if (configFile != null) {
+        try {
+          final Document document=(Document)JDOMUtil.loadDocument(configFile.getInputStream()).clone();
+          final Element rootElement=document.getRootElement();
+          if (rootElement.getName().equals(FLEX_CONFIG)) {
+            return rootElement;
+          }
+        }
+ catch (        JDOMException e) {
+        }
+catch (        IOException e) {
+        }
+      }
+      return null;
+    }
+  }
+  return null;
+}

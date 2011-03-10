@@ -1,0 +1,17 @@
+{
+  for (  final Library library : modifiableModelsProvider.getAllLibraries()) {
+    if (MavenRootModelAdapter.isMavenLibrary(library) && library.getName().contains(":rb.swc:")) {
+      final Library.ModifiableModel libraryModifiableModel=modifiableModelsProvider.getLibraryModel(library);
+      final Collection<String> rbSwcPlaceholderUrls=findRbSwcPlaceholderUrls(libraryModifiableModel);
+      for (      final String rbSwcPlaceholdersUrl : rbSwcPlaceholderUrls) {
+        final Collection<String> rootsToAdd=findRbSwcsForCompiledLocales(mavenProject,rbSwcPlaceholdersUrl);
+        libraryModifiableModel.removeRoot(rbSwcPlaceholdersUrl,OrderRootType.CLASSES);
+        for (        final String rootToAdd : rootsToAdd) {
+          if (!ArrayUtil.contains(rootToAdd,libraryModifiableModel.getUrls(OrderRootType.CLASSES))) {
+            libraryModifiableModel.addRoot(rootToAdd,OrderRootType.CLASSES);
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  final int dotPos=expression.indexOf('.');
+  final String typeName=dotPos != -1 ? expression.substring(0,dotPos) : expression;
+  final String resolvedName=ApplicationManager.getApplication().runReadAction(new Computable<String>(){
+    public String compute(){
+      final VirtualFile virtualFile=mySourcePosition.getFile();
+      final PsiFile file=PsiManager.getInstance(myDebugProcess.getSession().getProject()).findFile(virtualFile);
+      final int offset=mySourcePosition.getOffset();
+      PsiElement element=file.findElementAt(offset);
+      if (file instanceof XmlFile) {
+        final PsiLanguageInjectionHost psiLanguageInjectionHost=PsiTreeUtil.getParentOfType(element,PsiLanguageInjectionHost.class);
+        if (psiLanguageInjectionHost != null) {
+          final Ref<PsiElement> result=new Ref<PsiElement>();
+          psiLanguageInjectionHost.processInjectedPsi(new PsiLanguageInjectionHost.InjectedPsiVisitor(){
+            public void visit(            @NotNull final PsiFile injectedPsi,            @NotNull final List<PsiLanguageInjectionHost.Shred> places){
+              final PsiLanguageInjectionHost.Shred shred=places.get(0);
+              final int injectedStart=shred.host.getTextOffset() + shred.getRangeInsideHost().getStartOffset();
+              final PsiElement value=injectedPsi.findElementAt(offset - injectedStart + (shred.prefix != null ? shred.prefix.length() : 0));
+              result.set(value);
+            }
+          }
+);
+          element=result.get();
+        }
+      }
+      return element == null ? typeName : JSImportHandlingUtil.resolveTypeName(typeName,element);
+    }
+  }
+);
+  boolean isGlobal=false;
+  boolean handled=false;
+  if (!resolvedName.equals(typeName) || (isGlobal=typeName.equals("global"))) {
+    final String id=qName2IdMap.get(resolvedName + (isGlobal ? "" : "$"));
+    if (id != null) {
+      handled=true;
+      DebuggerCommand evaluateCommand=new EvaluateCommand("#" + id + (dotPos != -1 ? expression.substring(dotPos) : ""),callback){
+        @Override CommandOutputProcessingMode doOnTextAvailable(        @NonNls final String s){
+          dispatchResult(s);
+          return CommandOutputProcessingMode.DONE;
+        }
+      }
+;
+      myDebugProcess.sendAndProcessOneCommand(evaluateCommand,new Function<Exception,Void>(){
+        public Void fun(        final Exception e){
+          FlexDebugProcess.log(e);
+          return null;
+        }
+      }
+);
+    }
+  }
+ else   if (scopeChain != null) {
+    for (    String id2 : scopeChain) {
+      final Ref<Boolean> resolved=new Ref<Boolean>();
+      DebuggerCommand evaluateCommand=new EvaluateCommand(id2 + "." + expression,callback){
+        @Override CommandOutputProcessingMode doOnTextAvailable(        @NonNls final String s){
+          if (!cannotEvaluateResponse(s)) {
+            resolved.set(Boolean.TRUE);
+            dispatchResult(s);
+          }
+          return CommandOutputProcessingMode.DONE;
+        }
+      }
+;
+      myDebugProcess.sendAndProcessOneCommand(evaluateCommand,new Function<Exception,Void>(){
+        public Void fun(        final Exception e){
+          FlexDebugProcess.log(e);
+          return null;
+        }
+      }
+);
+      if (resolved.get() == Boolean.TRUE) {
+        handled=true;
+        break;
+      }
+    }
+  }
+  if (!handled) {
+    dispatchResult(CANNOT_EVALUATE_EXPRESSION + expression);
+  }
+}

@@ -1,0 +1,28 @@
+{
+  final int index=version.lastIndexOf('.');
+  if (index <= 0)   return null;
+  final List<Sdk> sdks=FlexSdkUtils.getAllFlexAndAirSdks();
+  final String baseVersion=version.substring(0,index);
+  final String revision=version.substring(index + 1,version.length());
+  Sdk sdk=selectSdk(sdks,new Processor<String>(){
+    public boolean process(    final String sdkVersion){
+      return sdkVersion.startsWith(baseVersion) && sdkVersion.endsWith(revision);
+    }
+  }
+);
+  if (sdk == null) {
+    final String majorVersion=version.substring(0,version.indexOf('.') + 1);
+    sdk=selectSdk(sdks,new Processor<String>(){
+      public boolean process(      final String sdkVersion){
+        return sdkVersion.startsWith(majorVersion);
+      }
+    }
+);
+  }
+  if (sdk == null) {
+    if (!sdks.isEmpty()) {
+      sdk=sdks.get(0);
+    }
+  }
+  return sdk;
+}

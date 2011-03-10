@@ -1,0 +1,37 @@
+{
+  final String mainContentEntryUrl=VfsUtil.pathToUrl(flashBuilderProject.getProjectRootPath());
+  final ContentEntry mainContentEntry=rootModel.addContentEntry(mainContentEntryUrl);
+  final Collection<ContentEntry> otherContentEntries=new ArrayList<ContentEntry>();
+  final Collection<String> sourcePaths=flashBuilderProject.getSourcePaths();
+  if (sourcePaths.isEmpty()) {
+    final VirtualFile contentRoot=mainContentEntry.getFile();
+    final String mainClass=flashBuilderProject.getMainAppClassName();
+    if (contentRoot != null && !StringUtil.isEmpty(mainClass) && (contentRoot.findChild(mainClass + ".mxml") != null || contentRoot.findChild(mainClass + ".as") != null)) {
+      mainContentEntry.addSourceFolder(mainContentEntry.getUrl(),false);
+    }
+  }
+ else {
+    OUTER:     for (    final String _sourcePath : sourcePaths) {
+      final String sourcePath=getAbsolutePathWithLinksHandled(flashBuilderProject,_sourcePath);
+      final String sourceUrl=VfsUtil.pathToUrl(sourcePath);
+      try {
+        if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
+          mainContentEntry.addSourceFolder(sourceUrl,false);
+        }
+ else {
+          for (          final ContentEntry otherContentEntry : otherContentEntries) {
+            if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
+              otherContentEntry.addSourceFolder(sourceUrl,false);
+              continue OUTER;
+            }
+          }
+          final ContentEntry newContentEntry=rootModel.addContentEntry(sourceUrl);
+          newContentEntry.addSourceFolder(sourceUrl,false);
+          otherContentEntries.add(newContentEntry);
+        }
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+}

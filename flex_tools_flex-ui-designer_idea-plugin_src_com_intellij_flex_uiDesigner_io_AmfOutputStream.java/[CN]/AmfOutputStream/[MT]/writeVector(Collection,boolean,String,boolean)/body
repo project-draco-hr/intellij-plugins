@@ -1,0 +1,25 @@
+{
+  write(Amf3Types.VECTOR_OBJECT);
+  final int n=collection.size();
+  writeUInt29((n << 1) | 1);
+  write(fixed);
+  if (elementTypeName.equals("java.lang.Object")) {
+    writeUInt29(1);
+  }
+ else {
+    writeStringWithoutType(elementTypeName);
+  }
+  if (n == 0) {
+    return;
+  }
+  for (  Object current : collection) {
+    if (current == null) {
+      write(Amf3Types.NULL);
+    }
+ else {
+      write(Amf3Types.OBJECT);
+      writeObjectTraits(homogeneous ? elementTypeName : current.getClass().getName());
+      ((AmfOutputable)current).writeExternal(this);
+    }
+  }
+}

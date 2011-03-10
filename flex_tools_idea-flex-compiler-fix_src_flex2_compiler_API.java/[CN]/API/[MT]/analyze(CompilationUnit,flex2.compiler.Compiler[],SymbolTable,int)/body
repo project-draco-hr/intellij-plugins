@@ -1,0 +1,67 @@
+{
+  Source s=u.getSource();
+  if (!s.isCompiled()) {
+    flex2.compiler.Compiler c=getCompiler(s,compilers);
+    if (c != null) {
+      Logger original=ThreadLocalToolkit.getLogger(), local=s.getLogger();
+      ThreadLocalToolkit.setLogger(local);
+      if (phase == 1) {
+        c.analyze1(u,symbolTable);
+        if (local.errorCount() == 0) {
+          if (s.isSourcePathOwner() || s.isSourceListOwner()) {
+            int size=u.topLevelDefinitions.size();
+            if (size > 1) {
+              ThreadLocalToolkit.log(new MoreThanOneDefinition(u.topLevelDefinitions),s);
+            }
+ else             if (size < 1) {
+              ThreadLocalToolkit.log(new MustHaveOneDefinition(),s);
+            }
+ else             if (s.isSourcePathOwner()) {
+              SourcePath owner=(SourcePath)s.getOwner();
+              String[] packages=owner.checkPackageNameDirectoryName(s);
+              if (packages != null) {
+                ThreadLocalToolkit.log(new WrongPackageName(packages[0],packages[1]),s);
+              }
+              String[] classes=owner.checkClassNameFileName(s);
+              if (classes != null) {
+                ThreadLocalToolkit.log(new WrongDefinitionName(classes[0],classes[1]),s);
+              }
+            }
+ else             if (s.isSourceListOwner()) {
+              SourceList owner=(SourceList)s.getOwner();
+              String[] packages=owner.checkPackageNameDirectoryName(s);
+              if (packages != null) {
+                ThreadLocalToolkit.log(new WrongPackageName(packages[0],packages[1]),s);
+              }
+              String[] classes=owner.checkClassNameFileName(s);
+              if (classes != null) {
+                ThreadLocalToolkit.log(new WrongDefinitionName(classes[0],classes[1]),s);
+              }
+            }
+          }
+        }
+        u.setWorkflow(analyze1);
+      }
+ else       if (phase == 2) {
+        c.analyze2(u,symbolTable);
+        u.setWorkflow(analyze2);
+      }
+ else       if (phase == 3) {
+        c.analyze3(u,symbolTable);
+        u.setWorkflow(analyze3);
+      }
+ else {
+        c.analyze4(u,symbolTable);
+        u.setWorkflow(analyze4);
+      }
+      ThreadLocalToolkit.setLogger(original);
+      if (local.errorCount() > 0) {
+        return false;
+      }
+    }
+ else {
+      return false;
+    }
+  }
+  return true;
+}

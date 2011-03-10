@@ -1,0 +1,72 @@
+{
+  final boolean isFlexmojos=flexSdk.getSdkType() instanceof FlexmojosSdkType;
+  String javaHome=SystemProperties.getJavaHome();
+  boolean customJavaHomeSet=false;
+  String additionalJavaArgs=null;
+  int heapSizeMbFromJvmConfig=0;
+  String classpath=additionalClasspath;
+  if (isFlexmojos) {
+    final FlexmojosSdkAdditionalData data=(FlexmojosSdkAdditionalData)flexSdk.getSdkAdditionalData();
+    classpath=(StringUtil.isEmpty(classpath) ? "" : (classpath + File.pathSeparator)) + FileUtil.toSystemDependentName(StringUtil.join(data.getFlexCompilerClasspath(),File.pathSeparator));
+  }
+ else {
+    final VirtualFile jvmConfigFile=LocalFileSystem.getInstance().refreshAndFindFileByPath(flexSdk.getHomePath() + "/bin/jvm.config");
+    if (jvmConfigFile != null) {
+      final Properties properties=new Properties();
+      try {
+        properties.load(jvmConfigFile.getInputStream());
+        final String configuredJavaHome=properties.getProperty("java.home");
+        if (configuredJavaHome != null && configuredJavaHome.trim().length() > 0) {
+          javaHome=configuredJavaHome;
+          customJavaHomeSet=true;
+        }
+        final String javaArgs=properties.getProperty("java.args");
+        if (javaArgs != null && javaArgs.trim().length() > 0) {
+          additionalJavaArgs=javaArgs;
+          final Matcher matcher=XMX_PATTERN.matcher(javaArgs);
+          if (matcher.matches()) {
+            try {
+              heapSizeMbFromJvmConfig=Integer.parseInt(matcher.group(2));
+            }
+ catch (            NumberFormatException e) {
+            }
+          }
+        }
+        final String classpathFromJvmConfig=properties.getProperty("java.class.path");
+        if (classpathFromJvmConfig != null && classpathFromJvmConfig.trim().length() > 0) {
+          classpath=(StringUtil.isEmpty(classpath) ? "" : (classpath + File.pathSeparator)) + classpathFromJvmConfig;
+        }
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+  final String javaExecutable=FileUtil.toSystemDependentName((javaHome + "/bin/java" + (SystemInfo.isWindows ? ".exe" : "")));
+  final String applicationHomeParam=isFlexmojos ? null : ("-Dapplication.home=" + FileUtil.toSystemDependentName(flexSdk.getHomePath()));
+  final String d32=(!customJavaHomeSet && SystemInfo.isMac && is64BitJava(javaExecutable)) ? "-d32" : null;
+  final List<String> result=new ArrayList<String>();
+  result.add(javaExecutable);
+  if (StringUtil.isNotEmpty(d32))   result.add(d32);
+  if (StringUtil.isNotEmpty(applicationHomeParam))   result.add(applicationHomeParam);
+  if (StringUtil.isNotEmpty(additionalJavaArgs))   result.addAll(StringUtil.split(additionalJavaArgs," "));
+  final String vmOptions=FlexCompilerProjectConfiguration.getInstance(project).VM_OPTIONS;
+  if (StringUtil.isNotEmpty(vmOptions))   result.addAll(StringUtil.split(vmOptions," "));
+  result.add("-Duser.language=en");
+  result.add("-Duser.region=en");
+  final int heapSizeMb=FlexCompilerProjectConfiguration.getInstance(project).HEAP_SIZE_MB;
+  if (heapSizeMb > heapSizeMbFromJvmConfig) {
+    result.add("-Xmx" + heapSizeMb + "m");
+  }
+  if (StringUtil.isNotEmpty(classpath)) {
+    result.add("-classpath");
+    result.add(classpath);
+  }
+  if (isFlexmojos || jarName == null) {
+    result.add(mainClass);
+  }
+ else {
+    result.add("-jar");
+    result.add(FileUtil.toSystemDependentName(flexSdk.getHomePath() + "/lib/" + jarName));
+  }
+  return result;
+}

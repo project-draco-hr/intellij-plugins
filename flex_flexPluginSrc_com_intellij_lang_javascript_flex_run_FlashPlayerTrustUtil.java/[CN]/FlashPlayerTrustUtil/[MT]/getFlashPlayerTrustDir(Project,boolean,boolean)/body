@@ -1,0 +1,24 @@
+{
+  final String flashPlayerTrustDirRelPath=isWindows ? (isWindowsVista || isWindows7 ? WINDOWS_VISTA_AND_7_TRUST_DIR_REL_PATH : WINDOWS_XP_TRUST_DIR_REL_PATH) : isLinux ? LINUX_TRUST_DIR_REL_PATH : MAC_TRUST_DIR_REL_PATH;
+  final String flashPlayerTrustDirPath=SystemProperties.getUserHome() + flashPlayerTrustDirRelPath;
+  final VirtualFile flashPlayerTrustDir=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+    public VirtualFile compute(){
+      return LocalFileSystem.getInstance().refreshAndFindFileByPath(flashPlayerTrustDirPath);
+    }
+  }
+);
+  if (flashPlayerTrustDir == null && runTrusted) {
+    try {
+      return VfsUtil.createDirectories(flashPlayerTrustDirPath);
+    }
+ catch (    IOException e) {
+      showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.flash.player.trust.folder",e.getMessage()));
+      return null;
+    }
+  }
+ else   if (flashPlayerTrustDir != null && !flashPlayerTrustDir.isDirectory()) {
+    showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("flash.player.trust.folder.does.not.exist"));
+    return null;
+  }
+  return flashPlayerTrustDir;
+}
