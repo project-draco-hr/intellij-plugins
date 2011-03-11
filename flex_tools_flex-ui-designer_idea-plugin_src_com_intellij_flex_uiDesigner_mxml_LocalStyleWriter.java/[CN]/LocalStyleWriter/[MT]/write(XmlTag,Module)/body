@@ -1,14 +1,30 @@
 {
   data=null;
-  PsiElement host=XmlTagValueProvider.getInjectedHost(tag);
-  if (host == null) {
+  CssFile cssFile=null;
+  XmlAttribute source=tag.getAttribute("source");
+  if (source != null) {
+    XmlAttributeValue valueElement=source.getValueElement();
+    if (valueElement != null) {
+      PsiReference reference=valueElement.getReference();
+      if (reference != null) {
+        PsiElement element=reference.resolve();
+        if (element != null && element instanceof CssFile) {
+          cssFile=(CssFile)element;
+        }
+      }
+    }
+  }
+ else {
+    PsiElement host=XmlTagValueProvider.getInjectedHost(tag);
+    if (host != null) {
+      InjectedPsiVisitor visitor=new InjectedPsiVisitor(host);
+      InjectedLanguageUtil.enumerate(host,visitor);
+      cssFile=visitor.getCssFile();
+    }
+  }
+  if (cssFile == null) {
     return false;
   }
-  InjectedPsiVisitor visitor=new InjectedPsiVisitor(host);
-  InjectedLanguageUtil.enumerate(host,visitor);
-  if (visitor.getCssFile() == null) {
-    return false;
-  }
-  data=cssWriter.write(visitor.getCssFile(),module);
+  data=cssWriter.write(cssFile,module);
   return true;
 }
