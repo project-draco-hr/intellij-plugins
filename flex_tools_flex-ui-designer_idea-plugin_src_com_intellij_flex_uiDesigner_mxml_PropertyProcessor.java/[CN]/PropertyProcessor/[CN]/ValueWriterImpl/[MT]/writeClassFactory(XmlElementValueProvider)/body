@@ -1,7 +1,16 @@
 {
-  writer.writeObjectHeader("mx.core.ClassFactory");
-  writer.write("generator");
-  writer.getOut().write(PropertyClassifier.PROPERTY);
-  writeClass(valueProvider);
-  writer.getOut().write(MxmlWriter.EMPTY_CLASS_OR_PROPERTY_NAME);
+  String className=valueProvider.getTrimmed();
+  int reference=classFactoryMap.get(className);
+  if (reference == -1) {
+    reference=writer.getRootScope().referenceCounter++;
+    classFactoryMap.put(className,reference);
+    writer.getOut().write(Amf3Types.OBJECT);
+    writer.writeObjectHeader("mx.core.ClassFactory",reference);
+    writer.write("1");
+    writeClass(className);
+  }
+ else {
+    writer.getOut().write(AmfExtendedTypes.OBJECT_REFERENCE);
+    writer.getOut().writeUInt29(reference);
+  }
 }
