@@ -1,9 +1,9 @@
 {
-  VirtualFile swfFile=library.getSwfFile();
-  File modifiedSwf=createSwfOutFile(library);
+  VirtualFile swfFile=filteredLibrary.getOrigin().getSwfFile();
+  File modifiedSwf=createSwfOutFile(filteredLibrary.getOrigin());
   final long timeStamp=swfFile.getTimeStamp();
-  if (((timeStamp > injectionLastModified ? timeStamp : injectionLastModified) - modifiedSwf.lastModified()) > 2000) {
-    THashSet<CharSequence> definitions=new THashSet<CharSequence>(5);
+  if (filteredLibrary.hasUnresolvedDefinitions() || ((timeStamp > injectionLastModified ? timeStamp : injectionLastModified) - modifiedSwf.lastModified()) > 2000) {
+    Set<CharSequence> definitions=filteredLibrary.hasUnresolvedDefinitions() ? filteredLibrary.getUnresolvedDefinitions() : new THashSet<CharSequence>(5);
     definitions.add("FrameworkClasses");
     definitions.add("mx.managers.systemClasses:MarshallingSupport");
     definitions.add("mx.managers:SystemManagerProxy");
