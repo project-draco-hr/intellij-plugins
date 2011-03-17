@@ -13,6 +13,7 @@
     if (instructionsNode != null) {
       Map<String,String> props=new HashMap<String,String>();
       @SuppressWarnings({"unchecked"}) List<Element> children=instructionsNode.getChildren();
+      boolean useExistingManifest=false;
       for (      Element child : children) {
         String name=child.getName();
         String value=child.getValue();
@@ -25,12 +26,22 @@
           conf.setUseBndFile(false);
           conf.setUseBundlorFile(false);
           conf.setUseProjectDefaultManifestFileLocation(false);
+          useExistingManifest=true;
         }
+      }
+      if (!useExistingManifest) {
+        conf.setManifestLocation("");
+        conf.setOsmorcControlsManifest(true);
+        conf.setUseBndFile(false);
+        conf.setUseBundlorFile(false);
+        conf.setUseProjectDefaultManifestFileLocation(true);
       }
       if (!props.containsKey(Constants.BUNDLE_NAME)) {
         props.put(Constants.BUNDLE_NAME,computeBundleName(mavenProject));
       }
       conf.importAdditionalProperties(props,true);
     }
+    String jarFileName=mavenProject.getFinalName() + ".jar";
+    conf.setJarFileLocation(jarFileName,OsmorcFacetConfiguration.OutputPathType.CompilerOutputPath);
   }
 }
