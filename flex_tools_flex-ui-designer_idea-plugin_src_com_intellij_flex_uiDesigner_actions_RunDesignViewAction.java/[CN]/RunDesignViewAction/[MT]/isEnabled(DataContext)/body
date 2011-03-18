@@ -1,6 +1,6 @@
 {
   final Project project=LangDataKeys.PROJECT.getData(dataContext);
-  if (project == null) {
+  if (project == null || DumbService.isDumb(project)) {
     return false;
   }
   Editor editor=LangDataKeys.EDITOR.getData(dataContext);
@@ -11,15 +11,13 @@
     }
   }
   final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
-  if (!(psiFile instanceof XmlFile) || !psiFile.isValid()) {
+  if (psiFile == null || !JavaScriptSupportLoader.isFlexMxmFile(psiFile)) {
     return false;
   }
- else {
-    final VirtualFile file=psiFile.getVirtualFile();
-    if (file == null || !file.getName().endsWith(JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT) || !ProjectRootManager.getInstance(project).getFileIndex().isInSourceContent(file)) {
-      return false;
-    }
-    JSClass jsClass=(JSClass)JSResolveUtil.unwrapProxy(XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)psiFile));
-    return jsClass != null && JSResolveUtil.isAssignableType("mx.core.IUIComponent",jsClass.getQualifiedName(),jsClass);
+  final VirtualFile file=psiFile.getVirtualFile();
+  if (file == null || !ProjectRootManager.getInstance(project).getFileIndex().isInSourceContent(file)) {
+    return false;
   }
+  JSClass jsClass=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)psiFile);
+  return jsClass != null && JSInheritanceUtil.isParentClass(jsClass,ClassBackedElementDescriptor.UI_COMPONENT_BASE_INTERFACE);
 }
