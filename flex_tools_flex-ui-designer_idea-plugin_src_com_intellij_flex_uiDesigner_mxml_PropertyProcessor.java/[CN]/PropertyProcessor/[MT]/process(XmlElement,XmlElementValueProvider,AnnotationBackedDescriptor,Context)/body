@@ -10,6 +10,7 @@
   if (type == null) {
     if (typeName.equals(FlexAnnotationNames.EFFECT)) {
       isStyle=true;
+      isEffect=true;
     }
  else {
       if (!typeName.equals(FlexAnnotationNames.BINDABLE)) {
@@ -21,8 +22,12 @@
  else   if (typeName.equals(FlexAnnotationNames.EVENT)) {
     return null;
   }
-  if (injectedASWriter.processProperty(valueProvider,name,type,isStyle,context)) {
+  ValueWriter valueWriter=injectedASWriter.processProperty(valueProvider,name,type,isStyle,context);
+  if (valueWriter == InjectedASWriter.BINDING) {
     return null;
+  }
+ else   if (valueWriter != null) {
+    return valueWriter;
   }
   if (descriptor.isAllowsPercentage()) {
     return processPercentable(valueProvider,descriptor);

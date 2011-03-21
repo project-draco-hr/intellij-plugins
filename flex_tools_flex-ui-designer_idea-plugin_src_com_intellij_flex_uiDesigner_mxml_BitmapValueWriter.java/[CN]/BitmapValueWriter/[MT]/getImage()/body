@@ -1,0 +1,26 @@
+{
+  final InputStream inputStream=virtualFile.getInputStream();
+  final BufferedImage image;
+  try {
+    if (mimeType == null) {
+      image=ImageIO.read(inputStream);
+    }
+ else {
+      Iterator iter=ImageIO.getImageReaders(mimeType);
+      ImageReader reader=(ImageReader)iter.next();
+      ImageInputStream imageInputStream=ImageIO.createImageInputStream(inputStream);
+      reader.setInput(imageInputStream,true,true);
+      try {
+        image=reader.read(0,reader.getDefaultReadParam());
+      }
+  finally {
+        reader.dispose();
+        imageInputStream.close();
+      }
+    }
+  }
+  finally {
+    inputStream.close();
+  }
+  return image;
+}
