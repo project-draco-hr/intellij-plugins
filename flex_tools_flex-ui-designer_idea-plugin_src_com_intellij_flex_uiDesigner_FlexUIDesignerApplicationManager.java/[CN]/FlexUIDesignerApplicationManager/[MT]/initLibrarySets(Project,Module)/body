@@ -27,8 +27,13 @@
  else {
     externalLibrarySet=projectInfo.getLibrarySet();
   }
-  ModuleInfo moduleInfo=new ModuleInfo(module);
+  final ModuleInfo moduleInfo=new ModuleInfo(module);
   stringWriter.startChange();
-  ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter);
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter);
+    }
+  }
+);
   client.registerModule(project,moduleInfo,new String[]{externalLibrarySet.getId()},stringWriter);
 }
