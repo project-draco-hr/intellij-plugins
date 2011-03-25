@@ -1,0 +1,51 @@
+{
+  final String type=descriptor.getType();
+  if (isStyle) {
+    int flags=isSkinProjectClass ? SKIN_INT_PROJECT : 0;
+    if (isEffect()) {
+      flags|=EFFECT;
+      out.write(flags);
+      out.write(Amf3Types.OBJECT);
+      return COMPLEX_STYLE;
+    }
+ else {
+      out.write(flags);
+    }
+  }
+  if (type.equals(JSCommonTypeNames.STRING_CLASS_NAME)) {
+    writeString(valueProvider,descriptor);
+  }
+ else   if (type.equals(JSCommonTypeNames.NUMBER_CLASS_NAME)) {
+    out.writeAmfDouble(valueProvider.getTrimmed());
+  }
+ else   if (type.equals(JSCommonTypeNames.BOOLEAN_CLASS_NAME)) {
+    out.writeAmfBoolean(valueProvider.getTrimmed());
+  }
+ else   if (type.equals("int") || type.equals("uint")) {
+    String format=descriptor.getFormat();
+    if (format != null && format.equals(FlexCssPropertyDescriptor.COLOR_FORMAT)) {
+      PropertyProcessor.this.writer.writeColor(valueProvider.getTrimmed(),isStyle);
+    }
+ else {
+      out.writeAmfInt(valueProvider.getTrimmed());
+    }
+  }
+ else   if (type.equals(JSCommonTypeNames.ARRAY_CLASS_NAME)) {
+    out.write(Amf3Types.ARRAY);
+    return ARRAY;
+  }
+ else   if (type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME) || type.equals(JSCommonTypeNames.ANY_TYPE)) {
+    writeUntypedPropertyValue(valueProvider,descriptor);
+  }
+ else   if (type.equals("Class")) {
+    PropertyProcessor.this.writer.writeClass(valueProvider.getTrimmed());
+  }
+ else   if (type.equals("mx.core.IFactory")) {
+    writeClassFactory(valueProvider);
+  }
+ else {
+    out.write(Amf3Types.OBJECT);
+    return isStyle ? COMPLEX_STYLE : COMPLEX;
+  }
+  return isStyle ? PRIMITIVE_STYLE : PRIMITIVE;
+}
