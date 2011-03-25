@@ -1,12 +1,10 @@
 {
-  ApplicationEx application=ApplicationManagerEx.getApplicationEx();
-  application.assertTimeConsuming();
   try {
     client.initStringRegistry();
     initLibrarySets(myProject,myModule);
     client.openDocument(myModule,myPsiFile);
     client.flush();
-    application.getMessageBus().syncPublisher(MESSAGE_TOPIC).initialDocumentOpened();
+    ApplicationManager.getApplication().getMessageBus().syncPublisher(MESSAGE_TOPIC).initialDocumentOpened();
   }
  catch (  IOException e) {
     try {
@@ -17,5 +15,8 @@
       LOG.error(innerError);
     }
     LOG.error(e);
+  }
+ finally {
+    documentOpening=false;
   }
 }
