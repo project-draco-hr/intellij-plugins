@@ -1,0 +1,25 @@
+{
+  if (projectManagerListener == null) {
+    projectManagerListener=new MyProjectManagerListener();
+    ProjectManager.getInstance().addProjectManagerListener(projectManagerListener);
+  }
+  if (appDir == null) {
+    appDir=new File(PathManager.getSystemPath(),"flexUIDesigner");
+  }
+  if (DebugPathManager.IS_DEV) {
+    return;
+  }
+  final ClassLoader classLoader=getClass().getClassLoader();
+  final URL appUrl=classLoader.getResource(DESIGNER_SWF);
+  LOG.assertTrue(appUrl != null);
+  final URLConnection appUrlConnection=appUrl.openConnection();
+  final long lastModified=appUrlConnection.getLastModified();
+  final File appFile=new File(appDir,DESIGNER_SWF);
+  if (appFile.lastModified() >= lastModified) {
+    return;
+  }
+  appDir.mkdirs();
+  saveStream(classLoader.getResourceAsStream(DESCRIPTOR_XML),new File(appDir,DESCRIPTOR_XML));
+  saveStream(appUrlConnection.getInputStream(),appFile);
+  appFile.setLastModified(lastModified);
+}

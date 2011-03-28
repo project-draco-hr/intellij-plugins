@@ -2,6 +2,17 @@
   VirtualFile swfFile=filteredLibrary.getOrigin().getSwfFile();
   File modifiedSwf=createSwfOutFile(filteredLibrary.getOrigin());
   final long timeStamp=swfFile.getTimeStamp();
+  final long injectionLastModified;
+  final URLConnection injectionUrlConnection;
+  if (DebugPathManager.IS_DEV) {
+    injectionLastModified=createInjectionAbc(flexSdkVersion,false);
+    injectionUrlConnection=null;
+  }
+ else {
+    URL url=getClass().getClassLoader().getResource(ComplementSwfBuilder.generateInjectionName(flexSdkVersion));
+    injectionUrlConnection=url.openConnection();
+    injectionLastModified=injectionUrlConnection.getLastModified();
+  }
   if (filteredLibrary.hasUnresolvedDefinitions() || ((timeStamp > injectionLastModified ? timeStamp : injectionLastModified) - modifiedSwf.lastModified()) > 2000) {
     Set<CharSequence> definitions=filteredLibrary.hasUnresolvedDefinitions() ? filteredLibrary.getUnresolvedDefinitions() : new THashSet<CharSequence>(5);
     definitions.add("FrameworkClasses");
@@ -9,7 +20,7 @@
     definitions.add("mx.managers:SystemManagerProxy");
     definitions.add("mx.styles:StyleManager");
     definitions.add("mx.styles:StyleManagerImpl");
-    new AbcFilter().inject(swfFile,modifiedSwf,flexSdkVersion,new AbcNameFilterByNameSetAndStartsWith(definitions,new String[]{"mx.managers.marshalClasses:"}));
+    new FlexSdkAbcInjector(injectionUrlConnection).inject(swfFile,modifiedSwf,flexSdkVersion,new AbcNameFilterByNameSetAndStartsWith(definitions,new String[]{"mx.managers.marshalClasses:"}));
     modifiedSwf.setLastModified(timeStamp);
   }
 }
