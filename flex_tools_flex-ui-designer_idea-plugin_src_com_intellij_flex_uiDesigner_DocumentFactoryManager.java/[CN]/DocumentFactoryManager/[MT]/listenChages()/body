@@ -1,0 +1,20 @@
+{
+  if (fileDocumentManagerListener == null) {
+    fileDocumentManagerListener=new MyFileDocumentManagerListener();
+  }
+  MessageBus messageBus=ApplicationManager.getApplication().getMessageBus();
+  fileDocumentManagerListener.subscribe(messageBus);
+  if (flexUIDesignerApplicationManagerConnection == null) {
+    flexUIDesignerApplicationManagerConnection=messageBus.connect();
+    flexUIDesignerApplicationManagerConnection.subscribe(FlexUIDesignerApplicationManager.MESSAGE_TOPIC,new FlexUIDesignerApplicationListener(){
+      @Override public void initialDocumentOpened(){
+      }
+      @Override public void applicationClosed(){
+        files.clear();
+        freeIndices.resetQuick();
+        fileDocumentManagerListener.unsubscribe();
+      }
+    }
+);
+  }
+}
