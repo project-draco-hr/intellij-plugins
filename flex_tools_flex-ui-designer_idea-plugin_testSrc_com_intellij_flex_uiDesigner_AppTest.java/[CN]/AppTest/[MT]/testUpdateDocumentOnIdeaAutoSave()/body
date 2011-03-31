@@ -1,0 +1,20 @@
+{
+  info.count=2;
+  VirtualFile newParent=open("states/SetProperty.mxml");
+  callClientAssert("wait");
+  VirtualFile virtualFile=newParent.getChildren()[0];
+  final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      document.insertString(254,"A");
+    }
+  }
+);
+  PsiDocumentManager.getInstance(myProject).commitAllDocuments();
+  final FlexUIDesignerApplicationManager designerApplicationManager=FlexUIDesignerApplicationManager.getInstance();
+  designerApplicationManager.openDocument(myProject,myModule,(XmlFile)myFile,false);
+  while (designerApplicationManager.isDocumentOpening()) {
+    Thread.sleep(8);
+  }
+  callClientAssert(getTestName(false));
+}
