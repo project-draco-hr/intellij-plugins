@@ -1,0 +1,24 @@
+{
+  out.write(AmfExtendedTypes.BITMAP);
+  int id;
+  if ((id=checkRegistered(out)) == -1) {
+    return;
+  }
+  final BufferedImage image;
+  try {
+    image=getImage();
+  }
+ catch (  IOException e) {
+    LOG.error(e);
+    return;
+  }
+  try {
+    final OutputStream output=writer.getBlockOut().writeUnbufferedHeader(2 + 2 + 2+ 2+ 1+ (image.getWidth() * image.getHeight() * 4));
+    output.write(Client.ClientMethod.METHOD_CLASS);
+    output.write(Client.ClientMethod.registerBitmap.ordinal());
+    write(id,image,output);
+  }
+ catch (  IOException e) {
+    LOG.error(e);
+  }
+}

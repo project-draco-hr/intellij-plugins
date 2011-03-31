@@ -1,24 +1,50 @@
 {
+  final OutputStream socketOutputStream;
   try {
     socket=serverSocket.accept();
     serverSocket.close();
-    myPendingTask.setOutput(socket.getOutputStream());
-    ApplicationManager.getApplication().runReadAction(myPendingTask);
-    myPendingTask=null;
-    ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream());
+    socketOutputStream=socket.getOutputStream();
   }
  catch (  IOException e) {
-    if (!(e instanceof SocketException && socket.isClosed())) {
-      LOG.error(e);
-    }
-  }
+    LOG.error(e);
+    if (socket != null) {
+      try {
+        socket.close();
+      }
+ catch (      IOException inner) {
+        LOG.error(inner);
+      }
  finally {
-    try {
-      close();
-      applicationManager.serverClosed();
+        applicationManager.serverClosed();
+      }
     }
- catch (    IOException e) {
-      LOG.error(e);
+    return;
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      try {
+        ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream());
+      }
+ catch (      IOException e) {
+        if (!(e instanceof SocketException && socket.isClosed())) {
+          LOG.error(e);
+        }
+      }
+ finally {
+        try {
+          close();
+        }
+ catch (        IOException e) {
+          LOG.error(e);
+        }
+ finally {
+          applicationManager.serverClosed();
+        }
+      }
     }
   }
+);
+  myPendingTask.setOutput(socketOutputStream);
+  myPendingTask.run();
+  myPendingTask=null;
 }

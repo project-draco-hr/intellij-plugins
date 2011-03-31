@@ -1,0 +1,25 @@
+{
+  this.stringWriter=stringWriter;
+  this.moduleInfo=moduleInfo;
+  this.flexSdkVersion=flexSdkVersion;
+  processor=new Processor<JSClass>(){
+    @Override public boolean process(    JSClass jsClass){
+      PsiFile containingFile=jsClass.getNavigationElement().getContainingFile();
+      if (containingFile instanceof XmlFile) {
+        XmlTag rootTag=((XmlFile)containingFile).getRootTag();
+        if (rootTag != null) {
+          for (          final XmlTag subTag : rootTag.getSubTags()) {
+            if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
+              if (getStyleWriter().write(subTag,moduleInfo.getModule())) {
+                moduleInfo.addLocalStyleHolder(new LocalStyleHolder(containingFile.getVirtualFile(),getStyleWriter().getData()));
+              }
+              break;
+            }
+          }
+        }
+      }
+      return true;
+    }
+  }
+;
+}

@@ -1,5 +1,13 @@
 {
-  int factoryId=registerDocumentFactoryIfNeed(module,psiFile,false);
+  DocumentFactoryManager documentFileManager=DocumentFactoryManager.getInstance(module.getProject());
+  VirtualFile virtualFile=psiFile.getVirtualFile();
+  FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
+  if (documentFileManager.isRegistered(virtualFile) && ArrayUtil.indexOf(fileDocumentManager.getUnsavedDocuments(),fileDocumentManager.getDocument(virtualFile)) != -1) {
+    updateDocumentFactory(documentFileManager.getId(virtualFile),module,psiFile);
+    return;
+  }
+  int factoryId=registerDocumentFactoryIfNeed(module,psiFile,documentFileManager,false);
   beginMessage(ClientMethod.openDocument);
+  out.writeInt(module.hashCode());
   out.writeShort(factoryId);
 }
