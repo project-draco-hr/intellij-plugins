@@ -31,16 +31,35 @@
     myNeedToRemoveAirRuntimeDir=false;
     myAirRuntimeDirForFlexmojosSdk=null;
   }
-  final String adlOptions=params.getAdlOptions();
-  if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
-    commandLine.addParameters(StringUtil.split(adlOptions," "));
-  }
-  commandLine.addParameter(params.getAirDescriptorPath());
-  commandLine.addParameter(params.getAirRootDirPath());
-  final String programParameters=params.getAirProgramParameters();
-  if (!StringUtil.isEmptyOrSpaces(programParameters)) {
-    commandLine.addParameter("--");
-    commandLine.addParameters(StringUtil.split(programParameters," "));
-  }
-  return commandLine;
+  if (params instanceof AirMobileRunnerParameters) {
+    final AirMobileRunnerParameters p=(AirMobileRunnerParameters)params;
+switch (p.getAirMobileRunTarget()) {
+case Emulator:
+      commandLine.addParameter("-profile");
+    commandLine.addParameter("mobileDevice");
+  commandLine.addParameter("-screensize");
+final String adlAlias=p.getEmulator().adlAlias;
+if (adlAlias != null) {
+commandLine.addParameter(adlAlias);
+}
+ else {
+commandLine.addParameter(p.getScreenWidth() + "x" + p.getScreenHeight()+ ":"+ p.getFullScreenWidth()+ "x"+ p.getFullScreenHeight());
+}
+break;
+case AndroidDevice:
+break;
+}
+}
+final String adlOptions=params.getAdlOptions();
+if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
+commandLine.addParameters(StringUtil.split(adlOptions," "));
+}
+commandLine.addParameter(params.getAirDescriptorPath());
+commandLine.addParameter(params.getAirRootDirPath());
+final String programParameters=params.getAirProgramParameters();
+if (!StringUtil.isEmptyOrSpaces(programParameters)) {
+commandLine.addParameter("--");
+commandLine.addParameters(StringUtil.split(programParameters," "));
+}
+return commandLine;
 }

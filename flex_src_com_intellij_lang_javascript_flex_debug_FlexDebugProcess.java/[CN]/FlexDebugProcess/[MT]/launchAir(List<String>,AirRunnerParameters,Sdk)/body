@@ -25,17 +25,36 @@
     needToRemoveAirRuntimeDir=false;
     airRuntimeDirForFlexmojosSdk=null;
   }
-  final String adlOptions=airRunnerParameters.getAdlOptions();
-  if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
-    airLaunchCommand.addAll(StringUtil.split(adlOptions," "));
-  }
-  airLaunchCommand.add(airRunnerParameters.getAirDescriptorPath());
-  airLaunchCommand.add(airRunnerParameters.getAirRootDirPath());
-  final String programParameters=airRunnerParameters.getAirProgramParameters();
-  if (!StringUtil.isEmptyOrSpaces(programParameters)) {
-    airLaunchCommand.add("--");
-    airLaunchCommand.addAll(StringUtil.split(programParameters," "));
-  }
-  sendCommand(new StartAirAppDebuggingCommand(ArrayUtil.toStringArray(airLaunchCommand),needToRemoveAirRuntimeDir ? airRuntimeDirForFlexmojosSdk : null));
-  return process;
+  if (airRunnerParameters instanceof AirMobileRunnerParameters) {
+    final AirMobileRunnerParameters p=(AirMobileRunnerParameters)airRunnerParameters;
+switch (p.getAirMobileRunTarget()) {
+case Emulator:
+      airLaunchCommand.add("-profile");
+    airLaunchCommand.add("mobileDevice");
+  airLaunchCommand.add("-screensize");
+final String adlAlias=p.getEmulator().adlAlias;
+if (adlAlias != null) {
+airLaunchCommand.add(adlAlias);
+}
+ else {
+airLaunchCommand.add(p.getScreenWidth() + "x" + p.getScreenHeight()+ ":"+ p.getFullScreenWidth()+ "x"+ p.getFullScreenHeight());
+}
+break;
+case AndroidDevice:
+break;
+}
+}
+final String adlOptions=airRunnerParameters.getAdlOptions();
+if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
+airLaunchCommand.addAll(StringUtil.split(adlOptions," "));
+}
+airLaunchCommand.add(airRunnerParameters.getAirDescriptorPath());
+airLaunchCommand.add(airRunnerParameters.getAirRootDirPath());
+final String programParameters=airRunnerParameters.getAirProgramParameters();
+if (!StringUtil.isEmptyOrSpaces(programParameters)) {
+airLaunchCommand.add("--");
+airLaunchCommand.addAll(StringUtil.split(programParameters," "));
+}
+sendCommand(new StartAirAppDebuggingCommand(ArrayUtil.toStringArray(airLaunchCommand),needToRemoveAirRuntimeDir ? airRuntimeDirForFlexmojosSdk : null));
+return process;
 }
