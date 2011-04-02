@@ -1,0 +1,48 @@
+{
+  final PsiFile containingFile=psiElement.getContainingFile().getOriginalFile();
+  final String filename=containingFile.getName();
+  final String extension=FileUtil.getExtension(filename);
+  if (Arrays.binarySearch(SUPPORTED_EXTENSIONS,extension) < 0) {
+    return Collections.emptyList();
+  }
+  final StrutsManager strutsManager=StrutsManager.getInstance(psiElement.getProject());
+  final StrutsModel strutsModel=strutsManager.getCombinedModel(ModuleUtil.findModuleForPsiElement(psiElement));
+  if (strutsModel == null) {
+    return Collections.emptyList();
+  }
+  final Set<Action> actions=new HashSet<Action>();
+  final List<GotoRelatedItem> items=new ArrayList<GotoRelatedItem>();
+  strutsModel.processActions(new Processor<Action>(){
+    @Override public boolean process(    final Action action){
+      for (      final Result result : action.getResults()) {
+        final PathReference pathReference=result.getValue();
+        if (pathReference == null) {
+          continue;
+        }
+        final String path=pathReference.getPath();
+        if (!path.endsWith(filename)) {
+          continue;
+        }
+        final PsiElement resolve=pathReference.resolve();
+        final List<PsiFile> allFiles=containingFile.getViewProvider().getAllFiles();
+        if (ContainerUtil.find(allFiles,resolve) == null) {
+          continue;
+        }
+        if (!actions.contains(action)) {
+          items.add(new DomGotoRelatedItem(action));
+          actions.add(action);
+        }
+        if (action.getActionClass() != null) {
+          final PsiClass actionClass=action.getActionClass().getValue();
+          if (actionClass != null) {
+            final PsiMethod actionMethod=action.searchActionMethod();
+            items.add(new GotoRelatedItem(actionMethod != null ? actionMethod : actionClass));
+          }
+        }
+      }
+      return true;
+    }
+  }
+);
+  return items;
+}
