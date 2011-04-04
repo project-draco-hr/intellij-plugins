@@ -1,13 +1,12 @@
 {
   createReader(inputStream);
-  final FlexUIDesignerApplicationManager designerAppManager=FlexUIDesignerApplicationManager.getInstance();
   readProcess:   while (true) {
     final int command=reader.read();
 switch (command) {
 case -1:
       break readProcess;
 case ServerMethod.goToClass:
-    final Module module=designerAppManager.getClient().getModule(reader.readInt());
+    final Module module=readModule();
   final String className=reader.readUTF();
 ApplicationManager.getApplication().invokeLater(new Runnable(){
   @Override public void run(){
@@ -19,7 +18,7 @@ ApplicationManager.getApplication().invokeLater(new Runnable(){
 );
 break;
 case ServerMethod.openFile:
-final Project project=designerAppManager.getClient().getModule(reader.readInt()).getProject();
+final Project project=readProject();
 final OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(project,reader.readFile(),reader.readInt());
 ApplicationManager.getApplication().invokeLater(new Runnable(){
 @Override public void run(){
@@ -30,7 +29,10 @@ ProjectUtil.focusProjectWindow(project,true);
 );
 break;
 case ServerMethod.resolveExternalInlineStyleDeclarationSource:
-ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,designerAppManager.getClient().getModule(reader.readInt())));
+ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,readModule()));
+break;
+case ServerMethod.unregisterDocumentFactories:
+unregisterDocumentFactories();
 break;
 case ServerMethod.showError:
 FlexUIDesignerApplicationManager.LOG.error(reader.readUTF());
