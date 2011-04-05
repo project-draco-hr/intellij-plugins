@@ -1,15 +1,9 @@
 {
   super.setUp();
   final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
-  final LibraryStyleInfoCollector styleInfoCollector=new LibraryStyleInfoCollector(myProject,myModule,stringWriter);
   stringWriter.startChange();
   appRootDir=getAppRootDir();
-  libraries=new SwcDependenciesSorter(appRootDir).sort(getLibraries(new Consumer<OriginalLibrary>(){
-    @Override public void consume(    OriginalLibrary originalLibrary){
-      styleInfoCollector.collect(originalLibrary);
-    }
-  }
-),myProject.getLocationHash(),getFlexVersion());
+  libraries=new SwcDependenciesSorter(appRootDir).sort(getLibraries(new LibraryStyleInfoCollector(myProject,myModule,stringWriter)),myProject.getLocationHash(),getFlexVersion());
   final ServerSocket serverSocket=new ServerSocket(0,1);
   DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration=new DesignerApplicationUtil.AdlRunConfiguration(System.getProperty("fud.adl"),System.getProperty("fud.air"));
   adlRunConfiguration.arguments=new ArrayList<String>();
@@ -17,7 +11,7 @@
   adlRunConfiguration.arguments.add(getFudHome() + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
   adlRunConfiguration.arguments.add("-cdd");
   adlRunConfiguration.arguments.add(getFudHome() + "/flex-injection/target");
-  adlProcess=DesignerApplicationUtil.runAdl(adlRunConfiguration,getFudHome() + "/designer/src/main/resources/descriptor.xml",serverSocket.getLocalPort(),appRootDir.getPath(),new Consumer<Integer>(){
+  adlProcessHandler=DesignerApplicationUtil.runAdl(adlRunConfiguration,getFudHome() + "/designer/src/main/resources/descriptor.xml",serverSocket.getLocalPort(),appRootDir.getPath(),new Consumer<Integer>(){
     @Override public void consume(    Integer exitCode){
       if (exitCode != 0) {
         try {

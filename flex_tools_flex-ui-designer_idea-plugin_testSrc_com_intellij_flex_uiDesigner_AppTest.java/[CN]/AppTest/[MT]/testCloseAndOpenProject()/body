@@ -1,24 +1,7 @@
 {
-  changeServiceImplementation(SocketInputHandler.class,MySocketInputHandler.class);
-  configureByFiles(null,LocalFileSystem.getInstance().findFileByPath(getTestPath() + "/injectedAS/Transitions.mxml"));
-  ApplicationManager.getApplication().getMessageBus().connect().subscribe(FlexUIDesignerApplicationManager.MESSAGE_TOPIC,new FlexUIDesignerApplicationListener(){
-    @Override public void initialDocumentOpened(){
-      lock.countDown();
-    }
-    @Override public void applicationClosed(){
-    }
-  }
-);
-  copySwfAndDescriptor(new File(PathManager.getSystemPath(),"flexUIDesigner"));
+  info.count=1;
+  open("injectedAS/Transitions.mxml");
   FlexUIDesignerApplicationManager designerAppManager=FlexUIDesignerApplicationManager.getInstance();
-  designerAppManager.openDocument(myProject,myModule,(XmlFile)myFile,false);
-  assertTrue(lock.await(10,TimeUnit.SECONDS));
   designerAppManager.projectManagerListener.projectClosed(myProject);
-  lock=new CountDownLatch(1);
-  AmfOutputStream out=designerAppManager.getClient().getOutput();
-  out.write(1);
-  out.writeAmfUtf("close",false);
-  out.write(3);
-  designerAppManager.getClient().flush();
-  assertTrue(lock.await(10,TimeUnit.SECONDS));
+  callClientAssert("close");
 }

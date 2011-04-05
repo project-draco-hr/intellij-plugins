@@ -1,15 +1,18 @@
 {
-  try {
-    createReader(inputStream);
-    boolean result=reader.readBoolean();
-    if (result) {
-      System.out.print("App passed");
+  createReader(inputStream);
+  while (info.count != 0) {
+    try {
+      info.result.set(reader.readBoolean() ? null : reader.readUTF());
     }
- else {
-      fail(reader.readUTF());
+ catch (    IOException e) {
+      if (!(e instanceof SocketException)) {
+        LOG.error(e);
+      }
+      break;
     }
-  }
-  finally {
-    lock.countDown();
+ finally {
+      info.lock.countDown();
+      info.count--;
+    }
   }
 }

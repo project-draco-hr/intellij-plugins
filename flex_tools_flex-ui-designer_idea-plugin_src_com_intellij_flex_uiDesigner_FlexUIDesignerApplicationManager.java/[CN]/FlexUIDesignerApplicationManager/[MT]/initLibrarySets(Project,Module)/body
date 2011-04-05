@@ -2,33 +2,45 @@
   final LibraryCollector libraryCollector=new LibraryCollector();
   final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter(16384);
   stringWriter.startChange();
-  ApplicationManager.getApplication().runReadAction(new Runnable(){
-    @Override public void run(){
-      final LibraryStyleInfoCollector styleInfoCollector=new LibraryStyleInfoCollector(project,module,stringWriter);
-      libraryCollector.collect(module,new Consumer<OriginalLibrary>(){
-        @Override public void consume(        OriginalLibrary originalLibrary){
-          styleInfoCollector.collect(originalLibrary);
-        }
+  try {
+    ApplicationManager.getApplication().runReadAction(new Runnable(){
+      @Override public void run(){
+        libraryCollector.collect(module,new LibraryStyleInfoCollector(project,module,stringWriter));
       }
-);
     }
-  }
 );
+  }
+ catch (  RuntimeException e) {
+    stringWriter.rollbackChange();
+    throw new InitException("error.collect.libraries");
+  }
   final LibrarySet externalLibrarySet;
   ProjectInfo projectInfo=project.getUserData(PROJECT_INFO);
   if (projectInfo == null) {
     String librarySetId=project.getLocationHash();
-    externalLibrarySet=new LibrarySet(librarySetId,ApplicationDomainCreationPolicy.ONE,new SwcDependenciesSorter(appDir).sort(libraryCollector.getExternalLibraries(),librarySetId,libraryCollector.getFlexSdkVersion()));
+    try {
+      externalLibrarySet=new LibrarySet(librarySetId,ApplicationDomainCreationPolicy.ONE,new SwcDependenciesSorter(appDir).sort(libraryCollector.getExternalLibraries(),librarySetId,libraryCollector.getFlexSdkVersion()));
+    }
+ catch (    RuntimeException e) {
+      throw new InitException("error.sort.libraries");
+    }
     projectInfo=new ProjectInfo(externalLibrarySet);
     project.putUserData(PROJECT_INFO,projectInfo);
     client.openProject(project);
     client.registerLibrarySet(externalLibrarySet,stringWriter);
   }
  else {
+    stringWriter.finishChange();
     externalLibrarySet=projectInfo.getLibrarySet();
   }
-  final ModuleInfo moduleInfo=new ModuleInfo(module);
+  ModuleInfo moduleInfo=new ModuleInfo(module);
   stringWriter.startChange();
-  ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter);
+  try {
+    ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter);
+  }
+ catch (  RuntimeException e) {
+    stringWriter.rollbackChange();
+    throw new InitException("error.collect.local.style.holders");
+  }
   client.registerModule(project,moduleInfo,new String[]{externalLibrarySet.getId()},stringWriter);
 }
