@@ -1,0 +1,27 @@
+{
+  final PsiFile file=InjectedLanguageUtil.getTopLevelFile(context);
+  if (file == null) {
+    return LocalQuickFix.EMPTY_ARRAY;
+  }
+  final VirtualFile vFile=file.getOriginalFile().getVirtualFile();
+  if (vFile == null || !CssDialectsConfigurable.canBeConfigured(vFile)) {
+    return LocalQuickFix.EMPTY_ARRAY;
+  }
+  final CssDialect dialect=CssDialectMappings.getInstance(context.getProject()).getMapping(vFile);
+  if (dialect == CssDialect.CLASSIC) {
+    final CssPropertyDescriptor flexDescriptor=getPropertyDescriptor(propertyName,context);
+    if (flexDescriptor != null) {
+      return new LocalQuickFix[]{new MySwitchToCssDialectQuickFix(CssDialect.FLEX,vFile)};
+    }
+  }
+ else {
+    final CssElementDescriptorProviderImpl classicCssDescriptorProvider=CssElementDescriptorProvider.EP_NAME.findExtension(CssElementDescriptorProviderImpl.class);
+    if (classicCssDescriptorProvider != null) {
+      final CssPropertyDescriptor classicDescriptor=classicCssDescriptorProvider.getPropertyDescriptor(propertyName,context);
+      if (classicDescriptor != null) {
+        return new LocalQuickFix[]{new MySwitchToCssDialectQuickFix(CssDialect.CLASSIC,vFile)};
+      }
+    }
+  }
+  return LocalQuickFix.EMPTY_ARRAY;
+}
