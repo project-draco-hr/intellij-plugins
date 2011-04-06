@@ -2,11 +2,12 @@
   indicator.setText(FlexBundle.message("generating.flex.config.for",myMavenProject.getDisplayName()));
   final MavenProjectsTree.EmbedderTask task=new MavenProjectsTree.EmbedderTask(){
     public void run(    MavenEmbedderWrapper embedder) throws MavenProcessCanceledException {
-      Map<MavenId,VirtualFile> mavenIdToFileMapping=null;
+      List<VirtualFile> temporaryFiles=null;
       final IgnoredFileBean[] filesToIgnoreOriginal=ChangeListManager.getInstance(project).getFilesToIgnore();
       try {
-        mavenIdToFileMapping=getMavenIdToOutputFileMapping(project,myTree.getProjects());
-        embedder.customizeForStrictResolve(convertFileMap(mavenIdToFileMapping),console,indicator);
+        MavenWorkspaceMap workspaceMap=new MavenWorkspaceMap();
+        temporaryFiles=mavenIdToOutputFileMapping(workspaceMap,project,myTree.getProjects());
+        embedder.customizeForStrictResolve(workspaceMap,console,indicator);
         final String generateConfigGoal=flexmojosGroupId + ":" + flexmojosArtifactId+ ":generate-config-"+ myMavenProject.getPackaging();
         MavenServerExecutionResult result=embedder.execute(myMavenProject.getFile(),myMavenProject.getActivatedProfilesIds(),Collections.singletonList(generateConfigGoal));
         if (result.projectData == null) {
@@ -32,8 +33,8 @@ catch (      Exception e) {
       }
  finally {
         ChangeListManager.getInstance(project).setFilesToIgnore(filesToIgnoreOriginal);
-        if (mavenIdToFileMapping != null) {
-          removeTemporaryFiles(project,mavenIdToFileMapping.values());
+        if (temporaryFiles != null && !temporaryFiles.isEmpty()) {
+          removeTemporaryFiles(project,temporaryFiles);
         }
       }
     }

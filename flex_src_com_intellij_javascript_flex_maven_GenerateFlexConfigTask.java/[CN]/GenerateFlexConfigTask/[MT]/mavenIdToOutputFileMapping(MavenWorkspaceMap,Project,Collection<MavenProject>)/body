@@ -1,6 +1,6 @@
 {
-  final Map<MavenId,VirtualFile> mavenIdToOutputFile=new THashMap<MavenId,VirtualFile>(mavenProjects.size());
   final Ref<IOException> exception=new Ref<IOException>();
+  final List<VirtualFile> temporaryFiles=new ArrayList<VirtualFile>();
   MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
     public void run(){
       try {
@@ -18,11 +18,12 @@
               ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreFile(outputFilePath,project));
               outputFile=FlexUtils.addFileWithContent(outputFileName,TEMPORARY_FILE_CONTENT,outputDir);
               if (outputFile == null)               throw new IOException(IdeBundle.message("error.message.unable.to.create.file",outputFileName));
+              temporaryFiles.add(outputFile);
             }
-            mavenIdToOutputFile.put(mavenProject.getMavenId(),outputFile);
+            workspaceMap.register(mavenProject.getMavenId(),new File(mavenProject.getFile().getPath()),new File(outputFile.getPath()));
           }
  else {
-            mavenIdToOutputFile.put(mavenProject.getMavenId(),mavenProject.getFile());
+            workspaceMap.register(mavenProject.getMavenId(),new File(mavenProject.getFile().getPath()));
           }
         }
       }
@@ -33,5 +34,5 @@
   }
 );
   if (!exception.isNull())   throw exception.get();
-  return mavenIdToOutputFile;
+  return temporaryFiles;
 }
