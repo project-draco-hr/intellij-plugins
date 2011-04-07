@@ -2,14 +2,16 @@
   if (server == null || server.isClosed()) {
     return;
   }
-  ProjectInfo projectInfo=project.getUserData(PROJECT_INFO);
-  if (projectInfo != null) {
-    project.putUserData(PROJECT_INFO,null);
+  final InfoList<Project,ProjectInfo> registeredProjects=client.getRegisteredProjects();
+  if (registeredProjects.contains(project)) {
     try {
       client.closeProject(project);
     }
  catch (    IOException e) {
       LOG.error(e);
+    }
+ finally {
+      registeredProjects.remove(project);
     }
   }
 }
