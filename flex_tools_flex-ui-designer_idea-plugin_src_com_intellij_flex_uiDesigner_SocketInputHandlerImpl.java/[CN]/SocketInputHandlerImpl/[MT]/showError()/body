@@ -1,0 +1,27 @@
+{
+  final String message;
+  if (reader.readBoolean()) {
+    StringBuilder builder=StringBuilderSpinAllocator.alloc();
+    try {
+      Project project=readProject();
+      final VirtualFile file=DocumentFactoryManager.getInstance(project).getFile(reader.readUnsignedShort());
+      builder.append(reader.readUTF());
+      builder.append("\nFile: ").append(file.getPath()).append("\nFile content: \n").append(LoadTextUtil.loadText(file));
+      message=builder.toString();
+    }
+  finally {
+      StringBuilderSpinAllocator.dispose(builder);
+    }
+  }
+ else {
+    message=reader.readUTF();
+  }
+  FlexUIDesignerApplicationManager.LOG.error(message,new Throwable(){
+    @Override public void printStackTrace(    PrintStream s){
+    }
+    @Override public Throwable fillInStackTrace(){
+      return this;
+    }
+  }
+);
+}
