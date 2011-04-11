@@ -12,7 +12,7 @@
   }
  catch (  RuntimeException e) {
     stringWriter.rollbackChange();
-    throw new InitException("error.collect.libraries");
+    throw new InitException(e,"error.collect.libraries");
   }
   final LibrarySet externalLibrarySet;
   final InfoList<Project,ProjectInfo> registeredProjects=client.getRegisteredProjects();
@@ -22,7 +22,7 @@
       externalLibrarySet=new LibrarySet(librarySetId,ApplicationDomainCreationPolicy.ONE,new SwcDependenciesSorter(appDir).sort(libraryCollector.getExternalLibraries(),librarySetId,libraryCollector.getFlexSdkVersion()));
     }
  catch (    RuntimeException e) {
-      throw new InitException("error.sort.libraries");
+      throw new InitException(e,"error.sort.libraries");
     }
     registeredProjects.add(new ProjectInfo(project,externalLibrarySet));
     client.openProject(project);
@@ -39,7 +39,7 @@
   }
  catch (  RuntimeException e) {
     stringWriter.rollbackChange();
-    throw new InitException("error.collect.local.style.holders");
+    throw new InitException(e,"error.collect.local.style.holders");
   }
   client.registerModule(project,moduleInfo,new String[]{externalLibrarySet.getId()},stringWriter);
 }
