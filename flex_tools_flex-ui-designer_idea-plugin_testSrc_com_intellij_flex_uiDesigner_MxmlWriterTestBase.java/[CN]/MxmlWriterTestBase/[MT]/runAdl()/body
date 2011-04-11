@@ -1,5 +1,8 @@
 {
-  super.setUp();
+  if (adlRunned) {
+    return;
+  }
+  adlRunned=true;
   final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
   stringWriter.startChange();
   appRootDir=getAppRootDir();
@@ -27,9 +30,9 @@
   socket=serverSocket.accept();
   reader=new SocketInputHandlerImpl.Reader(new BufferedInputStream(socket.getInputStream()));
   client=new TestClient(socket.getOutputStream());
+  librarySet=new LibrarySet(myProject.getLocationHash(),ApplicationDomainCreationPolicy.ONE,libraries);
   client.getRegisteredProjects().add(new ProjectInfo(myProject,librarySet));
   client.openProject(myProject);
-  librarySet=new LibrarySet(myProject.getLocationHash(),ApplicationDomainCreationPolicy.ONE,libraries);
   client.registerLibrarySet(librarySet,stringWriter);
   if (!isRequireLocalStyleHolder()) {
     registerModule(new ModuleInfo(myModule),stringWriter);
