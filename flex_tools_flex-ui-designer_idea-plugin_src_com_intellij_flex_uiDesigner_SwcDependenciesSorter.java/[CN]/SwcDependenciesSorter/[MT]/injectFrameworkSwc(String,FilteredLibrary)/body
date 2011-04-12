@@ -13,14 +13,14 @@
     injectionUrlConnection=url.openConnection();
     injectionLastModified=injectionUrlConnection.getLastModified();
   }
-  if (filteredLibrary.hasUnresolvedDefinitions() || ((timeStamp > injectionLastModified ? timeStamp : injectionLastModified) - modifiedSwf.lastModified()) > 2000) {
+  if (filteredLibrary.hasUnresolvedDefinitions() || timeStamp > modifiedSwf.lastModified() || injectionLastModified > modifiedSwf.lastModified()) {
     Set<CharSequence> definitions=filteredLibrary.hasUnresolvedDefinitions() ? filteredLibrary.getUnresolvedDefinitions() : new THashSet<CharSequence>(5);
     definitions.add("FrameworkClasses");
     definitions.add("mx.managers.systemClasses:MarshallingSupport");
     definitions.add("mx.managers:SystemManagerProxy");
     definitions.add("mx.styles:StyleManager");
+    definitions.add(FlexSdkAbcInjector.LAYOUT_MANAGER);
     definitions.add("mx.styles:StyleManagerImpl");
     new FlexSdkAbcInjector(injectionUrlConnection).inject(swfFile,modifiedSwf,flexSdkVersion,new AbcNameFilterByNameSetAndStartsWith(definitions,new String[]{"mx.managers.marshalClasses:"}));
-    modifiedSwf.setLastModified(timeStamp);
   }
 }

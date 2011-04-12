@@ -2,15 +2,14 @@
   VirtualFile swfFile=library.getSwfFile();
   File modifiedSwf=createSwfOutFile(library);
   final long timeStamp=swfFile.getTimeStamp();
-  if ((timeStamp - modifiedSwf.lastModified()) > 2000) {
+  if (timeStamp != modifiedSwf.lastModified()) {
     final InputStream inputStream=swfFile.getInputStream();
-    final FileOutputStream outputStream=new FileOutputStream(modifiedSwf);
     try {
-      FileUtil.copy(inputStream,outputStream);
+      IOUtil.saveStream(inputStream,modifiedSwf);
+      modifiedSwf.setLastModified(timeStamp);
     }
   finally {
       inputStream.close();
-      outputStream.close();
     }
   }
 }
