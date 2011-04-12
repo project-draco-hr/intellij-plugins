@@ -1,0 +1,16 @@
+{
+  final XmlElementDescriptor descriptor=tag.getDescriptor();
+  if (!(descriptor instanceof ClassBackedElementDescriptor)) {
+    return;
+  }
+  for (  final XmlTag subTag : tag.getSubTags()) {
+    if (Comparing.strEqual(subTag.getNamespacePrefix(),oldPrefix) && subTag.getDescriptor() == null) {
+      final String oldSubTagName=subTag.getName();
+      subTag.setName(StringUtil.isEmpty(newPrefix) ? subTag.getLocalName() : (newPrefix + ":" + subTag.getLocalName()));
+      final XmlElementDescriptor subTagDescriptor=descriptor.getElementDescriptor(subTag,tag);
+      if (!(subTagDescriptor instanceof AnnotationBackedDescriptor)) {
+        subTag.setName(oldSubTagName);
+      }
+    }
+  }
+}
