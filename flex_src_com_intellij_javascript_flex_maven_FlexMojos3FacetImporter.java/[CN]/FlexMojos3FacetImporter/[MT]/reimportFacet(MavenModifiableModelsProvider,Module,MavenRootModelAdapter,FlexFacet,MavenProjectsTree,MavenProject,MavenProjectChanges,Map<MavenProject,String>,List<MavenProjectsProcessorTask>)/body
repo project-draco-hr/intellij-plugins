@@ -12,15 +12,17 @@
     flexFacet.getConfiguration().setFlexSdk(flexSdk,rootModel.getRootModel());
   }
   if (StringUtil.compareVersionNumbers(flexmojosPlugin.getVersion(),"3.4") >= 0) {
-    postTasks.add(new GenerateFlexConfigTask(facet,project,mavenTree,FLEXMOJOS_GROUP_ID,FLEXMOJOS_ARTIFACT_ID,this));
+    addGenerateFlexConfigTask(postTasks,facet,project,mavenTree);
   }
  else {
     showFlexConfigWarningIfNeeded(module.getProject(),project,facet);
   }
-  for (  final FlexFacet flexFacet : facetModel.getFacetsByType(myFacetType.getId())) {
-    if (isMxModuleFacet(flexFacet)) {
-      postTasks.add(new GenerateFlexConfigFilesForMxModulesTask(module,project,mavenTree));
-      break;
+  if (isGenerateFlexConfigFilesForMxModules()) {
+    for (    final FlexFacet flexFacet : facetModel.getFacetsByType(myFacetType.getId())) {
+      if (isMxModuleFacet(flexFacet)) {
+        postTasks.add(new GenerateFlexConfigFilesForMxModulesTask(getCompilerConfigXmlSuffix(),module,project,mavenTree));
+        break;
+      }
     }
   }
 }
