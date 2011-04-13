@@ -1,0 +1,36 @@
+{
+  if (!(location instanceof PsiLocation))   return null;
+  mySourceElement=location.getPsiElement();
+  final Module module=context.getModule();
+  if (module == null || !FlexSdkUtils.hasDependencyOnAirMobile(module)) {
+    return null;
+  }
+  final PsiFile psiFile=mySourceElement.getContainingFile();
+  final VirtualFile virtualFile=psiFile == null ? null : psiFile.getVirtualFile();
+  if (virtualFile != null && FlexUtils.isAirDescriptorFile(virtualFile) && FlexUtils.isAirMobileDescriptorFile(virtualFile)) {
+    final FlexBuildConfiguration config=FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module).iterator().next();
+    final RunnerAndConfigurationSettings settings=RunManagerEx.getInstanceEx(location.getProject()).createConfiguration("",AirMobileRunConfigurationType.getFactory());
+    final AirMobileRunConfiguration runConfiguration=(AirMobileRunConfiguration)settings.getConfiguration();
+    final AirMobileRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+    runnerParameters.setModuleName(module.getName());
+    runnerParameters.setAirMobileRunMode(AirMobileRunnerParameters.AirMobileRunMode.AppDescriptor);
+    runnerParameters.setAirDescriptorPath(virtualFile.getPath());
+    runnerParameters.setAirRootDirPath(config.getCompileOutputPath());
+    settings.setName(runConfiguration.suggestedName());
+    return settings;
+  }
+ else {
+    final JSClass jsClass=FlexRuntimeConfigurationProducer.getJSClass(mySourceElement);
+    if (jsClass != null && FlexRuntimeConfigurationProducer.isAcceptedMainClass(jsClass,module,false)) {
+      final RunnerAndConfigurationSettings settings=RunManagerEx.getInstanceEx(location.getProject()).createConfiguration("",AirMobileRunConfigurationType.getFactory());
+      final AirMobileRunConfiguration runConfiguration=(AirMobileRunConfiguration)settings.getConfiguration();
+      final AirMobileRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+      runnerParameters.setModuleName(module.getName());
+      runnerParameters.setAirMobileRunMode(AirMobileRunnerParameters.AirMobileRunMode.MainClass);
+      runnerParameters.setMainClassName(jsClass.getQualifiedName());
+      settings.setName(runConfiguration.suggestedName());
+      return settings;
+    }
+  }
+  return null;
+}
