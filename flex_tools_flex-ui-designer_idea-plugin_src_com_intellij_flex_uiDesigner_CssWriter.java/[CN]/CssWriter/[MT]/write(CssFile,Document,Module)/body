@@ -1,4 +1,5 @@
 {
+  usedImages.prepareIteration();
   rulesetVectorWriter.prepareIteration();
   CssStylesheet stylesheet=cssFile.getStylesheet();
   CssRuleset[] rulesets=stylesheet.getRulesets();
@@ -20,14 +21,19 @@
       CssPropertyDescriptor propertyDescriptor=declaration.getDescriptor();
       CssTermList value=declaration.getValue();
       propertyOut=declarationVectorWriter.getOutputForIteration();
-      stringWriter.writeNullable(declaration.getPropertyName(),propertyOut);
-      textOffset=declaration.getTextOffset();
-      propertyOut.writeUInt29(documentWindow == null ? textOffset : documentWindow.injectedToHost(textOffset));
-      if (propertyDescriptor == null || !(propertyDescriptor instanceof FlexCssPropertyDescriptor)) {
-        writeUndefinedPropertyValue(value);
-      }
+      try {
+        stringWriter.write(declaration.getPropertyName(),propertyOut);
+        textOffset=declaration.getTextOffset();
+        propertyOut.writeUInt29(documentWindow == null ? textOffset : documentWindow.injectedToHost(textOffset));
+        if (propertyDescriptor == null || !(propertyDescriptor instanceof FlexCssPropertyDescriptor)) {
+          writeUndefinedPropertyValue(value);
+        }
  else {
-        writePropertyValue(value,((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo());
+          writePropertyValue(value,((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo());
+        }
+      }
+ catch (      RuntimeException e) {
+        declarationVectorWriter.rollbackLastIteration();
       }
     }
     declarationVectorWriter.writeTo(rulesetOut);
@@ -41,5 +47,5 @@
       stringWriter.writeNullable(cssNamespace.getUri(),outputForCustomData);
     }
   }
-  return rulesetVectorWriter.get();
+  return IOUtil.getBytes(rulesetVectorWriter,usedImages);
 }
