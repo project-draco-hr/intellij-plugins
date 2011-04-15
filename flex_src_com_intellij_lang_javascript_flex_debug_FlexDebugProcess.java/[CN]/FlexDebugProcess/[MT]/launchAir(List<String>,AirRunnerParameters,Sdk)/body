@@ -8,11 +8,15 @@
 ," ");
   final Process process=Runtime.getRuntime().exec(ArrayUtil.toStringArray(fdbLaunchCommand));
   sendCommand(new ReadGreetingCommand());
-  if (airRunnerParameters instanceof AirMobileRunnerParameters && ((AirMobileRunnerParameters)airRunnerParameters).getAirMobileRunTarget() == AirMobileRunnerParameters.AirMobileRunTarget.AndroidDevice) {
-    sendCommand(new StartAppOnAndroidDeviceCommand(flexSdk,((AirMobileRunnerParameters)airRunnerParameters)));
-  }
- else {
-    scheduleAdlLaunch(flexSdk,airRunnerParameters);
-  }
-  return process;
+  if (airRunnerParameters instanceof AirMobileRunnerParameters) {
+switch (((AirMobileRunnerParameters)airRunnerParameters).getAirMobileRunTarget()) {
+case Emulator:
+      scheduleAdlLaunch(flexSdk,airRunnerParameters);
+    break;
+case AndroidDevice:
+  sendCommand(new StartAppOnAndroidDeviceCommand(flexSdk,((AirMobileRunnerParameters)airRunnerParameters)));
+break;
+}
+}
+return process;
 }
