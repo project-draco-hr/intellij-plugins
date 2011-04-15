@@ -1,0 +1,25 @@
+{
+  final Ref<String> versionRef=new Ref<String>();
+  AdtTask.runWithProgress(new AdtTask(project,sdk){
+    protected void appendAdtOptions(    final List<String> command){
+      command.add("-version");
+    }
+    protected boolean checkMessages(    final List<String> messages){
+      if (messages.size() == 1) {
+        String output=messages.get(0);
+        final String prefix="adt version \"";
+        final String suffix="\"";
+        if (output.startsWith(prefix) && output.endsWith(suffix)) {
+          output=output.substring(prefix.length(),output.length() - suffix.length());
+        }
+        if (ADT_VERSION_PATTERN.matcher(output).matches()) {
+          versionRef.set(output);
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+,"Checking AIR version","Check AIR Version");
+  return versionRef.get();
+}
