@@ -12,7 +12,17 @@
       return null;
     }
   }
-  PsiFileSystemItem psiFile=fileReference.resolve();
+  ResolveResult[] resolveResults=fileReference.multiResolve(false);
+  final PsiFileSystemItem psiFile;
+  if (resolveResults.length == 0) {
+    psiFile=null;
+  }
+ else   if (resolveResults.length == 1 || resolveToFirstIfMulti) {
+    psiFile=(PsiFileSystemItem)resolveResults[0].getElement();
+  }
+ else {
+    psiFile=resolveResult(element,resolveResults);
+  }
   if (psiFile == null) {
     problems.add(fileReference.getUnresolvedMessagePattern());
   }
