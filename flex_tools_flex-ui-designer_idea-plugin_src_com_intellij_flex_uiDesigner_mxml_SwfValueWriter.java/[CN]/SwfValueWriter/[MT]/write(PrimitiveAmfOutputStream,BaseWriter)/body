@@ -6,29 +6,13 @@
  else {
     out.writeAmfUtf(symbol);
   }
-  int id;
-  if ((id=checkRegistered(out)) == -1) {
-    return;
+  final int id;
+  BinaryFileManager binaryFileManager=BinaryFileManager.getInstance();
+  if (binaryFileManager.isRegistered(virtualFile)) {
+    id=binaryFileManager.getId(virtualFile);
   }
-  try {
-    final int length=(int)virtualFile.getLength();
-    final OutputStream output=writer.getBlockOut().writeUnbufferedHeader(2 + 2 + 4+ length);
-    output.write(Client.ClientMethod.METHOD_CLASS);
-    output.write(Client.ClientMethod.registerSwf.ordinal());
-    writeId(id,output);
-    output.write((length >>> 24) & 0xFF);
-    output.write((length >>> 16) & 0xFF);
-    output.write((length >>> 8) & 0xFF);
-    output.write(length & 0xFF);
-    InputStream inputStream=virtualFile.getInputStream();
-    try {
-      FileUtil.copy(inputStream,output);
-    }
-  finally {
-      inputStream.close();
-    }
+ else {
+    id=binaryFileManager.registerFile(virtualFile,BinaryFileType.SWF);
   }
- catch (  IOException e) {
-    LOG.error(e);
-  }
+  out.writeUInt29(id);
 }

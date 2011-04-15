@@ -1,6 +1,5 @@
 {
-  String error;
-  int beforePosition=out.size();
+  final int beforePosition=out.size();
   try {
     ValueWriter valueWriter=propertyProcessor.process(element,valueProvider,descriptor,context);
     if (valueWriter == null) {
@@ -19,21 +18,12 @@
     }
     return valueWriter.write(out,writer,propertyProcessor.isStyle());
   }
- catch (  InvalidPropertyException e) {
-    error=e.getMessage();
+ catch (  RuntimeException e) {
+    problemsHolder.add(e,descriptor.getName());
   }
-catch (  NumberFormatException e) {
-    error=e.getMessage();
-    final String prefix="For input string: \"";
-    if (error.startsWith(prefix)) {
-      error=error.substring(prefix.length(),error.charAt(error.length() - 1) == '"' ? error.length() - 1 : error.length());
-    }
-  }
-catch (  RuntimeException e) {
-    error=e.getMessage();
-    LOG.error(e);
+catch (  Throwable e) {
+    problemsHolder.add(e);
   }
   writer.getBlockOut().setPosition(beforePosition);
-  problems.add(error);
   return IGNORE;
 }

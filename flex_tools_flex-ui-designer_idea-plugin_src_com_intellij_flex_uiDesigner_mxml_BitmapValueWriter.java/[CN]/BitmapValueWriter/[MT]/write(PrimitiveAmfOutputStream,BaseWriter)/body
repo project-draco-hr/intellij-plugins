@@ -9,16 +9,15 @@
     image=getImage();
   }
  catch (  IOException e) {
-    LOG.error(e);
-    return;
+    throw new InvalidPropertyException(e,"error.cannot.write.binary.file",virtualFile.getName());
   }
   try {
-    final OutputStream output=writer.getBlockOut().writeUnbufferedHeader(2 + 2 + 2+ 2+ 1+ (image.getWidth() * image.getHeight() * 4));
+    OutputStream output=writer.getBlockOut().writeUnbufferedHeader(2 + 2 + 2+ 2+ 1+ (image.getWidth() * image.getHeight() * 4));
     output.write(Client.ClientMethod.METHOD_CLASS);
     output.write(Client.ClientMethod.registerBitmap.ordinal());
     write(id,image,output);
   }
  catch (  IOException e) {
-    LOG.error(e);
+    throw new InvalidPropertyException(e,"error.cannot.write.binary.file",virtualFile.getName());
   }
 }
