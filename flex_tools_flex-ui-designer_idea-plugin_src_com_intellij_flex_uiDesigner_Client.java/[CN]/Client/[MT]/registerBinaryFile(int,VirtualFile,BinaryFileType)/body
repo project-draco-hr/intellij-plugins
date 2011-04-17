@@ -1,5 +1,10 @@
 {
-  final int length=(int)file.getLength();
+  int length=(int)file.getLength();
+  ImageWrapper imageWrapper=null;
+  if (type == BinaryFileType.IMAGE) {
+    imageWrapper=new ImageWrapper(length);
+    length=imageWrapper.getLength();
+  }
   OutputStream directOut=blockOut.writeUnbufferedHeader(2 + 1 + 2+ 4+ length);
   directOut.write(ClientMethod.METHOD_CLASS);
   directOut.write(ClientMethod.registerBinaryFile.ordinal());
@@ -10,9 +15,14 @@
   directOut.write((length >>> 16) & 0xFF);
   directOut.write((length >>> 8) & 0xFF);
   directOut.write(length & 0xFF);
-  InputStream inputStream=file.getInputStream();
+  final InputStream inputStream=file.getInputStream();
   try {
-    FileUtil.copy(inputStream,directOut);
+    if (type == BinaryFileType.IMAGE) {
+      imageWrapper.wrap(inputStream,directOut);
+    }
+ else {
+      FileUtil.copy(inputStream,directOut);
+    }
   }
   finally {
     inputStream.close();
