@@ -1,6 +1,10 @@
 {
   ApplicationSettings registry=ServiceManager.getService(ApplicationSettings.class);
+  myFrameworkStartLevel.setModel(new SpinnerNumberModel(0,0,Integer.MAX_VALUE,1));
+  JSpinner.DefaultEditor editor=(JSpinner.DefaultEditor)myFrameworkStartLevel.getEditor();
+  editor.getTextField().setFormatterFactory(new DefaultFormatterFactory(new JSpinnerCellEditor.MyNumberFormatter("Auto")));
   DefaultComboBoxModel cbmodel=new DefaultComboBoxModel(registry.getFrameworkInstanceDefinitions().toArray());
+  myDefaultStartLevel.setModel(new SpinnerNumberModel(1,1,Integer.MAX_VALUE,1));
   frameworkInstances.setModel(cbmodel);
   frameworkInstances.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
@@ -37,12 +41,6 @@
   workingDirField.addBrowseFolderListener("Choose a working directory","The working directory is the directory from which the framework is started",null,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   workingDirField.getTextField().setColumns(30);
   frameworkSpecificBundleSelectionActions=new DefaultActionGroup("frameworkSpecificBundleSelectionActions",true);
-  myAutomaticStartLevel.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      myFrameworkStartLevel.setEnabled(!myAutomaticStartLevel.isSelected());
-    }
-  }
-);
   frameworkSpecificButton.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       JBPopupFactory.getInstance().createActionGroupPopup(null,frameworkSpecificBundleSelectionActions,DataManager.getInstance().getDataContext(frameworkSpecificButton),JBPopupFactory.ActionSelectionAid.NUMBERING,true).showUnderneathOf(frameworkSpecificButton);
