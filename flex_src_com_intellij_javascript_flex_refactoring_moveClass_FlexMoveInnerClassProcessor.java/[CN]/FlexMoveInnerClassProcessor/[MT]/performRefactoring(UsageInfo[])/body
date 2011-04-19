@@ -11,15 +11,25 @@
   Collection<String> namespacesInTargetFile=new HashSet<String>();
   List<FormatFixer> formatters=new ArrayList<FormatFixer>();
   JSRefactoringUtil.fixOutgoingReferences(myElement,importsInTargetFile,namespacesInTargetFile,Collections.singletonList(((JSAttributeListOwner)myElement)),null,false,false);
+  myElement.setName(myClassName);
+  Collection<UsageInfo> usagesToProcess=new ArrayList<UsageInfo>(Arrays.asList(usages));
+  for (Iterator<UsageInfo> i=usagesToProcess.iterator(); i.hasNext(); ) {
+    UsageInfo usage=i.next();
+    PsiElement element;
+    if (usage instanceof NonCodeUsageInfo || !((element=usage.getElement()) instanceof JSReferenceExpression) || !PsiTreeUtil.isAncestor(myElement,element,false)) {
+      continue;
+    }
+    ((JSReferenceExpression)element).bindToElement(myElement);
+    i.remove();
+  }
   final PsiElement clazz=JSResolveUtil.findClassByQName(StringUtil.getQualifiedName(myPackageName,myClassName),GlobalSearchScope.projectScope(myProject));
   PsiElement toInsert=myElement instanceof JSVariable ? JSRefactoringUtil.getVarStatementCopy((JSVariable)myElement) : myElement.copy();
   final PsiElement inserted=clazz.replace(toInsert);
   JSQualifiedNamedElement newClass=inserted instanceof JSVarStatement ? ((JSVarStatement)inserted).getVariables()[0] : (JSQualifiedNamedElement)inserted;
-  new RenameProcessor(myProject,newClass,myClassName,false,false).run();
   JSRefactoringUtil.handleDocCommentAndFormat(inserted,formatters);
   JSRefactoringUtil.deleteWithNoPostponedFormatting(myElement);
   if (myPackageName.length() > 0) {
-    for (    UsageInfo usage : usages) {
+    for (    UsageInfo usage : usagesToProcess) {
       if (usage instanceof NonCodeUsageInfo || usage.getFile() != sourceFile)       continue;
       final PsiElement element=usage.getElement();
       if (element == null)       continue;
@@ -29,7 +39,7 @@
   JSRefactoringUtil.postProcess(sourceFile,newClass,Collections.singletonList(sourceFile),importsInTargetFile,namespacesInTargetFile,formatters,true,false);
   boolean makePublic=false;
   List<NonCodeUsageInfo> nonCodeUsages=new ArrayList<NonCodeUsageInfo>();
-  for (  UsageInfo usage : usages) {
+  for (  UsageInfo usage : usagesToProcess) {
     if (usage instanceof NonCodeUsageInfo) {
       nonCodeUsages.add((NonCodeUsageInfo)usage);
     }
