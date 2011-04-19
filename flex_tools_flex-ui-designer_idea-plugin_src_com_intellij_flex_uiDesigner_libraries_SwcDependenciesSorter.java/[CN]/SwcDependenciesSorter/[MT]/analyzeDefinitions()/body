@@ -1,0 +1,20 @@
+{
+  for (  Map.Entry<CharSequence,Definition> entry : definitionMap.entrySet()) {
+    final Definition definition=entry.getValue();
+    if (definition.dependencies != null && (definition.hasUnresolvedDependencies == Definition.UnresolvedState.NO || (definition.hasUnresolvedDependencies == Definition.UnresolvedState.UNKNOWN && !hasUnresolvedDependencies(definition,entry.getKey())))) {
+      final OriginalLibrary library=definition.getLibrary();
+      for (      CharSequence dependencyId : definition.dependencies) {
+        final OriginalLibrary dependencyLibrary=definitionMap.get(dependencyId).getLibrary();
+        if (library != dependencyLibrary) {
+          if (dependencyLibrary.successors.add(library)) {
+            library.inDegree++;
+          }
+          if (dependencyLibrary.parents.contains(library)) {
+            throw new Error();
+          }
+          library.parents.add(dependencyLibrary);
+        }
+      }
+    }
+  }
+}
