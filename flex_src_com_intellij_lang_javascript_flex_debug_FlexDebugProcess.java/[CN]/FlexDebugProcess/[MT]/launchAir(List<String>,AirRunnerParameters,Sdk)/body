@@ -1,4 +1,8 @@
 {
+  if (airRunnerParameters instanceof AirMobileRunnerParameters && ((AirMobileRunnerParameters)airRunnerParameters).getDebugTransport() == AirMobileDebugTransport.USB) {
+    fdbLaunchCommand.add("-p");
+    fdbLaunchCommand.add(String.valueOf(((AirMobileRunnerParameters)airRunnerParameters).getUsbDebugPort()));
+  }
   ensureExecutable(fdbLaunchCommand.get(0));
   myFdbLaunchCommand=StringUtil.join(fdbLaunchCommand,new Function<String,String>(){
     public String fun(    final String s){
@@ -9,13 +13,13 @@
   final Process process=Runtime.getRuntime().exec(ArrayUtil.toStringArray(fdbLaunchCommand));
   sendCommand(new ReadGreetingCommand());
   if (airRunnerParameters instanceof AirMobileRunnerParameters) {
-switch (((AirMobileRunnerParameters)airRunnerParameters).getAirMobileRunTarget()) {
+    final AirMobileRunnerParameters mobileParams=(AirMobileRunnerParameters)airRunnerParameters;
+switch (mobileParams.getAirMobileRunTarget()) {
 case Emulator:
       scheduleAdlLaunch(flexSdk,airRunnerParameters);
     break;
 case AndroidDevice:
-  sendCommand(new StartAppOnAndroidDeviceCommand(flexSdk,((AirMobileRunnerParameters)airRunnerParameters)));
-break;
+  sendCommand(mobileParams.getDebugTransport() == AirMobileDebugTransport.Network ? new StartAppOnAndroidDeviceCommand(flexSdk,mobileParams) : new StartDebuggingCommand());
 }
 }
 return process;

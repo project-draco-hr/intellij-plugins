@@ -1,6 +1,15 @@
 {
-  if (isRunOnDevice(flexRunnerParameters) && !FlexRunner.packAndInstallToDevice(project,flexSdk,(AirMobileRunnerParameters)flexRunnerParameters,true)) {
-    return null;
+  if (isRunOnDevice(flexRunnerParameters)) {
+    final AirMobileRunnerParameters mobileParams=(AirMobileRunnerParameters)flexRunnerParameters;
+    final Pair<String,String> swfPathAndApplicationId=getSwfPathAndApplicationId(mobileParams);
+    if (!packAndInstallToDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.first,swfPathAndApplicationId.second,true)) {
+      return null;
+    }
+    if (mobileParams.getDebugTransport() == AirMobileDebugTransport.USB) {
+      launchOnDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.second,true);
+      waitUntilCountdownStartsOnDevice(project,swfPathAndApplicationId.second);
+      MobileAirTools.forwardTcpPort(project,flexSdk,mobileParams.getUsbDebugPort());
+    }
   }
   final XDebugSession debugSession=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @NotNull public XDebugProcess start(    @NotNull final XDebugSession session) throws ExecutionException {

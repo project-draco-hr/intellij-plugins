@@ -1,0 +1,21 @@
+{
+  final String adbPath=sdk.getHomePath() + ADB_RELATIVE_PATH;
+  final VirtualFile adbExecutable=LocalFileSystem.getInstance().findFileByPath(adbPath);
+  final String presentableCommand="adb forward tcp:" + usbDebugPort + " tcp:"+ usbDebugPort;
+  if (adbExecutable != null) {
+    ExternalTask.runWithProgress(new ExternalTask(project,sdk){
+      protected List<String> createCommandLine(){
+        final List<String> command=new ArrayList<String>();
+        command.add(adbExecutable.getPath());
+        command.add("forward");
+        command.add("tcp:" + usbDebugPort);
+        command.add("tcp:" + usbDebugPort);
+        return command;
+      }
+    }
+,presentableCommand,FlexBundle.message("adb.forward.title"));
+  }
+ else {
+    Messages.showWarningDialog(project,FlexBundle.message("adb.not.found",FileUtil.toSystemDependentName(adbPath),presentableCommand),FlexBundle.message("adb.forward.title"));
+  }
+}

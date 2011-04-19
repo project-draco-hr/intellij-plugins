@@ -1,7 +1,7 @@
 {
   final AirMobileRunnerParameters params=config.getRunnerParameters();
   params.setModuleName(myModulesComboboxWrapper.getSelectedText());
-  params.setAirMobileRunTarget(myOnEmulatorRadioButton.isSelected() ? AirMobileRunnerParameters.AirMobileRunTarget.Emulator : AirMobileRunnerParameters.AirMobileRunTarget.AndroidDevice);
+  params.setAirMobileRunTarget(myOnEmulatorRadioButton.isSelected() ? AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunTarget.AndroidDevice : AirMobileRunTarget.iOSDevice);
   final AirMobileRunnerParameters.Emulator emulator=(AirMobileRunnerParameters.Emulator)myEmulatorCombo.getSelectedItem();
   params.setEmulator(emulator);
   if (emulator.adlAlias == null) {
@@ -14,7 +14,16 @@
  catch (    NumberFormatException e) {
     }
   }
-  params.setAirMobileRunMode(myAirDescriptorRadioButton.isSelected() ? AirMobileRunnerParameters.AirMobileRunMode.AppDescriptor : AirMobileRunnerParameters.AirMobileRunMode.MainClass);
+  params.setDebugTransport(myDebugViaNetworkRadioButton.isSelected() ? AirMobileDebugTransport.Network : AirMobileDebugTransport.USB);
+  try {
+    final int port=Integer.parseInt(myUsbDebugPortTextField.getText().trim());
+    if (port > 0 && port < 65535) {
+      params.setUsbDebugPort(port);
+    }
+  }
+ catch (  NumberFormatException ignore) {
+  }
+  params.setAirMobileRunMode(myAirDescriptorRadioButton.isSelected() ? AirMobileRunMode.AppDescriptor : AirMobileRunMode.MainClass);
   params.setAirDescriptorPath(FileUtil.toSystemIndependentName((String)myApplicationDescriptorComponent.getComponent().getComboBox().getEditor().getItem()).trim());
   params.setAirRootDirPath(FileUtil.toSystemIndependentName(myRootDirectoryComponent.getComponent().getText().trim()));
   params.setMainClassName(myMainClassComponent.getComponent().getText().trim());
