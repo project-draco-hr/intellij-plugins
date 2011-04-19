@@ -1,0 +1,39 @@
+{
+  if (resultFile == null) {
+    File appDir=FlexUIDesignerApplicationManager.getInstance().getAppDir();
+    resultReadyFile=new File(appDir,"d");
+    resultFile=new File(appDir,"r");
+  }
+  final ProjectInfo projectInfo=FlexUIDesignerApplicationManager.getInstance().getClient().getRegisteredProjects().getInfo(readEntityId());
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      try {
+        PropertiesFile resourceBundleFile=LibraryManager.getInstance().getResourceBundleFile(reader.readUTF(),reader.readUTF(),projectInfo);
+        FileOutputStream fileOut=new FileOutputStream(resultFile);
+        try {
+          if (resourceBundleFile == null) {
+            fileOut.write(Amf3Types.NULL);
+            return;
+          }
+          final AmfOutputStream out=new AmfOutputStream(new ByteArrayOutputStreamEx(4 * 1024));
+          List<Property> properties=resourceBundleFile.getProperties();
+          out.write(Amf3Types.DICTIONARY);
+          out.writeUInt29((properties.size() << 1) | 1);
+          out.write(0);
+          for (          Property property : properties) {
+            out.write(property.getUnescapedKey());
+            out.write(property.getUnescapedValue());
+          }
+          out.getByteArrayOut().writeTo(fileOut);
+        }
+  finally {
+          fileOut.close();
+        }
+      }
+ catch (      IOException e) {
+        FlexUIDesignerApplicationManager.LOG.error(e);
+      }
+    }
+  }
+);
+}

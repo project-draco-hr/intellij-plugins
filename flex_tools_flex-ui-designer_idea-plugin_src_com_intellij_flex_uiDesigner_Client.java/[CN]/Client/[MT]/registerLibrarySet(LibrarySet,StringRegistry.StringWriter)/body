@@ -5,13 +5,16 @@
   stringWriter.writeTo(out);
   out.write(librarySet.getApplicationDomainCreationPolicy());
   final List<Library> libraries=librarySet.getLibraries();
-  out.writeShort(libraries.size());
+  out.writeShort(sizeOfOriginalLibrary(libraries));
   final LibraryManager libraryManager=LibraryManager.getInstance();
   for (  Library library : libraries) {
     final OriginalLibrary originalLibrary;
     final boolean unregisteredLibrary;
     if (library instanceof OriginalLibrary) {
       originalLibrary=(OriginalLibrary)library;
+      if (!originalLibrary.hasDefinitions()) {
+        continue;
+      }
       unregisteredLibrary=!libraryManager.isRegistered(originalLibrary);
       if (originalLibrary.filtered) {
         out.write(unregisteredLibrary ? 2 : 3);
@@ -23,7 +26,7 @@
  else {
       final EmbedLibrary embedLibrary=(EmbedLibrary)library;
       out.write(4);
-      out.writeShort(libraries.indexOf(embedLibrary.parent));
+      out.writeShort(indexOfOriginalLibrary(libraries,embedLibrary.parent));
       out.writeAmfUtf(embedLibrary.getPath());
       continue;
     }

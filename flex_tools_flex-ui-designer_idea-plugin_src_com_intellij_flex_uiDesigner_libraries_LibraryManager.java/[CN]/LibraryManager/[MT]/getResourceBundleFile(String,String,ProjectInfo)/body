@@ -1,0 +1,15 @@
+{
+  for (  Library library : projectInfo.getLibrarySet().getLibraries()) {
+    if (library instanceof OriginalLibrary) {
+      OriginalLibrary originalLibrary=(OriginalLibrary)library;
+      if (originalLibrary.hasResourceBundles()) {
+        final THashSet<String> bundles=originalLibrary.resourceBundles.get(locale);
+        if (bundles.contains(bundleName)) {
+          VirtualFile virtualFile=originalLibrary.getFile().findChild("locale").findChild(locale).findChild(bundleName + CatalogXmlBuilder.PROPERTIES_EXTENSION);
+          return (PropertiesFile)PsiDocumentManager.getInstance(projectInfo.getElement()).getPsiFile(FileDocumentManager.getInstance().getDocument(virtualFile));
+        }
+      }
+    }
+  }
+  return null;
+}

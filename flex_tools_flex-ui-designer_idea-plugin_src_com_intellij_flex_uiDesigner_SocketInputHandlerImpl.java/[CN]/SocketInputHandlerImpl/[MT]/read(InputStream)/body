@@ -6,23 +6,18 @@ switch (command) {
 case -1:
       break readProcess;
 case ServerMethod.goToClass:
-    final Module module=readModule();
-  final String className=reader.readUTF();
-final DataOutputStream dataOutputStream=new DataOutputStream(new BufferedOutputStream(new FileOutputStream(resultFile)));
-dataOutputStream.writeUTF("YES!!!");
-dataOutputStream.close();
-resReady.createNewFile();
+    goToClass();
+  break;
+case ServerMethod.getResourceBundle:
+try {
+  getResourceBundle();
+}
+  finally {
+  resultReadyFile.createNewFile();
+}
 break;
 case ServerMethod.openFile:
-final Project project=readProject();
-final OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(project,reader.readFile(),reader.readInt());
-ApplicationManager.getApplication().invokeLater(new Runnable(){
-@Override public void run(){
-openFileDescriptor.navigate(true);
-ProjectUtil.focusProjectWindow(project,true);
-}
-}
-);
+openFile();
 break;
 case ServerMethod.resolveExternalInlineStyleDeclarationSource:
 ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,readModule()));
