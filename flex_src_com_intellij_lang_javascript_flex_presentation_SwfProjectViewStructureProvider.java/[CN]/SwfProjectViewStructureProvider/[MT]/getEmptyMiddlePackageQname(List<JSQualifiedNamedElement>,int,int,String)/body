@@ -1,0 +1,22 @@
+{
+  if (from == to) {
+    return null;
+  }
+  String currentSubpackage=null;
+  for (int i=from; i < to; i++) {
+    String qName=elements.get(i).getQualifiedName();
+    int index=qName.indexOf('.',packageName.length() + 1);
+    if (index == -1) {
+      return null;
+    }
+    String subpackage=qName.substring(0,index);
+    if (currentSubpackage == null) {
+      currentSubpackage=subpackage;
+    }
+ else     if (!currentSubpackage.equals(subpackage)) {
+      return null;
+    }
+  }
+  String deeperSubpackage=getEmptyMiddlePackageQname(elements,from,to,currentSubpackage);
+  return deeperSubpackage != null ? deeperSubpackage : currentSubpackage;
+}

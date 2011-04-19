@@ -1,0 +1,28 @@
+{
+  if (!(parent instanceof PsiFileNode)) {
+    return children;
+  }
+  PsiFile psiFile=((PsiFileNode)parent).getValue();
+  if (FileTypeManager.getInstance().getFileTypeByFileName(psiFile.getName()) != FlexApplicationComponent.SWF_FILE_TYPE) {
+    return children;
+  }
+  VirtualFile vFile=psiFile.getVirtualFile();
+  if (vFile == null) {
+    return children;
+  }
+  PsiFile file=PsiManager.getInstance(parent.getProject()).findFile(vFile);
+  if (file == null) {
+    return children;
+  }
+  List<JSQualifiedNamedElement> elements=new ArrayList<JSQualifiedNamedElement>();
+  for (  JSSourceElement e : ((JSFile)file).getStatements()) {
+    if (e instanceof JSQualifiedNamedElement) {
+      elements.add((JSQualifiedNamedElement)e);
+    }
+ else     if (e instanceof JSVarStatement) {
+      Collections.addAll(elements,((JSVarStatement)e).getVariables());
+    }
+  }
+  Collections.sort(elements,QNAME_COMPARATOR);
+  return getChildrenForPackage("",elements,0,elements.size(),psiFile.getProject(),((PsiFileNode)parent).getSettings());
+}
