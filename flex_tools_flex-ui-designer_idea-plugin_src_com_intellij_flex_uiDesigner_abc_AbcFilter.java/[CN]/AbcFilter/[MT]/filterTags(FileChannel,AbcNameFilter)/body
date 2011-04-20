@@ -1,42 +1,42 @@
 {
   lastWrittenPosition=0;
-  while (byteBuffer.position() < byteBuffer.limit()) {
-    int tagCodeAndLength=byteBuffer.getShort();
+  while (buffer.position() < buffer.limit()) {
+    int tagCodeAndLength=buffer.getShort();
     int type=tagCodeAndLength >> 6;
     int length=tagCodeAndLength & 0x3F;
     if (length == 63) {
-      length=byteBuffer.getInt();
+      length=buffer.getInt();
     }
 switch (type) {
 case TagTypes.End:
-      byteBuffer.position(lastWrittenPosition);
-    outputFileChannel.write(byteBuffer);
+      buffer.position(lastWrittenPosition);
+    outFileChannel.write(buffer);
   return;
 case TagTypes.SymbolClass:
 {
-  final int tagStartPosition=byteBuffer.position();
+  final int tagStartPosition=buffer.position();
   if (replaceMainClass) {
-    lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,outputFileChannel,length);
+    lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,outFileChannel,length);
   }
-  byteBuffer.position(tagStartPosition + length);
+  buffer.position(tagStartPosition + length);
 }
 break;
 case TagTypes.DoABC2:
-String name=readAbcName(byteBuffer.position() + 4);
+String name=readAbcName(buffer.position() + 4);
 if (!abcNameFilter.accept(name)) {
-byteBuffer.limit(byteBuffer.position() - 6);
-byteBuffer.position(lastWrittenPosition);
-outputFileChannel.write(byteBuffer);
-lastWrittenPosition=byteBuffer.limit() + length + 6;
-byteBuffer.limit(byteBuffer.capacity());
-byteBuffer.position(lastWrittenPosition);
+buffer.limit(buffer.position() - 6);
+buffer.position(lastWrittenPosition);
+outFileChannel.write(buffer);
+lastWrittenPosition=buffer.limit() + length + 6;
+buffer.limit(buffer.capacity());
+buffer.position(lastWrittenPosition);
 continue;
 }
- else if (doAbc2(length,name,outputFileChannel)) {
+ else if (doAbc2(length,name,outFileChannel)) {
 continue;
 }
 default :
-byteBuffer.position(byteBuffer.position() + length);
+buffer.position(buffer.position() + length);
 break;
 }
 }

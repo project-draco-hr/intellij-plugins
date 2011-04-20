@@ -1,0 +1,18 @@
+{
+  Movie movie=new Movie();
+  TagDecoder tagDecoder=new TagDecoder(in);
+  MovieDecoder movieDecoder=new MovieDecoder(movie);
+  tagDecoder.parse(movieDecoder);
+  movie.uuid=null;
+  try {
+    merge(movie.frames.get(0).doABCs,true,true);
+  }
+ catch (  DecoderException e) {
+    throw new IOException(e);
+  }
+  TagEncoder handler=new TagEncoder();
+  System.setProperty("flex.swf.uncompressed","true");
+  MovieEncoder encoder=new MovieEncoder(handler);
+  encoder.export(movie);
+  handler.writeTo(new FileOutputStream(outFile));
+}
