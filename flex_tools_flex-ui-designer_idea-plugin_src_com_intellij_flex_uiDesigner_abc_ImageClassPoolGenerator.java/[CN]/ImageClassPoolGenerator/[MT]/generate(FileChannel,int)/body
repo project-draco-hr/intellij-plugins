@@ -1,0 +1,21 @@
+{
+  initAbcBlank();
+  if (size < 0 || size > 4095) {
+    throw new IllegalArgumentException("size must be >= 0 <= 4095");
+  }
+  ByteBuffer buffer=ByteBuffer.wrap(B_ABC);
+  outFileChannel.write(buffer);
+  buffer.clear();
+  for (int i=1, n=size - 1; i < n; i++) {
+    String index=Integer.toHexString(i);
+    int j=0;
+    final int relativeOffset=3 - index.length();
+    final int offset=NAME_POS + relativeOffset;
+    while (j < index.length()) {
+      B_ABC[offset + j]=(byte)index.charAt(j++);
+    }
+    System.arraycopy(B_ABC,offset,B_ABC,27 + relativeOffset,j);
+    outFileChannel.write(buffer);
+    buffer.clear();
+  }
+}

@@ -1,0 +1,44 @@
+{
+  lastWrittenPosition=0;
+  while (buffer.position() < buffer.limit()) {
+    int tagCodeAndLength=buffer.getShort();
+    int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+switch (type) {
+case TagTypes.End:
+      buffer.position(lastWrittenPosition);
+    channel.write(buffer);
+  return;
+case TagTypes.SymbolClass:
+{
+  final int tagStartPosition=buffer.position();
+  if (replaceMainClass) {
+    lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,length);
+  }
+  buffer.position(tagStartPosition + length);
+}
+break;
+case TagTypes.EnableDebugger:
+case TagTypes.EnableDebugger2:
+case TagTypes.SetBackgroundColor:
+case TagTypes.ProductInfo:
+skipTag(length);
+break;
+case TagTypes.DoABC2:
+String name=readAbcName(buffer.position() + 4);
+if (!abcNameFilter.accept(name)) {
+skipTag(length);
+continue;
+}
+ else if (doAbc2(length,name)) {
+continue;
+}
+default :
+buffer.position(buffer.position() + length);
+break;
+}
+}
+}

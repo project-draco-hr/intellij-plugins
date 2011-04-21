@@ -1,0 +1,25 @@
+{
+  final int startTagPosition=buffer.position() - (tagLength >= 63 ? 6 : 2);
+  int numSymbols=buffer.getShort();
+  for (int i=0; i < numSymbols; i++) {
+    int id=buffer.getShort();
+    final int position=buffer.position();
+    String name=readAbcName(position);
+    if (id == 0) {
+      byte[] nb="com.intellij.flex.uiDesigner.Main".getBytes();
+      buffer.put(nb);
+      buffer.put((byte)0);
+      buffer.position(startTagPosition);
+      encodeTagHeader(TagTypes.SymbolClass,tagLength - (name.length() - nb.length));
+      buffer.position(lastWrittenPosition);
+      buffer.limit(position + nb.length + 1);
+      channel.write(buffer);
+      buffer.limit(buffer.capacity());
+      return position + name.length() + 1;
+    }
+ else {
+      buffer.position(position + name.length() + 1);
+    }
+  }
+  throw new IllegalArgumentException("can't find 0 symbol");
+}

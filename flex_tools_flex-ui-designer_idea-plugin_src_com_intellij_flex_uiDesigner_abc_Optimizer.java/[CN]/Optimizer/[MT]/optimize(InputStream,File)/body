@@ -4,7 +4,14 @@
   MovieDecoder movieDecoder=new MovieDecoder(movie);
   tagDecoder.parse(movieDecoder);
   movie.uuid=null;
+  movie.enableDebugger=null;
+  movie.bgcolor=null;
+  movie.topLevelClass=null;
+  movie.productInfo=null;
   try {
+    if (movie.frames.size() > 1) {
+      movie.frames.remove(1);
+    }
     merge(movie.frames.get(0).doABCs,true,true);
   }
  catch (  DecoderException e) {
@@ -14,5 +21,11 @@
   System.setProperty("flex.swf.uncompressed","true");
   MovieEncoder encoder=new MovieEncoder(handler);
   encoder.export(movie);
-  handler.writeTo(new FileOutputStream(outFile));
+  final FileOutputStream out=new FileOutputStream(outFile);
+  try {
+    handler.writeTo(out);
+  }
+  finally {
+    out.close();
+  }
 }
