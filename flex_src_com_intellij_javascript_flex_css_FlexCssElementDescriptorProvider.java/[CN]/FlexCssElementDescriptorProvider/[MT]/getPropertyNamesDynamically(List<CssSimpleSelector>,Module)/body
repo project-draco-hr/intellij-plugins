@@ -4,7 +4,16 @@
   Set<JSClass> visited=new HashSet<JSClass>();
   Set<String> result=new HashSet<String>();
   Project project=module.getProject();
-  for (  String shortClassName : shortClassNames) {
+  for (  CssSimpleSelector selector : selectors) {
+    final JSClass jsClass=getClassFromMxmlDescriptor(selector,module);
+    if (jsClass != null) {
+      fillPropertyNamesDinamically(jsClass,visited,result);
+      continue;
+    }
+    final String shortClassName=selector.getElementName();
+    if (shortClassName == null) {
+      continue;
+    }
     Collection<JSQualifiedNamedElement> candidates=JSResolveUtil.findElementsByName(shortClassName,project,scope);
     for (    JSQualifiedNamedElement candidate : candidates) {
       if (candidate instanceof JSClass) {
