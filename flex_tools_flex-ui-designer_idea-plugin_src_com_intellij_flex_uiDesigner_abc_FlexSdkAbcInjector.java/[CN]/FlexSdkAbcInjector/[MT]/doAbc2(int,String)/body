@@ -1,6 +1,7 @@
 {
   if (flexInjected) {
-    return false;
+    super.doAbc2(length,name);
+    return;
   }
   boolean isStyleProtoChain=name.equals(STYLE_PROTO_CHAIN);
   if (isStyleProtoChain) {
@@ -11,13 +12,9 @@
     buffer.put((byte)'F');
     buffer.position(oldPosition);
   }
+  super.doAbc2(length,name);
   if (isStyleProtoChain ? flexSdkVersion.equals("4.5") : (flexSdkVersion.equals("4.1") && name.equals("mx.styles:CSSStyleDeclaration"))) {
     flexInjected=true;
-    buffer.limit(buffer.position() + length);
-    buffer.position(lastWrittenPosition);
-    channel.write(buffer);
-    lastWrittenPosition=buffer.limit();
-    buffer.limit(buffer.capacity());
     if (injectionUrlConnection == null) {
       decoders.add(new Decoder(new DataBuffer(FileUtil.loadFileBytes(new File(DebugPathManager.getFudHome() + "/flex-injection/target/" + ComplementSwfBuilder.generateInjectionName(flexSdkVersion))))));
     }
@@ -31,9 +28,7 @@
       }
     }
     if (requiredAssetsInfo.bitmapCount != 0) {
-      ImageClassPoolGenerator.generate(channel,requiredAssetsInfo.bitmapCount);
+      ImageClassPoolGenerator.generate(decoders,requiredAssetsInfo.bitmapCount);
     }
-    return true;
   }
-  return false;
 }

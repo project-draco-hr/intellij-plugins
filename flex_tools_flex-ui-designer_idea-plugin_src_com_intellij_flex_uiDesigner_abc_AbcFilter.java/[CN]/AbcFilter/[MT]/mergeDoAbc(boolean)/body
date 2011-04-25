@@ -1,0 +1,61 @@
+{
+  final int abcSize=decoders.size();
+  final ConstantPool[] pools=new ConstantPool[abcSize];
+  for (int i=0; i < abcSize; i++) {
+    pools[i]=decoders.get(i).constantPool;
+  }
+  final Encoder encoder=new Encoder(46,16);
+  encoder.enablePeepHole();
+  encoder.configure(decoders);
+  encoder.addConstantPools(pools);
+  Decoder decoder;
+  for (int i=0; i < abcSize; i++) {
+    decoder=decoders.get(i);
+    encoder.useConstantPool(i);
+    Decoder.MethodInfo methodInfo=decoder.methodInfo;
+    for (int j=0, infoSize=methodInfo.size(); j < infoSize; j++) {
+      methodInfo.decode(j,encoder);
+    }
+  }
+  for (int j=0; j < abcSize; j++) {
+    decoder=decoders.get(j);
+    encoder.useConstantPool(j);
+    Decoder.MetaDataInfo metadataInfo=decoder.metadataInfo;
+    for (int k=0, infoSize=metadataInfo.size(); k < infoSize; k++) {
+      metadataInfo.decode(k,encoder);
+    }
+  }
+  for (int j=0; j < abcSize; j++) {
+    decoder=decoders.get(j);
+    encoder.useConstantPool(j);
+    Decoder.ClassInfo classInfo=decoder.classInfo;
+    for (int k=0, infoSize=classInfo.size(); k < infoSize; k++) {
+      classInfo.decodeInstance(k,encoder);
+    }
+  }
+  for (int j=0; j < abcSize; j++) {
+    decoder=decoders.get(j);
+    encoder.useConstantPool(j);
+    Decoder.ClassInfo classInfo=decoder.classInfo;
+    for (int k=0, infoSize=classInfo.size(); k < infoSize; k++) {
+      classInfo.decodeClass(k,encoder);
+    }
+  }
+  for (int j=0; j < abcSize; j++) {
+    decoder=decoders.get(j);
+    encoder.useConstantPool(j);
+    Decoder.ScriptInfo scriptInfo=decoder.scriptInfo;
+    for (int k=0, scriptSize=scriptInfo.size(); k < scriptSize; k++) {
+      scriptInfo.decode(k,encoder);
+    }
+  }
+  for (int j=0; j < abcSize; j++) {
+    decoder=decoders.get(j);
+    encoder.useConstantPool(j);
+    Decoder.MethodBodies methodBodies=decoder.methodBodies;
+    for (int k=0, bodySize=methodBodies.size(); k < bodySize; k++) {
+      methodBodies.decode(k,2,encoder);
+    }
+  }
+  encoder.writeDoAbc(channel,asTag);
+}

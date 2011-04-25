@@ -8,16 +8,18 @@
     }
 switch (type) {
 case TagTypes.End:
-      return;
+      mergeDoAbc(false);
+    return;
 case TagTypes.DoABC2:
-    String name=readAbcName(buffer.position() + 4);
-  if (abcNameFilter.accept(name)) {
-    buffer.position(buffer.position() - 6);
-    buffer.limit(buffer.position() + length + 6);
-    channel.write(buffer);
-    buffer.limit(buffer.capacity());
-    continue;
-  }
+  String name=readAbcName(buffer.position() + 4);
+if (abcNameFilter.accept(name)) {
+  final int off=4 + name.length() + 1;
+  buffer.position(buffer.position() + off);
+  final int abcLength=length - off;
+  decoders.add(new Decoder(new BufferWrapper(buffer,abcLength)));
+  buffer.position(buffer.position() + abcLength);
+  continue;
+}
 default :
 buffer.position(buffer.position() + length);
 }
