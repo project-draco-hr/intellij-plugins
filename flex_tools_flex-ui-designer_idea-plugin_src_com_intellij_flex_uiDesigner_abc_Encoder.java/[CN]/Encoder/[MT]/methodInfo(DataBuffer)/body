@@ -1,31 +1,32 @@
 {
-  methodInfo.writeU32(paramTypes == null ? 0 : paramTypes.length);
+  int paramCount=in.readU32();
+  methodInfo.writeU32(paramCount);
+  int returnType=in.readU32();
   methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,returnType));
-  for (int i=0, paramCount=(paramTypes == null) ? 0 : paramTypes.length; i < paramCount; i++) {
-    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,paramTypes[i]));
+  for (int i=0; i < paramCount; i++) {
+    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,in.readU32()));
   }
+  int nativeName=in.readU32();
   methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(poolIndex,IndexHistory.STRING,nativeName));
+  int flags=in.readU8();
   if (disableDebugging) {
     flags&=~METHOD_HasParamNames;
   }
   methodInfo.writeU8(flags);
   if ((flags & METHOD_HasOptional) != 0) {
-    if (values == null) {
-      methodInfo.writeU32(0);
-    }
- else {
-      methodInfo.writeU32(values.length);
-    }
-  }
-  for (int i=0, optionalCount=(values == null) ? 0 : values.length; i < optionalCount; i++) {
-    int kind=-1;
-switch (value_kinds[i]) {
+    int optionalCount=in.readU32();
+    methodInfo.writeU32(optionalCount);
+    for (int i=0; i < optionalCount; i++) {
+      int value=in.readU32();
+      int kind=-1;
+      int rawKind=in.readU8();
+switch (rawKind) {
 case CONSTANT_Utf8:
-      kind=IndexHistory.STRING;
-    break;
+        kind=IndexHistory.STRING;
+      break;
 case CONSTANT_Integer:
-  kind=IndexHistory.INT;
-break;
+    kind=IndexHistory.INT;
+  break;
 case CONSTANT_UInteger:
 kind=IndexHistory.UINT;
 break;
@@ -53,27 +54,28 @@ kind=IndexHistory.NS_SET;
 break;
 }
 int newIndex;
-switch (value_kinds[i]) {
+switch (rawKind) {
 case 0:
 case CONSTANT_False:
 case CONSTANT_True:
 case CONSTANT_Null:
-newIndex=values[i];
+newIndex=value;
 break;
 default :
 {
 if (kind == -1) {
-System.out.println("writing MethodInfo: don't know what constant type it is... " + value_kinds[i] + ","+ values[i]);
+throw new DecoderException("Unknown constant type " + rawKind + " for "+ value);
 }
-newIndex=history.getIndex(poolIndex,kind,values[i]);
+newIndex=history.getIndex(poolIndex,kind,value);
 }
 }
 methodInfo.writeU32(newIndex);
-methodInfo.writeU8(value_kinds[i]);
+methodInfo.writeU8(rawKind);
 }
-if ((flags & METHOD_HasParamNames) != 0 && param_names != null) {
-for (int i=0, param_namesLength=param_names.length; i < param_namesLength; i++) {
-methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.STRING,returnType));
+}
+if ((flags & METHOD_HasParamNames) != 0 && paramCount != 0) {
+for (int j=0; j < paramCount; ++j) {
+methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.STRING,in.readU32()));
 }
 }
 }
