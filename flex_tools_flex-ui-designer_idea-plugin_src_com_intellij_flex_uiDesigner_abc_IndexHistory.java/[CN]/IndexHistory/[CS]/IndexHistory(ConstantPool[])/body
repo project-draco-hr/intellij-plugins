@@ -1,25 +1,46 @@
 {
   this.pools=pools;
   poolSizes=new int[pools.length];
-  int size=0, preferredSize=0;
+  int size=0;
+  int preferredSize=0;
+  int[] poolPartLengths=new int[7];
   for (int i=0, length=pools.length; i < length; i++) {
-    poolSizes[i]=(i == 0) ? 0 : size;
-    size+=pools[i].size();
-    preferredSize+=(pools[i].mnEnd - pools[i].strEnd);
+    poolSizes[i]=i == 0 ? 0 : size;
+    final ConstantPool pool=pools[i];
+    size+=pool.size();
+    preferredSize+=pool.ends[MULTINAME] - pool.ends[STRING];
+    for (int j=0; j < 7; j++) {
+      poolPartLengths[j]+=pool.positions[j].length;
+    }
   }
   map=new int[size];
   in_ns=new WritableDataBuffer(preferredSize);
-  in_nsset=new WritableDataBuffer(preferredSize);
-  in_mn=new WritableDataBuffer(preferredSize);
-  intP=new ByteArrayPool();
-  uintP=new ByteArrayPool();
-  doubleP=new ByteArrayPool();
-  stringP=new ByteArrayPool();
-  nsP=new NSPool();
-  nssP=new NSSPool();
-  mnP=new MultiNamePool();
-  total=0;
-  duplicate=0;
-  totalBytes=0;
-  duplicateBytes=0;
+  in_ns_set=new WritableDataBuffer(preferredSize);
+  in_multiname=new WritableDataBuffer(preferredSize);
+  for (int i=0; i < 7; i++) {
+    final int poolPartLength=poolPartLengths[i];
+    if (poolPartLength == 0) {
+      continue;
+    }
+    if (i < NS) {
+      poolParts[i]=new PoolPart(poolPartLength);
+    }
+ else {
+switch (i) {
+case NS:
+        poolParts[i]=new NSPool(poolPartLength);
+      break;
+case NS_SET:
+    poolParts[i]=new NSSPool(poolPartLength);
+  break;
+case MULTINAME:
+poolParts[i]=new MultiNamePool(poolPartLength);
+break;
+}
+}
+}
+total=0;
+duplicate=0;
+totalBytes=0;
+duplicateBytes=0;
 }

@@ -1,15 +1,10 @@
 {
-  if (paramTypes == null) {
-    methodInfo.writeU32(0);
-  }
- else {
-    methodInfo.writeU32(paramTypes.length);
-  }
-  methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,returnType));
+  methodInfo.writeU32(paramTypes == null ? 0 : paramTypes.length);
+  methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,returnType));
   for (int i=0, paramCount=(paramTypes == null) ? 0 : paramTypes.length; i < paramCount; i++) {
-    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,paramTypes[i]));
+    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,paramTypes[i]));
   }
-  methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(poolIndex,IndexHistory.cp_string,nativeName));
+  methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(poolIndex,IndexHistory.STRING,nativeName));
   if (disableDebugging) {
     flags&=~METHOD_HasParamNames;
   }
@@ -26,19 +21,16 @@
     int kind=-1;
 switch (value_kinds[i]) {
 case CONSTANT_Utf8:
-      kind=IndexHistory.cp_string;
+      kind=IndexHistory.STRING;
     break;
 case CONSTANT_Integer:
-  kind=IndexHistory.cp_int;
+  kind=IndexHistory.INT;
 break;
 case CONSTANT_UInteger:
-kind=IndexHistory.cp_uint;
+kind=IndexHistory.UINT;
 break;
 case CONSTANT_Double:
-kind=IndexHistory.cp_double;
-break;
-case CONSTANT_Decimal:
-kind=IndexHistory.cp_decimal;
+kind=IndexHistory.DOUBLE;
 break;
 case CONSTANT_Namespace:
 case CONSTANT_PrivateNamespace:
@@ -47,17 +39,17 @@ case CONSTANT_PackageInternalNs:
 case CONSTANT_ProtectedNamespace:
 case CONSTANT_ExplicitNamespace:
 case CONSTANT_StaticProtectedNs:
-kind=IndexHistory.cp_ns;
+kind=IndexHistory.NS;
 break;
 case CONSTANT_Qname:
 case CONSTANT_QnameA:
 case CONSTANT_Multiname:
 case CONSTANT_MultinameA:
 case CONSTANT_TypeName:
-kind=IndexHistory.cp_mn;
+kind=IndexHistory.MULTINAME;
 break;
 case CONSTANT_Namespace_Set:
-kind=IndexHistory.cp_nsset;
+kind=IndexHistory.NS_SET;
 break;
 }
 int newIndex;
@@ -81,7 +73,7 @@ methodInfo.writeU8(value_kinds[i]);
 }
 if ((flags & METHOD_HasParamNames) != 0 && param_names != null) {
 for (int i=0, param_namesLength=param_names.length; i < param_namesLength; i++) {
-methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_string,returnType));
+methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.STRING,returnType));
 }
 }
 }
