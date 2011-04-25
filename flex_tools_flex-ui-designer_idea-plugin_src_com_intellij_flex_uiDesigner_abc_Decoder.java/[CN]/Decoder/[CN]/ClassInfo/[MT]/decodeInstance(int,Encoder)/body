@@ -1,0 +1,26 @@
+{
+  int pos=iPositions[index];
+  int originalPos=in.position();
+  in.seek(pos);
+  int name=in.readU32();
+  int superName=in.readU32();
+  int flags=in.readU8();
+  boolean isFinal=(flags & CLASS_FLAG_final) != 0;
+  boolean isDynamic=(flags & CLASS_FLAG_sealed) == 0;
+  boolean isInterface=(flags & CLASS_FLAG_interface) != 0;
+  boolean hasProtected=(flags & CLASS_FLAG_protected) != 0;
+  int protectedNamespace=hasProtected ? in.readU32() : 0;
+  int interfaceCount=in.readU32();
+  int[] interfaces=new int[interfaceCount];
+  if (interfaceCount > 0) {
+    for (int j=0; j < interfaceCount; j++) {
+      interfaces[j]=in.readU32();
+    }
+  }
+  int iinit=in.readU32();
+  visitor.startInstance(name,superName,isDynamic,isFinal,isInterface,interfaces,iinit,protectedNamespace);
+  iTraits.decode(visitor);
+  visitor.endInstance();
+  in.seek(originalPos);
+  return name;
+}

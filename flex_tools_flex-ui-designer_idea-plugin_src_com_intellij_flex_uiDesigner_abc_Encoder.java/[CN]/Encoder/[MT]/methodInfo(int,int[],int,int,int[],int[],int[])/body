@@ -1,0 +1,87 @@
+{
+  if (paramTypes == null) {
+    methodInfo.writeU32(0);
+  }
+ else {
+    methodInfo.writeU32(paramTypes.length);
+  }
+  methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,returnType));
+  for (int i=0, paramCount=(paramTypes == null) ? 0 : paramTypes.length; i < paramCount; i++) {
+    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,paramTypes[i]));
+  }
+  methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(poolIndex,IndexHistory.cp_string,nativeName));
+  if (disableDebugging) {
+    flags&=~METHOD_HasParamNames;
+  }
+  methodInfo.writeU8(flags);
+  if ((flags & METHOD_HasOptional) != 0) {
+    if (values == null) {
+      methodInfo.writeU32(0);
+    }
+ else {
+      methodInfo.writeU32(values.length);
+    }
+  }
+  for (int i=0, optionalCount=(values == null) ? 0 : values.length; i < optionalCount; i++) {
+    int kind=-1;
+switch (value_kinds[i]) {
+case CONSTANT_Utf8:
+      kind=IndexHistory.cp_string;
+    break;
+case CONSTANT_Integer:
+  kind=IndexHistory.cp_int;
+break;
+case CONSTANT_UInteger:
+kind=IndexHistory.cp_uint;
+break;
+case CONSTANT_Double:
+kind=IndexHistory.cp_double;
+break;
+case CONSTANT_Decimal:
+kind=IndexHistory.cp_decimal;
+break;
+case CONSTANT_Namespace:
+case CONSTANT_PrivateNamespace:
+case CONSTANT_PackageNamespace:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNamespace:
+case CONSTANT_ExplicitNamespace:
+case CONSTANT_StaticProtectedNs:
+kind=IndexHistory.cp_ns;
+break;
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+case CONSTANT_TypeName:
+kind=IndexHistory.cp_mn;
+break;
+case CONSTANT_Namespace_Set:
+kind=IndexHistory.cp_nsset;
+break;
+}
+int newIndex;
+switch (value_kinds[i]) {
+case 0:
+case CONSTANT_False:
+case CONSTANT_True:
+case CONSTANT_Null:
+newIndex=values[i];
+break;
+default :
+{
+if (kind == -1) {
+System.out.println("writing MethodInfo: don't know what constant type it is... " + value_kinds[i] + ","+ values[i]);
+}
+newIndex=history.getIndex(poolIndex,kind,values[i]);
+}
+}
+methodInfo.writeU32(newIndex);
+methodInfo.writeU8(value_kinds[i]);
+}
+if ((flags & METHOD_HasParamNames) != 0 && param_names != null) {
+for (int i=0, param_namesLength=param_names.length; i < param_namesLength; i++) {
+methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.cp_string,returnType));
+}
+}
+}

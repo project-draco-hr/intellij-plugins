@@ -1,0 +1,25 @@
+{
+  if (index == 0) {
+    return null;
+  }
+  int pos=nspositions[index];
+  int originalPos=in.position();
+  in.seek(pos);
+  int kind=in.readU8();
+  String value;
+switch (kind) {
+case CONSTANT_PrivateNamespace:
+case CONSTANT_Namespace:
+case CONSTANT_PackageNamespace:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNamespace:
+case CONSTANT_ExplicitNamespace:
+case CONSTANT_StaticProtectedNs:
+    value=getString(in.readU32());
+  break;
+default :
+throw new DecoderException("abc Decoder Error: constant pool index '" + index + "' is not a Namespace type. The actual type is '"+ kind+ "'");
+}
+in.seek(originalPos);
+return value;
+}

@@ -1,0 +1,52 @@
+{
+  int estimatedSize=0, total=0;
+  int[] sizes=new int[decoders.length];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    estimatedSize+=decoders[i].methodInfo.estimatedSize;
+    sizes[i]=decoders[i].methodInfo.size();
+    total+=sizes[i];
+  }
+  methodInfo=new BytecodeBuffer2(estimatedSize,sizes);
+  methodInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.length];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    estimatedSize+=decoders[i].metadataInfo.estimatedSize;
+    sizes[i]=decoders[i].metadataInfo.size();
+    total+=sizes[i];
+  }
+  metadataInfo=new ByteArrayPool2(sizes);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.length];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    estimatedSize+=decoders[i].classInfo.estimatedSize;
+    sizes[i]=decoders[i].classInfo.size();
+    total+=sizes[i];
+  }
+  classInfo=new BytecodeBuffer2(estimatedSize,sizes);
+  classInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.length];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    estimatedSize+=decoders[i].scriptInfo.estimatedSize;
+    sizes[i]=decoders[i].scriptInfo.size();
+    total+=sizes[i];
+  }
+  scriptInfo=new BytecodeBuffer2(estimatedSize,sizes);
+  scriptInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.length];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    estimatedSize+=decoders[i].methodBodies.estimatedSize;
+    sizes[i]=decoders[i].methodBodies.size();
+    total+=sizes[i];
+  }
+  methodBodies=new BytecodeBuffer2(estimatedSize,sizes);
+  methodBodies.writeU32(total);
+  opcodes=new DataBuffer3(decoders,4096);
+  exceptions=new WritableDataBuffer(4096);
+}

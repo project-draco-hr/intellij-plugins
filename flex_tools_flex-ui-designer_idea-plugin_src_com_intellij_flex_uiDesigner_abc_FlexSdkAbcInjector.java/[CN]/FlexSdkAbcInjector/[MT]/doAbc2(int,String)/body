@@ -19,18 +19,12 @@
     lastWrittenPosition=buffer.limit();
     buffer.limit(buffer.capacity());
     if (injectionUrlConnection == null) {
-      final FileChannel injection=new FileInputStream(new File(DebugPathManager.getFudHome() + "/flex-injection/target/" + ComplementSwfBuilder.generateInjectionName(flexSdkVersion))).getChannel();
-      try {
-        injection.transferTo(0,injection.size(),channel);
-      }
-  finally {
-        injection.close();
-      }
+      decoders.add(new Decoder(new DataBuffer(FileUtil.loadFileBytes(new File(DebugPathManager.getFudHome() + "/flex-injection/target/" + ComplementSwfBuilder.generateInjectionName(flexSdkVersion))))));
     }
  else {
       InputStream inputStream=injectionUrlConnection.getInputStream();
       try {
-        channel.write(ByteBuffer.wrap(FileUtil.loadBytes(inputStream)));
+        decoders.add(new Decoder(new DataBuffer((FileUtil.loadBytes(inputStream)))));
       }
   finally {
         inputStream.close();

@@ -1,0 +1,68 @@
+{
+  currentBuffer.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,name));
+  TIntArrayList new_metadata=trimMetadata(metadata);
+  if (((trait_kind >> 4) & TRAIT_FLAG_metadata) != 0 && new_metadata.size() == 0) {
+    trait_kind=trait_kind & ~(TRAIT_FLAG_metadata << 4);
+  }
+  currentBuffer.writeU8(trait_kind);
+  currentBuffer.writeU32(slotId);
+  currentBuffer.writeU32(history.getIndex(poolIndex,IndexHistory.cp_mn,type));
+  int kind=-1;
+switch (value_kind) {
+case CONSTANT_Utf8:
+    kind=IndexHistory.cp_string;
+  break;
+case CONSTANT_Integer:
+kind=IndexHistory.cp_int;
+break;
+case CONSTANT_UInteger:
+kind=IndexHistory.cp_uint;
+break;
+case CONSTANT_Double:
+kind=IndexHistory.cp_double;
+break;
+case CONSTANT_Decimal:
+kind=IndexHistory.cp_decimal;
+break;
+case CONSTANT_Namespace:
+case CONSTANT_PrivateNamespace:
+case CONSTANT_PackageNamespace:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNamespace:
+case CONSTANT_ExplicitNamespace:
+case CONSTANT_StaticProtectedNs:
+kind=IndexHistory.cp_ns;
+break;
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+case CONSTANT_TypeName:
+kind=IndexHistory.cp_mn;
+break;
+case CONSTANT_Namespace_Set:
+kind=IndexHistory.cp_nsset;
+break;
+}
+int newIndex;
+switch (value_kind) {
+case 0:
+case CONSTANT_False:
+case CONSTANT_True:
+case CONSTANT_Null:
+newIndex=value;
+break;
+default :
+{
+if (kind == -1) {
+System.out.println("writing slotTrait: don't know what constant type it is... " + value_kind + ","+ value);
+}
+newIndex=history.getIndex(poolIndex,kind,value);
+}
+}
+currentBuffer.writeU32(newIndex);
+if (value != 0) {
+currentBuffer.writeU8(value_kind);
+}
+encodeMetaData(trait_kind,new_metadata);
+}

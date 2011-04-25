@@ -1,0 +1,36 @@
+{
+  long count=in.readU32();
+  for (long i=0; i < count; i++) {
+    in.readU32();
+    int kind=in.readU8();
+    int tag=kind & 0x0f;
+switch (tag) {
+case TRAIT_Var:
+case TRAIT_Const:
+{
+        in.skipEntries(2);
+        int valueId=in.readU32();
+        if (valueId > 0) {
+          in.readU8();
+        }
+        break;
+      }
+case TRAIT_Method:
+case TRAIT_Getter:
+case TRAIT_Setter:
+    in.skipEntries(2);
+  break;
+case TRAIT_Class:
+case TRAIT_Function:
+in.skipEntries(2);
+break;
+default :
+System.err.println("invalid trait type: " + tag);
+break;
+}
+if (((kind >> 4) & TRAIT_FLAG_metadata) != 0) {
+long metadata=in.readU32();
+in.skipEntries(metadata);
+}
+}
+}

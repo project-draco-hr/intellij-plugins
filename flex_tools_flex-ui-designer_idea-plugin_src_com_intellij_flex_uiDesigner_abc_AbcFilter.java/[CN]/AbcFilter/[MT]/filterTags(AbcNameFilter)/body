@@ -15,25 +15,39 @@ case TagTypes.End:
 case TagTypes.SymbolClass:
 {
   final int tagStartPosition=buffer.position();
+  writeDataBeforeTag(length);
+  mergeDoAbc();
+  lastWrittenPosition=tagStartPosition - (length < 63 ? 2 : 6);
+  buffer.position(tagStartPosition);
   if (replaceMainClass) {
     lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,length);
   }
   buffer.position(tagStartPosition + length);
 }
-break;
+continue;
 case TagTypes.EnableDebugger:
 case TagTypes.EnableDebugger2:
 case TagTypes.SetBackgroundColor:
 case TagTypes.ProductInfo:
 skipTag(length);
-break;
+continue;
 case TagTypes.DoABC2:
 String name=readAbcName(buffer.position() + 4);
 if (!abcNameFilter.accept(name)) {
 skipTag(length);
 continue;
 }
- else if (doAbc2(length,name)) {
+ else {
+int oldPosition=buffer.position();
+writeDataBeforeTag(length);
+buffer.position(oldPosition);
+if (doAbc2(length,name)) {
+}
+ else {
+buffer.position(buffer.position() + 4 + name.length()+ 1);
+decoders.add(new Decoder(new BufferWrapper(buffer,length)));
+}
+buffer.position(lastWrittenPosition);
 continue;
 }
 default :

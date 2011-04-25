@@ -1,0 +1,22 @@
+{
+  if (index == 0) {
+    return null;
+  }
+  int pos=mnpositions[index];
+  int originalPos=in.position();
+  in.seek(pos);
+  int kind=in.readU8();
+switch (kind) {
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+    String name=getString(in.readU32());
+  int namespace_set=in.readU32();
+String[] namespaces=getNamespaceSet(namespace_set);
+MultiName value=createMultiName(name,namespaces);
+in.seek(originalPos);
+return value;
+default :
+in.seek(originalPos);
+throw new DecoderException("abc Decoder Error: constant constantPool index '" + index + "' is not a MultiName type. The actual type is '"+ kind+ "'");
+}
+}

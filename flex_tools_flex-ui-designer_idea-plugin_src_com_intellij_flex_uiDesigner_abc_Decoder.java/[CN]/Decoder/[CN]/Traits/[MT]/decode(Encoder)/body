@@ -1,0 +1,40 @@
+{
+  int count=in.readU32();
+  visitor.traitCount(count);
+  for (int i=0; i < count; i++) {
+    int name=in.readU32();
+    int kind=in.readU8();
+    int slotID, typeID, valueID, methInfo, dispID, classID;
+    int value_kind=0;
+switch (kind & 0x0f) {
+case TRAIT_Var:
+case TRAIT_Const:
+      slotID=in.readU32();
+    typeID=in.readU32();
+  valueID=in.readU32();
+if (valueID != 0) {
+  value_kind=in.readU8();
+}
+visitor.slotTrait(kind,name,slotID,typeID,valueID,value_kind,decodeMetaData(kind));
+break;
+case TRAIT_Method:
+case TRAIT_Getter:
+case TRAIT_Setter:
+dispID=in.readU32();
+methInfo=in.readU32();
+visitor.methodTrait(kind,name,dispID,methInfo,decodeMetaData(kind));
+break;
+case TRAIT_Class:
+slotID=in.readU32();
+classID=in.readU32();
+visitor.classTrait(kind,name,slotID,classID,decodeMetaData(kind));
+break;
+case TRAIT_Function:
+slotID=in.readU32();
+methInfo=in.readU32();
+visitor.functionTrait(kind,name,slotID,methInfo,decodeMetaData(kind));
+break;
+default :
+}
+}
+}

@@ -1,0 +1,28 @@
+{
+  int pos=positions[index];
+  int originalPos=in.position();
+  in.seek(pos);
+  int methodInfo=in.readU32();
+  int maxStack=in.readU32();
+  int maxRegs=in.readU32();
+  int scopeDepth=in.readU32();
+  int maxScope=in.readU32();
+  int codeLength=in.readU32();
+  int codeStart=in.position();
+  in.skip(codeLength);
+  visitor.startMethodBody(methodInfo,maxStack,maxRegs,scopeDepth,maxScope);
+  int exPos=in.position();
+  for (int i=0; i < opcodePass; i++) {
+    opcodes.reset();
+    in.seek(exPos);
+    int exCount=in.readU32();
+    visitor.startExceptions(exCount);
+    decodeExceptions(in,codeStart,visitor,exCount);
+    opcodes.decode(codeStart,codeLength,visitor);
+    visitor.endOpcodes();
+    visitor.endExceptions();
+  }
+  traits.decode(visitor);
+  visitor.endMethodBody();
+  in.seek(originalPos);
+}
