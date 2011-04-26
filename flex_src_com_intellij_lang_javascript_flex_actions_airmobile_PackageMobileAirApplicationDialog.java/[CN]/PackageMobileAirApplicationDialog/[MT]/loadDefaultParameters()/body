@@ -1,0 +1,39 @@
+{
+  final MobileAirPackageParameters parameters=MobileAirPackageParameters.getInstance(myProject).getState();
+  if (!StringUtil.isEmpty(parameters.AIR_DESCRIPTOR_PATH)) {
+    myTargetPlatformCombo.setSelectedItem(parameters.MOBILE_PLATFORM);
+    myAndroidPackageTypeCombo.setSelectedItem(parameters.ANDROID_PACKAGE_TYPE);
+    myIOSPackageTypeCombo.setSelectedItem(parameters.IOS_PACKAGE_TYPE);
+    if (!StringUtil.isEmpty(parameters.SDK_NAME)) {
+      final JComboBox sdkCombo=myFlexSdkComponent.getComponent().getComboBox();
+      for (int i=0; i < sdkCombo.getItemCount(); i++) {
+        final Object item=sdkCombo.getItemAt(i);
+        if (item instanceof Sdk && ((Sdk)item).getName().equals(parameters.SDK_NAME)) {
+          sdkCombo.setSelectedItem(item);
+          break;
+        }
+      }
+    }
+    myAirDescriptorComponent.getComponent().getComboBox().setSelectedItem(parameters.AIR_DESCRIPTOR_PATH);
+    myInstallerFileNameComponent.getComponent().setText(parameters.INSTALLER_FILE_NAME);
+    myInstallerLocationComponent.getComponent().setText(parameters.INSTALLER_FILE_LOCATION);
+    myFilesToPackage.clear();
+    myFilesToPackage.addAll(parameters.FILES_TO_PACKAGE);
+    myProvisioningProfileTextWithBrowse.setText(parameters.PROVISIONING_PROFILE_PATH);
+    myKeystoreFileTextWithBrowse.setText(parameters.KEYSTORE_PATH);
+    myKeystoreTypeCombo.setSelectedItem(parameters.KEYSTORE_TYPE);
+    myKeyAliasTextField.setText(parameters.KEY_ALIAS);
+    myProviderClassNameTextField.setText(parameters.PROVIDER_CLASS);
+    myTsaUrlTextField.setText(parameters.TSA);
+    try {
+      final PasswordSafe passwordSafe=PasswordSafe.getInstance();
+      myKeystorePasswordField.setText(passwordSafe.getPassword(myProject,getClass(),MOBILE_AIR_PACKAGE_KEYSTORE_PASSWORD_KEY));
+      myKeyPasswordField.setText(passwordSafe.getPassword(myProject,getClass(),MOBILE_AIR_PACKAGE_KEY_PASSWORD_KEY));
+    }
+ catch (    PasswordSafeException ignored) {
+    }
+    if (StringUtil.isNotEmpty(parameters.KEY_ALIAS) || StringUtil.isNotEmpty(parameters.PROVIDER_CLASS) || StringUtil.isNotEmpty(parameters.TSA)) {
+      showMoreOptions(true);
+    }
+  }
+}

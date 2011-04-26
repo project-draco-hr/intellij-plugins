@@ -2,8 +2,17 @@
   final AirInstallerParameters parameters=AirInstallerParameters.getInstance(myProject).getState();
   if (parameters != null) {
     if (!StringUtil.isEmpty(parameters.AIR_DESCRIPTOR_PATH)) {
-      final JComboBox comboBox=myAirDescriptorComponent.getComponent().getComboBox();
-      comboBox.setSelectedItem(parameters.AIR_DESCRIPTOR_PATH);
+      if (!StringUtil.isEmpty(parameters.SDK_NAME)) {
+        final JComboBox combo=myFlexSdkComponent.getComponent().getComboBox();
+        for (int i=0; i < combo.getItemCount(); i++) {
+          final Object item=combo.getItemAt(i);
+          if (item instanceof Sdk && ((Sdk)item).getName().equals(parameters.SDK_NAME)) {
+            combo.setSelectedItem(item);
+            break;
+          }
+        }
+      }
+      myAirDescriptorComponent.getComponent().getComboBox().setSelectedItem(parameters.AIR_DESCRIPTOR_PATH);
       myInstallerFileNameComponent.getComponent().setText(parameters.INSTALLER_FILE_NAME);
       myInstallerLocationComponent.getComponent().setText(parameters.INSTALLER_FILE_LOCATION);
       myFilesToPackage.clear();
