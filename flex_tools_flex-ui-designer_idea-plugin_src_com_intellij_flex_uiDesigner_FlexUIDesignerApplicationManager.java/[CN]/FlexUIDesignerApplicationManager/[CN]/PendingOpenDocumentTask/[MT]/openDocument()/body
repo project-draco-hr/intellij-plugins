@@ -1,0 +1,23 @@
+{
+  try {
+    client.flush();
+    client.openDocument(myModule,myPsiFile);
+    client.flush();
+    ApplicationManager.getApplication().getMessageBus().syncPublisher(MESSAGE_TOPIC).initialDocumentOpened();
+  }
+ catch (  IOException e) {
+    try {
+      server.close();
+    }
+ catch (    IOException innerError) {
+      LOG.error(innerError);
+    }
+ finally {
+      serverClosed();
+    }
+    LOG.error(e);
+  }
+ finally {
+    documentOpening=false;
+  }
+}

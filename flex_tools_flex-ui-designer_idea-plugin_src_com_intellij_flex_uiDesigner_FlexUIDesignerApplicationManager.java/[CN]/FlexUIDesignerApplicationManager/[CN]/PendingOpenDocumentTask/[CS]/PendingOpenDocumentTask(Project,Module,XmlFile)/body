@@ -2,4 +2,40 @@
   myProject=project;
   myModule=module;
   myPsiFile=psiFile;
+  if (!ServiceManager.getService(StringRegistry.class).isEmpty()) {
+    try {
+      client.initStringRegistry();
+    }
+ catch (    IOException e) {
+      LOG.error(e);
+    }
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      try {
+        initLibrarySets(myProject,myModule);
+      }
+ catch (      IOException e) {
+        try {
+          server.close();
+        }
+ catch (        IOException innerError) {
+          LOG.error(innerError);
+        }
+ finally {
+          serverClosed();
+        }
+        LOG.error(e);
+      }
+catch (      InitException e) {
+        LOG.error(e.getCause());
+        DocumentProblemManager.getInstance().reportWithTitle(myProject,e.getMessage());
+      }
+      libraryAndModuleInitialized=true;
+      if (clientOpened) {
+        openDocument();
+      }
+    }
+  }
+);
 }
