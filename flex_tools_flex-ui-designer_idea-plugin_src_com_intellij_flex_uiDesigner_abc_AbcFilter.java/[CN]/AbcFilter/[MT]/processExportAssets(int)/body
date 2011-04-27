@@ -1,0 +1,24 @@
+{
+  final int tagStartPosition=buffer.position();
+  writeDataBeforeTag(length);
+  buffer.position(tagStartPosition);
+  numSymbols=buffer.getShort();
+  if (numSymbols == 0) {
+    return;
+  }
+  if (exportAssets == null) {
+    exportAssets=new TIntObjectHashMap<ExportAsset>(numSymbols);
+  }
+ else {
+    exportAssets.ensureCapacity(numSymbols);
+  }
+  for (int i=0; i < numSymbols; i++) {
+    int id=buffer.getShort();
+    int start=buffer.position();
+    int end=start + skipAbcName(start) + 1;
+    if (id != 0) {
+      exportAssets.put(id,new ExportAsset(start - 2,end));
+    }
+    buffer.position(end);
+  }
+}

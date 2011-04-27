@@ -1,0 +1,77 @@
+{
+  int estimatedSize=0, total=0;
+  int[] sizes=new int[decoders.size()];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    Decoder decoder=decoders.get(i);
+    if (excludedName != null && decoder.name != null && excludedName.same(decoder.name)) {
+      decoders.set(i,null);
+      continue;
+    }
+    estimatedSize+=decoder.methodInfo.estimatedSize;
+    sizes[i]=decoder.methodInfo.size();
+    total+=sizes[i];
+  }
+  methodInfo=new DataBuffer2(estimatedSize,sizes);
+  methodInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.size()];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    Decoder decoder=decoders.get(i);
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.metadataInfo.estimatedSize;
+    sizes[i]=decoder.metadataInfo.size();
+    total+=sizes[i];
+  }
+  metadataInfo=new MetadataInfoByteArray(sizes,total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.size()];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    Decoder decoder=decoders.get(i);
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.classInfo.estimatedSize;
+    sizes[i]=decoder.classInfo.size();
+    total+=sizes[i];
+  }
+  classInfo=new DataBuffer2(estimatedSize,sizes);
+  classInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.size()];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    Decoder decoder=decoders.get(i);
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.scriptInfo.estimatedSize;
+    sizes[i]=decoder.scriptInfo.size();
+    total+=sizes[i];
+  }
+  scriptInfo=new DataBuffer2(estimatedSize,sizes);
+  scriptInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  sizes=new int[decoders.size()];
+  for (int i=0, size=sizes.length; i < size; i++) {
+    Decoder decoder=decoders.get(i);
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.methodBodies.estimatedSize;
+    sizes[i]=decoder.methodBodies.size();
+    total+=sizes[i];
+  }
+  methodBodies=new DataBuffer2(estimatedSize,sizes);
+  methodBodies.writeU32(total);
+  opcodes=new DataBuffer3(decoders,4096);
+  exceptions=new WritableDataBuffer(4096);
+  history=new IndexHistory(decoders);
+  if (disableDebugging) {
+    history.disableDebugging();
+  }
+}

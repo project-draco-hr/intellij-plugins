@@ -1,0 +1,42 @@
+{
+  final int tagStartPosition=buffer.position();
+  writeDataBeforeTag(length);
+  buffer.position(tagStartPosition);
+  analyzeClassAssociatedWithMainTimeline(length);
+  final boolean hasClassAssociatedWithMainTimeLine=sL != -1;
+  mergeDoAbc(true,hasClassAssociatedWithMainTimeLine);
+  lastWrittenPosition=tagStartPosition - (length < 63 ? 2 : 6);
+  buffer.position(lastWrittenPosition);
+  boolean hasExportsAssets=exportAssets != null && !exportAssets.isEmpty();
+  if (hasClassAssociatedWithMainTimeLine || hasExportsAssets) {
+    if (hasExportsAssets) {
+      numSymbols+=exportAssets.size();
+    }
+    if (numSymbols == 0) {
+      lastWrittenPosition=tagStartPosition + length;
+    }
+ else {
+      encodeTagHeader(TagTypes.SymbolClass,sL);
+      buffer.putShort((short)numSymbols);
+      buffer.position(lastWrittenPosition);
+      buffer.limit(sA);
+      channel.write(buffer);
+      lastWrittenPosition=sB;
+      buffer.limit(buffer.capacity());
+      if (exportAssets != null) {
+        final TIntObjectIterator<ExportAsset> iterator=exportAssets.iterator();
+        for (int i=exportAssets.size(); i-- > 0; ) {
+          iterator.advance();
+          ExportAsset exportAsset=iterator.value();
+          buffer.position(exportAsset.start);
+          buffer.limit(exportAsset.end);
+          channel.write(buffer);
+        }
+        exportAssets.clear();
+      }
+    }
+    sL=-1;
+  }
+  decoders.clear();
+  buffer.position(tagStartPosition + length);
+}

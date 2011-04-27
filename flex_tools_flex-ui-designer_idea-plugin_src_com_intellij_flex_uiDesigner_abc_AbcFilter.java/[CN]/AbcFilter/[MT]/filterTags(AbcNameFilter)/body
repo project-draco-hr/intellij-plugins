@@ -13,17 +13,10 @@ case TagTypes.End:
     channel.write(buffer);
   return;
 case TagTypes.SymbolClass:
-{
-  final int tagStartPosition=buffer.position();
-  writeDataBeforeTag(length);
-  mergeDoAbc(true);
-  lastWrittenPosition=tagStartPosition - (length < 63 ? 2 : 6);
-  buffer.position(tagStartPosition);
-  if (replaceMainClass) {
-    lastWrittenPosition=parseSymbolClassTagAndRenameClassAssociatedWithMainTimeline(lastWrittenPosition,length);
-  }
-  buffer.position(tagStartPosition + length);
-}
+processSymbolClass(length);
+continue;
+case TagTypes.ExportAssets:
+processExportAssets(length);
 continue;
 case TagTypes.EnableDebugger:
 case TagTypes.EnableDebugger2:
@@ -35,8 +28,8 @@ case TagTypes.Metadata:
 skipTag(length);
 continue;
 case TagTypes.DoABC2:
-String name=readAbcName(buffer.position() + 4);
-if (abcNameFilter != null && !abcNameFilter.accept(name)) {
+readAbcName(buffer.position() + 4);
+if (abcNameFilter != null && !abcNameFilter.accept(transientNameString)) {
 skipTag(length);
 continue;
 }
@@ -44,7 +37,7 @@ continue;
 int oldPosition=buffer.position();
 writeDataBeforeTag(length);
 buffer.position(oldPosition);
-doAbc2(length,name);
+doAbc2(length);
 buffer.position(lastWrittenPosition);
 continue;
 }
