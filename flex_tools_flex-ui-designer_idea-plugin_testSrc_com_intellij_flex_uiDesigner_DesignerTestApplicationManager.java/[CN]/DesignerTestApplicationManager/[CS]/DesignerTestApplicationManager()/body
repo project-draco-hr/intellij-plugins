@@ -1,0 +1,55 @@
+{
+  DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration=new DesignerApplicationUtil.AdlRunConfiguration(System.getProperty("fud.adl"),System.getProperty("fud.air"));
+  adlRunConfiguration.arguments=new ArrayList<String>();
+  adlRunConfiguration.arguments.add("-p");
+  String fudHome=DebugPathManager.getFudHome();
+  adlRunConfiguration.arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
+  adlRunConfiguration.arguments.add("-cdd");
+  adlRunConfiguration.arguments.add(fudHome + "/flex-injection/target");
+  initAppRootDir();
+  final ServerSocket serverSocket=new ServerSocket(0,1);
+  adlProcessHandler=DesignerApplicationUtil.runAdl(adlRunConfiguration,fudHome + "/designer/src/main/resources/descriptor.xml",serverSocket.getLocalPort(),appDir.getPath(),new Consumer<Integer>(){
+    @Override public void consume(    Integer exitCode){
+      if (exitCode != 0) {
+        try {
+          serverSocket.close();
+        }
+ catch (        IOException ignored) {
+        }
+        throw new AssertionError("adl return " + exitCode);
+      }
+    }
+  }
+);
+  socket=serverSocket.accept();
+  ShutDownTracker.getInstance().registerShutdownTask(new Runnable(){
+    @Override public void run(){
+      adlProcessHandler.destroyProcess();
+      try {
+        socket.close();
+      }
+ catch (      IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+);
+  AppTestBase.changeServiceImplementation(Client.class,TestClient.class);
+  Client.getInstance().setOut(socket.getOutputStream());
+  AppTestBase.changeServiceImplementation(SocketInputHandler.class,SocketTestInputHandler.class);
+  socketInputHandler=(SocketTestInputHandler)ServiceManager.getService(SocketInputHandler.class);
+  ApplicationManager.getApplication().executeOnPooledThread(new Callable<Object>(){
+    @Override public Void call() throws Exception {
+      try {
+        socketInputHandler.read(socket.getInputStream(),appDir);
+      }
+ catch (      IOException e) {
+        if (!(e instanceof SocketException && socket.isClosed())) {
+          throw e;
+        }
+      }
+      return null;
+    }
+  }
+);
+}
