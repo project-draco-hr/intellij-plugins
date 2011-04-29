@@ -14,6 +14,14 @@
   final FlashBuilderModuleImporter flashBuilderModuleImporter=new FlashBuilderModuleImporter(project,allImportedModuleNames,sdkFinder,pathVariables);
   for (  final FlashBuilderProject flashBuilderProject : flashBuilderProjects) {
     final String moduleFilePath=flashBuilderProject.getProjectRootPath() + "/" + flashBuilderProject.getName()+ ModuleFileType.DOT_DEFAULT_EXTENSION;
+    if (LocalFileSystem.getInstance().findFileByPath(moduleFilePath) != null) {
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          ModuleBuilder.deleteModuleFile(moduleFilePath);
+        }
+      }
+);
+    }
     final Module module=moduleModel.newModule(moduleFilePath,StdModuleTypes.JAVA);
     final ModifiableRootModel rootModel=ModuleRootManager.getInstance(module).getModifiableModel();
     rootModels.add(rootModel);
