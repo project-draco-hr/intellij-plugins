@@ -17,7 +17,18 @@
       }
     }
  else {
-      if (mySkipMemberChooserDialog || ApplicationManager.getApplication().isUnitTestMode()) {
+      final boolean unitTestMode=ApplicationManager.getApplication().isUnitTestMode();
+      if (unitTestMode) {
+        Iterator<JSNamedElementNode> i=candidates.iterator();
+        while (i.hasNext()) {
+          final JSNamedElementNode next=i.next();
+          final PsiElement psiElement=((JSNamedElementNode)next.getParentNodeDelegate()).getPsiElement();
+          if (psiElement instanceof JSClass && JSCommonTypeNames.OBJECT_CLASS_NAME.equals(((JSClass)psiElement).getQualifiedName())) {
+            i.remove();
+          }
+        }
+      }
+      if (mySkipMemberChooserDialog || unitTestMode) {
         selectedElements=candidates;
       }
  else {
