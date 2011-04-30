@@ -1,12 +1,27 @@
 {
-  ArrayList<AbstractTreeNode> result=new ArrayList<AbstractTreeNode>();
-  for (  final AbstractTreeNode child : children) {
-    Object o=child.getValue();
-    if (o instanceof JSFileImpl || o instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)o)) {
-      result.add(new FlexFileNode((PsiFile)o,((ProjectViewNode)parent).getSettings()));
-      continue;
+  List<AbstractTreeNode> result=new ArrayList<AbstractTreeNode>();
+  if (parent instanceof SwfQualifiedNamedElementNode || parent instanceof FlexFileNode) {
+    if (((ProjectViewNode)parent).getSettings().isShowMembers()) {
+      JSQualifiedNamedElement parentElement=getElement(parent);
+      if (parentElement != null) {
+        JSStructureViewElement structureViewElement=new JSStructureViewElement(parentElement);
+        StructureViewTreeElement[] structureViewChildren=structureViewElement.getChildren(false);
+        for (        StructureViewTreeElement structureViewChild : structureViewChildren) {
+          PsiElement childElement=((JSStructureViewElement)structureViewChild).getUpToDateElement();
+          result.add(new FlexClassMemberNode((JSElement)childElement,((ProjectViewNode)parent).getSettings()));
+        }
+      }
     }
-    result.add(child);
+  }
+ else {
+    for (    final AbstractTreeNode child : children) {
+      Object o=child.getValue();
+      if (o instanceof JSFileImpl || o instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)o)) {
+        result.add(new FlexFileNode((PsiFile)o,((ProjectViewNode)parent).getSettings()));
+        continue;
+      }
+      result.add(child);
+    }
   }
   return result;
 }
