@@ -1,19 +1,8 @@
 {
   DesignerTestApplicationManager testApplicationManager=DesignerTestApplicationManager.getInstance();
-  appRootDir=testApplicationManager.getAppDir();
+  appDir=testApplicationManager.getAppDir();
   socketInputHandler=testApplicationManager.socketInputHandler;
-  socket=testApplicationManager.getSocket();
   client=(TestClient)Client.getInstance();
-  final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
-  stringWriter.startChange();
-  ProblemsHolder problemsHolder=new ProblemsHolder();
-  libraries=new SwcDependenciesSorter(appRootDir).sort(getLibraries(new LibraryStyleInfoCollector(myProject,myModule,stringWriter,problemsHolder)),myProject.getLocationHash(),getFlexVersion());
-  assertEmpty(problemsHolder.getResultList());
-  librarySet=new LibrarySet(myProject.getLocationHash(),ApplicationDomainCreationPolicy.ONE,libraries);
-  client.getRegisteredProjects().add(new ProjectInfo(myProject,librarySet));
-  client.openProject(myProject);
-  client.registerLibrarySet(librarySet,stringWriter);
-  if (!isRequireLocalStyleHolder()) {
-    registerModule(new ModuleInfo(myModule),stringWriter);
-  }
+  LibraryManager.getInstance().initLibrarySets(myModule,appDir,isRequireLocalStyleHolder());
+  assertEmpty(getLastProblems());
 }

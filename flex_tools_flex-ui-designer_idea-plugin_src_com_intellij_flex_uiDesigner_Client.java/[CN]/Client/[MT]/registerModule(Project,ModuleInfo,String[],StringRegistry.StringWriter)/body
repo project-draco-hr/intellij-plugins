@@ -1,10 +1,21 @@
 {
-  beginMessage(ClientMethod.registerModule);
-  stringWriter.writeToIfStarted(out);
-  out.writeShort(registeredModules.add(moduleInfo));
-  writeId(project);
-  out.write(librarySetIds);
-  out.write(moduleInfo.getLocalStyleHolders(),"lsh",true);
-  out.resetAfterMessage();
-  blockOut.end();
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.registerModule);
+    stringWriter.writeToIfStarted(out);
+    out.writeShort(registeredModules.add(moduleInfo));
+    writeId(project);
+    out.write(librarySetIds);
+    out.write(moduleInfo.getLocalStyleHolders(),"lsh",true);
+    hasError=false;
+  }
+  finally {
+    if (hasError) {
+      blockOut.rollback();
+    }
+ else {
+      blockOut.end();
+    }
+    out.resetAfterMessage();
+  }
 }

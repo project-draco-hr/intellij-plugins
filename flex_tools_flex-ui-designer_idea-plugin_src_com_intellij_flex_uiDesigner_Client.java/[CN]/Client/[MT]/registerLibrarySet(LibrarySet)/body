@@ -1,0 +1,65 @@
+{
+  beginMessage(ClientMethod.registerLibrarySet);
+  out.writeAmfUtf(librarySet.getId());
+  LibrarySet parent=librarySet.getParent();
+  if (parent == null) {
+    out.write(0);
+  }
+ else {
+    out.writeAmfUtf(parent.getId());
+  }
+  out.write(librarySet.getApplicationDomainCreationPolicy());
+  final List<Library> libraries=librarySet.getLibraries();
+  out.writeShort(sizeOfOriginalLibrary(libraries));
+  final LibraryManager libraryManager=LibraryManager.getInstance();
+  for (  Library library : libraries) {
+    final OriginalLibrary originalLibrary;
+    final boolean unregisteredLibrary;
+    if (library instanceof OriginalLibrary) {
+      originalLibrary=(OriginalLibrary)library;
+      if (!originalLibrary.hasDefinitions()) {
+        continue;
+      }
+      unregisteredLibrary=!libraryManager.isRegistered(originalLibrary);
+      if (originalLibrary.filtered) {
+        out.write(unregisteredLibrary ? 2 : 3);
+      }
+ else {
+        out.write(unregisteredLibrary ? 0 : 1);
+      }
+    }
+ else {
+      final EmbedLibrary embedLibrary=(EmbedLibrary)library;
+      out.write(4);
+      out.writeShort(indexOfOriginalLibrary(libraries,embedLibrary.parent));
+      out.writeAmfUtf(embedLibrary.getPath());
+      continue;
+    }
+    if (unregisteredLibrary) {
+      out.writeShort(libraryManager.add(originalLibrary));
+      writeParents(libraries,originalLibrary);
+      out.writeAmfUtf(originalLibrary.getPath());
+      writeVirtualFile(originalLibrary.getFile(),out);
+      if (originalLibrary.inheritingStyles == null) {
+        out.writeShort(0);
+      }
+ else {
+        out.write(originalLibrary.inheritingStyles);
+      }
+      if (originalLibrary.defaultsStyle == null) {
+        out.write(0);
+      }
+ else {
+        out.write(1);
+        out.write(originalLibrary.defaultsStyle);
+      }
+    }
+ else {
+      out.writeShort(originalLibrary.getId());
+      if (originalLibrary.filtered) {
+        writeParents(libraries,originalLibrary);
+      }
+    }
+  }
+  blockOut.end();
+}

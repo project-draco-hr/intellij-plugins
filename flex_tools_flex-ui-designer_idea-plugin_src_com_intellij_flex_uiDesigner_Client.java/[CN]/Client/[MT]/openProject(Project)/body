@@ -1,7 +1,18 @@
 {
-  beginMessage(ClientMethod.openProject);
-  writeId(project);
-  out.writeAmfUtf(project.getName());
-  ProjectWindowBounds.write(project,out);
-  blockOut.end();
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.openProject);
+    writeId(project);
+    out.writeAmfUtf(project.getName());
+    ProjectWindowBounds.write(project,out);
+    hasError=false;
+  }
+  finally {
+    if (hasError) {
+      blockOut.rollback();
+    }
+ else {
+      blockOut.end();
+    }
+  }
 }

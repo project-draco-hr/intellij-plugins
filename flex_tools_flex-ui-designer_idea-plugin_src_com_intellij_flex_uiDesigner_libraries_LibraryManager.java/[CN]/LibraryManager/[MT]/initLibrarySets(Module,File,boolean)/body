@@ -1,0 +1,65 @@
+{
+  final ProblemsHolder problemsHolder=new ProblemsHolder();
+  final Project project=module.getProject();
+  final LibraryCollector libraryCollector=new LibraryCollector(this);
+  final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter(16384);
+  stringWriter.startChange();
+  final Client client;
+  try {
+    ApplicationManager.getApplication().runReadAction(new Runnable(){
+      @Override public void run(){
+        libraryCollector.collect(module,new LibraryStyleInfoCollector(project,module,stringWriter,problemsHolder));
+      }
+    }
+);
+    client=Client.getInstance();
+    if (stringWriter.hasChanges()) {
+      client.updateStringRegistry(stringWriter);
+    }
+ else {
+      stringWriter.finishChange();
+    }
+  }
+ catch (  Throwable e) {
+    stringWriter.rollbackChange();
+    throw new InitException(e,"error.collect.libraries");
+  }
+  final LibrarySet projectLibrarySet;
+  final LibrarySet librarySet;
+  final InfoList<Project,ProjectInfo> registeredProjects=client.getRegisteredProjects();
+  final String projectLocationHash=project.getLocationHash();
+  if (registeredProjects.contains(project)) {
+    projectLibrarySet=registeredProjects.getInfo(project).getLibrarySet();
+  }
+ else {
+    projectLibrarySet=createLibrarySet(projectLocationHash + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),true);
+    registeredProjects.add(new ProjectInfo(project,projectLibrarySet,libraryCollector.getFlexSdk()));
+    client.openProject(project);
+    client.registerLibrarySet(projectLibrarySet);
+  }
+  if (libraryCollector.externalLibraries.isEmpty()) {
+    librarySet=projectLibrarySet;
+  }
+ else {
+    librarySet=createLibrarySet(projectLocationHash,projectLibrarySet,libraryCollector.externalLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),false);
+    client.registerLibrarySet(librarySet);
+  }
+  ModuleInfo moduleInfo=new ModuleInfo(module);
+  if (collectLocalStyleHolders) {
+    stringWriter.startChange();
+    try {
+      ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter,problemsHolder);
+      client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter);
+    }
+ catch (    Throwable e) {
+      stringWriter.rollbackChange();
+      throw new InitException(e,"error.collect.local.style.holders");
+    }
+  }
+ else {
+    client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter);
+  }
+  if (!problemsHolder.isEmpty()) {
+    DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
+  }
+}
