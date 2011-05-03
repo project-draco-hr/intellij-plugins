@@ -1,17 +1,25 @@
 {
-  DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
-  if (adlRunConfiguration == null) {
-    final String message=FlexUIDesignerBundle.message("error.suitable.fdk.not.found",SystemInfo.isLinux ? FlexUIDesignerBundle.message("error.suitable.fdk.not.found.linux") : "");
-    Messages.showErrorDialog(project,message,FlexUIDesignerBundle.message(debug ? "action.FlexUIDesigner.RunDesignView.text" : "action.FlexUIDesigner.DebugDesignView.text"));
-    final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,WindowManager.getInstance().suggestParentWindow(project));
-    editor.show();
-    if (editor.isOK()) {
-      adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
-    }
+  DesignerApplicationUtil.AdlRunConfiguration adlRunConfiguration;
+  try {
+    adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
     if (adlRunConfiguration == null) {
-      documentOpening=false;
-      return;
+      final String message=FlexUIDesignerBundle.message("error.suitable.fdk.not.found",SystemInfo.isLinux ? FlexUIDesignerBundle.message("error.suitable.fdk.not.found.linux") : "");
+      Messages.showErrorDialog(project,message,FlexUIDesignerBundle.message(debug ? "action.FlexUIDesigner.RunDesignView.text" : "action.FlexUIDesigner.DebugDesignView.text"));
+      final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,WindowManager.getInstance().suggestParentWindow(project));
+      editor.show();
+      if (editor.isOK()) {
+        adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
+      }
+      if (adlRunConfiguration == null) {
+        documentOpening=false;
+        return;
+      }
     }
+  }
+ catch (  Throwable e) {
+    LOG.error(e);
+    documentOpening=false;
+    return;
   }
   if (DebugPathManager.IS_DEV) {
     final String fudHome=DebugPathManager.getFudHome();

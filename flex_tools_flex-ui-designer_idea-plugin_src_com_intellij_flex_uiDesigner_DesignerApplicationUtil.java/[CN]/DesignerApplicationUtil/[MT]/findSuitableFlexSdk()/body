@@ -1,8 +1,9 @@
 {
-  String adlPath;
   if (ApplicationManager.getApplication().isUnitTestMode()) {
     return new AdlRunConfiguration(System.getProperty("fud.adl"),System.getProperty("fud.air"));
   }
+  String adlPath;
+  String runtime=findInstalledRuntime();
   for (  Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
     SdkType sdkType=sdk.getSdkType();
     if (!(sdkType instanceof IFlexSdkType)) {
@@ -16,16 +17,9 @@
     if (StringUtil.isEmpty(adlPath) || !new File(adlPath).exists()) {
       continue;
     }
-    final String runtime;
-    if (sdkType instanceof FlexmojosSdkType) {
-      runtime=FlexSdkUtils.getAirRuntimePathForFlexmojosSdk(sdk);
+    if (StringUtil.isEmpty(runtime)) {
+      runtime=FlexSdkUtils.getAirRuntimePath(sdk);
       if (StringUtil.isEmpty(runtime) || !new File(runtime).isDirectory()) {
-        continue;
-      }
-    }
- else {
-      runtime=null;
-      if (!new File(sdk.getHomePath() + AIR_RUNTIME_RELATIVE_PATH).exists()) {
         continue;
       }
     }
