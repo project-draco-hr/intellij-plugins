@@ -1,18 +1,19 @@
 {
   final Ref<String> versionRef=new Ref<String>();
-  ExternalTask.runWithProgress(new AdtTask(project,sdk){
+  final boolean ok=ExternalTask.runWithProgress(new AdtTask(project,sdk){
     protected void appendAdtOptions(    final List<String> command){
-      command.add("-version");
+      command.add("-runtimeVersion");
+      command.add("-platform");
+      command.add("android");
     }
     protected boolean checkMessages(    final List<String> messages){
       if (messages.size() == 1) {
-        String output=messages.get(0);
-        final String prefix="adt version \"";
-        final String suffix="\"";
-        if (output.startsWith(prefix) && output.endsWith(suffix)) {
-          output=output.substring(prefix.length(),output.length() - suffix.length());
+        final String output=messages.get(0);
+        if (output.startsWith("Failed to find package com.adobe.air")) {
+          versionRef.set("");
+          return true;
         }
-        if (AIR_VERSION_PATTERN.matcher(output).matches()) {
+ else         if (AIR_VERSION_PATTERN.matcher(output).matches()) {
           versionRef.set(output);
           return true;
         }
@@ -21,5 +22,8 @@
     }
   }
 ,FlexBundle.message("checking.air.version"),FlexBundle.message("check.air.version.title"));
+  if (!ok) {
+    throw new AdtException();
+  }
   return versionRef.get();
 }
