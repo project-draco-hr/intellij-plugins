@@ -43,17 +43,9 @@
   }
  else   if (myValueType == ValueType.Field && myParentResult != null) {
     final String type=getTypeAndAdditionalInfo(myParentResult).first;
-    if (type != null) {
-      final String fqn=type.replace("::",".");
-      final Module module=ModuleUtil.findModuleForFile(mySourcePosition.getFile(),project);
-      final JavaScriptIndex jsIndex=JavaScriptIndex.getInstance(project);
-      PsiElement jsClass=JSResolveUtil.findClassByQName(fqn,jsIndex,module);
-      if (!(jsClass instanceof JSClass) && type.endsWith("$")) {
-        jsClass=JSResolveUtil.findClassByQName(fqn.substring(0,fqn.length() - 1),jsIndex,module);
-      }
-      if (jsClass instanceof JSClass) {
-        result=calcSourcePosition(findFieldOrGetterInClassOrSupers(myName,(JSClass)jsClass,new THashSet<JSClass>()));
-      }
+    final JSClass jsClass=findJSClass(project,ModuleUtil.findModuleForFile(mySourcePosition.getFile(),project),type);
+    if (jsClass != null) {
+      result=calcSourcePosition(findFieldOrGetter(myName,jsClass,true));
     }
   }
   navigatable.setSourcePosition(result);

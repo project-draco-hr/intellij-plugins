@@ -1,0 +1,19 @@
+{
+  if (typeFromFlexValueResult != null && !typeFromFlexValueResult.contains("/")) {
+    final String fqn=typeFromFlexValueResult.replace("::",".");
+    final JavaScriptIndex jsIndex=JavaScriptIndex.getInstance(project);
+    PsiElement jsClass=JSResolveUtil.findClassByQName(fqn,jsIndex,module);
+    if (!(jsClass instanceof JSClass) && fqn.endsWith("$")) {
+      jsClass=JSResolveUtil.findClassByQName(fqn.substring(0,fqn.length() - 1),jsIndex,module);
+    }
+    if (!(jsClass instanceof JSClass) && module != null) {
+      final GlobalSearchScope scope=ProjectScope.getAllScope(project);
+      jsClass=JSResolveUtil.findClassByQName(fqn,scope);
+      if (!(jsClass instanceof JSClass) && fqn.endsWith("$")) {
+        jsClass=JSResolveUtil.findClassByQName(fqn.substring(0,fqn.length() - 1),scope);
+      }
+    }
+    return jsClass instanceof JSClass ? (JSClass)jsClass : null;
+  }
+  return null;
+}
