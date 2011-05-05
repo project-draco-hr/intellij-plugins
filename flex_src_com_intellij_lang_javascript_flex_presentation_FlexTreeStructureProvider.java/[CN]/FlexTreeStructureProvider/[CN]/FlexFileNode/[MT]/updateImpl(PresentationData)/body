@@ -1,12 +1,14 @@
 {
   PsiFile value=getValue();
   String className=null;
+  Icon icon=null;
   if (value instanceof JSFileImpl) {
     VirtualFile file=value.getVirtualFile();
     if (file != null && ProjectRootManager.getInstance(myProject).getFileIndex().getSourceRootForFile(file) != null) {
       JSNamedElement element=JSFileImpl.findMainDeclaredElement((JSFileImpl)value);
       if (element != null) {
         className=element.getName();
+        icon=element.getIcon(Iconable.ICON_FLAG_VISIBILITY | Iconable.ICON_FLAG_READ_STATUS);
       }
     }
   }
@@ -14,11 +16,12 @@
     VirtualFile file=value.getVirtualFile();
     if (file != null && ProjectRootManager.getInstance(myProject).getFileIndex().getSourceRootForFile(file) != null) {
       className=file.getNameWithoutExtension();
+      icon=XmlBackedJSClassImpl.CLASS_ICON;
     }
   }
   if (className != null) {
     data.setPresentableText(className);
-    data.setIcons(value.getIcon(Iconable.ICON_FLAG_VISIBILITY | Iconable.ICON_FLAG_READ_STATUS));
+    data.setIcons(icon);
     return;
   }
   super.updateImpl(data);
