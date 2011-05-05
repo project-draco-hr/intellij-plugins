@@ -1,0 +1,34 @@
+{
+  VirtualFile swfFile=library.originalLibrary.getSwfFile();
+  File modifiedSwf=createSwfOutFile(library.originalLibrary);
+  final long timeStamp=swfFile.getTimeStamp();
+  final long injectionLastModified;
+  final URLConnection injectionUrlConnection;
+  if (DebugPathManager.IS_DEV) {
+    injectionLastModified=createInjectionAbc(flexSdkVersion,false);
+    injectionUrlConnection=null;
+  }
+ else {
+    URL url=getClass().getClassLoader().getResource(ComplementSwfBuilder.generateInjectionName(flexSdkVersion));
+    injectionUrlConnection=url.openConnection();
+    injectionLastModified=injectionUrlConnection.getLastModified();
+  }
+  if (library.hasUnresolvedDefinitions() || timeStamp > modifiedSwf.lastModified() || injectionLastModified > modifiedSwf.lastModified()) {
+    Set<CharSequence> definitions=library.hasUnresolvedDefinitions() ? library.unresolvedDefinitions : new THashSet<CharSequence>(8,AbcFilter.HASHING_STRATEGY);
+    definitions.add("FrameworkClasses");
+    definitions.add("mx.managers.systemClasses:MarshallingSupport");
+    definitions.add("mx.managers:SystemManagerProxy");
+    definitions.add("mx.styles:StyleManager");
+    definitions.add(FlexSdkAbcInjector.LAYOUT_MANAGER);
+    definitions.add(FlexSdkAbcInjector.RESOURCE_MANAGER);
+    definitions.add(FlexSdkAbcInjector.RESOURCE_MANAGER + "Impl");
+    definitions.add("mx.styles:StyleManagerImpl");
+    RequiredAssetsInfo requiredAssetsInfo=new RequiredAssetsInfo();
+    for (    OriginalLibrary originalLibrary : libraries) {
+      if (originalLibrary.requiredAssetsInfo != null) {
+        requiredAssetsInfo.append(originalLibrary.requiredAssetsInfo);
+      }
+    }
+    new FlexSdkAbcInjector(flexSdkVersion,injectionUrlConnection,requiredAssetsInfo).filter(swfFile,modifiedSwf,new AbcNameFilterByNameSetAndStartsWith(definitions,new String[]{"mx.managers.marshalClasses:"}));
+  }
+}

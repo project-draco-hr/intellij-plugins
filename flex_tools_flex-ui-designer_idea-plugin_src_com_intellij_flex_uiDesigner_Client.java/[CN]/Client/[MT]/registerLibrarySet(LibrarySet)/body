@@ -13,19 +13,19 @@
   out.writeShort(sizeOfOriginalLibrary(libraries));
   final LibraryManager libraryManager=LibraryManager.getInstance();
   for (  Library library : libraries) {
-    final OriginalLibrary originalLibrary;
     final boolean unregisteredLibrary;
-    if (library instanceof OriginalLibrary) {
-      originalLibrary=(OriginalLibrary)library;
-      if (!originalLibrary.hasDefinitions()) {
+    final OriginalLibrary originalLibrary;
+    if (!(library instanceof EmbedLibrary)) {
+      if (!library.hasDefinitions()) {
         continue;
       }
+      originalLibrary=library instanceof OriginalLibrary ? (OriginalLibrary)library : ((FilteredLibrary)library).originalLibrary;
       unregisteredLibrary=!libraryManager.isRegistered(originalLibrary);
-      if (originalLibrary.filtered) {
-        out.write(unregisteredLibrary ? 2 : 3);
+      if (library instanceof OriginalLibrary) {
+        out.write(unregisteredLibrary ? 0 : 1);
       }
  else {
-        out.write(unregisteredLibrary ? 0 : 1);
+        out.write(unregisteredLibrary ? 2 : 3);
       }
     }
  else {
@@ -37,7 +37,7 @@
     }
     if (unregisteredLibrary) {
       out.writeShort(libraryManager.add(originalLibrary));
-      writeParents(libraries,originalLibrary);
+      writeParents(libraries,library);
       out.writeAmfUtf(originalLibrary.getPath());
       writeVirtualFile(originalLibrary.getFile(),out);
       if (originalLibrary.inheritingStyles == null) {
@@ -56,8 +56,8 @@
     }
  else {
       out.writeShort(originalLibrary.getId());
-      if (originalLibrary.filtered) {
-        writeParents(libraries,originalLibrary);
+      if (library instanceof FilteredLibrary) {
+        writeParents(libraries,library);
       }
     }
   }
