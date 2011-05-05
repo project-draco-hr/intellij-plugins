@@ -1,2 +1,26 @@
 {
+  final XmlElement xmlElement=DomUtil.getValueElement(clazzAttributeValue);
+  if (xmlElement == null) {
+    return;
+  }
+  final PsiReference[] psiReferences=xmlElement.getReferences();
+  for (  final PsiReference psiReference : psiReferences) {
+    final PsiElement resolveElement=psiReference.resolve();
+    if (resolveElement instanceof PsiClass) {
+      return;
+    }
+  }
+  final String[] referenceTypesUserData=clazzAttributeValue.getUserData(ExtendableClassConverter.REFERENCES_TYPES);
+  final String referenceTypes=referenceTypesUserData != null ? StringUtil.join(referenceTypesUserData,"|") : StrutsBundle.message("dom.extendable.class.converter.type.class");
+  final String message=StrutsBundle.message("dom.extendable.class.converter.cannot.resolve",referenceTypes,clazzAttributeValue.getStringValue());
+  LocalQuickFix[] quickFixes=LocalQuickFix.EMPTY_ARRAY;
+  for (  final PsiReference psiReference : psiReferences) {
+    if (psiReference instanceof LocalQuickFixProvider) {
+      final LocalQuickFix[] fixes=((LocalQuickFixProvider)psiReference).getQuickFixes();
+      if (fixes != null) {
+        quickFixes=ArrayUtil.mergeArrays(fixes,quickFixes,LocalQuickFix.class);
+      }
+    }
+  }
+  holder.createProblem(clazzAttributeValue,message,quickFixes);
 }
