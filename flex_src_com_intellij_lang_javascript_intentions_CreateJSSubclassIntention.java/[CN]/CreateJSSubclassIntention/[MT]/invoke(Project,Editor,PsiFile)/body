@@ -32,5 +32,15 @@
     templateName=dialog.getTemplateName();
     targetDirectory=dialog.getTargetDirectory();
   }
-  doCreateSubclass(jsClass,className,packageName,templateName,targetDirectory);
+  JSClass createdClass=CreateClassOrInterfaceAction.createClass(templateName,className,packageName,jsClass,targetDirectory,getTitle(jsClass),new Consumer<JSClass>(){
+    @Override public void consume(    final JSClass aClass){
+      if (!aClass.isInterface() && jsClass.isInterface()) {
+        new MyImplementMethodsHandler(aClass).execute();
+      }
+    }
+  }
+);
+  if (createdClass != null) {
+    createdClass.navigate(true);
+  }
 }
