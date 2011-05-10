@@ -7,8 +7,13 @@
   final PsiElementFactory psiElementFactory=JavaPsiFacade.getInstance(actionClass.getProject()).getElementFactory();
   final PsiClassType stringType=psiElementFactory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_STRING,scope);
   final PsiClassType resultType=psiElementFactory.createTypeByFQClassName("com.opensymphony.xwork2.Result",scope);
+  final boolean searchForMethod=methodName != null;
   final List<PsiMethod> actionMethods=new SmartList<PsiMethod>();
   for (  final PsiMethod psiMethod : actionClass.getAllMethods()) {
+    final String psiMethodName=psiMethod.getName();
+    if (searchForMethod && !Comparing.equal(psiMethodName,methodName)) {
+      continue;
+    }
     if (psiMethod.isConstructor()) {
       continue;
     }
@@ -19,7 +24,7 @@
     if (psiMethod.getParameterList().getParametersCount() != 0) {
       continue;
     }
-    if (Comparing.equal(psiMethod.getName(),"toString")) {
+    if (Comparing.equal(psiMethodName,"toString")) {
       continue;
     }
     if (PropertyUtil.isSimplePropertyGetter(psiMethod) && actionClass.findFieldByName(PropertyUtil.getPropertyName(psiMethod),true) != null) {
@@ -28,6 +33,9 @@
     final PsiType type=psiMethod.getReturnType();
     if (type != null && type instanceof PsiClassType && (type.equals(stringType) || type.equals(resultType))) {
       actionMethods.add(psiMethod);
+      if (searchForMethod) {
+        return actionMethods;
+      }
     }
   }
   return actionMethods;
