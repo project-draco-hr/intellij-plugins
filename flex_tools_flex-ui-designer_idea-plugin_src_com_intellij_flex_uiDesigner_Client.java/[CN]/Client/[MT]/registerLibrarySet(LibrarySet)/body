@@ -14,13 +14,16 @@
   final LibraryManager libraryManager=LibraryManager.getInstance();
   for (  LibrarySetItem item : items) {
     final Library library=item.library;
-    final boolean unregisteredLibrary=!libraryManager.isRegistered(library);
+    final boolean registered=libraryManager.isRegistered(library);
     int flags=item.filtered ? 1 : 0;
-    if (unregisteredLibrary) {
+    if (registered) {
       flags|=2;
     }
     out.write(flags);
-    if (unregisteredLibrary) {
+    if (registered) {
+      out.writeShort(library.getId());
+    }
+ else {
       out.writeShort(libraryManager.add(library));
       out.writeAmfUtf(library.getPath());
       writeVirtualFile(library.getFile(),out);
@@ -37,9 +40,6 @@
         out.write(1);
         out.write(library.defaultsStyle);
       }
-    }
- else {
-      out.writeShort(library.getId());
     }
     writeParents(items,item);
   }
