@@ -1,43 +1,39 @@
 {
   if (isFileBased(command)) {
-    super.processCommand(command);
+    return super.processCommand(command);
   }
- else {
-    if (waitingResult) {
-      if (expectedError == null) {
-        waitingResult=false;
-      }
-    }
- else     if (command != ServerMethod.showError) {
-      throw new IllegalStateException("Unexpected server command " + command + ", result is not waiting");
-    }
 switch (command) {
 case ServerMethod.showError:
-      final String errorMessage=reader.readUTF();
-    if (expectedError == null) {
-      failedMessage=errorMessage;
-    }
+    final String errorMessage=reader.readUTF();
+  if (expectedError == null) {
+    throw new IOException(errorMessage);
+  }
  else {
-      if (!errorMessage.startsWith(expectedError)) {
-        failedMessage="Expected error message " + expectedError + ", but got "+ errorMessage;
-      }
-      expectedError=null;
+    if (!errorMessage.startsWith(expectedError)) {
+      throw new IOException("Expected error message " + expectedError + ", but got "+ errorMessage);
     }
-  break;
-case TestServerMethod.fail:
-failedMessage=reader.readUTF();
+    expectedError=null;
+  }
 break;
+case TestServerMethod.fail:
+throw new IOException(reader.readUTF());
 case TestServerMethod.success:
 String message=reader.readUTF();
-if (!message.equals("__passed__")) {
-failedMessage=message;
+if (message.equals("__passed__")) {
+return false;
 }
-break;
+ else {
+throw new IOException(message);
+}
 default :
+if (customMessageHandler != null && customMessageHandler.getExpectedCommand() == command) {
+customMessageHandler.process();
+customMessageHandler=null;
+return false;
+}
+ else {
 throw new IllegalStateException("Unexpected server command: " + command);
 }
-if (!waitingResult) {
-semaphore.up();
 }
-}
+return true;
 }

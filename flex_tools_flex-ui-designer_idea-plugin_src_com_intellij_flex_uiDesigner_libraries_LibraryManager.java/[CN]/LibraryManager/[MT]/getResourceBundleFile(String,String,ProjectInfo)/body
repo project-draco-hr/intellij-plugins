@@ -1,17 +1,16 @@
 {
   LibrarySet librarySet=projectInfo.getLibrarySet();
+  PropertiesFile propertiesFile;
   do {
-    for (    Library library : librarySet.getLibraries()) {
-      if (library instanceof EmbedLibrary) {
-        continue;
+    for (    LibrarySetItem item : librarySet.getItems()) {
+      SwfLibrary library=item.library;
+      if (library.hasResourceBundles() && (propertiesFile=getResourceBundleFile(locale,bundleName,library,projectInfo)) != null) {
+        return propertiesFile;
       }
-      OriginalLibrary originalLibrary=library instanceof OriginalLibrary ? (OriginalLibrary)library : ((FilteredLibrary)library).originalLibrary;
-      if (originalLibrary.hasResourceBundles()) {
-        final THashSet<String> bundles=originalLibrary.resourceBundles.get(locale);
-        if (bundles.contains(bundleName)) {
-          VirtualFile virtualFile=originalLibrary.getFile().findChild("locale").findChild(locale).findChild(bundleName + CatalogXmlBuilder.PROPERTIES_EXTENSION);
-          return (PropertiesFile)PsiDocumentManager.getInstance(projectInfo.getElement()).getPsiFile(FileDocumentManager.getInstance().getDocument(virtualFile));
-        }
+    }
+    for (    LibrarySetItem item : librarySet.getResourceBundleOnlyitems()) {
+      if ((propertiesFile=getResourceBundleFile(locale,bundleName,item.library,projectInfo)) != null) {
+        return propertiesFile;
       }
     }
   }

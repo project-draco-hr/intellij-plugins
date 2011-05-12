@@ -1,15 +1,8 @@
 {
   if (appDir != null && appDir.exists()) {
     LibrarySet sdkLibrarySet=client.getRegisteredProjects().getInfo(myProject).getSdkLibrarySet();
-    for (    Library library : myLibraries()) {
-      if (library instanceof OriginalLibrary) {
-        OriginalLibrary originalLibrary=(OriginalLibrary)library;
-        new File(appDir,originalLibrary.getPath() + ".swf").delete();
-      }
- else       if (library instanceof FilteredLibrary) {
-        OriginalLibrary originalLibrary=((FilteredLibrary)library).originalLibrary;
-        new File(appDir,originalLibrary.getPath() + "_" + sdkLibrarySet.getId()).delete();
-      }
+    for (    LibrarySetItem item : myLibraries()) {
+      new File(appDir,item.library.getPath() + (item.filtered ? "_" + sdkLibrarySet.getId() + ".swf" : ".swf")).delete();
     }
   }
   super.tearDown();

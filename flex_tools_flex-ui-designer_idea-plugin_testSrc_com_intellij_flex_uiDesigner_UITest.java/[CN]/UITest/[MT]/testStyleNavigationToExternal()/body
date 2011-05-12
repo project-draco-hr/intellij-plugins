@@ -1,12 +1,13 @@
 {
-  testFile(new MyTester(){
-    @Override public void test(    final VirtualFile file) throws Exception {
-      interact("styleNavigation",new Assert(){
-        @Override public void test() throws Exception {
-        }
-      }
-);
+  testFile(new MyTester("styleNavigation",new UIMessageHandler(ServerMethod.resolveExternalInlineStyleDeclarationSource){
+    @Override public void process() throws IOException {
+      assertThat(client.getModule(reader.readUnsignedShort()),equalTo(myModule));
+      XmlAttribute attribute=(XmlAttribute)new ResolveExternalInlineStyleSourceAction(reader,myModule).find();
+      assertThat(attribute.getDisplayValue(),"spark.skins.spark.ButtonBarLastButtonSkin");
+      assertThat(attribute.getTextOffset(),2186);
     }
+  }
+){
   }
 ,"Form.mxml");
 }
