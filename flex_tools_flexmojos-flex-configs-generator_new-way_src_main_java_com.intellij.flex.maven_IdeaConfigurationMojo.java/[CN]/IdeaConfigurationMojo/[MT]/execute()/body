@@ -1,15 +1,48 @@
 {
-  if (!(packaging.equals(SWC) || packaging.equals(SWF))) {
+  MavenProject project=session.getCurrentProject();
+  String packaging=project.getPackaging();
+  if (!(packaging.equals("swc") || packaging.equals("swf"))) {
     return;
+  }
+  Plugin flexmojosPlugin=null;
+  for (  Plugin plugin : project.getBuildPlugins()) {
+    if (plugin.getGroupId().equals("org.sonatype.flexmojos") && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
+      flexmojosPlugin=plugin;
+    }
+  }
+  if (flexmojosPlugin == null) {
+    return;
+  }
+  final ClassRealm flexmojosPluginRealm;
+  MojoExecution flexmojosMojoExecution;
+  try {
+    MojoDescriptor flexmojosMojoDescriptor=pluginManager.getMojoDescriptor(flexmojosPlugin,"compile-" + packaging,project.getRemotePluginRepositories(),session.getRepositorySession());
+    flexmojosMojoExecution=new MojoExecution(flexmojosMojoDescriptor,"default-cli",MojoExecution.Source.CLI);
+    flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoDescriptor.getPluginDescriptor());
+    lifeCycleExecutionPlanCalculator.setupMojoExecution(session,project,flexmojosMojoExecution);
+  }
+ catch (  Exception e) {
+    throw new MojoExecutionException("Cannot generate flex-config",e);
+  }
+  Mojo mojo=null;
+  try {
+    mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
+  }
+ catch (  Exception e) {
+    throw new MojoExecutionException("Cannot generate flex-config",e);
+  }
+ finally {
+    mavenPluginManager.releaseMojo(mojo,mojoExecution);
   }
   IdeaConfigurator configurator=new IdeaConfigurator();
   try {
-    configurator.init(project,classifier);
-    if (SWC.equals(getProjectType())) {
-      configurator.buildConfiguration(this);
+    modifyOurClassRealm(flexmojosPluginRealm);
+    configurator.init(project,(getClassifier(mojo,flexmojosPluginRealm)));
+    if ("swc".equals(packaging)) {
+      configurator.buildConfiguration(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
     }
  else {
-      configurator.buildConfiguration(this,getSourceFile());
+      configurator.buildConfiguration(mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm),flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICommandLineConfiguration"));
     }
   }
  catch (  Exception e) {
