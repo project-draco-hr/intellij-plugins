@@ -15,24 +15,27 @@
         return;
       }
     }
+    if (DebugPathManager.IS_DEV) {
+      final String fudHome=DebugPathManager.getFudHome();
+      final List<String> arguments=new ArrayList<String>();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        arguments.add("-p");
+        arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
+      }
+      arguments.add("-cdd");
+      arguments.add(fudHome + "/flex-injection/target");
+      adlRunConfiguration.arguments=arguments;
+    }
+    if (appDir == null) {
+      appDir=new File(PathManager.getSystemPath(),"flexUIDesigner");
+    }
+    server=new Server(new PendingOpenDocumentTask(project,module,psiFile),this);
   }
  catch (  Throwable e) {
     LOG.error(e);
     documentOpening=false;
     return;
   }
-  if (DebugPathManager.IS_DEV) {
-    final String fudHome=DebugPathManager.getFudHome();
-    final List<String> arguments=new ArrayList<String>();
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      arguments.add("-p");
-      arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
-    }
-    arguments.add("-cdd");
-    arguments.add(fudHome + "/flex-injection/target");
-    adlRunConfiguration.arguments=arguments;
-  }
-  server=new Server(new PendingOpenDocumentTask(project,module,psiFile),this);
   DesignerApplicationUtil.AdlRunTask task=new DesignerApplicationUtil.AdlRunTask(adlRunConfiguration){
     @Override public void run(){
       try {

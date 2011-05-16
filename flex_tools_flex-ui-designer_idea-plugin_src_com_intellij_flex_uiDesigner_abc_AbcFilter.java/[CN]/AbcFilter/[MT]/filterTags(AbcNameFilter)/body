@@ -12,12 +12,27 @@ case TagTypes.End:
       buffer.position(lastWrittenPosition);
     channel.write(buffer);
   return;
+case TagTypes.ShowFrame:
+if (decoders.isEmpty()) {
+  break;
+}
+ else {
+  final int limit=buffer.position();
+  writeDataBeforeTag(length);
+  mergeDoAbc(true,false);
+  lastWrittenPosition=limit - 2;
+  buffer.position(limit + length);
+  continue;
+}
 case TagTypes.SymbolClass:
 processSymbolClass(length);
 continue;
 case TagTypes.ExportAssets:
 processExportAssets(length);
 continue;
+case TagTypes.FileAttributes:
+buffer.put(buffer.position(),(byte)104);
+break;
 case TagTypes.EnableDebugger:
 case TagTypes.EnableDebugger2:
 case TagTypes.SetBackgroundColor:
@@ -31,7 +46,6 @@ case TagTypes.DoABC2:
 readAbcName(buffer.position() + 4);
 if (abcNameFilter != null && !abcNameFilter.accept(transientNameString)) {
 skipTag(length);
-continue;
 }
  else {
 int oldPosition=buffer.position();
@@ -39,11 +53,9 @@ writeDataBeforeTag(length);
 buffer.position(oldPosition);
 doAbc2(length);
 buffer.position(lastWrittenPosition);
+}
 continue;
 }
-default :
 buffer.position(buffer.position() + length);
-break;
-}
 }
 }
