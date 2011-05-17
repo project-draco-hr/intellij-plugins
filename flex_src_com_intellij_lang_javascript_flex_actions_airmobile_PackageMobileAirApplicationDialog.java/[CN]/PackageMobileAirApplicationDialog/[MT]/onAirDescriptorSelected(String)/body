@@ -24,22 +24,23 @@
   try {
     final String contentPath=FlexUtils.findXMLElement(airDescriptor.getInputStream(),"<application><initialWindow><content>");
     if (contentPath != null && !StringUtil.isEmptyOrSpaces(contentPath)) {
-      if (myFilesToPackage.isEmpty() || !myFilesToPackage.get(0).PATH_IN_PACKAGE.equals(contentPath)) {
+      final List<FilePathAndPathInPackage> filesToPackage=myFilesToPackageForm.getFilesToPackage();
+      if (filesToPackage.isEmpty() || !filesToPackage.get(0).PATH_IN_PACKAGE.equals(contentPath)) {
         boolean tableRowAdded=false;
         if (module != null) {
           final String fileName=FileUtil.toSystemIndependentName(contentPath).substring(contentPath.lastIndexOf("/") + 1);
           for (          String path : getOutputFilePaths(module)) {
             if (path.endsWith("/" + fileName)) {
-              myFilesToPackage.add(0,new FilePathAndPathInPackage(FileUtil.toSystemDependentName(path),contentPath));
+              filesToPackage.add(0,new FilePathAndPathInPackage(FileUtil.toSystemDependentName(path),contentPath));
               tableRowAdded=true;
               break;
             }
           }
         }
         if (!tableRowAdded) {
-          myFilesToPackage.add(0,new FilePathAndPathInPackage("",contentPath));
+          filesToPackage.add(0,new FilePathAndPathInPackage("",contentPath));
         }
-        ((AbstractTableModel)myFilesToPackageTable.getModel()).fireTableDataChanged();
+        myFilesToPackageForm.fireDataChanged();
       }
     }
   }
