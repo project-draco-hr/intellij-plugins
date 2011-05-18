@@ -109,17 +109,10 @@ class MemberDescriptor {
   BaseCreateMethodsFix fix=new BaseCreateMethodsFix<JSNamedElement>(jsClass){
     final JavaScriptGenerateAccessorHandler.MyBaseCreateMethodsFix generateGetterFix=new JavaScriptGenerateAccessorHandler.MyBaseCreateMethodsFix(JavaScriptGenerateAccessorHandler.GenerationMode.Getter,jsClass,null,false,field.getName());
     final JavaScriptGenerateAccessorHandler.MyBaseCreateMethodsFix generateSetterFix=new JavaScriptGenerateAccessorHandler.MyBaseCreateMethodsFix(JavaScriptGenerateAccessorHandler.GenerationMode.Setter,jsClass,null,false,field.getName());
-    @Override protected String buildFunctionAttrText(    @NonNls String attrText,    JSAttributeList attributeList,    JSNamedElement function){
-      StringBuilder result=new StringBuilder();
-      JSConditionalCompileVariableReference ref=attributeList.getConditionalCompileVariableReference();
-      if (ref != null) {
-        result.append(ref.getText()).append(" ");
-      }
-      result.append("public");
-      if (field.getAttributeList().hasModifier(JSAttributeList.ModifierType.STATIC)) {
-        result.append(" static");
-      }
-      return result.toString();
+    @Override protected void adjustAttributeList(    JSAttributeListWrapper attributeListWrapper,    JSNamedElement function){
+      attributeListWrapper.overrideAccessType(JSAttributeList.AccessType.PUBLIC);
+      attributeListWrapper.overrideModifier(JSAttributeList.ModifierType.STATIC,field.getAttributeList().hasModifier(JSAttributeList.ModifierType.STATIC));
+      attributeListWrapper.overrideModifiers(false,JSAttributeList.ModifierType.NATIVE,JSAttributeList.ModifierType.DYNAMIC,JSAttributeList.ModifierType.FINAL,JSAttributeList.ModifierType.OVERRIDE,JSAttributeList.ModifierType.VIRTUAL);
     }
     @Override protected void processElements(    Project project,    MultiMap<String,String> types,    Set<JSNamedElement> elementsToProcess){
       for (      JSNamedElement e : elementsToProcess) {
