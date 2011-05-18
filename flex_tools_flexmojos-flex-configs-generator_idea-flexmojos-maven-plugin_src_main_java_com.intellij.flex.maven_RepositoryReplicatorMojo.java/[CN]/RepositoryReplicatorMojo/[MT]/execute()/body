@@ -1,0 +1,45 @@
+{
+  String packaging=project.getPackaging();
+  if (!(packaging.equals("swc") || packaging.equals("swf"))) {
+    return;
+  }
+  String localRepositoryBasedir=localRepository.getBasedir();
+  File localRepositoryFile=new File(localRepositoryBasedir);
+  int localRepositoryBasedirLength=localRepositoryBasedir.length();
+  outputDirectory.mkdirs();
+  for (  MavenProject referenceProject : project.getProjectReferences().values()) {
+    copiedArtifacts.add(referenceProject.getArtifact());
+  }
+  for (  Artifact artifact : project.getArtifacts()) {
+    if (copiedArtifacts.contains(artifact)) {
+      continue;
+    }
+    copiedArtifacts.add(artifact);
+    final File artifactFile=artifact.getFile();
+    final String localPath=artifactFile.getPath().substring(localRepositoryBasedirLength);
+    try {
+      File outFile=new File(outputDirectory,localPath);
+      if (outFile.lastModified() == artifactFile.lastModified()) {
+        continue;
+      }
+      outFile.getParentFile().mkdirs();
+      copyFile(artifactFile,outFile);
+      if ("configs".equals(artifact.getClassifier())) {
+        FileUtils.copyDirectory(new File(artifactFile.getParentFile(),"configs_zip"),new File(outputDirectory,artifactFile.getParent().substring(localRepositoryBasedirLength) + "/configs_zip"));
+      }
+ else       if (artifact.getArtifactId().equals("playerglobal") || artifact.getArtifactId().equals("airglobal")) {
+        copyFile(artifactFile,new File(outputDirectory,artifactFile.getParent().substring(localRepositoryBasedirLength) + "/" + artifact.getArtifactId()+ ".swc"));
+      }
+ else       if (!artifact.getType().equals("pom")) {
+        final String pomFilename=localPath.substring(0,localPath.length() - artifact.getType().length()) + "pom";
+        File pom=new File(localRepositoryFile,pomFilename);
+        if (pom.exists()) {
+          copyFile(pom,new File(outputDirectory,pomFilename));
+        }
+      }
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("Cannot copy",e);
+    }
+  }
+}
