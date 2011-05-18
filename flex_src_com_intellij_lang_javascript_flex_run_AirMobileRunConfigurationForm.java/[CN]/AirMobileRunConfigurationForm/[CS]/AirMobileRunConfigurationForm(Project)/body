@@ -4,18 +4,25 @@
   myModuleComboBox.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       final Module module=myModulesComboboxWrapper.getSelectedModule();
-      AirRunConfigurationForm.resetAirRootDirPath(module,myRootDirectoryComponent);
+      AirRunConfigurationForm.resetAirRootDirPath(module,myRootDirTextWithBrowse);
       myDebuggerSdkCombo.setModuleSdk(module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module));
-      AirRunConfigurationForm.updateMainClassField(myProject,myModulesComboboxWrapper,myMainClassComponent,myMainClassFilter);
+      AirRunConfigurationForm.updateMainClassField(myProject,myModulesComboboxWrapper,myMainClassEditor,myMainClassFilter);
     }
   }
 );
   initWhatToLaunchRadioButtons();
-  AirRunConfigurationForm.initAppDescriptorComponent(myProject,myApplicationDescriptorComponent,myModulesComboboxWrapper,myRootDirectoryComponent);
-  myRootDirectoryComponent.getComponent().addBrowseFolderListener("AIR Application Root Directory",null,project,new FileChooserDescriptor(false,true,false,false,false,false));
-  myAdlOptionsComponent.getComponent().setDialogCaption(StringUtil.capitalizeWords(myAdlOptionsComponent.getRawText(),true));
+  myExistingPackageTextWithBrowse.addBrowseFolderListener("AIR Mobile Package",null,myProject,new FileChooserDescriptor(true,false,false,false,false,false){
+    @Override public boolean isFileVisible(    final VirtualFile file,    final boolean showHiddenFiles){
+      return super.isFileVisible(file,showHiddenFiles) && (file.isDirectory() || "apk".equalsIgnoreCase(file.getExtension()));
+    }
+  }
+);
+  AirRunConfigurationForm.initAirDescriptorCombo(myProject,myAirDescriptorComboWithBrowse,myModulesComboboxWrapper,myRootDirTextWithBrowse);
+  myRootDirTextWithBrowse.addBrowseFolderListener("AIR Application Root Directory",null,project,new FileChooserDescriptor(false,true,false,false,false,false));
+  myAdlOptionsField.setDialogCaption("AIR Debug Launcher Options");
   initEmulatorRelatedControls();
   myOnIOSDeviceRadioButton.setVisible(false);
+  initPackagingOptionsButton();
   final ActionListener debugTransportListener=new ActionListener(){
     public void actionPerformed(    final ActionEvent e){
       updateDebugTransportRelatedControls();
@@ -27,5 +34,8 @@
   myUsbDebugPortTextField.setVisible(false);
   myDebuggerSdkCombo.showModuleSdk(true);
   updateControls();
-  AirRunConfigurationForm.updateMainClassField(myProject,myModulesComboboxWrapper,myMainClassComponent,myMainClassFilter);
+  AirRunConfigurationForm.updateMainClassField(myProject,myModulesComboboxWrapper,myMainClassEditor,myMainClassFilter);
+  myPackageFileNameLabel.setVisible(false);
+  myPackageFileNameTextField.setVisible(false);
+  myPackagingOptionsButton.setVisible(false);
 }

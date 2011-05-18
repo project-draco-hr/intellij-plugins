@@ -1,9 +1,14 @@
 {
   final AirMobileRunnerParameters params=config.getRunnerParameters();
   myModulesComboboxWrapper.configure(myProject,params.getModuleName());
+  myMainClassRadioButton.setSelected(params.getAirMobileRunMode() == AirMobileRunMode.MainClass);
+  myMainClassEditor.setText(params.getMainClassName());
+  myAirDescriptorRadioButton.setSelected(params.getAirMobileRunMode() == AirMobileRunMode.AppDescriptor);
+  myAirDescriptorComboWithBrowse.getComboBox().getEditor().setItem(FileUtil.toSystemDependentName(params.getAirDescriptorPath()));
+  myRootDirTextWithBrowse.setText(FileUtil.toSystemDependentName(params.getAirRootDirPath()));
+  myExistingPackageRadioButton.setSelected(params.getAirMobileRunMode() == AirMobileRunMode.ExistingPackage);
+  myExistingPackageTextWithBrowse.setText(FileUtil.toSystemDependentName(params.getExistingPackagePath()));
   myOnEmulatorRadioButton.setSelected(params.getAirMobileRunTarget() == AirMobileRunTarget.Emulator);
-  myOnAndroidDeviceRadioButton.setSelected(params.getAirMobileRunTarget() == AirMobileRunTarget.AndroidDevice);
-  myOnIOSDeviceRadioButton.setSelected(params.getAirMobileRunTarget() == AirMobileRunTarget.iOSDevice);
   myEmulatorCombo.setSelectedItem(params.getEmulator());
   if (params.getEmulator().adlAlias == null) {
     myScreenWidth.setText(String.valueOf(params.getScreenWidth()));
@@ -11,15 +16,12 @@
     myFullScreenWidth.setText(String.valueOf(params.getFullScreenWidth()));
     myFullScreenHeight.setText(String.valueOf(params.getFullScreenHeight()));
   }
+  myOnAndroidDeviceRadioButton.setSelected(params.getAirMobileRunTarget() == AirMobileRunTarget.AndroidDevice);
+  myOnIOSDeviceRadioButton.setSelected(params.getAirMobileRunTarget() == AirMobileRunTarget.iOSDevice);
   myDebugOverNetworkRadioButton.setSelected(params.getDebugTransport() == AirMobileDebugTransport.Network);
   myDebugOverUSBRadioButton.setSelected(params.getDebugTransport() == AirMobileDebugTransport.USB);
   myUsbDebugPortTextField.setText(String.valueOf(params.getUsbDebugPort()));
-  myAirDescriptorRadioButton.setSelected(params.getAirMobileRunMode() == AirMobileRunMode.AppDescriptor);
-  myMainClassRadioButton.setSelected(params.getAirMobileRunMode() == AirMobileRunMode.MainClass);
-  myApplicationDescriptorComponent.getComponent().getComboBox().getEditor().setItem(FileUtil.toSystemDependentName(params.getAirDescriptorPath()));
-  myRootDirectoryComponent.getComponent().setText(FileUtil.toSystemDependentName(params.getAirRootDirPath()));
-  myMainClassComponent.getComponent().setText(params.getMainClassName());
-  myAdlOptionsComponent.getComponent().setText(params.getAdlOptions());
+  myAdlOptionsField.setText(params.getAdlOptions());
   final Module module=myModulesComboboxWrapper.getSelectedModule();
   myDebuggerSdkCombo.setModuleSdk(module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module));
   myDebuggerSdkCombo.setSelectedSdkRaw(params.getDebuggerSdkRaw());

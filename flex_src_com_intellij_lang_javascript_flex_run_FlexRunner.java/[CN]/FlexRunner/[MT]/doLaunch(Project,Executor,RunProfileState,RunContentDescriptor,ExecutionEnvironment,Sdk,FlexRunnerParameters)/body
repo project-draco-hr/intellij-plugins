@@ -1,7 +1,13 @@
 {
   if (isRunOnDevice(flexRunnerParameters)) {
-    final Pair<String,String> swfPathAndApplicationId=getSwfPathAndApplicationId((AirMobileRunnerParameters)flexRunnerParameters);
-    return packAndInstallToDevice(project,flexSdk,(AirMobileRunnerParameters)flexRunnerParameters,swfPathAndApplicationId.first,swfPathAndApplicationId.second,false) ? launchOnDevice(project,flexSdk,(AirMobileRunnerParameters)flexRunnerParameters,swfPathAndApplicationId.second,false) : null;
+    final AirMobileRunnerParameters mobileParams=(AirMobileRunnerParameters)flexRunnerParameters;
+    if (mobileParams.getAirMobileRunMode() == AirMobileRunnerParameters.AirMobileRunMode.ExistingPackage) {
+      return launchExistingPackage(project,flexSdk,mobileParams);
+    }
+ else {
+      final Pair<String,String> swfPathAndApplicationId=getSwfPathAndApplicationId(mobileParams);
+      return packAndInstallToDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.first,swfPathAndApplicationId.second,false) ? launchOnDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.second,false) : null;
+    }
   }
   return isRunAsAir(flexRunnerParameters) ? launchAir(project,executor,state,contentToReuse,env,flexSdk,flexRunnerParameters) : launchFlex(project,executor,state,contentToReuse,env,flexSdk,flexRunnerParameters);
 }

@@ -1,4 +1,7 @@
 {
-  final Pair<String,String> swfPathAndApplicationId=getSwfPathAndApplicationId(params);
-  return launchOnDevice(project,flexSdk,params,swfPathAndApplicationId.second,isDebug);
+  final String appId=params.getAirMobileRunMode() == AirMobileRunMode.ExistingPackage ? MobileAirUtil.getAppIdFromPackage(params.getExistingPackagePath()) : getSwfPathAndApplicationId(params).second;
+  if (appId == null) {
+    Messages.showErrorDialog(project,"Failed to get application id","Error");
+  }
+  return launchOnDevice(project,flexSdk,params,appId,isDebug);
 }

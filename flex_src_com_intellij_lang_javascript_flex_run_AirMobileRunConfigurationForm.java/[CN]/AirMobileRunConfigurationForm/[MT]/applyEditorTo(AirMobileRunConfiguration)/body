@@ -1,9 +1,10 @@
 {
   final AirMobileRunnerParameters params=config.getRunnerParameters();
   params.setModuleName(myModulesComboboxWrapper.getSelectedText());
-  params.setAirMobileRunTarget(myOnEmulatorRadioButton.isSelected() ? AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunTarget.AndroidDevice : AirMobileRunTarget.iOSDevice);
+  params.setAirMobileRunTarget(getRunTarget());
   final AirMobileRunnerParameters.Emulator emulator=(AirMobileRunnerParameters.Emulator)myEmulatorCombo.getSelectedItem();
   params.setEmulator(emulator);
+  params.setExistingPackagePath(FileUtil.toSystemIndependentName(myExistingPackageTextWithBrowse.getText().trim()));
   if (emulator.adlAlias == null) {
     try {
       params.setScreenWidth(Integer.parseInt(myScreenWidth.getText()));
@@ -23,10 +24,10 @@
   }
  catch (  NumberFormatException ignore) {
   }
-  params.setAirMobileRunMode(myAirDescriptorRadioButton.isSelected() ? AirMobileRunMode.AppDescriptor : AirMobileRunMode.MainClass);
-  params.setAirDescriptorPath(FileUtil.toSystemIndependentName((String)myApplicationDescriptorComponent.getComponent().getComboBox().getEditor().getItem()).trim());
-  params.setAirRootDirPath(FileUtil.toSystemIndependentName(myRootDirectoryComponent.getComponent().getText().trim()));
-  params.setMainClassName(myMainClassComponent.getComponent().getText().trim());
-  params.setAdlOptions(myAdlOptionsComponent.getComponent().getText().trim());
+  params.setAirMobileRunMode(myMainClassRadioButton.isSelected() ? AirMobileRunMode.MainClass : myAirDescriptorRadioButton.isSelected() ? AirMobileRunMode.AppDescriptor : AirMobileRunMode.ExistingPackage);
+  params.setAirDescriptorPath(FileUtil.toSystemIndependentName((String)myAirDescriptorComboWithBrowse.getComboBox().getEditor().getItem()).trim());
+  params.setAirRootDirPath(FileUtil.toSystemIndependentName(myRootDirTextWithBrowse.getText().trim()));
+  params.setMainClassName(myMainClassEditor.getText().trim());
+  params.setAdlOptions(myAdlOptionsField.getText().trim());
   params.setDebuggerSdkRaw(myDebuggerSdkCombo.getSelectedSdkRaw());
 }
