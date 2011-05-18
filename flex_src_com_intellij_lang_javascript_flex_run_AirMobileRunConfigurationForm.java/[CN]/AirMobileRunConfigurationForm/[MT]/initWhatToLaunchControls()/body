@@ -4,10 +4,23 @@
       updateControls();
       final Component toFocus=myMainClassRadioButton.isSelected() ? myMainClassEditor.getChildComponent() : myAirDescriptorRadioButton.isSelected() ? myAirDescriptorComboWithBrowse.getComboBox() : myExistingPackageTextWithBrowse.getTextField();
       IdeFocusManager.getInstance(myProject).requestFocus(toFocus,true);
+      myPackageFileNameTextField.setText(getSuggestedPackageFileName());
     }
   }
 ;
   myMainClassRadioButton.addActionListener(actionListener);
   myAirDescriptorRadioButton.addActionListener(actionListener);
   myExistingPackageRadioButton.addActionListener(actionListener);
+  myMainClassEditor.addDocumentListener(new DocumentAdapter(){
+    public void documentChanged(    final DocumentEvent e){
+      myPackageFileNameTextField.setText(getSuggestedPackageFileName());
+    }
+  }
+);
+  ((JTextComponent)myAirDescriptorComboWithBrowse.getComboBox().getEditor().getEditorComponent()).getDocument().addDocumentListener(new com.intellij.ui.DocumentAdapter(){
+    protected void textChanged(    final javax.swing.event.DocumentEvent e){
+      myPackageFileNameTextField.setText(getSuggestedPackageFileName());
+    }
+  }
+);
 }
