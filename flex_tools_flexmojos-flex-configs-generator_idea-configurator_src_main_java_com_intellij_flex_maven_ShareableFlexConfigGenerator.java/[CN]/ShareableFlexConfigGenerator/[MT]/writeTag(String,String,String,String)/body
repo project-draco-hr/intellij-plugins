@@ -1,7 +1,7 @@
 {
-  if (name.equals(PATH_ELEMENT) || name.equals("library")) {
+  if (name.equals(PATH_ELEMENT) || name.equals("library") || name.equals("manifest")|| name.equals("path")) {
     out.append(indent).append("\t<").append(name).append(">");
-    if (parentName.equals(FILE_SPECS) || parentName.equals("source-path") || parentName.equals("include-sources")) {
+    if (parentName.equals(FILE_SPECS) || parentName.equals("source-path") || parentName.equals("include-sources")|| parentName.equals("include-file")) {
       int sIndex=value.indexOf(SRC_MAIN);
       if (sIndex != -1) {
         out.append("@@source@@").append(value,sIndex + SRC_MAIN.length(),value.length());
@@ -14,20 +14,25 @@
       }
     }
  else {
+      int sIndex;
       if (value.startsWith(localRepositoryBasedir)) {
         out.append("@@repo@@").append(value,localRepositoryBasedirLength,value.length());
       }
+ else       if ((sIndex=value.indexOf(CLASSSES_WITH_FRONT_SLASH)) != -1) {
+        String filename=value.substring(sIndex + CLASSSES_WITH_FRONT_SLASH.length() + 1);
+        Utils.copyFile(new File(value),new File("build-gant/flex-configs/" + filename));
+        out.append("@@configs@@/").append(filename);
+      }
  else {
-        int index=value.lastIndexOf('/');
-        if (index == -1) {
-          index=value.lastIndexOf('\\');
-        }
-        out.append("@@target@@").append(value,index,value.length());
+        target(value);
       }
     }
     out.append("</").append(name).append('>');
   }
  else {
+    if (name.equals("local-fonts-snapshot")) {
+      value="@@repo@@/fonts.ser";
+    }
     super.writeTag(indent,name,value,parentName);
   }
 }

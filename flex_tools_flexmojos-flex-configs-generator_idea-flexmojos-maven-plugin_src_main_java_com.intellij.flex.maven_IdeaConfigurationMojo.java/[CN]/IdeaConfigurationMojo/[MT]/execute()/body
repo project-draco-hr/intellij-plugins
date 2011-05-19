@@ -1,7 +1,7 @@
 {
   MavenProject project=session.getCurrentProject();
   String packaging=project.getPackaging();
-  if (!(packaging.equals("swc") || packaging.equals("swf"))) {
+  if (!Utils.isFlashProject(project)) {
     return;
   }
   Plugin flexmojosPlugin=null;
@@ -34,10 +34,10 @@
  finally {
     mavenPluginManager.releaseMojo(mojo,mojoExecution);
   }
-  IdeaConfigurator configurator=generateAlsoShareable ? new ShareableFlexConfigGenerator(localRepository.getBasedir()) : new IdeaConfigurator();
+  IdeaConfigurator configurator=generateAlsoShareable ? new ShareableFlexConfigGenerator() : new IdeaConfigurator();
   try {
     modifyOurClassRealm(flexmojosPluginRealm);
-    configurator.init(project,(getClassifier(mojo,flexmojosPluginRealm)));
+    configurator.init(session,project,getClassifier(mojo,flexmojosPluginRealm));
     if ("swc".equals(packaging)) {
       configurator.buildConfiguration(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
     }
