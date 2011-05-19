@@ -1,2 +1,48 @@
 {
+  final int i=myResult.indexOf(OBJECT_MARKER);
+  if (i == -1)   super.computeChildren(node);
+  final String type=getTypeAndAdditionalInfo(myResult).first;
+  final EvaluateCommand command=new EvaluateCommand(referenceObjectBase(i,OBJECT_MARKER),null){
+    @Override CommandOutputProcessingMode doOnTextAvailable(    @NonNls final String resultS){
+      StringTokenizer tokenizer=new StringTokenizer(resultS,"\r\n");
+      tokenizer.nextToken();
+      final LinkedHashMap<String,FlexValue> fieldNameToFlexValueMap=new LinkedHashMap<String,FlexValue>(tokenizer.countTokens());
+      final NodeClassInfo nodeClassInfo=ApplicationManager.getApplication().runReadAction(new Computable<NodeClassInfo>(){
+        public NodeClassInfo compute(){
+          final Project project=myDebugProcess.getSession().getProject();
+          final JSClass jsClass=mySourcePosition == null ? null : findJSClass(project,ModuleUtil.findModuleForFile(mySourcePosition.getFile(),project),type);
+          return jsClass == null ? null : NodeClassInfo.getNodeClassInfo(jsClass);
+        }
+      }
+);
+      while (tokenizer.hasMoreElements()) {
+        final String s=tokenizer.nextToken().trim();
+        if (s.length() == 0)         continue;
+        final int delimIndex=s.indexOf(DELIM);
+        if (delimIndex == -1) {
+          FlexDebugProcess.log("Unrecognized string:" + s);
+          continue;
+        }
+        final String fieldName=s.substring(0,delimIndex);
+        final String result=s.substring(delimIndex + DELIM.length());
+        if (result.startsWith("[Setter ")) {
+          continue;
+        }
+        String evaluatedPath=myExpression;
+        if (fieldName.length() > 0 && Character.isDigit(fieldName.charAt(0))) {
+          evaluatedPath+="[\"" + fieldName + "\"]";
+        }
+ else {
+          evaluatedPath+="." + fieldName;
+        }
+        final ValueType valueType=type != null && type.indexOf('/') > -1 ? ValueType.Parameter : ValueType.Field;
+        final FlexValue flexValue=new FlexValue(fieldName,evaluatedPath,result,FlexValue.this.myResult,valueType);
+        addValueCheckingDuplicates(flexValue,fieldNameToFlexValueMap);
+      }
+      addChildren(node,fieldNameToFlexValueMap,nodeClassInfo);
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+;
+  myDebugProcess.sendCommand(command);
 }
