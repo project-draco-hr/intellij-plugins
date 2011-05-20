@@ -8,7 +8,18 @@
     }
   }
   s=builder.toString();
-  myConsoleView.print(s,ConsoleViewContentType.SYSTEM_OUTPUT);
+  final ResponseLineIterator iterator=new ResponseLineIterator(s);
+  while (iterator.hasNext()) {
+    final String line=iterator.next();
+    if (line.startsWith("[SWF]") || line.startsWith("[UnloadSWF]")) {
+      if (!FilterSwfLoadUnloadMessagesAction.isFilterEnabled(getSession().getProject())) {
+        myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+      }
+    }
+ else {
+      myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    }
+  }
   if (s.indexOf("Another Flash debugger is probably running") != -1) {
     reportProblem(s);
     getProcessHandler().detachProcess();
