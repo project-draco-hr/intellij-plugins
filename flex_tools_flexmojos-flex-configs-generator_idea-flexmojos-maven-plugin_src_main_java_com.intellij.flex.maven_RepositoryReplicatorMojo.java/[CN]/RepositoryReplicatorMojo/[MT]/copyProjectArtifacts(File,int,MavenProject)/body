@@ -1,0 +1,42 @@
+{
+  for (  Artifact artifact : project.getArtifacts()) {
+    if (copiedArtifacts.contains(artifact)) {
+      continue;
+    }
+    copiedArtifacts.add(artifact);
+    final File artifactFile=artifact.getFile();
+    final String localPath=artifactFile.getPath().substring(localRepositoryBasedirLength);
+    try {
+      File outFile=new File(outputDirectory,localPath);
+      if (outFile.lastModified() == artifactFile.lastModified()) {
+        continue;
+      }
+      outFile.getParentFile().mkdirs();
+      Utils.copyFile(artifactFile,outFile);
+      if (("configs".equals(artifact.getClassifier()) || (artifact.getClassifier() == null && "framework".equals(artifact.getArtifactId()) && artifact.getType().equals("swc"))) && !extractedConfigs.contains(artifact.getVersion())) {
+        extractedConfigs.add(artifact.getVersion());
+        final File in=new File(artifactFile.getParentFile(),"configs_zip");
+        FileUtils.copyDirectory(in,new File(outputDirectory,artifactFile.getParent().substring(localRepositoryBasedirLength) + "/configs_zip"));
+        Utils.copyFile(new File(in,"macFonts.ser"),new File(outputDirectory,"fonts.ser"));
+      }
+ else       if (artifact.getArtifactId().equals("playerglobal") || artifact.getArtifactId().equals("airglobal")) {
+        Utils.copyFile(artifactFile,new File(outputDirectory,artifactFile.getParent().substring(localRepositoryBasedirLength) + "/" + artifact.getArtifactId()+ ".swc"));
+      }
+ else       if (artifact.getType().equals("rb.swc")) {
+        if (artifact.getClassifier() == null) {
+          Utils.copyFile(artifactFile,new File(outputDirectory,artifactFile.getPath().substring(localRepositoryBasedirLength,artifactFile.getPath().length() - ".rb.swc".length()) + "-en_US.rb.swc"));
+        }
+      }
+ else       if (!artifact.getType().equals("pom")) {
+        final String pomFilename=localPath.substring(0,localPath.length() - artifact.getType().length()) + "pom";
+        File pom=new File(localRepositoryFile,pomFilename);
+        if (pom.exists()) {
+          Utils.copyFile(pom,new File(outputDirectory,pomFilename));
+        }
+      }
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("Cannot copy",e);
+    }
+  }
+}
