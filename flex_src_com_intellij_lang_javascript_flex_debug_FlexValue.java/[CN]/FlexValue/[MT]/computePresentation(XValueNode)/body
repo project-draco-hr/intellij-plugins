@@ -1,2 +1,40 @@
 {
+  final boolean isObject=myResult.contains(OBJECT_MARKER);
+  String val=myResult;
+  String type=null;
+  String additionalInfo=null;
+  if (isObject) {
+    final Pair<String,String> typeAndAdditionalInfo=getTypeAndAdditionalInfo(myResult);
+    type=typeAndAdditionalInfo.first;
+    additionalInfo=typeAndAdditionalInfo.second;
+    if (type != null) {
+      val="[".concat(getObjectId(myResult,myResult.indexOf(OBJECT_MARKER),OBJECT_MARKER)).concat("]");
+    }
+  }
+  if ((XML_TYPE.equals(type) || XMLLIST_TYPE.equals(type)) && myExpression.indexOf('=') == -1) {
+    if (myDebugProcess.isDebuggerFromSdk4()) {
+      scheduleToXmlStringCalculation(node,type);
+    }
+ else     if (myDebugProcess.isDebuggerFromSdk3()) {
+      if (XMLLIST_TYPE.equals(type)) {
+        setXmlListPresentation(node,val,this);
+        return;
+      }
+ else       if (additionalInfo != null) {
+        setXmlPresentation(node,additionalInfo,this);
+        return;
+      }
+    }
+  }
+  final String fqn=getFqn(type);
+  if (isCollection(fqn)) {
+    if (VECTOR.equals(fqn)) {
+      scheduleVectorPresentation(node);
+    }
+ else {
+      scheduleCollectionSizePresentation(node,type,"");
+    }
+  }
+  val=setFullValueEvaluatorIfNeeded(node,val,false);
+  node.setPresentation(getIcon(),type,val,isObject);
 }
