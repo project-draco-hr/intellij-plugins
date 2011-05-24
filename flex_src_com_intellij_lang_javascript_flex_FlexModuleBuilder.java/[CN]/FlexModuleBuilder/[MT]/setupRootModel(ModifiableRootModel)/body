@@ -8,16 +8,14 @@
     }
   }
   modifiableRootModel.setSdk(mySdk);
-  if (myContentRootPath == null)   return;
-  final VirtualFile moduleContentRoot=LocalFileSystem.getInstance().refreshAndFindFileByPath(myContentRootPath.replace('\\','/'));
-  if (moduleContentRoot == null)   return;
-  final ContentEntry contentEntry=modifiableRootModel.addContentEntry(moduleContentRoot);
+  final ContentEntry contentEntry=doAddContentEntry(modifiableRootModel);
+  if (contentEntry == null)   return;
   if (mySourcePaths == null)   return;
   final FlexBuildConfiguration config=setupFlexBuildConfiguration(module);
   final VirtualFile sourceRootForFlexSetup=setupSourceRoots(contentEntry);
   if (sourceRootForFlexSetup != null) {
     try {
-      FlexUtils.setupFlexConfigFileAndSampleCode(module,config,mySdk,myCreateCustomCompilerConfig ? myCustomCompilerConfigFileName : null,moduleContentRoot,myCreateSampleApp ? mySampleAppFileName : null,sourceRootForFlexSetup);
+      FlexUtils.setupFlexConfigFileAndSampleCode(module,config,mySdk,myCreateCustomCompilerConfig ? myCustomCompilerConfigFileName : null,contentEntry.getFile(),myCreateSampleApp ? mySampleAppFileName : null,sourceRootForFlexSetup);
     }
  catch (    IOException ex) {
       throw new ConfigurationException(ex.getMessage());
