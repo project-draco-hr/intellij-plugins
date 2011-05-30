@@ -11,7 +11,8 @@
         if (params.length >= 2) {
           handlerCallerAnchorInArgumentList=null;
           if (isUnresolvedReference(params[1])) {
-            eventHandlerName=((JSReferenceExpression)params[1]).getReferencedName();
+            myExistingUnresolvedReverence=(JSReferenceExpression)params[1];
+            eventHandlerName=myExistingUnresolvedReverence.getReferencedName();
           }
         }
         break;
@@ -38,7 +39,7 @@
     }
   }
   if (handlerCallerAnchorInArgumentList != null) {
-    final JSExpression qualifier=((JSReferenceExpression)((JSCallExpression)callExpression).getMethodExpression()).getQualifier();
+    final JSExpression qualifier=((JSReferenceExpression)callExpression.getMethodExpression()).getQualifier();
     if (qualifier != null && LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage()).isIdentifier(qualifier.getText(),null)) {
       eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,qualifier.getText(),eventName);
     }
@@ -46,4 +47,5 @@
       eventHandlerName=eventName + "Handler";
     }
   }
+  eventHandlerName2="on" + (eventName.isEmpty() ? "Event" : Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1));
 }
