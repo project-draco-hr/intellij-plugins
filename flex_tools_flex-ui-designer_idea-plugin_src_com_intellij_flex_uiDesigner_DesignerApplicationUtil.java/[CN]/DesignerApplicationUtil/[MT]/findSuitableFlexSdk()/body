@@ -2,27 +2,35 @@
   if (ApplicationManager.getApplication().isUnitTestMode()) {
     return createTestAdlRunConfiguration();
   }
+  List<Sdk> sdks=new ArrayList<Sdk>();
+  for (  Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
+    if (sdk.getSdkType() instanceof IFlexSdkType && sdk.getSdkType() instanceof FlexmojosSdkType) {
+      String version=sdk.getVersionString();
+      if (version == null || !(version.length() >= 3 && (version.charAt(0) > '4' || (version.charAt(0) == '4' && version.charAt(2) >= '5')))) {
+        continue;
+      }
+      sdks.add(sdk);
+    }
+  }
+  Collections.sort(sdks,new Comparator<Sdk>(){
+    @Override public int compare(    Sdk o1,    Sdk o2){
+      return StringUtil.compareVersionNumbers(o2.getVersionString(),o1.getVersionString());
+    }
+  }
+);
   String adlPath;
   String runtime=findInstalledRuntime();
-  for (  Sdk sdk : ProjectJdkTable.getInstance().getAllJdks()) {
-    SdkType sdkType=sdk.getSdkType();
-    if (!(sdkType instanceof IFlexSdkType)) {
-      continue;
-    }
-    String version=sdk.getVersionString();
-    if (version == null || !(version.length() >= 3 && (version.charAt(0) > '4' || (version.charAt(0) == '4' && version.charAt(2) >= '5')))) {
-      continue;
-    }
+  for (  Sdk sdk : sdks) {
     adlPath=FlexSdkUtils.getAdlPath(sdk);
     if (StringUtil.isEmpty(adlPath) || !new File(adlPath).exists()) {
       continue;
     }
     if (runtime == null) {
       runtime=FlexSdkUtils.getAirRuntimePath(sdk);
-      if (!checkRuntime(runtime)) {
-        runtime=null;
-        continue;
-      }
+    }
+    if (!checkRuntime(adlPath,runtime)) {
+      runtime=null;
+      continue;
     }
     return new AdlRunConfiguration(adlPath,runtime);
   }

@@ -1,0 +1,42 @@
+{
+  if (StringUtil.isEmpty(runtimePath)) {
+    return false;
+  }
+  File runtime=new File(runtimePath);
+  if (!runtime.isDirectory()) {
+    return false;
+  }
+  if (SystemInfo.isMac && !checkMacRuntimeVersion(runtimePath)) {
+    return false;
+  }
+  List<String> command=new ArrayList<String>();
+  command.add(adlPath);
+  command.add("-runtime");
+  command.add(runtimePath);
+  command.add("-nodebug");
+  command.add("/Users/develar/workspace/idea/flex/tools/flex-ui-designer/designer/src/main/resources/check-descriptor.xml");
+  final Process checkProcess=new ProcessBuilder(command).start();
+  final Integer exitCode;
+  try {
+    exitCode=ApplicationManager.getApplication().executeOnPooledThread(new Callable<Integer>(){
+      @Override public Integer call() throws Exception {
+        return checkProcess.waitFor();
+      }
+    }
+).get(5,TimeUnit.SECONDS);
+  }
+ catch (  InterruptedException e) {
+    checkProcess.destroy();
+    return false;
+  }
+catch (  java.util.concurrent.ExecutionException e) {
+    LOG.error(e);
+    checkProcess.destroy();
+    return false;
+  }
+catch (  TimeoutException e) {
+    checkProcess.destroy();
+    return false;
+  }
+  return exitCode == 7;
+}
