@@ -1,50 +1,27 @@
 {
-  final OutputStream socketOutputStream;
   try {
     socket=serverSocket.accept();
     serverSocket.close();
-    socketOutputStream=socket.getOutputStream();
+    pendingTask.setOut(socket.getOutputStream());
   }
  catch (  IOException e) {
     LOG.error(e);
-    if (socket != null) {
-      try {
-        socket.close();
-      }
- catch (      IOException inner) {
-        LOG.error(inner);
-      }
- finally {
-        applicationManager.serverClosed();
-      }
-    }
+    IOUtil.close(socket);
+    pendingTask=null;
+    applicationManager.destroyAdlProcess();
     return;
   }
-  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-    @Override public void run(){
-      try {
-        ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream(),FlexUIDesignerApplicationManager.APP_DIR);
-      }
- catch (      IOException e) {
-        if (!(e instanceof SocketException && socket.isClosed())) {
-          LOG.error(e);
-        }
-      }
- finally {
-        try {
-          close();
-        }
- catch (        IOException e) {
-          LOG.error(e);
-        }
- finally {
-          applicationManager.serverClosed();
-        }
-      }
+  pendingTask.run();
+  pendingTask=null;
+  try {
+    ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream(),FlexUIDesignerApplicationManager.APP_DIR);
+  }
+ catch (  IOException e) {
+    if (!(e instanceof SocketException && socket.isClosed())) {
+      LOG.error(e);
     }
   }
-);
-  myPendingTask.setOut(socketOutputStream);
-  myPendingTask.run();
-  myPendingTask=null;
+ finally {
+    IOUtil.close(this);
+  }
 }
