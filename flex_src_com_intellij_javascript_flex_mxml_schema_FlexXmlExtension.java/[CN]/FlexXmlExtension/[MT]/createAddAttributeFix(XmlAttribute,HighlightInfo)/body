@@ -1,0 +1,17 @@
+{
+  final String name=attribute.getName();
+  if (!JSRefactoringUtil.isValidIdentifier(name,attribute.getProject())) {
+    return;
+  }
+  final XmlElementDescriptor descriptor=attribute.getParent().getDescriptor();
+  final PsiElement declaration=descriptor instanceof ClassBackedElementDescriptor ? descriptor.getDeclaration() : null;
+  final VirtualFile virtualFile=declaration == null ? null : declaration.getContainingFile().getVirtualFile();
+  if (virtualFile == null || ProjectRootManager.getInstance(declaration.getProject()).getFileIndex().getSourceRootForFile(virtualFile) == null) {
+    return;
+  }
+  if (declaration instanceof JSClass) {
+    final FixAndIntentionAction fix1=new CreateFieldByMxmlAttributeFix(name,attribute.getValue());
+    fix1.registerElementRefForFix(attribute,null);
+    QuickFixAction.registerQuickFixAction(highlightInfo,fix1);
+  }
+}
