@@ -1,8 +1,14 @@
 {
-  return ContainerUtil.map2Array(super.getChildren(),TreeElement.class,new Function<TreeElement,TreeElement>(){
-    public TreeElement fun(    final TreeElement treeElement){
-      return new StructureViewTreeElement(((DomStructureTreeElement)treeElement).getElement());
+  final DomElement element=getElement();
+  if (!element.isValid()) {
+    return EMPTY_ARRAY;
+  }
+  final List<TreeElement> result=new SmartList<TreeElement>();
+  DomUtil.acceptAvailableChildren(element,new DomElementVisitor(){
+    @Override public void visitDomElement(    final DomElement domElement){
+      result.add(new StructureViewTreeElement(domElement));
     }
   }
 );
+  return result.toArray(new TreeElement[result.size()]);
 }
