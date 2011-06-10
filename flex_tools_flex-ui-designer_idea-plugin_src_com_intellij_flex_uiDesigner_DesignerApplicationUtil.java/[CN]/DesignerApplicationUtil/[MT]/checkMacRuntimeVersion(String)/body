@@ -3,25 +3,6 @@
   if (!info.exists()) {
     return false;
   }
-  char[] chars=FileUtil.loadFileText(info);
-  ol:   for (int i=16; i < chars.length; i++) {
-    if (chars[i] == 'k' && chars[i - 1] == '<') {
-      i+=4;
-      for (int j=0; j < versionKey.length() && i < chars.length; ) {
-        if (versionKey.charAt(j++) != chars[i++]) {
-          i+=8;
-          continue ol;
-        }
-      }
-      i+=6;
-      while (i < chars.length) {
-        if (chars[i++] == '<') {
-          if (chars[i + 7] >= '2') {
-            return true;
-          }
-        }
-      }
-    }
-  }
-  return false;
+  Matcher m=INFO_PLIST_VERSION_PATTERN.matcher(FileUtil.loadFile(info));
+  return m.find() && StringUtil.compareVersionNumbers(m.group(1),"2.6") >= 0;
 }
