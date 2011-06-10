@@ -1,0 +1,42 @@
+{
+  LOG.assertTrue(!documentOpening);
+  final boolean appClosed=server == null || server.isClosed();
+  if (appClosed || !Client.getInstance().isModuleRegistered(module)) {
+    Sdk sdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
+    if (sdk == null || !checkFlexSdkVersion(sdk.getVersionString())) {
+      reportInvalidFlexSdk(module,debug,sdk);
+      return;
+    }
+  }
+  documentOpening=true;
+  if (appClosed) {
+    run(module,psiFile,debug);
+  }
+ else {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        Client client=Client.getInstance();
+        try {
+          if (!client.isModuleRegistered(module)) {
+            try {
+              LibraryManager.getInstance().initLibrarySets(module,APP_DIR);
+            }
+ catch (            InitException e) {
+              LOG.error(e.getCause());
+              DocumentProblemManager.getInstance().reportWithTitle(module.getProject(),e.getMessage());
+            }
+          }
+          client.openDocument(module,psiFile);
+          client.flush();
+        }
+ catch (        IOException e) {
+          LOG.error(e);
+        }
+ finally {
+          documentOpening=false;
+        }
+      }
+    }
+);
+  }
+}

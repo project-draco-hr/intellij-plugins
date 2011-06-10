@@ -1,0 +1,22 @@
+{
+  FlexFacet flexFacet=module.getModuleType() == FlexModuleType.getInstance() ? null : FacetManager.getInstance(module).getFacetByType(FlexFacet.ID);
+  String moduleOrFacetName=FlexUtils.getPresentableName(module,flexFacet);
+  String message;
+  if (sdk == null) {
+    message=FlexUIDesignerBundle.message("module.sdk.is.not.specified",moduleOrFacetName);
+  }
+ else {
+    message=FlexUIDesignerBundle.message("module.sdk.is.not.compatible",sdk.getVersionString(),moduleOrFacetName);
+  }
+  showBalloon(debug,message,module.getProject(),new Consumer<String>(){
+    @Override public void consume(    String id){
+      if ("edit".equals(id)) {
+        FlexSdkUtils.openModuleOrFacetConfigurable(module);
+      }
+ else {
+        LOG.error("unexpected id: " + id);
+      }
+    }
+  }
+);
+}

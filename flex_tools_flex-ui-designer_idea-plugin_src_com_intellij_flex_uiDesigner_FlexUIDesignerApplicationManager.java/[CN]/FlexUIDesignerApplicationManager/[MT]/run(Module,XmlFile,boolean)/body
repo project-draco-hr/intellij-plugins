@@ -3,17 +3,21 @@
   try {
     adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk(CHECK_DESCRIPTOR_PATH);
     if (adlRunConfiguration == null) {
-      final String message=FlexUIDesignerBundle.message("error.suitable.fdk.not.found",SystemInfo.isLinux ? FlexUIDesignerBundle.message("error.suitable.fdk.not.found.linux") : "");
-      Messages.showErrorDialog(project,message,FlexUIDesignerBundle.message(debug ? "action.FlexUIDesigner.RunDesignView.text" : "action.FlexUIDesigner.DebugDesignView.text"));
-      final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,WindowManager.getInstance().suggestParentWindow(project));
-      editor.show();
-      if (editor.isOK()) {
-        adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk(CHECK_DESCRIPTOR_PATH);
+      String title=FlexUIDesignerBundle.message(debug ? "action.FlexUIDesigner.DebugDesignView.text" : "action.FlexUIDesigner.RunDesignView.text");
+      String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
+      showBalloon(debug,message,module.getProject(),new Consumer<String>(){
+        @Override public void consume(        String id){
+          if ("edit".equals(id)) {
+            new ProjectJdksEditor(null,module.getProject(),WindowManager.getInstance().suggestParentWindow(module.getProject())).show();
+          }
+ else {
+            LOG.error("unexpected id: " + id);
+          }
+        }
       }
-      if (adlRunConfiguration == null) {
-        documentOpening=false;
-        return;
-      }
+);
+      documentOpening=false;
+      return;
     }
     if (DebugPathManager.IS_DEV) {
       final String fudHome=DebugPathManager.getFudHome();
@@ -26,7 +30,7 @@
       arguments.add(fudHome + "/flex-injection/target");
       adlRunConfiguration.arguments=arguments;
     }
-    server=new Server(new PendingOpenDocumentTask(project,module,psiFile),this);
+    server=new Server(new PendingOpenDocumentTask(module,psiFile),this);
   }
  catch (  Throwable e) {
     LOG.error(e);
