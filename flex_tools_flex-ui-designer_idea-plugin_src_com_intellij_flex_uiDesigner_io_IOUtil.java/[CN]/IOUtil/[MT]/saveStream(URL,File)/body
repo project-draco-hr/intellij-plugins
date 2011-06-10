@@ -1,0 +1,16 @@
+{
+  final URLConnection sourceConnection=source.openConnection();
+  long sourceLastModified=sourceConnection.getLastModified();
+  if (target.isFile() && target.lastModified() == sourceLastModified) {
+    return;
+  }
+  target.getParentFile().mkdirs();
+  FileOutputStream outputStream=new FileOutputStream(target);
+  try {
+    FileUtil.copy(sourceConnection.getInputStream(),outputStream);
+  }
+  finally {
+    outputStream.close();
+  }
+  target.setLastModified(sourceLastModified);
+}
