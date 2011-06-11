@@ -1,0 +1,33 @@
+{
+  return new BaseJSGenerateHandler(){
+    protected String getTitleKey(){
+      return FlexBundle.message("generate.test.method");
+    }
+    protected BaseCreateMethodsFix createFix(    JSClass clazz){
+      return new BaseCreateMethodsFix(clazz){
+        public void invoke(        @NotNull Project project,        Editor editor,        PsiFile file) throws IncorrectOperationException {
+          evalAnchor(editor,file);
+          final PsiElement addedElement=doAddOneMethod(project,"public function fake():void{}",anchor);
+          PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(editor.getDocument());
+          final TemplateManager manager=TemplateManager.getInstance(project);
+          final Template template=manager.createTemplate("","");
+          template.setToReformat(true);
+          template.addTextSegment("[Test]\npublic function test");
+          template.addVariable(new MyExpression("Name"),true);
+          template.addTextSegment("():void{\n");
+          template.addEndVariable();
+          template.addTextSegment("\n}");
+          final TextRange range=addedElement.getTextRange();
+          editor.getDocument().replaceString(range.getStartOffset(),range.getEndOffset(),"");
+          editor.getCaretModel().moveToOffset(range.getStartOffset());
+          manager.startTemplate(editor,template);
+        }
+      }
+;
+    }
+    protected boolean canHaveEmptySelectedElements(){
+      return true;
+    }
+  }
+;
+}
