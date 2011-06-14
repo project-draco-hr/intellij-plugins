@@ -1,10 +1,5 @@
 {
-  final VirtualFile virtualFile=element.getContainingFile().getVirtualFile();
-  final Module module=virtualFile == null ? null : ModuleUtil.findModuleForFile(virtualFile,element.getProject());
-  if (module == null || !ModuleRootManager.getInstance(module).getFileIndex().isInTestSourceContent(virtualFile)) {
-    return false;
-  }
   final JSClass jsClass=findSourceElement(element);
-  final String name=jsClass == null ? null : jsClass.getName();
-  return name != null && name.length() > "Test".length() && (name.startsWith("Test") || name.endsWith("Test"));
+  final Pair<Module,FlexUnitSupport> moduleAndSupport=FlexUnitSupport.getModuleAndSupport(element);
+  return jsClass != null && moduleAndSupport != null && moduleAndSupport.second.isTestClass(jsClass,true);
 }

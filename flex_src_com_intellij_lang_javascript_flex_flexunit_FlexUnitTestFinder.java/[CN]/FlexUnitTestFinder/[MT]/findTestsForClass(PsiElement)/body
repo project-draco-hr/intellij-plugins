@@ -1,19 +1,23 @@
 {
   final JSClass jsClass=findSourceElement(element);
-  final Module module=ModuleUtil.findModuleForPsiElement(element);
-  if (jsClass == null || module == null) {
+  final String className=jsClass == null ? null : jsClass.getName();
+  final Pair<Module,FlexUnitSupport> moduleAndSupport=FlexUnitSupport.getModuleAndSupport(element);
+  final Module module=moduleAndSupport == null ? null : moduleAndSupport.first;
+  final FlexUnitSupport flexUnitSupport=moduleAndSupport == null ? null : moduleAndSupport.second;
+  if (className == null || module == null || flexUnitSupport == null) {
     return Collections.emptyList();
   }
-  final String[] testPossibleNames={jsClass.getName() + "Test","Test" + jsClass.getName()};
-  final GlobalSearchScope scope=GlobalSearchScope.moduleTestsWithDependentsScope(module);
-  final Collection<PsiElement> result=new ArrayList<PsiElement>();
-  for (  final String testName : testPossibleNames) {
-    final Collection<JSQualifiedNamedElement> elements=JSResolveUtil.findElementsByName(testName,element.getProject(),scope);
-    for (    final JSQualifiedNamedElement jsQualifiedNamedElement : elements) {
-      if (jsQualifiedNamedElement instanceof JSClass) {
-        result.add(jsQualifiedNamedElement);
+  final Collection<String> allNames=StubIndex.getInstance().getAllKeys(JSNameIndex.KEY,element.getProject());
+  final GlobalSearchScope scope=GlobalSearchScope.moduleWithDependentsScope(module);
+  final List<Pair<? extends PsiNamedElement,Integer>> classesWithProximity=new ArrayList<Pair<? extends PsiNamedElement,Integer>>();
+  for (  final String possibleTestName : allNames) {
+    if (possibleTestName.contains(className)) {
+      for (      final JSQualifiedNamedElement jsElement : JSResolveUtil.findElementsByName(possibleTestName,element.getProject(),scope)) {
+        if (jsElement instanceof JSClass && flexUnitSupport.isTestClass((JSClass)jsElement,true)) {
+          classesWithProximity.add(Pair.create(jsElement,TestFinderHelper.calcTestNameProximity(className,jsElement.getName())));
+        }
       }
     }
   }
-  return result;
+  return TestFinderHelper.getSortedElements(classesWithProximity,true);
 }
