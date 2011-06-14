@@ -1,0 +1,19 @@
+{
+  final JSClass jsClass=findSourceElement(element);
+  final Module module=ModuleUtil.findModuleForPsiElement(element);
+  if (jsClass == null || module == null) {
+    return Collections.emptyList();
+  }
+  final String[] testPossibleNames={jsClass.getName() + "Test","Test" + jsClass.getName()};
+  final GlobalSearchScope scope=GlobalSearchScope.moduleTestsWithDependentsScope(module);
+  final Collection<PsiElement> result=new ArrayList<PsiElement>();
+  for (  final String testName : testPossibleNames) {
+    final Collection<JSQualifiedNamedElement> elements=JSResolveUtil.findElementsByName(testName,element.getProject(),scope);
+    for (    final JSQualifiedNamedElement jsQualifiedNamedElement : elements) {
+      if (jsQualifiedNamedElement instanceof JSClass) {
+        result.add(jsQualifiedNamedElement);
+      }
+    }
+  }
+  return result;
+}
