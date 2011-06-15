@@ -1,7 +1,7 @@
 {
   final int name=in.readU32();
   final int originalPos=in.position();
-  initIFlags(name,in);
+  instanceStarting(name,in);
   in.seek(originalPos);
   classInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,name));
   classInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,in.readU32()));
@@ -19,8 +19,6 @@
   }
   final int oldIInit=in.readU32();
   classInfo.writeU32(methodInfo.getIndex(poolIndex,oldIInit));
-  if (skipInitialize) {
-    history.addSkippedIInit(poolIndex,oldIInit);
-  }
+  instanceEnding(oldIInit);
   currentBuffer=classInfo;
 }
