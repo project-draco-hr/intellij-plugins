@@ -2,7 +2,8 @@
   final MobileAirPackageParameters parameters=getPackageParameters();
   saveAsDefaultParameters(parameters);
   FileDocumentManager.getInstance().saveAllDocuments();
-  final boolean ok=ExternalTask.runWithProgress(MobileAirUtil.createMobileAirPackageTask(myProject,parameters),FlexBundle.message("packaging.application",parameters.MOBILE_PLATFORM),TITLE);
+  final String adtVersion=MobileAirUtil.getAdtVersion(myProject,parameters.getFlexSdk());
+  final boolean ok=MobileAirUtil.checkAdtVersionForPackaging(myProject,adtVersion,parameters) && ExternalTask.runWithProgress(MobileAirUtil.createMobileAirPackageTask(myProject,parameters),FlexBundle.message("packaging.application",parameters.MOBILE_PLATFORM),TITLE);
   if (ok) {
     final String message=FlexBundle.message("application.created",parameters.MOBILE_PLATFORM,parameters.INSTALLER_FILE_NAME);
     ToolWindowManager.getInstance(myProject).notifyByBalloon(ToolWindowId.PROJECT_VIEW,MessageType.INFO,message);
