@@ -1,22 +1,26 @@
 {
   final InputStream inputStream=virtualFile.getInputStream();
   final BufferedImage image;
-  try {
-    if (mimeType == null) {
-      image=ImageIO.read(inputStream);
-    }
+  final Iterator<ImageReader> readers;
+  if (mimeType == null) {
+    readers=ImageIO.getImageReadersBySuffix(virtualFile.getExtension());
+  }
  else {
-      Iterator iter=ImageIO.getImageReadersByMIMEType(mimeType);
-      ImageReader reader=(ImageReader)iter.next();
-      ImageInputStream imageInputStream=ImageIO.createImageInputStream(inputStream);
-      reader.setInput(imageInputStream,true,true);
-      try {
-        image=reader.read(0,reader.getDefaultReadParam());
-      }
+    readers=ImageIO.getImageReadersByMIMEType(mimeType);
+  }
+  try {
+    ImageReader reader=readers.next();
+    if (reader.getFormatName().equals(ImageFormat.IMAGE_FORMAT_UNKNOWN.name)) {
+      reader=readers.next();
+    }
+    ImageInputStream imageInputStream=ImageIO.createImageInputStream(inputStream);
+    reader.setInput(imageInputStream,true,true);
+    try {
+      image=reader.read(0,reader.getDefaultReadParam());
+    }
   finally {
-        reader.dispose();
-        imageInputStream.close();
-      }
+      reader.dispose();
+      imageInputStream.close();
     }
   }
   finally {
