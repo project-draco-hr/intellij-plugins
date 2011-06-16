@@ -2,7 +2,7 @@
   int originalPos=in.position();
   in.seek(start);
   int end=start + length;
-  while (in.position() < end) {
+  w:   while (in.position() < end) {
     int pos=in.position();
     int opcode=in.readU8();
     if (opcode == OP_label) {
@@ -41,15 +41,11 @@ case OP_ifnge:
   continue;
 }
 case OP_pushscope:
-{
 v.OP_pushscope();
 continue;
-}
 case OP_newactivation:
-{
 v.OP_newactivation();
 continue;
-}
 case OP_newcatch:
 {
 v.OP_newcatch(in.readU32());
@@ -66,81 +62,51 @@ v.OP_getglobalscope();
 continue;
 }
 case OP_getlocal0:
-{
 v.OP_getlocal0();
 continue;
-}
 case OP_getlocal1:
-{
 v.OP_getlocal1();
 continue;
-}
 case OP_getlocal2:
-{
 v.OP_getlocal2();
 continue;
-}
 case OP_getlocal3:
-{
 v.OP_getlocal3();
 continue;
-}
 case OP_setlocal0:
-{
 v.OP_setlocal0();
 continue;
-}
 case OP_setlocal1:
-{
 v.OP_setlocal1();
 continue;
-}
 case OP_setlocal2:
-{
 v.OP_setlocal2();
 continue;
-}
 case OP_setlocal3:
-{
 v.OP_setlocal3();
 continue;
-}
 case OP_returnvoid:
-{
 v.OP_returnvoid();
 continue;
-}
 case OP_returnvalue:
-{
 v.OP_returnvalue();
 continue;
-}
 case OP_nop:
-{
 v.OP_nop();
 continue;
-}
 case OP_bkpt:
-{
 v.OP_bkpt();
 continue;
-}
 case OP_timestamp:
-{
 v.OP_timestamp();
 continue;
-}
 case OP_debugline:
-{
 v.OP_debugline(in.readU32());
 continue;
-}
 case OP_bkptline:
-{
 in.readU32();
 v.OP_bkptline();
 continue;
-}
 case OP_debug:
 {
 int di_local=in.readU8();
@@ -151,10 +117,8 @@ v.OP_debug(di_local,index,slot,linenum);
 continue;
 }
 case OP_debugfile:
-{
 v.OP_debugfile(in);
 continue;
-}
 case OP_jump:
 {
 int jump=in.readS24();
@@ -163,55 +127,35 @@ v.OP_jump(jump,in.position());
 continue;
 }
 case OP_pushnull:
-{
 v.OP_pushnull();
 continue;
-}
 case OP_pushundefined:
-{
 v.OP_pushundefined();
 continue;
-}
 case OP_pushstring:
-{
 v.OP_pushstring(in.readU32());
 continue;
-}
 case OP_pushnamespace:
-{
 v.OP_pushnamespace(in.readU32());
 continue;
-}
 case OP_pushint:
-{
 v.OP_pushint(in.readU32());
 continue;
-}
 case OP_pushuint:
-{
 v.OP_pushuint(in.readU32());
 continue;
-}
 case OP_pushdouble:
-{
 v.OP_pushdouble(in.readU32());
 continue;
-}
 case OP_getlocal:
-{
 v.OP_getlocal(in.readU32());
 continue;
-}
 case OP_pushtrue:
-{
 v.OP_pushtrue();
 continue;
-}
 case OP_pushfalse:
-{
 v.OP_pushfalse();
 continue;
-}
 case OP_pushnan:
 {
 v.OP_pushnan();
@@ -253,15 +197,11 @@ v.OP_esc_xattr();
 continue;
 }
 case OP_checkfilter:
-{
 v.OP_checkfilter();
 continue;
-}
 case OP_convert_d:
-{
 v.OP_convert_d();
 continue;
-}
 case OP_convert_b:
 {
 v.OP_convert_b();
@@ -764,10 +704,12 @@ v.OP_setsuper(in.readU32());
 continue;
 }
 case OP_constructsuper:
-{
 v.OP_constructsuper(in.readU32());
-continue;
+if (stopAfterConstructSuper) {
+v.OP_returnvoid();
+break w;
 }
+continue;
 case OP_pushshort:
 {
 int n=in.readU32();
