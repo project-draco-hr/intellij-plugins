@@ -18,18 +18,20 @@
       documentOpening=false;
       return;
     }
+    final List<String> arguments=new ArrayList<String>();
+    server=new Server(new PendingOpenDocumentTask(module,psiFile),this);
+    arguments.add(String.valueOf(server.listen()));
+    arguments.add(String.valueOf(server.errorListen()));
     if (DebugPathManager.IS_DEV) {
       final String fudHome=DebugPathManager.getFudHome();
-      final List<String> arguments=new ArrayList<String>();
       if (ApplicationManager.getApplication().isUnitTestMode()) {
         arguments.add("-p");
         arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
       }
       arguments.add("-cdd");
       arguments.add(fudHome + "/flex-injection/target");
-      adlRunConfiguration.arguments=arguments;
     }
-    server=new Server(new PendingOpenDocumentTask(module,psiFile),this);
+    adlRunConfiguration.arguments=arguments;
   }
  catch (  Throwable e) {
     LOG.error(e);
@@ -40,7 +42,7 @@
     @Override public void run(){
       try {
         copyAppFiles();
-        adlProcessHandler=DesignerApplicationUtil.runAdl(runConfiguration,APP_DIR.getPath() + "/" + DESCRIPTOR_XML,server.listen(),new Consumer<Integer>(){
+        adlProcessHandler=DesignerApplicationUtil.runAdl(runConfiguration,APP_DIR.getPath() + "/" + DESCRIPTOR_XML,new Consumer<Integer>(){
           @Override public void consume(          Integer exitCode){
             adlProcessHandler=null;
             if (onAdlExit != null) {
