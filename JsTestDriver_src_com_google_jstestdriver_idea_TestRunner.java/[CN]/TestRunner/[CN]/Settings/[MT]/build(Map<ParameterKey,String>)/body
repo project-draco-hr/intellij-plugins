@@ -1,0 +1,27 @@
+{
+  int port=Integer.parseInt(parameters.get(ParameterKey.PORT));
+  String serverUrl=parameters.get(ParameterKey.SERVER_URL);
+  if (serverUrl == null) {
+    throw new RuntimeException("server_url parameter must be specified");
+  }
+  String configFilesStr=ObjectUtils.notNull(parameters.get(ParameterKey.CONFIG_FILE),"");
+  String[] pathes=configFilesStr.split(Pattern.quote(","));
+  List<File> configFiles=Lists.newArrayList();
+  for (  String urlEncodedPath : pathes) {
+    try {
+      String path=URLDecoder.decode(urlEncodedPath,"UTF-8");
+      File file=new File(path);
+      if (file.isFile()) {
+        configFiles.add(file);
+      }
+    }
+ catch (    UnsupportedEncodingException ignored) {
+    }
+  }
+  if (configFiles.isEmpty()) {
+    throw new RuntimeException("No valid config files found");
+  }
+  String testCaseName=ObjectUtils.notNull(parameters.get(ParameterKey.TEST_CASE),"");
+  String testMethodName=ObjectUtils.notNull(parameters.get(ParameterKey.TEST_METHOD),"");
+  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName);
+}

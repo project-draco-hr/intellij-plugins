@@ -1,0 +1,33 @@
+{
+  final Set<String> visitedKeys=Sets.newHashSet();
+  document.acceptChildren(new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement childElement){
+      YAMLKeyValue keyValue=CastUtils.tryCast(childElement,YAMLKeyValue.class);
+      if (keyValue != null) {
+        PsiElement keyElement=keyValue.getKey();
+        String keyStr=keyElement.getText();
+        if (keyStr.endsWith(":")) {
+          keyStr=keyStr.substring(0,keyStr.length() - 1);
+        }
+        if (!JstdConfigFileUtils.VALID_TOP_LEVEL_KEYS.contains(keyStr)) {
+          holder.createErrorAnnotation(keyElement,"Unexpected key '" + keyStr + "'");
+        }
+        if (!visitedKeys.add(keyStr)) {
+          holder.createErrorAnnotation(keyElement,"Duplicated '" + keyStr + "' key");
+        }
+      }
+ else {
+        if (childElement instanceof TreeElement) {
+          TreeElement treeElement=(TreeElement)childElement;
+          if (treeElement.getElementType() != YAMLTokenTypes.EOL) {
+            holder.createErrorAnnotation(childElement,"Unexpected element");
+          }
+        }
+ else {
+          holder.createErrorAnnotation(childElement,"Unexpected element");
+        }
+      }
+    }
+  }
+);
+}

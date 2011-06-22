@@ -1,0 +1,21 @@
+{
+  File initialDir=findInitialDir();
+  JFileChooser fileChooser=createTunedFileChooser();
+  File jsFile=new File(myJsFilePath);
+  String fileName=FileUtil.getNameWithoutExtension(jsFile).replace('.','-');
+  fileChooser.setSelectedFile(new File(initialDir,"generated-" + fileName));
+  if (fileChooser.showSaveDialog(WindowManager.getInstance().suggestParentWindow(myProject)) != JFileChooser.APPROVE_OPTION) {
+    return;
+  }
+  File selectedFile=fileChooser.getSelectedFile();
+  if (selectedFile == null)   return;
+  PropertiesComponent.getInstance(myProject).setValue(LAST_OPENED_FILE_PATH,selectedFile.getParent());
+  File outputFile=findOutputFile(selectedFile,fileChooser.getFileFilter());
+  try {
+    writeJstdConfigTo(outputFile);
+  }
+ catch (  Exception ioe) {
+    showFailMessage("Saving failed due to internal fail.");
+    ioe.printStackTrace();
+  }
+}

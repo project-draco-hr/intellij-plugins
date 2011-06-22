@@ -1,0 +1,64 @@
+{
+  Project project=referenceExpression.getProject();
+  PsiFile containingFile=referenceExpression.getContainingFile();
+  if (containingFile == null)   return;
+  VirtualFile classVFile=containingFile.getVirtualFile();
+  if (classVFile == null)   return;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final Module module=fileIndex.getModuleForFile(classVFile);
+  if (module == null)   return;
+  String referencedName=referenceExpression.getReferencedName();
+  Annotation annotation=holder.createErrorAnnotation(referenceExpression,referencedName + " is unresolved.");
+  System.out.println("installing annotation '" + annotation.getMessage() + "'");
+  annotation.registerFix(new IntentionAction(){
+    @NotNull @Override public String getText(){
+      return "Add '" + LIBRARY_NAME + "' JavaScript library";
+    }
+    @NotNull @Override public String getFamilyName(){
+      return getText();
+    }
+    @Override public boolean isAvailable(    @NotNull Project project,    Editor editor,    PsiFile file){
+      if (referenceExpression.getContainingFile() == file) {
+        Document document=editor.getDocument();
+        int editorCaretLineNo=document.getLineNumber(editor.getCaretModel().getOffset());
+        int methodReferenceLineNo=document.getLineNumber(referenceExpression.getTextOffset());
+        return editorCaretLineNo == methodReferenceLineNo;
+      }
+      return false;
+    }
+    @Override public void invoke(    @NotNull final Project project,    Editor editor,    PsiFile file) throws IncorrectOperationException {
+      final Library library=createJstdLibrary(project);
+      addLibraryToModule(module,library);
+      PsiManagerEx.getInstance(project).dropFileCaches(file);
+      PsiManagerEx.getInstance(project).reloadFromDisk(file);
+      PsiManagerEx.getInstance(project).dropResolveCaches();
+      final VirtualFile virtualFile=file.getVirtualFile();
+      if (virtualFile != null) {
+        ApplicationManager.getApplication().runWriteAction(new Runnable(){
+          @Override public void run(){
+            for (            OrderRootType orderRootType : OrderRootType.getAllTypes()) {
+              for (              VirtualFile virtualFile : library.getFiles(orderRootType)) {
+                FileBasedIndex.getInstance().requestReindex(virtualFile);
+                System.out.println("reindexing " + virtualFile.getPath());
+              }
+            }
+            FileBasedIndex.getInstance().requestReindex(virtualFile);
+            System.out.println("reindexing " + virtualFile.getPath());
+          }
+        }
+);
+        virtualFile.refresh(true,false,new Runnable(){
+          @Override public void run(){
+            FileContentUtil.reparseFiles(referenceExpression.getProject(),Collections.singletonList(virtualFile),true);
+          }
+        }
+);
+        System.out.println("FileContentUtil.reparseFiles done for " + virtualFile.getPath());
+      }
+    }
+    @Override public boolean startInWriteAction(){
+      return false;
+    }
+  }
+);
+}

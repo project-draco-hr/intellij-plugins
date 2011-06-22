@@ -1,0 +1,16 @@
+{
+  Editor editor=PlatformDataKeys.EDITOR.getData(dataContext);
+  if (editor == null) {
+    return null;
+  }
+  PsiFile psiFile=LangDataKeys.PSI_FILE.getData(dataContext);
+  if (!(psiFile instanceof JSFile)) {
+    return null;
+  }
+  int caretOffsetInDocument=editor.getCaretModel().getOffset();
+  PsiElement psiElementUnderCaret=psiFile.findElementAt(caretOffsetInDocument);
+  if (psiElementUnderCaret == null) {
+    psiElementUnderCaret=psiFile.getLastChild();
+  }
+  return psiElementUnderCaret != null ? new Context(psiElementUnderCaret,caretOffsetInDocument,editor) : null;
+}

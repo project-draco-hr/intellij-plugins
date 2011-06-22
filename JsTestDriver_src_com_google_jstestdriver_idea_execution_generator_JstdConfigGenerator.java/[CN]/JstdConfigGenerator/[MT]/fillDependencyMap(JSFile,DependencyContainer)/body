@@ -1,0 +1,24 @@
+{
+  final VirtualFile jsVirtualFile=jsFile.getVirtualFile();
+  if (jsVirtualFile == null) {
+    return;
+  }
+  if (dependencyContainer.hasDependenciesFor(jsVirtualFile)) {
+    return;
+  }
+  if (dependencyContainer.handleSpecialCase(jsVirtualFile)) {
+    return;
+  }
+  if (dependencyContainer.getLibraryFileNames().contains(jsVirtualFile.getName())) {
+    return;
+  }
+  List<JSFile> dependentJsFiles=collectDependentJsFiles(jsFile,dependencyContainer);
+  List<VirtualFile> dependentVirtualFiles=Lists.newArrayList();
+  for (  JSFile dependentJsFile : dependentJsFiles) {
+    dependentVirtualFiles.add(dependentJsFile.getVirtualFile());
+  }
+  dependencyContainer.registerDependency(jsVirtualFile,dependentVirtualFiles);
+  for (  JSFile dependentJsFile : dependentJsFiles) {
+    fillDependencyMap(dependentJsFile,dependencyContainer);
+  }
+}

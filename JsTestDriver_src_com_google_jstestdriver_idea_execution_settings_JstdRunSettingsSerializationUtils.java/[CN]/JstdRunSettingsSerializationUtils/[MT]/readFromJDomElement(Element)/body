@@ -1,0 +1,29 @@
+{
+  JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+  TestType testType=readEnumByName(element,Key.TEST_TYPE,TestType.CONFIG_FILE);
+  builder.setTestType(testType);
+  if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    String directory=readString(element,Key.ALL_IN_DIRECTORY,"");
+    builder.setDirectory(directory);
+  }
+ else   if (testType == TestType.CONFIG_FILE) {
+    String configFile=readString(element,Key.JSTD_CONFIG_FILE,"");
+    builder.setConfigFile(configFile);
+  }
+ else   if (testType == TestType.JS_FILE) {
+    readJsFile(builder,element);
+  }
+ else   if (testType == TestType.TEST_CASE) {
+    readTestCase(builder,element);
+  }
+ else   if (testType == TestType.TEST_METHOD) {
+    readTestMethod(builder,element);
+  }
+  ServerType serverType=readEnumByName(element,Key.SERVER_TYPE,ServerType.INTERNAL);
+  builder.setServerType(serverType);
+  if (serverType == ServerType.EXTERNAL) {
+    String serverAddress=readString(element,Key.SERVER_ADDRESS,"");
+    builder.setServerAddress(serverAddress);
+  }
+  return builder.build();
+}

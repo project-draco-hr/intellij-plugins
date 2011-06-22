@@ -1,0 +1,49 @@
+{
+  final String serverUrl=format("http://{0}:{1,number,###}/capture",getHostName(),port);
+  final String captureMsg=format(messageBundle.getString("captureLabel"));
+  setLayout(new BorderLayout());
+  add(new JLabel(captureMsg),NORTH);
+  Icon clipboard=new ImageIcon(getClass().getResource("clipboard.png"));
+  final JLabel captureLinkLabel=new JLabel(clipboard){
+{
+      setToolTipText("Copy to clipboard");
+      final MouseListener copyToClipboard=new MouseAdapter(){
+        private Cursor currentCursor;
+        @Override public void mouseClicked(        MouseEvent e){
+          super.mouseClicked(e);
+          try {
+            new ClipboardCopier().toClipboard(serverUrl);
+          }
+ catch (          Exception e1) {
+            throw new RuntimeException(e1);
+          }
+        }
+        @Override public void mouseEntered(        MouseEvent e){
+          super.mouseEntered(e);
+          currentCursor=getCursor();
+          setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+        @Override public void mouseExited(        MouseEvent e){
+          super.mouseExited(e);
+          setCursor(currentCursor);
+        }
+      }
+;
+      addMouseListener(copyToClipboard);
+    }
+  }
+;
+  add(new JPanel(){
+{
+      setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
+      add(captureLinkLabel);
+      add(new JTextField(serverUrl){
+{
+          setEditable(false);
+        }
+      }
+);
+    }
+  }
+,SOUTH);
+}

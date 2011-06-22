@@ -1,0 +1,61 @@
+{
+  RunSettingsContext runSettingsContext=buildRunSettingsContext(location);
+  if (runSettingsContext == null) {
+    return null;
+  }
+  final JstdRunSettings runSettingsPattern=runSettingsContext.runSettings;
+  RunnerAndConfigurationSettings bestRaCSettings=null;
+  for (  RunnerAndConfigurationSettings candidateRaCSettings : existingConfigurations) {
+    JstdRunConfiguration runConfiguration=CastUtils.tryCast(candidateRaCSettings.getConfiguration(),JstdRunConfiguration.class);
+    if (runConfiguration == null) {
+      continue;
+    }
+    JstdRunSettings runSettingsCandidate=runConfiguration.getRunSettings();
+    TestType patternTestType=runSettingsPattern.getTestType();
+    if (patternTestType == runSettingsCandidate.getTestType()) {
+      if (runSettingsPattern.getTestType() == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+        File dir1=new File(runSettingsPattern.getDirectory());
+        File dir2=new File(runSettingsCandidate.getDirectory());
+        if (dir1.isDirectory() && dir2.isDirectory() && dir1.equals(dir2)) {
+          bestRaCSettings=candidateRaCSettings;
+          break;
+        }
+      }
+ else       if (patternTestType == TestType.CONFIG_FILE) {
+        File configFilePattern=new File(runSettingsPattern.getConfigFile());
+        File configFileCandidate=new File(runSettingsCandidate.getConfigFile());
+        if (configFilePattern.isFile() && configFileCandidate.isFile() && configFilePattern.equals(configFileCandidate)) {
+          bestRaCSettings=candidateRaCSettings;
+          break;
+        }
+      }
+ else       if (patternTestType == TestType.JS_FILE || patternTestType == TestType.TEST_CASE || patternTestType == TestType.TEST_METHOD) {
+        File jsFilePattern=new File(runSettingsPattern.getJsFilePath());
+        File jsFileCandidate=new File(runSettingsCandidate.getJsFilePath());
+        boolean eq=jsFileCandidate.isFile() && jsFilePattern.equals(jsFileCandidate);
+        if (patternTestType == TestType.TEST_CASE) {
+          eq=eq && runSettingsPattern.getTestCaseName().equals(runSettingsCandidate.getTestCaseName());
+        }
+        if (patternTestType == TestType.TEST_METHOD) {
+          eq=eq && runSettingsPattern.getTestMethodName().equals(runSettingsCandidate.getTestMethodName());
+        }
+        if (eq) {
+          if (bestRaCSettings == null) {
+            bestRaCSettings=candidateRaCSettings;
+          }
+ else {
+            JstdRunConfiguration bestRunConfiguration=CastUtils.tryCast(bestRaCSettings.getConfiguration(),JstdRunConfiguration.class);
+            JstdRunSettings bestRunSettings=bestRunConfiguration.getRunSettings();
+            if (bestRunSettings.getConfigType() == JstdConfigType.GENERATED) {
+              bestRaCSettings=candidateRaCSettings;
+            }
+ else             if (!new File(bestRunSettings.getConfigFile()).isFile()) {
+              bestRaCSettings=candidateRaCSettings;
+            }
+          }
+        }
+      }
+    }
+  }
+  return bestRaCSettings;
+}
