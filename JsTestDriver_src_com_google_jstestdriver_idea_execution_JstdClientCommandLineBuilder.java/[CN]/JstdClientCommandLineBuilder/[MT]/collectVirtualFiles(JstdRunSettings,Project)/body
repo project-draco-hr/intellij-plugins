@@ -1,0 +1,21 @@
+{
+  TestType testType=runSettings.getTestType();
+  List<VirtualFile> res=Collections.emptyList();
+  if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByIoFile(new File(runSettings.getDirectory()));
+    if (virtualFile != null) {
+      res=collectJstdConfigFilesInDirectory(virtualFile);
+    }
+  }
+ else {
+    File configFile=extractConfigFile(project,runSettings);
+    VirtualFile configVirtualFile=null;
+    if (configFile != null) {
+      configVirtualFile=LocalFileSystem.getInstance().findFileByIoFile(configFile);
+    }
+    if (configVirtualFile != null) {
+      res=Collections.singletonList(configVirtualFile);
+    }
+  }
+  return res;
+}

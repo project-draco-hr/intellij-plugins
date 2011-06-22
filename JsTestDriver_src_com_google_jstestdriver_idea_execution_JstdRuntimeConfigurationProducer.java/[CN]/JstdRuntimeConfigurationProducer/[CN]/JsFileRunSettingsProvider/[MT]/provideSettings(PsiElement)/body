@@ -1,0 +1,32 @@
+{
+  PsiFile psiFile=psiElement.getContainingFile();
+  if (psiFile == null) {
+    return null;
+  }
+  final VirtualFile virtualFile=psiFile.getVirtualFile();
+  if (virtualFile == null || FileTypeManager.getInstance().getFileTypeByFile(virtualFile) != JavaScriptSupportLoader.JAVASCRIPT) {
+    return null;
+  }
+  VirtualFile entity=virtualFile;
+  VirtualFile projectDir=psiElement.getProject().getBaseDir();
+  boolean testFound=false;
+  while (entity != null) {
+    if (matchTestSource(entity.getName())) {
+      testFound=true;
+    }
+    System.out.println("Checking " + entity.getPath() + " ... testFound: "+ testFound);
+    if (entity.equals(projectDir)) {
+      break;
+    }
+    entity=entity.getParent();
+  }
+  if (entity == projectDir && testFound) {
+    JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+    builder.setTestType(TestType.JS_FILE);
+    builder.setConfigType(JstdConfigType.GENERATED);
+    builder.setJSFilePath(virtualFile.getPath());
+    builder.setServerType(ServerType.INTERNAL);
+    return builder.build();
+  }
+  return null;
+}

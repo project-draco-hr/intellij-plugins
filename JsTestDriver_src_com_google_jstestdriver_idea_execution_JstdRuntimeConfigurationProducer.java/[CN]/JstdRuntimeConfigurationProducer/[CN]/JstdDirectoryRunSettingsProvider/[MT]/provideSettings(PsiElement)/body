@@ -1,0 +1,14 @@
+{
+  if (!(psiElement instanceof PsiDirectory)) {
+    return null;
+  }
+  PsiDirectory psiDirectory=(PsiDirectory)psiElement;
+  VirtualFile directory=psiDirectory.getVirtualFile();
+  List<VirtualFile> jstdConfigs=JstdClientCommandLineBuilder.INSTANCE.collectJstdConfigFilesInDirectory(directory);
+  if (jstdConfigs.isEmpty()) {
+    return null;
+  }
+  JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+  builder.setTestType(TestType.ALL_CONFIGS_IN_DIRECTORY).setDirectory(directory.getPath()).setServerType(ServerType.INTERNAL);
+  return builder.build();
+}

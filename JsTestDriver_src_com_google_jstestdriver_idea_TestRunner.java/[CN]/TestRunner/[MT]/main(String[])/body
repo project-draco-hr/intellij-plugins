@@ -1,0 +1,25 @@
+{
+  LogManager.getLogManager().readConfiguration(RunnerMode.QUIET.getLogConfig());
+  Map<ParameterKey,String> paramMap=parseParams(args);
+  Settings settings=Settings.build(paramMap);
+  ObjectOutput testResultProtocolMessageOutput=fetchSocketObjectOutput(settings.getPort());
+  if (!validateServer(testResultProtocolMessageOutput,paramMap)) {
+    return;
+  }
+  try {
+    new TestRunner(settings,testResultProtocolMessageOutput).execute();
+  }
+ catch (  Exception ex) {
+    String message=formatMessage("JsTestDriver crashed!",ex);
+    testResultProtocolMessageOutput.writeObject(new JstdTestRunnerFailure(JstdTestRunnerFailure.FailureType.WHOLE_TEST_RUNNER,message,null));
+  }
+ finally {
+    try {
+      testResultProtocolMessageOutput.close();
+    }
+ catch (    Exception e) {
+      System.err.println("Exception occurred while closing testResultProtocolMessageOutput");
+      e.printStackTrace();
+    }
+  }
+}

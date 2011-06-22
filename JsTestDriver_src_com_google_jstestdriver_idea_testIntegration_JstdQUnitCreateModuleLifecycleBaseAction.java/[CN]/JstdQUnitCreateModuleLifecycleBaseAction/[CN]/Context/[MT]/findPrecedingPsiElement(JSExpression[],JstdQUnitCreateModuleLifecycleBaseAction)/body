@@ -1,0 +1,24 @@
+{
+  PsiElement precedingPsiElement=null;
+  if (argExpressions.length == 1) {
+    precedingPsiElement=argExpressions[0];
+  }
+ else   if (argExpressions.length == 2) {
+    JSObjectLiteralExpression objectLiteralExpression=CastUtils.tryCast(argExpressions[1],JSObjectLiteralExpression.class);
+    if (objectLiteralExpression != null) {
+      precedingPsiElement=objectLiteralExpression.getFirstChild();
+      JSProperty[] properties=objectLiteralExpression.getProperties();
+      if (properties != null) {
+        for (        JSProperty property : properties) {
+          if (Comparing.equal(property.getName(),action.getModuleLifecyclePrecedingMethodName())) {
+            precedingPsiElement=property;
+          }
+ else           if (Comparing.equal(property.getName(),action.getModuleLifecycleMethodName())) {
+            return null;
+          }
+        }
+      }
+    }
+  }
+  return precedingPsiElement;
+}

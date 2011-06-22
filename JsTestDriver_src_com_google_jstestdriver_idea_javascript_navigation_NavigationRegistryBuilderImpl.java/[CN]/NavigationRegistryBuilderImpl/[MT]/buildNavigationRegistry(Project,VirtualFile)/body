@@ -1,0 +1,29 @@
+{
+  File configFile=new File(configVirtualFile.getPath());
+  if (!configFile.isFile()) {
+    return null;
+  }
+  final Configuration configuration;
+  try {
+    configuration=resolveConfiguration(configFile);
+  }
+ catch (  Exception e) {
+    return null;
+  }
+  Set<FileInfo> fileInfo=configuration.getFilesList();
+  List<TestCase> allTestCases=Lists.newArrayList();
+  for (  FileInfo info : fileInfo) {
+    File file=info.toFile(null);
+    VirtualFile vf=LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (vf != null) {
+      PsiFile psiFile=PsiManager.getInstance(project).findFile(vf);
+      if (psiFile instanceof JSFile) {
+        NavigationRegistry navigationRegistry=NavigationUtils.fetchNavigationRegistryByJsFile((JSFile)psiFile);
+        if (navigationRegistry != null) {
+          allTestCases.addAll(navigationRegistry.listTestCases());
+        }
+      }
+    }
+  }
+  return new NavigationRegistry(configVirtualFile,allTestCases);
+}

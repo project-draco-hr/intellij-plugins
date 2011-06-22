@@ -1,0 +1,20 @@
+{
+  extend(CompletionType.BASIC,getElementPattern(),new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      PsiElement element=parameters.getPosition();
+      String prefix=element.getText().substring(0,parameters.getOffset() - element.getTextRange().getStartOffset());
+      YAMLDocument document=JstdConfigFileUtils.getVerifiedHierarchyHead(element.getParent(),new Class[]{YAMLSequence.class,YAMLCompoundValue.class,YAMLKeyValue.class},YAMLDocument.class);
+      if (document != null) {
+        VirtualFile basePath=JstdConfigFileUtils.extractBasePath(document);
+        if (basePath != null) {
+          addPathCompletions(result,prefix,basePath);
+        }
+      }
+      document=JstdConfigFileUtils.getVerifiedHierarchyHead(element.getParent(),new Class[]{YAMLKeyValue.class},YAMLDocument.class);
+      if (document != null) {
+        addTopLevelKeysCompletions(result,prefix);
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,36 @@
+{
+  JSCallExpression callExpression=CastUtils.tryCast(jsElement,JSCallExpression.class);
+  if (callExpression != null) {
+    JSReferenceExpression referenceExpression=CastUtils.tryCast(callExpression.getMethodExpression(),JSReferenceExpression.class);
+    if (referenceExpression != null) {
+      if ("module".equals(referenceExpression.getReferencedName())) {
+        JSExpression[] argumentExprs=callExpression.getArgumentList().getArguments();
+        if (argumentExprs.length > 0) {
+          JSLiteralExpression literalExpression=CastUtils.tryCast(argumentExprs[0],JSLiteralExpression.class);
+          if (literalExpression != null) {
+            String name=removeQuotes(literalExpression.getText());
+            TestCaseBuilder testCaseBuilder=new TestCaseBuilder(name,PsiLocation.fromPsiElement(callExpression));
+            container.add(testCaseBuilder);
+          }
+        }
+      }
+      if ("test".equals(referenceExpression.getReferencedName())) {
+        JSExpression[] argumentExprs=callExpression.getArgumentList().getArguments();
+        if (argumentExprs.length > 0) {
+          JSLiteralExpression literalExpression=CastUtils.tryCast(argumentExprs[0],JSLiteralExpression.class);
+          if (literalExpression != null) {
+            String name=removeQuotes(literalExpression.getText());
+            TestCaseBuilder testCaseBuilder=container.get(container.size() - 1);
+            testCaseBuilder.addTest(new Test("test " + name,PsiLocation.fromPsiElement(callExpression)));
+          }
+        }
+      }
+    }
+  }
+  for (  PsiElement child : jsElement.getChildren()) {
+    JSElement childJsElement=CastUtils.tryCast(child,JSElement.class);
+    if (childJsElement != null) {
+      collectQUnitTestCases(childJsElement,container);
+    }
+  }
+}

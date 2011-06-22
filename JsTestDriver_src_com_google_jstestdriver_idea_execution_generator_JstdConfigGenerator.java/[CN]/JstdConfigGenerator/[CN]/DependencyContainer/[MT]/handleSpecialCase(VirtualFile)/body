@@ -1,0 +1,39 @@
+{
+  if ("QUnitAdapter.js".equals(jsVirtualFile.getName())) {
+    if (myQUnitAdapterHandled) {
+      return true;
+    }
+    myQUnitAdapterHandled=true;
+    final List<VirtualFile> virtualFiles=Lists.newArrayList();
+    FileBasedIndex.getInstance().processValues(FilenameIndex.NAME,"equiv.js",null,new FileBasedIndex.ValueProcessor<Void>(){
+      @Override public boolean process(      VirtualFile file,      Void value){
+        PsiFile psiFile=PsiManager.getInstance(myProject).findFile(file);
+        if (validatePsiFile(psiFile)) {
+          virtualFiles.add(file);
+        }
+        return true;
+      }
+    }
+,new ProjectAndLibrariesScope(myProject));
+    final String jsVirtualFileDirPath=jsVirtualFile.getParent().getPath();
+    Collections.sort(virtualFiles,new Comparator<VirtualFile>(){
+      @Override public int compare(      VirtualFile vf1,      VirtualFile vf2){
+        boolean sameDir1=vf1.getParent().getPath().equals(jsVirtualFileDirPath);
+        boolean sameDir2=vf2.getParent().getPath().equals(jsVirtualFileDirPath);
+        if (sameDir1) {
+          return -1;
+        }
+        if (sameDir2) {
+          return 1;
+        }
+        return 0;
+      }
+    }
+);
+    if (!virtualFiles.isEmpty()) {
+      myDependencyMap.put(jsVirtualFile,Collections.singletonList(virtualFiles.get(0)));
+    }
+    return true;
+  }
+  return false;
+}

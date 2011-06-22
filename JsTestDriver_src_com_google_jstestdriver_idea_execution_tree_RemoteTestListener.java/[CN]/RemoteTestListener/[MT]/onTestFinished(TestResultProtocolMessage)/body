@@ -1,0 +1,42 @@
+{
+  BrowserNode browserNode=browserMap.get(message.browser);
+  JstdConfigFileNode jstdConfigFileNode=browserNode.getJstdConfigFileNodeByPath(message.jstdConfigFilePath);
+  TestCaseNode testCaseNode=jstdConfigFileNode.getTestCaseNode(message.testCase);
+  if (testCaseNode.isTestDone(message.testName)) {
+    return;
+  }
+  testCaseNode.testDone(message.testName);
+  SMTestProxy testNode=testCaseNode.getTestByName(message.testName);
+  testNode.addStdOutput(message.log,Key.create("result"));
+  testNode.setDuration(Math.round(message.duration));
+  Result result=Result.valueOf(message.result);
+  if (result == Result.passed) {
+    testNode.setFinished();
+    myContext.resultsForm().onTestFinished(testNode);
+  }
+ else {
+    boolean isError=result == Result.error;
+    final String stackStr;
+    if (message.stack.startsWith(message.message)) {
+      String s=message.stack.substring(message.message.length());
+      stackStr=s.replaceFirst("^[\n\r]*","");
+    }
+ else {
+      stackStr=message.stack;
+    }
+    testNode.setTestFailed(message.message,stackStr,isError);
+    myContext.resultsForm().onTestFailed(testNode);
+    testCaseNode.setTestFailed(result);
+    jstdConfigFileNode.setTestFailed(result);
+    browserNode.setTestFailed(result);
+  }
+  if (testCaseNode.allTestsComplete()) {
+    onSuiteFinished(testCaseNode.getTestProxy());
+  }
+  if (jstdConfigFileNode.allTestCasesComplete()) {
+    onSuiteFinished(jstdConfigFileNode.getTestProxy());
+  }
+  if (browserNode.allJstdConfigFilesComplete()) {
+    onSuiteFinished(browserNode.getTestProxy());
+  }
+}

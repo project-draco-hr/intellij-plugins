@@ -1,0 +1,37 @@
+{
+  final JSLibraryManager libraryManager=ServiceManager.getService(project,JSLibraryManager.class);
+  String[] resourceNames=new String[]{"Asserts.js","TestCase.js"};
+  VirtualFile[] sourceFiles=new VirtualFile[resourceNames.length];
+  for (int i=0; i < resourceNames.length; i++) {
+    sourceFiles[i]=getVirtualFiles(Marker.class,resourceNames[i]);
+  }
+  ScriptingLibraryModel scriptingLibraryModel=libraryManager.getLibraryByName(LIBRARY_NAME);
+  if (scriptingLibraryModel != null) {
+    Set<VirtualFile> sourceFileSet1=Sets.newHashSet(Arrays.asList(sourceFiles));
+    Set<VirtualFile> sourceFileSet2=scriptingLibraryModel.getSourceFiles();
+    boolean sourceFileSetsEquals=sourceFileSet1.equals(sourceFileSet2);
+    if (!sourceFileSetsEquals) {
+      libraryManager.removeLibrary(scriptingLibraryModel);
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          libraryManager.commitChanges();
+        }
+      }
+);
+      scriptingLibraryModel=createLibrary(libraryManager,LIBRARY_NAME,sourceFiles);
+    }
+  }
+ else {
+    scriptingLibraryModel=createLibrary(libraryManager,LIBRARY_NAME,sourceFiles);
+  }
+  if (scriptingLibraryModel == null) {
+    throw new RuntimeException("Unable to create js library '" + LIBRARY_NAME + "'!");
+  }
+  JSLibraryMappings mappings=ServiceManager.getService(project,JSLibraryMappings.class);
+  ScriptingLibraryModel mappedLibrary=mappings.getMapping(project.getBaseDir());
+  if (mappedLibrary == null || !LIBRARY_NAME.equals(mappedLibrary.getName())) {
+    mappings.associate(project.getBaseDir(),LIBRARY_NAME);
+    System.out.println("associated to " + project.getBaseDir());
+  }
+  return libraryManager.getOriginalLibrary(scriptingLibraryModel);
+}

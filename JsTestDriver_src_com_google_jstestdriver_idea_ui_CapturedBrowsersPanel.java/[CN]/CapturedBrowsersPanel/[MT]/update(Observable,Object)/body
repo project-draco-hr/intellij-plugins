@@ -1,0 +1,27 @@
+{
+  SwingUtilities.invokeLater(new Runnable(){
+    @Override public void run(){
+      if (observable instanceof JsTestDriverServer) {
+        JsTestDriverServer.Event serverEvent=(JsTestDriverServer.Event)event;
+        if (serverEvent == JsTestDriverServer.Event.STOPPED) {
+          for (          BrowserLabel browserLabel : myBrowserLabelByNameMap.values()) {
+            browserLabel.setIcon(browserLabel.getBrowserIcon().getIconForEvent(BrowserCaptureEvent.Event.DISCONNECTED));
+          }
+        }
+      }
+ else       if (event instanceof BrowserCaptureEvent) {
+        BrowserCaptureEvent browserCaptureEvent=(BrowserCaptureEvent)event;
+        SlaveBrowser slaveBrowser=browserCaptureEvent.getBrowser();
+        BrowserInfo browserInfo=slaveBrowser.getBrowserInfo();
+        BrowserLabel browserLabel=getBrowserLabelByName(browserInfo.getName());
+        if (browserLabel != null) {
+          browserLabel.setIcon(browserLabel.getBrowserIcon().getIconForEvent(browserCaptureEvent.event));
+        }
+ else {
+          log.warn("Unregistered browser '" + browserInfo.getName() + "' BrowserCaptureEvent has been received. "+ slaveBrowser+ ", type: "+ browserCaptureEvent.event);
+        }
+      }
+    }
+  }
+);
+}

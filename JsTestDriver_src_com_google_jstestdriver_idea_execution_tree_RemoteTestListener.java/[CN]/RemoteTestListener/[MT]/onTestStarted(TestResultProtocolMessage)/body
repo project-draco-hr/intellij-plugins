@@ -1,0 +1,43 @@
+{
+  BrowserNode browserNode=browserMap.get(message.browser);
+  if (browserNode == null) {
+    browserNode=new BrowserNode(message.browser);
+    browserMap.put(message.browser,browserNode);
+    onSuiteStarted(myContext.resultsForm().getTestsRootNode(),browserNode.getTestProxy());
+  }
+  JstdConfigFileNode jstdConfigFileNode=browserNode.getJstdConfigFileNodeByPath(message.jstdConfigFilePath);
+  if (jstdConfigFileNode == null) {
+    jstdConfigFileNode=new JstdConfigFileNode(myDirectory,message.jstdConfigFilePath);
+    browserNode.registerJstdConfigFileNode(jstdConfigFileNode);
+    final Node jstdConfigNode;
+    if (myDirectory != null) {
+      jstdConfigNode=jstdConfigFileNode;
+      onSuiteStarted(browserNode.getTestProxy(),jstdConfigFileNode.getTestProxy());
+    }
+ else {
+      jstdConfigNode=browserNode;
+    }
+    File jstdConfigFile=new File(jstdConfigFileNode.getAbsoluteFilePath());
+    ConfigStructure configStructure=ConfigStructure.newConfigStructure(jstdConfigFile);
+    StacktracePrinter stacktracePrinter=new StacktracePrinter(myContext.consoleView(),configStructure,message.browser);
+    jstdConfigNode.wirePrinter(stacktracePrinter);
+  }
+  NavigationRegistry navigationRegistry=myNavigationRegistryMap.get(jstdConfigFileNode.getVirtualFile());
+  TestCase testCaseLocation=navigationRegistry == null ? null : navigationRegistry.getTestCaseByName(message.testCase);
+  TestCaseNode testCaseNode=jstdConfigFileNode.getTestCaseNode(message.testCase);
+  myConfigLastTestProxy=(myDirectory != null ? jstdConfigFileNode : browserNode).getTestProxy();
+  myLastConfigFile=new File(jstdConfigFileNode.getAbsoluteFilePath());
+  if (testCaseNode == null) {
+    testCaseNode=new TestCaseNode(message.testCase,testCaseLocation);
+    jstdConfigFileNode.registerTestCaseNode(testCaseNode);
+    onSuiteStarted(myDirectory != null ? jstdConfigFileNode.getTestProxy() : browserNode.getTestProxy(),testCaseNode.getTestProxy());
+  }
+  Test testLocation=testCaseLocation != null ? testCaseLocation.getTestByName(message.testName) : null;
+  Location testLoc=testLocation == null ? null : testLocation.getLocation();
+  SMTestProxy testNode=testCaseNode.getTestByName(message.testName);
+  if (testNode == null) {
+    testNode=new SMTestProxyWithPrinterAndLocation(message.testName,false,LocationProvider.createConstantProvider(testLoc));
+    testCaseNode.registerTestProxy(testNode);
+    onSuiteStarted(testCaseNode.getTestProxy(),testNode);
+  }
+}

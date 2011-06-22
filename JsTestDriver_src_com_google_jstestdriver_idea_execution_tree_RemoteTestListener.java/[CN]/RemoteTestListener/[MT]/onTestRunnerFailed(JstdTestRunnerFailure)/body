@@ -1,0 +1,18 @@
+{
+  if (testRunnerFailure.getFailureType() == JstdTestRunnerFailure.FailureType.SINGLE_JSTD_CONFIG) {
+    if (myLastConfigFile != null && myLastConfigFile.equals(new File(testRunnerFailure.getJstdConfigPath()))) {
+      myConfigLastTestProxy.setTestFailed(testRunnerFailure.getMessage(),null,false);
+    }
+ else {
+      SMTestProxy configNode=new JstdConfigFileNode(myDirectory,testRunnerFailure.getJstdConfigPath()).getTestProxy();
+      myContext.resultsForm().getTestsRootNode().addChild(configNode);
+      configNode.setTestFailed(testRunnerFailure.getMessage(),null,false);
+    }
+  }
+ else {
+    myRootNodeLog.append(testRunnerFailure.getMessage()).append("\n");
+    SMTestProxy.SMRootTestProxy rootNode=myContext.resultsForm().getTestsRootNode();
+    rootNode.setTestFailed(myRootNodeLog.toString(),null,false);
+    System.out.println("Setting root error to " + myRootNodeLog);
+  }
+}

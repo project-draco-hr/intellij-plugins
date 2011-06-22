@@ -1,0 +1,35 @@
+{
+  try {
+    new URL(serverUrl);
+  }
+ catch (  MalformedURLException e) {
+    return JstdServerFetchResult.fromErrorMessage("Malformed url: " + serverUrl);
+  }
+  String url=serverUrl.replaceAll("/$","") + "/cmd?listBrowsers";
+  Response response=fetchResponse(url);
+  if (response.getError() == Response.Error.CONNECTION_FAILED) {
+    return JstdServerFetchResult.fromErrorMessage("Could not connect to " + serverUrl);
+  }
+ else   if (response.getError() == Response.Error.READ_FAILED) {
+    return JstdServerFetchResult.fromErrorMessage("Reading error occurred");
+  }
+ else   if (response.getStatus() != 200) {
+    return JstdServerFetchResult.fromErrorMessage("Incorrect server response status");
+  }
+  JsonParser jsonParser=new JsonParser();
+  final String badResponse="Malformed server response received";
+  JsonElement jsonElement;
+  try {
+    jsonElement=jsonParser.parse(response.getContent());
+  }
+ catch (  JsonSyntaxException e) {
+    return JstdServerFetchResult.fromErrorMessage(badResponse);
+  }
+  try {
+    List<JstdBrowserInfo> browserInfos=parseBrowsers(jsonElement.getAsJsonArray());
+    return JstdServerFetchResult.fromServerInfo(new JstdServerInfo(serverUrl,browserInfos));
+  }
+ catch (  Exception e) {
+    return JstdServerFetchResult.fromErrorMessage(badResponse);
+  }
+}
