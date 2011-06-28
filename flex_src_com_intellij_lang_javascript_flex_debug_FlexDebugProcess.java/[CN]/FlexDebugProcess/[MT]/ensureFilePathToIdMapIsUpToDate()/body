@@ -2,25 +2,7 @@
   if (myFileIdIsUpToDate)   return;
   sendAndProcessOneCommand(new DebuggerCommand("show files",CommandOutputProcessingType.SPECIAL_PROCESSING,VMState.SUSPENDED,VMState.SUSPENDED){
     @Override CommandOutputProcessingMode onTextAvailable(    @NonNls String s){
-      StringTokenizer tokenizer=new StringTokenizer(s,"\r\n");
-      while (tokenizer.hasMoreTokens()) {
-        String line=tokenizer.nextToken();
-        int spaceIndex=line.indexOf(' ');
-        int commaPos=line.indexOf(',');
-        if (spaceIndex == -1 || commaPos == -1) {
-          log("Unexpected string format:" + line);
-          continue;
-        }
-        String id=line.substring(0,spaceIndex);
-        String fullPath=line.substring(spaceIndex + 1,commaPos).replace(File.separatorChar,'/');
-        int markerIndex=fullPath.indexOf("/frameworks/projects/");
-        if (markerIndex != -1 && fullPath.indexOf("/src/",markerIndex) > 0) {
-          fullPath=mySdkLocation + fullPath.substring(markerIndex);
-        }
-        String shortName=line.substring(commaPos + 2);
-        myFilePathToIdMap.put(fullPath,id);
-        addToMap(myFileNameToPathsMap,shortName,fullPath);
-      }
+      processShowFilesResult(new StringTokenizer(s,"\r\n"));
       return CommandOutputProcessingMode.DONE;
     }
   }

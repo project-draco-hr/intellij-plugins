@@ -6,42 +6,9 @@
       if (index == 0) {
         opcodes.writeU32(0);
       }
-      int insertionIndex=history.getMapIndex(poolIndex,IndexHistory.STRING,index);
-      int newIndex=history.getNewIndex(insertionIndex);
-      if (newIndex == 0) {
-        int originalPosition=in.position();
-        int start=history.getRawPartPoolPositions(poolIndex,IndexHistory.STRING)[index];
-        in.seek(start);
-        int stringLength=in.readU32();
-        byte[] data=in.data;
-        int c;
-        int actualStart=-1;
-        for (int i=0; i < stringLength; i++) {
-          c=data[in.position + in.offset + i];
-          if (c > 127) {
-            break;
-          }
-          if (c == ';') {
-            actualStart=in.position + i - 1;
-            int p=in.offset + actualStart;
-            data[p]='_';
-            stringLength=stringLength - i + 1;
-            if (stringLength < 128) {
-              actualStart--;
-              data[p - 1]=(byte)stringLength;
-            }
  else {
-              actualStart-=2;
-              data[p - 2]=(byte)((stringLength & 0x7F) | 0x80);
-              data[p - 1]=(byte)((stringLength >> 7) & 0x7F);
-            }
-            break;
-          }
-        }
-        in.seek(originalPosition);
-        newIndex=history.getIndex(poolIndex,IndexHistory.STRING,index,insertionIndex,actualStart);
+        writeDebugFile(in,index);
       }
-      opcodes.writeU32(newIndex);
     }
   }
 }

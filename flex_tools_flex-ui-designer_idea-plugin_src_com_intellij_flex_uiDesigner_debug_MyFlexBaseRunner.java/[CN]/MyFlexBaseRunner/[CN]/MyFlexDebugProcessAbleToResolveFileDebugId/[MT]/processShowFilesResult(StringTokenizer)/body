@@ -1,0 +1,46 @@
+{
+  while (tokenizer.hasMoreTokens()) {
+    String line=tokenizer.nextToken();
+    int spaceIndex=line.indexOf(' ');
+    int commaPos=line.indexOf(',');
+    if (spaceIndex == -1 || commaPos == -1) {
+      log("Unexpected string format:" + line);
+      continue;
+    }
+    String id=line.substring(0,spaceIndex);
+    String fullPath;
+    if (line.charAt(spaceIndex + 1) == '$') {
+      int firstSlashIndex=line.indexOf('/');
+      StringBuilder builder=StringBuilderSpinAllocator.alloc();
+      try {
+        boolean isBackSlash=firstSlashIndex == -1;
+        if (isBackSlash) {
+          firstSlashIndex=line.indexOf('\\');
+        }
+        builder.append(mySdkLocation).append("/frameworks/projects/").append(line,spaceIndex + 2,firstSlashIndex).append("/src/");
+        if (isBackSlash) {
+          builder.append(line.substring(firstSlashIndex + 1,commaPos).replace('\\','/'));
+        }
+ else {
+          builder.append(line,firstSlashIndex + 1,commaPos);
+        }
+        fullPath=builder.toString();
+      }
+  finally {
+        StringBuilderSpinAllocator.dispose(builder);
+      }
+    }
+ else     if (line.startsWith("/Users/develar/workspace/flex_sdk_4.5_modified",spaceIndex + 1)) {
+      final int beginIndex="/Users/develar/workspace/flex_sdk_4.5_modified/frameworks/projects/".length() + spaceIndex + 1;
+      final int endIndex=line.indexOf('/',beginIndex + 2);
+      String libName=line.substring(beginIndex,endIndex);
+      fullPath="/Users/develar/.m2/repository/com/adobe/flex/framework/" + libName + "/4.5.0.20968/"+ libName+ "-4.5.0.20968-sources.jar!"+ line.substring(endIndex + "src".length() + 1,commaPos);
+    }
+ else {
+      fullPath=line.substring(spaceIndex + 1,commaPos).replace(File.separatorChar,'/');
+    }
+    String shortName=line.substring(commaPos + 2);
+    myFilePathToIdMap.put(fullPath,id);
+    addToMap(myFileNameToPathsMap,shortName,fullPath);
+  }
+}
