@@ -1,0 +1,19 @@
+{
+  if (myDirectories == null) {
+    CachedValueProvider<Collection<PsiDirectory>> provider=new CachedValueProvider<Collection<PsiDirectory>>(){
+      public Result<Collection<PsiDirectory>> compute(){
+        final PsiManager manager=PsiManager.getInstance(getProject());
+        Collection<PsiDirectory> directories=ContainerUtil.map(DirectoryIndex.getInstance(getProject()).getDirectoriesByPackageName(getQualifiedName(),true).findAll(),new Function<VirtualFile,PsiDirectory>(){
+          @Override public PsiDirectory fun(          VirtualFile virtualFile){
+            return manager.findDirectory(virtualFile);
+          }
+        }
+);
+        return Result.create(directories,PsiModificationTracker.MODIFICATION_COUNT,ProjectRootManager.getInstance(getProject()));
+      }
+    }
+;
+    myDirectories=CachedValuesManager.getManager(getProject()).createCachedValue(provider,false);
+  }
+  return myDirectories.getValue();
+}
