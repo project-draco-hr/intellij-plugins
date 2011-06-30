@@ -1,5 +1,16 @@
 {
-  final GlobalSearchScope moduleScope=moduleInfo.getModule().getModuleScope(false);
+  GlobalSearchScope moduleScope;
+  try {
+    moduleScope=moduleInfo.getModule().getModuleScope(false);
+  }
+ catch (  NoSuchMethodError e) {
+    try {
+      moduleScope=ModuleWithDependenciesScope.class.getConstructor(Module.class,boolean.class,boolean.class,boolean.class,boolean.class).newInstance(moduleInfo.getModule(),true,false,false,false);
+    }
+ catch (    Exception er) {
+      throw new RuntimeException(er);
+    }
+  }
   final GlobalSearchScope moduleWithDependenciesAndLibrariesScope=moduleInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false);
   if (flexSdkVersion.charAt(0) > '3') {
     JSClass sparkApplicationClass=((JSClass)JSResolveUtil.findClassByQName("spark.components.Application",moduleWithDependenciesAndLibrariesScope));

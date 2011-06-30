@@ -5,7 +5,29 @@
     @Override public void run(){
       try {
         PropertiesFile resourceBundleFile=LibraryManager.getInstance().getResourceBundleFile(reader.readUTF(),reader.readUTF(),projectInfo);
-        FileOutputStream fileOut=new FileOutputStream(resultFile);
+        FileOutputStream fileOut=null;
+        if (SystemInfo.isWindows) {
+          for (int i=0; i < 2; i++) {
+            try {
+              fileOut=new FileOutputStream(resultFile);
+              break;
+            }
+ catch (            FileNotFoundException e) {
+              try {
+                Thread.sleep(10);
+              }
+ catch (              InterruptedException ignored) {
+              }
+            }
+          }
+          if (fileOut == null) {
+            FlexUIDesignerApplicationManager.LOG.error("fileOut null due to FileNotFoundException");
+            return;
+          }
+        }
+ else {
+          fileOut=new FileOutputStream(resultFile);
+        }
         try {
           if (resourceBundleFile == null) {
             fileOut.write(Amf3Types.NULL);
