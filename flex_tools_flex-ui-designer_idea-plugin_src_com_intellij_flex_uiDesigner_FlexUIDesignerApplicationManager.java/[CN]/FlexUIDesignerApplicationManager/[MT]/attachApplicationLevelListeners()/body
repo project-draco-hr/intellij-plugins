@@ -1,0 +1,12 @@
+{
+  projectManagerListener=new MyProjectManagerListener();
+  ProjectManager.getInstance().addProjectManagerListener(projectManagerListener,ApplicationManager.getApplication());
+  ApplicationManager.getApplication().getMessageBus().connect(ApplicationManager.getApplication()).subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void moduleRemoved(    Project project,    Module module){
+      if (!isAppClosed() || Client.getInstance().isModuleRegistered(module)) {
+        Client.getInstance().unregisterModule(module);
+      }
+    }
+  }
+);
+}

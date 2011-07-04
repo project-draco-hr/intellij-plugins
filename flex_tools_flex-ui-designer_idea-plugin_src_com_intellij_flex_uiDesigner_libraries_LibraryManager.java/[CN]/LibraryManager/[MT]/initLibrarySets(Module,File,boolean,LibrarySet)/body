@@ -56,7 +56,7 @@
  else {
     throw new UnsupportedOperationException("merge existing libraries and new");
   }
-  ModuleInfo moduleInfo=new ModuleInfo(module);
+  final ModuleInfo moduleInfo=new ModuleInfo(module);
   if (collectLocalStyleHolders) {
     stringWriter.startChange();
     try {
@@ -74,4 +74,13 @@
   if (!problemsHolder.isEmpty()) {
     DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
   }
+  module.getMessageBus().connect(moduleInfo).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
+    @Override public void beforeRootsChange(    ModuleRootEvent event){
+    }
+    @Override public void rootsChanged(    ModuleRootEvent event){
+      Notification notification=new Notification(FlexUIDesignerBundle.message("plugin.name"),FlexUIDesignerBundle.message("plugin.name"),"Listen library changes is not yet supported. Please, reopen project.",NotificationType.WARNING);
+      Notifications.Bus.notify(notification,project);
+    }
+  }
+);
 }
