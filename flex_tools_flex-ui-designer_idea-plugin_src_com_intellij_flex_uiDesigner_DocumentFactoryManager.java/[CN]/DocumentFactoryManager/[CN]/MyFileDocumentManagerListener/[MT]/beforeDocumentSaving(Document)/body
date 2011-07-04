@@ -3,8 +3,8 @@
   if (file == null) {
     return;
   }
-  int id=files.indexOf(file);
-  if (id == -1) {
+  DocumentInfo info=files.getNullableInfo(file);
+  if (info == null) {
     return;
   }
   FlexUIDesignerApplicationManager flexUIDesignerApplicationManager=FlexUIDesignerApplicationManager.getInstance();
@@ -19,5 +19,9 @@
   if (psiFile == null) {
     return;
   }
-  flexUIDesignerApplicationManager.updateDocumentFactory(id,module,psiFile);
+  if (info.psiModificationStamp == psiFile.getModificationStamp()) {
+    info.psiModificationStamp=-1;
+    return;
+  }
+  flexUIDesignerApplicationManager.updateDocumentFactory(info.getId(),module,psiFile);
 }

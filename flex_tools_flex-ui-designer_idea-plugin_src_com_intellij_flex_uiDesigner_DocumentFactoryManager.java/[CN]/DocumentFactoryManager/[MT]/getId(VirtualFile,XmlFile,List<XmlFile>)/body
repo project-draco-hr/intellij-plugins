@@ -1,20 +1,13 @@
 {
-  int id=files.indexOf(virtualFile);
-  if (id == -1) {
-    if (freeIndices.isEmpty()) {
-      if (files.isEmpty()) {
-        listenChages();
-      }
-      id=files.size();
-      files.add(virtualFile);
-    }
- else {
-      id=freeIndices.remove(freeIndices.size() - 1);
-      files.set(id,virtualFile);
-    }
-    if (unregisteredDocumentFactories != null) {
-      unregisteredDocumentFactories.add(psiFile);
-    }
+  DocumentInfo info=files.getNullableInfo(virtualFile);
+  if (info != null) {
+    return info.getId();
   }
-  return id;
+  if (!isSubscribed) {
+    listenChages();
+  }
+  if (unregisteredDocumentFactories != null) {
+    unregisteredDocumentFactories.add(psiFile);
+  }
+  return files.add(new DocumentInfo(virtualFile));
 }
