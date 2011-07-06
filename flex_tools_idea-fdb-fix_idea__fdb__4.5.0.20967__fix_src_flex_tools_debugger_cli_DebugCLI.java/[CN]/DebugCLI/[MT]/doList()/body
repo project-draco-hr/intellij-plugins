@@ -1,0 +1,80 @@
+{
+  int currentModule=propertyGet(LIST_MODULE);
+  int currentLine=propertyGet(LIST_LINE);
+  int listsize=propertyGet(LIST_SIZE);
+  String arg1=null;
+  int module1=currentModule;
+  int line1=currentLine;
+  String arg2=null;
+  int line2=currentLine;
+  int numLines=0;
+  try {
+    if (hasMoreTokens()) {
+      arg1=nextToken();
+      if (arg1.equals("-")) {
+        line1=line2=line1 - (2 * listsize);
+      }
+ else {
+        int[] result=parseLocationArg(currentModule,currentLine,arg1);
+        module1=result[0];
+        line2=line1=result[1];
+        if (hasMoreTokens()) {
+          arg2=nextToken();
+          line2=parseLineArg(module1,arg2);
+        }
+      }
+    }
+    if (hasMoreTokens()) {
+      err(getLocalizationManager().getLocalizedTextString("lineJunk"));
+    }
+ else {
+      int half=listsize / 2;
+      SourceFile file=m_fileInfo.getFile(module1);
+      numLines=file.getLineCount();
+      int newLine;
+      if (numLines == 1 && file.getLine(1).equals("")) {
+        err(getLocalizationManager().getLocalizedTextString("sourceFileNotFound"));
+        newLine=currentLine;
+      }
+ else {
+        if (line1 > numLines && arg1 != null)         throw new IndexOutOfBoundsException();
+        if (arg2 == null) {
+          line2=line1 + (half) - 1;
+          line1=line1 - (listsize - half);
+        }
+        if (line1 < 1) {
+          line2+=-(line1 - 1);
+          line1=1;
+        }
+        if (line2 > numLines)         line2=numLines;
+        if (line1 > line2)         throw new IndexOutOfBoundsException();
+        SourceFile source=m_fileInfo.getFile(module1);
+        for (int i=line1; i <= line2; i++)         outputSource(module1,i,source.getLine(i));
+        newLine=line2 + half + (((listsize % 2) == 0) ? 1 : 2);
+      }
+      propertyPut(LIST_MODULE,module1);
+      propertyPut(LIST_LINE,newLine);
+      m_repeatLine="list";
+    }
+  }
+ catch (  IndexOutOfBoundsException iob) {
+    String name="#" + module1;
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("line",Integer.toString(line1));
+    args.put("filename",name);
+    args.put("total",Integer.toString(numLines));
+    err(getLocalizationManager().getLocalizedTextString("lineNumberOutOfRange",args));
+  }
+catch (  AmbiguousException ae) {
+    err(ae.getMessage());
+  }
+catch (  NoMatchException nme) {
+    err(nme.getMessage());
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("noFilesFound"));
+  }
+catch (  ParseException pe) {
+    err(pe.getMessage());
+  }
+}

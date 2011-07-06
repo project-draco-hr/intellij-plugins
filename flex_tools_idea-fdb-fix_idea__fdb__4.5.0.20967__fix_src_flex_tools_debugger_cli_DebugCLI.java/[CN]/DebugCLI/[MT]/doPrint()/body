@@ -1,0 +1,49 @@
+{
+  try {
+    Object result=null;
+    boolean isLookupMembers=false;
+    if (!hasMoreTokens()) {
+      try {
+        result=m_exprCache.get("$");
+      }
+ catch (      ArrayIndexOutOfBoundsException aib) {
+        err(getLocalizationManager().getLocalizedTextString("commandHistoryIsEmpty"));
+        throw new NullPointerException();
+      }
+    }
+ else {
+      String s=restOfLine();
+      ValueExp expr=parseExpression(s);
+      if (expr.containsAssignment())       throw new IllegalAccessException();
+      result=evalExpression(expr).value;
+      isLookupMembers=expr.isLookupMembers();
+    }
+    int which=m_exprCache.add(result);
+    StringBuilder sb=new StringBuilder();
+    sb.append('$');
+    sb.append(which);
+    sb.append(" = ");
+    if (result instanceof Variable)     result=((Variable)result).getValue();
+    if (result instanceof InternalProperty)     sb.append(((InternalProperty)result).valueOf());
+ else     if (isLookupMembers)     sb.append(result);
+ else     ExpressionCache.appendVariableValue(sb,result);
+    out(sb.toString());
+    m_repeatLine=m_currentLine;
+  }
+ catch (  ArrayIndexOutOfBoundsException aio) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("number",aio.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("historyHasNotReached",args));
+  }
+catch (  IllegalAccessException iae) {
+    err(getLocalizationManager().getLocalizedTextString("noSideEffectsAllowed"));
+  }
+catch (  NoSuchVariableException nsv) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("variable",nsv.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("variableUnknown",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

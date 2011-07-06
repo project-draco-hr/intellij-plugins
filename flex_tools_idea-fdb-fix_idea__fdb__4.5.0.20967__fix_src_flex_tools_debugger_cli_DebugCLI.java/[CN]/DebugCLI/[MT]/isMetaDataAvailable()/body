@@ -1,0 +1,25 @@
+{
+  boolean allLoaded=true;
+  try {
+    SwfInfo[] swfs=m_session.getSwfs();
+    for (int i=0; i < swfs.length; i++) {
+      SwfInfo swf=swfs[i];
+      if (swf != null && !swf.isProcessingComplete()) {
+        allLoaded=false;
+        break;
+      }
+    }
+  }
+ catch (  NoResponseException nre) {
+    allLoaded=false;
+  }
+  if (!allLoaded) {
+    int count=propertyGet(METADATA_NOT_AVAILABLE);
+    count++;
+    propertyPut(METADATA_NOT_AVAILABLE,count);
+  }
+ else {
+    propertyPut(METADATA_ATTEMPTS,METADATA_RETRIES);
+  }
+  return allLoaded;
+}

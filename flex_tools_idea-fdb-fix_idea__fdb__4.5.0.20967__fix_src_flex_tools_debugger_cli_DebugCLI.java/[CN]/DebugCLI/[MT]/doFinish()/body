@@ -1,0 +1,35 @@
+{
+  waitTilHalted();
+  if (!allowedToStep())   return;
+  try {
+    int depth=propertyGet(CURRENT_FRAME_DEPTH);
+    if (depth < 2)     err(getLocalizationManager().getLocalizedTextString("finishCommandNotMeaningfulOnOutermostFrame"));
+ else {
+      stepWithTimeout(new AnyKindOfStep(){
+        public void step() throws PlayerDebugException {
+          m_session.stepOut();
+        }
+      }
+);
+      for (; ; ) {
+        dumpStep();
+        if (m_requestResume) {
+          m_requestResume=false;
+          stepWithTimeout(new AnyKindOfStep(){
+            public void step() throws PlayerDebugException {
+              m_session.stepContinue();
+            }
+          }
+);
+        }
+ else {
+          break;
+        }
+      }
+      m_repeatLine=m_currentLine;
+    }
+  }
+ catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("finishCommandNotMeaningfulWithoutStack"));
+  }
+}
