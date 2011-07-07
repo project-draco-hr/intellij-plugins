@@ -5,6 +5,10 @@
     final Builder builder=mySdkSpecificHandler.createBuilder(configuration);
     builder.setLogger(myLogger);
     builder.setPathResolver(SdkFilesResolver.INSTANCE);
+    final String linkReportFileName=configuration.getLinkReportFileName();
+    if (linkReportFileName != null) {
+      builder.getConfiguration().keepLinkReport(true);
+    }
     final long outputFileSize;
     final boolean omitTrace=mySdkSpecificHandler.omitTrace(configuration);
     try {
@@ -18,6 +22,14 @@
     if (outputFileSize > 0) {
       final File outputFile=(builder instanceof Application) ? ((Application)builder).getOutput() : ((Library)builder).getOutput();
       myLogger.log(outputFile.getCanonicalPath() + " (" + outputFileSize+ " bytes)");
+      if (linkReportFileName != null) {
+        final File linkReportFile=new File(linkReportFileName);
+        FlexCompilerUtil.ensureFileCanBeCreated(linkReportFile);
+        final Report report=builder.getReport();
+        final FileWriter writer=new FileWriter(linkReportFile);
+        report.writeLinkReport(writer);
+        writer.close();
+      }
     }
   }
  catch (  final Exception e) {
