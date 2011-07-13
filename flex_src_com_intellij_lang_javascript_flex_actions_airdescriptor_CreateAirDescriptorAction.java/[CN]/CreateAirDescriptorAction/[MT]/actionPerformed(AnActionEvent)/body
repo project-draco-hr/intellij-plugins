@@ -5,15 +5,14 @@
   if (dialog.isOK()) {
     try {
       final VirtualFile descriptorFile=createAirDescriptor(dialog.getAirDescriptorParameters());
-      final ToolWindowManager manager=ToolWindowManager.getInstance(project);
-      manager.notifyByBalloon(ToolWindowId.PROJECT_VIEW,MessageType.INFO,FlexBundle.message("file.created",descriptorFile.getName()),null,new HyperlinkListener(){
-        public void hyperlinkUpdate(        HyperlinkEvent e){
+      NOTIFICATION_GROUP.createNotification("",FlexBundle.message("file.created",descriptorFile.getName()),NotificationType.INFORMATION,new NotificationListener(){
+        @Override public void hyperlinkUpdate(        @NotNull Notification notification,        @NotNull HyperlinkEvent e){
           if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && descriptorFile.isValid()) {
             FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,descriptorFile),true);
           }
         }
       }
-);
+).notify(project);
     }
  catch (    IOException ex) {
       Messages.showErrorDialog(project,FlexBundle.message("air.descriptor.creation.failed",ex.getMessage()),FlexBundle.message("error.title"));

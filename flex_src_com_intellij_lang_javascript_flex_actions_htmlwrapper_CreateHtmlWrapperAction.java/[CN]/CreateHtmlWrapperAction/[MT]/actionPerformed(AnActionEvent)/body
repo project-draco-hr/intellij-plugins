@@ -10,15 +10,14 @@
         if (dialog.isCreateRunConfigurationSelected() && project != null) {
           FlexModuleBuilder.createFlexRunConfiguration(project,htmlFile);
         }
-        final ToolWindowManager manager=ToolWindowManager.getInstance(project);
-        manager.notifyByBalloon(ToolWindowId.PROJECT_VIEW,MessageType.INFO,FlexBundle.message("file.created",htmlFile.getName()),null,new HyperlinkListener(){
-          public void hyperlinkUpdate(          final HyperlinkEvent e){
+        CreateAirDescriptorAction.NOTIFICATION_GROUP.createNotification("",FlexBundle.message("file.created",htmlFile.getName()),NotificationType.INFORMATION,new NotificationListener(){
+          @Override public void hyperlinkUpdate(          @NotNull Notification notification,          @NotNull HyperlinkEvent e){
             if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && htmlFile.isValid()) {
               FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,htmlFile),true);
             }
           }
         }
-);
+).notify(project);
       }
  else {
         Messages.showErrorDialog(project,FlexBundle.message("html.wrapper.creation.failed",""),FlexBundle.message("error.title"));
