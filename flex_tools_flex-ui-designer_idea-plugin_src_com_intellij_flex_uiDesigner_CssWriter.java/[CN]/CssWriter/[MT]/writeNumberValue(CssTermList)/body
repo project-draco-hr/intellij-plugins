@@ -1,0 +1,18 @@
+{
+  propertyOut.write(CssPropertyType.NUMBER);
+  CssTerm term=(CssTerm)value.getFirstChild();
+  ASTNode node=term.getFirstChild().getNode();
+  final IElementType elementType=node.getElementType();
+  boolean isNegative=false;
+  if (elementType == CssElementTypes.CSS_NUMBER_TERM) {
+    node=node.getFirstChildNode();
+  }
+ else   if (elementType == CssElementTypes.CSS_MINUS) {
+    isNegative=true;
+    node=node.getTreeNext().getFirstChildNode();
+  }
+ else {
+    throw new IllegalArgumentException("unknown number value type " + elementType);
+  }
+  IOUtil.writeAmfIntOrDouble(propertyOut,node.getChars(),isNegative);
+}
