@@ -19,7 +19,11 @@
     return FxDefinitionBackedDescriptor.getFxDefinitionBackedDescriptor(context.module,childTag);
   }
   final XmlElementDescriptor parentDescriptor=contextTag.getDescriptor();
-  if (getDefaultPropertyDescriptor() != null && defaultPropertyDescriptor.getType() != null) {
+  if (MxmlLanguageTagsUtil.isComponentTag(contextTag)) {
+    final XmlElementDescriptor checkedDescriptor=checkValidDescriptorAccordingToType(UI_COMPONENT_BASE_INTERFACE,descriptor);
+    return checkedDescriptor != null ? checkedDescriptor : checkValidDescriptorAccordingToType(PRIMITIVE_GRAPHIC_ELEMENT_BASE_CLASS,descriptor);
+  }
+ else   if (getDefaultPropertyDescriptor() != null && defaultPropertyDescriptor.getType() != null) {
     if (descriptor instanceof ClassBackedElementDescriptor && ((ClassBackedElementDescriptor)descriptor).predefined) {
       final PsiElement contextParent=contextTag.getParent();
       if (contextParent instanceof XmlDocument) {

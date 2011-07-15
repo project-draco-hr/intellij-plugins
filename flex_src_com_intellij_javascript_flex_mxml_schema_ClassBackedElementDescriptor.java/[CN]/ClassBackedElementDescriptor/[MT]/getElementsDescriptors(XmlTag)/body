@@ -29,7 +29,11 @@
   List<XmlElementDescriptor> resultList=new ArrayList<XmlElementDescriptor>(myDescriptors == null ? 0 : myDescriptors.size() + context.getAllDescriptorsSize());
   final boolean isComponentTag=MxmlLanguageTagsUtil.isComponentTag(_context);
   boolean includeProperties=(parentDescriptor == this) && !isComponentTag;
-  if (parentDescriptor.getDefaultPropertyDescriptor() != null && parentDescriptor.defaultPropertyDescriptor.getType() != null) {
+  if (isComponentTag) {
+    ContainerUtil.addAll(resultList,getElementDescriptorsInheritedFromGivenType(UI_COMPONENT_BASE_INTERFACE));
+    ContainerUtil.addAll(resultList,getElementDescriptorsInheritedFromGivenType(PRIMITIVE_GRAPHIC_ELEMENT_BASE_CLASS));
+  }
+ else   if (parentDescriptor.getDefaultPropertyDescriptor() != null && parentDescriptor.defaultPropertyDescriptor.getType() != null) {
     final PsiElement contextParent=_context.getParent();
     if (contextParent instanceof XmlDocument && JavaScriptSupportLoader.isLanguageNamespace(_context.getNamespace())) {
       for (      XmlElementDescriptor descriptor : context.getAllDescriptors()) {
@@ -40,7 +44,7 @@
     }
     final String type=parentDescriptor.getDefaultPropertyType();
     ContainerUtil.addAll(resultList,isAdequateType(type) ? getElementDescriptorsInheritedFromGivenType(type) : context.getAllDescriptors());
-    if (!isComponentTag && JavaScriptSupportLoader.isLanguageNamespace(context.namespace)) {
+    if (JavaScriptSupportLoader.isLanguageNamespace(context.namespace)) {
       ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.SCRIPT,(XmlTag)null),resultList);
       ContainerUtil.addIfNotNull(context.getElementDescriptor(CodeContext.REPARENT_TAG_NAME,(XmlTag)null),resultList);
       if (contextParent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)contextParent)) {
