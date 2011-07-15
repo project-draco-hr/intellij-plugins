@@ -1,10 +1,21 @@
 {
-  String className=valueProvider.getTrimmed();
+  if (valueProvider instanceof XmlTagValueProvider) {
+    XmlTag tag=((XmlTagValueProvider)valueProvider).getTag();
+    XmlTag[] subTags=tag.getSubTags();
+    if (subTags.length > 0) {
+      throw new InvalidPropertyException("error.inner.component.are.not.supported");
+    }
+  }
+  JSClass jsClass=getJsClass(valueProvider);
+  if (jsClass == null) {
+    throw new InvalidPropertyException("error.unresolved.class",valueProvider.getTrimmed());
+  }
+  String className=jsClass.getQualifiedName();
   int reference=classFactoryMap.get(className);
   if (reference == -1) {
     reference=writer.getRootScope().referenceCounter++;
     classFactoryMap.put(className,reference);
-    writer.writeConstructorHeader("mx.core.ClassFactory",reference);
+    writer.writeConstructorHeader(FlexClassNames.CLASS_FACTORY,reference);
     writer.writeClass(className);
   }
  else {
