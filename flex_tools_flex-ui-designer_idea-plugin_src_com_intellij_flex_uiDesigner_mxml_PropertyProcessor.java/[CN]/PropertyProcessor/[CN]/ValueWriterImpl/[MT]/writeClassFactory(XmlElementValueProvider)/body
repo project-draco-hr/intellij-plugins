@@ -6,19 +6,24 @@
       throw new InvalidPropertyException("error.inner.component.are.not.supported");
     }
   }
+  String className=valueProvider.getTrimmed();
+  int reference=classFactoryMap.get(className);
+  if (reference != -1) {
+    writer.writeObjectReference(reference);
+    return;
+  }
   JSClass jsClass=valueProvider.getJsClass();
   if (jsClass == null) {
     throw new InvalidPropertyException("error.unresolved.class",valueProvider.getTrimmed());
   }
-  String className=jsClass.getQualifiedName();
-  int reference=classFactoryMap.get(className);
-  if (reference == -1) {
+  final int projectComponentFactoryId=getProjectComponentFactoryId(jsClass,valueProvider);
+  if (projectComponentFactoryId != -1) {
+    writer.writeDocumentFactoryReference(projectComponentFactoryId);
+  }
+ else {
     reference=writer.getRootScope().referenceCounter++;
     classFactoryMap.put(className,reference);
     writer.writeConstructorHeader(FlexClassNames.CLASS_FACTORY,reference);
     writer.writeClass(className);
-  }
- else {
-    writer.writeObjectReference(reference);
   }
 }
