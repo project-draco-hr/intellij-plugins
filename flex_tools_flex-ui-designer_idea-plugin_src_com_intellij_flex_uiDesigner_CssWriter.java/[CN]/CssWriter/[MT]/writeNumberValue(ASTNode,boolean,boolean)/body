@@ -1,6 +1,7 @@
 {
-  propertyOut.write(CssPropertyType.NUMBER);
-  ASTNode node=value.getFirstChild().getFirstChild().getNode();
+  if (writeCssTypeMarker) {
+    propertyOut.write(CssPropertyType.NUMBER);
+  }
   final IElementType elementType=node.getElementType();
   boolean isNegative=false;
   if (elementType == CssElementTypes.CSS_NUMBER_TERM) {
@@ -9,6 +10,16 @@
  else   if (elementType == CssElementTypes.CSS_MINUS) {
     isNegative=true;
     node=node.getTreeNext().getFirstChildNode();
+  }
+ else   if (elementType == CssElementTypes.CSS_HASH) {
+    final CharSequence chars=node.getChars();
+    if (chars.length() > (1 + 6)) {
+      propertyOut.writeAmfUInt(IOUtil.parseLong(chars,1,false,16));
+    }
+ else {
+      propertyOut.writeAmfUInt(IOUtil.parseInt(chars,1,false,16));
+    }
+    return;
   }
  else {
     throw new IllegalArgumentException("unknown number value type " + elementType);
