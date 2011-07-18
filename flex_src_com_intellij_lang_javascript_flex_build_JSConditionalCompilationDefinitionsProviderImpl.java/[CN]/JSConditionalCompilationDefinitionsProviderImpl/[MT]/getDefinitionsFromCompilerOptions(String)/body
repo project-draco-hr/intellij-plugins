@@ -3,7 +3,7 @@
     return Collections.emptyList();
   }
   final Collection<ConditionalCompilationDefinition> result=new ArrayList<ConditionalCompilationDefinition>();
-  for (StringTokenizer stringTokenizer=new CommandLineTokenizer(compilerOptions); stringTokenizer.hasMoreTokens(); ) {
+  for (CommandLineTokenizer stringTokenizer=new CommandLineTokenizer(compilerOptions); stringTokenizer.hasMoreTokens(); ) {
     final String token=stringTokenizer.nextToken();
     for (    String option : CONDITIONAL_COMPILATION_DEFINITION_OPTION_ALIASES) {
       if (token.startsWith("-" + option + "=") || token.startsWith("-" + option + "+=")) {
@@ -16,6 +16,22 @@
             definition.NAME=name;
             definition.VALUE=optionValue.substring(commaIndex + 1);
             result.add(definition);
+          }
+        }
+      }
+ else       if (token.equals("-" + option)) {
+        if (stringTokenizer.countTokens() >= 2) {
+          final String name=stringTokenizer.peekNextToken();
+          if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
+            stringTokenizer.nextToken();
+            final String value=stringTokenizer.peekNextToken();
+            if (isOptionValue(value)) {
+              stringTokenizer.nextToken();
+              final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
+              definition.NAME=name;
+              definition.VALUE=value;
+              result.add(definition);
+            }
           }
         }
       }
