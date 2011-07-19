@@ -19,19 +19,17 @@
           }
         }
       }
- else       if (token.equals("-" + option)) {
-        if (stringTokenizer.countTokens() >= 2) {
-          final String name=stringTokenizer.peekNextToken();
-          if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
+ else       if (token.equals("-" + option) && stringTokenizer.countTokens() >= 2) {
+        final String name=stringTokenizer.peekNextToken();
+        if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
+          stringTokenizer.nextToken();
+          final String value=stringTokenizer.peekNextToken();
+          if (FlexUtils.canBeCompilerOptionValue(value)) {
             stringTokenizer.nextToken();
-            final String value=stringTokenizer.peekNextToken();
-            if (isOptionValue(value)) {
-              stringTokenizer.nextToken();
-              final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
-              definition.NAME=name;
-              definition.VALUE=value;
-              result.add(definition);
-            }
+            final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
+            definition.NAME=name;
+            definition.VALUE=value;
+            result.add(definition);
           }
         }
       }

@@ -16,18 +16,15 @@
   }
   final boolean debug=FlexBuildConfiguration.APPLICATION.equals(config.OUTPUT_TYPE) ? FlexCompilerProjectConfiguration.getInstance(module.getProject()).SWF_DEBUG_ENABLED : FlexCompilerProjectConfiguration.getInstance(module.getProject()).SWC_DEBUG_ENABLED;
   configTextBuilder.append("\n  <compiler>").append("\n    <debug>").append(String.valueOf(debug)).append("</debug>");
+  final List<String> locales=new LinkedList<String>();
   if (!customConfigFileUsed && config.USE_LOCALE_SETTINGS) {
-    final String[] localesArray=config.LOCALE.split(",");
-    final List<String> locales=new ArrayList<String>(localesArray.length);
-    for (    final String locale : localesArray) {
+    for (    final String locale : config.LOCALE.split(",")) {
       locales.add(locale.trim());
     }
     addLocales(configTextBuilder,locales);
-    addSourcePath(module,configTextBuilder,locales,config.getType() == FlexBuildConfiguration.Type.FlexUnit);
   }
- else {
-    addSourcePath(module,configTextBuilder,config.getType() == FlexBuildConfiguration.Type.FlexUnit);
-  }
+  locales.addAll(FlexUtils.getOptionValues(config.ADDITIONAL_COMPILER_OPTIONS,"locale","compiler.locale"));
+  addSourcePath(module,configTextBuilder,locales,config.getType() == FlexBuildConfiguration.Type.FlexUnit);
   handleModuleDependencies(module,configTextBuilder,config.getType() == FlexBuildConfiguration.Type.FlexUnit,cssFilePath != null);
   if (!customConfigFileUsed) {
     handleNamespacesAndManifestFiles(configTextBuilder,config.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST);
