@@ -1,36 +1,4 @@
 {
-  final PsiReference[] references=element.getReferences();
-  final JSFileReference fileReference;
-  int i=references.length - 1;
-  while (true) {
-    if (references[i] instanceof JSFileReference) {
-      fileReference=(JSFileReference)references[i];
-      break;
-    }
- else     if (--i < 0) {
-      problemsHolder.add("TODO text about error");
-      return null;
-    }
-  }
-  ResolveResult[] resolveResults=fileReference.multiResolve(false);
-  final PsiFileSystemItem psiFile;
-  if (resolveResults.length == 0) {
-    psiFile=null;
-  }
- else   if (resolveResults.length == 1 || resolveToFirstIfMulti) {
-    psiFile=(PsiFileSystemItem)resolveResults[0].getElement();
-  }
- else {
-    psiFile=resolveResult(element,resolveResults);
-  }
-  if (psiFile == null) {
-    problemsHolder.add(fileReference.getUnresolvedMessagePattern());
-  }
- else   if (psiFile.isDirectory()) {
-    problemsHolder.add(FlexUIDesignerBundle.message("error.embed.source.is.directory",fileReference.getText()));
-  }
- else {
-    return psiFile.getVirtualFile();
-  }
-  return null;
+  final PsiFileSystemItem psiFile=getReferencedPsiFile(element,problemsHolder,resolveToFirstIfMulti);
+  return psiFile == null ? null : psiFile.getVirtualFile();
 }
