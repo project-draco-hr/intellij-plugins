@@ -1,6 +1,18 @@
 {
+  MavenProjectsManager mpm=MavenProjectsManager.getInstance(compileContext.getProject());
+  Properties props=new Properties();
+  if (mpm.isMavenizedProject()) {
+    Module[] affectedModules=compileContext.getCompileScope().getAffectedModules();
+    for (    Module affectedModule : affectedModules) {
+      MavenProject project=mpm.findProject(affectedModule);
+      if (project != null) {
+        props.putAll(project.getProperties());
+      }
+    }
+  }
+  PropertiesSource ps=new PropertiesPropertiesSource(props);
   ManifestWriter manifestWriter=new StandardManifestWriterFactory().create(inputJar,outputJar);
-  ManifestGenerator manifestGenerator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create());
+  ManifestGenerator manifestGenerator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create(ps));
   ClassPathFactory cpf=new StandardClassPathFactory();
   ClassPath classPath=cpf.create(inputJar);
   StandardManifestValidator manifestValidator=new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create());
