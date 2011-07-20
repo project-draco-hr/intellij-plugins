@@ -1,22 +1,9 @@
 {
-  myModule.getMessageBus().connect(myModule).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
-    String[] oldSourceRootUrls=ModuleRootManager.getInstance(myModule).getSourceRootUrls();
-    List<String> oldOrderEntryUrls=new ArrayList<String>();
-{
-      addUrlsToTrackIfChanged(oldOrderEntryUrls);
-    }
-    public void beforeRootsChange(    final ModuleRootEvent event){
-    }
-    public void rootsChanged(    final ModuleRootEvent event){
-      final String[] sourceRootUrls=ModuleRootManager.getInstance(myModule).getSourceRootUrls();
-      final List<String> orderEntryUrls=new ArrayList<String>();
-      addUrlsToTrackIfChanged(orderEntryUrls);
-      if (!Comparing.equal(oldSourceRootUrls,sourceRootUrls) || !Comparing.haveEqualElements(oldOrderEntryUrls,orderEntryUrls)) {
-        FlexCompilerHandler.getInstance(myModule.getProject()).getModuleToRelatedFilesCache().markModuleAndDependentModulesDirty(myModule);
+  if (myModule.getModuleType() instanceof FlexModuleType) {
+    myModule.getMessageBus().connect(myModule).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
+      public void beforeRootsChange(      final ModuleRootEvent event){
       }
-      oldSourceRootUrls=sourceRootUrls;
-      oldOrderEntryUrls=orderEntryUrls;
-      if (myModule.getModuleType() instanceof FlexModuleType) {
+      public void rootsChanged(      final ModuleRootEvent event){
         final Sdk sdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(myModule);
         TargetPlayerUtils.updateTargetPlayerIfMajorOrMinorVersionDiffers(FlexBuildConfiguration.this,sdk);
         final ModuleEditor moduleEditor=FlexUtils.getModuleEditor(myModule,ModuleStructureConfigurable.getInstance(myModule.getProject()));
@@ -25,22 +12,6 @@
         }
       }
     }
-    private void addUrlsToTrackIfChanged(    final List<String> orderEntryUrls){
-      final ModuleRootManager rootManager=ModuleRootManager.getInstance(myModule);
-      for (      final OrderEntry orderEntry : rootManager.getOrderEntries()) {
-        if (orderEntry instanceof LibraryOrderEntry) {
-          for (          final String _url : ((LibraryOrderEntry)orderEntry).getRootUrls(OrderRootType.CLASSES)) {
-            final String url=_url.toLowerCase();
-            if (url.endsWith(".swc") || url.endsWith(".swc!/")) {
-              orderEntryUrls.add(_url);
-            }
-          }
-        }
- else         if (orderEntry instanceof ModuleOrderEntry) {
-          orderEntryUrls.add(((ModuleOrderEntry)orderEntry).getModuleName());
-        }
-      }
-    }
-  }
 );
+  }
 }
