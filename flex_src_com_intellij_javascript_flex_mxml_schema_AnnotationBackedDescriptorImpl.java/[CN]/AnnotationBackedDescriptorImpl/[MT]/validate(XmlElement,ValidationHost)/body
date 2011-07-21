@@ -11,7 +11,16 @@
     value=((XmlAttribute)context).getDisplayValue();
   }
   final String message=validateValue(context,value);
-  if (message != null)   host.addMessage(context,message,ValidationHost.ERROR);
+  if (message != null) {
+    PsiElement errorElement=context;
+    if (context instanceof XmlTag) {
+      final XmlText[] textElements=((XmlTag)context).getValue().getTextElements();
+      if (textElements.length == 1 && !StringUtil.isEmptyOrSpaces(textElements[0].getText())) {
+        errorElement=textElements[0];
+      }
+    }
+    host.addMessage(errorElement,message,ValidationHost.ERROR);
+  }
   if (context instanceof XmlTag && FlexStateElementNames.STATES.equals(((XmlTag)context).getLocalName()) && JavaScriptSupportLoader.isMxmlNs(((XmlTag)context).getNamespace())) {
     XmlTag[] tags=((XmlTag)context).findSubTags("State",((XmlTag)context).getNamespace());
     XmlUtil.doDuplicationCheckForElements(tags,new HashMap<String,XmlTag>(tags.length),new XmlUtil.DuplicationInfoProvider<XmlTag>(){

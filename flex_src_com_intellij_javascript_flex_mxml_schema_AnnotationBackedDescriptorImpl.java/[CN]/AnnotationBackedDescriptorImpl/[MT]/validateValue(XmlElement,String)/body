@@ -6,6 +6,9 @@
     }
   }
   if (value.indexOf('{') != -1)   return null;
+  if (myAnnotationName != null && CLEAR_DIRECTIVE.equals(value)) {
+    return checkClearDirectiveContext(context);
+  }
   if (isEnumerated()) {
     boolean inEnumeration=false;
     for (    String s : getEnumeratedValues()) {
@@ -32,7 +35,10 @@
           Integer.parseInt(value.substring(startWithSharp ? 1 : 2),16);
         }
       }
- else       if (!"Color".equals(format) || (value != null && value.length() > 0 && !Character.isLetter(value.charAt(0)))) {
+ else {
+        if ("Color".equals(format) && !StringUtil.isEmptyOrSpaces(value) && !value.isEmpty()&& !Character.isDigit(value.charAt(0))) {
+          return checkColorAlias(value);
+        }
         if (uint) {
           final long l=Long.parseLong(value);
           if (l < 0 || l > 0xFFFFFFFFL) {
