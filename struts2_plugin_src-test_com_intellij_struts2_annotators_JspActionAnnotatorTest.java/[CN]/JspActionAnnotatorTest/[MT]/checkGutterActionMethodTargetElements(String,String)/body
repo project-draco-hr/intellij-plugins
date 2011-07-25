@@ -1,15 +1,10 @@
 {
   final GutterIconRenderer gutterIconRenderer=myFixture.findGutter(jspFile);
   assertNotNull(gutterIconRenderer);
-  final LineMarkerInfo lineMarkerInfo=((LineMarkerInfo.LineMarkerGutterIconRenderer)gutterIconRenderer).getLineMarkerInfo();
-  final NavigationGutterIconRenderer navigationHandler=(NavigationGutterIconRenderer)lineMarkerInfo.getNavigationHandler();
-  assertNotNull(navigationHandler);
-  final List<PsiElement> targetElements=navigationHandler.getTargetElements();
-  final Set<String> foundActionNames=new HashSet<String>();
-  for (  final PsiElement psiElement : targetElements) {
-    assertInstanceOf(psiElement,PsiMethod.class);
-    final String actionName=((PsiMethod)psiElement).getName();
-    foundActionNames.add(actionName);
+  AnnotatorTestUtils.checkGutterTargets(gutterIconRenderer,new Function<PsiElement,String>(){
+    @Override public String fun(    final PsiElement psiElement){
+      return ((PsiMethod)psiElement).getName();
+    }
   }
-  assertSameElements(foundActionNames,expectedActionNames);
+,expectedActionNames);
 }
