@@ -1,16 +1,16 @@
 {
   final Project project=context.getProject();
   final Module module=ModuleUtil.findModuleForPsiElement(context);
-  final List<Property> properties=ContainerUtil.findAll(PropertiesUtil.findPropertiesByKey(project,name),new Condition<Property>(){
-    public boolean value(    final Property property){
+  final List<IProperty> properties=ContainerUtil.findAll(PropertiesUtil.findPropertiesByKey(project,name),new Condition<IProperty>(){
+    public boolean value(    final IProperty property){
       return Comparing.equal(property.getKey(),name);
     }
   }
 );
   String value=null;
-  final Property strutsDefaultProperty=ContainerUtil.find(properties,new Condition<Property>(){
-    public boolean value(    final Property property){
-      final VirtualFile virtualFile=property.getContainingFile().getVirtualFile();
+  final IProperty strutsDefaultProperty=ContainerUtil.find(properties,new Condition<IProperty>(){
+    public boolean value(    final IProperty property){
+      final VirtualFile virtualFile=property.getPropertiesFile().getVirtualFile();
       return virtualFile != null && virtualFile.getFileSystem() instanceof JarFileSystem && StringUtil.endsWith(virtualFile.getPath(),STRUTS_DEFAULT_PROPERTIES) && ModuleUtil.moduleContainsFile(module,virtualFile,true);
     }
   }
@@ -35,9 +35,9 @@
       value=strutsXmlValue;
     }
   }
-  final Property strutsProperty=ContainerUtil.find(properties,new Condition<Property>(){
-    public boolean value(    final Property property){
-      final VirtualFile virtualFile=property.getContainingFile().getVirtualFile();
+  final IProperty strutsProperty=ContainerUtil.find(properties,new Condition<IProperty>(){
+    public boolean value(    final IProperty property){
+      final VirtualFile virtualFile=property.getPropertiesFile().getVirtualFile();
       return virtualFile != null && Comparing.equal(virtualFile.getName(),STRUTS_PROPERTIES_FILENAME) && ModuleUtil.moduleContainsFile(module,virtualFile,false);
     }
   }
