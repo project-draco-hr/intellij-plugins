@@ -1,0 +1,20 @@
+{
+  try {
+    dispose();
+  }
+  finally {
+    documentOpening=false;
+    try {
+      Application application=ApplicationManager.getApplication();
+      if (!application.isDisposed()) {
+        application.getMessageBus().syncPublisher(MESSAGE_TOPIC).applicationClosed();
+      }
+    }
+  finally {
+      if (appParentDisposable != null) {
+        Disposer.dispose(appParentDisposable);
+        appParentDisposable=null;
+      }
+    }
+  }
+}

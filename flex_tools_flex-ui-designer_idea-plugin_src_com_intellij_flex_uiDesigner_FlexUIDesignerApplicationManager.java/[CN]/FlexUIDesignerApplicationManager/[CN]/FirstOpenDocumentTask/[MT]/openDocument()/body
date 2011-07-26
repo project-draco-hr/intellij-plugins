@@ -1,0 +1,16 @@
+{
+  indicator.setText(FlexUIDesignerBundle.message("open.document"));
+  Client client=Client.getInstance();
+  try {
+    client.flush();
+    client.openDocument(module,psiFile);
+    client.flush();
+    ApplicationManager.getApplication().getMessageBus().syncPublisher(MESSAGE_TOPIC).initialDocumentOpened();
+    semaphore.up();
+  }
+ catch (  IOException e) {
+    LOG.error(e);
+    IOUtil.close(server);
+    cancel();
+  }
+}

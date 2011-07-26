@@ -2,16 +2,19 @@
   try {
     socket=serverSocket.accept();
     serverSocket.close();
-    pendingTask.setOut(socket.getOutputStream());
+    serverSocket=null;
+    Client.getInstance().setOut(socket.getOutputStream());
   }
  catch (  IOException e) {
-    LOG.error(e);
-    IOUtil.close(socket);
-    pendingTask=null;
-    applicationManager.destroyAdlProcess();
+    if (pendingTask != null) {
+      LOG.error(e);
+      IOUtil.close(socket);
+      pendingTask.clientSocketNotAccepted();
+      pendingTask=null;
+    }
     return;
   }
-  pendingTask.run();
+  pendingTask.clientOpened();
   pendingTask=null;
   try {
     ServiceManager.getService(SocketInputHandler.class).read(socket.getInputStream(),FlexUIDesignerApplicationManager.APP_DIR);
