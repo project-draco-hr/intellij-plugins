@@ -3,13 +3,20 @@
   Client client=Client.getInstance();
   try {
     client.flush();
-    client.openDocument(module,psiFile);
+    final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(appParentDisposable);
+    connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentOpenedListener(){
+      @Override public void documentOpened(){
+        connection.disconnect();
+        semaphore.up();
+      }
+    }
+);
+    client.openDocument(module,psiFile,true);
     client.flush();
-    semaphore.up();
+    indicator.setText(FlexUIDesignerBundle.message("load.libraries"));
   }
  catch (  IOException e) {
     LOG.error(e);
-    IOUtil.close(server);
     cancel();
   }
 }

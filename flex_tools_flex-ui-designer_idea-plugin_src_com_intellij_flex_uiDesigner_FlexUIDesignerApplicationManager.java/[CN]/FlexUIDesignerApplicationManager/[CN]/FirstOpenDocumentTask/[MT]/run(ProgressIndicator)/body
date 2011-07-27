@@ -21,10 +21,10 @@
     }
     indicator.checkCanceled();
     runInitializeLibrariesAndModuleThread();
+    appParentDisposable=new ParentDisposable();
     final List<String> arguments=new ArrayList<String>();
-    server=new Server(this);
-    arguments.add(String.valueOf(server.listen()));
-    arguments.add(String.valueOf(server.errorListen()));
+    arguments.add(String.valueOf(new MessageSocketManager(this).listen()));
+    arguments.add(String.valueOf(new ErrorSocketManager()));
     if (DebugPathManager.IS_DEV) {
       final String fudHome=DebugPathManager.getFudHome();
       if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -42,9 +42,9 @@
   }
   final AdlRunTask task=new AdlRunTask(adlRunConfiguration){
     @Override public void run(){
+      checkCanceled();
+      indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
       try {
-        checkCanceled();
-        indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
         copyAppFiles();
         checkCanceled();
         if (projectManagerListener == null) {
@@ -64,18 +64,11 @@
       }
  catch (      IOException e) {
         LOG.error(e);
-        if (clientOpened) {
-          try {
-            server.close();
-          }
- catch (          IOException ignored) {
-          }
-        }
+        cancel();
       }
     }
   }
 ;
-  appParentDisposable=new ParentDisposable();
   if (debug) {
     adlRunConfiguration.debug=true;
     ApplicationManager.getApplication().invokeLater(new Runnable(){

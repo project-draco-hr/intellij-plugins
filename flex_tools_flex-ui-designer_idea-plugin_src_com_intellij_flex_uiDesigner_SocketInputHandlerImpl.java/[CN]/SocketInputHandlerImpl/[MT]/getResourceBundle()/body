@@ -1,57 +1,63 @@
 {
   initResultFile();
-  final ProjectInfo projectInfo=Client.getInstance().getRegisteredProjects().getInfo(readEntityId());
-  ApplicationManager.getApplication().runReadAction(new Runnable(){
-    @Override public void run(){
-      try {
-        PropertiesFile resourceBundleFile=LibraryManager.getInstance().getResourceBundleFile(reader.readUTF(),reader.readUTF(),projectInfo);
-        FileOutputStream fileOut=null;
-        if (SystemInfo.isWindows) {
-          for (int i=0; i < 2; i++) {
-            try {
-              fileOut=new FileOutputStream(resultFile);
-              break;
-            }
- catch (            FileNotFoundException e) {
-              try {
-                Thread.sleep(10);
-              }
- catch (              InterruptedException ignored) {
-              }
-            }
-          }
-          if (fileOut == null) {
-            FlexUIDesignerApplicationManager.LOG.error("fileOut null due to FileNotFoundException");
-            return;
-          }
-        }
- else {
-          fileOut=new FileOutputStream(resultFile);
-        }
+  final int projectId=readEntityId();
+  final String locale=reader.readUTF();
+  final String bundleName=reader.readUTF();
+  final ProjectInfo projectInfo=Client.getInstance().getRegisteredProjects().getNullableInfo(projectId);
+  if (projectInfo == null) {
+    LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find project with id "+ projectId);
+    return;
+  }
+  AccessToken token=ReadAction.start();
+  try {
+    PropertiesFile resourceBundleFile=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,projectInfo);
+    FileOutputStream fileOut=null;
+    if (SystemInfo.isWindows) {
+      for (int i=0; i < 2; i++) {
         try {
-          if (resourceBundleFile == null) {
-            fileOut.write(Amf3Types.NULL);
-            return;
-          }
-          final AmfOutputStream out=new AmfOutputStream(new ByteArrayOutputStreamEx(4 * 1024));
-          List<Property> properties=resourceBundleFile.getProperties();
-          out.write(Amf3Types.DICTIONARY);
-          out.writeUInt29((properties.size() << 1) | 1);
-          out.write(0);
-          for (          Property property : properties) {
-            out.write(property.getUnescapedKey());
-            out.write(property.getUnescapedValue());
-          }
-          out.getByteArrayOut().writeTo(fileOut);
+          fileOut=new FileOutputStream(resultFile);
+          break;
         }
-  finally {
-          fileOut.close();
+ catch (        FileNotFoundException e) {
+          try {
+            Thread.sleep(10);
+          }
+ catch (          InterruptedException ignored) {
+          }
         }
       }
- catch (      IOException e) {
-        FlexUIDesignerApplicationManager.LOG.error(e);
+      if (fileOut == null) {
+        LOG.error("fileOut null due to FileNotFoundException");
+        return;
       }
     }
+ else {
+      fileOut=new FileOutputStream(resultFile);
+    }
+    try {
+      if (resourceBundleFile == null) {
+        fileOut.write(Amf3Types.NULL);
+        return;
+      }
+      final AmfOutputStream out=new AmfOutputStream(new ByteArrayOutputStreamEx(4 * 1024));
+      List<Property> properties=resourceBundleFile.getProperties();
+      out.write(Amf3Types.DICTIONARY);
+      out.writeUInt29((properties.size() << 1) | 1);
+      out.write(0);
+      for (      Property property : properties) {
+        out.write(property.getUnescapedKey());
+        out.write(property.getUnescapedValue());
+      }
+      out.getByteArrayOut().writeTo(fileOut);
+    }
+  finally {
+      fileOut.close();
+    }
   }
-);
+ catch (  IOException e) {
+    LOG.error(e);
+  }
+ finally {
+    token.finish();
+  }
 }
