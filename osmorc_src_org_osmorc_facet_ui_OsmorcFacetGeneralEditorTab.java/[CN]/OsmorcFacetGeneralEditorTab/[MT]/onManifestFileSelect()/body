@@ -1,19 +1,16 @@
 {
   VirtualFile[] roots=getContentRoots(_module);
   VirtualFile currentFile=findFileInContentRoots(_manifestFileChooser.getText(),_module);
-  VirtualFile[] result=FileChooser.chooseFiles(_editorContext.getProject(),FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor(),currentFile);
-  if (result.length == 1) {
-    VirtualFile manifestFileLocation=result[0];
-    if (manifestFileLocation != null) {
-      for (      VirtualFile root : roots) {
-        String relativePath=VfsUtil.getRelativePath(manifestFileLocation,root,File.separatorChar);
-        if (relativePath != null) {
-          if (manifestFileLocation.isDirectory()) {
-            relativePath+="/MANIFEST.MF";
-          }
-          _manifestFileChooser.setText(relativePath);
-          break;
+  VirtualFile manifestFileLocation=FileChooser.chooseFile(_editorContext.getProject(),FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor(),currentFile);
+  if (manifestFileLocation != null) {
+    for (    VirtualFile root : roots) {
+      String relativePath=VfsUtil.getRelativePath(manifestFileLocation,root,File.separatorChar);
+      if (relativePath != null) {
+        if (manifestFileLocation.isDirectory()) {
+          relativePath+="/MANIFEST.MF";
         }
+        _manifestFileChooser.setText(relativePath);
+        break;
       }
     }
   }
