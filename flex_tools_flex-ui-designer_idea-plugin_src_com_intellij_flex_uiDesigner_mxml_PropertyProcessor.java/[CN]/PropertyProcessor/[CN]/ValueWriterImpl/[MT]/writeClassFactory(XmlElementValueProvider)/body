@@ -16,14 +16,14 @@
   if (jsClass == null) {
     throw new InvalidPropertyException("error.unresolved.class",valueProvider.getTrimmed());
   }
-  final int projectComponentFactoryId=getProjectComponentFactoryId(jsClass,valueProvider);
-  if (projectComponentFactoryId != -1) {
-    writer.writeDocumentFactoryReference(projectComponentFactoryId);
-  }
- else {
+  final int projectComponentFactoryId=getProjectComponentFactoryId(jsClass);
+  if (projectComponentFactoryId == -1) {
     reference=writer.getRootScope().referenceCounter++;
     classFactoryMap.put(className,reference);
     writer.writeConstructorHeader(FlexCommonTypeNames.CLASS_FACTORY,reference);
     writer.writeClass(className);
+  }
+ else {
+    writer.writeDocumentFactoryReference(projectComponentFactoryId);
   }
 }
