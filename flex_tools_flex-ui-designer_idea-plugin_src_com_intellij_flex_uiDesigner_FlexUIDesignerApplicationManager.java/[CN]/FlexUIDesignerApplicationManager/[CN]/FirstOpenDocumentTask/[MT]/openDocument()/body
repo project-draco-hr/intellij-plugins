@@ -1,0 +1,22 @@
+{
+  indicator.setText(FlexUIDesignerBundle.message("open.document"));
+  Client client=Client.getInstance();
+  try {
+    client.flush();
+    final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(appParentDisposable);
+    connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentOpenedListener(){
+      @Override public void documentOpened(){
+        connection.disconnect();
+        semaphore.up();
+      }
+    }
+);
+    client.openDocument(module,psiFile,true);
+    client.flush();
+    indicator.setText(FlexUIDesignerBundle.message("load.libraries"));
+  }
+ catch (  IOException e) {
+    LOG.error(e);
+    cancel();
+  }
+}

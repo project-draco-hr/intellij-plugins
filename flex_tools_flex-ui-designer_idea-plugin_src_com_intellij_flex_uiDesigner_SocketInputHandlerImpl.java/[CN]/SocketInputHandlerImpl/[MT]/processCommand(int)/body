@@ -1,37 +1,43 @@
 {
 switch (command) {
-case ServerMethod.goToClass:
+case ServerMethod.GO_TO_CLASS:
     goToClass();
   break;
-case ServerMethod.getResourceBundle:
+case ServerMethod.GET_RESOURCE_BUNDLE:
 getResourceBundle();
 break;
-case ServerMethod.getBitmapData:
+case ServerMethod.GET_BITMAP_DATA:
 getBitmapData();
 break;
-case ServerMethod.openFile:
+case ServerMethod.OPEN_FILE:
 openFile();
 break;
-case ServerMethod.openDocument:
+case ServerMethod.OPEN_DOCUMENT:
 openDocument();
 break;
-case ServerMethod.resolveExternalInlineStyleDeclarationSource:
+case ServerMethod.RESOLVE_EXTERNAL_INLINE_STYLE_DECLARATION_SOURCE:
 ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,readModule()));
 break;
-case ServerMethod.unregisterDocumentFactories:
+case ServerMethod.UNREGISTER_DOCUMENT_FACTORIES:
 unregisterDocumentFactories();
 break;
-case ServerMethod.showError:
+case ServerMethod.SHOW_ERROR:
 showError();
 break;
-case ServerMethod.closeProject:
+case ServerMethod.CLOSE_PROJECT:
 Client.getInstance().unregisterProject(readProject());
 break;
-case ServerMethod.saveProjectWindowBounds:
+case ServerMethod.SAVE_PROJECT_WINDOW_BOUNDS:
 ProjectWindowBounds.save(readProject(),reader);
 break;
 case ServerMethod.SET_PROPERTY:
 setProperty();
+break;
+case ServerMethod.DOCUMENT_OPENED:
+Application application=ApplicationManager.getApplication();
+if (!application.isDisposed()) {
+application.getMessageBus().syncPublisher(MESSAGE_TOPIC).documentOpened();
+}
 break;
 default :
 throw new IllegalArgumentException("unknown client command: " + command);

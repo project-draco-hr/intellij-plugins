@@ -1,0 +1,99 @@
+{
+  this.indicator=indicator;
+  AdlRunConfiguration adlRunConfiguration;
+  try {
+    adlRunConfiguration=findSuitableFlexSdk(CHECK_DESCRIPTOR_PATH);
+    if (adlRunConfiguration == null) {
+      String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
+      notifyUser(debug,message,module.getProject(),new Consumer<String>(){
+        @Override public void consume(        String id){
+          if ("edit".equals(id)) {
+            new ProjectJdksEditor(null,module.getProject(),WindowManager.getInstance().suggestParentWindow(module.getProject())).show();
+          }
+ else {
+            LOG.error("unexpected id: " + id);
+          }
+        }
+      }
+);
+      indicator.cancel();
+      return;
+    }
+    indicator.checkCanceled();
+    runInitializeLibrariesAndModuleThread();
+    appParentDisposable=new ParentDisposable();
+    final List<String> arguments=new ArrayList<String>();
+    arguments.add(String.valueOf(new MessageSocketManager(this).listen()));
+    arguments.add(String.valueOf(new ErrorSocketManager()));
+    if (DebugPathManager.IS_DEV) {
+      final String fudHome=DebugPathManager.getFudHome();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        arguments.add("-p");
+        arguments.add(fudHome + "/test-app-plugin/target/test-1.0-SNAPSHOT.swf");
+      }
+      arguments.add("-cdd");
+      arguments.add(fudHome + "/flex-injection/target");
+    }
+    adlRunConfiguration.arguments=arguments;
+  }
+ catch (  Throwable e) {
+    LOG.error(e);
+    return;
+  }
+  final AdlRunTask task=new AdlRunTask(adlRunConfiguration){
+    @Override public void run(){
+      checkCanceled();
+      indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
+      try {
+        copyAppFiles();
+        checkCanceled();
+        if (projectManagerListener == null) {
+          attachApplicationLevelListeners();
+        }
+        adlProcessHandler=runAdl(runConfiguration,APP_DIR.getPath() + "/" + DESCRIPTOR_XML,new Consumer<Integer>(){
+          @Override public void consume(          Integer exitCode){
+            adlProcessHandler=null;
+            LOG.error("ADL exited with error code " + exitCode);
+            adlExitCode=exitCode;
+            if (libraryAndModuleInitialized) {
+              cancel();
+            }
+          }
+        }
+);
+      }
+ catch (      IOException e) {
+        LOG.error(e);
+        cancel();
+      }
+    }
+  }
+;
+  if (debug) {
+    adlRunConfiguration.debug=true;
+    ApplicationManager.getApplication().invokeLater(new Runnable(){
+      @Override public void run(){
+        try {
+          runDebugger(module,task);
+        }
+ catch (        ExecutionException e) {
+          LOG.error(e);
+        }
+      }
+    }
+);
+  }
+ else {
+    task.run();
+  }
+  semaphore.down();
+  semaphore.waitFor();
+  if (isHeadless()) {
+    if (indicator.isCanceled()) {
+      onCancel();
+    }
+ else {
+      onSuccess();
+    }
+  }
+}
