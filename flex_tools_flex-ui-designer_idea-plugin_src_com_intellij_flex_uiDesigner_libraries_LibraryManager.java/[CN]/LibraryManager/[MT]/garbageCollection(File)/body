@@ -1,15 +1,12 @@
 {
-  File garbageCollected=new File(appDir,"garbageCollected");
-  if (garbageCollected.lastModified() >= SwcDependenciesSorter.ABC_FILTER_LAST_MODIFIED) {
+  PropertiesComponent propertiesComponent=PropertiesComponent.getInstance();
+  if (ABC_FILTER_VERSION.equals(propertiesComponent.getValue(ABC_FILTER_VERSION_VALUE_NAME))) {
     return;
   }
   for (  String path : appDir.list()) {
     if (path.endsWith(SwcDependenciesSorter.SWF_EXTENSION) && !path.equals(FlexUIDesignerApplicationManager.DESIGNER_SWF)) {
-      File item=new File(appDir,path);
-      if (item.lastModified() < SwcDependenciesSorter.ABC_FILTER_LAST_MODIFIED) {
-        item.delete();
-      }
+      new File(appDir,path).delete();
     }
   }
-  garbageCollected.setLastModified(SwcDependenciesSorter.ABC_FILTER_LAST_MODIFIED);
+  propertiesComponent.setValue(ABC_FILTER_VERSION_VALUE_NAME,ABC_FILTER_VERSION);
 }

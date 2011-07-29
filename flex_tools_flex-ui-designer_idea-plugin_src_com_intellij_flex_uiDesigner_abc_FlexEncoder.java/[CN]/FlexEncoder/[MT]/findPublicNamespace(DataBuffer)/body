@@ -1,0 +1,22 @@
+{
+  final int originalPosition=in.position();
+  try {
+    int[] positions=history.getRawPartPoolPositions(poolIndex,IndexHistory.NS);
+    for (int i=0, positionsLength=positions.length; i < positionsLength; i++) {
+      int position=positions[i];
+      in.seek(position);
+      int nsKind=in.readU8();
+      if (nsKind == CONSTANT_PackageNamespace) {
+        in.seek(history.getRawPartPoolPositions(poolIndex,IndexHistory.STRING)[in.readU32()]);
+        int stringLength=in.readU32();
+        if (stringLength == 0) {
+          return i;
+        }
+      }
+    }
+    throw new IllegalArgumentException();
+  }
+  finally {
+    in.seek(originalPosition);
+  }
+}
