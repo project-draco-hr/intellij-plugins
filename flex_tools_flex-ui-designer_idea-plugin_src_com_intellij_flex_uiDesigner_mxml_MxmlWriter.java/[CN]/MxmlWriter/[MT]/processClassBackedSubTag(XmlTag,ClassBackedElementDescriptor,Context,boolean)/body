@@ -1,11 +1,27 @@
 {
-  if (!writeIfPrimitive(tag,descriptor,isArray)) {
-    if (isProjectComponent(descriptor)) {
-      addProblem(tag,"error.custom.component.are.not.supported",tag.getLocalName());
+  if (!writeIfPrimitive(tag,descriptor)) {
+    final int projectComponentFactoryId;
+    try {
+      projectComponentFactoryId=InjectionUtil.getProjectComponentFactoryId(descriptor.getQualifiedName(),descriptor.getDeclaration(),propertyProcessor.getUnregisteredDocumentFactories());
+    }
+ catch (    InvalidPropertyException e) {
+      problemsHolder.add(e);
       return;
     }
-    int childDataPosition=out.size();
-    writer.write(descriptor.getQualifiedName());
+    final int childDataPosition=out.size();
+    if (projectComponentFactoryId != -1) {
+      if (!isArray) {
+        writer.getBlockOut().setPosition(writer.getBlockOut().size() - 1);
+      }
+      out.write(AmfExtendedTypes.DOCUMENT_REFERENCE);
+      out.writeUInt29(projectComponentFactoryId);
+    }
+ else {
+      if (isArray) {
+        out.write(Amf3Types.OBJECT);
+      }
+      writer.write(descriptor.getQualifiedName());
+    }
     processElements(tag,parentContext,hasStates && isArray && parentContext != null,childDataPosition,out.getByteOut().allocate(2));
   }
 }
