@@ -2,7 +2,11 @@
   beginMessage(ClientMethod.updateDocumentFactory);
   writeId(module);
   out.writeShort(factoryId);
-  writeDocumentFactory(module,psiFile,psiFile.getVirtualFile(),DocumentFactoryManager.getInstance(module.getProject()));
+  ProblemsHolder problemsHolder=new ProblemsHolder();
+  writeDocumentFactory(module,psiFile,problemsHolder);
+  if (!problemsHolder.isEmpty()) {
+    DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
+  }
   beginMessage(ClientMethod.updateDocuments);
   writeId(module);
   out.writeShort(factoryId);

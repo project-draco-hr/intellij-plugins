@@ -1,0 +1,61 @@
+{
+  requiredAssetsInfo=null;
+  rulesetVectorWriter.prepareIteration();
+  CssStylesheet stylesheet=cssFile.getStylesheet();
+  CssRuleset[] rulesets=stylesheet.getRulesets();
+  final DocumentWindow documentWindow=document instanceof DocumentWindow ? (DocumentWindow)document : null;
+  for (  CssRuleset ruleset : rulesets) {
+    PrimitiveAmfOutputStream rulesetOut=rulesetVectorWriter.getOutputForIteration();
+    int textOffset=ruleset.getTextOffset();
+    if (documentWindow != null) {
+      rulesetOut.writeUInt29(documentWindow.injectedToHostLine(document.getLineNumber(textOffset)) + 1);
+      textOffset=documentWindow.injectedToHost(textOffset);
+    }
+ else {
+      rulesetOut.writeUInt29(document.getLineNumber(textOffset) + 1);
+    }
+    rulesetOut.writeUInt29(textOffset);
+    writeSelectors(ruleset,rulesetOut,module);
+    declarationVectorWriter.prepareIteration();
+    for (    CssDeclaration declaration : ruleset.getBlock().getDeclarations()) {
+      CssPropertyDescriptor propertyDescriptor=declaration.getDescriptor();
+      CssTermList value=declaration.getValue();
+      propertyOut=declarationVectorWriter.getOutputForIteration();
+      try {
+        stringWriter.write(declaration.getPropertyName(),propertyOut);
+        textOffset=declaration.getTextOffset();
+        propertyOut.writeUInt29(documentWindow == null ? textOffset : documentWindow.injectedToHost(textOffset));
+        if (propertyDescriptor == null || !(propertyDescriptor instanceof FlexCssPropertyDescriptor)) {
+          writeUndefinedPropertyValue(value);
+        }
+ else {
+          writePropertyValue(value,((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo());
+        }
+        continue;
+      }
+ catch (      RuntimeException e) {
+        problemsHolder.add(declaration,e,declaration.getPropertyName());
+      }
+catch (      Throwable e) {
+        problemsHolder.add(e);
+      }
+      declarationVectorWriter.rollbackLastIteration();
+    }
+    if (!declarationVectorWriter.isEmpty()) {
+      declarationVectorWriter.writeTo(rulesetOut);
+    }
+ else {
+      rulesetVectorWriter.rollbackLastIteration();
+    }
+  }
+  PrimitiveAmfOutputStream outputForCustomData=rulesetVectorWriter.getOutputForCustomData();
+  CssNamespace[] namespaces=stylesheet.getNamespaces();
+  outputForCustomData.write(namespaces.length);
+  if (namespaces.length > 0) {
+    for (    CssNamespace cssNamespace : namespaces) {
+      stringWriter.writeNullable(cssNamespace.getPrefix(),outputForCustomData);
+      stringWriter.writeNullable(cssNamespace.getUri(),outputForCustomData);
+    }
+  }
+  return IOUtil.getBytes(rulesetVectorWriter);
+}

@@ -1,15 +1,16 @@
 {
+  LibraryManager.getInstance().setAppDir(APP_DIR);
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
       indicator.setText(FlexUIDesignerBundle.message("delete.old.libraries"));
-      LibraryManager.getInstance().garbageCollection(APP_DIR);
+      LibraryManager.getInstance().garbageCollection();
       checkCanceled();
       try {
         if (!StringRegistry.getInstance().isEmpty()) {
           Client.getInstance().initStringRegistry();
         }
         indicator.setText(FlexUIDesignerBundle.message("collect.libraries"));
-        LibraryManager.getInstance().initLibrarySets(module,APP_DIR);
+        unregisteredDocumentReferences=LibraryManager.getInstance().initLibrarySets(module);
       }
  catch (      IOException e) {
         LOG.error(e);

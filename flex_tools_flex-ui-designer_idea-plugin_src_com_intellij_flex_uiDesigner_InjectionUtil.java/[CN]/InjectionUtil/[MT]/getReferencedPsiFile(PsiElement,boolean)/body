@@ -1,0 +1,34 @@
+{
+  final PsiReference[] references=element.getReferences();
+  final JSFileReference fileReference;
+  int i=references.length - 1;
+  while (true) {
+    if (references[i] instanceof JSFileReference) {
+      fileReference=(JSFileReference)references[i];
+      break;
+    }
+ else     if (--i < 0) {
+      throw new InvalidPropertyException(element,"cannot.find.file.reference");
+    }
+  }
+  ResolveResult[] resolveResults=fileReference.multiResolve(false);
+  final PsiFileSystemItem psiFile;
+  if (resolveResults.length == 0) {
+    psiFile=null;
+  }
+ else   if (resolveResults.length == 1 || resolveToFirstIfMulti) {
+    psiFile=(PsiFileSystemItem)resolveResults[0].getElement();
+  }
+ else {
+    psiFile=resolveResult(element,resolveResults);
+  }
+  if (psiFile == null) {
+    throw new InvalidPropertyException(fileReference.getUnresolvedMessagePattern(),element);
+  }
+ else   if (psiFile.isDirectory()) {
+    throw new InvalidPropertyException(element,"error.embed.source.is.directory",fileReference.getText());
+  }
+ else {
+    return psiFile;
+  }
+}

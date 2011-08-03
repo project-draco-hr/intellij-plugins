@@ -13,13 +13,14 @@
   }
   Disposer.register(myModule,new Disposable(){
     @Override public void dispose(){
-      ApplicationManager.getApplication().runWriteAction(new Runnable(){
-        @Override public void run(){
-          final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
-          projectJdkTable.removeJdk(sdk);
-        }
+      AccessToken token=WriteAction.start();
+      try {
+        final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
+        projectJdkTable.removeJdk(sdk);
       }
-);
+  finally {
+        token.finish();
+      }
     }
   }
 );

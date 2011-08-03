@@ -1,0 +1,18 @@
+{
+  StringBuilder builder=StringBuilderSpinAllocator.alloc();
+  try {
+    appendTitle(builder).append("<ul>");
+    for (    ProblemDescriptor problemDescriptor : problems) {
+      builder.append("<li>").append(problemDescriptor.getMessage());
+      if (problemDescriptor.hasLineNumber()) {
+        builder.append(" (line: ").append(problemDescriptor.getLineNumber()).append(')');
+      }
+      builder.append("</li>");
+    }
+    builder.append("</ul>");
+    report(project,builder.toString(),MessageType.ERROR);
+  }
+  finally {
+    StringBuilderSpinAllocator.dispose(builder);
+  }
+}

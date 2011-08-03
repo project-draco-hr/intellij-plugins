@@ -3,6 +3,10 @@
   Client client=Client.getInstance();
   try {
     client.flush();
+    final ProblemsHolder problemsHolder=new ProblemsHolder();
+    if (unregisteredDocumentReferences != null) {
+      client.registerDocumentReferences(unregisteredDocumentReferences,module,problemsHolder);
+    }
     final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(appParentDisposable);
     connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentOpenedListener(){
       @Override public void documentOpened(){
@@ -11,9 +15,12 @@
       }
     }
 );
-    client.openDocument(module,psiFile,true);
+    client.openDocument(module,psiFile,true,problemsHolder);
     client.flush();
     indicator.setText(FlexUIDesignerBundle.message("load.libraries"));
+    if (!problemsHolder.isEmpty()) {
+      DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
+    }
   }
  catch (  IOException e) {
     LOG.error(e);

@@ -4,14 +4,13 @@
   if (source != null) {
     XmlAttributeValue valueElement=source.getValueElement();
     if (valueElement != null) {
-      final PsiFileSystemItem psiFile=InjectionUtil.getReferencedPsiFile(valueElement,problemsHolder,true);
-      if (psiFile != null) {
-        if (psiFile instanceof CssFile) {
-          cssFile=(CssFile)psiFile;
-        }
+      final PsiFileSystemItem psiFile;
+      psiFile=InjectionUtil.getReferencedPsiFile(valueElement,true);
+      if (psiFile instanceof CssFile) {
+        cssFile=(CssFile)psiFile;
+      }
  else {
-          problemsHolder.add(FlexUIDesignerBundle.message("error.embed.source.is.not.css.file",psiFile.getName()));
-        }
+        throw new InvalidPropertyException(valueElement,"error.embed.source.is.not.css.file",psiFile.getName());
       }
     }
   }
@@ -23,5 +22,5 @@
       cssFile=visitor.getCssFile();
     }
   }
-  return cssFile == null ? null : cssWriter.write(cssFile,module,problemsHolder);
+  return cssFile == null ? null : cssWriter.write(cssFile,module);
 }

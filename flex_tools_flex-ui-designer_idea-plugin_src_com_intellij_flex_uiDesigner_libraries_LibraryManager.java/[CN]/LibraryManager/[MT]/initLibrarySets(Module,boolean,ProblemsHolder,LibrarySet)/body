@@ -1,0 +1,81 @@
+{
+  final Project project=module.getProject();
+  final LibraryCollector libraryCollector=new LibraryCollector(this);
+  final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter(16384);
+  stringWriter.startChange();
+  final Client client;
+  try {
+    AccessToken token=ReadAction.start();
+    try {
+      libraryCollector.collect(module,new LibraryStyleInfoCollector(project,module,stringWriter,problemsHolder));
+    }
+  finally {
+      token.finish();
+    }
+    client=Client.getInstance();
+    if (stringWriter.hasChanges()) {
+      client.updateStringRegistry(stringWriter);
+    }
+ else {
+      stringWriter.finishChange();
+    }
+  }
+ catch (  Throwable e) {
+    stringWriter.rollbackChange();
+    throw new InitException(e,"error.collect.libraries");
+  }
+  final InfoList<Project,ProjectInfo> registeredProjects=client.getRegisteredProjects();
+  final String projectLocationHash=project.getLocationHash();
+  ProjectInfo info=registeredProjects.getNullableInfo(project);
+  final boolean isNewProject=info == null;
+  if (isNewProject) {
+    if (librarySet == null) {
+      librarySet=createLibrarySet(projectLocationHash + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),true);
+      client.registerLibrarySet(librarySet);
+    }
+    info=new ProjectInfo(project,librarySet,libraryCollector.getFlexSdk());
+    registeredProjects.add(info);
+    client.openProject(project);
+  }
+ else {
+    if (libraryCollector.sdkLibraries != null) {
+      librarySet=createLibrarySet(Integer.toHexString(module.getName().hashCode()) + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),true);
+      client.registerLibrarySet(librarySet);
+    }
+  }
+  if (libraryCollector.externalLibraries.isEmpty()) {
+    if (!isNewProject && librarySet == null) {
+      librarySet=info.getLibrarySet();
+    }
+  }
+ else   if (isNewProject) {
+    librarySet=createLibrarySet(projectLocationHash,librarySet,libraryCollector.externalLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),false);
+    client.registerLibrarySet(librarySet);
+    info.setLibrarySet(librarySet);
+  }
+ else {
+    throw new UnsupportedOperationException("merge existing libraries and new");
+  }
+  final ModuleInfo moduleInfo=new ModuleInfo(module);
+  final List<XmlFile> unregisteredDocumentReferences=new ArrayList<XmlFile>();
+  if (collectLocalStyleHolders) {
+    stringWriter.startChange();
+    try {
+      ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter,problemsHolder,unregisteredDocumentReferences);
+    }
+ catch (    Throwable e) {
+      stringWriter.rollbackChange();
+      throw new InitException(e,"error.collect.local.style.holders");
+    }
+  }
+  client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter);
+  module.getMessageBus().connect(moduleInfo).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
+    @Override public void beforeRootsChange(    ModuleRootEvent event){
+    }
+    @Override public void rootsChanged(    ModuleRootEvent event){
+      new Notification(FlexUIDesignerBundle.message("plugin.name"),FlexUIDesignerBundle.message("plugin.name"),"Listen library changes is not yet supported. Please, reopen project.",NotificationType.WARNING).notify(project);
+    }
+  }
+);
+  return unregisteredDocumentReferences.isEmpty() ? null : unregisteredDocumentReferences.toArray(new XmlFile[unregisteredDocumentReferences.size()]);
+}
