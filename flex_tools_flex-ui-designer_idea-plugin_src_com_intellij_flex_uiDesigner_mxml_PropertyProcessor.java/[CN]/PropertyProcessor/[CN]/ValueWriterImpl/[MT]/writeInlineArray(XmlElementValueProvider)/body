@@ -1,0 +1,64 @@
+{
+  writer.getOut().write(Amf3Types.ARRAY);
+  final StringBuilder builder=StringBuilderSpinAllocator.alloc();
+  final String value=valueProvider.getTrimmed();
+  try {
+    char quoteChar='\'';
+    boolean inQuotes=false;
+    for (int index=1, length=value.length(); index < length; index++) {
+      char c=value.charAt(index);
+switch (c) {
+case '[':
+        if (inQuotes) {
+          builder.append(c);
+        }
+      break;
+case '"':
+case '\'':
+    if (inQuotes) {
+      if (quoteChar == c) {
+        inQuotes=false;
+      }
+ else {
+        builder.append(c);
+      }
+    }
+ else {
+      inQuotes=true;
+      quoteChar=c;
+    }
+  break;
+case ',':
+case ']':
+if (inQuotes) {
+  builder.append(c);
+}
+ else {
+  int beginIndex=0;
+  int endIndex=builder.length();
+  while (beginIndex < endIndex && builder.charAt(beginIndex) <= ' ') {
+    beginIndex++;
+  }
+  while (beginIndex < endIndex && builder.charAt(endIndex - 1) <= ' ') {
+    endIndex--;
+  }
+  if (endIndex == 0) {
+    writer.writeStringReference(XmlElementValueProvider.EMPTY);
+  }
+ else {
+    writer.getOut().write(Amf3Types.STRING);
+    writer.getOut().writeAmfUtf(builder,false,beginIndex,endIndex);
+  }
+  builder.setLength(0);
+}
+break;
+default :
+builder.append(c);
+}
+}
+}
+  finally {
+StringBuilderSpinAllocator.dispose(builder);
+}
+writer.getOut().write(MxmlWriter.EMPTY_CLASS_OR_PROPERTY_NAME);
+}

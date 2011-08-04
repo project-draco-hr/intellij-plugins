@@ -31,8 +31,13 @@
     }
   }
  else   if (type.equals(JSCommonTypeNames.ARRAY_CLASS_NAME)) {
-    out.write(Amf3Types.ARRAY);
-    return ARRAY;
+    if (!descriptor.isRichTextContent() && valueProvider instanceof XmlAttributeValueProvider && isInlineArray(valueProvider.getTrimmed())) {
+      writeInlineArray(valueProvider);
+    }
+ else {
+      out.write(Amf3Types.ARRAY);
+      return ARRAY;
+    }
   }
  else   if (type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME) || type.equals(JSCommonTypeNames.ANY_TYPE)) {
     writeUntypedPropertyValue(valueProvider,descriptor);
