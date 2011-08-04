@@ -2,6 +2,8 @@
   this.indicator=indicator;
   AdlRunConfiguration adlRunConfiguration;
   try {
+    indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
+    copyAppFiles();
     adlRunConfiguration=findSuitableFlexSdk(CHECK_DESCRIPTOR_PATH);
     if (adlRunConfiguration == null) {
       String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
@@ -37,13 +39,10 @@
   final AdlRunTask task=new AdlRunTask(adlRunConfiguration){
     @Override public void run(){
       checkCanceled();
-      indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
+      if (projectManagerListener == null) {
+        attachApplicationLevelListeners();
+      }
       try {
-        copyAppFiles();
-        checkCanceled();
-        if (projectManagerListener == null) {
-          attachApplicationLevelListeners();
-        }
         adlProcessHandler=runAdl(runConfiguration,APP_DIR.getPath() + "/" + DESCRIPTOR_XML,new Consumer<Integer>(){
           @Override public void consume(          Integer exitCode){
             adlProcessHandler=null;
