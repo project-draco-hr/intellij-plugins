@@ -1,0 +1,23 @@
+{
+  VirtualFile[] contentRoots=model.getContentRoots();
+  OsmorcFacetConfiguration osmorcFacetConfiguration=facet.getConfiguration();
+  VirtualFile manifestFile=LocalFileSystem.getInstance().findFileByPath(osmorcFacetConfiguration.getManifestLocation());
+  if (manifestFile != null) {
+    for (    VirtualFile contentRoot : contentRoots) {
+      if (VfsUtil.isAncestor(contentRoot,manifestFile,false)) {
+        osmorcFacetConfiguration.setManifestLocation(VfsUtil.getRelativePath(manifestFile,contentRoot,'/'));
+        break;
+      }
+    }
+  }
+ else {
+    osmorcFacetConfiguration.setManifestLocation("");
+    osmorcFacetConfiguration.setUseProjectDefaultManifestFileLocation(true);
+  }
+  String manifestFileName=osmorcFacetConfiguration.getManifestLocation();
+  if (manifestFileName.endsWith("template.mf")) {
+    osmorcFacetConfiguration.setManifestLocation("");
+    osmorcFacetConfiguration.setBundlorFileLocation(manifestFileName);
+    osmorcFacetConfiguration.setUseBundlorFile(true);
+  }
+}
