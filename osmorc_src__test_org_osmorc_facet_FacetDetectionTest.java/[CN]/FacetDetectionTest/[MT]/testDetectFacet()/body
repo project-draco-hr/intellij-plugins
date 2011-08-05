@@ -1,33 +1,20 @@
 {
   ModuleManager moduleManager=ModuleManager.getInstance(fixture.getProject());
-  final List<Object> arguments=new ArrayList<Object>();
   Module t0=moduleManager.findModuleByName("t0");
-  FacetDetectorRegistry registry=createMock(FacetDetectorRegistry.class);
-  registry.registerUniversalDetector(same(ManifestFileTypeFactory.MANIFEST),(VirtualFileFilter)anyObject(),(FacetDetector)anyObject());
-  expectLastCall().andAnswer(new IAnswer<Object>(){
-    public Object answer() throws Throwable {
-      ContainerUtil.addAll(arguments,getCurrentArguments());
-      return null;
-    }
-  }
-);
-  replay(registry);
-  OsmorcFacetType.getInstance().registerDetectors(registry);
-  VirtualFileFilter filter=(VirtualFileFilter)arguments.get(1);
-  FacetDetector<VirtualFile,OsmorcFacetConfiguration> detector=(FacetDetector<VirtualFile,OsmorcFacetConfiguration>)arguments.get(2);
+  OsmorcFrameworkDetector detector=new OsmorcFrameworkDetector();
+  ElementPattern<FileContent> filter=detector.createSuitableFilePattern();
   VirtualFile manifestFile=myTempDirFixture.getFile("t0/src/META-INF/MANIFEST.MF");
-  assertThat(filter.accept(manifestFile),equalTo(true));
-  OsmorcFacetConfiguration osmorcFacetConfiguration=detector.detectFacet(manifestFile,new ArrayList<OsmorcFacetConfiguration>());
+  assertThat(filter.accepts(new FileContent(manifestFile,manifestFile.contentsToByteArray())),equalTo(true));
+  OsmorcFacetConfiguration osmorcFacetConfiguration=detector.createConfiguration(Collections.singletonList(manifestFile));
   assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo(manifestFile.getPath()));
   assertThat(osmorcFacetConfiguration.isUseProjectDefaultManifestFileLocation(),equalTo(false));
   OsmorcFacet osmorcFacet=OsmorcFacetType.getInstance().createFacet(t0,"OSGi",osmorcFacetConfiguration,null);
   ModifiableRootModel model=ModuleRootManager.getInstance(t0).getModifiableModel();
   try {
-    detector.beforeFacetAdded(osmorcFacet,FacetManager.getInstance(t0),model);
+    detector.setupFacet(osmorcFacet,model);
     assertThat(osmorcFacetConfiguration.getManifestLocation(),equalTo("src/META-INF/MANIFEST.MF"));
   }
   finally {
     model.dispose();
   }
-  verify(registry);
 }
