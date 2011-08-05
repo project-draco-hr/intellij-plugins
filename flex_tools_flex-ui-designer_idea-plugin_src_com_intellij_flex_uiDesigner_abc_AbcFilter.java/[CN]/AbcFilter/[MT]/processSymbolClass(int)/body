@@ -2,7 +2,7 @@
   final int tagStartPosition=buffer.position();
   writeDataBeforeTag(length);
   buffer.position(tagStartPosition);
-  analyzeClassAssociatedWithMainTimeline(length);
+  int numSymbols=analyzeClassAssociatedWithMainTimeline(length);
   final boolean hasClassAssociatedWithMainTimeLine=sL != -1;
   mergeDoAbc(true,hasClassAssociatedWithMainTimeLine);
   lastWrittenPosition=tagStartPosition - (length < 63 ? 2 : 6);
@@ -24,10 +24,10 @@
       lastWrittenPosition=sB;
       buffer.limit(buffer.capacity());
       if (exportAssets != null) {
-        final TIntObjectIterator<ExportAsset> iterator=exportAssets.iterator();
+        final TIntObjectIterator<TagPositionInfo> iterator=exportAssets.iterator();
         for (int i=exportAssets.size(); i-- > 0; ) {
           iterator.advance();
-          ExportAsset exportAsset=iterator.value();
+          TagPositionInfo exportAsset=iterator.value();
           buffer.position(exportAsset.start);
           buffer.limit(exportAsset.end);
           channel.write(buffer);

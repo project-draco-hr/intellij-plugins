@@ -1,2 +1,22 @@
 {
+  final boolean onlyABC=outFile.getPath().endsWith(".abc");
+  final FileOutputStream outputStream=transcode(inputStream,inputLength,outFile);
+  channel=outputStream.getChannel();
+  if (!onlyABC) {
+    channel.position(PARTIAL_HEADER_LENGTH);
+  }
+  try {
+    if (!onlyABC) {
+      filterTags(abcNameFilter);
+      writeHeader();
+    }
+ else {
+      filterAbcTags(abcNameFilter);
+    }
+  }
+  finally {
+    channel=null;
+    outputStream.flush();
+    outputStream.close();
+  }
 }
