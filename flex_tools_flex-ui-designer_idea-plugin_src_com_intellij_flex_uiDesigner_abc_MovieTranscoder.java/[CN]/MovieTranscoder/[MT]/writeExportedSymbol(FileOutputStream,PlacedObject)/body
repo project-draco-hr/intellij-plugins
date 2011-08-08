@@ -3,7 +3,7 @@
   final byte[] data=buffer.array();
   buffer.position(0);
   encodeTagHeader(object.tagType,object.actualLength == -1 ? object.length : object.actualLength);
-  buffer.putShort((short)0);
+  buffer.putShort((short)1);
   out.write(data,0,buffer.position());
   if (positions == null) {
     out.write(data,object.start + 2,object.length - 2);
@@ -12,10 +12,13 @@
     writeFilteredPlacedObject(out,data,object,positions,object.start + 2);
   }
   buffer.position(0);
-  encodeTagHeader(TagTypes.SymbolClass,symbolClassLength);
-  buffer.putShort((short)1);
+  encodeTagHeader(TagTypes.SymbolClass,SYMBOL_CLASS_TAG_LENGTH);
+  buffer.putShort((short)2);
   buffer.putShort((short)0);
-  buffer.put(bytes);
+  buffer.put(ROOT_SWF_CLASS_NAME);
+  buffer.put((byte)0);
+  buffer.putShort((short)1);
+  buffer.put(SYMBOL_OWN_CLASS_NAME);
   buffer.put((byte)0);
   out.write(data,0,buffer.position());
 }
