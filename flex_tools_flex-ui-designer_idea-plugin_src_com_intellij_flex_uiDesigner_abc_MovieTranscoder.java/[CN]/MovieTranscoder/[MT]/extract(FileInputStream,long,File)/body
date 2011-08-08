@@ -1,11 +1,14 @@
 {
   final FileOutputStream out=transcode(inputStream,inputLength,outFile);
   try {
-    extract();
+    fileLength=2 + symbolClassLength + SwfUtil.getWrapLength();
+    final PlacedObject exportedSymbol=extract();
     buffer.position(0);
-    writePartialHeader(fileLength);
-    out.write(buffer.array(),0,fileAttributesEndPosition);
+    SwfUtil.header(fileLength,out,buffer);
     writeUsedPlacedObjects(out);
+    out.flush();
+    writeExportedSymbol(out,exportedSymbol);
+    SwfUtil.footer(out);
   }
   finally {
     out.flush();
