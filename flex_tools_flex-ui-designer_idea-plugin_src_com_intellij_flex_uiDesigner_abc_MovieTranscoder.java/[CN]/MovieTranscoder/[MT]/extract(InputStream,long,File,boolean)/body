@@ -1,0 +1,26 @@
+{
+  final FileOutputStream out=transcode(inputStream,inputLength,outFile);
+  try {
+    fileLength=2 + SYMBOL_OWN_CLASS_ABC.length + SYMBOL_CLASS_TAG_LENGTH+ SwfUtil.getWrapLength();
+    final PlacedObject exportedSymbol=extract();
+    if (writeBounds) {
+      buffer.order(ByteOrder.BIG_ENDIAN);
+      buffer.position(0);
+      buffer.putShort((short)bounds.x);
+      buffer.putShort((short)bounds.y);
+      buffer.putShort((short)bounds.width);
+      buffer.putShort((short)bounds.height);
+      out.write(buffer.array(),0,buffer.position());
+      buffer.order(ByteOrder.LITTLE_ENDIAN);
+    }
+    SwfUtil.header(fileLength,out,buffer);
+    out.write(SYMBOL_OWN_CLASS_ABC);
+    writeUsedPlacedObjects(out);
+    writeExportedSymbol(out,exportedSymbol);
+    SwfUtil.footer(out);
+  }
+  finally {
+    out.flush();
+    out.close();
+  }
+}
