@@ -1,8 +1,25 @@
 {
   final FileOutputStream out=transcode(inputStream,inputLength,outFile);
   try {
-    fileLength=2 + SYMBOL_OWN_CLASS_ABC.length + SYMBOL_CLASS_TAG_LENGTH+ SwfUtil.getWrapLength();
+    fileLength=2 + SYMBOL_CLASS_TAG_LENGTH + SwfUtil.getWrapLength();
     final PlacedObject exportedSymbol=extract();
+    final byte[] symbolOwnClassAbc;
+    buffer.position(exportedSymbol.start + 2);
+    if (buffer.getShort() > 1) {
+      if (MOVIE_CLIP_SYMBOL_OWN_CLASS_ABC == null) {
+        MOVIE_CLIP_SYMBOL_OWN_CLASS_ABC=IOUtil.getResourceBytes("MSymbolOwnClass.abc");
+        MOVIE_CLIP_SYMBOL_OWN_CLASS_ABC[22]='_';
+      }
+      symbolOwnClassAbc=MOVIE_CLIP_SYMBOL_OWN_CLASS_ABC;
+    }
+ else {
+      if (SPRITE_SYMBOL_OWN_CLASS_ABC == null) {
+        SPRITE_SYMBOL_OWN_CLASS_ABC=IOUtil.getResourceBytes("SSymbolOwnClass.abc");
+        SPRITE_SYMBOL_OWN_CLASS_ABC[22]='_';
+      }
+      symbolOwnClassAbc=SPRITE_SYMBOL_OWN_CLASS_ABC;
+    }
+    fileLength+=symbolOwnClassAbc.length;
     if (writeBounds) {
       buffer.order(ByteOrder.BIG_ENDIAN);
       buffer.position(0);
@@ -14,7 +31,7 @@
       buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
     SwfUtil.header(fileLength,out,buffer);
-    out.write(SYMBOL_OWN_CLASS_ABC);
+    out.write(symbolOwnClassAbc);
     writeUsedPlacedObjects(out);
     writeExportedSymbol(out,exportedSymbol);
     SwfUtil.footer(out);
