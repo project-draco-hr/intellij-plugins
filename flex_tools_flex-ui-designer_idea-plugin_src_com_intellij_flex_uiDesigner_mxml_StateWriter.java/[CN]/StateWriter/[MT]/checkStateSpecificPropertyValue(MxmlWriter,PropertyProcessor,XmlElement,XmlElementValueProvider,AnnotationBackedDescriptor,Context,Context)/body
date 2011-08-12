@@ -1,2 +1,53 @@
 {
+  PsiReference[] references=element.getReferences();
+  if (references.length < 2) {
+    return false;
+  }
+  List<State> states=null;
+  for (int i=references.length - 1; i > -1; i--) {
+    PsiReference psiReference=references[i];
+    if (psiReference instanceof StateReference) {
+      states=nameToState.get(psiReference.getCanonicalText());
+      break;
+    }
+  }
+  if (states == null) {
+    return false;
+  }
+  ValueWriter valueWriter=null;
+  try {
+    valueWriter=propertyProcessor.process(element,valueProvider,descriptor,context);
+  }
+ catch (  InvalidPropertyException ignored) {
+  }
+  if (valueWriter == null) {
+    return true;
+  }
+  SetPropertyOrStyle override=new SetPropertyOrStyle(writer.getBlockOut().startRange());
+  writer.writeObjectHeader(propertyProcessor.isStyle() ? "com.intellij.flex.uiDesigner.flex.states.SetStyle" : "com.intellij.flex.uiDesigner.flex.states.SetProperty");
+  writer.writeStringReference(NAME,propertyProcessor.getName());
+  writer.getOut().writeUInt29(VALUE);
+  writer.getOut().write(PropertyClassifier.PROPERTY);
+  int type;
+  try {
+    type=valueWriter.write(writer.getOut(),writer,false);
+  }
+ catch (  InvalidPropertyException invalidProperty) {
+    throw new UnsupportedOperationException("");
+  }
+  if (type < PropertyProcessor.PRIMITIVE) {
+    mxmlWriter.processPropertyTagValue((XmlTag)element,context,type == PropertyProcessor.ARRAY);
+  }
+  override.targetId=writer.getObjectOrFactoryId(context);
+  if (pendingFirstSetProperty == null) {
+    pendingFirstSetProperty=override;
+  }
+  if (context == null && parentContext != null && parentContext.ownerIsDynamic() && pendingFirstSetProperty == null) {
+    pendingFirstSetProperty=override;
+  }
+  writer.getBlockOut().endRange(override.dataRange);
+  for (  State state : states) {
+    state.overrides.add(override);
+  }
+  return true;
 }

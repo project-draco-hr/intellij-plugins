@@ -28,9 +28,12 @@
   final String projectLocationHash=project.getLocationHash();
   ProjectInfo info=registeredProjects.getNullableInfo(project);
   final boolean isNewProject=info == null;
+  RequiredAssetsInfo requiredAssetsInfo=null;
   if (isNewProject) {
     if (librarySet == null) {
-      librarySet=createLibrarySet(projectLocationHash + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),true);
+      final SwcDependenciesSorter swcDependenciesSorter=new SwcDependenciesSorter(appDir,module);
+      librarySet=createLibrarySet(projectLocationHash + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),swcDependenciesSorter,true);
+      requiredAssetsInfo=swcDependenciesSorter.getRequiredAssetsInfo();
       client.registerLibrarySet(librarySet);
     }
     info=new ProjectInfo(project,librarySet,libraryCollector.getFlexSdk());
@@ -39,7 +42,9 @@
   }
  else {
     if (libraryCollector.sdkLibraries != null) {
-      librarySet=createLibrarySet(Integer.toHexString(module.getName().hashCode()) + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),true);
+      final SwcDependenciesSorter swcDependenciesSorter=new SwcDependenciesSorter(appDir,module);
+      librarySet=createLibrarySet(Integer.toHexString(module.getName().hashCode()) + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),swcDependenciesSorter,true);
+      requiredAssetsInfo=swcDependenciesSorter.getRequiredAssetsInfo();
       client.registerLibrarySet(librarySet);
     }
   }
@@ -68,7 +73,7 @@
       throw new InitException(e,"error.collect.local.style.holders");
     }
   }
-  client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter);
+  client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter,requiredAssetsInfo);
   module.getMessageBus().connect(moduleInfo).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
     @Override public void beforeRootsChange(    ModuleRootEvent event){
     }

@@ -1,0 +1,24 @@
+{
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.registerModule);
+    if (requiredAssetsInfo == null) {
+      out.writeShort(0);
+      out.writeShort(0);
+    }
+ else {
+      out.writeShort(requiredAssetsInfo.imageCount);
+      out.writeShort(requiredAssetsInfo.swfCount);
+      registeredProjects.getInfo(project).totalDefinedAssetContainerClassInfo=requiredAssetsInfo;
+    }
+    stringWriter.writeToIfStarted(out);
+    out.writeShort(registeredModules.add(moduleInfo));
+    writeId(project);
+    out.write(librarySetIds);
+    out.write(moduleInfo.getLocalStyleHolders(),"lsh",true);
+    hasError=false;
+  }
+  finally {
+    finalizeMessage(hasError);
+  }
+}
