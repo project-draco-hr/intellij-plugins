@@ -1,0 +1,13 @@
+{
+  Matcher testMatcher=TEST_PATTERN.matcher(fileText);
+  while (testMatcher.find()) {
+    Annotation annotation=new Annotation("Test",testMatcher.start(),testMatcher.end(),testMatcher.group(1));
+    String testId=MarkedTestStructure.getIdAndValidate(annotation);
+    MarkedTestStructure markedTestStructure=markedTestStructureMap.get(testId);
+    if (markedTestStructure == null) {
+      markedTestStructure=new MarkedTestStructure(annotation);
+      markedTestStructureMap.put(testId,markedTestStructure);
+    }
+    markedTestStructure.handleBeginAnnotation(annotation);
+  }
+}

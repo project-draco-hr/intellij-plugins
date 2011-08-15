@@ -1,0 +1,22 @@
+{
+  return ApplicationManager.getApplication().runWriteAction(new Computable<ScriptingLibraryModel>(){
+    @Override public ScriptingLibraryModel compute(){
+      JSLibraryManager libraryManager=ServiceManager.getService(project,JSLibraryManager.class);
+      JSLibraryMappings mappings=ServiceManager.getService(project,JSLibraryMappings.class);
+      ScriptingLibraryModel scriptingLibraryModel=libraryManager.getLibraryByName(LIBRARY_NAME);
+      if (scriptingLibraryModel != null) {
+        libraryManager.removeLibrary(scriptingLibraryModel);
+        mappings.disassociate(rootForAssociation,LIBRARY_NAME);
+        libraryManager.commitChanges();
+        System.out.println("Removing '" + LIBRARY_NAME + "' library and disassociating it from "+ rootForAssociation);
+      }
+      VirtualFile[] arrayVirtualFiles=getAdditionalSourceFiles();
+      scriptingLibraryModel=libraryManager.createLibrary(LIBRARY_NAME,arrayVirtualFiles,VirtualFile.EMPTY_ARRAY,ArrayUtil.EMPTY_STRING_ARRAY);
+      libraryManager.commitChanges();
+      mappings.associate(rootForAssociation,LIBRARY_NAME);
+      System.out.println("Library '" + LIBRARY_NAME + "' has been associated to "+ rootForAssociation);
+      return scriptingLibraryModel;
+    }
+  }
+);
+}

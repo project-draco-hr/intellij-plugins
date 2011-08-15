@@ -1,0 +1,19 @@
+{
+  Query<PsiReference> referenceQuery=ReferencesSearch.search(jsVariable);
+  referenceQuery.forEach(new Processor<PsiReference>(){
+    @Override public boolean process(    PsiReference psiReference){
+      JSReferenceExpression testCaseJsReferenceExpression=CastUtils.tryCast(psiReference,JSReferenceExpression.class);
+      if (testCaseJsReferenceExpression != null) {
+        JSReferenceExpression prototypeJsReferenceExpression=CastUtils.tryCast(testCaseJsReferenceExpression.getParent(),JSReferenceExpression.class);
+        if (prototypeJsReferenceExpression != null && "prototype".equals(prototypeJsReferenceExpression.getReferencedName())) {
+          JSReferenceExpression testOnPrototypeJsReferenceExpression=CastUtils.tryCast(prototypeJsReferenceExpression.getParent(),JSReferenceExpression.class);
+          if (testOnPrototypeJsReferenceExpression != null) {
+            addPrototypeTest(testCaseStructure,testOnPrototypeJsReferenceExpression);
+          }
+        }
+      }
+      return true;
+    }
+  }
+);
+}

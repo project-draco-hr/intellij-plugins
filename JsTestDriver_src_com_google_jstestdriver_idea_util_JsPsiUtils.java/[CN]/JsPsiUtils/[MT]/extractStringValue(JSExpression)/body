@@ -1,0 +1,31 @@
+{
+{
+    JSLiteralExpression jsLiteralExpression=CastUtils.tryCast(jsExpression,JSLiteralExpression.class);
+    if (jsLiteralExpression != null && jsLiteralExpression.isQuotedLiteral()) {
+      return StringUtil.stripQuotesAroundValue(StringUtil.notNullize(jsLiteralExpression.getText()));
+    }
+  }
+{
+    JSBinaryExpression jsBinaryExpression=CastUtils.tryCast(jsExpression,JSBinaryExpression.class);
+    if (jsBinaryExpression != null) {
+      IElementType operationType=jsBinaryExpression.getOperationSign();
+      if (operationType == JSTokenTypes.PLUS) {
+        String lOperand=extractStringValue(jsBinaryExpression.getLOperand());
+        String rOperand=extractStringValue(jsBinaryExpression.getROperand());
+        if (lOperand != null && rOperand != null) {
+          return lOperand + rOperand;
+        }
+      }
+    }
+  }
+{
+    JSReferenceExpression jsReferenceExpression=CastUtils.tryCast(jsExpression,JSReferenceExpression.class);
+    if (jsReferenceExpression != null) {
+      JSExpression initializer=extractInitExpression(jsReferenceExpression);
+      if (initializer != null) {
+        return extractStringValue(initializer);
+      }
+    }
+  }
+  return null;
+}

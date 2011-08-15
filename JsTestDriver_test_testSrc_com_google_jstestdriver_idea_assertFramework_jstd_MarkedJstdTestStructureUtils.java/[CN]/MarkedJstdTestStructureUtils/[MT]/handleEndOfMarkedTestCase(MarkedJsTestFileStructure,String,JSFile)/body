@@ -1,0 +1,12 @@
+{
+  Matcher testCaseEndMatcher=TEST_CASE_END_PATTERN.matcher(fileText);
+  while (testCaseEndMatcher.find()) {
+    String testCaseIdStr=testCaseEndMatcher.group(1);
+    int testCaseId=Integer.parseInt(testCaseIdStr);
+    MarkedTestCaseStructure markedTestCaseStructure=markedJsTestFileStructure.findById(testCaseId);
+    if (markedTestCaseStructure == null) {
+      throw new RuntimeException("'" + testCaseEndMatcher.group() + "' references undefined TestCase");
+    }
+    markedTestCaseStructure.endEncountered(TextRange.create(testCaseEndMatcher.start(),testCaseEndMatcher.end()),jsFile);
+  }
+}

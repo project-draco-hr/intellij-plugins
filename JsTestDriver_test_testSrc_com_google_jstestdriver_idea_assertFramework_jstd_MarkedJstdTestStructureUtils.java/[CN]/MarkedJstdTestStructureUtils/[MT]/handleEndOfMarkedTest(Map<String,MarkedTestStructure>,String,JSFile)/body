@@ -1,0 +1,12 @@
+{
+  Matcher endOfTestMatcher=TEST_END_PATTERN.matcher(fileText);
+  while (endOfTestMatcher.find()) {
+    Annotation annotation=new Annotation("TestEnd",endOfTestMatcher.start(),endOfTestMatcher.end(),endOfTestMatcher.group(1));
+    String testId=annotation.getValue("id");
+    MarkedTestStructure markedTestStructure=markedTestStructureMap.get(testId);
+    if (markedTestStructure == null) {
+      throw new RuntimeException("'" + endOfTestMatcher.group() + "' references undefined Test");
+    }
+    markedTestStructure.handleEndAnnotation(annotation,jsFile);
+  }
+}

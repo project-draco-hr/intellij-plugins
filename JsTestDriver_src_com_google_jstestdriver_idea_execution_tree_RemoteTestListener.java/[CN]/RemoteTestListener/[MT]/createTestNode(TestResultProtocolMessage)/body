@@ -1,0 +1,37 @@
+{
+  BrowserNode browserNode=browserMap.get(message.browser);
+  if (browserNode == null) {
+    browserNode=new BrowserNode(message.browser);
+    browserMap.put(message.browser,browserNode);
+    onSuiteStarted(getTestsRootNode(),browserNode.getTestProxy());
+  }
+  JstdConfigFileNode jstdConfigFileNode=browserNode.getJstdConfigFileNodeByPath(message.jstdConfigFilePath);
+  boolean fakeJstdConfigFileNode=myDirectory == null;
+  boolean jstdConfigFileNodeAlreadyExists=jstdConfigFileNode != null;
+  if (!jstdConfigFileNodeAlreadyExists) {
+    jstdConfigFileNode=new JstdConfigFileNode(browserNode,myDirectory,message.jstdConfigFilePath,fakeJstdConfigFileNode);
+    if (!fakeJstdConfigFileNode) {
+      onSuiteStarted(browserNode.getTestProxy(),jstdConfigFileNode.getTestProxy());
+    }
+  }
+  Node testCaseParentNode=fakeJstdConfigFileNode ? browserNode : jstdConfigFileNode;
+  if (!jstdConfigFileNodeAlreadyExists) {
+    ConfigStructure configStructure=ConfigStructure.newConfigStructure(jstdConfigFileNode.getConfigFile());
+    StacktracePrinter stacktracePrinter=new StacktracePrinter(myContext.consoleView(),configStructure,message.browser);
+    testCaseParentNode.wirePrinter(stacktracePrinter);
+  }
+  myLastTestCaseParentNode=testCaseParentNode;
+  TestCaseNode testCaseNode=jstdConfigFileNode.getTestCaseNode(message.testCase);
+  myLastConfigFile=jstdConfigFileNode.getConfigFile();
+  if (testCaseNode == null) {
+    NavigationRegistry navigationRegistry=myNavigationRegistryMap.get(jstdConfigFileNode.getVirtualFile());
+    testCaseNode=new TestCaseNode(jstdConfigFileNode,message.testCase,navigationRegistry);
+    onSuiteStarted(testCaseParentNode.getTestProxy(),testCaseNode.getTestProxy());
+  }
+  TestNode testNode=testCaseNode.getTestByName(message.testName);
+  if (testNode == null) {
+    testNode=new TestNode(testCaseNode,message.testName);
+    onTestStarted(testCaseNode.getTestProxy(),testNode.getTestProxy());
+  }
+  return testNode;
+}

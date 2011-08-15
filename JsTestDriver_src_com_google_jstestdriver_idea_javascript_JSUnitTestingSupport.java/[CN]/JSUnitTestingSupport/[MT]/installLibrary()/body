@@ -1,36 +1,14 @@
 {
   final JSLibraryManager libraryManager=ServiceManager.getService(myProject,JSLibraryManager.class);
-  String[] resourceNames=new String[]{"Asserts.js","TestCase.js","qunit/equiv.js","qunit/QUnitAdapter.js"};
-  VirtualFile[] sourceFiles=new VirtualFile[resourceNames.length];
-  for (int i=0; i < resourceNames.length; i++) {
-    sourceFiles[i]=getVirtualFiles(Marker.class,resourceNames[i]);
-  }
   String libraryName="JsTD Assertion Framework";
   ScriptingLibraryModel scriptingLibraryModel=libraryManager.getLibraryByName(libraryName);
   if (scriptingLibraryModel != null) {
-    Set<VirtualFile> sourceFileSet1=Sets.newHashSet(Arrays.asList(sourceFiles));
-    Set<VirtualFile> sourceFileSet2=scriptingLibraryModel.getSourceFiles();
-    boolean sourceFileSetsEquals=sourceFileSet1.equals(sourceFileSet2);
-    if (!sourceFileSetsEquals) {
-      libraryManager.removeLibrary(scriptingLibraryModel);
-      ApplicationManager.getApplication().runWriteAction(new Runnable(){
-        @Override public void run(){
-          libraryManager.commitChanges();
-        }
+    libraryManager.removeLibrary(scriptingLibraryModel);
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        libraryManager.commitChanges();
       }
-);
-      scriptingLibraryModel=createLibrary(libraryManager,libraryName,sourceFiles);
     }
-  }
- else {
-    scriptingLibraryModel=createLibrary(libraryManager,libraryName,sourceFiles);
-  }
-  if (scriptingLibraryModel == null) {
-    throw new RuntimeException("Unable to create js library '" + libraryName + "'!");
-  }
-  JSLibraryMappings mappings=ServiceManager.getService(myProject,JSLibraryMappings.class);
-  ScriptingLibraryModel mappedLibrary=mappings.getMapping(myProject.getBaseDir());
-  if (mappedLibrary == null || !libraryName.equals(mappedLibrary.getName())) {
-    mappings.associate(myProject.getBaseDir(),libraryName);
+);
   }
 }

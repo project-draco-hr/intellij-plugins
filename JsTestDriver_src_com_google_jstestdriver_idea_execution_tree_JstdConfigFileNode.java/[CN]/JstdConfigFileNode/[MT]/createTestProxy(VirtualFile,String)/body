@@ -1,0 +1,17 @@
+{
+  final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByIoFile(new File(absoluteFilePath));
+  String displayPath=calcDisplayPath(directory,virtualFile,absoluteFilePath);
+  return new SMTestProxyWithPrinterAndLocation(displayPath,true,new LocationProvider(){
+    @Override public Location provideLocation(    Project project){
+      if (virtualFile == null) {
+        return null;
+      }
+      PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      if (psiFile == null) {
+        return null;
+      }
+      return PsiLocation.fromPsiElement(psiFile);
+    }
+  }
+);
+}

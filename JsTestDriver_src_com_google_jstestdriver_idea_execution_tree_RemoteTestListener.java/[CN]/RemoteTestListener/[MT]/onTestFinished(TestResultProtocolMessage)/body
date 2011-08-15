@@ -1,21 +1,20 @@
 {
-  BrowserNode browserNode=browserMap.get(message.browser);
-  JstdConfigFileNode jstdConfigFileNode=browserNode.getJstdConfigFileNodeByPath(message.jstdConfigFilePath);
-  TestCaseNode testCaseNode=jstdConfigFileNode.getTestCaseNode(message.testCase);
-  if (testCaseNode.isTestDone(message.testName)) {
-    return;
+  TestNode testNode=findTestNode(message);
+  if (testNode == null) {
+    testNode=createTestNode(message);
   }
-  testCaseNode.testDone(message.testName);
-  SMTestProxy testNode=testCaseNode.getTestByName(message.testName);
-  testNode.addStdOutput(message.log,Key.create("result"));
-  testNode.setDuration(Math.round(message.duration));
+  testNode.done();
+  TestCaseNode testCaseNode=testNode.getTestCaseNode();
+  JstdConfigFileNode jstdConfigFileNode=testCaseNode.getJstdConfigFileNode();
+  BrowserNode browserNode=jstdConfigFileNode.getBrowserNode();
+  SMTestProxy testProxy=testNode.getTestProxy();
+  testProxy.addStdOutput(message.log,Key.create("result"));
+  testProxy.setDuration(Math.round(message.duration));
   Result result=Result.valueOf(message.result);
   if (result == Result.passed) {
-    testNode.setFinished();
-    myContext.resultsForm().onTestFinished(testNode);
+    onTestFinished(testProxy);
   }
  else {
-    boolean isError=result == Result.error;
     final String stackStr;
     if (message.stack.startsWith(message.message)) {
       String s=message.stack.substring(message.message.length());
@@ -24,19 +23,19 @@
  else {
       stackStr=message.stack;
     }
-    testNode.setTestFailed(message.message,stackStr,isError);
-    myContext.resultsForm().onTestFailed(testNode);
+    testProxy.setTestFailed(message.message,stackStr,result == Result.error);
+    getSMTestRunnerResultsForm().onTestFailed(testProxy);
     testCaseNode.setTestFailed(result);
     jstdConfigFileNode.setTestFailed(result);
     browserNode.setTestFailed(result);
   }
-  if (testCaseNode.allTestsComplete()) {
+  if (testCaseNode.isComplete()) {
     onSuiteFinished(testCaseNode.getTestProxy());
   }
-  if (jstdConfigFileNode.allTestCasesComplete()) {
+  if (jstdConfigFileNode.isComplete()) {
     onSuiteFinished(jstdConfigFileNode.getTestProxy());
   }
-  if (browserNode.allJstdConfigFilesComplete()) {
+  if (browserNode.isComplete()) {
     onSuiteFinished(browserNode.getTestProxy());
   }
 }

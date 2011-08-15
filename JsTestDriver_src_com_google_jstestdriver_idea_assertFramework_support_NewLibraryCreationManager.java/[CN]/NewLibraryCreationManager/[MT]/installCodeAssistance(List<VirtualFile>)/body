@@ -1,0 +1,25 @@
+{
+  return ApplicationManager.getApplication().runWriteAction(new Computable<Boolean>(){
+    @Override public Boolean compute(){
+      boolean insideContentRoots=isInsideContentRoots(myExtractDirectory);
+      if (!insideContentRoots) {
+        ScriptingLibraryModel libraryModel=myScriptingLibraryManager.createLibrary(myNewLibraryNameTextField.getText(),VfsUtil.toVirtualFileArray(extractedAdapterSourceFiles),VirtualFile.EMPTY_ARRAY,ArrayUtil.EMPTY_STRING_ARRAY);
+        boolean success=false;
+        try {
+          if (libraryModel != null) {
+            myScriptingLibraryManager.commitChanges();
+            success=true;
+          }
+        }
+ catch (        Exception ignore) {
+        }
+        if (!success) {
+          Messages.showErrorDialog("Unable to create '" + myNewLibraryNameTextField.getText() + "' JavaScript library","Adding " + myAssertionFrameworkName + " adapter support for JsTestDriver");
+        }
+        return success;
+      }
+      return true;
+    }
+  }
+);
+}
