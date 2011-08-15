@@ -1,0 +1,75 @@
+{
+  TIntArrayList ignoredBytesPositions=null;
+  buffer.putShort(swfHeaderEnd - 2,(short)1);
+  int initialStartPosition=swfHeaderEnd;
+  int fileAttributesFullLength=0;
+  int tagStart;
+  int f=0;
+  int fileLength=buffer.capacity();
+  analyze:   while ((tagStart=buffer.position()) < buffer.limit()) {
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+switch (type) {
+case TagTypes.End:
+      f+=length + (buffer.position() - tagStart);
+    break analyze;
+case TagTypes.FileAttributes:
+  fileAttributesFullLength=length + (buffer.position() - tagStart);
+initialStartPosition=tagStart + fileAttributesFullLength;
+break;
+case TagTypes.Metadata:
+case TagTypes.DebugID:
+case TagTypes.EnableDebugger:
+case TagTypes.EnableDebugger2:
+case TagTypes.ScriptLimits:
+case TagTypes.ProductInfo:
+case TagTypes.ExportAssets:
+case TagTypes.SymbolClass:
+if (ignoredBytesPositions == null) {
+ignoredBytesPositions=new TIntArrayList();
+}
+ignoredBytesPositions.add(tagStart);
+final int fullLength=length + (buffer.position() - tagStart);
+ignoredBytesPositions.add(tagStart + fullLength);
+fileLength-=fullLength;
+break;
+default :
+f+=length + (buffer.position() - tagStart);
+}
+buffer.position(buffer.position() + length);
+}
+final int spriteTagLength=(fileLength - initialStartPosition) + 4;
+fileLength+=PARTIAL_HEADER_LENGTH + (spriteTagLength >= 63 ? 6 : 2) + 4+ 4;
+writePartialHeader(out,fileLength);
+final byte[] data=buffer.array();
+out.write(data,0,initialStartPosition);
+buffer.position(0);
+encodeLongTagHeader(TagTypes.DefineSprite,spriteTagLength);
+buffer.putShort((short)65532);
+buffer.putShort(frameCount);
+out.write(data,0,buffer.position());
+out.flush();
+if (ignoredBytesPositions == null) {
+throw new IllegalStateException();
+}
+ else {
+final int maxI=ignoredBytesPositions.size() - 1;
+int prevOffset=initialStartPosition;
+int i=0;
+while (true) {
+if (i >= maxI) {
+out.write(data,prevOffset,data.length - prevOffset);
+break;
+}
+ else {
+out.write(data,prevOffset,ignoredBytesPositions.getQuick(i++) - prevOffset);
+prevOffset=ignoredBytesPositions.getQuick(i++);
+}
+}
+}
+SwfUtil.footer(out);
+}
