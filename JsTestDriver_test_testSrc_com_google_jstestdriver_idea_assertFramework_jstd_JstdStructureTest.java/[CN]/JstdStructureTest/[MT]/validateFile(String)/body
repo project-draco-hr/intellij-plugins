@@ -1,0 +1,12 @@
+{
+  final String fullPath=getTestDataPath() + filePath;
+  final String fullRefinedPath=fullPath.replace(File.separatorChar,'/');
+  final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(fullRefinedPath);
+  Assert.assertNotNull("file " + fullRefinedPath + " not found",vFile);
+  String fileText=StringUtil.convertLineSeparators(VfsUtil.loadText(vFile));
+  final String fileName=vFile.getName();
+  JSFile jsFile=createJsFile(fileText,fileName);
+  JsTestFileStructure jsTestFileStructure=buildJsTestFileStructureByJsFile(jsFile);
+  MarkedJsTestFileStructure markedJsTestFileStructure=MarkedJstdTestStructureUtils.buildMarkedJsTestFileStructureByFileText(fileText,jsFile);
+  validateJsTestFileStructure(markedJsTestFileStructure,jsTestFileStructure);
+}

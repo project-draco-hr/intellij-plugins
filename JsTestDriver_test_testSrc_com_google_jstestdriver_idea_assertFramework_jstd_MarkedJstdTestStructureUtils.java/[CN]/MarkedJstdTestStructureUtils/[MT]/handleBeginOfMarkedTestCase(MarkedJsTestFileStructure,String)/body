@@ -1,0 +1,13 @@
+{
+  Matcher testCaseMatcher=TEST_CASE_PATTERN.matcher(fileText);
+  while (testCaseMatcher.find()) {
+    Annotation annotation=new Annotation("TestCase",testCaseMatcher.start(),testCaseMatcher.end(),testCaseMatcher.group(1));
+    int id=MarkedTestCaseStructure.getIdAndValidate(annotation);
+    MarkedTestCaseStructure markedTestCaseStructure=markedJsTestFileStructure.findById(id);
+    if (markedTestCaseStructure != null) {
+      throw new RuntimeException("Duplicated TestCase with id " + id + " found");
+    }
+    markedTestCaseStructure=new MarkedTestCaseStructure(annotation);
+    markedJsTestFileStructure.addMarkedTestCaseStructure(markedTestCaseStructure);
+  }
+}

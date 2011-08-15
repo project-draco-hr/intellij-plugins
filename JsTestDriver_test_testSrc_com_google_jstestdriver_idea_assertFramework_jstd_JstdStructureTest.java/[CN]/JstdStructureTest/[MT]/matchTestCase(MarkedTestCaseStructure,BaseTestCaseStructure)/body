@@ -1,0 +1,15 @@
+{
+  Assert.assertEquals(testCaseStructure.getTestCaseName(),markedTestCaseStructure.getName());
+  Assert.assertTrue(testCaseStructure.getPsiElement() == markedTestCaseStructure.getPsiElement());
+  List<MarkedTestStructure> markedTestStructures=markedTestCaseStructure.getMarkedTestStructures();
+  for (  MarkedTestStructure markedTestStructure : markedTestStructures) {
+    BaseTestStructure testStructure=testCaseStructure.getTestStructureByName(markedTestStructure.getName());
+    if (testStructure == null) {
+      Assert.fail("Test '" + markedTestStructure.getName() + "' is not found in test-case '"+ testCaseStructure.getTestCaseName()+ "'!");
+    }
+    matchTest(markedTestStructure,(JstdTestStructure)testStructure);
+  }
+  if (markedTestStructures.size() != testCaseStructure.getTestCount()) {
+    Assert.fail("Marked test count is " + markedTestStructures.size() + ", but built tests count is "+ testCaseStructure.getTestCount());
+  }
+}
