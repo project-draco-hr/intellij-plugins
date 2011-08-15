@@ -11,6 +11,12 @@
     final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(appParentDisposable);
     connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentOpenedListener(){
       @Override public void documentOpened(){
+        semaphoreUp();
+      }
+      @Override public void errorOccured(){
+        semaphoreUp();
+      }
+      private void semaphoreUp(){
         connection.disconnect();
         semaphore.up();
       }
