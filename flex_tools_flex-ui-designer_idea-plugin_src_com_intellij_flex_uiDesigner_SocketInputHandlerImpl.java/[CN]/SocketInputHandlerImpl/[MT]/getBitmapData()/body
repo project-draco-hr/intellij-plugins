@@ -6,7 +6,12 @@
   try {
     ImageUtil.write(image,fileOut,assetInfo.mimeType,assetInfo.file);
   }
-  finally {
+ catch (  IOException e) {
+    final String userMessage=FlexUIDesignerBundle.message("problem.opening.0",assetInfo.file.getName());
+    LOG.error(LogMessageUtil.createEvent(userMessage,ExceptionUtil.getThrowableText(e),assetInfo.file));
+    fileOut.getChannel().truncate(0);
+  }
+ finally {
     fileOut.close();
   }
 }
