@@ -1,10 +1,12 @@
 {
+  if (writeBounds) {
+    writeMovieBounds();
+  }
   TIntArrayList ignoredBytesPositions=null;
   buffer.putShort(swfHeaderEnd - 2,(short)1);
   int initialStartPosition=swfHeaderEnd;
   int fileAttributesFullLength=0;
   int tagStart;
-  int f=0;
   int fileLength=buffer.capacity();
   analyze:   while ((tagStart=buffer.position()) < buffer.limit()) {
     final int tagCodeAndLength=buffer.getShort();
@@ -15,11 +17,10 @@
     }
 switch (type) {
 case TagTypes.End:
-      f+=length + (buffer.position() - tagStart);
-    break analyze;
+      break analyze;
 case TagTypes.FileAttributes:
-  fileAttributesFullLength=length + (buffer.position() - tagStart);
-initialStartPosition=tagStart + fileAttributesFullLength;
+    fileAttributesFullLength=length + (buffer.position() - tagStart);
+  initialStartPosition=tagStart + fileAttributesFullLength;
 break;
 case TagTypes.Metadata:
 case TagTypes.DebugID:
@@ -37,39 +38,26 @@ final int fullLength=length + (buffer.position() - tagStart);
 ignoredBytesPositions.add(tagStart + fullLength);
 fileLength-=fullLength;
 break;
-default :
-f+=length + (buffer.position() - tagStart);
 }
 buffer.position(buffer.position() + length);
 }
-final int spriteTagLength=(fileLength - initialStartPosition) + 4;
-fileLength+=PARTIAL_HEADER_LENGTH + (spriteTagLength >= 63 ? 6 : 2) + 4+ 4;
+final int spriteTagLength=(fileLength - initialStartPosition) + SPRITE_TAG_LENGTH_EXCEPT_CONTROL_TAGS;
+final byte[] symbolOwnClassAbc=getSymbolOwnClassAbc(frameCount);
+fileLength+=PARTIAL_HEADER_LENGTH + symbolOwnClassAbc.length + recordHeaderLength(spriteTagLength)+ SPRITE_TAG_LENGTH_EXCEPT_CONTROL_TAGS+ SwfUtil.getWrapFooterLength()+ SYMBOL_CLASS_TAG_FULL_LENGTH;
 writePartialHeader(out,fileLength);
-final byte[] data=buffer.array();
 out.write(data,0,initialStartPosition);
 buffer.position(0);
-encodeLongTagHeader(TagTypes.DefineSprite,spriteTagLength);
-buffer.putShort((short)65532);
+encodeTagHeader(TagTypes.DefineSprite,spriteTagLength);
+buffer.putShort((short)DOCUMENT_SPRITE_ID);
 buffer.putShort(frameCount);
 out.write(data,0,buffer.position());
-out.flush();
 if (ignoredBytesPositions == null) {
-throw new IllegalStateException();
+out.write(data,initialStartPosition,data.length - initialStartPosition);
 }
  else {
-final int maxI=ignoredBytesPositions.size() - 1;
-int prevOffset=initialStartPosition;
-int i=0;
-while (true) {
-if (i >= maxI) {
-out.write(data,prevOffset,data.length - prevOffset);
-break;
+writeSparceBytes(ignoredBytesPositions,initialStartPosition,data.length);
 }
- else {
-out.write(data,prevOffset,ignoredBytesPositions.getQuick(i++) - prevOffset);
-prevOffset=ignoredBytesPositions.getQuick(i++);
-}
-}
-}
+out.write(symbolOwnClassAbc);
+writeSymbolClass(DOCUMENT_SPRITE_ID);
 SwfUtil.footer(out);
 }
