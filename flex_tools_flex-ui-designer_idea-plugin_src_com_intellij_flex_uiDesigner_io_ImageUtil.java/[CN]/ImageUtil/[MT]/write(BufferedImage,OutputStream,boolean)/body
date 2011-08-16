@@ -8,18 +8,20 @@
   out.write(byteBuffer,0,5);
   WritableRaster raster=image.getRaster();
   final int nbands=raster.getNumBands();
-  if (!(nbands == 3 || nbands == 4)) {
-    throw new IOException();
-  }
   final int unflushedBufferLength;
-  if (raster.getDataBuffer().getNumBanks() != 1) {
-    throw new IOException();
-  }
-  if (raster.getDataBuffer() instanceof DataBufferByte) {
-    unflushedBufferLength=writeDataByte(image,out,byteBuffer,nbands);
+  if (image.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+    unflushedBufferLength=writeDataByte(image,out,byteBuffer);
   }
  else {
-    unflushedBufferLength=writeDataInt(image,out,byteBuffer,nbands);
+    if (raster.getDataBuffer().getNumBanks() != 1) {
+      throw new IOException();
+    }
+    if (raster.getDataBuffer() instanceof DataBufferByte) {
+      unflushedBufferLength=writeDataByte(image,out,byteBuffer,nbands);
+    }
+ else {
+      unflushedBufferLength=writeDataInt(image,out,byteBuffer,nbands);
+    }
   }
   if (unflushedBufferLength > 0) {
     out.write(byteBuffer,0,unflushedBufferLength);
