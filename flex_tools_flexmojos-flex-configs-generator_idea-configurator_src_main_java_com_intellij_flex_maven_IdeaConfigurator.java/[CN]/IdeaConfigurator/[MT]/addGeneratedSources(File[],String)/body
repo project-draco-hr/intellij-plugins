@@ -1,12 +1,20 @@
 {
+  final List<File> existingList;
+  if (flexmojosGeneratorMojoExecution == null) {
+    existingList=Arrays.asList(existing);
+  }
+ else {
+    existingList=new ArrayList<File>();
+    Collections.addAll(existingList,existing);
+    PlexusConfiguration configuration=new XmlPlexusConfiguration(flexmojosGeneratorMojoExecution.getConfiguration());
+    writeGeneratedSource(configuration,"baseOutputDirectory",existingList,indent);
+    writeGeneratedSource(configuration,"outputDirectory",existingList,indent);
+  }
   File generatedSources=new File(build.getDirectory(),"/generated-sources");
   if (!generatedSources.isDirectory()) {
     return;
   }
-  final List<File> existingList=Arrays.asList(existing);
   for (  File file : generatedSources.listFiles()) {
-    if (file.isDirectory() && !file.isHidden() && existingList.indexOf(file) == -1) {
-      writeTag(indent,PATH_ELEMENT,file.getAbsolutePath(),SOURCE_PATH);
-    }
+    writeGeneratedSource(file,existingList,indent);
   }
 }
