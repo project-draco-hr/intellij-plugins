@@ -1,0 +1,13 @@
+{
+  Matcher testMatcher=TEST_PATTERN.matcher(fileText);
+  while (testMatcher.find()) {
+    Annotation annotation=new Annotation("test",testMatcher.start(),testMatcher.end(),testMatcher.group(1));
+    String testId=MarkedQUnitTestMethodStructure.getIdAndValidate(annotation);
+    MarkedQUnitTestMethodStructure markedQUnitTestStructure=markedQUniTestStructureMap.get(testId);
+    if (markedQUnitTestStructure != null) {
+      throw new RuntimeException("Test with id " + testId + " is duplicated");
+    }
+    markedQUnitTestStructure=new MarkedQUnitTestMethodStructure(annotation);
+    markedQUniTestStructureMap.put(testId,markedQUnitTestStructure);
+  }
+}
