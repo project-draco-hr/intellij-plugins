@@ -1,6 +1,28 @@
 {
-  String filepath=configuration.getChild(parameterName).getValue();
+  final PlexusConfiguration configuration=parentConfiguration.getChild(parameterName);
+  if (configuration == null) {
+    return;
+  }
+  String filepath=configuration.getValue();
+  if (filepath == null) {
+    final String defaultValue=configuration.getAttribute("default-value");
+    if (defaultValue == null) {
+      return;
+    }
+    if (flexmojosGeneratorExpressionEvaluator == null) {
+      flexmojosGeneratorExpressionEvaluator=new PluginParameterExpressionEvaluator(session,flexmojosGeneratorMojoExecution);
+    }
+    try {
+      filepath=(String)flexmojosGeneratorExpressionEvaluator.evaluate(defaultValue);
+    }
+ catch (    ExpressionEvaluationException e) {
+      throw new RuntimeException(e);
+    }
+  }
   if (filepath != null) {
-    writeGeneratedSource(new File(filepath),existingList,indent);
+    File file=new File(filepath);
+    if (!existingList.contains(file)) {
+      writeTag(indent,PATH_ELEMENT,file.getAbsolutePath(),SOURCE_PATH);
+    }
   }
 }

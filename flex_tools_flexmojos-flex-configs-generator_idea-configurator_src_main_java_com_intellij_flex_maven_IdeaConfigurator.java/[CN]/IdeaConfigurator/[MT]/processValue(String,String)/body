@@ -1,3 +1,22 @@
 {
+  if (!useOldLocation && name.equals(LOCAL_FONTS_SNAPSHOT)) {
+    final File fontsSer=new File(build.getOutputDirectory(),FONTS_SER);
+    String defaultPath;
+    try {
+      defaultPath=fontsSer.getCanonicalPath();
+    }
+ catch (    IOException e) {
+      defaultPath=fontsSer.getAbsolutePath();
+    }
+    if (value.equals(defaultPath)) {
+      if (sharedFontsSer == null) {
+        sharedFontsSer=new File(configsDir,FONTS_SER);
+        if (!sharedFontsSer.exists()) {
+          FileUtils.copyFile(fontsSer,sharedFontsSer);
+        }
+      }
+      value=sharedFontsSer.getAbsolutePath();
+    }
+  }
   out.append(value);
 }
