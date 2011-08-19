@@ -34,15 +34,24 @@
  finally {
     mavenPluginManager.releaseMojo(mojo,mojoExecution);
   }
-  IdeaConfigurator configurator=generateAlsoShareable ? new ShareableFlexConfigGenerator() : new IdeaConfigurator();
+  MethodComparator.class.getName();
   try {
-    modifyOurClassRealm(flexmojosPluginRealm);
-    configurator.init(session,project,getClassifier(mojo,flexmojosPluginRealm));
-    if ("swc".equals(packaging)) {
-      configurator.buildConfiguration(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
+    List<IdeaConfigurator> configurators=new ArrayList<IdeaConfigurator>(2);
+    if (generateNonShareable) {
+      configurators.add(new IdeaConfigurator());
     }
+    if (generateShareable) {
+      configurators.add(new ShareableFlexConfigGenerator());
+    }
+    modifyOurClassRealm(flexmojosPluginRealm);
+    for (    IdeaConfigurator configurator : configurators) {
+      configurator.init(session,project,getClassifier(mojo,flexmojosPluginRealm));
+      if ("swc".equals(packaging)) {
+        configurator.buildConfiguration(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
+      }
  else {
-      configurator.buildConfiguration(mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm),flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICommandLineConfiguration"));
+        configurator.buildConfiguration(mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm),flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICommandLineConfiguration"));
+      }
     }
   }
  catch (  Exception e) {
