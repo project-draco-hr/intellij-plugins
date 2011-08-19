@@ -1,0 +1,26 @@
+{
+  int currentNodeNumber=0;
+  for (  final CompilerOptionInfo info : optionInfos) {
+    final boolean show=info.isGroup() || hasCustomValue(info) || ((showAll || !info.ADVANCED) && info.isApplicable("4.5.0",TargetPlatform.Web,false,OutputType.Application));
+    DefaultMutableTreeNode node=findChildNodeWithInfo(rootNode,info);
+    if (show) {
+      if (node == null) {
+        node=new DefaultMutableTreeNode(info,info.isGroup());
+        rootNode.insert(node,currentNodeNumber);
+      }
+      currentNodeNumber++;
+      if (info.isGroup()) {
+        updateChildNodes(node,info.getChildOptionInfos(),showAll);
+        if (node.getChildCount() == 0) {
+          node.removeFromParent();
+          currentNodeNumber--;
+        }
+      }
+    }
+ else {
+      if (node != null) {
+        node.removeFromParent();
+      }
+    }
+  }
+}

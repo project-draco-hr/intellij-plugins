@@ -1,0 +1,27 @@
+{
+  if (info.isGroup()) {
+    ValueSource groupValueSource=ValueSource.GlobalDefault;
+    for (    final CompilerOptionInfo childInfo : info.getChildOptionInfos()) {
+      if (childInfo.isApplicable("4.5.0",TargetPlatform.Web,false,OutputType.Application)) {
+        final ValueSource childSource=getValueAndSource(childInfo).second;
+        if (childSource.ordinal() > groupValueSource.ordinal()) {
+          groupValueSource=childSource;
+        }
+      }
+    }
+    return Pair.create(null,groupValueSource);
+  }
+  final String customValue=myCurrentOptions.get(info.ID);
+  if (customValue != null) {
+    return Pair.create(customValue,ValueSource.Custom);
+  }
+  final String moduleDefaultValue=myBCManager.getModuleLevelCompilerOptions().OPTIONS.get(info.ID);
+  if (moduleDefaultValue != null) {
+    return Pair.create(moduleDefaultValue,ValueSource.ModuleDefault);
+  }
+  final String projectDefaultValue=myProjectLevelOptions.getProjectLevelCompilerOptions().OPTIONS.get(info.ID);
+  if (projectDefaultValue != null) {
+    return Pair.create(projectDefaultValue,ValueSource.ProjectDefault);
+  }
+  return Pair.create(info.getDefaultValue("4.5"),ValueSource.GlobalDefault);
+}

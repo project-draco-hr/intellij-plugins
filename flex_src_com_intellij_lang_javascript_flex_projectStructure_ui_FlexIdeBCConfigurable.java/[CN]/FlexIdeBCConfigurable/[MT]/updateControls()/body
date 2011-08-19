@@ -1,0 +1,29 @@
+{
+  final TargetPlatform targetPlatform=(TargetPlatform)myTargetPlatformCombo.getSelectedItem();
+  final boolean mobilePlatform=targetPlatform == TargetPlatform.Mobile;
+  final boolean webPlatform=targetPlatform == TargetPlatform.Web;
+  final boolean isPureAS=myPureActionScriptCheckBox.isSelected();
+  final OutputType outputType=(OutputType)myOutputTypeCombo.getSelectedItem();
+  myOptimizeForLabel.setVisible(outputType == OutputType.RuntimeLoadedModule);
+  myOptimizeForCombo.setVisible(outputType == OutputType.RuntimeLoadedModule);
+  myTargetPlayerLabel.setVisible(webPlatform);
+  myTargetPlayerCombo.setVisible(webPlatform);
+  if (webPlatform) {
+    final Object selectedPlayer=myTargetPlayerCombo.getSelectedItem();
+    myTargetPlayerCombo.setModel(new DefaultComboBoxModel(getAvailablePlayersFromSdk()));
+    myTargetPlayerCombo.setSelectedItem(selectedPlayer);
+  }
+  myComponentSetLabel.setVisible(!mobilePlatform && !isPureAS);
+  myComponentSetCombo.setVisible(!mobilePlatform && !isPureAS);
+  final Object selectedLinkage=myFrameworkLinkageCombo.getSelectedItem();
+  myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(getSuitableFrameworkLinkages(targetPlatform,isPureAS,outputType)));
+  myFrameworkLinkageCombo.setSelectedItem(selectedLinkage);
+  final boolean showMainClass=outputType == OutputType.Application || outputType == OutputType.RuntimeLoadedModule;
+  myMainClassLabel.setVisible(showMainClass);
+  myMainClassTextField.setVisible(showMainClass);
+  final String outputFileName=myOutputFileNameTextField.getText();
+  final String lowercase=outputFileName.toLowerCase();
+  if (lowercase.endsWith(".swf") || lowercase.endsWith(".swc")) {
+    myOutputFileNameTextField.setText(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + (outputType == OutputType.Library ? ".swc" : ".swf"));
+  }
+}

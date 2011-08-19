@@ -1,0 +1,18 @@
+{
+  for (  final Map.Entry<Module,List<FlexIdeBCConfigurable>> entry : myModuleToConfigurablesMap.entrySet()) {
+    final Module module=entry.getKey();
+    final List<FlexIdeBuildConfiguration> configurations=new LinkedList<FlexIdeBuildConfiguration>();
+    final List<FlexIdeBCConfigurable> configurables=entry.getValue();
+    for (    final FlexIdeBCConfigurable configurable : configurables) {
+      configurable.apply();
+      configurations.add(configurable.getEditableObject().clone());
+    }
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      public void run(){
+        FlexIdeBuildConfigurationManager.getInstance(module).setBuildConfigurations(configurations.toArray(new FlexIdeBuildConfiguration[configurations.size()]));
+      }
+    }
+);
+  }
+  myModified=false;
+}

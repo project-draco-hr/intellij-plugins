@@ -1,0 +1,15 @@
+{
+  final Collection<AnAction> actions=new ArrayList<AnAction>(2);
+  actions.add(new Separator());
+  actions.add(new DumbAwareAction("Build Configuration"){
+    public void update(    final AnActionEvent e){
+      final Object selectedObject=selectedObjectRetriever.compute();
+      e.getPresentation().setVisible(selectedObject instanceof FlexIdeBuildConfiguration || (selectedObject instanceof Module && ((Module)selectedObject).getModuleType() instanceof FlexModuleType));
+    }
+    public void actionPerformed(    final AnActionEvent e){
+      myConfigurator.addConfiguration(selectedObjectRetriever.compute(),treeNodeNameUpdater);
+    }
+  }
+);
+  return actions;
+}

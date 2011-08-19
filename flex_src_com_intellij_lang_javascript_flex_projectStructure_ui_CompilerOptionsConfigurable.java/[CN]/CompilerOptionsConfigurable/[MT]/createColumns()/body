@@ -1,0 +1,34 @@
+{
+  final ColumnInfo optionColumn=new ColumnInfo("Option"){
+    public Object valueOf(    final Object o){
+      final Object userObject=((DefaultMutableTreeNode)o).getUserObject();
+      return userObject instanceof CompilerOptionInfo ? userObject : o;
+    }
+    public Class getColumnClass(){
+      return TreeTableModel.class;
+    }
+  }
+;
+  final ColumnInfo valueColumn=new ColumnInfo("Value"){
+    public Object valueOf(    Object o){
+      final Object userObject=((DefaultMutableTreeNode)o).getUserObject();
+      return userObject instanceof CompilerOptionInfo && !((CompilerOptionInfo)userObject).isGroup() ? userObject : null;
+    }
+    public Class getColumnClass(){
+      return CompilerOptionInfo.class;
+    }
+    public boolean isCellEditable(    Object o){
+      final Object userObject=((DefaultMutableTreeNode)o).getUserObject();
+      return userObject instanceof CompilerOptionInfo && !((CompilerOptionInfo)userObject).isGroup();
+    }
+    public void setValue(    Object node,    Object value){
+      myModified=true;
+      final DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)node;
+      final CompilerOptionInfo info=(CompilerOptionInfo)treeNode.getUserObject();
+      myCurrentOptions.put(info.ID,(String)value);
+      ((DefaultTreeModel)myTreeTable.getTree().getModel()).reload(treeNode);
+    }
+  }
+;
+  return new ColumnInfo[]{optionColumn,valueColumn};
+}
