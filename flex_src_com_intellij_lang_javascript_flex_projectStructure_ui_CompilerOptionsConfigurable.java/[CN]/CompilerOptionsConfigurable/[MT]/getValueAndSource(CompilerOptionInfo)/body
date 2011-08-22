@@ -15,13 +15,17 @@
   if (customValue != null) {
     return Pair.create(customValue,ValueSource.Custom);
   }
-  final String moduleDefaultValue=myBCManager.getModuleLevelCompilerOptions().OPTIONS.get(info.ID);
-  if (moduleDefaultValue != null) {
-    return Pair.create(moduleDefaultValue,ValueSource.ModuleDefault);
+  if (myMode == Mode.BC) {
+    final String moduleDefaultValue=myBCManager.getModuleLevelCompilerOptions().OPTIONS.get(info.ID);
+    if (moduleDefaultValue != null) {
+      return Pair.create(moduleDefaultValue,ValueSource.ModuleDefault);
+    }
   }
-  final String projectDefaultValue=myProjectLevelOptions.getProjectLevelCompilerOptions().OPTIONS.get(info.ID);
-  if (projectDefaultValue != null) {
-    return Pair.create(projectDefaultValue,ValueSource.ProjectDefault);
+  if (myMode == Mode.BC || myMode == Mode.Module) {
+    final String projectDefaultValue=myProjectLevelOptionsHolder.getProjectLevelCompilerOptions().OPTIONS.get(info.ID);
+    if (projectDefaultValue != null) {
+      return Pair.create(projectDefaultValue,ValueSource.ProjectDefault);
+    }
   }
   return Pair.create(info.getDefaultValue("4.5"),ValueSource.GlobalDefault);
 }
