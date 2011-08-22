@@ -1,2 +1,12 @@
 {
+  final Project project=facet.getModule().getProject();
+  if (FlexCompilerProjectConfiguration.getInstance(project).GENERATE_FLEXMOJOS_CONFIGS) {
+    for (    MavenProjectsProcessorTask postTask : postTasks) {
+      if (postTask instanceof GenerateFlexConfigTask) {
+        return;
+      }
+    }
+    ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreUnderDirectory(getCompilerConfigsDir(project),project));
+    postTasks.add(new GenerateFlexConfigTask(mavenProject,mavenTree));
+  }
 }
