@@ -1,5 +1,13 @@
 {
-  StringBuilder pathBuilder=new StringBuilder(useOldLocation ? build.getDirectory() : configsDir.getAbsolutePath()).append(File.separatorChar);
+  if (useOldLocation) {
+    StringBuilder pathBuilder=new StringBuilder(build.getDirectory()).append(File.separatorChar).append(build.getFinalName());
+    if (classifier != null) {
+      pathBuilder.append('-').append(classifier);
+    }
+    return pathBuilder.append("-configs.xml").toString();
+  }
+  configsDir.mkdirs();
+  StringBuilder pathBuilder=new StringBuilder(configsDir.getAbsolutePath()).append(File.separatorChar);
   pathBuilder.append(project.getArtifactId()).append('-').append(project.getGroupId());
   if (classifier != null) {
     pathBuilder.append('-').append(classifier);
