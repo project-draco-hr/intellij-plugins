@@ -1,0 +1,43 @@
+{
+  MojoExecution flexmojosMojoExecution=null;
+  MojoExecution flexmojosGeneratorMojoExecution=null;
+  for (  Plugin plugin : project.getBuildPlugins()) {
+    if (plugin.getGroupId().equals("org.sonatype.flexmojos")) {
+      if (flexmojosMojoExecution == null && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
+        flexmojosMojoExecution=createMojoExecution(plugin,"compile-" + project.getPackaging(),project);
+      }
+ else       if (flexmojosGeneratorMojoExecution == null && plugin.getArtifactId().equals("flexmojos-generator-mojo")) {
+        flexmojosGeneratorMojoExecution=createMojoExecution(plugin,"generate",project);
+      }
+      if (flexmojosMojoExecution != null && flexmojosGeneratorMojoExecution != null) {
+        break;
+      }
+    }
+  }
+  if (flexmojosMojoExecution == null) {
+    return;
+  }
+  ClassRealm flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
+  Mojo mojo=null;
+  try {
+    mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
+    modifyOurClassRealm(flexmojosPluginRealm);
+    for (    IdeaConfigurator configurator : configurators) {
+      configurator.preGenerate(project,getClassifier(mojo,flexmojosPluginRealm),flexmojosGeneratorMojoExecution);
+      try {
+        if ("swc".equals(project.getPackaging())) {
+          configurator.generate(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
+        }
+ else {
+          configurator.generate(mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm),flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICommandLineConfiguration"));
+        }
+      }
+  finally {
+        configurator.postGenerate();
+      }
+    }
+  }
+  finally {
+    mavenPluginManager.releaseMojo(mojo,mojoExecution);
+  }
+}

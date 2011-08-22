@@ -1,62 +1,39 @@
 {
-  MavenProject project=session.getCurrentProject();
-  String packaging=project.getPackaging();
-  if (!Utils.isFlashProject(project)) {
-    return;
+  List<IdeaConfigurator> configurators=new ArrayList<IdeaConfigurator>(2);
+  if (generateNonShareable) {
+    configurators.add(new IdeaConfigurator(session));
   }
-  MojoExecution flexmojosMojoExecution=null;
-  MojoExecution flexmojosGeneratorMojoExecution=null;
-  for (  Plugin plugin : project.getBuildPlugins()) {
-    if (plugin.getGroupId().equals("org.sonatype.flexmojos")) {
-      if (flexmojosMojoExecution == null && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
-        flexmojosMojoExecution=createMojoExecution(plugin,"compile-" + packaging,project);
-      }
- else       if (flexmojosGeneratorMojoExecution == null && plugin.getArtifactId().equals("flexmojos-generator-mojo")) {
-        flexmojosGeneratorMojoExecution=createMojoExecution(plugin,"generate",project);
-      }
-      if (flexmojosMojoExecution != null && flexmojosGeneratorMojoExecution != null) {
-        break;
+  if (generateShareable) {
+    configurators.add(new ShareableFlexConfigGenerator(session));
+  }
+  final HashMap<Artifact,MavenProject> ourProjects=new HashMap<Artifact,MavenProject>(session.getProjects().size());
+  final String rootProjectDirPath=session.getTopLevelProject().getBasedir().getPath();
+  for (  MavenProject project : session.getProjects()) {
+    if (!Utils.isFlashProject(project)) {
+      continue;
+    }
+    for (    Artifact artifact : project.getArtifacts()) {
+      final MavenProject reactorProject=ourProjects.get(artifact);
+      if (reactorProject != null) {
+        if (!artifact.isResolved()) {
+          artifact.setResolved(true);
+        }
+ else         if (artifact.getFile().getPath().startsWith(rootProjectDirPath)) {
+          continue;
+        }
+        artifact.setFile(reactorProject.getArtifact().getFile());
       }
     }
-  }
-  if (flexmojosMojoExecution == null) {
-    return;
-  }
-  final ClassRealm flexmojosPluginRealm;
-  Mojo mojo=null;
-  try {
-    flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
-    mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
-  }
- catch (  Exception e) {
-    throw new RuntimeException(e);
-  }
+    ourProjects.put(project.getArtifact(),project);
+    try {
+      session.setCurrentProject(project);
+      generateForProject(project,configurators);
+    }
+ catch (    Exception e) {
+      throw new MojoExecutionException("Cannot generate flex config: " + e.getMessage(),e);
+    }
  finally {
-    if (mojo != null) {
-      mavenPluginManager.releaseMojo(mojo,mojoExecution);
+      session.setCurrentProject(session.getTopLevelProject());
     }
-  }
-  MethodComparator.class.getName();
-  try {
-    List<IdeaConfigurator> configurators=new ArrayList<IdeaConfigurator>(2);
-    if (generateNonShareable) {
-      configurators.add(new IdeaConfigurator(useOldLocation));
-    }
-    if (generateShareable) {
-      configurators.add(new ShareableFlexConfigGenerator());
-    }
-    modifyOurClassRealm(flexmojosPluginRealm);
-    for (    IdeaConfigurator configurator : configurators) {
-      configurator.init(session,project,getClassifier(mojo,flexmojosPluginRealm),flexmojosGeneratorMojoExecution);
-      if ("swc".equals(packaging)) {
-        configurator.buildConfiguration(mojo,flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICompcConfiguration"));
-      }
- else {
-        configurator.buildConfiguration(mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm),flexmojosPluginRealm.loadClass("org.sonatype.flexmojos.compiler.ICommandLineConfiguration"));
-      }
-    }
-  }
- catch (  Exception e) {
-    throw new MojoExecutionException("Failed to execute configurator: " + e.getMessage(),e);
   }
 }
