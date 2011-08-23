@@ -1,5 +1,6 @@
 {
   myState=state;
+  myEventDispatcher=EventDispatcher.create(ChangeListener.class);
   mySdksModel=ProjectStructureConfigurable.getInstance(myState.getProject()).getProjectJdksModel();
   mySdkLabel.setLabelFor(mySdkPathCombo.getChildComponent());
   myEntriesEditor=new CommonContentEntriesEditor(state.getRootModel().getModule().getName(),state,true,true);
@@ -9,7 +10,7 @@
     @Override public void sdkAdded(    Sdk sdk){
     }
     @Override public void beforeSdkRemove(    Sdk sdk){
-      if (!isModified() && findExistingSdk(mySdkPathCombo.getText(),FlexIdeUtils.getSdkType()) == null) {
+      if (!isModified() && findExistingSdk(getSdkPath(),FlexIdeUtils.getSdkType()) == null) {
         mySdkPathCombo.setText("");
         myInitialSdkHome="";
       }
@@ -23,7 +24,8 @@
   mySdksModel.addListener(myListener);
   mySdkPathCombo.addListener(new ChangeListener(){
     @Override public void stateChanged(    ChangeEvent e){
-      updateInfoLabel();
+      analyzeSdk();
+      myEventDispatcher.getMulticaster().stateChanged(new ChangeEvent(FlexModuleEditor.this));
     }
   }
 );
