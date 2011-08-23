@@ -1,10 +1,17 @@
 {
   PsiElement resolved=resolveUniquely(jsReferenceExpression);
+  if (resolved == null) {
+    return null;
+  }
   JSVariable jsVariable=CastUtils.tryCast(resolved,JSVariable.class);
   if (jsVariable != null) {
-    JSExpression initializer=jsVariable.getInitializer();
-    if (initializer != null) {
-      return initializer;
+    return jsVariable.getInitializer();
+  }
+  JSDefinitionExpression jsDefinitionExpression=CastUtils.tryCast(resolved,JSDefinitionExpression.class);
+  if (jsDefinitionExpression != null) {
+    JSAssignmentExpression jsAssignmentExpression=CastUtils.tryCast(resolved.getParent(),JSAssignmentExpression.class);
+    if (jsAssignmentExpression != null) {
+      return jsAssignmentExpression.getROperand();
     }
   }
   return null;

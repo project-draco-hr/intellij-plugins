@@ -1,12 +1,12 @@
 {
-  Matcher testCaseEndMatcher=MODULE_END_PATTERN.matcher(fileText);
-  while (testCaseEndMatcher.find()) {
-    String testCaseIdStr=testCaseEndMatcher.group(1);
-    int testCaseId=Integer.parseInt(testCaseIdStr);
-    MarkedQUnitModuleStructure markedQUnitModuleStructure=markedQUnitFileStructure.findById(testCaseId);
+  Matcher moduleEndMatcher=MODULE_END_PATTERN.matcher(fileText);
+  while (moduleEndMatcher.find()) {
+    Annotation endAnnotation=new Annotation("moduleEnd",moduleEndMatcher.start(),moduleEndMatcher.end(),moduleEndMatcher.group(1));
+    int moduleId=MarkedQUnitModuleStructure.getId(endAnnotation);
+    MarkedQUnitModuleStructure markedQUnitModuleStructure=markedQUnitFileStructure.findById(moduleId);
     if (markedQUnitModuleStructure == null) {
-      throw new RuntimeException("'" + testCaseEndMatcher.group() + "' references undefined TestCase");
+      throw new RuntimeException("'" + moduleEndMatcher.group() + "' references undefined module");
     }
-    markedQUnitModuleStructure.endEncountered(TextRange.create(testCaseEndMatcher.start(),testCaseEndMatcher.end()),jsFile);
+    markedQUnitModuleStructure.endEncountered(TextRange.create(moduleEndMatcher.start(),moduleEndMatcher.end()),jsFile);
   }
 }
