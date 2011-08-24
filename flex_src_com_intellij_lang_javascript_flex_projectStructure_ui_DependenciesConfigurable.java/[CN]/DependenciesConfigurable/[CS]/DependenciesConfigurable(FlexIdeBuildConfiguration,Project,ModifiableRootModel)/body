@@ -1,0 +1,28 @@
+{
+  myDependencies=bc.DEPENDENCIES;
+  myProject=project;
+  myRootModel=rootModel;
+  final boolean mobilePlatform=bc.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Mobile;
+  myComponentSetLabel.setVisible(!mobilePlatform && !bc.PURE_ACTION_SCRIPT);
+  myComponentSetCombo.setVisible(!mobilePlatform && !bc.PURE_ACTION_SCRIPT);
+  myComponentSetCombo.setModel(new DefaultComboBoxModel(FlexIdeBuildConfiguration.ComponentSet.values()));
+  myComponentSetCombo.setRenderer(new ListCellRendererWrapper<FlexIdeBuildConfiguration.ComponentSet>(myComponentSetCombo.getRenderer()){
+    public void customize(    JList list,    FlexIdeBuildConfiguration.ComponentSet value,    int index,    boolean selected,    boolean hasFocus){
+      setText(value.PRESENTABLE_TEXT);
+    }
+  }
+);
+  final FlexIdeBuildConfiguration.FrameworkLinkage defaultLinkage=BCUtils.getDefaultFrameworkLinkage(bc.TARGET_PLATFORM,bc.PURE_ACTION_SCRIPT,bc.OUTPUT_TYPE);
+  myFrameworkLinkageCombo.setRenderer(new ListCellRendererWrapper<FlexIdeBuildConfiguration.FrameworkLinkage>(myFrameworkLinkageCombo.getRenderer()){
+    public void customize(    JList list,    FlexIdeBuildConfiguration.FrameworkLinkage value,    int index,    boolean selected,    boolean hasFocus){
+      if (value == FlexIdeBuildConfiguration.FrameworkLinkage.Default) {
+        setText(MessageFormat.format("SDK Default ({0})",defaultLinkage.PRESENTABLE_TEXT));
+      }
+ else {
+        setText(value.PRESENTABLE_TEXT);
+      }
+    }
+  }
+);
+  myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(BCUtils.getSuitableFrameworkLinkages(bc.TARGET_PLATFORM,bc.PURE_ACTION_SCRIPT,bc.OUTPUT_TYPE)));
+}
