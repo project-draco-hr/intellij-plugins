@@ -1,31 +1,3 @@
 {
-  if (!pathsEqual(myInitialSdkHome,getSdkPath())) {
-    String newSdkHome=getSdkPath();
-    final SdkType sdkType=FlexIdeUtils.getSdkType();
-    if (StringUtil.isEmpty(newSdkHome) || !sdkType.isValidSdkHome(newSdkHome)) {
-      myState.getRootModel().setSdk(null);
-    }
- else {
-      newSdkHome=StringUtil.trimEnd(FileUtil.toSystemIndependentName(newSdkHome),"/");
-      Sdk existingSdk=findExistingSdk(newSdkHome,sdkType);
-      if (existingSdk == null) {
-        String newSdkName=SdkConfigurationUtil.createUniqueSdkName(sdkType,newSdkHome,mySdksModel.getProjectSdks().values());
-        final ProjectJdkImpl newSdk=new ProjectJdkImpl(newSdkName,sdkType);
-        newSdk.setHomePath(newSdkHome);
-        if (!sdkType.setupSdkPaths(newSdk,mySdksModel))         return;
-        JdkListConfigurable.getInstance(myState.getProject()).addJdkNode(newSdk,false);
-        mySdksModel.doAdd(newSdk,null);
-        myState.getRootModel().setSdk(newSdk);
-      }
- else {
-        if (myState.getRootModel().getSdk() != existingSdk) {
-          myState.getRootModel().setSdk(existingSdk);
-        }
-      }
-    }
-    mySdkPathCombo.saveHistory();
-  }
-  if (myEntriesEditor.isModified()) {
-    myEntriesEditor.apply();
-  }
+  myEntriesEditor.apply();
 }

@@ -1,0 +1,41 @@
+{
+  if (myWorkingSdk == null) {
+    Sdk existingSdk=findExistingSdk(getSdkPath(),FlexIdeUtils.getSdkType());
+    if (existingSdk != null) {
+      try {
+        myWorkingSdk=(ProjectJdkImpl)existingSdk.clone();
+      }
+ catch (      CloneNotSupportedException ignored) {
+      }
+    }
+ else {
+      myWorkingSdk=createSdk(getSdkPath());
+    }
+  }
+  JdkConfigurable c=new JdkConfigurable(myWorkingSdk,mySdksModel,null,new History(EMPTY_NAVIGATOR),myProject){
+    @Override protected SdkEditor createSdkEditor(    ProjectSdksModel sdksModel,    History history,    ProjectJdkImpl projectJdk){
+      return new SdkEditor(sdksModel,history,projectJdk){
+        @Override protected boolean showTabForType(        OrderRootType type){
+          return type == OrderRootType.SOURCES || type == JavadocOrderRootType.getInstance();
+        }
+        @Override protected TextFieldWithBrowseButton createHomeComponent(){
+          TextFieldWithBrowseButton c=new TextFieldWithBrowseButton();
+          c.getButton().setVisible(false);
+          return c;
+        }
+      }
+;
+    }
+    @Override public String getDisplayName(){
+      return FlexIdeUtils.getSdkType().getPresentableName();
+    }
+    @Override public void updateName(){
+    }
+  }
+;
+  c.setNameFieldShown(false);
+  boolean modified=ShowSettingsUtil.getInstance().editConfigurable(myProject,c);
+  if (modified) {
+    mySdkRootsModified=true;
+  }
+}

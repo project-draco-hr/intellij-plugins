@@ -1,0 +1,20 @@
+{
+  final SdkModificator m=target.getSdkModificator();
+  final String name=source.getName();
+  m.setName(name);
+  m.setHomePath(source.getHomePath());
+  m.setVersionString(source.getVersionString());
+  m.setSdkAdditionalData(source.getSdkAdditionalData());
+  m.removeAllRoots();
+  for (  OrderRootType rootType : OrderRootType.getAllTypes()) {
+    for (    VirtualFile file : source.getRoots(rootType)) {
+      m.addRoot(file,rootType);
+    }
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      m.commitChanges();
+    }
+  }
+);
+}

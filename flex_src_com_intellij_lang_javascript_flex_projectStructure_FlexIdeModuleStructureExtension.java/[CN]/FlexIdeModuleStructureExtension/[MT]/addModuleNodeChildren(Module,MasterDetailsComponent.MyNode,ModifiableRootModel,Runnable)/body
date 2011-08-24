@@ -1,0 +1,14 @@
+{
+  if (!(ModuleType.get(module) instanceof FlexModuleType)) {
+    return false;
+  }
+  final List<FlexIdeBCConfigurable> configurables=myConfigurator.getOrCreateConfigurables(module,treeNodeNameUpdater,modifiableRootModel);
+  for (  final FlexIdeBCConfigurable configurable : configurables) {
+    if (MasterDetailsComponent.findNodeByObject(moduleNode,configurable.getEditableObject()) == null) {
+      final MasterDetailsComponent.MyNode configurationNode=new MasterDetailsComponent.MyNode(configurable);
+      addConfigurationChildNodes(module.getProject(),configurable,configurationNode);
+      moduleNode.add(configurationNode);
+    }
+  }
+  return configurables.size() > 0;
+}

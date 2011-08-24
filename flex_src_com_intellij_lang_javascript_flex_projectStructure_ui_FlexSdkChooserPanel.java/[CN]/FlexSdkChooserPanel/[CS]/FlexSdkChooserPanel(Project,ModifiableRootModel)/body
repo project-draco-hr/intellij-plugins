@@ -1,0 +1,46 @@
+{
+  if (!PlatformUtils.isFlexIde()) {
+    throw new UnsupportedOperationException("Should not be visible in IDEA");
+  }
+  myProject=project;
+  myRootModel=rootModel;
+  myEventDispatcher=EventDispatcher.create(ChangeListener.class);
+  mySdksModel=ProjectStructureConfigurable.getInstance(myProject).getProjectJdksModel();
+  mySdkLabel.setLabelFor(mySdkPathCombo.getChildComponent());
+  myListener=new SdkModel.Listener(){
+    @Override public void sdkAdded(    Sdk sdk){
+    }
+    @Override public void beforeSdkRemove(    Sdk sdk){
+      if (!isModified() && findExistingSdk(getSdkPath(),FlexIdeUtils.getSdkType()) == null) {
+        mySdkPathCombo.setText("");
+        myInitialSdkHome="";
+        myWorkingSdk=null;
+      }
+    }
+    @Override public void sdkChanged(    Sdk sdk,    String previousName){
+    }
+    @Override public void sdkHomeSelected(    Sdk sdk,    String newSdkHome){
+    }
+  }
+;
+  mySdksModel.addListener(myListener);
+  mySdkPathCombo.addListener(new ChangeListener(){
+    @Override public void stateChanged(    ChangeEvent e){
+      analyzeSdk();
+      myEventDispatcher.getMulticaster().stateChanged(new ChangeEvent(FlexSdkChooserPanel.this));
+      myWorkingSdk=null;
+    }
+  }
+);
+  myEditButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      if (PlatformUtils.isFlexIde()) {
+        editSdk();
+      }
+ else {
+        navigateToEditSdk();
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,15 @@
+{
+  List<FlexIdeBCConfigurable> configurables=myModuleToConfigurablesMap.get(module);
+  if (configurables == null) {
+    final FlexIdeBuildConfiguration[] configurations=FlexIdeBuildConfigurationManager.getInstance(module).getBuildConfigurations();
+    configurables=new LinkedList<FlexIdeBCConfigurable>();
+    for (    final FlexIdeBuildConfiguration configuration : configurations) {
+      final FlexIdeBuildConfiguration clonedConfiguration=configuration.clone();
+      FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,clonedConfiguration,treeNodeNameUpdater,modifiableRootModel);
+      configurables.add(configurable);
+      myConfigurationsToModuleMap.put(clonedConfiguration,module);
+    }
+    myModuleToConfigurablesMap.put(module,configurables);
+  }
+  return configurables;
+}
