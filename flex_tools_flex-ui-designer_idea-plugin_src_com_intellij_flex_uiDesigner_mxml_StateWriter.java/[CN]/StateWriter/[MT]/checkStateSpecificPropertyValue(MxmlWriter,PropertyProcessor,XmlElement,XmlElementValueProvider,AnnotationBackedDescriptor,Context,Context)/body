@@ -28,15 +28,15 @@
   writer.writeStringReference(NAME,propertyProcessor.getName());
   writer.getOut().writeUInt29(VALUE);
   writer.getOut().write(PropertyClassifier.PROPERTY);
-  int type;
+  PropertyKind propertyKind;
   try {
-    type=valueWriter.write(writer.getOut(),writer,false);
+    propertyKind=valueWriter.write(writer.getOut(),writer,false);
   }
  catch (  InvalidPropertyException invalidProperty) {
     throw new UnsupportedOperationException("");
   }
-  if (type < PropertyProcessor.PRIMITIVE) {
-    mxmlWriter.processPropertyTagValue((XmlTag)element,context,type == PropertyProcessor.ARRAY);
+  if (propertyKind.isComplex()) {
+    mxmlWriter.processPropertyTagValue((XmlTag)element,context,propertyKind);
   }
   override.targetId=writer.getObjectOrFactoryId(context);
   if (pendingFirstSetProperty == null) {
