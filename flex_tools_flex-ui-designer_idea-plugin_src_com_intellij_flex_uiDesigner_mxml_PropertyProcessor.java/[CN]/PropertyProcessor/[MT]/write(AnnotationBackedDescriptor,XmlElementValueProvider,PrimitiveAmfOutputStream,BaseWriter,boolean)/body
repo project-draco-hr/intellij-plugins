@@ -16,31 +16,7 @@
     out.write(Amf3Types.OBJECT);
     return COMPLEX;
   }
-  if (type.equals(JSCommonTypeNames.STRING_CLASS_NAME)) {
-    writeString(valueProvider,descriptor);
-  }
- else   if (type.equals(JSCommonTypeNames.NUMBER_CLASS_NAME)) {
-    final String trimmed=valueProvider.getTrimmed();
-    if (StringUtil.isEmpty(trimmed)) {
-      throw new InvalidPropertyException(valueProvider.getElement(),"invalid.number.value");
-    }
-    out.writeAmfDouble(trimmed);
-  }
- else   if (type.equals(JSCommonTypeNames.BOOLEAN_CLASS_NAME)) {
-    out.writeAmfBoolean(valueProvider.getTrimmed());
-  }
- else   if (type.equals(JSCommonTypeNames.INT_TYPE_NAME) || type.equals(JSCommonTypeNames.UINT_TYPE_NAME)) {
-    final String trimmed=valueProvider.getTrimmed();
-    if (StringUtil.isEmpty(trimmed)) {
-      throw new InvalidPropertyException(valueProvider.getElement(),"invalid.integer.value");
-    }
-    String format=descriptor.getFormat();
-    if (FlexCssPropertyDescriptor.COLOR_FORMAT.equals(format)) {
-      writer.writeColor(valueProvider.getElement(),trimmed,isStyle);
-    }
- else {
-      out.writeAmfInt(trimmed);
-    }
+  if (writeIfPrimitive(valueProvider,type,out,writer,descriptor)) {
   }
  else   if (type.equals(JSCommonTypeNames.ARRAY_CLASS_NAME)) {
     if (!descriptor.isRichTextContent() && valueProvider instanceof XmlAttributeValueProvider && isInlineArray(valueProvider.getTrimmed())) {
@@ -52,6 +28,20 @@
     }
   }
  else   if (descriptor.getArrayType() != null) {
+    if (valueProvider.getElement() instanceof XmlTag) {
+      final XmlTag propertyTag=(XmlTag)valueProvider.getElement();
+      final XmlTag[] subTags=propertyTag.getSubTags();
+      if (subTags.length == 1) {
+        final XmlTag contentTag=subTags[0];
+        final XmlElementDescriptor contentTagDescriptor=contentTag.getDescriptor();
+        if (contentTagDescriptor instanceof ClassBackedElementDescriptor && CodeContext.AS3_VEC_VECTOR_QUALIFIED_NAME.equals(contentTagDescriptor.getQualifiedName())) {
+          if (!mxmlWriter.processMxmlVector(contentTag,null)) {
+            throw new InvalidPropertyException(contentTag,"invalid.vector.value");
+          }
+          return isStyle ? PRIMITIVE_STYLE : PRIMITIVE;
+        }
+      }
+    }
     writer.writeVectorHeader(descriptor.getArrayType());
     return VECTOR;
   }

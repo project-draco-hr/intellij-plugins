@@ -1,0 +1,31 @@
+{
+  if (type.equals(JSCommonTypeNames.STRING_CLASS_NAME)) {
+    writeString(valueProvider,descriptor);
+  }
+ else   if (type.equals(JSCommonTypeNames.NUMBER_CLASS_NAME)) {
+    final String trimmed=valueProvider.getTrimmed();
+    if (StringUtil.isEmpty(trimmed)) {
+      throw new InvalidPropertyException(valueProvider.getElement(),"invalid.number.value");
+    }
+    out.writeAmfDouble(trimmed);
+  }
+ else   if (type.equals(JSCommonTypeNames.BOOLEAN_CLASS_NAME)) {
+    out.writeAmfBoolean(valueProvider.getTrimmed());
+  }
+ else   if (type.equals(JSCommonTypeNames.INT_TYPE_NAME) || type.equals(JSCommonTypeNames.UINT_TYPE_NAME)) {
+    final String trimmed=valueProvider.getTrimmed();
+    if (StringUtil.isEmpty(trimmed)) {
+      throw new InvalidPropertyException(valueProvider.getElement(),"invalid.integer.value");
+    }
+    if (descriptor != null && FlexCssPropertyDescriptor.COLOR_FORMAT.equals(descriptor.getFormat())) {
+      writer.writeColor(valueProvider.getElement(),trimmed,isStyle);
+    }
+ else {
+      out.writeAmfInt(trimmed);
+    }
+  }
+ else {
+    return false;
+  }
+  return true;
+}
