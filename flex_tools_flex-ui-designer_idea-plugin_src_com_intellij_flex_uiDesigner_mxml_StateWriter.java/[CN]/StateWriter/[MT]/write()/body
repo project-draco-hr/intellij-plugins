@@ -1,5 +1,6 @@
 {
-  writer.getOut().write(states.size());
+  final PrimitiveAmfOutputStream out=writer.getOut();
+  out.write(states.size());
   if (states.isEmpty()) {
     return;
   }
@@ -8,10 +9,13 @@
     writer.writeProperty(NAME,state.name);
     OverrideBase override=state.overrides.getFirst();
     if (override != null) {
-      writer.writeFixedArrayHeader(OVERRIDES,state.overrides.size());
+      out.writeUInt29(OVERRIDES);
+      out.write(PropertyClassifier.PROPERTY);
+      out.write(AmfExtendedTypes.MXML_ARRAY);
+      out.writeShort(0);
+      out.writeShort(state.overrides.size());
       do {
         override.write(writer,this);
-        writer.endObject();
       }
  while ((override=override.next) != null);
     }

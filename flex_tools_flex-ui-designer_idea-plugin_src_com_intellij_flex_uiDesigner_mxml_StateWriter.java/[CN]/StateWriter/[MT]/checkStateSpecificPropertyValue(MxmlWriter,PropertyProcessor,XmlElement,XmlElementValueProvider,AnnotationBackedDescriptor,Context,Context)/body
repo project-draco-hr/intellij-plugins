@@ -23,14 +23,16 @@
   if (valueWriter == null) {
     return true;
   }
+  final PrimitiveAmfOutputStream out=writer.getOut();
   SetPropertyOrStyle override=new SetPropertyOrStyle(writer.getBlockOut().startRange());
+  out.write(Amf3Types.OBJECT);
   writer.writeObjectHeader(propertyProcessor.isStyle() ? "com.intellij.flex.uiDesigner.flex.states.SetStyle" : "com.intellij.flex.uiDesigner.flex.states.SetProperty");
   writer.writeStringReference(NAME,propertyProcessor.getName());
-  writer.getOut().writeUInt29(VALUE);
-  writer.getOut().write(PropertyClassifier.PROPERTY);
+  out.writeUInt29(VALUE);
+  out.write(PropertyClassifier.PROPERTY);
   PropertyKind propertyKind;
   try {
-    propertyKind=valueWriter.write(descriptor,valueProvider,writer.getOut(),writer,false);
+    propertyKind=valueWriter.write(descriptor,valueProvider,out,writer,false);
   }
  catch (  InvalidPropertyException invalidProperty) {
     throw new UnsupportedOperationException("");
@@ -45,6 +47,7 @@
   if (context == null && parentContext != null && parentContext.ownerIsDynamic() && pendingFirstSetProperty == null) {
     pendingFirstSetProperty=override;
   }
+  writer.endObject();
   writer.getBlockOut().endRange(override.dataRange);
   for (  State state : states) {
     state.overrides.add(override);
