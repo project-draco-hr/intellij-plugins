@@ -1,19 +1,7 @@
 {
   if (StringUtil.isEmpty(config.MAIN_CLASS))   return "";
-  final String s=config.MAIN_CLASS.replace('.','/');
-  final String[] classFileRelPaths={s + ".mxml",s + ".as"};
   if (config.getType() == FlexBuildConfiguration.Type.FlexUnit) {
     return getPathToFlexUnitTempDirectory() + "/" + config.MAIN_CLASS+ ".mxml";
   }
- else {
-    for (    final VirtualFile sourceRoot : ModuleRootManager.getInstance(config.getModule()).getSourceRoots()) {
-      for (      final String classFileRelPath : classFileRelPaths) {
-        final VirtualFile mainClassFile=VfsUtil.findRelativeFile(classFileRelPath,sourceRoot);
-        if (mainClassFile != null) {
-          return mainClassFile.getPath();
-        }
-      }
-    }
-  }
-  return "";
+  return getPathToMainClassFile(config);
 }

@@ -1,0 +1,28 @@
+{
+  final String localeValue=getValueAndSource(CompilerOptionInfo.getOptionInfo("compiler.locale")).first;
+  final List<String> locales=StringUtil.split(localeValue,String.valueOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
+  final Set<String> sourcePathsWithLocaleToken=new THashSet<String>();
+  final List<String> sourcePathsWithoutLocaleToken=new LinkedList<String>();
+  for (  final VirtualFile sourceRoot : ModuleRootManager.getInstance(myModule).getSourceRoots(false)) {
+    if (locales.contains(sourceRoot.getName())) {
+      sourcePathsWithLocaleToken.add(sourceRoot.getParent().getPath() + "/" + FlexCompilerHandler.LOCALE_TOKEN);
+    }
+ else {
+      sourcePathsWithoutLocaleToken.add(sourceRoot.getPath());
+    }
+  }
+  final StringBuilder sourcePathBuilder=new StringBuilder();
+  for (  final String sourcePath : sourcePathsWithLocaleToken) {
+    if (sourcePathBuilder.length() > 0) {
+      sourcePathBuilder.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+    }
+    sourcePathBuilder.append(sourcePath);
+  }
+  for (  final String sourcePath : sourcePathsWithoutLocaleToken) {
+    if (sourcePathBuilder.length() > 0) {
+      sourcePathBuilder.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+    }
+    sourcePathBuilder.append(sourcePath);
+  }
+  addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,sourcePathBuilder.toString());
+}

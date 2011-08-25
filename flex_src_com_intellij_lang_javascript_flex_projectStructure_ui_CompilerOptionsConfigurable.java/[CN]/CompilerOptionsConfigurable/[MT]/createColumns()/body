@@ -22,11 +22,14 @@
       return userObject instanceof CompilerOptionInfo && !((CompilerOptionInfo)userObject).isGroup();
     }
     public void setValue(    Object node,    Object value){
-      myModified=true;
       final DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)node;
       final CompilerOptionInfo info=(CompilerOptionInfo)treeNode.getUserObject();
-      myCurrentOptions.put(info.ID,(String)value);
-      ((DefaultTreeModel)myTreeTable.getTree().getModel()).reload(treeNode);
+      final Pair<String,ValueSource> valueAndSource=getValueAndSource(info);
+      if (valueAndSource.second == ValueSource.BC || !value.equals(valueAndSource.first)) {
+        myModified=true;
+        myCurrentOptions.put(info.ID,(String)value);
+        ((DefaultTreeModel)myTreeTable.getTree().getModel()).reload(treeNode);
+      }
     }
   }
 ;
