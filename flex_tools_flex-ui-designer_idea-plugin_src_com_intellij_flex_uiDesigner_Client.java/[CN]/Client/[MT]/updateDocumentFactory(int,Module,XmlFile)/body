@@ -1,26 +1,22 @@
 {
-  boolean hasError=true;
-  final ProblemsHolder problemsHolder=new ProblemsHolder();
   try {
     beginMessage(ClientMethod.updateDocumentFactory);
     writeId(module);
     out.writeShort(factoryId);
     RequiredAssetsInfo requiredAssetsInfo=new RequiredAssetsInfo();
+    ProblemsHolder problemsHolder=new ProblemsHolder();
     writeDocumentFactory(module,psiFile,problemsHolder,requiredAssetsInfo);
+    if (!problemsHolder.isEmpty()) {
+      DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
+    }
     beginMessage(ClientMethod.updateDocuments);
     writeId(module);
     out.writeShort(factoryId);
-    hasError=false;
+    return true;
   }
  catch (  Throwable e) {
-    problemsHolder.add(e,psiFile.getVirtualFile());
+    LogMessageUtil.processInternalError(e,psiFile.getVirtualFile());
   }
- finally {
-    if (hasError) {
-      blockOut.rollback();
-    }
-  }
-  if (!problemsHolder.isEmpty()) {
-    DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
-  }
+  blockOut.rollback();
+  return false;
 }

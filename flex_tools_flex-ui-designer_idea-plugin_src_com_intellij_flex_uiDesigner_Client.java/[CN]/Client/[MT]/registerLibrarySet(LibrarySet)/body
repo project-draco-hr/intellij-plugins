@@ -1,52 +1,58 @@
 {
-  beginMessage(ClientMethod.registerLibrarySet);
-  out.writeAmfUtf(librarySet.getId());
-  LibrarySet parent=librarySet.getParent();
-  if (parent == null) {
-    out.write(0);
-  }
- else {
-    out.writeAmfUtf(parent.getId());
-  }
-  out.write(librarySet.getApplicationDomainCreationPolicy());
-  final List<LibrarySetItem> items=librarySet.getItems();
-  out.write(items.size());
-  final LibraryManager libraryManager=LibraryManager.getInstance();
-  for (  LibrarySetItem item : items) {
-    final Library library=item.library;
-    final boolean registered=libraryManager.isRegistered(library);
-    int flags=item.filtered ? 1 : 0;
-    if (registered) {
-      flags|=2;
-    }
-    out.write(flags);
-    if (registered) {
-      out.writeShort(library.getId());
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.registerLibrarySet);
+    out.writeAmfUtf(librarySet.getId());
+    LibrarySet parent=librarySet.getParent();
+    if (parent == null) {
+      out.write(0);
     }
  else {
-      out.writeShort(libraryManager.add(library));
-      out.writeAmfUtf(library.getPath());
-      writeVirtualFile(library.getFile(),out);
-      if (library.inheritingStyles == null) {
-        out.writeShort(0);
-      }
- else {
-        out.write(library.inheritingStyles);
-      }
-      if (library.defaultsStyle == null) {
-        out.write(0);
-      }
- else {
-        out.write(1);
-        out.write(library.defaultsStyle);
-      }
+      out.writeAmfUtf(parent.getId());
     }
-    writeParents(items,item);
+    out.write(librarySet.getApplicationDomainCreationPolicy());
+    final List<LibrarySetItem> items=librarySet.getItems();
+    out.write(items.size());
+    final LibraryManager libraryManager=LibraryManager.getInstance();
+    for (    LibrarySetItem item : items) {
+      final Library library=item.library;
+      final boolean registered=libraryManager.isRegistered(library);
+      int flags=item.filtered ? 1 : 0;
+      if (registered) {
+        flags|=2;
+      }
+      out.write(flags);
+      if (registered) {
+        out.writeShort(library.getId());
+      }
+ else {
+        out.writeShort(libraryManager.add(library));
+        out.writeAmfUtf(library.getPath());
+        writeVirtualFile(library.getFile(),out);
+        if (library.inheritingStyles == null) {
+          out.writeShort(0);
+        }
+ else {
+          out.write(library.inheritingStyles);
+        }
+        if (library.defaultsStyle == null) {
+          out.write(0);
+        }
+ else {
+          out.write(1);
+          out.write(library.defaultsStyle);
+        }
+      }
+      writeParents(items,item);
+    }
+    out.write(librarySet.getEmbedItems().size());
+    for (    LibrarySetEmbedItem item : librarySet.getEmbedItems()) {
+      out.write(items.indexOf(item.parent));
+      out.writeAmfUtf(item.path);
+    }
+    hasError=false;
   }
-  out.write(librarySet.getEmbedItems().size());
-  for (  LibrarySetEmbedItem item : librarySet.getEmbedItems()) {
-    out.write(items.indexOf(item.parent));
-    out.writeAmfUtf(item.path);
+  finally {
+    finalizeMessage(hasError);
   }
-  blockOut.end();
 }

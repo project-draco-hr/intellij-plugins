@@ -7,17 +7,15 @@
   for (  State state : states) {
     writer.getBlockOut().allocate(2);
     writer.writeProperty(NAME,state.name);
-    OverrideBase override=state.overrides.getFirst();
-    if (override != null) {
+    if (!state.overrides.isEmpty()) {
       out.writeUInt29(OVERRIDES);
       out.write(PropertyClassifier.PROPERTY);
       out.write(AmfExtendedTypes.MXML_ARRAY);
       out.writeShort(0);
       out.writeShort(state.overrides.size());
-      do {
+      for (      OverrideBase override : state.overrides) {
         override.write(writer,this);
       }
- while ((override=override.next) != null);
     }
     writer.endObject();
   }
