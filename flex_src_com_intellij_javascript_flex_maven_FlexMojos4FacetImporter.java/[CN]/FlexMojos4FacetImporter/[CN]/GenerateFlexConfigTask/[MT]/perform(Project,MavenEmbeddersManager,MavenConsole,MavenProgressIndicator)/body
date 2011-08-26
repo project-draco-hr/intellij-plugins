@@ -1,33 +1,22 @@
 {
-  final File localRepo=new File(myMavenProject.getLocalRepository(),"com/intellij/flex/maven");
-  if (!new File(localRepo,"idea-configurator/1.4.2").exists()) {
-    ZipFile zipFile=null;
-    try {
-      zipFile=new ZipFile(getClass().getResource("/flexmojos-configurator.zip").getFile());
-      ZipUtil.extract(zipFile,localRepo,null);
-    }
- catch (    IOException e) {
-      console.printException(e);
-      MavenLog.LOG.warn(e);
-    }
- finally {
-      if (zipFile != null) {
-        try {
-          zipFile.close();
-        }
- catch (        IOException ignored) {
-        }
-      }
-    }
+  copyConfuguratorToLocalRepository(console);
+  final List<MavenProject> rootProjects=myTree.getRootProjects();
+  final String workingDirPath;
+  if (rootProjects.size() > 1) {
+    MavenLog.LOG.error("Why root projects list > 1");
+    return;
+  }
+ else {
+    workingDirPath=rootProjects.get(0).getDirectory();
   }
   final long start=System.currentTimeMillis();
   indicator.setText(FlexBundle.message("generating.flex.configs"));
   final MavenProjectsManager mavenProjectsManager=MavenProjectsManager.getInstance(project);
   MavenRunnerSettings mavenRunnerSettings=new MavenRunnerSettings();
-  @SuppressWarnings("ConstantConditions") MavenRunnerParameters mavenRunnerParameters=new MavenRunnerParameters(false,project.getBaseDir().getPath(),Collections.singletonList("com.intellij.flex.maven:idea-flexmojos-maven-plugin:1.4.2:generate"),mavenProjectsManager.getExplicitProfiles());
+  MavenRunnerParameters runnerParameters=new MavenRunnerParameters(false,workingDirPath,Collections.singletonList(CONFIGURATOR_GOAL),mavenProjectsManager.getExplicitProfiles());
   final ProcessBuilder processBuilder;
   try {
-    JavaParameters javaParameters=MavenExternalParameters.createJavaParameters(project,mavenRunnerParameters,mavenProjectsManager.getGeneralSettings(),mavenRunnerSettings);
+    JavaParameters javaParameters=MavenExternalParameters.createJavaParameters(project,runnerParameters,mavenProjectsManager.getGeneralSettings(),mavenRunnerSettings);
     processBuilder=new ProcessBuilder(CommandLineBuilder.createFromJavaParameters(javaParameters).getCommands());
   }
  catch (  ExecutionException e) {
@@ -36,7 +25,7 @@
     MavenLog.LOG.warn(e);
     return;
   }
-  processBuilder.directory((new File(mavenRunnerParameters.getWorkingDirPath())));
+  processBuilder.directory((new File(workingDirPath)));
   processBuilder.redirectErrorStream(true);
   final Process process;
   try {
@@ -45,16 +34,16 @@
  catch (  IOException e) {
     console.printException(e);
     MavenLog.LOG.warn(e);
-    flexConfigInformer.showFlexConfigWarningIfNeeded(project);
+    showWarning("",project);
     return;
   }
-  final StringBuilder processOutputString=StringBuilderSpinAllocator.alloc();
+  final StringBuilder stringBuilder=StringBuilderSpinAllocator.alloc();
   final InputStreamReader reader=new InputStreamReader(process.getInputStream());
   try {
     char[] buf=new char[1024];
     int read;
     while ((read=reader.read(buf,0,buf.length)) >= 0) {
-      processOutputString.append(buf,0,read);
+      stringBuilder.append(buf,0,read);
     }
     try {
       process.waitFor();
@@ -62,19 +51,25 @@
  catch (    InterruptedException ignored) {
     }
     int exitCode=process.exitValue();
+    final String result=stringBuilder.toString();
     if (exitCode != 0) {
       MavenLog.LOG.warn("idea flexmojos generator exited with exit code " + exitCode);
-      flexConfigInformer.showFlexConfigWarningIfNeeded(project);
+      final Matcher matcher=MAVEN_ERROR_PATTERN.matcher(result);
+      stringBuilder.setLength(0);
+      while (matcher.find()) {
+        stringBuilder.append("<br>").append(matcher.group(1));
+      }
+      showWarning(stringBuilder.toString(),project);
     }
-    MavenLog.LOG.info("idea flexmojos generator out:\n" + processOutputString.toString());
+    MavenLog.LOG.info("idea flexmojos generator out:\n" + result);
   }
  catch (  IOException e) {
     process.destroy();
     console.printException(e);
-    MavenLog.LOG.warn(processOutputString.toString(),e);
+    MavenLog.LOG.warn(stringBuilder.toString(),e);
   }
  finally {
-    StringBuilderSpinAllocator.dispose(processOutputString);
+    StringBuilderSpinAllocator.dispose(stringBuilder);
     try {
       reader.close();
     }
