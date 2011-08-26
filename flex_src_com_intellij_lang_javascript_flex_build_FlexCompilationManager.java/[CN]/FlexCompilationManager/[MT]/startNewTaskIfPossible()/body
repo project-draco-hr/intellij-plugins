@@ -18,16 +18,12 @@
     }
     if (taskToStart != null) {
       myNotStartedTasks.remove(taskToStart);
-      if (taskToStart.getConfig().getType() == FlexBuildConfiguration.Type.Default && isMake() && myCompilerDependenciesCache.isNothingChangedSincePreviousCompilation(taskToStart.getModule())) {
+      if (taskToStart.useCache() && isMake() && myCompilerDependenciesCache.isNothingChangedSincePreviousCompilation(taskToStart.getModule())) {
         addMessage(taskToStart,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped.because.nothing.changed"),null,-1,-1);
         taskToStart.cancel();
         myFinishedTasks.add(taskToStart);
       }
  else {
-        final FlexBuildConfiguration config=taskToStart.getConfig();
-        if (!config.USE_CUSTOM_CONFIG_FILE) {
-          FlexCompilationUtils.ensureOutputFileWritable(myCompileContext.getProject(),config.getOutputFileFullPath());
-        }
         taskToStart.start(this);
         myInProgressTasks.add(taskToStart);
       }
