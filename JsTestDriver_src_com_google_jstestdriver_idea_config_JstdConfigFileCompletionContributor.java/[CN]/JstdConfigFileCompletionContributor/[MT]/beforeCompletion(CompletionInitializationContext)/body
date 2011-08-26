@@ -1,0 +1,20 @@
+{
+  final OffsetMap offsetMap=context.getOffsetMap();
+  int idEnd=offsetMap.getOffset(CompletionInitializationContext.IDENTIFIER_END_OFFSET);
+  final String text=context.getFile().getText();
+  boolean acceptedChar=true;
+  while (idEnd < text.length() && acceptedChar) {
+    final char ch=text.charAt(idEnd);
+    acceptedChar=Character.isJavaIdentifierPart(ch);
+    acceptedChar=acceptedChar || IDENTIFIER_END_PATTERN.indexOf(ch) >= 0;
+    boolean stop=ch == UNIX_PATH_SEPARATOR || ch == WINDOWS_PATH_SEPARATOR;
+    acceptedChar=acceptedChar || stop;
+    if (acceptedChar) {
+      idEnd++;
+    }
+    if (stop) {
+      break;
+    }
+  }
+  offsetMap.addOffset(CompletionInitializationContext.IDENTIFIER_END_OFFSET,idEnd);
+}

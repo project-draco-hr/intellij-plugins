@@ -1,0 +1,23 @@
+{
+  final List<Group> groups=Lists.newArrayList();
+  final Ref<Integer> endLineOfPreviousKeyValueRef=Ref.create(-1);
+  yamlDocument.acceptChildren(new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement element){
+      int line=document.getLineNumber(element.getTextRange().getStartOffset());
+      if (line == endLineOfPreviousKeyValueRef.get()) {
+        return;
+      }
+      if (element instanceof YAMLKeyValue) {
+        YAMLKeyValue yamlKeyValue=(YAMLKeyValue)element;
+        int endLine=document.getLineNumber(yamlKeyValue.getTextRange().getEndOffset());
+        endLineOfPreviousKeyValueRef.set(endLine);
+        groups.add(new Group(yamlKeyValue,null));
+      }
+ else {
+        groups.add(new Group(null,element));
+      }
+    }
+  }
+);
+  return groups;
+}

@@ -1,33 +1,39 @@
 {
+  final Document document=PsiDocumentManager.getInstance(yamlDocument.getProject()).getDocument(yamlDocument.getContainingFile());
+  if (document == null) {
+    return;
+  }
+  List<Group> groups=buildGroups(yamlDocument,document);
+  if (groups == null) {
+    return;
+  }
   final Set<String> visitedKeys=Sets.newHashSet();
-  document.acceptChildren(new PsiElementVisitor(){
-    @Override public void visitElement(    PsiElement childElement){
-      YAMLKeyValue keyValue=CastUtils.tryCast(childElement,YAMLKeyValue.class);
-      if (keyValue != null) {
-        PsiElement keyElement=keyValue.getKey();
-        String keyStr=keyElement.getText();
-        if (keyStr.endsWith(":")) {
-          keyStr=keyStr.substring(0,keyStr.length() - 1);
-        }
-        if (!JstdConfigFileUtils.VALID_TOP_LEVEL_KEYS.contains(keyStr)) {
-          holder.createErrorAnnotation(keyElement,"Unexpected key '" + keyStr + "'");
-        }
-        if (!visitedKeys.add(keyStr)) {
-          holder.createErrorAnnotation(keyElement,"Duplicated '" + keyStr + "' key");
+  for (  Group group : groups) {
+    YAMLKeyValue keyValue=group.getKeyValue();
+    if (keyValue != null) {
+      PsiElement keyElement=keyValue.getKey();
+      String keyStr=keyValue.getKeyText();
+      if (!JstdConfigFileUtils.VALID_TOP_LEVEL_KEYS.contains(keyStr)) {
+        holder.createErrorAnnotation(keyElement,"Unexpected key '" + keyStr + "'");
+      }
+      if (!visitedKeys.add(keyStr)) {
+        holder.createErrorAnnotation(keyElement,"Duplicated '" + keyStr + "' key");
+      }
+      if (JstdConfigFileUtils.KEYS_WITH_INNER_SEQUENCE.contains(keyStr)) {
+        annotateSequenceContent(keyValue,holder,document);
+      }
+    }
+ else {
+      PsiElement element=group.getUnexpectedElement();
+      if (element instanceof ASTNode) {
+        ASTNode astNode=(ASTNode)element;
+        if (astNode.getElementType() != YAMLTokenTypes.EOL && astNode.getElementType() != YAMLTokenTypes.INDENT) {
+          holder.createErrorAnnotation(astNode,"Unexpected element '" + astNode.getText() + "'");
         }
       }
  else {
-        if (childElement instanceof TreeElement) {
-          TreeElement treeElement=(TreeElement)childElement;
-          if (treeElement.getElementType() != YAMLTokenTypes.EOL) {
-            holder.createErrorAnnotation(childElement,"Unexpected element");
-          }
-        }
- else {
-          holder.createErrorAnnotation(childElement,"Unexpected element");
-        }
+        holder.createErrorAnnotation(element,"Unexpected element '" + element.getText() + "'");
       }
     }
   }
-);
 }
