@@ -1,0 +1,38 @@
+{
+  SimpleNode root=new RootNode(myProject);
+  final DefaultTreeModel treeModel=new DefaultTreeModel(new DefaultMutableTreeNode());
+  myTree=new SimpleTree(treeModel);
+  myTree.setRootVisible(false);
+  myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+  SimpleTreeStructure s=new SimpleTreeStructure.Impl(root);
+  myTreeBuilder=new SimpleTreeBuilder(myTree,treeModel,s,null);
+  Disposer.register(getDisposable(),myTreeBuilder);
+  myTree.setModel(treeModel);
+  myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
+    @Override public void valueChanged(    TreeSelectionEvent e){
+      mySelection=myTreeBuilder.getSelectedElements(BCNode.class);
+      setOKActionEnabled(!mySelection.isEmpty());
+    }
+  }
+);
+  JPanel p=new JPanel(new BorderLayout());
+  p.add(ScrollPaneFactory.createScrollPane(myTree),BorderLayout.CENTER);
+  myTreeBuilder.expandAll(null);
+  myTree.addMouseListener(new MouseAdapter(){
+    @Override public void mouseClicked(    MouseEvent e){
+      if (e.getClickCount() == 2) {
+        doOKAction();
+      }
+    }
+  }
+);
+  myTree.addKeyListener(new KeyAdapter(){
+    @Override public void keyTyped(    KeyEvent e){
+      if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+        doOKAction();
+      }
+    }
+  }
+);
+  return p;
+}

@@ -2,4 +2,21 @@
   mySdkPanel.reset();
   myComponentSetCombo.setSelectedItem(myDependencies.COMPONENT_SET);
   myFrameworkLinkageCombo.setSelectedItem(myDependencies.FRAMEWORK_LINKAGE);
+  DefaultMutableTreeNode root=myTable.getRoot();
+  root.removeAllChildren();
+  FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
+  for (  DependencyEntry entry : myDependencies.getEntries()) {
+    final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+    FlexIdeBCConfigurable configurable=ContainerUtil.find(configurator.getBCConfigurables(bcEntry.getModule()),new Condition<FlexIdeBCConfigurable>(){
+      @Override public boolean value(      FlexIdeBCConfigurable configurable){
+        return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
+      }
+    }
+);
+    if (configurable == null) {
+      LOG.error("configurable not found for " + bcEntry.getBcName());
+    }
+    root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
+  }
+  myTable.refresh();
 }

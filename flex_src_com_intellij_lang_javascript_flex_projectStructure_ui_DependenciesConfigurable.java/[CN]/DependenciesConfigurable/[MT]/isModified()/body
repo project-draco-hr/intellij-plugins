@@ -2,5 +2,14 @@
   if (mySdkPanel.isModified())   return true;
   if (myDependencies.COMPONENT_SET != myComponentSetCombo.getSelectedItem())   return true;
   if (myDependencies.FRAMEWORK_LINKAGE != myFrameworkLinkageCombo.getSelectedItem())   return true;
+  List<MyTableItem> items=myTable.getItems();
+  List<DependencyEntry> entries=myDependencies.getEntries();
+  if (items.size() != entries.size())   return true;
+  for (int i=0; i < items.size(); i++) {
+    BCItem item=(BCItem)items.get(i);
+    BuildConfigurationEntry entry=(BuildConfigurationEntry)entries.get(i);
+    if (item.configurable.getModifiableRootModel().getModule() != entry.getModule())     return true;
+    if (!item.configurable.getDisplayName().equals(entry.getBcName()))     return true;
+  }
   return false;
 }

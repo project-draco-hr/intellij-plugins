@@ -16,7 +16,7 @@
   myFrameworkLinkageCombo.setRenderer(new ListCellRendererWrapper<FlexIdeBuildConfiguration.FrameworkLinkage>(myFrameworkLinkageCombo.getRenderer()){
     public void customize(    JList list,    FlexIdeBuildConfiguration.FrameworkLinkage value,    int index,    boolean selected,    boolean hasFocus){
       if (value == FlexIdeBuildConfiguration.FrameworkLinkage.Default) {
-        setText(MessageFormat.format("SDK Default ({0})",defaultLinkage.PRESENTABLE_TEXT));
+        setText(MessageFormat.format("Default ({0})",defaultLinkage.PRESENTABLE_TEXT));
       }
  else {
         setText(value.PRESENTABLE_TEXT);
@@ -25,4 +25,23 @@
   }
 );
   myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(BCUtils.getSuitableFrameworkLinkages(bc.TARGET_PLATFORM,bc.PURE_ACTION_SCRIPT,bc.OUTPUT_TYPE)));
+  myTable=new EditableTreeTable<MyTableItem>(""){
+    @Override protected void render(    SimpleColoredComponent c,    MyTableItem item){
+      if (item != null) {
+        c.append(item.getText());
+        c.setIcon(item.getIcon());
+      }
+    }
+  }
+;
+  myTable.setRootVisible(false);
+  myTable.getTree().setLineStyleAngled();
+  ToolbarDecorator d=ToolbarDecorator.createDecorator(myTable);
+  d.setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      addItem(button);
+    }
+  }
+);
+  myTablePanel.add(d.createPanel(),BorderLayout.CENTER);
 }

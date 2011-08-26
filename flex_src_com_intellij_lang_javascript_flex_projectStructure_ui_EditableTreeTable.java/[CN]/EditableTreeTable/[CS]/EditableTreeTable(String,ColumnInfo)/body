@@ -1,0 +1,21 @@
+{
+  super(new ListTreeTableModelOnColumns(new DefaultMutableTreeNode(),ArrayUtil.join(new ColumnInfo[]{new FirstColumnInfo(firstColumnName)},columns)));
+  final ColoredTreeCellRenderer r=new ColoredTreeCellRenderer(){
+    @Override public void customizeCellRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      Object userObject=((DefaultMutableTreeNode)value).getUserObject();
+      if (userObject == HEIGHT_TEST_MARKER) {
+        return;
+      }
+      render(this,(T)userObject);
+    }
+  }
+;
+  setTreeCellRenderer(new TreeCellRenderer(){
+    @Override public Component getTreeCellRendererComponent(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      return r.getTreeCellRendererComponent(tree,value,false,expanded,leaf,row,hasFocus);
+    }
+  }
+);
+  Dimension s=r.getTreeCellRendererComponent(getTree(),new DefaultMutableTreeNode(HEIGHT_TEST_MARKER),false,false,true,0,false).getPreferredSize();
+  getTree().setRowHeight(s.height);
+}

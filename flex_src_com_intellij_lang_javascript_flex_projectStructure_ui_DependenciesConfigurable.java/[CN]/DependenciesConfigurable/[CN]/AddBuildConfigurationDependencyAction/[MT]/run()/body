@@ -1,0 +1,37 @@
+{
+  Collection<FlexIdeBCConfigurable> dependencies=new ArrayList<FlexIdeBCConfigurable>();
+  List<MyTableItem> items=myTable.getItems();
+  for (  MyTableItem item : items) {
+    dependencies.add(((BCItem)item).configurable);
+  }
+  Map<Module,List<FlexIdeBCConfigurable>> treeItems=new HashMap<Module,List<FlexIdeBCConfigurable>>();
+  FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
+  for (  Module module : ModuleStructureConfigurable.getInstance(myProject).getModules()) {
+    for (    FlexIdeBCConfigurable configurable : configurator.getBCConfigurables(module)) {
+      if (dependencies.contains(configurable) || configurable.getDependenciesConfigurable() == DependenciesConfigurable.this) {
+        continue;
+      }
+      List<FlexIdeBCConfigurable> list=treeItems.get(module);
+      if (list == null) {
+        list=new ArrayList<FlexIdeBCConfigurable>();
+        treeItems.put(module,list);
+      }
+      list.add(configurable);
+    }
+  }
+  if (treeItems.isEmpty()) {
+    Messages.showInfoMessage(myProject,"No applicable build configurations found","Add Dependency");
+    return;
+  }
+  ChooseBuildConfigurationDialog d=new ChooseBuildConfigurationDialog(myProject,treeItems);
+  d.show();
+  if (!d.isOK()) {
+    return;
+  }
+  FlexIdeBCConfigurable[] configurables=d.getSelectedConfigurables();
+  DefaultMutableTreeNode root=myTable.getRoot();
+  for (  FlexIdeBCConfigurable configurable : configurables) {
+    root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
+  }
+  myTable.refresh();
+}
