@@ -4,7 +4,14 @@
   dependencies.getEntries().clear();
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
-    FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
-    dependencies.getEntries().add(new BuildConfigurationEntry(configurable.getModifiableRootModel().getModule(),configurable.getDisplayName()));
+    if (item instanceof BCItem) {
+      FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
+      dependencies.getEntries().add(new BuildConfigurationEntry(configurable.getModifiableRootModel().getModule(),configurable.getDisplayName()));
+    }
+ else     if (item instanceof LibraryItem) {
+      LibraryEntry e=new LibraryEntry();
+      ((LibraryItem)item).libraryEntry.applyTo(e);
+      dependencies.getEntries().add(e);
+    }
   }
 }

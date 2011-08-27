@@ -3,17 +3,34 @@
     return EMPTY;
   }
   return ContainerUtil.mapNotNull(myEntries.toArray(new DependencyEntry[myEntries.size()]),new Function<DependencyEntry,EntryInfo>(){
-    @Override public EntryInfo fun(    DependencyEntry dependency){
-      BuildConfigurationEntry d=(BuildConfigurationEntry)dependency;
-      FlexIdeBuildConfiguration buildConfiguration=d.getBuildConfiguration();
-      if (buildConfiguration == null) {
-        LOG.error("module or BC is unexpectedly missing");
-        return null;
+    @Override public EntryInfo fun(    DependencyEntry entry){
+      if (entry instanceof BuildConfigurationEntry) {
+        BuildConfigurationEntry buildConfigurationEntry=(BuildConfigurationEntry)entry;
+        FlexIdeBuildConfiguration buildConfiguration=buildConfigurationEntry.getBuildConfiguration();
+        if (buildConfiguration == null) {
+          LOG.error("module or BC is unexpectedly missing");
+          return null;
+        }
+        EntryInfo entryInfo=new EntryInfo();
+        entryInfo.MODULE_NAME=buildConfigurationEntry.getModuleName();
+        entryInfo.BC_NAME=buildConfiguration.NAME;
+        return entryInfo;
       }
-      EntryInfo entryInfo=new EntryInfo();
-      entryInfo.MODULE_NAME=d.getModuleName();
-      entryInfo.BC_NAME=buildConfiguration.NAME;
-      return entryInfo;
+ else       if (entry instanceof LibraryEntry) {
+        EntryInfo entryInfo=new EntryInfo();
+        entryInfo.LIBRARY_ELEMENT=new Element("library");
+        try {
+          ((LibraryEntry)entry).writeExternal(entryInfo.LIBRARY_ELEMENT);
+        }
+ catch (        WriteExternalException e) {
+          LOG.error(e);
+          return null;
+        }
+        return entryInfo;
+      }
+ else {
+        throw new IllegalArgumentException("unknown type: " + entry.getClass());
+      }
     }
   }
 ,new EntryInfo[0]);

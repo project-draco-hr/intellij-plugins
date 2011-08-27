@@ -1,0 +1,24 @@
+{
+  FileChooserDescriptor d=new FileChooserDescriptor(true,false,true,false,false,true){
+    @Override public boolean isFileSelectable(    VirtualFile file){
+      return !file.isDirectory() && "swc".equals(FileUtil.getExtension(file.getName()));
+    }
+  }
+;
+  d.setTitle("Select Libraries");
+  VirtualFile[] files=FileChooser.chooseFiles(myProject,d);
+  if (files.length == 0) {
+    return;
+  }
+  DefaultMutableTreeNode rootNode=myTable.getRoot();
+  for (  VirtualFile file : files) {
+    LibraryEntry e=new LibraryEntry();
+    e.setName(file.getName());
+    e.addRoot(file,OrderRootType.CLASSES);
+    rootNode.add(new DefaultMutableTreeNode(new LibraryItem(e),false));
+  }
+  myTable.refresh();
+  myTable.getSelectionModel().clearSelection();
+  int rowCount=myTable.getRowCount();
+  myTable.getSelectionModel().addSelectionInterval(rowCount - files.length,rowCount - 1);
+}

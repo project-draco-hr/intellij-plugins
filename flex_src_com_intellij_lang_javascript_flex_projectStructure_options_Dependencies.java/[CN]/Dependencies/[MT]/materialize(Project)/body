@@ -3,7 +3,22 @@
   ModulePointerManager pointerManager=ModulePointerManager.getInstance(project);
   myEntries=new ArrayList<DependencyEntry>(myEntriesInfos.length);
   for (  EntryInfo info : myEntriesInfos) {
-    myEntries.add(new BuildConfigurationEntry(pointerManager.create(info.MODULE_NAME),info.BC_NAME));
+    if (info.LIBRARY_ELEMENT != null) {
+      LibraryEntry libraryEntry=new LibraryEntry();
+      try {
+        libraryEntry.readExternal(info.LIBRARY_ELEMENT);
+        myEntries.add(libraryEntry);
+      }
+ catch (      InvalidDataException e) {
+        LOG.error(e);
+      }
+    }
+ else     if (info.BC_NAME != null) {
+      myEntries.add(new BuildConfigurationEntry(pointerManager.create(info.MODULE_NAME),info.BC_NAME));
+    }
+ else {
+      LOG.error("unknown entry");
+    }
   }
   myEntriesInfos=null;
 }

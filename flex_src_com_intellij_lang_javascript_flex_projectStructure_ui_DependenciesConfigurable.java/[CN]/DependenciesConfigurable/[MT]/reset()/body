@@ -6,18 +6,23 @@
   root.removeAllChildren();
   FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
   for (  DependencyEntry entry : myDependencies.getEntries()) {
-    final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
-    FlexIdeBCConfigurable configurable=ContainerUtil.find(configurator.getBCConfigurables(bcEntry.getModule()),new Condition<FlexIdeBCConfigurable>(){
-      @Override public boolean value(      FlexIdeBCConfigurable configurable){
-        return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
+    if (entry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+      FlexIdeBCConfigurable configurable=ContainerUtil.find(configurator.getBCConfigurables(bcEntry.getModule()),new Condition<FlexIdeBCConfigurable>(){
+        @Override public boolean value(        FlexIdeBCConfigurable configurable){
+          return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
+        }
+      }
+);
+      if (configurable == null) {
+        LOG.error("configurable not found for " + bcEntry.getBcName());
+      }
+ else {
+        root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
       }
     }
-);
-    if (configurable == null) {
-      LOG.error("configurable not found for " + bcEntry.getBcName());
-    }
- else {
-      root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
+ else     if (entry instanceof LibraryEntry) {
+      root.add(new DefaultMutableTreeNode(new LibraryItem(((LibraryEntry)entry).getCopy()),false));
     }
   }
   myTable.refresh();

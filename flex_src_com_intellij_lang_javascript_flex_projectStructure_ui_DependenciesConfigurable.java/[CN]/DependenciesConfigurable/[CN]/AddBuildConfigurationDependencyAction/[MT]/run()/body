@@ -2,11 +2,16 @@
   Collection<FlexIdeBCConfigurable> dependencies=new ArrayList<FlexIdeBCConfigurable>();
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
-    dependencies.add(((BCItem)item).configurable);
+    if (item instanceof BCItem) {
+      dependencies.add(((BCItem)item).configurable);
+    }
   }
   Map<Module,List<FlexIdeBCConfigurable>> treeItems=new HashMap<Module,List<FlexIdeBCConfigurable>>();
   FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
   for (  Module module : ModuleStructureConfigurable.getInstance(myProject).getModules()) {
+    if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+      continue;
+    }
     for (    FlexIdeBCConfigurable configurable : configurator.getBCConfigurables(module)) {
       if (dependencies.contains(configurable) || configurable.getDependenciesConfigurable() == DependenciesConfigurable.this) {
         continue;
