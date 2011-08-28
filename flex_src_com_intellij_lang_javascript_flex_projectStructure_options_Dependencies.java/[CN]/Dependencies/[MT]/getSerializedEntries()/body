@@ -4,6 +4,9 @@
   }
   return ContainerUtil.mapNotNull(myEntries.toArray(new DependencyEntry[myEntries.size()]),new Function<DependencyEntry,EntryInfo>(){
     @Override public EntryInfo fun(    DependencyEntry entry){
+      EntryInfo entryInfo=new EntryInfo();
+      entryInfo.DEPENDENCY_TYPE_ELEMENT=new Element(DEPENDENCY_TYPE_ELEMENT_NAME);
+      entry.myDependencyType.writeExternal(entryInfo.DEPENDENCY_TYPE_ELEMENT);
       if (entry instanceof BuildConfigurationEntry) {
         BuildConfigurationEntry buildConfigurationEntry=(BuildConfigurationEntry)entry;
         FlexIdeBuildConfiguration buildConfiguration=buildConfigurationEntry.getBuildConfiguration();
@@ -11,13 +14,11 @@
           LOG.error("module or BC is unexpectedly missing");
           return null;
         }
-        EntryInfo entryInfo=new EntryInfo();
         entryInfo.MODULE_NAME=buildConfigurationEntry.getModuleName();
         entryInfo.BC_NAME=buildConfiguration.NAME;
         return entryInfo;
       }
  else       if (entry instanceof ModuleLibraryEntry) {
-        EntryInfo entryInfo=new EntryInfo();
         entryInfo.LIBRARY_ELEMENT=new Element("library");
         try {
           ((ModuleLibraryEntry)entry).writeExternal(entryInfo.LIBRARY_ELEMENT);

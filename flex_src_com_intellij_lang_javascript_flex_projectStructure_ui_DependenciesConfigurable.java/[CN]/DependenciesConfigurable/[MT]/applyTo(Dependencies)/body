@@ -4,14 +4,19 @@
   dependencies.getEntries().clear();
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
+    DependencyEntry entry;
     if (item instanceof BCItem) {
       FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
-      dependencies.getEntries().add(new BuildConfigurationEntry(configurable.getModifiableRootModel().getModule(),configurable.getDisplayName()));
+      entry=new BuildConfigurationEntry(configurable.getModifiableRootModel().getModule(),configurable.getDisplayName());
     }
  else     if (item instanceof ModuleLibraryItem) {
-      ModuleLibraryEntry e=new ModuleLibraryEntry();
-      ((ModuleLibraryItem)item).libraryEntry.applyTo(e);
-      dependencies.getEntries().add(e);
+      entry=new ModuleLibraryEntry();
+      ((ModuleLibraryItem)item).libraryEntry.applyTo((ModuleLibraryEntry)entry);
     }
+ else {
+      throw new IllegalArgumentException("unexpected item type: " + item);
+    }
+    item.myDependencyType.applyTo(entry.getDependencyType());
+    dependencies.getEntries().add(entry);
   }
 }

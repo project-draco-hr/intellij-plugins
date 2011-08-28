@@ -3,21 +3,31 @@
   ModulePointerManager pointerManager=ModulePointerManager.getInstance(project);
   myEntries=new ArrayList<DependencyEntry>(myEntriesInfos.length);
   for (  EntryInfo info : myEntriesInfos) {
+    DependencyEntry entry=null;
     if (info.LIBRARY_ELEMENT != null) {
       ModuleLibraryEntry libraryEntry=new ModuleLibraryEntry();
       try {
         libraryEntry.readExternal(info.LIBRARY_ELEMENT);
-        myEntries.add(libraryEntry);
+        entry=libraryEntry;
       }
  catch (      InvalidDataException e) {
         LOG.error(e);
       }
     }
  else     if (info.BC_NAME != null) {
-      myEntries.add(new BuildConfigurationEntry(pointerManager.create(info.MODULE_NAME),info.BC_NAME));
+      entry=new BuildConfigurationEntry(pointerManager.create(info.MODULE_NAME),info.BC_NAME);
     }
  else {
       LOG.error("unknown entry");
+    }
+    if (entry != null) {
+      if (info.DEPENDENCY_TYPE_ELEMENT != null) {
+        entry.myDependencyType.readExternal(info.DEPENDENCY_TYPE_ELEMENT);
+      }
+ else {
+        LOG.error("dependency type element is missing");
+      }
+      myEntries.add(entry);
     }
   }
   myEntriesInfos=null;

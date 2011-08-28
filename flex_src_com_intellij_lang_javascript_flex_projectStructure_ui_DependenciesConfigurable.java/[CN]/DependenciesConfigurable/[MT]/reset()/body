@@ -6,6 +6,7 @@
   root.removeAllChildren();
   FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
   for (  DependencyEntry entry : myDependencies.getEntries()) {
+    MyTableItem item=null;
     if (entry instanceof BuildConfigurationEntry) {
       final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
       FlexIdeBCConfigurable configurable=ContainerUtil.find(configurator.getBCConfigurables(bcEntry.getModule()),new Condition<FlexIdeBCConfigurable>(){
@@ -18,11 +19,15 @@
         LOG.error("configurable not found for " + bcEntry.getBcName());
       }
  else {
-        root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
+        item=new BCItem(configurable);
       }
     }
  else     if (entry instanceof ModuleLibraryEntry) {
-      root.add(new DefaultMutableTreeNode(new ModuleLibraryItem(((ModuleLibraryEntry)entry).getCopy()),false));
+      item=new ModuleLibraryItem(((ModuleLibraryEntry)entry).getCopy());
+    }
+    if (item != null) {
+      entry.getDependencyType().applyTo(item.myDependencyType);
+      root.add(new DefaultMutableTreeNode(item,false));
     }
   }
   myTable.refresh();
