@@ -67,7 +67,34 @@
     }
   }
 );
+  myEditAction=new AnActionButton(ProjectBundle.message("module.classpath.button.edit"),IconUtil.getEditIcon()){
+    @Override public void actionPerformed(    AnActionEvent e){
+      MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
+      editLibrary(((ModuleLibraryItem)item).libraryEntry);
+    }
+  }
+;
+  d.addExtraAction(myEditAction);
   myTablePanel.add(d.createPanel(),BorderLayout.CENTER);
+  myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+    @Override public void valueChanged(    ListSelectionEvent e){
+      updateEditButton();
+    }
+  }
+);
+  myTable.addMouseListener(new MouseAdapter(){
+    @Override public void mouseClicked(    MouseEvent e){
+      if (e.getClickCount() == 2) {
+        if (myTable.getSelectedRowCount() == 1) {
+          MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
+          if (item instanceof ModuleLibraryItem) {
+            editLibrary(((ModuleLibraryItem)item).libraryEntry);
+          }
+        }
+      }
+    }
+  }
+);
   FlexIdeModuleStructureExtension.getInstance().getConfigurator().addListener(new FlexIdeBCConfigurator.Listener(){
     @Override public void moduleRemoved(    Module module){
       List<Integer> rowsToRemove=new ArrayList<Integer>();

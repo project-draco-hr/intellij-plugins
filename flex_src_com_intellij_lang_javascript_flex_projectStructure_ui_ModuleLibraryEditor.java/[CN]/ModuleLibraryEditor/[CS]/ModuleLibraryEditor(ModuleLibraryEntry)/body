@@ -1,0 +1,17 @@
+{
+  myName=entry.getName();
+  for (  OrderRootType rootType : OrderRootType.getAllTypes()) {
+    myRoots.put(rootType,VirtualFilePointerManager.getInstance().createContainer(this));
+  }
+  for (  OrderRootType rootType : OrderRootType.getAllTypes()) {
+    ProjectRoot[] roots=entry.getRoots(rootType);
+    for (    ProjectRoot root : roots) {
+      for (      String url : root.getUrls()) {
+        myRoots.get(rootType).add(url);
+        if (entry.isJarDirectory(rootType,url)) {
+          myJarDirectories.add(rootType,url,entry.isRecursive(rootType,url));
+        }
+      }
+    }
+  }
+}
