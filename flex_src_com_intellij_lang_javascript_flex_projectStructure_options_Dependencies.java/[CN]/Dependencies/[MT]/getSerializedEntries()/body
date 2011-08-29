@@ -4,29 +4,24 @@
   }
   return ContainerUtil.mapNotNull(myEntries.toArray(new DependencyEntry[myEntries.size()]),new Function<DependencyEntry,EntryInfo>(){
     @Override public EntryInfo fun(    DependencyEntry entry){
-      EntryInfo entryInfo=new EntryInfo();
-      entryInfo.DEPENDENCY_TYPE_ELEMENT=new Element(DEPENDENCY_TYPE_ELEMENT_NAME);
-      entry.myDependencyType.writeExternal(entryInfo.DEPENDENCY_TYPE_ELEMENT);
-      if (entry instanceof BuildConfigurationEntry) {
-        BuildConfigurationEntry buildConfigurationEntry=(BuildConfigurationEntry)entry;
-        entryInfo.MODULE_NAME=buildConfigurationEntry.getModuleName();
-        entryInfo.BC_NAME=buildConfigurationEntry.getBcName();
-        return entryInfo;
-      }
- else       if (entry instanceof ModuleLibraryEntry) {
-        entryInfo.LIBRARY_ELEMENT=new Element("library");
-        try {
-          ((ModuleLibraryEntry)entry).writeExternal(entryInfo.LIBRARY_ELEMENT);
+      try {
+        EntryInfo entryInfo=new EntryInfo();
+        if (entry instanceof BuildConfigurationEntry) {
+          serializeBcEntry((BuildConfigurationEntry)entry,entryInfo);
+          return entryInfo;
         }
- catch (        WriteExternalException e) {
-          LOG.error(e);
-          return null;
+ else         if (entry instanceof ModuleLibraryEntry) {
+          serializeModuleLibraryEntry((ModuleLibraryEntry)entry,entryInfo);
+          return entryInfo;
         }
-        return entryInfo;
-      }
  else {
-        throw new IllegalArgumentException("unknown type: " + entry.getClass());
+          LOG.error("Unexpected entry type: " + entry);
+        }
       }
+ catch (      WriteExternalException e) {
+        LOG.error(e);
+      }
+      return null;
     }
   }
 ,new EntryInfo[0]);

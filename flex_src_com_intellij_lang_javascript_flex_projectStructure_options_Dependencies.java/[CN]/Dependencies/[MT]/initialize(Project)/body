@@ -5,28 +5,15 @@
   for (  EntryInfo info : myEntriesInfos) {
     DependencyEntry entry=null;
     if (info.LIBRARY_ELEMENT != null) {
-      ModuleLibraryEntry libraryEntry=new ModuleLibraryEntry();
-      try {
-        libraryEntry.readExternal(info.LIBRARY_ELEMENT);
-        entry=libraryEntry;
-      }
- catch (      InvalidDataException e) {
-        LOG.error(e);
-      }
+      entry=deserializeModuleLibraryEntry(info);
     }
  else     if (info.BC_NAME != null) {
-      entry=new BuildConfigurationEntry(pointerManager.create(info.MODULE_NAME),info.BC_NAME);
+      entry=deserializeBcEntry(pointerManager,info);
     }
  else {
       LOG.error("unknown entry");
     }
     if (entry != null) {
-      if (info.DEPENDENCY_TYPE_ELEMENT != null) {
-        entry.myDependencyType.readExternal(info.DEPENDENCY_TYPE_ELEMENT);
-      }
- else {
-        LOG.error("dependency type element is missing");
-      }
       myEntries.add(entry);
     }
   }

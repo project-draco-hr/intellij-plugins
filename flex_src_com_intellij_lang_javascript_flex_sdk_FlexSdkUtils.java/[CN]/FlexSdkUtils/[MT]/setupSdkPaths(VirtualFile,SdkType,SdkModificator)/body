@@ -1,0 +1,25 @@
+{
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    return;
+  }
+  if (sdkRoot == null || !sdkRoot.isValid()) {
+    return;
+  }
+  sdkRoot.refresh(false,true);
+  sdkModificator.setVersionString(readFlexSdkVersion(sdkRoot));
+  final String configFileRelativePath=getBaseConfigFileRelPath((IFlexSdkType)sdkType);
+  final VirtualFile configFile=sdkRoot.findFileByRelativePath(configFileRelativePath);
+  if (configFile == null) {
+    return;
+  }
+  try {
+    setupSdkLibraries(sdkModificator,configFile);
+  }
+ catch (  IOException e) {
+  }
+  final VirtualFile projectsDir=VfsUtil.findRelativeFile("frameworks/projects",sdkRoot);
+  if (projectsDir != null && projectsDir.isDirectory()) {
+    findSourceRoots(projectsDir,sdkModificator);
+  }
+  sdkModificator.commitChanges();
+}
