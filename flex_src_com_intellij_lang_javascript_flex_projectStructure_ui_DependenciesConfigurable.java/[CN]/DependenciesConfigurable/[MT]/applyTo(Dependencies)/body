@@ -13,16 +13,20 @@
  else {
         entry=new BuildConfigurationEntry(myProject,((BCItem)item).moduleName,((BCItem)item).bcName);
       }
+      ((BCItem)item).dependencyType.applyTo(entry.getDependencyType());
+      dependencies.getEntries().add(entry);
     }
  else     if (item instanceof ModuleLibraryItem) {
       entry=new ModuleLibraryEntry();
       ((ModuleLibraryItem)item).libraryEntry.applyTo((ModuleLibraryEntry)entry);
+      ((ModuleLibraryItem)item).dependencyType.applyTo(entry.getDependencyType());
+      dependencies.getEntries().add(entry);
+    }
+ else     if (item instanceof SdkItem) {
     }
  else {
       throw new IllegalArgumentException("unexpected item type: " + item);
     }
-    item.dependencyType.applyTo(entry.getDependencyType());
-    dependencies.getEntries().add(entry);
   }
   SdkEntry currentSdk=mySdkPanel.getCurrentSdk();
   dependencies.setSdk(currentSdk != null ? currentSdk.getCopy() : null);

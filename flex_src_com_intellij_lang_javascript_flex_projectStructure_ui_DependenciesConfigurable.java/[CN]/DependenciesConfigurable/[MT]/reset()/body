@@ -5,6 +5,9 @@
   myFrameworkLinkageCombo.setSelectedItem(myDependencies.FRAMEWORK_LINKAGE);
   DefaultMutableTreeNode root=myTable.getRoot();
   root.removeAllChildren();
+  if (sdk != null) {
+    myTable.getRoot().insert(new DefaultMutableTreeNode(new SdkItem(sdk),true),0);
+  }
   FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
   for (  DependencyEntry entry : myDependencies.getEntries()) {
     MyTableItem item=null;
@@ -23,12 +26,13 @@
  else {
         item=new BCItem(configurable);
       }
+      entry.getDependencyType().applyTo(((BCItem)item).dependencyType);
     }
  else     if (entry instanceof ModuleLibraryEntry) {
       item=new ModuleLibraryItem(((ModuleLibraryEntry)entry).getCopy());
+      entry.getDependencyType().applyTo(((ModuleLibraryItem)item).dependencyType);
     }
     if (item != null) {
-      entry.getDependencyType().applyTo(item.dependencyType);
       root.add(new DefaultMutableTreeNode(item,false));
     }
   }
