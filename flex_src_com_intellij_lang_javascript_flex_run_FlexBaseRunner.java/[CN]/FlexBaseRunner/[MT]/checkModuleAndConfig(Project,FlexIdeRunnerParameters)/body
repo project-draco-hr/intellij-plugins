@@ -1,0 +1,17 @@
+{
+  final String moduleName=params.getModuleName();
+  final String bcName=params.getBCName();
+  final Module module=ModuleManager.getInstance(project).findModuleByName(moduleName);
+  if (module == null) {
+    throw new CantRunException(moduleName.isEmpty() ? "Module not set" : MessageFormat.format("No such module: ''{0}''",moduleName));
+  }
+  final FlexIdeBuildConfiguration config=ModuleType.get(module) instanceof FlexModuleType ? FlexIdeBuildConfigurationManager.getInstance(module).findConfigurationByName(bcName) : null;
+  if (config == null) {
+    final String message=bcName.isEmpty() ? "Build configuration not set" : MessageFormat.format("Module ''{0}'' does not contain build configuration: ''{1}''",moduleName,bcName);
+    throw new CantRunException(message);
+  }
+  if (config.OUTPUT_TYPE != FlexIdeBuildConfiguration.OutputType.Application) {
+    throw new CantRunException(MessageFormat.format("Build configuration ''{0}'' of module ''{1}'' does not have ''Application'' output type",bcName,moduleName));
+  }
+  return Pair.create(module,config);
+}

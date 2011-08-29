@@ -4,18 +4,16 @@
   final Collection<Module> modulesToSkip=context.getCompileScope().getUserData(MODULES_TO_SKIP_FLEX_FACET_COMPILATION);
   if (flexCompilerConfiguration.USE_FCSH) {
     for (    ProcessingItem item : items) {
-      if (item instanceof MyProcessingItem) {
-        try {
-          final Module module=((MyProcessingItem)item).myModule;
-          if (modulesToSkip != null && modulesToSkip.contains(module)) {
-            continue;
-          }
-          context.addMessage(CompilerMessageCategory.INFORMATION,FlexBundle.message("using.fcsh"),null,-1,-1);
-          flexCompilerHandler.compileFlexModuleOrAllFlexFacets(module,context);
+      try {
+        final Module module=((MyProcessingItem)item).myModule;
+        if (modulesToSkip != null && modulesToSkip.contains(module)) {
+          continue;
         }
- catch (        IOException ex) {
-          context.addMessage(CompilerMessageCategory.ERROR,ex.toString(),null,-1,-1);
-        }
+        context.addMessage(CompilerMessageCategory.INFORMATION,FlexBundle.message("using.fcsh"),null,-1,-1);
+        flexCompilerHandler.compileFlexModuleOrAllFlexFacets(module,context);
+      }
+ catch (      IOException ex) {
+        context.addMessage(CompilerMessageCategory.ERROR,ex.toString(),null,-1,-1);
       }
     }
   }
@@ -24,11 +22,14 @@
     final FlexBuildConfiguration overriddenConfig=context.getUserData(FlexCompilerHandler.OVERRIDE_BUILD_CONFIG);
     final Collection<FlexCompilationTask> compilationTasks=new ArrayList<FlexCompilationTask>();
     for (    ProcessingItem item : items) {
-      if (item instanceof MyProcessingItem) {
-        final Module module=((MyProcessingItem)item).myModule;
-        if (modulesToSkip != null && modulesToSkip.contains(module)) {
-          continue;
-        }
+      final Module module=((MyProcessingItem)item).myModule;
+      if (modulesToSkip != null && modulesToSkip.contains(module)) {
+        continue;
+      }
+      if (PlatformUtils.isFlexIde() && FlexIdeUtils.isNewUI()) {
+        appendFlexIdeBCCompilations(compilationTasks,module,builtIn);
+      }
+ else {
         if (overriddenConfig != null && module == overriddenConfig.getModule()) {
           final Pair<Boolean,String> validationResultWithMessage=validateConfiguration(overriddenConfig,module,FlexBundle.message("module.name",module.getName()),false);
           if (!validationResultWithMessage.first) {
@@ -57,9 +58,6 @@
           }
         }
         appendCssCompilationTasks(compilationTasks,module,builtIn);
-        if (PlatformUtils.isFlexIde() && FlexIdeUtils.isNewUI()) {
-          appendFlexIdeBCCompilations(compilationTasks,module,builtIn);
-        }
       }
     }
     if (!compilationTasks.isEmpty()) {

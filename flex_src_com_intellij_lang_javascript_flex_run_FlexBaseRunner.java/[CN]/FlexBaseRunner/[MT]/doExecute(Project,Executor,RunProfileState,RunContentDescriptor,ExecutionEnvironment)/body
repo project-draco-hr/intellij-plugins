@@ -1,7 +1,12 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
-  final RunProfile runProfile=env.getRunProfile();
-  final FlexRunnerParameters flexRunnerParameters=((FlexRunConfiguration)runProfile).getRunnerParameters();
+  final RunProfile runProfile=environment.getRunProfile();
+  if (runProfile instanceof FlexIdeRunConfiguration) {
+    final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runProfile).getRunnerParameters();
+    final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=checkModuleAndConfig(project,params);
+    return launchFlexIdeConfig(moduleAndConfig.first,moduleAndConfig.second,params,executor,contentToReuse,environment);
+  }
+  final FlexRunnerParameters flexRunnerParameters=(((FlexRunConfiguration)runProfile)).getRunnerParameters();
   final Module module=ModuleManager.getInstance(project).findModuleByName(flexRunnerParameters.getModuleName());
   final Sdk flexSdk=module == null ? null : FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
   if (flexSdk == null) {
@@ -16,8 +21,8 @@
     if (needToCheckThatCompilationEnabled(flexRunnerParameters)) {
       checkIfCompilationEnabled(module,(FlexRunConfiguration)runProfile,isDebug);
     }
-    FlashPlayerTrustUtil.trustSwfIfNeeded(project,isDebug,flexRunnerParameters);
-    return doLaunch(project,executor,state,contentToReuse,env,flexSdk,flexRunnerParameters);
+    FlashPlayerTrustUtil.updateTrustedStatus(project,isDebug,flexRunnerParameters);
+    return doLaunch(project,executor,state,contentToReuse,environment,flexSdk,flexRunnerParameters);
   }
   return null;
 }

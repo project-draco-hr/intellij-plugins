@@ -1,0 +1,74 @@
+{
+switch (launcherParams.getLauncherType()) {
+case OSDefault:
+    if (Desktop.isDesktopSupported()) {
+      final Desktop desktop=Desktop.getDesktop();
+      if (BrowserUtil.isAbsoluteURL(urlOrPath)) {
+        if (desktop.isSupported(Desktop.Action.BROWSE)) {
+          try {
+            desktop.browse(BrowserUtil.getURL(urlOrPath).toURI());
+            break;
+          }
+ catch (          IOException ignored) {
+          }
+catch (          URISyntaxException ignored) {
+          }
+        }
+      }
+ else {
+        if (desktop.isSupported(Desktop.Action.OPEN)) {
+          try {
+            desktop.open(new File(urlOrPath));
+            break;
+          }
+ catch (          IOException ignored) {
+          }
+catch (          IllegalArgumentException ignored) {
+          }
+        }
+      }
+    }
+  BrowserUtil.launchBrowser(urlOrPath);
+break;
+case Browser:
+final Runnable runnable1=new Runnable(){
+public void run(){
+  BrowsersConfiguration.launchBrowser(launcherParams.getBrowserFamily(),BrowserUtil.isAbsoluteURL(urlOrPath) ? urlOrPath : VfsUtil.pathToUrl(urlOrPath));
+}
+}
+;
+final Application application1=ApplicationManager.getApplication();
+if (application1.isDispatchThread()) {
+runnable1.run();
+}
+ else {
+application1.invokeLater(runnable1);
+}
+break;
+case Player:
+final String playerPath=launcherParams.getPlayerPath();
+final String executablePath=SystemInfo.isMac && playerPath.endsWith(".app") ? FlexUtils.getMacExecutable(playerPath) : playerPath;
+try {
+if (executablePath == null) {
+throw new IOException("failed to find application to launch with");
+}
+Runtime.getRuntime().exec(new String[]{executablePath,urlOrPath});
+}
+ catch (final IOException e) {
+final Runnable runnable2=new Runnable(){
+public void run(){
+Messages.showErrorDialog(FlexBundle.message("cant.launch",urlOrPath,playerPath,e.getMessage()),CommonBundle.getErrorTitle());
+}
+}
+;
+final Application application2=ApplicationManager.getApplication();
+if (application2.isDispatchThread()) {
+runnable2.run();
+}
+ else {
+application2.invokeLater(runnable2);
+}
+}
+break;
+}
+}
