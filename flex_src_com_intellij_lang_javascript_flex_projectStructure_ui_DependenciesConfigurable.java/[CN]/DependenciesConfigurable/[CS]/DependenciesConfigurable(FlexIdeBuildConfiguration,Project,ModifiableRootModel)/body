@@ -34,7 +34,8 @@
   myTable=new EditableTreeTable<MyTableItem>("",DEPENDENCY_TYPE_COLUMN){
     @Override protected void render(    SimpleColoredComponent c,    MyTableItem item){
       if (item != null) {
-        c.append(item.getText());
+        boolean invalid=item instanceof BCItem && ((BCItem)item).configurable == null;
+        c.append(item.getText(),invalid ? SimpleTextAttributes.ERROR_ATTRIBUTES : SimpleTextAttributes.REGULAR_ATTRIBUTES);
         c.setIcon(item.getIcon());
       }
     }
@@ -88,8 +89,11 @@
         if (myTable.getSelectedRowCount() == 1) {
           MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
           if (item instanceof BCItem) {
-            Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,ModuleStructureConfigurable.getInstance(myProject)).putPath(MasterDetailsComponent.TREE_OBJECT,((BCItem)item).configurable.getEditableObject());
-            ProjectStructureConfigurable.getInstance(myProject).navigateTo(place,true);
+            FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
+            if (configurable != null) {
+              Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,ModuleStructureConfigurable.getInstance(myProject)).putPath(MasterDetailsComponent.TREE_OBJECT,configurable.getEditableObject());
+              ProjectStructureConfigurable.getInstance(myProject).navigateTo(place,true);
+            }
           }
  else           if (item instanceof ModuleLibraryItem) {
             editLibrary(((ModuleLibraryItem)item).libraryEntry);
@@ -104,8 +108,11 @@
       List<Integer> rowsToRemove=new ArrayList<Integer>();
       for (int row=0; row < myTable.getRowCount(); row++) {
         MyTableItem item=myTable.getItemAt(row);
-        if (item instanceof BCItem && ((BCItem)item).configurable.getModifiableRootModel().getModule() == module) {
-          rowsToRemove.add(row);
+        if (item instanceof BCItem) {
+          FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
+          if (configurable != null && configurable.getModifiableRootModel().getModule() == module) {
+            rowsToRemove.add(row);
+          }
         }
       }
       if (!rowsToRemove.isEmpty()) {

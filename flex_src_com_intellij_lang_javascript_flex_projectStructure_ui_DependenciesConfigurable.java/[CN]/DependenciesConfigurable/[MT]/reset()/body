@@ -9,14 +9,15 @@
     MyTableItem item=null;
     if (entry instanceof BuildConfigurationEntry) {
       final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
-      FlexIdeBCConfigurable configurable=ContainerUtil.find(configurator.getBCConfigurables(bcEntry.getModule()),new Condition<FlexIdeBCConfigurable>(){
+      Module module=bcEntry.getModule();
+      FlexIdeBCConfigurable configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<FlexIdeBCConfigurable>(){
         @Override public boolean value(        FlexIdeBCConfigurable configurable){
           return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
         }
       }
-);
+) : null;
       if (configurable == null) {
-        LOG.error("configurable not found for " + bcEntry.getBcName());
+        item=new BCItem(bcEntry.getModuleName(),bcEntry.getBcName());
       }
  else {
         item=new BCItem(configurable);
