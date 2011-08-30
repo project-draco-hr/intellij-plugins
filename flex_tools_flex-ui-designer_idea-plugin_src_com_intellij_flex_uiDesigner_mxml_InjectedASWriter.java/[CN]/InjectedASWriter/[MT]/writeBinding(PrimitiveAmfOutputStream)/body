@@ -3,19 +3,19 @@
     out.writeShort(0);
     return;
   }
-  final int bindingSizePosition=out.getBlockOut().allocate(2);
+  final int bindingSizePosition=out.allocateShort();
   int size=bindingItems.size();
   for (  Binding binding : bindingItems) {
     int beforePosition=out.size();
     try {
-      binding.write(out);
+      binding.write(out,writer,this);
       continue;
     }
  catch (    Throwable e) {
       problemsHolder.add(e);
     }
     size--;
-    writer.getBlockOut().setPosition(beforePosition);
+    out.getByteOut().setPosition(beforePosition);
   }
   out.putShort(size,bindingSizePosition);
 }

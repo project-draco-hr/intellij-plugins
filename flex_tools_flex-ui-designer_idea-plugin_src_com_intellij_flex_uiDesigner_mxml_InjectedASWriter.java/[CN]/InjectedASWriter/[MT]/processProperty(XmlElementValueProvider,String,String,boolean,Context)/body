@@ -3,10 +3,35 @@
   if (host == null) {
     return null;
   }
+  final InjectedPsiVisitor visitor;
   if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(type)) {
-    return checkArray(host,name,isStyle,context);
+    visitor=new InjectedPsiVisitor(host,JSCommonTypeNames.ARRAY_CLASS_NAME,problemsHolder);
   }
  else {
-    return checkObject(host,name,isStyle,context,type);
+    visitor=new InjectedPsiVisitor(host,type,problemsHolder);
+  }
+  if (visitor.getInvalidPropertyException() != null) {
+    throw visitor.getInvalidPropertyException();
+  }
+ else {
+    final Binding binding=visitor.getBinding();
+    if (binding != null) {
+      if (binding instanceof VariableBinding) {
+        JSVariable variable=((VariableBinding)binding).variable;
+        VariableReference variableReference=variableReferenceMap.get(variable);
+        if (variableReference == null) {
+          variableReferenceMap.put(variable,new VariableReference(variable));
+        }
+ else {
+          variableReference.markAsMultipleReferred();
+        }
+      }
+      binding.setTarget(writer.getObjectOrFactoryId(context),writer.getNameReference(name),isStyle);
+      bindingItems.add(binding);
+      return IGNORE;
+    }
+ else {
+      return visitor.getValueWriter();
+    }
   }
 }
