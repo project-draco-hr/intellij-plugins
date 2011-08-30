@@ -2,11 +2,11 @@
   if (!(ModuleType.get(module) instanceof FlexModuleType) || !FlexIdeUtils.isNewUI()) {
     return false;
   }
-  final List<FlexIdeBCConfigurable> configurables=myConfigurator.getOrCreateConfigurables(module,treeNodeNameUpdater,modifiableRootModel);
-  for (  final FlexIdeBCConfigurable configurable : configurables) {
+  final List<NamedConfigurable<FlexIdeBuildConfiguration>> configurables=myConfigurator.getOrCreateConfigurables(module,treeNodeNameUpdater,modifiableRootModel);
+  for (  final NamedConfigurable<FlexIdeBuildConfiguration> configurable : configurables) {
     if (MasterDetailsComponent.findNodeByObject(moduleNode,configurable.getEditableObject()) == null) {
       final MasterDetailsComponent.MyNode configurationNode=new BuildConfigurationNode(configurable);
-      addConfigurationChildNodes(module.getProject(),configurable,configurationNode);
+      addConfigurationChildNodes(module.getProject(),FlexIdeBCConfigurable.unwrapIfNeeded(configurable),configurationNode);
       moduleNode.add(configurationNode);
     }
   }

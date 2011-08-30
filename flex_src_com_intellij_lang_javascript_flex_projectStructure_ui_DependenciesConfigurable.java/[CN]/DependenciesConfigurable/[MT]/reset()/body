@@ -14,8 +14,8 @@
     if (entry instanceof BuildConfigurationEntry) {
       final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
       Module module=bcEntry.getModule();
-      FlexIdeBCConfigurable configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<FlexIdeBCConfigurable>(){
-        @Override public boolean value(        FlexIdeBCConfigurable configurable){
+      NamedConfigurable<FlexIdeBuildConfiguration> configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<NamedConfigurable<FlexIdeBuildConfiguration>>(){
+        @Override public boolean value(        NamedConfigurable<FlexIdeBuildConfiguration> configurable){
           return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
         }
       }
@@ -24,7 +24,7 @@
         item=new BCItem(bcEntry.getModuleName(),bcEntry.getBcName());
       }
  else {
-        item=new BCItem(configurable);
+        item=new BCItem(FlexIdeBCConfigurable.unwrapIfNeeded(configurable));
       }
       entry.getDependencyType().applyTo(((BCItem)item).dependencyType);
     }
