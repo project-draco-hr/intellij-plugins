@@ -3,6 +3,12 @@
     final Module module=entry.getKey();
     final List<FlexIdeBuildConfiguration> configurations=new LinkedList<FlexIdeBuildConfiguration>();
     final List<NamedConfigurable<FlexIdeBuildConfiguration>> configurables=entry.getValue();
+    Set<String> names=new HashSet<String>(configurables.size());
+    for (    NamedConfigurable<FlexIdeBuildConfiguration> configurable : configurables) {
+      if (!names.add(configurable.getDisplayName())) {
+        throw new ConfigurationException(MessageFormat.format("Module ''{0}'' has duplicate build configuration names: {1}",module.getName(),configurable.getDisplayName()));
+      }
+    }
     for (    final NamedConfigurable<FlexIdeBuildConfiguration> configurable : configurables) {
       configurable.apply();
       configurations.add(configurable.getEditableObject().clone());
