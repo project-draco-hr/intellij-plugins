@@ -1,7 +1,8 @@
 {
-  super(true,treeNodeNameUpdater);
+  super(false,treeNodeNameUpdater);
   myModule=module;
   myConfiguration=configuration;
+  myTreeNodeNameUpdater=treeNodeNameUpdater;
   myModifiableRootModel=modifiableRootModel;
   myName=configuration.NAME;
   myDependenciesConfigurable=new DependenciesConfigurable(configuration,module.getProject());
@@ -11,6 +12,15 @@
   myAirDesktopPackagingConfigurable=new AirDesktopPackagingConfigurable(module.getProject(),configuration.AIR_DESKTOP_PACKAGING_OPTIONS);
   myAndroidPackagingConfigurable=new AndroidPackagingConfigurable(module.getProject(),configuration.ANDROID_PACKAGING_OPTIONS);
   myIOSPackagingConfigurable=new IOSPackagingConfigurable(module.getProject(),configuration.IOS_PACKAGING_OPTIONS);
+  myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      setDisplayName(myNameField.getText());
+      if (treeNodeNameUpdater != null) {
+        treeNodeNameUpdater.run();
+      }
+    }
+  }
+);
   myListener=new ChangeListener(){
     @Override public void stateChanged(    ChangeEvent e){
     }
@@ -18,5 +28,4 @@
 ;
   myDependenciesConfigurable.addFlexSdkListener(myListener);
   initCombos();
-  myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
 }
