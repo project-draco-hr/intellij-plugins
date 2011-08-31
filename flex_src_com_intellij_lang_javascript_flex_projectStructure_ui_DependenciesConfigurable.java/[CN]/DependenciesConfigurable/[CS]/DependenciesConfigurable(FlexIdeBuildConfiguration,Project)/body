@@ -1,19 +1,18 @@
 {
   myDependencies=bc.DEPENDENCIES;
   myProject=project;
+  myNature=bc.getNature();
   myDisposable=Disposer.newDisposable();
-  final boolean mobilePlatform=bc.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Mobile;
-  final boolean webPlatform=bc.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Web;
-  myTargetPlayerLabel.setVisible(webPlatform);
-  myTargetPlayerCombo.setVisible(webPlatform);
+  myTargetPlayerLabel.setVisible(myNature.isWebPlatform());
+  myTargetPlayerCombo.setVisible(myNature.isWebPlatform());
   mySdkPanel.addListener(new ChangeListener(){
     public void stateChanged(    final ChangeEvent e){
       updateAvailableTargetPlayers();
     }
   }
 );
-  myComponentSetLabel.setVisible(!mobilePlatform && !bc.PURE_ACTION_SCRIPT);
-  myComponentSetCombo.setVisible(!mobilePlatform && !bc.PURE_ACTION_SCRIPT);
+  myComponentSetLabel.setVisible(!myNature.isMobilePlatform() && !bc.PURE_ACTION_SCRIPT);
+  myComponentSetCombo.setVisible(!myNature.isMobilePlatform() && !bc.PURE_ACTION_SCRIPT);
   myComponentSetCombo.setModel(new DefaultComboBoxModel(FlexIdeBuildConfiguration.ComponentSet.values()));
   myComponentSetCombo.setRenderer(new ListCellRendererWrapper<FlexIdeBuildConfiguration.ComponentSet>(myComponentSetCombo.getRenderer()){
     public void customize(    JList list,    FlexIdeBuildConfiguration.ComponentSet value,    int index,    boolean selected,    boolean hasFocus){
@@ -21,7 +20,7 @@
     }
   }
 );
-  final LinkageType defaultLinkage=BCUtils.getDefaultFrameworkLinkage(bc.getNature());
+  final LinkageType defaultLinkage=BCUtils.getDefaultFrameworkLinkage(myNature);
   myFrameworkLinkageCombo.setRenderer(new ListCellRendererWrapper<LinkageType>(myFrameworkLinkageCombo.getRenderer()){
     public void customize(    JList list,    LinkageType value,    int index,    boolean selected,    boolean hasFocus){
       if (value == LinkageType.Default) {
@@ -33,7 +32,21 @@
     }
   }
 );
-  myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(BCUtils.getSuitableFrameworkLinkages(bc.getNature())));
+  myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(BCUtils.getSuitableFrameworkLinkages(myNature)));
+  ItemListener updateSdkItemsListener=new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      DefaultMutableTreeNode sdkNode=findSdkNode();
+      SdkEntry currentSdk=mySdkPanel.getCurrentSdk();
+      if (sdkNode != null && currentSdk != null) {
+        updateSdkEntries(sdkNode,currentSdk);
+        myTable.refresh();
+      }
+    }
+  }
+;
+  myComponentSetCombo.addItemListener(updateSdkItemsListener);
+  myFrameworkLinkageCombo.addItemListener(updateSdkItemsListener);
+  myTargetPlayerCombo.addItem(updateSdkItemsListener);
   myTable=new EditableTreeTable<MyTableItem>("",DEPENDENCY_TYPE_COLUMN){
     @Override protected void render(    SimpleColoredComponent c,    MyTableItem item){
       if (item != null) {
@@ -45,6 +58,7 @@
   }
 ;
   myTable.setRootVisible(false);
+  myTable.getTree().setShowsRootHandles(true);
   myTable.getTree().setLineStyleAngled();
   myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
     @Override public void valueChanged(    ListSelectionEvent e){

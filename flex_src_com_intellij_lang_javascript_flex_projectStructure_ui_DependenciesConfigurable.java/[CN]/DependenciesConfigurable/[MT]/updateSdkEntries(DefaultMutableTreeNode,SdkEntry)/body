@@ -1,0 +1,20 @@
+{
+  sdkNode.removeAllChildren();
+  FlexIdeBuildConfiguration.ComponentSet componentSet=(FlexIdeBuildConfiguration.ComponentSet)myComponentSetCombo.getSelectedItem();
+  String targetPlayer=(String)myTargetPlayerCombo.getSelectedItem();
+  for (  String url : sdk.getAllClassRoots()) {
+    url=VirtualFileManager.extractPath(StringUtil.trimEnd(url,JarFileSystem.JAR_SEPARATOR));
+    LinkageType linkageType=BCUtils.getSdkEntryLinkageType(url,myNature,targetPlayer,componentSet);
+    if (linkageType == null) {
+      continue;
+    }
+    if (linkageType == LinkageType.Default) {
+      linkageType=(LinkageType)myFrameworkLinkageCombo.getSelectedItem();
+      if (linkageType == LinkageType.Default) {
+        linkageType=BCUtils.getDefaultFrameworkLinkage(myNature);
+      }
+    }
+    SdkEntryItem item=new SdkEntryItem(FileUtil.toSystemDependentName(url),linkageType);
+    sdkNode.add(new DefaultMutableTreeNode(item,false));
+  }
+}
