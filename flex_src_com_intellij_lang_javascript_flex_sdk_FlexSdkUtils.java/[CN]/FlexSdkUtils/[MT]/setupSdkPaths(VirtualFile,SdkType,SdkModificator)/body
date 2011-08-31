@@ -7,15 +7,42 @@
   }
   sdkRoot.refresh(false,true);
   sdkModificator.setVersionString(readFlexSdkVersion(sdkRoot));
-  final String configFileRelativePath=getBaseConfigFileRelPath((IFlexSdkType)sdkType);
-  final VirtualFile configFile=sdkRoot.findFileByRelativePath(configFileRelativePath);
-  if (configFile == null) {
-    return;
+  if (sdkType == null) {
+    final VirtualFile playerDir=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+      public VirtualFile compute(){
+        final VirtualFile libsDir=LocalFileSystem.getInstance().refreshAndFindFileByPath(sdkRoot.getPath() + "/frameworks/libs");
+        if (libsDir != null && libsDir.isDirectory()) {
+          libsDir.refresh(false,true);
+          return libsDir.findChild("player");
+        }
+        return null;
+      }
+    }
+);
+    if (playerDir != null) {
+      processPlayerglobalSwcFiles(playerDir,new Processor<VirtualFile>(){
+        public boolean process(        final VirtualFile playerglobalSwcFile){
+          addSwcRoot(sdkModificator,playerglobalSwcFile);
+          return true;
+        }
+      }
+);
+      final VirtualFile baseDir=playerDir.getParent().getParent();
+      addSwcRoots(sdkModificator,baseDir,Collections.singletonList("libs/air/airglobal.swc"),false);
+      addSwcRoots(sdkModificator,baseDir,Arrays.asList("libs","libs/mx","libs/air","libs/mobile"),true);
+    }
   }
-  try {
-    setupSdkLibraries(sdkModificator,configFile);
-  }
- catch (  IOException e) {
+ else {
+    final String configFileRelativePath=getBaseConfigFileRelPath((IFlexSdkType)sdkType);
+    final VirtualFile configFile=sdkRoot.findFileByRelativePath(configFileRelativePath);
+    if (configFile == null) {
+      return;
+    }
+    try {
+      setupSdkLibraries(sdkModificator,configFile);
+    }
+ catch (    IOException e) {
+    }
   }
   final VirtualFile projectsDir=VfsUtil.findRelativeFile("frameworks/projects",sdkRoot);
   if (projectsDir != null && projectsDir.isDirectory()) {
