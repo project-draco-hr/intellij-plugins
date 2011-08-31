@@ -1,0 +1,25 @@
+{
+  JSReferenceExpression referenceExpression=CastUtils.tryCast(testCaseCallExpression.getMethodExpression(),JSReferenceExpression.class);
+  if (referenceExpression != null) {
+    String referenceName=referenceExpression.getReferencedName();
+    if ("TestCase".equals(referenceName) || "AsyncTestCase".equals(referenceName)) {
+      JSExpression[] arguments=JsPsiUtils.getArguments(testCaseCallExpression);
+      if (arguments.length >= 1) {
+        String testCaseName=JsPsiUtils.extractStringValue(arguments[0]);
+        if (testCaseName != null) {
+          JSObjectLiteralExpression testsObjectLiteral=null;
+          if (arguments.length >= 2) {
+            testsObjectLiteral=JsPsiUtils.extractObjectLiteralExpression(arguments[1]);
+          }
+          JstdTestCaseStructure testCaseStructure=new JstdTestCaseStructure(jsTestFileStructure,testCaseName,testCaseCallExpression,testsObjectLiteral);
+          jsTestFileStructure.addTestCaseStructure(testCaseStructure);
+          if (testsObjectLiteral != null) {
+            fillTestCaseStructureByObjectLiteral(testCaseStructure,testsObjectLiteral);
+          }
+          return testCaseStructure;
+        }
+      }
+    }
+  }
+  return null;
+}

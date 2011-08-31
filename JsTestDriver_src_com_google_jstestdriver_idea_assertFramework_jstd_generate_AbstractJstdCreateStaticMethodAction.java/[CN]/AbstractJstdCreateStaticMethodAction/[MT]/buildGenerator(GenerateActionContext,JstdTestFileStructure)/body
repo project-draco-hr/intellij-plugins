@@ -1,0 +1,34 @@
+{
+  if (fileStructure.getTestCaseCount() == 0) {
+    return null;
+  }
+  int caretOffset=context.getCaretOffsetInDocument();
+  JstdTestCaseStructure testCaseStructure=fileStructure.findEnclosingTestCaseByOffset(caretOffset);
+  if (testCaseStructure != null) {
+    JSObjectLiteralExpression testsObjectLiteral=testCaseStructure.getTestsObjectsLiteral();
+    if (testsObjectLiteral != null) {
+      if (!findMethod(testsObjectLiteral)) {
+        return new StaticMethodGenerator(testsObjectLiteral,context);
+      }
+    }
+ else {
+      JSCallExpression callExpression=testCaseStructure.getEnclosingCallExpression();
+      JSArgumentList argumentList=callExpression.getArgumentList();
+      JSExpression[] arguments=JsPsiUtils.getArguments(argumentList);
+      if (arguments.length == 1 && arguments[0] != null) {
+        return new StaticMethodGeneratorOnNewlyCreatedObjectLiteral(argumentList,context);
+      }
+    }
+  }
+ else {
+    for (    JstdTestCaseStructure testCase : fileStructure.getTestCaseStructures()) {
+      JSObjectLiteralExpression testsObjectLiteral=testCase.getTestsObjectsLiteral();
+      if (testsObjectLiteral != null && JsPsiUtils.isStrictlyInside(testsObjectLiteral.getTextRange(),caretOffset)) {
+        if (!findMethod(testsObjectLiteral)) {
+          return new StaticMethodGenerator(testsObjectLiteral,context);
+        }
+      }
+    }
+  }
+  return null;
+}

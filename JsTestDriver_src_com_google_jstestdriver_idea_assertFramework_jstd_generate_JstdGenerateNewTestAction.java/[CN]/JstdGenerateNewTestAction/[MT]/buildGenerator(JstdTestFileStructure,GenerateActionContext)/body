@@ -1,0 +1,29 @@
+{
+  int caretOffset=context.getCaretOffsetInDocument();
+  JstdTestCaseStructure jstdTestCaseStructure=fileStructure.findEnclosingTestCaseByOffset(caretOffset);
+  if (jstdTestCaseStructure != null) {
+    JSObjectLiteralExpression testsObjectLiteral=jstdTestCaseStructure.getTestsObjectsLiteral();
+    if (testsObjectLiteral != null) {
+      return new TestGeneratorOnObjectLiteral(testsObjectLiteral,context);
+    }
+ else {
+      if (jstdTestCaseStructure.getTestCount() == 0) {
+        JSCallExpression callExpression=jstdTestCaseStructure.getEnclosingCallExpression();
+        JSArgumentList argumentList=callExpression.getArgumentList();
+        JSExpression[] arguments=JsPsiUtils.getArguments(argumentList);
+        if (arguments.length == 1 && arguments[0] != null) {
+          return new TestGeneratorOnNewlyCreatedObjectLiteral(argumentList,context);
+        }
+      }
+    }
+  }
+ else {
+    for (    JstdTestCaseStructure testCaseStructure : fileStructure.getTestCaseStructures()) {
+      JSObjectLiteralExpression testsObjectLiteral=testCaseStructure.getTestsObjectsLiteral();
+      if (testsObjectLiteral != null && JsPsiUtils.isStrictlyInside(testsObjectLiteral.getTextRange(),caretOffset)) {
+        return new TestGeneratorOnObjectLiteral(testsObjectLiteral,context);
+      }
+    }
+  }
+  return null;
+}
