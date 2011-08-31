@@ -1,15 +1,20 @@
 {
   if (descriptor.isRichTextContent()) {
     writeString(valueProvider,descriptor);
-    return;
+    return true;
   }
   if (valueProvider instanceof XmlAttributeValueProvider && isInlineArray(valueProvider.getTrimmed())) {
     writeInlineArray(valueProvider);
-    return;
+    return true;
+  }
+  if (valueProvider instanceof XmlTagValueProvider) {
+    if (((XmlTag)valueProvider.getElement()).getSubTags().length > 0) {
+      return false;
+    }
   }
   final CharSequence charSequence=writeIfEmpty(valueProvider);
   if (charSequence == null) {
-    return;
+    return true;
   }
   final String value=charSequence.toString();
   try {
@@ -23,4 +28,5 @@
       writer.writeString(charSequence);
     }
   }
+  return true;
 }
