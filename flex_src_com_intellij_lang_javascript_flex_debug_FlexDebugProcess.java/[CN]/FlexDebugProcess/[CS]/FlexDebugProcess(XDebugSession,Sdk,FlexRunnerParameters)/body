@@ -3,93 +3,17 @@
   final Sdk debuggerSdk=getDebuggerSdk(flexRunnerParameters,flexSdk);
   myDebuggerVersion=StringUtil.notNullize(debuggerSdk.getVersionString(),"unknown");
   myBreakpointsHandler=new FlexBreakpointsHandler(this);
-  mySdkLocation=flexSdk.getHomePath().replace(File.separatorChar,'/');
+  mySdkLocation=FileUtil.toSystemIndependentName(flexSdk.getHomePath());
   if (flexRunnerParameters instanceof FlexUnitRunnerParameters) {
-    try {
-      final FlexUnitRunnerParameters params=(FlexUnitRunnerParameters)flexRunnerParameters;
-      myPolicyFileConnection=new SwfPolicyFileConnection();
-      myPolicyFileConnection.open(params.getSocketPolicyPort());
-      myFlexUnitConnection=new FlexUnitConnection();
-      myFlexUnitConnection.addListener(new FlexUnitConnection.Listener(){
-        public void statusChanged(        FlexUnitConnection.ConnectionStatus status){
-          if (status == FlexUnitConnection.ConnectionStatus.CONNECTION_FAILED) {
-            getSession().stop();
-          }
-        }
-        public void onData(        String line){
-          getProcessHandler().notifyTextAvailable(line + "\n",ProcessOutputTypes.STDOUT);
-        }
-        public void onFinish(){
-          getProcessHandler().detachProcess();
-        }
-      }
-);
-      myFlexUnitConnection.open(params.getPort());
-    }
- catch (    ExecutionException e) {
-      Notifications.Bus.notify(new Notification(DEBUGGER_GROUP_ID,FlexBundle.message("flex.debugger.startup.error"),FlexBundle.message("flexunit.startup.error",e.getMessage()),NotificationType.ERROR),session.getProject());
-      myFlexUnitConnection=null;
-      myPolicyFileConnection=null;
-    }
+    final FlexUnitRunnerParameters flexUnitParams=(FlexUnitRunnerParameters)flexRunnerParameters;
+    openFlexUnitConnections(flexUnitParams.getSocketPolicyPort(),flexUnitParams.getPort());
   }
  else {
     myPolicyFileConnection=null;
     myFlexUnitConnection=null;
   }
-  String classpath=FileUtil.toSystemDependentName(debuggerSdk.getHomePath() + "/lib/fdb.jar");
-  if (isDebuggerFromSdk3()) {
-    classpath=FlexUtils.getPathToBundledJar("idea-fdb-3-fix.jar") + File.pathSeparator + classpath;
-  }
- else   if (isDebuggerFromSdk4()) {
-    if (myDebuggerVersion.contains("14159") || myDebuggerVersion.contains("16076")) {
-      classpath=FlexUtils.getPathToBundledJar("idea-fdb-4.0.0.14159-fix.jar") + File.pathSeparator + classpath;
-    }
- else     if (myDebuggerVersion.contains("20967") || myDebuggerVersion.contains("21328")) {
-      classpath=FlexUtils.getPathToBundledJar("idea-fdb-4.5.0.20967-fix.jar") + File.pathSeparator + classpath;
-    }
-  }
-  final List<String> fdbLaunchCommand=FlexSdkUtils.getCommandLineForSdkTool(session.getProject(),debuggerSdk,classpath,"flex.tools.debugger.cli.DebugCLI",null);
+  final List<String> fdbLaunchCommand=FlexSdkUtils.getCommandLineForSdkTool(session.getProject(),debuggerSdk,getFdbClasspath(),"flex.tools.debugger.cli.DebugCLI",null);
   fdbProcess=FlexBaseRunner.isRunAsAir(flexRunnerParameters) ? launchAir(fdbLaunchCommand,(AirRunnerParameters)flexRunnerParameters,flexSdk) : launchFlex(fdbLaunchCommand,flexRunnerParameters);
   reader=new MyFdbOutputReader(fdbProcess.getInputStream());
-  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-    public void run(){
-      myDebuggerManagerThread=Thread.currentThread();
-synchronized (FlexDebugProcess.this) {
-        if (!debugSessionInitialized) {
-          try {
-            FlexDebugProcess.this.wait();
-          }
- catch (          InterruptedException e) {
-          }
-        }
-      }
-      try {
-        while (true) {
-          processOneCommandLoop();
-        }
-      }
- catch (      IOException ex) {
-        myConsoleView.print(ex.toString(),ConsoleViewContentType.ERROR_OUTPUT);
-        getProcessHandler().detachProcess();
-        fdbProcess.destroy();
-        LOG.warn(ex);
-      }
-catch (      InterruptedException e) {
-        return;
-      }
-catch (      RuntimeException ex) {
-        final Throwable throwable=ex.getCause();
-        if (throwable instanceof InterruptedException)         return;
-        throw ex;
-      }
- finally {
-        try {
-          fdbProcess.getInputStream().close();
-        }
- catch (        IOException ex) {
-        }
-      }
-    }
-  }
-);
+  startCommandProcessingThread();
 }
