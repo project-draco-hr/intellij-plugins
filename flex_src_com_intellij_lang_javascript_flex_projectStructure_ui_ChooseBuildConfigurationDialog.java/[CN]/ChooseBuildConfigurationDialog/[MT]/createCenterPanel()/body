@@ -1,23 +1,53 @@
 {
-  SimpleNode root=new RootNode(myProject);
-  final DefaultTreeModel treeModel=new DefaultTreeModel(new DefaultMutableTreeNode());
-  myTree=new SimpleTree(treeModel);
+  DefaultMutableTreeNode root=new DefaultMutableTreeNode();
+  for (  Module module : myTreeItems.keySet()) {
+    DefaultMutableTreeNode moduleNode=new DefaultMutableTreeNode(module,true);
+    root.add(moduleNode);
+    for (    FlexIdeBCConfigurable bc : myTreeItems.get(module)) {
+      DefaultMutableTreeNode bcNode=new DefaultMutableTreeNode(bc,false);
+      moduleNode.add(bcNode);
+    }
+  }
+  myTree=new Tree(new DefaultTreeModel(root));
   myTree.setRootVisible(false);
+  new TreeSpeedSearch(myTree,new Convertor<TreePath,String>(){
+    @Override public String convert(    TreePath o){
+      Object lastPathComponent=o.getLastPathComponent();
+      return getText((DefaultMutableTreeNode)lastPathComponent);
+    }
+  }
+,true).setComparator(new SpeedSearchBase.SpeedSearchComparator(false));
+  TreeUIHelper.getInstance().installTreeSpeedSearch(myTree);
   myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-  SimpleTreeStructure s=new SimpleTreeStructure.Impl(root);
-  myTreeBuilder=new SimpleTreeBuilder(myTree,treeModel,s,null);
-  Disposer.register(getDisposable(),myTreeBuilder);
-  myTree.setModel(treeModel);
   myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
     @Override public void valueChanged(    TreeSelectionEvent e){
-      mySelection=myTreeBuilder.getSelectedElements(BCNode.class);
-      setOKActionEnabled(!mySelection.isEmpty());
+      mySelection=myTree.getSelectedNodes(DefaultMutableTreeNode.class,new Tree.NodeFilter<DefaultMutableTreeNode>(){
+        @Override public boolean accept(        DefaultMutableTreeNode node){
+          return node.getUserObject() instanceof FlexIdeBCConfigurable;
+        }
+      }
+);
+      setOKActionEnabled(mySelection.length > 0);
+    }
+  }
+);
+  myTree.setCellRenderer(new ColoredTreeCellRenderer(){
+    @Override public void customizeCellRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)value;
+      append(getText(treeNode));
+      Object object=treeNode.getUserObject();
+      if (object instanceof Module) {
+        setIcon(ModuleType.get((Module)object).getNodeIcon(expanded));
+      }
+ else {
+        setIcon(((FlexIdeBCConfigurable)object).getIcon());
+      }
     }
   }
 );
   JPanel p=new JPanel(new BorderLayout());
   p.add(ScrollPaneFactory.createScrollPane(myTree),BorderLayout.CENTER);
-  myTreeBuilder.expandAll(null);
+  TreeUtil.expandAll(myTree);
   myTree.addMouseListener(new MouseAdapter(){
     @Override public void mouseClicked(    MouseEvent e){
       if (e.getClickCount() == 2) {
