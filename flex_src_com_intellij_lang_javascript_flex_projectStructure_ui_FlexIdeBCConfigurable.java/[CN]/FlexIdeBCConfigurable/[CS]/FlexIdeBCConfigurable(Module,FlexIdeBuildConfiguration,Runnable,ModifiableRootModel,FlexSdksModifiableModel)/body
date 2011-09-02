@@ -5,11 +5,12 @@
   myTreeNodeNameUpdater=treeNodeNameUpdater;
   myModifiableRootModel=modifiableRootModel;
   myName=configuration.NAME;
+  final BuildConfigurationNature nature=configuration.getNature();
   myDependenciesConfigurable=new DependenciesConfigurable(configuration,module.getProject(),sdksModel);
   myCompilerOptionsConfigurable=new CompilerOptionsConfigurable(module,configuration.COMPILER_OPTIONS);
-  myAirDesktopPackagingConfigurable=new AirDesktopPackagingConfigurable(module,configuration.AIR_DESKTOP_PACKAGING_OPTIONS);
-  myAndroidPackagingConfigurable=new AndroidPackagingConfigurable(module.getProject(),configuration.ANDROID_PACKAGING_OPTIONS);
-  myIOSPackagingConfigurable=new IOSPackagingConfigurable(module.getProject(),configuration.IOS_PACKAGING_OPTIONS);
+  myAirDesktopPackagingConfigurable=nature.isDesktopPlatform() && nature.isApp() ? new AirDesktopPackagingConfigurable(module,configuration.AIR_DESKTOP_PACKAGING_OPTIONS) : null;
+  myAndroidPackagingConfigurable=nature.isMobilePlatform() && nature.isApp() ? new AndroidPackagingConfigurable(module.getProject(),configuration.ANDROID_PACKAGING_OPTIONS) : null;
+  myIOSPackagingConfigurable=nature.isMobilePlatform() && nature.isApp() ? new IOSPackagingConfigurable(module.getProject(),configuration.IOS_PACKAGING_OPTIONS) : null;
   myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
     protected void textChanged(    DocumentEvent e){
       setDisplayName(myNameField.getText());
