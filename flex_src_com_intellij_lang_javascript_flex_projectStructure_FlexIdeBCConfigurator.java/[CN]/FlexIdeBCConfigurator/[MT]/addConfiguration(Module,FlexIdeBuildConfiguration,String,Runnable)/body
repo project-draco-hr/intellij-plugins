@@ -15,13 +15,13 @@
       final String extension=configuration.OUTPUT_TYPE == FlexIdeBuildConfiguration.OutputType.Library ? ".swc" : ".swf";
       configuration.OUTPUT_FILE_NAME=outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension;
     }
-    final FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,configuration,treeNodeNameUpdater,modifiableRootModel,mySdksModel);
+    final FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,configuration,mySdksModel,treeNodeNameUpdater);
     NamedConfigurable<FlexIdeBuildConfiguration> wrapped=configurable.wrapInTabsIfNeeded();
     final List<NamedConfigurable<FlexIdeBuildConfiguration>> configurables=myModuleToConfigurablesMap.get(module);
     configurables.add(wrapped);
     myConfigurationsToModuleMap.put(configuration,module);
     final MasterDetailsComponent.MyNode node=new BuildConfigurationNode(wrapped);
-    FlexIdeModuleStructureExtension.addConfigurationChildNodes(project,configurable,node);
+    FlexIdeModuleStructureExtension.addConfigurationChildNodes(configurable,node);
     final ModuleStructureConfigurable moduleStructureConfigurable=ModuleStructureConfigurable.getInstance(project);
     moduleStructureConfigurable.addNode(node,moduleStructureConfigurable.findModuleNode(module));
     final Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,moduleStructureConfigurable).putPath(MasterDetailsComponent.TREE_OBJECT,configuration);
