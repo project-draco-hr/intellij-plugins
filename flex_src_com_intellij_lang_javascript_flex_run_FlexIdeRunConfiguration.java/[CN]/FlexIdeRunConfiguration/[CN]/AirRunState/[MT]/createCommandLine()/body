@@ -1,0 +1,24 @@
+{
+  final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=FlexBaseRunner.getModuleAndConfig(getProject(),myRunnerParameters);
+  final Module module=moduleAndConfig.first;
+  final FlexIdeBuildConfiguration config=moduleAndConfig.second;
+  final GeneralCommandLine commandLine=new GeneralCommandLine();
+  final SdkEntry sdkEntry=config.DEPENDENCIES.getSdk();
+  if (sdkEntry == null) {
+    throw new CantRunException(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",config.NAME,module.getName()));
+  }
+  commandLine.setExePath(sdkEntry.getHomePath() + FlexSdkUtils.ADL_RELATIVE_PATH);
+  final String adlOptions=myRunnerParameters.getAdlOptions();
+  if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
+    commandLine.addParameters(StringUtil.split(adlOptions," "));
+  }
+  final String descriptorName=(config.AIR_DESKTOP_PACKAGING_OPTIONS.USE_GENERATED_DESCRIPTOR ? BCUtils.getGeneratedAirDescriptorName(config) : PathUtil.getFileName(config.AIR_DESKTOP_PACKAGING_OPTIONS.CUSTOM_DESCRIPTOR_PATH));
+  commandLine.addParameter(config.OUTPUT_FOLDER + "/" + descriptorName);
+  commandLine.addParameter(config.OUTPUT_FOLDER);
+  final String programParameters=myRunnerParameters.getAirProgramParameters();
+  if (!StringUtil.isEmptyOrSpaces(programParameters)) {
+    commandLine.addParameter("--");
+    commandLine.addParameters(StringUtil.split(programParameters," "));
+  }
+  return commandLine;
+}

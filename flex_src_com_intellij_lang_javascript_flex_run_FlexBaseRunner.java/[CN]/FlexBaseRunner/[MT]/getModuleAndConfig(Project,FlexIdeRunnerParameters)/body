@@ -1,0 +1,14 @@
+{
+  final String moduleName=params.getModuleName();
+  final String bcName=params.getBCName();
+  final Module module=ModuleManager.getInstance(project).findModuleByName(moduleName);
+  if (module == null) {
+    throw new CantRunException(moduleName.isEmpty() ? "Module not set" : MessageFormat.format("No such module: ''{0}''",moduleName));
+  }
+  final FlexIdeBuildConfiguration config=ModuleType.get(module) instanceof FlexModuleType ? FlexIdeBuildConfigurationManager.getInstance(module).findConfigurationByName(bcName) : null;
+  if (config == null) {
+    final String message=bcName.isEmpty() ? "Build configuration not set" : MessageFormat.format("Module ''{0}'' does not contain build configuration: ''{1}''",moduleName,bcName);
+    throw new CantRunException(message);
+  }
+  return Pair.create(module,config);
+}

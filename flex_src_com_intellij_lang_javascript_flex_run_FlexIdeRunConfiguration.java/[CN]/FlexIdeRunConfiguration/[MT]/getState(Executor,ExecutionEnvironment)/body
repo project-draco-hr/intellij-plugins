@@ -1,14 +1,9 @@
 {
-  return new RunProfileState(){
-    public ExecutionResult execute(    final Executor executor,    @NotNull final ProgramRunner runner) throws ExecutionException {
-      return null;
-    }
-    public RunnerSettings getRunnerSettings(){
-      return null;
-    }
-    public ConfigurationPerRunnerSettings getConfigurationSettings(){
-      return null;
-    }
+  final FlexIdeBuildConfiguration config=FlexBaseRunner.getModuleAndConfig(getProject(),myRunnerParameters).second;
+  if (config.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Desktop) {
+    final AirRunState airRunState=new AirRunState(env);
+    airRunState.setConsoleBuilder(TextConsoleBuilderFactory.getInstance().createBuilder(getProject()));
+    return airRunState;
   }
-;
+  return FlexBaseRunner.EMPTY_RUN_STATE;
 }

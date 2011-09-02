@@ -2,16 +2,18 @@
   final Object item=myBCsCombo.getSelectedItem();
   final FlexIdeBuildConfiguration config=item instanceof FlexIdeBuildConfiguration ? (FlexIdeBuildConfiguration)item : null;
   final boolean web=config != null && config.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Web;
+  final boolean desktop=config != null && config.TARGET_PLATFORM == FlexIdeBuildConfiguration.TargetPlatform.Desktop;
   myLaunchPanel.setVisible(web);
   myWebOptionsPanel.setVisible(web);
+  myDesktopOptionsPanel.setVisible(desktop);
   if (web) {
     String bcOutput=config.OUTPUT_FILE_NAME;
     if (!bcOutput.isEmpty() && config.USE_HTML_WRAPPER) {
       bcOutput+=" via HTML wrapper";
     }
     myBCOutputLabel.setText(bcOutput);
+    myURLTextField.setEnabled(myURLRadioButton.isSelected());
     myLauncherParametersTextWithBrowse.getTextField().setText(myLauncherParameters.getPresentableText());
+    myRunTrustedCheckBox.setEnabled(!myURLRadioButton.isSelected());
   }
-  myURLTextField.setEnabled(myURLRadioButton.isSelected());
-  myRunTrustedCheckBox.setEnabled(!myURLRadioButton.isSelected());
 }
