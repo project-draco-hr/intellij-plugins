@@ -1,21 +1,21 @@
 {
+  final boolean allowIncludeInExludeFrom=hasStates && isListItem && parentContext != null;
+  if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(descriptor.getQualifiedName())) {
+    out.write(AmfExtendedTypes.MXML_ARRAY);
+    processTagChildren(tag,processIdAttributeOfBuiltInTypeLanguageTag(tag,parentContext,allowIncludeInExludeFrom),parentContext,false,PropertyKind.ARRAY,false);
+    return true;
+  }
+ else   if (CodeContext.AS3_VEC_VECTOR_QUALIFIED_NAME.equals(descriptor.getQualifiedName())) {
+    return processMxmlVector(tag,parentContext,allowIncludeInExludeFrom);
+  }
   try {
-    if (propertyProcessor.writeIfPrimitive(createValueProvider(tag),descriptor.getQualifiedName(),out,writer,null)) {
+    if (propertyProcessor.writeIfPrimitive(createValueProvider(tag),descriptor.getQualifiedName(),out,parentContext,allowIncludeInExludeFrom) != null) {
       return true;
     }
   }
  catch (  InvalidPropertyException e) {
     problemsHolder.add(e);
     return false;
-  }
-  if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(descriptor.getQualifiedName())) {
-    out.write(AmfExtendedTypes.MXML_ARRAY);
-    processIdAttributeOfArrayOrVectorDeclaredAsTag(tag,parentContext);
-    processTagChildren(tag,null,parentContext,false,PropertyKind.ARRAY,false);
-    return true;
-  }
- else   if (CodeContext.AS3_VEC_VECTOR_QUALIFIED_NAME.equals(descriptor.getQualifiedName())) {
-    return processMxmlVector(tag,parentContext);
   }
   final int projectComponentFactoryId;
   try {
@@ -39,5 +39,5 @@
     }
     writer.write(descriptor.getQualifiedName());
   }
-  return processElements(tag,parentContext,hasStates && isListItem && parentContext != null,childDataPosition,out.allocateClearShort());
+  return processElements(tag,parentContext,allowIncludeInExludeFrom,childDataPosition,out.allocateClearShort());
 }
