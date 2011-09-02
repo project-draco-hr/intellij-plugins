@@ -1,17 +1,18 @@
 {
-  SdkEntry currentSdk=mySdkPanel.getCurrentSdk();
+  FlexSdk currentSdk=mySdkPanel.getCurrentSdk();
+  SdkEntry sdkEntry=myDependencies.getSdkEntry();
   if (currentSdk != null) {
-    if (myDependencies.getSdk() == null || !currentSdk.isEqual(myDependencies.getSdk()))     return true;
+    if (sdkEntry == null || !currentSdk.getHomePath().equals(sdkEntry.getHomePath()))     return true;
   }
  else {
-    if (myDependencies.getSdk() != null)     return true;
+    if (sdkEntry != null)     return true;
   }
   final String targetPlayer=(String)myTargetPlayerCombo.getSelectedItem();
   if (myTargetPlayerCombo.isVisible() && targetPlayer != null && !myDependencies.TARGET_PLAYER.equals(targetPlayer))   return true;
   if (myComponentSetCombo.isVisible() && myDependencies.COMPONENT_SET != myComponentSetCombo.getSelectedItem())   return true;
   if (myDependencies.getFrameworkLinkage() != myFrameworkLinkageCombo.getSelectedItem())   return true;
   List<MyTableItem> items=myTable.getItems();
-  ContainerUtil.filter(items,new Condition<MyTableItem>(){
+  items=ContainerUtil.filter(items,new Condition<MyTableItem>(){
     @Override public boolean value(    MyTableItem item){
       return !(item instanceof SdkItem || item instanceof SdkEntryItem);
     }

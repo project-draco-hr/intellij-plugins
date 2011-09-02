@@ -1,6 +1,7 @@
 {
-  SdkEntry sdk=myDependencies.getSdk();
-  mySdkPanel.reset(sdk != null ? sdk.getCopy() : null);
+  SdkEntry sdkEntry=myDependencies.getSdkEntry();
+  mySdkPanel.reset();
+  mySdkPanel.setCurrentHomePath(sdkEntry != null ? sdkEntry.getHomePath() : null);
   updateAvailableTargetPlayers();
   myTargetPlayerCombo.setSelectedItem(myDependencies.TARGET_PLAYER);
   updateComponentSetCombo();
@@ -8,10 +9,13 @@
   myFrameworkLinkageCombo.setSelectedItem(myDependencies.getFrameworkLinkage());
   DefaultMutableTreeNode root=myTable.getRoot();
   root.removeAllChildren();
-  if (sdk != null) {
-    DefaultMutableTreeNode sdkNode=new DefaultMutableTreeNode(new SdkItem(sdk),true);
-    myTable.getRoot().insert(sdkNode,0);
-    updateSdkEntries(sdkNode,sdk);
+  if (sdkEntry != null) {
+    FlexSdk flexSdk=mySdksModel.findOrCreateSdk(sdkEntry.getHomePath());
+    if (flexSdk != null) {
+      DefaultMutableTreeNode sdkNode=new DefaultMutableTreeNode(new SdkItem(flexSdk),true);
+      myTable.getRoot().insert(sdkNode,0);
+      updateSdkEntries(sdkNode,flexSdk);
+    }
   }
   FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
   for (  DependencyEntry entry : myDependencies.getEntries()) {

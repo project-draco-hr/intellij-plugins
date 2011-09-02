@@ -1,0 +1,35 @@
+{
+  super(false,treeNodeNameUpdater);
+  myModule=module;
+  myConfiguration=configuration;
+  myTreeNodeNameUpdater=treeNodeNameUpdater;
+  myModifiableRootModel=modifiableRootModel;
+  myName=configuration.NAME;
+  myDependenciesConfigurable=new DependenciesConfigurable(configuration,module.getProject(),sdksModel);
+  myCompilerOptionsConfigurable=new CompilerOptionsConfigurable(module,configuration.COMPILER_OPTIONS);
+  myAirDescriptorConfigurable=new AirDescriptorConfigurable(configuration.AIR_DESCRIPTOR_OPTIONS);
+  myAirDesktopPackagingConfigurable=new AirDesktopPackagingConfigurable(module.getProject(),configuration.AIR_DESKTOP_PACKAGING_OPTIONS);
+  myAndroidPackagingConfigurable=new AndroidPackagingConfigurable(module.getProject(),configuration.ANDROID_PACKAGING_OPTIONS);
+  myIOSPackagingConfigurable=new IOSPackagingConfigurable(module.getProject(),configuration.IOS_PACKAGING_OPTIONS);
+  myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      setDisplayName(myNameField.getText());
+      if (treeNodeNameUpdater != null) {
+        treeNodeNameUpdater.run();
+      }
+    }
+  }
+);
+  initCombos();
+  myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myUseHTMLWrapperCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+      IdeFocusManager.getInstance(module.getProject()).requestFocus(myWrapperTemplateTextWithBrowse.getTextField(),true);
+    }
+  }
+);
+  final String title="Select folder with HTML wrapper template";
+  final String description="Folder must contain 'index.template.html' file which must contain '${swf}' macro.";
+  myWrapperTemplateTextWithBrowse.addBrowseFolderListener(title,description,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+}
