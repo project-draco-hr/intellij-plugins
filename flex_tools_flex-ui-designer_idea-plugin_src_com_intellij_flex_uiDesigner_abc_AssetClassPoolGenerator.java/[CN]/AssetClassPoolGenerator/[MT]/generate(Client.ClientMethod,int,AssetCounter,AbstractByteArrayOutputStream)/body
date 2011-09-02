@@ -1,0 +1,20 @@
+{
+  final int start=out.size();
+  out.getBuffer(SwfUtil.getWrapHeaderLength());
+  ArrayList<Decoder> decoders=new ArrayList<Decoder>(size);
+switch (method) {
+case fillImageClassPool:
+    generate(false,decoders,size,allocatedCount.imageCount);
+  allocatedCount.imageCount+=size;
+break;
+case fillSwfClassPool:
+generate(true,decoders,size,allocatedCount.swfCount);
+allocatedCount.swfCount+=size;
+break;
+default :
+throw new IllegalArgumentException("unknown method");
+}
+final ByteBuffer buffer=SwfUtil.mergeDoAbc(decoders).writeDoAbc(out);
+SwfUtil.header(SwfUtil.getWrapLength() + (out.size() - start),out,buffer,start);
+SwfUtil.footer(out);
+}

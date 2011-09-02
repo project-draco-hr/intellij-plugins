@@ -28,12 +28,12 @@
   final String projectLocationHash=project.getLocationHash();
   ProjectInfo info=registeredProjects.getNullableInfo(project);
   final boolean isNewProject=info == null;
-  RequiredAssetsInfo requiredAssetsInfo=null;
+  final AssetCounterInfo assetCounterInfo;
   if (isNewProject) {
+    assetCounterInfo=new AssetCounterInfo(libraryCollector.sdkLibraries);
     if (librarySet == null) {
       final SwcDependenciesSorter swcDependenciesSorter=new SwcDependenciesSorter(appDir,module);
       librarySet=createLibrarySet(projectLocationHash + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),swcDependenciesSorter,true);
-      requiredAssetsInfo=swcDependenciesSorter.getRequiredAssetsInfo();
       client.registerLibrarySet(librarySet);
     }
     info=new ProjectInfo(project,librarySet,libraryCollector.getFlexSdk());
@@ -44,8 +44,11 @@
     if (libraryCollector.sdkLibraries != null) {
       final SwcDependenciesSorter swcDependenciesSorter=new SwcDependenciesSorter(appDir,module);
       librarySet=createLibrarySet(Integer.toHexString(module.getName().hashCode()) + "_fdk",null,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),swcDependenciesSorter,true);
-      requiredAssetsInfo=swcDependenciesSorter.getRequiredAssetsInfo();
+      assetCounterInfo=new AssetCounterInfo(libraryCollector.sdkLibraries);
       client.registerLibrarySet(librarySet);
+    }
+ else {
+      assetCounterInfo=info.assetCounterInfo;
     }
   }
   if (libraryCollector.externalLibraries.isEmpty()) {
@@ -55,25 +58,27 @@
   }
  else   if (isNewProject) {
     librarySet=createLibrarySet(projectLocationHash,librarySet,libraryCollector.externalLibraries,libraryCollector.getFlexSdkVersion(),new SwcDependenciesSorter(appDir,module),false);
+    assetCounterInfo.demanded.append(libraryCollector.externalLibraries);
     client.registerLibrarySet(librarySet);
     info.setLibrarySet(librarySet);
   }
  else {
     throw new UnsupportedOperationException("merge existing libraries and new");
   }
-  final ModuleInfo moduleInfo=new ModuleInfo(module);
+  final ModuleInfo moduleInfo=new ModuleInfo(module,assetCounterInfo);
   final List<XmlFile> unregisteredDocumentReferences=new ArrayList<XmlFile>();
   if (collectLocalStyleHolders) {
     stringWriter.startChange();
     try {
-      ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter,problemsHolder,unregisteredDocumentReferences);
+      ModuleInfoUtil.collectLocalStyleHolders(moduleInfo,libraryCollector.getFlexSdkVersion(),stringWriter,problemsHolder,unregisteredDocumentReferences,assetCounterInfo.demanded);
     }
  catch (    Throwable e) {
       stringWriter.rollbackChange();
       throw new InitException(e,"error.collect.local.style.holders");
     }
   }
-  client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter,requiredAssetsInfo);
+  client.registerModule(project,moduleInfo,new String[]{librarySet.getId()},stringWriter);
+  client.fillAssetClassPoolIfNeed(module);
   module.getMessageBus().connect(moduleInfo).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
     @Override public void beforeRootsChange(    ModuleRootEvent event){
     }
