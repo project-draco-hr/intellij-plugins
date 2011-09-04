@@ -1,5 +1,25 @@
 {
-  LibraryTable.ModifiableModel librariesModel=myModifiableRootModel.getModuleLibraryTable().getModifiableModel();
+  final Collection<Library> usedLibraries=new ArrayList<Library>();
+  List<MyTableItem> items=myTable.getItems();
+  for (  MyTableItem item : items) {
+    if (item instanceof ModuleLibraryItem) {
+      LibraryOrderEntry orderEntry=((ModuleLibraryItem)item).orderEntry;
+      if (orderEntry != null) {
+        Library library=orderEntry.getLibrary();
+        if (library != null) {
+          usedLibraries.add(orderEntry.getLibrary());
+        }
+      }
+    }
+  }
+  Condition<Library> filter=new Condition<Library>(){
+    @Override public boolean value(    Library library){
+      return usedLibraries.contains(library);
+    }
+  }
+;
+  LibraryTableBase.ModifiableModelEx modifiableModel=(LibraryTableBase.ModifiableModelEx)myModifiableRootModel.getModuleLibraryTable().getModifiableModel();
+  LibraryTable.ModifiableModel librariesModelWrapper=new LibraryTableModifiableModelWrapper(modifiableModel,filter);
   Module module=myModifiableRootModel.getModule();
   List<? extends FlexLibraryType> libraryTypes=Collections.singletonList(new FlexLibraryType(){
     @Override public LibraryRootsComponentDescriptor createLibraryRootsComponentDescriptor(){
@@ -15,7 +35,7 @@
     }
   }
 );
-  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModel);
+  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModelWrapper);
   try {
     c.doChoose();
     if (!c.isOK()) {
