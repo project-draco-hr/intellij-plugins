@@ -1,24 +1,42 @@
 {
-  FileChooserDescriptor d=new FileChooserDescriptor(true,false,true,false,false,true){
-    @Override public boolean isFileSelectable(    VirtualFile file){
-      return !file.isDirectory() && "swc".equals(FileUtil.getExtension(file.getName()));
+  LibraryTable.ModifiableModel librariesModel=myModifiableRootModel.getModuleLibraryTable().getModifiableModel();
+  Module module=myModifiableRootModel.getModule();
+  List<? extends FlexLibraryType> libraryTypes=Collections.singletonList(new FlexLibraryType(){
+    @Override public LibraryRootsComponentDescriptor createLibraryRootsComponentDescriptor(){
+      return new FlexLibraryRootsComponentDescriptor(){
+        @NotNull @Override public List<? extends RootDetector> getRootDetectors(){
+          return Arrays.asList(SWC_LIBRARY_DETECTOR);
+        }
+      }
+;
+    }
+    @NotNull @Override public FlexLibraryProperties createDefaultProperties(){
+      return new FlexLibraryProperties(UUID.randomUUID().toString());
     }
   }
-;
-  d.setTitle("Select Libraries");
-  VirtualFile[] files=FileChooser.chooseFiles(myProject,d);
-  if (files.length == 0) {
-    return;
+);
+  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModel);
+  try {
+    c.doChoose();
+    if (!c.isOK()) {
+      return;
+    }
+    final List<Library> libraries=c.getChosenElements();
+    if (libraries.isEmpty()) {
+      return;
+    }
+    DefaultMutableTreeNode rootNode=myTable.getRoot();
+    for (    Library library : libraries) {
+      String libraryId=((FlexLibraryProperties)((LibraryEx)library).getProperties()).getId();
+      LibraryOrderEntry libraryEntry=myModifiableRootModel.findLibraryOrderEntry(library);
+      rootNode.add(new DefaultMutableTreeNode(new ModuleLibraryItem(libraryId,libraryEntry),false));
+    }
+    myTable.refresh();
+    myTable.getSelectionModel().clearSelection();
+    int rowCount=myTable.getRowCount();
+    myTable.getSelectionModel().addSelectionInterval(rowCount - libraries.size(),rowCount - 1);
   }
-  DefaultMutableTreeNode rootNode=myTable.getRoot();
-  for (  VirtualFile file : files) {
-    ModuleLibraryEntry e=new ModuleLibraryEntry();
-    e.setName(file.getName());
-    e.addRoot(OrderRootType.CLASSES,file);
-    rootNode.add(new DefaultMutableTreeNode(new ModuleLibraryItem(e),false));
+  finally {
+    Disposer.dispose(c);
   }
-  myTable.refresh();
-  myTable.getSelectionModel().clearSelection();
-  int rowCount=myTable.getRowCount();
-  myTable.getSelectionModel().addSelectionInterval(rowCount - files.length,rowCount - 1);
 }
