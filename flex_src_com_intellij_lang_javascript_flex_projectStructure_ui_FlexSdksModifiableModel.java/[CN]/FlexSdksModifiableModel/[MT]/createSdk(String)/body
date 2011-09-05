@@ -1,0 +1,16 @@
+{
+  final VirtualFile sdkHome=LocalFileSystem.getInstance().findFileByPath(homePath);
+  Library library=myModifiableModel.createLibrary("Flex SDK",FlexSdkLibraryType.getInstance());
+  LibraryEx.ModifiableModelEx libraryModifiableModel=(LibraryEx.ModifiableModelEx)library.getModifiableModel();
+  ((FlexSdkProperties)libraryModifiableModel.getProperties()).setId(UUID.randomUUID().toString());
+  ((FlexSdkProperties)libraryModifiableModel.getProperties()).setHomePath(homePath);
+  final FlexSdkModificator sdkModificator=new FlexSdkModificator(libraryModifiableModel);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      FlexSdkUtils.setupSdkPaths(sdkHome,null,sdkModificator);
+    }
+  }
+);
+  fireChanged();
+  return new FlexSdk(library);
+}

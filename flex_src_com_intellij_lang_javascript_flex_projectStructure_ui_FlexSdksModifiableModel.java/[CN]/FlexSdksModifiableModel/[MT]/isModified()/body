@@ -1,0 +1,12 @@
+{
+  Set<Library> currentLibraries=new HashSet<Library>(ContainerUtil.filter(myModifiableModel.getLibraries(),new Condition<Library>(){
+    @Override public boolean value(    Library library){
+      return !FlexSdk.isFlexSdk(library) || myUsedLibraries.containsValue(library);
+    }
+  }
+));
+  currentLibraries.addAll(myLibrariesExistedBefore);
+  LibraryTable globalLibraryTable=LibraryTablesRegistrar.getInstance().getLibraryTable();
+  Set<Library> originalLibraries=new HashSet<Library>(Arrays.asList(globalLibraryTable.getLibraries()));
+  return !currentLibraries.equals(originalLibraries);
+}

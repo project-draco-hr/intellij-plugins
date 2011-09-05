@@ -1,4 +1,9 @@
 {
-  FlexSdk sdk=findSdk(sdkHome);
-  return sdk != null ? sdk : tryCreateSdk(sdkHome);
+  Library library=ContainerUtil.find(myModifiableModel.getLibraries(),new Condition<Library>(){
+    @Override public boolean value(    Library library){
+      return FlexSdk.isFlexSdk(library) && FlexSdk.getHomePath(library).equals(homePath);
+    }
+  }
+);
+  return library != null ? new FlexSdk(library) : createSdk(homePath);
 }

@@ -1,11 +1,33 @@
 {
+  Library matchingLibrary=null;
   myMute=true;
   try {
     Object selection=myCombo.getComboBox().getSelectedItem();
-    myCombo.getComboBox().setModel(new DefaultComboBoxModel(myModifiableModel.getHomePaths()));
+    Library[] libraries=myModifiableModel.getLibraries();
+    DefaultComboBoxModel model=new DefaultComboBoxModel(libraries);
+    myCombo.getComboBox().setModel(model);
+    if (selection instanceof Pair) {
+      final String homePath=((Pair<String,String>)selection).second;
+      matchingLibrary=ContainerUtil.find(libraries,new Condition<Library>(){
+        @Override public boolean value(        Library library){
+          return FlexSdk.getHomePath(library).equals(homePath);
+        }
+      }
+);
+      if (matchingLibrary != null) {
+        selection=matchingLibrary;
+      }
+    }
+    if (selection != null && !(selection instanceof Library)) {
+      model.addElement(selection);
+    }
     myCombo.getComboBox().setSelectedItem(selection);
   }
   finally {
     myMute=false;
+  }
+  if (matchingLibrary != null) {
+    comboItemChanged();
+    myModifiableModel.setUsed(this,matchingLibrary);
   }
 }

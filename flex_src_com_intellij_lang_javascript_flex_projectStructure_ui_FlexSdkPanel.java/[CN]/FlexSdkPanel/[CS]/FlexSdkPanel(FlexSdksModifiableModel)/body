@@ -13,8 +13,8 @@
     @Override public void actionPerformed(    ActionEvent e){
       SdkConfigurationUtil.selectSdkHome(FlexIdeUtils.getSdkType(),new Consumer<String>(){
         @Override public void consume(        String homePath){
-          myModifiableModel.findOrCreateSdk(homePath);
-          setCurrentHomePath(homePath);
+          FlexSdk sdk=myModifiableModel.findOrCreateSdk(homePath);
+          setCurrentSdk(new SdkEntry(sdk.getLibraryId(),sdk.getHomePath()));
           myEventDispatcher.getMulticaster().stateChanged(new ChangeEvent(FlexSdkPanel.this));
         }
       }
@@ -24,7 +24,8 @@
 );
   myCombo.getChildComponent().addItemListener(new ItemListener(){
     @Override public void itemStateChanged(    ItemEvent e){
-      myModifiableModel.setUsed(FlexSdkPanel.this,(String)myCombo.getComboBox().getSelectedItem());
+      Object selectedItem=myCombo.getComboBox().getSelectedItem();
+      myModifiableModel.setUsed(FlexSdkPanel.this,selectedItem instanceof Library ? (Library)selectedItem : null);
       if (myMute) {
         return;
       }
@@ -35,7 +36,7 @@
   myCombo.getChildComponent().setRenderer(new ListCellRendererWrapper(myCombo.getChildComponent().getRenderer()){
     @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
       if (value != null) {
-        String homePath=(String)value;
+        String homePath=value instanceof Library ? FlexSdk.getHomePath((Library)value) : ((Pair<String,String>)value).second;
         setText(FileUtil.toSystemDependentName(homePath));
       }
  else {
