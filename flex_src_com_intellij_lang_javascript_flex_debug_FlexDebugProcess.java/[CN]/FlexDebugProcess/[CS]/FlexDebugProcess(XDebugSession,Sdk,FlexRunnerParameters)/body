@@ -13,7 +13,19 @@
     myFlexUnitConnection=null;
   }
   final List<String> fdbLaunchCommand=FlexSdkUtils.getCommandLineForSdkTool(session.getProject(),debuggerSdk,getFdbClasspath(),"flex.tools.debugger.cli.DebugCLI",null);
-  fdbProcess=FlexBaseRunner.isRunAsAir(flexRunnerParameters) ? launchAir(fdbLaunchCommand,(AirRunnerParameters)flexRunnerParameters,flexSdk) : launchFlex(fdbLaunchCommand,flexRunnerParameters);
+  if (flexRunnerParameters instanceof AirMobileRunnerParameters && ((AirMobileRunnerParameters)flexRunnerParameters).getAirMobileRunTarget() == AirMobileRunTarget.AndroidDevice && ((AirMobileRunnerParameters)flexRunnerParameters).getDebugTransport() == AirMobileDebugTransport.USB) {
+    fdbLaunchCommand.add("-p");
+    fdbLaunchCommand.add(String.valueOf(((AirMobileRunnerParameters)flexRunnerParameters).getUsbDebugPort()));
+  }
+  fdbProcess=launchFdb(fdbLaunchCommand);
+  final boolean runAsAir=FlexBaseRunner.isRunAsAir(flexRunnerParameters);
+  connectToRunningFlashPlayerMode=!runAsAir && flexRunnerParameters.getRunMode() == FlexRunnerParameters.RunMode.ConnectToRunningFlashPlayer;
+  if (runAsAir) {
+    launchAir((AirRunnerParameters)flexRunnerParameters,flexSdk);
+  }
+ else {
+    launchFlex(flexRunnerParameters);
+  }
   reader=new MyFdbOutputReader(fdbProcess.getInputStream());
   startCommandProcessingThread();
 }

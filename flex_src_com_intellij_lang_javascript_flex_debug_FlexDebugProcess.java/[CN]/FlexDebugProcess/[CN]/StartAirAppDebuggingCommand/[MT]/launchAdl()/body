@@ -1,12 +1,23 @@
 {
-  final Function<String,String> quoter=new Function<String,String>(){
-    public String fun(    final String s){
-      return s.contains(" ") ? "\"" + s + "\"" : s;
+  if (myAdlCommandLine != null) {
+    try {
+      myConsoleView.print(myAdlCommandLine.getCommandLineString() + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+      adlProcess=myAdlCommandLine.createProcess();
+    }
+ catch (    ExecutionException e) {
+      throw new IOException(e.getMessage());
     }
   }
+ else {
+    final Function<String,String> quoter=new Function<String,String>(){
+      public String fun(      final String s){
+        return s.contains(" ") ? "\"" + s + "\"" : s;
+      }
+    }
 ;
-  myConsoleView.print(ADL_PREFIX + StringUtil.join(myAirLaunchCommand,quoter," ") + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
-  adlProcess=Runtime.getRuntime().exec(myAirLaunchCommand);
+    myConsoleView.print(ADL_PREFIX + StringUtil.join(myAirLaunchCommand,quoter," ") + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    adlProcess=Runtime.getRuntime().exec(myAirLaunchCommand);
+  }
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     public void run(){
       InputStreamReader reader=new InputStreamReader(adlProcess.getInputStream());
