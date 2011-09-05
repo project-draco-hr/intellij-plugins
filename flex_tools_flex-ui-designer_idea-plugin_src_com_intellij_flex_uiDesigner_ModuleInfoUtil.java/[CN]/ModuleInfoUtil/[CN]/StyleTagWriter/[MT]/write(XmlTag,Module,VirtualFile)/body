@@ -1,0 +1,41 @@
+{
+  CssFile cssFile=null;
+  XmlAttribute source=tag.getAttribute("source");
+  if (source != null) {
+    XmlAttributeValue valueElement=source.getValueElement();
+    if (valueElement != null) {
+      final PsiFileSystemItem psiFile=InjectionUtil.getReferencedPsiFile(valueElement);
+      if (psiFile instanceof CssFile) {
+        cssFile=(CssFile)psiFile;
+      }
+ else {
+        throw new InvalidPropertyException(valueElement,"error.embed.source.is.not.css.file",psiFile.getName());
+      }
+      final VirtualFile virtualFile=cssFile.getVirtualFile();
+      final ExternalLocalStyleHolder existingLocalStyleHolder=externalLocalStyleHolders.get(virtualFile);
+      if (existingLocalStyleHolder == null) {
+        ExternalLocalStyleHolder localStyleHolder=new ExternalLocalStyleHolder(virtualFile,cssWriter.write(cssFile,module),userVirtualFile);
+        externalLocalStyleHolders.put(virtualFile,localStyleHolder);
+        return localStyleHolder;
+      }
+ else {
+        existingLocalStyleHolder.addUser(userVirtualFile);
+        return null;
+      }
+    }
+  }
+ else {
+    PsiElement host=MxmlUtil.getInjectedHost(tag);
+    if (host != null) {
+      InjectedPsiVisitor visitor=new InjectedPsiVisitor(host);
+      InjectedLanguageUtil.enumerate(host,visitor);
+      cssFile=visitor.getCssFile();
+    }
+  }
+  if (cssFile == null) {
+    return null;
+  }
+ else {
+    return new LocalStyleHolder(InjectedLanguageUtil.getTopLevelFile(cssFile).getVirtualFile(),cssWriter.write(cssFile,module));
+  }
+}

@@ -21,20 +21,20 @@
       if (containingFile instanceof XmlFile) {
         XmlTag rootTag=((XmlFile)containingFile).getRootTag();
         if (rootTag != null) {
-          problemsHolder.setCurrentFile(containingFile.getVirtualFile());
+          final VirtualFile virtualFile=containingFile.getVirtualFile();
+          problemsHolder.setCurrentFile(virtualFile);
           try {
             for (            final XmlTag subTag : rootTag.getSubTags()) {
               if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
                 try {
-                  byte[] data=localStyleWriter.write(subTag,moduleInfo.getModule());
-                  if (data != null) {
-                    moduleInfo.addLocalStyleHolder(new LocalStyleHolder(containingFile.getVirtualFile(),data));
+                  LocalStyleHolder localStyleHolder=localStyleWriter.write(subTag,moduleInfo.getModule(),virtualFile);
+                  if (localStyleHolder != null) {
+                    moduleInfo.addLocalStyleHolder(localStyleHolder);
                   }
                 }
  catch (                InvalidPropertyException e) {
                   problemsHolder.add(e);
                 }
-                break;
               }
             }
           }
