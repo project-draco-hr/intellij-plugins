@@ -17,22 +17,23 @@
       @Override public void run(){
         Client client=Client.getInstance();
         try {
+          final ProblemsHolder problemsHolder=new ProblemsHolder();
           if (!client.isModuleRegistered(module)) {
             try {
-              LibraryManager.getInstance().initLibrarySets(module);
+              final XmlFile[] unregisteredDocumentReferences=LibraryManager.getInstance().initLibrarySets(module);
+              if (unregisteredDocumentReferences != null && !client.registerDocumentReferences(unregisteredDocumentReferences,module,problemsHolder)) {
+                return;
+              }
             }
  catch (            InitException e) {
               LOG.error(e.getCause());
               notifyUser(debug,e.getMessage(),module);
             }
           }
-          client.openDocument(module,psiFile);
+          client.openDocument(module,psiFile,problemsHolder);
           client.flush();
         }
- catch (        IOException e) {
-          LOG.error(e);
-        }
- finally {
+  finally {
           documentOpening=false;
         }
       }
