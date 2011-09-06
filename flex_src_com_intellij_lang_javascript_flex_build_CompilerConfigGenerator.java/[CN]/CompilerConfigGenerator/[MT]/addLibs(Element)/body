@@ -1,2 +1,25 @@
 {
+  for (  final DependencyEntry entry : myConfig.DEPENDENCIES.getEntries()) {
+    final LinkageType linkageType=entry.getDependencyType().getLinkageType();
+    if (entry instanceof BuildConfigurationEntry) {
+      if (linkageType == LinkageType.LoadInRuntime)       continue;
+      final FlexIdeBuildConfiguration config=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (config != null) {
+        addLib(rootElement,config.getOutputFilePath(),linkageType);
+      }
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=((ModuleLibraryEntry)entry).findOrderEntry(ModuleRootManager.getInstance(myModule));
+      if (orderEntry == null)       continue;
+      for (      VirtualFile libFile : orderEntry.getRootFiles(OrderRootType.CLASSES)) {
+        libFile=FlexCompilerHandler.getRealFile(libFile);
+        if (libFile != null && libFile.isDirectory()) {
+          addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,libFile.getPath());
+        }
+ else         if (libFile != null && !libFile.isDirectory() && "swc".equalsIgnoreCase(libFile.getExtension())) {
+          addLib(rootElement,libFile.getPath(),linkageType);
+        }
+      }
+    }
+  }
 }
