@@ -1,0 +1,43 @@
+{
+  if (orderEntry instanceof JdkOrderEntry) {
+    return AddDependencyType.DO_NOT_ADD;
+  }
+  Module module=orderEntry.getOwnerModule();
+  Collection<FlexIdeBuildConfiguration> accessibleConfigurations;
+  if (myActiveConfigurations != null) {
+    accessibleConfigurations=myActiveConfigurations.get(module);
+  }
+ else {
+    accessibleConfigurations=Arrays.asList(FlexIdeBuildConfigurationManager.getInstance(module).getBuildConfigurations());
+  }
+  if (orderEntry instanceof LibraryOrderEntry) {
+    final LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+    if (library == null) {
+      return AddDependencyType.DEFAULT;
+    }
+    if (library.getType() == FlexLibraryType.getInstance()) {
+      return FlexProjectRootsUtil.dependOnModuleLibrary(accessibleConfigurations,library,module != myRootModule) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+    }
+ else     if (library.getType() == FlexSdkLibraryType.getInstance()) {
+      return module == myRootModule && FlexProjectRootsUtil.dependOnSdk(accessibleConfigurations,library) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+    }
+ else {
+      return AddDependencyType.DO_NOT_ADD;
+    }
+  }
+ else   if (orderEntry instanceof ModuleOrderEntry) {
+    final Module dependencyModule=((ModuleOrderEntry)orderEntry).getModule();
+    if (dependencyModule == null) {
+      return AddDependencyType.DO_NOT_ADD;
+    }
+    if (myActiveConfigurations != null) {
+      return myActiveConfigurations.containsKey(dependencyModule) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+    }
+ else {
+      return AddDependencyType.DEFAULT;
+    }
+  }
+ else {
+    return AddDependencyType.DEFAULT;
+  }
+}

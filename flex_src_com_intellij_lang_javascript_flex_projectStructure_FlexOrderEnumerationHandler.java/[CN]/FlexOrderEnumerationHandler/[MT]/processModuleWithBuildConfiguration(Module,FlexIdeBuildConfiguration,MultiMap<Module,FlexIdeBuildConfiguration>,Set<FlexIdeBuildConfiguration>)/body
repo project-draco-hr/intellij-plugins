@@ -1,0 +1,24 @@
+{
+  if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return;
+  }
+  if (configuration == null) {
+    configuration=FlexIdeBuildConfigurationManager.getInstance(module).getActiveConfiguration();
+  }
+  if (configuration == null || !processedConfigurations.add(configuration)) {
+    return;
+  }
+  modules2activeConfigurations.putValue(module,configuration);
+  for (  DependencyEntry entry : configuration.DEPENDENCIES.getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      if (entry.getDependencyType().getLinkageType() == LinkageType.LoadInRuntime) {
+        continue;
+      }
+      FlexIdeBuildConfiguration dependencyBc=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (dependencyBc != null) {
+        Module dependencyModule=((BuildConfigurationEntry)entry).findModule();
+        processModuleWithBuildConfiguration(dependencyModule,dependencyBc,modules2activeConfigurations,processedConfigurations);
+      }
+    }
+  }
+}
