@@ -1,0 +1,30 @@
+{
+  final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(scope);
+  if (runConfiguration instanceof FlexIdeRunConfiguration) {
+    final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
+    final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runConfiguration).getRunnerParameters();
+    final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig;
+    try {
+      moduleAndConfig=FlexBaseRunner.getModuleAndConfig(runConfiguration.getProject(),params);
+    }
+ catch (    ExecutionException e) {
+      throw new ConfigurationException(e.getMessage(),FlexBundle.message("run.configuration.0",runConfiguration.getName()));
+    }
+    if (!moduleAndConfig.second.SKIP_COMPILE) {
+      result.add(moduleAndConfig);
+      appendBCDependencies(result,moduleAndConfig.first,moduleAndConfig.second);
+    }
+    return result;
+  }
+ else {
+    final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new ArrayList<Pair<Module,FlexIdeBuildConfiguration>>();
+    for (    final Module module : scope.getAffectedModules()) {
+      for (      final FlexIdeBuildConfiguration config : FlexIdeBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
+        if (!config.SKIP_COMPILE) {
+          result.add(Pair.create(module,config));
+        }
+      }
+    }
+    return result;
+  }
+}

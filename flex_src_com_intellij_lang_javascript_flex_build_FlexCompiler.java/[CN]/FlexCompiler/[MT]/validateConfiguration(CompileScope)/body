@@ -1,5 +1,15 @@
 {
   if (PlatformUtils.isFlexIde() && FlexIdeUtils.isNewUI()) {
+    try {
+      final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndConfigsToCompile=getModulesAndConfigsToCompile(scope);
+      for (      final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig : modulesAndConfigsToCompile) {
+        validateConfiguration(moduleAndConfig.first,moduleAndConfig.second);
+      }
+    }
+ catch (    ConfigurationException e) {
+      Messages.showErrorDialog(e.getMessage(),e.getTitle());
+      return false;
+    }
     return true;
   }
   Module moduleToSkipValidation=null;

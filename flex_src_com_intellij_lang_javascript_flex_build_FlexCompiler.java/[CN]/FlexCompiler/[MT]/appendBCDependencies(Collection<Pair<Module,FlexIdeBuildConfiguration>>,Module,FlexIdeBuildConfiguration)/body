@@ -1,0 +1,17 @@
+{
+  for (  final DependencyEntry entry : config.DEPENDENCIES.getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+      final Module otherModule=bcEntry.findModule();
+      final FlexIdeBuildConfiguration otherConfig=bcEntry.findBuildConfiguration();
+      if (otherConfig == null) {
+        throw new ConfigurationException(FlexBundle.message("bc.dependency.does.not.exist",bcEntry.getBcName(),bcEntry.getModuleName(),config.NAME,module.getName()),FlexBundle.message("project.setup.problem.title"));
+      }
+      final Pair<Module,FlexIdeBuildConfiguration> otherModuleAndConfig=Pair.create(otherModule,otherConfig);
+      if (!otherConfig.SKIP_COMPILE && !modulesAndConfigs.contains(otherModuleAndConfig)) {
+        modulesAndConfigs.add(otherModuleAndConfig);
+        appendBCDependencies(modulesAndConfigs,otherModule,otherConfig);
+      }
+    }
+  }
+}
