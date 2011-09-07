@@ -14,6 +14,15 @@
   }
  else {
     out.write(ExpressionMessageTypes.MXML_OBJECT_REFERENCE);
-    valueReferenceResolver.getValueReference(expression.getReferencedName()).write(out,writer,valueReferenceResolver);
+    JSReferenceExpression qualifier=(JSReferenceExpression)expression.getQualifier();
+    if (qualifier != null) {
+      throw new UnsupportedOperationException(expression.getText());
+    }
+    try {
+      valueReferenceResolver.getValueReference(expression.getReferencedName()).write(out,writer,valueReferenceResolver);
+    }
+ catch (    IllegalStateException e) {
+      throw new UnsupportedOperationException(expression.getText());
+    }
   }
 }
