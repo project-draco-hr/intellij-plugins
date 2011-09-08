@@ -7,7 +7,7 @@
   if (function.isConstructor()) {
     arguments=expression.getArguments();
     final JSClass jsClass=(JSClass)function.getParent();
-    writer.writeNew(jsClass.getQualifiedName(),arguments.length);
+    writer.newInstance(jsClass.getQualifiedName(),arguments.length,true);
     rollbackPosition=out.allocateShort();
     start=out.size();
   }
@@ -17,11 +17,11 @@
     start=out.size();
     JSReferenceExpression qualifier=(JSReferenceExpression)methodExpression.getQualifier();
     while (qualifier != null) {
-      writer.write(qualifier.getReferencedName());
+      writer.classOrPropertyName(qualifier.getReferencedName());
       qualifier=(JSReferenceExpression)qualifier.getQualifier();
     }
     out.write(0);
-    writer.write(function.getName());
+    writer.classOrPropertyName(function.getName());
     if (function.isGetProperty()) {
       out.write(-1);
       return;

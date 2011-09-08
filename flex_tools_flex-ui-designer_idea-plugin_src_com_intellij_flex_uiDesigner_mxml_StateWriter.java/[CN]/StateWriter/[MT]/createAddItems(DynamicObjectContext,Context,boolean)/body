@@ -1,12 +1,11 @@
 {
   AddItems override=new AddItems(writer.getBlockOut().startRange(),context,autoDestruction);
-  writer.writeObjectHeader(ADD_ITEMS);
   DynamicObjectContext parentScopeOwner=parentContext.getScope().getOwner();
   if (parentScopeOwner != null && parentScopeOwner != parentContext) {
     writeDeferredInstanceFromObjectReference(DESTINATION,parentContext,parentContext);
   }
  else {
-    writer.writeObjectReference(DESTINATION,parentContext);
+    writer.property(DESTINATION).objectReference(parentContext);
   }
   final int position;
   if (parentContext.getBackSibling() == null) {
@@ -18,10 +17,10 @@
       writeDeferredInstanceFromObjectReference(RELATIVE_TO,parentContext.getBackSibling(),parentContext);
     }
  else {
-      writer.writeObjectReference(RELATIVE_TO,parentContext.getBackSibling());
+      writer.property(RELATIVE_TO).objectReference(parentContext.getBackSibling());
     }
   }
-  writer.writeStringReference(POSITION,position);
+  writer.property(POSITION).stringReference(position);
   writer.getBlockOut().endRange(override.dataRange);
   return override;
 }
