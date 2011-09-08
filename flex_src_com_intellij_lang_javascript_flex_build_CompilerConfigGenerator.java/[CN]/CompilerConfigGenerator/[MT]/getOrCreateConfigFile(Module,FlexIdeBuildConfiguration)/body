@@ -1,11 +1,11 @@
 {
-  final SdkEntry sdkEntry=config.DEPENDENCIES.getSdkEntry();
+  final SdkEntry sdkEntry=config.getDependencies().getSdkEntry();
   final Library sdkLib=sdkEntry == null ? null : sdkEntry.findLibrary();
   if (sdkLib == null) {
-    throw new IOException(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",config.NAME,module.getName()));
+    throw new IOException(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",config.getName(),module.getName()));
   }
-  final CompilerConfigGenerator generator=new CompilerConfigGenerator(module,config,FlexSdk.getHomePath(sdkLib),FlexSdk.getFlexVersion(sdkLib),sdkLib.getUrls(OrderRootType.CLASSES),FlexIdeBuildConfigurationManager.getInstance(module).getModuleLevelCompilerOptions(),FlexIdeProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions());
+  final CompilerConfigGenerator generator=new CompilerConfigGenerator(module,config,FlexSdk.getHomePath(sdkLib),FlexSdk.getFlexVersion(sdkLib),sdkLib.getUrls(OrderRootType.CLASSES),FlexBuildConfigurationManager.getInstance(module).getModuleLevelCompilerOptions(),FlexProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions());
   final String text=generator.generateConfigFileText();
-  final String name=FlexCompilerHandler.generateConfigFileName(module,config.NAME,PlatformUtils.getPlatformPrefix().toLowerCase(),null);
+  final String name=FlexCompilerHandler.generateConfigFileName(module,config.getName(),PlatformUtils.getPlatformPrefix().toLowerCase(),null);
   return FlexCompilationUtils.getOrCreateConfigFile(module.getProject(),name,text);
 }

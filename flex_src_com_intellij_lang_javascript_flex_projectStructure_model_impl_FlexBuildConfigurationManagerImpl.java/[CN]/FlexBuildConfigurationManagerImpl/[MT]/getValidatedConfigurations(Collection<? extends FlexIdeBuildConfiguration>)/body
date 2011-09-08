@@ -1,0 +1,16 @@
+{
+  LinkedHashMap<String,FlexIdeBuildConfigurationImpl> name2configuration=new LinkedHashMap<String,FlexIdeBuildConfigurationImpl>(configurations.size());
+  for (  FlexIdeBuildConfiguration configuration : configurations) {
+    if (StringUtil.isEmpty(configuration.getName())) {
+      LOG.error("Empty build configuration name");
+    }
+    if (name2configuration.put(configuration.getName(),(FlexIdeBuildConfigurationImpl)configuration) != null) {
+      LOG.error("Duplicate build configuration name: " + configuration.getName());
+    }
+  }
+  if (configurations.isEmpty()) {
+    LOG.warn("No configurations found");
+    return new FlexIdeBuildConfigurationImpl[]{new FlexIdeBuildConfigurationImpl()};
+  }
+  return name2configuration.values().toArray(new FlexIdeBuildConfigurationImpl[name2configuration.size()]);
+}

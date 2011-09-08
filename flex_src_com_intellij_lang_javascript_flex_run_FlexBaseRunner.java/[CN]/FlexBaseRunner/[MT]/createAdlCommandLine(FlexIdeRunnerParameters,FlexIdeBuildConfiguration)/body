@@ -1,7 +1,7 @@
 {
-  final SdkEntry sdkEntry=config.DEPENDENCIES.getSdkEntry();
+  final SdkEntry sdkEntry=config.getDependencies().getSdkEntry();
   if (sdkEntry == null) {
-    throw new CantRunException(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",config.NAME,params.getModuleName()));
+    throw new CantRunException(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",config.getName(),params.getModuleName()));
   }
   final GeneralCommandLine commandLine=new GeneralCommandLine();
   commandLine.setExePath(FileUtil.toSystemDependentName(sdkEntry.getHomePath() + FlexSdkUtils.ADL_RELATIVE_PATH));
@@ -9,9 +9,9 @@
   if (!StringUtil.isEmptyOrSpaces(adlOptions)) {
     commandLine.addParameters(StringUtil.split(adlOptions," "));
   }
-  final String descriptorName=(config.AIR_DESKTOP_PACKAGING_OPTIONS.isUseGeneratedDescriptor() ? BCUtils.getGeneratedAirDescriptorName(config) : PathUtil.getFileName(config.AIR_DESKTOP_PACKAGING_OPTIONS.getCustomDescriptorPath()));
-  commandLine.addParameter(FileUtil.toSystemDependentName(config.OUTPUT_FOLDER + "/" + descriptorName));
-  commandLine.addParameter(FileUtil.toSystemDependentName(config.OUTPUT_FOLDER));
+  final String descriptorName=(config.getAirDesktopPackagingOptions().isUseGeneratedDescriptor() ? BCUtils.getGeneratedAirDescriptorName(config) : PathUtil.getFileName(config.getAirDesktopPackagingOptions().getCustomDescriptorPath()));
+  commandLine.addParameter(FileUtil.toSystemDependentName(config.getOutputFolder() + "/" + descriptorName));
+  commandLine.addParameter(FileUtil.toSystemDependentName(config.getOutputFolder()));
   final String programParameters=params.getAirProgramParameters();
   if (!StringUtil.isEmptyOrSpaces(programParameters)) {
     commandLine.addParameter("--");

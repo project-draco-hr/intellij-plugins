@@ -3,9 +3,9 @@
   mySdkPanel.reset();
   mySdkPanel.setCurrentSdk(sdkEntry);
   updateAvailableTargetPlayers();
-  myTargetPlayerCombo.setSelectedItem(myDependencies.TARGET_PLAYER);
+  myTargetPlayerCombo.setSelectedItem(myDependencies.getTargetPlayer());
   updateComponentSetCombo();
-  myComponentSetCombo.setSelectedItem(myDependencies.COMPONENT_SET);
+  myComponentSetCombo.setSelectedItem(myDependencies.getComponentSet());
   myFrameworkLinkageCombo.setSelectedItem(myDependencies.getFrameworkLinkage());
   DefaultMutableTreeNode root=myTable.getRoot();
   root.removeAllChildren();
@@ -25,7 +25,7 @@
       Module module=bcEntry.findModule();
       NamedConfigurable<FlexIdeBuildConfiguration> configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<NamedConfigurable<FlexIdeBuildConfiguration>>(){
         @Override public boolean value(        NamedConfigurable<FlexIdeBuildConfiguration> configurable){
-          return configurable.getEditableObject().NAME.equals(bcEntry.getBcName());
+          return configurable.getEditableObject().getName().equals(bcEntry.getBcName());
         }
       }
 ) : null;
@@ -35,12 +35,12 @@
  else {
         item=new BCItem(FlexIdeBCConfigurable.unwrapIfNeeded(configurable));
       }
-      entry.getDependencyType().applyTo(((BCItem)item).dependencyType);
+      ((BCItem)item).dependencyType.copyFrom(entry.getDependencyType());
     }
  else     if (entry instanceof ModuleLibraryEntry) {
       ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)entry;
-      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),moduleLibraryEntry.findOrderEntry(myModifiableRootModel));
-      entry.getDependencyType().applyTo(((ModuleLibraryItem)item).dependencyType);
+      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),FlexProjectRootsUtil.findOrderEntry(moduleLibraryEntry,myModifiableRootModel));
+      ((ModuleLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
     }
     if (item != null) {
       root.add(new DefaultMutableTreeNode(item,false));

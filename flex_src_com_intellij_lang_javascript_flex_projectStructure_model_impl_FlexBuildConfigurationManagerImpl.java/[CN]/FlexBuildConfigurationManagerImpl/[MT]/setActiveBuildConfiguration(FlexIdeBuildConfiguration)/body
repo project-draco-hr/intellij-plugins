@@ -1,0 +1,14 @@
+{
+  if (!ArrayUtil.contains(buildConfiguration,myConfigurations)) {
+    throw new IllegalArgumentException("Build configuration " + buildConfiguration.getName() + " does not belong to module "+ myModule.getName());
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      myActiveConfiguration=(FlexIdeBuildConfigurationImpl)buildConfiguration;
+      ProjectRootManagerEx.getInstanceEx(myModule.getProject()).makeRootsChange(EmptyRunnable.getInstance(),false,true);
+      ((PsiModificationTrackerImpl)PsiManager.getInstance(myModule.getProject()).getModificationTracker()).incCounter();
+    }
+  }
+);
+  DaemonCodeAnalyzer.getInstance(myModule.getProject()).restart();
+}

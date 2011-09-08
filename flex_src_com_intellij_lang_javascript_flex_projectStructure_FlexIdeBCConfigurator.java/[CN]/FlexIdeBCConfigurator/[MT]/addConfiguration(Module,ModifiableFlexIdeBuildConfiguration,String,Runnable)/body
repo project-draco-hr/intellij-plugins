@@ -1,0 +1,29 @@
+{
+  final Project project=module.getProject();
+  final AddBuildConfigurationDialog dialog=new AddBuildConfigurationDialog(project,dialogTitle,getUsedNames(module),configuration.getTargetPlatform(),configuration.isPureAs(),configuration.getOutputType());
+  dialog.show();
+  if (dialog.isOK()) {
+    myModified=true;
+    configuration.setName(dialog.getName());
+    configuration.setTargetPlatform(dialog.getTargetPlatform());
+    configuration.setPureAs(dialog.isPureActionScript());
+    configuration.setOutputType(dialog.getOutputType());
+    resetNonApplicableValuesToDefaults(configuration);
+    final String outputFileName=configuration.getOutputFileName();
+    final String lowercase=outputFileName.toLowerCase();
+    if (lowercase.endsWith(".swf") || lowercase.endsWith(".swc")) {
+      final String extension=configuration.getOutputType() == OutputType.Library ? ".swc" : ".swf";
+      configuration.setOutputFileName(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension);
+    }
+    final FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,configuration,mySdksModel,treeNodeNameUpdater);
+    NamedConfigurable<FlexIdeBuildConfiguration> wrapped=configurable.wrapInTabsIfNeeded();
+    myModuleToConfigurablesMap.get(module).add(wrapped);
+    myConfigurationsToModuleMap.put(configuration,module);
+    final MasterDetailsComponent.MyNode node=new BuildConfigurationNode(wrapped);
+    FlexIdeModuleStructureExtension.addConfigurationChildNodes(configurable,node);
+    final ModuleStructureConfigurable moduleStructureConfigurable=ModuleStructureConfigurable.getInstance(project);
+    moduleStructureConfigurable.addNode(node,moduleStructureConfigurable.findModuleNode(module));
+    final Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,moduleStructureConfigurable).putPath(MasterDetailsComponent.TREE_OBJECT,configuration);
+    ProjectStructureConfigurable.getInstance(project).navigateTo(place,true);
+  }
+}
