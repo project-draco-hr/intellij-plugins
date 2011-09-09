@@ -1,23 +1,4 @@
 {
-  if (!Comparing.equal(flexSdk.getVersionString(),myFlexSdkVersion)) {
-    stopCompilerProcess();
-  }
-  if (myServerSocket == null) {
-    try {
-      context.getProgressIndicator().setText("Starting Flex compiler");
-      myServerSocket=new ServerSocket(0);
-      myServerSocket.setSoTimeout(10000);
-      final int port=myServerSocket.getLocalPort();
-      startCompilerProcess(flexSdk,port,context);
-      final Socket socket=myServerSocket.accept();
-      myDataInputStream=new DataInputStream(socket.getInputStream());
-      myDataOutputStream=new DataOutputStream(socket.getOutputStream());
-      myFlexSdkVersion=flexSdk.getVersionString();
-      scheduleInputReading();
-    }
- catch (    IOException e) {
-      stopCompilerProcess();
-      throw e;
-    }
-  }
+  final FlexmojosSdkAdditionalData data=sdk.getSdkType() instanceof FlexmojosSdkType ? (FlexmojosSdkAdditionalData)sdk.getSdkAdditionalData() : null;
+  startCompilerIfNeeded(sdk.getHomePath(),sdk.getVersionString(),data,context);
 }

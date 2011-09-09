@@ -6,12 +6,15 @@
       iterator.remove();
       myFinishedTasks.add(task);
       if (task.isCompilationFailed()) {
-        if (hasNotStartedDependentTasks(task)) {
-          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed.dependent.will.be.skipped"),null,-1,-1);
-          cancelNotStartedDependentTasks(task);
+        final Collection<FlexCompilationTask> cancelledTasks=getNotStartedDependentTasks(task);
+        if (cancelledTasks.isEmpty()) {
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed"),null,-1,-1);
         }
  else {
-          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed"),null,-1,-1);
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.failed.dependent.will.be.skipped"),null,-1,-1);
+          for (          final FlexCompilationTask cancelledTask : cancelledTasks) {
+            addMessage(cancelledTask,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped"),null,-1,-1);
+          }
         }
       }
  else {

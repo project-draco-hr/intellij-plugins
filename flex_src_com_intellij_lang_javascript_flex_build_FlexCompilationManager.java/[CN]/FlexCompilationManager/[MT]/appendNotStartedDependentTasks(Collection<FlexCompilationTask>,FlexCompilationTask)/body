@@ -1,0 +1,31 @@
+{
+  final Collection<FlexCompilationTask> tasksToCancel=new ArrayList<FlexCompilationTask>();
+  if (task.getFlexIdeConfig() == null) {
+    final Iterator<Module> dependentModulesIterator=myModuleGraph.getOut(task.getModule());
+    while (dependentModulesIterator.hasNext()) {
+      final Module dependentModule=dependentModulesIterator.next();
+      for (      FlexCompilationTask notStartedTask : myNotStartedTasks) {
+        if (dependentModule.equals(notStartedTask.getModule())) {
+          tasksToCancel.add(notStartedTask);
+        }
+      }
+    }
+  }
+ else {
+    for (    FlexCompilationTask notStartedTask : myNotStartedTasks) {
+      if (notStartedTask.getConfigDependencies().contains(task.getFlexIdeConfig())) {
+        tasksToCancel.add(notStartedTask);
+      }
+    }
+  }
+  if (!tasksToCancel.isEmpty()) {
+    for (    FlexCompilationTask taskToCancel : tasksToCancel) {
+      taskToCancel.cancel();
+      if (myNotStartedTasks.remove(taskToCancel)) {
+        myFinishedTasks.add(taskToCancel);
+        cancelledTasks.add(taskToCancel);
+        appendNotStartedDependentTasks(cancelledTasks,taskToCancel);
+      }
+    }
+  }
+}

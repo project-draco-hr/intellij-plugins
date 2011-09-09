@@ -1,12 +1,22 @@
 {
-  final Iterator<Module> dependencies=myModuleGraph.getIn(task.getModule());
-  while (dependencies.hasNext()) {
-    final Module dependency=dependencies.next();
-    for (    FlexCompilationTask potentialDependency : tasksToSearchDependencies) {
-      if (dependency.equals(potentialDependency.getModule())) {
+  if (task.getFlexIdeConfig() == null) {
+    final Iterator<Module> dependencies=myModuleGraph.getIn(task.getModule());
+    while (dependencies.hasNext()) {
+      final Module dependency=dependencies.next();
+      for (      FlexCompilationTask potentialDependency : tasksToSearchDependencies) {
+        if (dependency.equals(potentialDependency.getModule())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+ else {
+    for (    final FlexCompilationTask otherTask : tasksToSearchDependencies) {
+      if (task.getConfigDependencies().contains(otherTask.getFlexIdeConfig())) {
         return true;
       }
     }
+    return false;
   }
-  return false;
 }

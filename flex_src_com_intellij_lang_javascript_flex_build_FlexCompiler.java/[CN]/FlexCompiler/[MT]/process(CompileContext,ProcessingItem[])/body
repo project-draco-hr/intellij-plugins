@@ -1,4 +1,7 @@
 {
+  if (PlatformUtils.isFlexIde() && FlexIdeUtils.isNewUI()) {
+    return processFlexIdeConfigs(context,items);
+  }
   final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(context.getProject());
   final FlexCompilerProjectConfiguration flexCompilerConfiguration=FlexCompilerProjectConfiguration.getInstance(context.getProject());
   final Collection<Module> modulesToSkip=context.getCompileScope().getUserData(MODULES_TO_SKIP_FLEX_FACET_COMPILATION);
@@ -26,39 +29,34 @@
       if (modulesToSkip != null && modulesToSkip.contains(module)) {
         continue;
       }
-      if (PlatformUtils.isFlexIde() && FlexIdeUtils.isNewUI()) {
-        appendFlexIdeBCCompilations(compilationTasks,module,builtIn);
+      if (overriddenConfig != null && module == overriddenConfig.getModule()) {
+        final Pair<Boolean,String> validationResultWithMessage=validateConfiguration(overriddenConfig,module,FlexBundle.message("module.name",module.getName()),false);
+        if (!validationResultWithMessage.first) {
+          if (validationResultWithMessage.second != null) {
+            context.addMessage(CompilerMessageCategory.ERROR,validationResultWithMessage.second,null,-1,-1);
+          }
+          return ProcessingItem.EMPTY_ARRAY;
+        }
+        compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,null,overriddenConfig) : new MxmlcCompcCompilationTask(module,null,overriddenConfig));
       }
  else {
-        if (overriddenConfig != null && module == overriddenConfig.getModule()) {
-          final Pair<Boolean,String> validationResultWithMessage=validateConfiguration(overriddenConfig,module,FlexBundle.message("module.name",module.getName()),false);
-          if (!validationResultWithMessage.first) {
-            if (validationResultWithMessage.second != null) {
-              context.addMessage(CompilerMessageCategory.ERROR,validationResultWithMessage.second,null,-1,-1);
-            }
-            return ProcessingItem.EMPTY_ARRAY;
+        if (ModuleType.get(module) instanceof FlexModuleType) {
+          final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(module);
+          if (config.DO_BUILD) {
+            compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,null,config) : new MxmlcCompcCompilationTask(module,null,config));
           }
-          compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,null,overriddenConfig) : new MxmlcCompcCompilationTask(module,null,overriddenConfig));
         }
  else {
-          if (ModuleType.get(module) instanceof FlexModuleType) {
-            final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(module);
+          final Collection<FlexFacet> flexFacets=FacetManager.getInstance(module).getFacetsByType(FlexFacet.ID);
+          for (          FlexFacet flexFacet : flexFacets) {
+            final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(flexFacet);
             if (config.DO_BUILD) {
-              compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,null,config) : new MxmlcCompcCompilationTask(module,null,config));
-            }
-          }
- else {
-            final Collection<FlexFacet> flexFacets=FacetManager.getInstance(module).getFacetsByType(FlexFacet.ID);
-            for (            FlexFacet flexFacet : flexFacets) {
-              final FlexBuildConfiguration config=FlexBuildConfiguration.getInstance(flexFacet);
-              if (config.DO_BUILD) {
-                compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,flexFacet,config) : new MxmlcCompcCompilationTask(module,flexFacet,config));
-              }
+              compilationTasks.add(builtIn ? new BuiltInCompilationTask(module,flexFacet,config) : new MxmlcCompcCompilationTask(module,flexFacet,config));
             }
           }
         }
-        appendCssCompilationTasks(compilationTasks,module,builtIn);
       }
+      appendCssCompilationTasks(compilationTasks,module,builtIn);
     }
     if (!compilationTasks.isEmpty()) {
       context.addMessage(CompilerMessageCategory.INFORMATION,FlexBundle.message(builtIn ? "using.builtin.compiler" : "using.mxmlc.compc",flexCompilerConfiguration.MAX_PARALLEL_COMPILATIONS),null,-1,-1);
@@ -75,7 +73,7 @@
       new FlexCompilationManager(context,compilationTasks).compile();
       final int activeCompilationsNumber=flexCompilerHandler.getBuiltInFlexCompilerHandler().getActiveCompilationsNumber();
       if (activeCompilationsNumber != 0) {
-        Logger.getInstance(getClass().getName()).error(activeCompilationsNumber + " Flex compilation(s) are not finished!");
+        LOG.error(activeCompilationsNumber + " Flex compilation(s) are not finished!");
       }
     }
   }

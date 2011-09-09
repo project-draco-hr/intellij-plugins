@@ -1,0 +1,46 @@
+{
+  final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(context.getProject());
+  final FlexCompilerProjectConfiguration flexCompilerConfiguration=FlexCompilerProjectConfiguration.getInstance(context.getProject());
+  if (flexCompilerConfiguration.USE_FCSH) {
+    context.addMessage(CompilerMessageCategory.INFORMATION,"FCSH tool is not supported yet. Please choose another compiler at File | Settings | Compiler | Flex Compiler",null,-1,-1);
+    return ProcessingItem.EMPTY_ARRAY;
+  }
+ else {
+    boolean builtIn=flexCompilerConfiguration.USE_BUILT_IN_COMPILER;
+    final Pair<String,String> sdkHomeAndVersion=getSdkHomeAndVersionIfSame(items);
+    if (builtIn && sdkHomeAndVersion == null) {
+      builtIn=false;
+      flexCompilerHandler.getBuiltInFlexCompilerHandler().stopCompilerProcess();
+      context.addMessage(CompilerMessageCategory.INFORMATION,FlexBundle.message("can.not.use.built.in.compiler.shell"),null,-1,-1);
+    }
+    context.addMessage(CompilerMessageCategory.INFORMATION,FlexBundle.message(builtIn ? "using.builtin.compiler" : "using.mxmlc.compc",flexCompilerConfiguration.MAX_PARALLEL_COMPILATIONS),null,-1,-1);
+    final Collection<FlexCompilationTask> compilationTasks=new ArrayList<FlexCompilationTask>();
+    for (    final ProcessingItem item : items) {
+      final Collection<FlexIdeBuildConfiguration> dependencies=new HashSet<FlexIdeBuildConfiguration>();
+      for (      final DependencyEntry entry : ((MyProcessingItem)item).myConfig.getDependencies().getEntries()) {
+        if (entry instanceof BuildConfigurationEntry) {
+          final FlexIdeBuildConfiguration dependencyConfig=((BuildConfigurationEntry)entry).findBuildConfiguration();
+          if (dependencyConfig != null && !dependencyConfig.isSkipCompile()) {
+            dependencies.add(dependencyConfig);
+          }
+        }
+      }
+      compilationTasks.add(builtIn ? new BuiltInCompilationTask(((MyProcessingItem)item).myModule,((MyProcessingItem)item).myConfig,dependencies) : new MxmlcCompcCompilationTask(((MyProcessingItem)item).myModule,((MyProcessingItem)item).myConfig,dependencies));
+    }
+    if (builtIn) {
+      try {
+        flexCompilerHandler.getBuiltInFlexCompilerHandler().startCompilerIfNeeded(sdkHomeAndVersion.first,sdkHomeAndVersion.second,null,context);
+      }
+ catch (      IOException e) {
+        context.addMessage(CompilerMessageCategory.ERROR,e.toString(),null,-1,-1);
+        return ProcessingItem.EMPTY_ARRAY;
+      }
+    }
+    new FlexCompilationManager(context,compilationTasks).compile();
+    final int activeCompilationsNumber=flexCompilerHandler.getBuiltInFlexCompilerHandler().getActiveCompilationsNumber();
+    if (activeCompilationsNumber != 0) {
+      LOG.error(activeCompilationsNumber + " Flex compilation(s) are not finished!");
+    }
+    return items;
+  }
+}

@@ -4,11 +4,21 @@
     final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
     final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runConfiguration).getRunnerParameters();
     final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig;
-    try {
-      moduleAndConfig=FlexBaseRunner.getModuleAndConfig(runConfiguration.getProject(),params);
+    final Ref<ExecutionException> exceptionRef=new Ref<ExecutionException>();
+    moduleAndConfig=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexIdeBuildConfiguration>>(){
+      public Pair<Module,FlexIdeBuildConfiguration> compute(){
+        try {
+          return FlexBaseRunner.getModuleAndConfig(runConfiguration.getProject(),params);
+        }
+ catch (        ExecutionException e) {
+          exceptionRef.set(e);
+          return null;
+        }
+      }
     }
- catch (    ExecutionException e) {
-      throw new ConfigurationException(e.getMessage(),FlexBundle.message("run.configuration.0",runConfiguration.getName()));
+);
+    if (!exceptionRef.isNull()) {
+      throw new ConfigurationException(exceptionRef.get().getMessage(),FlexBundle.message("run.configuration.0",runConfiguration.getName()));
     }
     if (!moduleAndConfig.second.isSkipCompile()) {
       result.add(moduleAndConfig);
