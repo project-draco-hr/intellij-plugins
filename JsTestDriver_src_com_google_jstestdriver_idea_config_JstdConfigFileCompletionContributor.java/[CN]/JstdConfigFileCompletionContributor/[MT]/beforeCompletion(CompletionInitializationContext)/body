@@ -1,18 +1,31 @@
 {
+  boolean acceptPathSeparator=false;
+{
+    final int offset=context.getEditor().getCaretModel().getOffset();
+    PsiElement element=context.getFile().findElementAt(offset);
+    if (element != null) {
+      int prefixLength=offset - element.getTextRange().getStartOffset();
+      BipartiteString caretBipartiteElementText=splitByPrefixLength(element.getText(),prefixLength);
+      Character separator=extractDirectoryTrailingFileSeparator(caretBipartiteElementText);
+      acceptPathSeparator=separator != null;
+    }
+  }
   final OffsetMap offsetMap=context.getOffsetMap();
   int idEnd=offsetMap.getOffset(CompletionInitializationContext.IDENTIFIER_END_OFFSET);
   final String text=context.getFile().getText();
-  boolean acceptedChar=true;
-  while (idEnd < text.length() && acceptedChar) {
+  while (idEnd < text.length()) {
     final char ch=text.charAt(idEnd);
-    acceptedChar=Character.isJavaIdentifierPart(ch);
-    acceptedChar=acceptedChar || IDENTIFIER_END_PATTERN.indexOf(ch) >= 0;
-    boolean stop=ch == UNIX_PATH_SEPARATOR || ch == WINDOWS_PATH_SEPARATOR;
-    acceptedChar=acceptedChar || stop;
+    if (acceptPathSeparator) {
+      if (ch == UNIX_PATH_SEPARATOR || ch == WINDOWS_PATH_SEPARATOR) {
+        idEnd++;
+        break;
+      }
+    }
+    boolean acceptedChar=Character.isJavaIdentifierPart(ch) || IDENTIFIER_END_PATTERN.indexOf(ch) >= 0;
     if (acceptedChar) {
       idEnd++;
     }
-    if (stop) {
+ else {
       break;
     }
   }

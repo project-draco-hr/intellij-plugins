@@ -1,27 +1,12 @@
 {
-  BipartiteString[] allSplits=new BipartiteString[]{splitByLastIndexOfSeparatorOccurrence(caretBipartiteElementText.getPrefix(),UNIX_PATH_SEPARATOR),splitByLastIndexOfSeparatorOccurrence(caretBipartiteElementText.getPrefix(),WINDOWS_PATH_SEPARATOR)};
-  Arrays.sort(allSplits,new Comparator<BipartiteString>(){
-    @Override public int compare(    BipartiteString o1,    BipartiteString o2){
-      return o1.getSuffix().length() - o2.getSuffix().length();
-    }
-  }
-);
-  BipartiteString firstValid=null;
-  VirtualFile parentFile=null;
-  for (  BipartiteString bipartite : allSplits) {
-    parentFile=basePath.findFileByRelativePath(FileUtil.toSystemIndependentName(bipartite.getPrefix()));
-    if (parentFile != null) {
-      firstValid=bipartite;
-      break;
-    }
-  }
-  if (firstValid != null) {
-    result=result.withPrefixMatcher(firstValid.getSuffix());
-    VirtualFile[] children=parentFile.getChildren();
-    char dirSeparatorSuffix=extractDirectoryTrailingFileSeparator(caretBipartiteElementText);
+  ParentDirWithLastComponentPrefix parentWithLastComponentPrefix=findParentWithLastComponentPrefix(basePath,caretBipartiteElementText.getPrefix());
+  if (parentWithLastComponentPrefix != null) {
+    result=result.withPrefixMatcher(parentWithLastComponentPrefix.getLastComponentPrefix());
+    VirtualFile[] children=parentWithLastComponentPrefix.getParent().getChildren();
+    Character dirSeparatorSuffix=extractDirectoryTrailingFileSeparator(caretBipartiteElementText);
     for (    VirtualFile child : children) {
       String name=child.getName();
-      if (child.isDirectory()) {
+      if (child.isDirectory() && dirSeparatorSuffix != null) {
         name+=dirSeparatorSuffix;
       }
       result.addElement(LookupItem.fromString(name));

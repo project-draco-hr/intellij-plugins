@@ -1,0 +1,16 @@
+{
+  BipartiteString[] allSplits=new BipartiteString[]{splitByLastIndexOfSeparatorOccurrence(pathBeforeCaret,UNIX_PATH_SEPARATOR),splitByLastIndexOfSeparatorOccurrence(pathBeforeCaret,WINDOWS_PATH_SEPARATOR)};
+  Arrays.sort(allSplits,new Comparator<BipartiteString>(){
+    @Override public int compare(    BipartiteString o1,    BipartiteString o2){
+      return o1.getSuffix().length() - o2.getSuffix().length();
+    }
+  }
+);
+  for (  BipartiteString bipartite : allSplits) {
+    VirtualFile parentFile=basePath.findFileByRelativePath(FileUtil.toSystemIndependentName(bipartite.getPrefix()));
+    if (parentFile != null) {
+      return new ParentDirWithLastComponentPrefix(parentFile,bipartite.getSuffix());
+    }
+  }
+  return null;
+}

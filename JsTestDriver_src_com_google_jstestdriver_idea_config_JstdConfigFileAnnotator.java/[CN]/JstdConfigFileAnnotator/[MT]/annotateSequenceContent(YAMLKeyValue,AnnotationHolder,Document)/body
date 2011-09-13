@@ -13,11 +13,9 @@
   final String indent=StringUtil.notNullize(firstIndent.getText());
   compoundValue.acceptChildren(new PsiElementVisitor(){
     @Override public void visitElement(    PsiElement element){
-      YAMLSequence sequence=CastUtils.tryCast(element,YAMLSequence.class);
+      final YAMLSequence sequence=CastUtils.tryCast(element,YAMLSequence.class);
       if (sequence != null) {
-        int startLine=document.getLineNumber(sequence.getTextRange().getStartOffset());
-        int endLine=document.getLineNumber(sequence.getTextRange().getEndOffset());
-        if (startLine < endLine - 1) {
+        if (!isOneLineText(sequence,document)) {
           holder.createErrorAnnotation(sequence,"Unexpected multiline path");
         }
         return;
