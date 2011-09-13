@@ -1,4 +1,16 @@
 {
-  final OgnlExpression expression=parse("(3 + (4 * 5))");
-  assertElementType(OgnlElementTypes.PARENTHESIZED_EXPRESSION,expression);
+  final OgnlParenthesizedExpression parenthesizedExpression=parse("(3 + (4 * 5))");
+  final OgnlExpression expression=parenthesizedExpression.getExpression();
+  assertElementType(OgnlElementTypes.BINARY_EXPRESSION,expression);
+  final OgnlBinaryExpression binaryExpression=(OgnlBinaryExpression)expression;
+  assertElementType(OgnlElementTypes.INTEGER_LITERAL,binaryExpression.getLeftOperand());
+  assertEquals(OgnlTokenTypes.PLUS,binaryExpression.getOperationSign());
+  assertElementType(OgnlElementTypes.PARENTHESIZED_EXPRESSION,binaryExpression.getRightOperand());
+  final OgnlParenthesizedExpression nestedParenthesizedExpression=(OgnlParenthesizedExpression)binaryExpression.getRightOperand();
+  assertNotNull(nestedParenthesizedExpression);
+  assertElementType(OgnlElementTypes.BINARY_EXPRESSION,nestedParenthesizedExpression.getExpression());
+  final OgnlBinaryExpression nestedBinaryExpression=(OgnlBinaryExpression)nestedParenthesizedExpression.getExpression();
+  assertElementType(OgnlElementTypes.INTEGER_LITERAL,nestedBinaryExpression.getLeftOperand());
+  assertEquals(OgnlTokenTypes.MULTIPLY,nestedBinaryExpression.getOperationSign());
+  assertElementType(OgnlElementTypes.INTEGER_LITERAL,nestedBinaryExpression.getRightOperand());
 }
