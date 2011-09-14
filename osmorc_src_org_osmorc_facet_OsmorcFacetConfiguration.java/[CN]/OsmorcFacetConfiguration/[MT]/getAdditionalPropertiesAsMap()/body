@@ -1,13 +1,16 @@
 {
   Map<String,String> result=new HashMap<String,String>();
-  String[] lines=getAdditionalProperties().split("\n");
-  for (  String line : lines) {
-    int sep=line.indexOf(':');
-    if (sep != -1) {
-      String key=line.substring(0,sep).trim();
-      String value=line.substring(sep + 1).trim();
-      result.put(key,value);
-    }
+  Properties p=new Properties();
+  try {
+    p.load(new StringReader(getAdditionalProperties()));
+  }
+ catch (  IOException e) {
+    Log.print("Error when reading properties",true);
+    return result;
+  }
+  Set<String> propNames=p.stringPropertyNames();
+  for (  String propName : propNames) {
+    result.put(propName,p.getProperty(propName));
   }
   return result;
 }
