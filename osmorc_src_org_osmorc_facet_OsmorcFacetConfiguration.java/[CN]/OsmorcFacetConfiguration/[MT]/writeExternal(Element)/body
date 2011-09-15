@@ -14,17 +14,12 @@
   element.setAttribute(USE_PROJECT_DEFAULT_MANIFEST_FILE_LOCATION,String.valueOf(isUseProjectDefaultManifestFileLocation()));
   element.setAttribute(ALWAYS_REBUILD_BUNDLE_JAR,String.valueOf(isAlwaysRebuildBundleJAR()));
   Element props=new Element(ADDITIONAL_PROPERTIES);
-  String[] lines=getAdditionalProperties().split("\n");
-  for (  String line : lines) {
-    int sep=line.indexOf(':');
-    if (sep != -1) {
-      String key=line.substring(0,sep).trim();
-      String value=line.substring(sep + 1).trim();
-      Element prop=new Element(PROPERTY);
-      prop.setAttribute(KEY,key);
-      prop.setAttribute(VALUE,value);
-      props.addContent(prop);
-    }
+  Map<String,String> additionalPropertiesAsMap=getAdditionalPropertiesAsMap();
+  for (  String key : additionalPropertiesAsMap.keySet()) {
+    Element prop=new Element(PROPERTY);
+    prop.setAttribute(KEY,key);
+    prop.setAttribute(VALUE,additionalPropertiesAsMap.get(key));
+    props.addContent(prop);
   }
   element.addContent(props);
   Element additionalJARContentsElement=new Element("additionalJARContents");
