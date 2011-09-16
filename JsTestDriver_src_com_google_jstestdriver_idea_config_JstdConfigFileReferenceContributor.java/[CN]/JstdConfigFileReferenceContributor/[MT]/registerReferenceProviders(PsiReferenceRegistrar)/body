@@ -1,0 +1,19 @@
+{
+  ElementPattern<PsiElement> place=JstdConfigFileUtils.CONFIG_FILE_ELEMENT_PATTERN.and(PlatformPatterns.psiElement(YAMLKeyValue.class));
+  registrar.registerReferenceProvider(place,new PsiReferenceProvider(){
+    @NotNull @Override public PsiReference[] getReferencesByElement(    @NotNull PsiElement element,    @NotNull ProcessingContext context){
+      YAMLKeyValue keyValue=CastUtils.tryCast(element,YAMLKeyValue.class);
+      if (keyValue != null && JstdConfigFileUtils.isKeyWithInnerFileSequence(keyValue)) {
+        YAMLDocument yamlDocument=getDocumentByKeyValueElement(keyValue);
+        if (yamlDocument != null) {
+          VirtualFile basePath=JstdConfigFileUtils.extractBasePath(yamlDocument);
+          if (basePath != null) {
+            return findAllReferencesForKeyValue(basePath,keyValue);
+          }
+        }
+      }
+      return PsiReference.EMPTY_ARRAY;
+    }
+  }
+);
+}

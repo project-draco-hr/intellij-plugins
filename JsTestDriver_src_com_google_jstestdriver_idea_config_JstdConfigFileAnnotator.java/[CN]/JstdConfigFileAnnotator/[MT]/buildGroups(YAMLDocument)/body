@@ -1,0 +1,26 @@
+{
+  final Document document=PsiDocumentManager.getInstance(yamlDocument.getProject()).getDocument(yamlDocument.getContainingFile());
+  if (document == null) {
+    return null;
+  }
+  final List<Group> groups=Lists.newArrayList();
+  final Ref<Integer> endLineOfPreviousKeyValueRef=Ref.create(-1);
+  yamlDocument.acceptChildren(new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement element){
+      int line=document.getLineNumber(element.getTextRange().getStartOffset());
+      if (line == endLineOfPreviousKeyValueRef.get()) {
+        return;
+      }
+      if (element instanceof YAMLKeyValue) {
+        YAMLKeyValue yamlKeyValue=(YAMLKeyValue)element;
+        endLineOfPreviousKeyValueRef.set(getEndLine(document,yamlKeyValue));
+        groups.add(new Group(yamlKeyValue,null));
+      }
+ else {
+        groups.add(new Group(null,element));
+      }
+    }
+  }
+);
+  return groups;
+}

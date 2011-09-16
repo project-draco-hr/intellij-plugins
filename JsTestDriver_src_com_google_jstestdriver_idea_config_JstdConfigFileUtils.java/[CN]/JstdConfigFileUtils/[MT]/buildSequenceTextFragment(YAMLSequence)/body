@@ -1,0 +1,33 @@
+{
+  final Ref<Integer> startOffsetRef=Ref.create(null);
+  final Ref<Integer> endOffsetRef=Ref.create(null);
+  sequence.acceptChildren(new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement element){
+      boolean quotedString=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.SCALAR_DSTRING);
+      if (JsPsiUtils.isElementOfType(element,YAMLTokenTypes.TEXT) || quotedString) {
+        TextRange elementTextRange=element.getTextRange();
+        if (startOffsetRef.isNull()) {
+          int startOffset=elementTextRange.getStartOffset();
+          if (quotedString) {
+            startOffset++;
+          }
+          startOffsetRef.set(startOffset);
+        }
+        int endOffset=elementTextRange.getEndOffset();
+        if (quotedString) {
+          endOffset--;
+        }
+        endOffsetRef.set(endOffset);
+      }
+    }
+  }
+);
+  Integer startOffset=startOffsetRef.get();
+  Integer endOffset=endOffsetRef.get();
+  if (startOffset == null || endOffset == null) {
+    return null;
+  }
+  int sequenceStartOffset=sequence.getTextRange().getStartOffset();
+  TextRange textRangeInSequence=TextRange.create(startOffset - sequenceStartOffset,endOffset - sequenceStartOffset);
+  return PsiElementFragment.create(sequence,textRangeInSequence);
+}

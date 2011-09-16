@@ -1,0 +1,26 @@
+{
+  VirtualFile configDir=JstdConfigFileUtils.getConfigDir(basePathKeyValue);
+  PsiElement content=basePathKeyValue.getValue();
+  if (configDir != null && content != null) {
+    final PsiElementFragment<? extends PsiElement> basePathValueFragment;
+    if (JsPsiUtils.isElementOfType(content,YAMLTokenTypes.SCALAR_DSTRING)) {
+      TextRange textRange=TextRange.create(1,content.getTextLength() - 1);
+      basePathValueFragment=PsiElementFragment.create(content,textRange);
+    }
+ else {
+      Document document=JsPsiUtils.getDocument(yamlDocument);
+      if (document != null) {
+        int startLine=getEndLine(document,content);
+        int documentStartOffset=content.getTextRange().getStartOffset();
+        int documentEndOffset=document.getLineStartOffset(startLine + 1);
+        int yamlDocumentStartOffset=yamlDocument.getTextRange().getStartOffset();
+        TextRange textRangeInYamlDocument=TextRange.create(documentStartOffset - yamlDocumentStartOffset,documentEndOffset - yamlDocumentStartOffset);
+        basePathValueFragment=PsiElementFragment.create(yamlDocument,textRangeInYamlDocument);
+      }
+ else {
+        return;
+      }
+    }
+    annotatePath(configDir,basePathValueFragment,holder,false);
+  }
+}

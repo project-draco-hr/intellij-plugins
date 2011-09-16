@@ -1,26 +1,26 @@
 {
-  final Document document=PsiDocumentManager.getInstance(yamlDocument.getProject()).getDocument(yamlDocument.getContainingFile());
-  if (document == null) {
-    return;
-  }
-  List<Group> groups=buildGroups(yamlDocument,document);
+  List<Group> groups=buildGroups(yamlDocument);
   if (groups == null) {
     return;
   }
+  VirtualFile basePath=JstdConfigFileUtils.extractBasePath(yamlDocument);
   final Set<String> visitedKeys=Sets.newHashSet();
   for (  Group group : groups) {
     YAMLKeyValue keyValue=group.getKeyValue();
     if (keyValue != null) {
       PsiElement keyElement=keyValue.getKey();
       String keyStr=keyValue.getKeyText();
-      if (!JstdConfigFileUtils.VALID_TOP_LEVEL_KEYS.contains(keyStr)) {
+      if (!JstdConfigFileUtils.isTopLevelKey(keyValue)) {
         holder.createErrorAnnotation(keyElement,"Unexpected key '" + keyStr + "'");
       }
       if (!visitedKeys.add(keyStr)) {
         holder.createErrorAnnotation(keyElement,"Duplicated '" + keyStr + "' key");
       }
-      if (JstdConfigFileUtils.KEYS_WITH_INNER_SEQUENCE.contains(keyStr)) {
-        annotateSequenceContent(keyValue,holder,document);
+      if (JstdConfigFileUtils.isBasePathKey(keyValue)) {
+        annotateBasePath(yamlDocument,keyValue,holder);
+      }
+ else       if (JstdConfigFileUtils.isKeyWithInnerFileSequence(keyValue)) {
+        annotateKeyValueWithInnerFileSequence(keyValue,holder,basePath);
       }
     }
  else {

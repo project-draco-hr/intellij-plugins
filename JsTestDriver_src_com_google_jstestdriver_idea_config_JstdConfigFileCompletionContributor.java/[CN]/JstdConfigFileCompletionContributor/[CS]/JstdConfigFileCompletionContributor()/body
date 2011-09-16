@@ -1,15 +1,21 @@
 {
-  ElementPattern<PsiElement> place=PlatformPatterns.psiElement().inVirtualFile(new VirtualFilePattern().ofType(JstdConfigFileType.INSTANCE));
-  extend(CompletionType.BASIC,place,new CompletionProvider<CompletionParameters>(){
+  extend(CompletionType.BASIC,JstdConfigFileUtils.CONFIG_FILE_ELEMENT_PATTERN,new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
       PsiElement element=parameters.getOriginalPosition();
       if (element == null) {
         element=parameters.getPosition();
       }
       int prefixLength=parameters.getOffset() - element.getTextRange().getStartOffset();
-      BipartiteString caretBipartiteElementText=splitByPrefixLength(element.getText(),prefixLength);
-      addPathCompletionsIfNeeded(result,element,caretBipartiteElementText);
-      addTopLevelKeysCompletionIfNeeded(result,element,caretBipartiteElementText);
+      String text=element.getText();
+      if (JsPsiUtils.isElementOfType(element,YAMLTokenTypes.SCALAR_DSTRING)) {
+        text=text.substring(1,text.length() - 1);
+        prefixLength=Math.max(0,prefixLength - 1);
+      }
+      BipartiteString caretBipartiteElementText=splitByPrefixLength(text,prefixLength);
+      boolean atFirstColumn=isAtStart(element,parameters.getOffset());
+      addInnerSequencePathCompletionsIfNeeded(result,element,caretBipartiteElementText);
+      addBasePathCompletionsIfNeeded(result,element,caretBipartiteElementText,atFirstColumn);
+      addTopLevelKeysCompletionIfNeeded(result,element,caretBipartiteElementText,atFirstColumn);
     }
   }
 );

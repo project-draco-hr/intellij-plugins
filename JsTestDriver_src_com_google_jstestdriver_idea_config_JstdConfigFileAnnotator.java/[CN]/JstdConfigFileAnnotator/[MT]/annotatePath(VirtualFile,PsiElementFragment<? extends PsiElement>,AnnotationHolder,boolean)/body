@@ -1,0 +1,40 @@
+{
+  String pathStr=pathFragment.getText();
+  if (tolerateRemoteLocations && (pathStr.startsWith("http:") || pathStr.startsWith("https:"))) {
+    return true;
+  }
+  if (StringUtil.isEmptyOrSpaces(pathStr)) {
+    return false;
+  }
+  int documentOffset=pathFragment.getDocumentTextRange().getStartOffset();
+  List<String> components=JstdConfigFileUtils.convertPathToComponentList(pathStr);
+  VirtualFile current=basePath;
+  if (!components.isEmpty()) {
+    String first=components.get(0);
+    if (first.isEmpty() && !pathStr.isEmpty()) {
+      first=pathStr.substring(0,1);
+    }
+    if (!first.isEmpty()) {
+      VirtualFile initial=LocalFileSystem.getInstance().findFileByPath(first);
+      if (initial != null) {
+        current=initial;
+        components=components.subList(1,components.size());
+        documentOffset+=first.length() + 1;
+      }
+    }
+  }
+  for (  String component : components) {
+    if (component.isEmpty()) {
+      holder.createErrorAnnotation(TextRange.create(documentOffset,documentOffset + 1),"Empty name");
+      break;
+    }
+    VirtualFile next=current.findFileByRelativePath(component);
+    if (next == null) {
+      holder.createErrorAnnotation(TextRange.create(documentOffset,documentOffset + component.length()),"No such element");
+      break;
+    }
+    documentOffset+=component.length() + 1;
+    current=next;
+  }
+  return true;
+}
