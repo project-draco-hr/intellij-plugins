@@ -4,6 +4,7 @@
     return true;
   }
   if (StringUtil.isEmptyOrSpaces(pathStr)) {
+    holder.createErrorAnnotation(pathFragment.getDocumentTextRange(),"Invalid path");
     return false;
   }
   int documentOffset=pathFragment.getDocumentTextRange().getStartOffset();
@@ -23,7 +24,13 @@
       }
     }
   }
+  if (directoryIsExpected && !components.isEmpty() && components.get(components.size() - 1).isEmpty()) {
+    components=components.subList(0,components.size() - 1);
+  }
   for (  String component : components) {
+    if (component.contains("*")) {
+      return true;
+    }
     if (component.isEmpty()) {
       holder.createErrorAnnotation(TextRange.create(documentOffset,documentOffset + 1),"Empty name");
       break;
@@ -35,6 +42,16 @@
     }
     documentOffset+=component.length() + 1;
     current=next;
+  }
+  if (directoryIsExpected) {
+    if (!current.isDirectory()) {
+      holder.createErrorAnnotation(pathFragment.getDocumentTextRange(),"Not a directory");
+    }
+  }
+ else {
+    if (current.isDirectory()) {
+      holder.createErrorAnnotation(pathFragment.getDocumentTextRange(),"Not a file");
+    }
   }
   return true;
 }
