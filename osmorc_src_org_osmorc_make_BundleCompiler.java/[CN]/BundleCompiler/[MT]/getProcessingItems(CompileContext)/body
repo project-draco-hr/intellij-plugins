@@ -6,21 +6,13 @@
       if (affectedModules.length == 0) {
         return ProcessingItem.EMPTY_ARRAY;
       }
-      Project project=affectedModules[0].getProject();
-      Module[] modules=ModuleManager.getInstance(project).getModules();
-      THashSet<Module> thashset=new THashSet<Module>();
-      for (      Module module : modules) {
-        if (!OsmorcFacet.hasOsmorcFacet(module) || module.getModuleFile() == null) {
-          continue;
+      List<ProcessingItem> result=new ArrayList<ProcessingItem>();
+      for (      Module affectedModule : affectedModules) {
+        if (OsmorcFacet.hasOsmorcFacet(affectedModule)) {
+          result.add(new BundleProcessingItem(affectedModule));
         }
-        thashset.add(module);
       }
-      ProcessingItem[] result=new ProcessingItem[thashset.size()];
-      int i=0;
-      for (      Module module : thashset) {
-        result[i++]=new BundleProcessingItem(module);
-      }
-      return result;
+      return result.toArray(new ProcessingItem[result.size()]);
     }
   }
 );
