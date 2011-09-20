@@ -3,19 +3,16 @@
   if (content == null || content.getTextLength() == 0) {
     return null;
   }
-  if (JsPsiUtils.isElementOfType(content,YAMLTokenTypes.SCALAR_DSTRING)) {
-    TextRange textRange=TextRange.create(1,content.getTextLength() - 1);
-    return PsiElementFragment.create(content,textRange).toDocumentFragment();
-  }
   Document document=JsPsiUtils.getDocument(keyValue);
   if (document == null) {
     return null;
   }
   TextRange contentTextRange=content.getTextRange();
-  int nextLineNumber=document.getLineNumber(contentTextRange.getEndOffset());
-  if (document.getLineStartOffset(nextLineNumber) < contentTextRange.getEndOffset()) {
-    nextLineNumber++;
+  int lastLineNumber=document.getLineNumber(contentTextRange.getEndOffset());
+  if (lastLineNumber > 0 && document.getLineStartOffset(lastLineNumber) == contentTextRange.getEndOffset()) {
+    lastLineNumber--;
   }
-  int documentEndOffset=document.getLineStartOffset(nextLineNumber) - 1;
-  return new DocumentFragment(document,contentTextRange.getStartOffset(),documentEndOffset);
+  int documentEndOffset=document.getLineEndOffset(lastLineNumber);
+  DocumentFragment fragment=new DocumentFragment(document,contentTextRange.getStartOffset(),documentEndOffset);
+  return QuotedText.unquoteDocumentFragment(fragment);
 }

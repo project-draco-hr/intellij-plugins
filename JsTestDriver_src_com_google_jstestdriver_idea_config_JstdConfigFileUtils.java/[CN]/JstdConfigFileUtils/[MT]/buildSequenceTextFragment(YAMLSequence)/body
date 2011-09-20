@@ -3,21 +3,13 @@
   final Ref<Integer> endOffsetRef=Ref.create(null);
   sequence.acceptChildren(new PsiElementVisitor(){
     @Override public void visitElement(    PsiElement element){
-      boolean quotedString=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.SCALAR_DSTRING);
-      if (JsPsiUtils.isElementOfType(element,YAMLTokenTypes.TEXT) || quotedString) {
-        TextRange elementTextRange=element.getTextRange();
+      if (JsPsiUtils.isElementOfType(element,YAMLTokenTypes.TEXT,YAMLTokenTypes.SCALAR_DSTRING,YAMLTokenTypes.SCALAR_STRING)) {
+        QuotedText quotedText=new QuotedText(element);
+        TextRange usefulTextRange=quotedText.getUsefulDocumentTextRange();
         if (startOffsetRef.isNull()) {
-          int startOffset=elementTextRange.getStartOffset();
-          if (quotedString) {
-            startOffset++;
-          }
-          startOffsetRef.set(startOffset);
+          startOffsetRef.set(usefulTextRange.getStartOffset());
         }
-        int endOffset=elementTextRange.getEndOffset();
-        if (quotedString) {
-          endOffset--;
-        }
-        endOffsetRef.set(endOffset);
+        endOffsetRef.set(usefulTextRange.getEndOffset());
       }
     }
   }

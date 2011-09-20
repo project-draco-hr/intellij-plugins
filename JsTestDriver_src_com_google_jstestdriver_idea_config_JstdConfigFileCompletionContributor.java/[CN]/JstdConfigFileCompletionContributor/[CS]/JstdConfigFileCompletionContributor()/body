@@ -5,13 +5,9 @@
       if (element == null) {
         element=parameters.getPosition();
       }
-      int prefixLength=parameters.getOffset() - element.getTextRange().getStartOffset();
-      String text=element.getText();
-      if (JsPsiUtils.isElementOfType(element,YAMLTokenTypes.SCALAR_DSTRING)) {
-        text=text.substring(1,text.length() - 1);
-        prefixLength=Math.max(0,prefixLength - 1);
-      }
-      BipartiteString caretBipartiteElementText=splitByPrefixLength(text,prefixLength);
+      QuotedText text=new QuotedText(element);
+      int prefixLength=Math.max(0,parameters.getOffset() - text.getUsefulDocumentTextRange().getStartOffset());
+      BipartiteString caretBipartiteElementText=splitByPrefixLength(text.getUsefulText(),prefixLength);
       boolean atFirstColumn=isAtStart(element,parameters.getOffset());
       addInnerSequencePathCompletionsIfNeeded(result,element,caretBipartiteElementText);
       addBasePathCompletionsIfNeeded(result,element,caretBipartiteElementText,atFirstColumn);
