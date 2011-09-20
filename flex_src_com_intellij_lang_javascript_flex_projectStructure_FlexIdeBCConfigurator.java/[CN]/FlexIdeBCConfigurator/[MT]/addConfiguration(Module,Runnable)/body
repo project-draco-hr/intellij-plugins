@@ -1,7 +1,14 @@
 {
-  if (module != null) {
-    final ModifiableFlexIdeBuildConfiguration configuration=Factory.createBuildConfiguration();
-    configuration.getDependencies().setSdkEntry(findRecentSdk());
-    addConfiguration(module,configuration,"Add Build Configuration",treeNodeNameUpdater);
+  if (module == null) {
+    return;
   }
+  Pair<String,BuildConfigurationNature> nameAndNature=promptForCreation(module,"Add Build Configuration",BuildConfigurationNature.DEFAULT);
+  if (nameAndNature == null) {
+    return;
+  }
+  final ModifiableFlexIdeBuildConfiguration configuration=Factory.createBuildConfiguration();
+  configuration.setName(nameAndNature.first);
+  configuration.setNature(nameAndNature.second);
+  configuration.getDependencies().setSdkEntry(findRecentSdk());
+  createConfigurableNode(configuration,module,treeNodeNameUpdater);
 }
