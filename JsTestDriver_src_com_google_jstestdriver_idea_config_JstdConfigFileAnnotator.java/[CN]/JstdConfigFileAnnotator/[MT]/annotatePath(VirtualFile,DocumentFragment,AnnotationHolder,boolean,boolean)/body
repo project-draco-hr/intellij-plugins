@@ -1,0 +1,55 @@
+{
+  String pathStr=pathAsDocumentFragment.getDocument().getText(pathAsDocumentFragment.getTextRange());
+  pathStr=StringUtil.unquoteString(pathStr);
+  if (tolerateRemoteLocations && (pathStr.startsWith("http:") || pathStr.startsWith("https:"))) {
+    return;
+  }
+  if (StringUtil.isEmptyOrSpaces(pathStr)) {
+    holder.createErrorAnnotation(pathAsDocumentFragment.getTextRange(),"Malformed path");
+    return;
+  }
+  int documentOffset=pathAsDocumentFragment.getTextRange().getStartOffset();
+  List<String> components=JstdConfigFileUtils.convertPathToComponentList(pathStr);
+  VirtualFile current=basePath;
+  if (!components.isEmpty()) {
+    String first=components.get(0);
+    if (first.length() + 1 <= pathStr.length()) {
+      first=pathStr.substring(0,first.length() + 1);
+    }
+    if (!first.isEmpty()) {
+      VirtualFile initial=BasePathInfo.findFile(basePath,first);
+      if (initial != null) {
+        current=initial;
+        components=components.subList(1,components.size());
+        documentOffset+=first.length();
+      }
+    }
+  }
+  File currentFile=new File(current.getPath());
+  for (  String component : components) {
+    if (component.contains("*")) {
+      return;
+    }
+    if (component.isEmpty()) {
+      holder.createErrorAnnotation(TextRange.create(documentOffset,documentOffset + 1),"Malformed path");
+      return;
+    }
+    File next=new File(currentFile,component);
+    if (!next.exists()) {
+      holder.createErrorAnnotation(TextRange.create(documentOffset,documentOffset + component.length()),"No such file or directory '" + component + "'");
+      return;
+    }
+    documentOffset+=component.length() + 1;
+    currentFile=next;
+  }
+  if (expectDirectory) {
+    if (!current.isDirectory()) {
+      holder.createErrorAnnotation(pathAsDocumentFragment.getTextRange(),"A directory is expected");
+    }
+  }
+ else {
+    if (currentFile.isDirectory()) {
+      holder.createErrorAnnotation(pathAsDocumentFragment.getTextRange(),"A file is expected");
+    }
+  }
+}

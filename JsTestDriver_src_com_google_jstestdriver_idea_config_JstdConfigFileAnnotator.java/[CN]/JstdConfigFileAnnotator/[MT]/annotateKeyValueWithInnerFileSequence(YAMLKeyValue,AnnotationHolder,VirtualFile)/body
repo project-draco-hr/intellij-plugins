@@ -1,16 +1,16 @@
 {
   YAMLCompoundValue compoundValue=CastUtils.tryCast(keyValue.getValue(),YAMLCompoundValue.class);
   if (compoundValue == null) {
-    holder.createErrorAnnotation(keyValue,"YAML sequence is expected here");
+    holder.createErrorAnnotation(keyValue,"YAML sequence was expected here");
     return;
   }
-  PsiElement firstIndent=compoundValue.getPrevSibling();
-  if (firstIndent == null || !JsPsiUtils.isElementOfType(firstIndent,YAMLTokenTypes.INDENT)) {
+  PsiElement firstIndentElement=compoundValue.getPrevSibling();
+  if (firstIndentElement == null || !JsPsiUtils.isElementOfType(firstIndentElement,YAMLTokenTypes.INDENT)) {
     int offset=compoundValue.getTextRange().getStartOffset();
-    holder.createErrorAnnotation(TextRange.create(offset,offset),"Indent is expected here");
+    holder.createErrorAnnotation(TextRange.create(offset,offset),"Indent was expected here");
     return;
   }
-  final String indent=StringUtil.notNullize(firstIndent.getText());
+  final String firstIndent=StringUtil.notNullize(firstIndentElement.getText());
   compoundValue.acceptChildren(new PsiElementVisitor(){
     @Override public void visitElement(    PsiElement element){
       final YAMLSequence sequence=CastUtils.tryCast(element,YAMLSequence.class);
@@ -18,17 +18,15 @@
         annotateFileSequence(sequence,holder,basePath);
         return;
       }
-      ASTNode astNode=CastUtils.tryCast(element,ASTNode.class);
-      boolean error=true;
-      if (astNode != null) {
-        IElementType type=astNode.getElementType();
-        if (type == YAMLTokenTypes.INDENT && !indent.equals(astNode.getText())) {
-          holder.createErrorAnnotation(astNode,"All indents should be equal-sized");
+      boolean indentType=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.INDENT);
+      boolean whitespaceType=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.EOL,YAMLTokenTypes.WHITESPACE);
+      if (indentType || whitespaceType) {
+        if (indentType && !firstIndent.equals(element.getText())) {
+          holder.createErrorAnnotation(element,"All indents should be equal-sized");
         }
-        error=type != YAMLTokenTypes.INDENT && type != YAMLTokenTypes.EOL && type != YAMLTokenTypes.WHITESPACE;
       }
-      if (error) {
-        holder.createErrorAnnotation(element,"YAML sequence is expected here");
+ else {
+        holder.createErrorAnnotation(element,"YAML sequence was expected here");
       }
     }
   }

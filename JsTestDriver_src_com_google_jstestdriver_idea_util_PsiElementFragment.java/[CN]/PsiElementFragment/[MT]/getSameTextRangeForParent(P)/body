@@ -1,4 +1,14 @@
 {
+  PsiElement element=myElement;
+  while (element != parent) {
+    element=element.getParent();
+    if (element instanceof PsiFile) {
+      break;
+    }
+  }
+  if (element != parent) {
+    throw new RuntimeException("Parent " + parent + " was not found for "+ myElement);
+  }
   int shift=myElement.getTextRange().getStartOffset() - parent.getTextRange().getStartOffset();
-  return new PsiElementFragment<P>(parent,TextRange.create(myTextRangeInElement.getStartOffset() + shift,myTextRangeInElement.getEndOffset() + shift));
+  return new PsiElementFragment<P>(parent,myTextRangeInElement.shiftRight(shift));
 }

@@ -1,0 +1,14 @@
+{
+  Document document=JsPsiUtils.getDocument(element);
+  if (document != documentFragment.getDocument()) {
+    throw new RuntimeException("Documents are different: " + element + ", '"+ element.getText()+ "'");
+  }
+  TextRange dtr=documentFragment.getTextRange();
+  TextRange common=dtr.intersection(element.getTextRange());
+  if (common == null) {
+    return null;
+  }
+  int startOffset=element.getTextRange().getStartOffset();
+  TextRange textRange=new TextRange(common.getStartOffset() - startOffset,common.getEndOffset() - startOffset);
+  return new PsiElementFragment<T>(element,textRange);
+}

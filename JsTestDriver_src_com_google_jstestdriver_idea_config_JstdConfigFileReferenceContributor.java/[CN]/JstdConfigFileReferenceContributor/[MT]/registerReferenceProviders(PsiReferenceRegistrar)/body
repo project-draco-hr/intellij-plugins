@@ -1,15 +1,27 @@
 {
-  ElementPattern<PsiElement> place=JstdConfigFileUtils.CONFIG_FILE_ELEMENT_PATTERN.and(PlatformPatterns.psiElement(YAMLKeyValue.class));
-  registrar.registerReferenceProvider(place,new PsiReferenceProvider(){
+  registrar.registerReferenceProvider(JstdConfigFileUtils.CONFIG_FILE_ELEMENT_PATTERN,new PsiReferenceProvider(){
     @NotNull @Override public PsiReference[] getReferencesByElement(    @NotNull PsiElement element,    @NotNull ProcessingContext context){
-      YAMLKeyValue keyValue=CastUtils.tryCast(element,YAMLKeyValue.class);
-      if (keyValue != null && JstdConfigFileUtils.isKeyWithInnerFileSequence(keyValue)) {
-        YAMLDocument yamlDocument=getDocumentByKeyValueElement(keyValue);
-        if (yamlDocument != null) {
-          VirtualFile basePath=JstdConfigFileUtils.extractBasePath(yamlDocument);
-          if (basePath != null) {
-            return findAllReferencesForKeyValue(basePath,keyValue);
-          }
+      final YAMLKeyValue keyValue=CastUtils.tryCast(element,YAMLKeyValue.class);
+      if (keyValue == null) {
+        return PsiReference.EMPTY_ARRAY;
+      }
+      final YAMLDocument yamlDocument=CastUtils.tryCast(keyValue.getParent(),YAMLDocument.class);
+      if (yamlDocument == null) {
+        return PsiReference.EMPTY_ARRAY;
+      }
+      final BasePathInfo basePathInfo=new BasePathInfo(yamlDocument);
+      if (BasePathInfo.isBasePathKey(keyValue)) {
+        PsiReference basePathRef=createBasePathRef(basePathInfo);
+        if (basePathRef != null) {
+          return new PsiReference[]{basePathRef};
+        }
+      }
+ else       if (JstdConfigFileUtils.isTopLevelKeyWithInnerFileSequence(keyValue)) {
+        VirtualFile basePath=basePathInfo.getBasePath();
+        if (basePath != null) {
+          List<PsiReference> references=Lists.newArrayList();
+          addReferencesForKeyValueWithInnerFileSequence(basePathInfo,keyValue,references);
+          return references.toArray(new PsiReference[references.size()]);
         }
       }
       return PsiReference.EMPTY_ARRAY;

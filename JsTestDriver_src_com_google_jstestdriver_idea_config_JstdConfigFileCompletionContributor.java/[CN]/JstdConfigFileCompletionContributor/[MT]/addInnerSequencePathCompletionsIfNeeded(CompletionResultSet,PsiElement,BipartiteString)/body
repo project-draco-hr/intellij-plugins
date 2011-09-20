@@ -1,9 +1,10 @@
 {
   YAMLKeyValue keyValue=JstdConfigFileUtils.getVerifiedHierarchyHead(element.getParent(),new Class[]{YAMLSequence.class,YAMLCompoundValue.class},YAMLKeyValue.class);
   if (keyValue != null) {
-    YAMLDocument document=CastUtils.tryCast(keyValue.getParent(),YAMLDocument.class);
-    if (document != null && JstdConfigFileUtils.isKeyWithInnerFileSequence(keyValue)) {
-      VirtualFile basePath=JstdConfigFileUtils.extractBasePath(document);
+    YAMLDocument yamlDocument=CastUtils.tryCast(keyValue.getParent(),YAMLDocument.class);
+    if (yamlDocument != null && JstdConfigFileUtils.isTopLevelKeyWithInnerFileSequence(keyValue)) {
+      BasePathInfo basePathInfo=new BasePathInfo(yamlDocument);
+      VirtualFile basePath=basePathInfo.getBasePath();
       if (basePath != null) {
         addPathCompletions(result,caretBipartiteElementText,basePath);
       }
