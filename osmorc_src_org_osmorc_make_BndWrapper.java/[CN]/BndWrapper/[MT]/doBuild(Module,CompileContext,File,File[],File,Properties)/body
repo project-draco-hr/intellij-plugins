@@ -1,11 +1,9 @@
 {
-  ReportingBuilder builder=new ReportingBuilder(compileContext,VfsUtil.pathToUrl(bndFile.getPath()));
+  String messagePrefix="[" + module.getName() + "] ";
+  ReportingBuilder builder=new ReportingBuilder(compileContext,VfsUtil.pathToUrl(bndFile.getPath()),module);
   builder.setPedantic(false);
   builder.setProperties(bndFile);
   builder.mergeProperties(additionalProperties,true);
-  if (builder.getProperty(Constants.EXPORT_PACKAGE) == null) {
-    builder.setProperty(Constants.EXPORT_PACKAGE,"*");
-  }
   builder.setClasspath(classpath);
   builder.begin();
   String manifest=builder.getProperty(ReportingBuilder.MANIFEST);
@@ -13,15 +11,19 @@
     File manifestFile=builder.getFile(manifest);
     if (manifestFile != null && manifestFile.exists() && manifestFile.canRead()) {
       Properties props=new Properties();
+      FileInputStream fileInputStream=new FileInputStream(manifestFile);
       try {
-        props.load(new FileInputStream(manifestFile));
+        props.load(fileInputStream);
         final String value=props.getProperty(Attributes.Name.MANIFEST_VERSION.toString());
         if (value == null || value.length() == 0 || value.trim().length() == 0) {
-          compileContext.addMessage(CompilerMessageCategory.WARNING,"Your manifest does not contain a Manifest-Version entry. This will produce an empty manifest in the resulting bundle.",VfsUtil.pathToUrl(manifestFile.getAbsolutePath()),0,0);
+          compileContext.addMessage(CompilerMessageCategory.WARNING,messagePrefix + "Your manifest does not contain a Manifest-Version entry. This will produce an empty manifest in the resulting bundle.",VfsUtil.pathToUrl(manifestFile.getAbsolutePath()),0,0);
         }
       }
  catch (      Exception ex) {
-        compileContext.addMessage(CompilerMessageCategory.INFORMATION,"There was a problem reading your manifest.",null,0,0);
+        compileContext.addMessage(CompilerMessageCategory.INFORMATION,messagePrefix + "There was a problem reading your manifest.",VfsUtil.pathToUrl(manifestFile.getAbsolutePath()),0,0);
+      }
+ finally {
+        fileInputStream.close();
       }
     }
   }

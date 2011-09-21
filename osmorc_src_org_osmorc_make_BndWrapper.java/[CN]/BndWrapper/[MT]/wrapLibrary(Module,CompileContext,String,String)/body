@@ -1,9 +1,10 @@
 {
+  String messagePrefix="[" + module.getName() + "] ";
   try {
     File targetDir=new File(outputPath);
     File sourceFile=new File(VfsUtil.urlToPath(sourceJarUrl));
     if (!sourceFile.exists()) {
-      compileContext.addMessage(CompilerMessageCategory.WARNING,"The library " + sourceFile.getPath() + " does not exist. Please check your module settings. Ignoring missing library.",null,0,0);
+      compileContext.addMessage(CompilerMessageCategory.WARNING,messagePrefix + "The library " + sourceFile.getPath()+ " does not exist. Please check your module settings. Ignoring missing library.",null,0,0);
       return null;
     }
     if (sourceFile.isDirectory()) {
@@ -26,7 +27,7 @@
       }
     }
     if (!targetFile.exists() || targetFile.lastModified() < sourceFile.lastModified() || targetFile.lastModified() < lastModified) {
-      if (doWrap(compileContext,sourceFile,targetFile,additionalProperties)) {
+      if (doWrap(module,compileContext,sourceFile,targetFile,additionalProperties)) {
         return VfsUtil.pathToUrl(targetFile.getCanonicalPath());
       }
     }
@@ -35,7 +36,7 @@
     }
   }
  catch (  final Exception e) {
-    compileContext.addMessage(CompilerMessageCategory.WARNING,OsmorcBundle.getTranslation("bundlecompiler.bundlifying.problem.message",sourceJarUrl,StacktraceUtil.stackTraceToString(e)),null,0,0);
+    compileContext.addMessage(CompilerMessageCategory.WARNING,MessageFormat.format(messagePrefix + "There was an unexpected problem when trying to bundlify {0}: {1}",sourceJarUrl,StacktraceUtil.stackTraceToString(e)),null,0,0);
   }
   return null;
 }

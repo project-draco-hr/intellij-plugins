@@ -1,4 +1,5 @@
 {
+  String messagePrefix="[" + module.getName() + "] ";
   File[] classPathEntries=new File[classPathUrls.length];
   for (int i=0; i < classPathUrls.length; i++) {
     String classPathUrl=classPathUrls[i];
@@ -8,13 +9,13 @@
   File outFile=new File(outputPath);
   Properties props=new Properties();
   for (  Map.Entry<String,String> stringStringEntry : additionalProperties.entrySet()) {
-    props.put(stringStringEntry.getKey(),stringStringEntry.getValue());
+    props.setProperty(stringStringEntry.getKey(),stringStringEntry.getValue());
   }
   try {
-    return doBuild(compileContext,bndFile,classPathEntries,outFile,props);
+    return doBuild(module,compileContext,bndFile,classPathEntries,outFile,props);
   }
  catch (  Exception e) {
-    compileContext.addMessage(CompilerMessageCategory.ERROR,"Unexpected error: " + e.getMessage(),null,0,0);
+    compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Unexpected error: " + e.getMessage(),null,0,0);
     return false;
   }
 }

@@ -1,11 +1,12 @@
 {
+  String messagePrefix="[" + module.getName() + "] ";
   progressIndicator.setText("Building bundle for module " + module.getName());
   final File jarFile=new File(VfsUtil.urlToPath(getJarFileName(module)));
   if (jarFile.exists()) {
     jarFile.delete();
   }
   if (!FileUtil.createParentDirs(jarFile)) {
-    compileContext.addMessage(CompilerMessageCategory.ERROR,"Cannot create path to " + jarFile.getPath(),null,0,0);
+    compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Cannot create path to " + jarFile.getPath(),null,0,0);
     return;
   }
   final VirtualFile moduleOutputDir=new ReadAction<VirtualFile>(){
@@ -26,7 +27,7 @@
     if (configuration.isUseBndFile()) {
       File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
       if (bndFile == null || !bndFile.exists()) {
-        compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
+        compileContext.addMessage(CompilerMessageCategory.ERROR,String.format(messagePrefix + "The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
         return;
       }
  else {
@@ -61,7 +62,7 @@
       }
     }
     if (!manifestExists) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"Manifest file for module " + module.getName() + ": '"+ OsmorcFacet.getInstance(module).getManifestLocation()+ "' does not exist or cannot be found. Check that file exists and is not excluded from the module.",null,0,0);
+      compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Manifest file for module " + module.getName()+ ": '"+ OsmorcFacet.getInstance(module).getManifestLocation()+ "' does not exist or cannot be found. Check that file exists and is not excluded from the module.",null,0,0);
       return;
     }
   }
@@ -81,7 +82,7 @@
     }
     additionalProperties.put("Include-Resource",pathBuilder.toString());
     if (!configuration.isIgnorePatternValid()) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,"The file ignore pattern in the facet configuration is invalid.",null,0,0);
+      compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "The file ignore pattern in the facet configuration is invalid.",null,0,0);
       return;
     }
     if (!"".equals(configuration.getIgnoreFilePattern())) {
@@ -92,17 +93,17 @@
   if (configuration.isUseBundlorFile()) {
     outputPath+=".tmp.jar";
   }
-  wrapper.build(compileContext,bndFileUrl,ArrayUtil.toStringArray(classPaths),outputPath,additionalProperties);
+  wrapper.build(module,compileContext,bndFileUrl,ArrayUtil.toStringArray(classPaths),outputPath,additionalProperties);
   if (configuration.isUseBundlorFile()) {
     File bundlorFile=findFileInModuleContentRoots(configuration.getBundlorFileLocation(),module);
     if (bundlorFile == null || !bundlorFile.exists()) {
-      compileContext.addMessage(CompilerMessageCategory.ERROR,String.format("The Bundlor file \"%s\" for module \"%s\" does not exist.",configuration.getBundlorFileLocation(),module.getName()),configuration.getBundlorFileLocation(),0,0);
+      compileContext.addMessage(CompilerMessageCategory.ERROR,String.format(messagePrefix + "The Bundlor file \"%s\" for module \"%s\" does not exist.",configuration.getBundlorFileLocation(),module.getName()),configuration.getBundlorFileLocation(),0,0);
       return;
     }
     BundlorWrapper bw=new BundlorWrapper();
     try {
       if (!bw.wrapModule(compileContext,outputPath,jarFile.getPath(),bundlorFile.getPath())) {
-        compileContext.addMessage(CompilerMessageCategory.ERROR,"Bundlifying the file " + jarFile.getPath() + " with Bundlor failed.",null,0,0);
+        compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Bundlifying the file " + jarFile.getPath()+ " with Bundlor failed.",null,0,0);
         return;
       }
     }
@@ -110,7 +111,7 @@
       File tempJar=new File(outputPath);
       if (tempJar.exists()) {
         if (!tempJar.delete()) {
-          compileContext.addMessage(CompilerMessageCategory.WARNING,"Could not delete temporary file: " + tempJar.getPath(),null,0,0);
+          compileContext.addMessage(CompilerMessageCategory.WARNING,messagePrefix + "Could not delete temporary file: " + tempJar.getPath(),null,0,0);
         }
       }
     }
