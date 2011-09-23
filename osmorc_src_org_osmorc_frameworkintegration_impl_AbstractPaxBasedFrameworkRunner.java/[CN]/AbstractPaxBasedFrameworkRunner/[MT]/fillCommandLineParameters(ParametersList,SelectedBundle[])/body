@@ -2,7 +2,10 @@
   commandLineParameters.add("--p=" + getOsgiFrameworkName().toLowerCase());
   commandLineParameters.add("--nologo=true");
   FrameworkInstanceDefinition definition=getRunConfiguration().getInstanceToUse();
-  String version=definition.getVersion();
+  String version=null;
+  if (definition != null) {
+    version=definition.getVersion();
+  }
   if (version != null && version.length() > 0) {
     commandLineParameters.add("--v=" + version);
   }
@@ -43,21 +46,7 @@
  else {
     commandLineParameters.add("--noConsole");
   }
-  StringBuilder vmOptionsParam=new StringBuilder();
-  vmOptionsParam.append("--vmOptions=");
-  String vmParameters=getRunConfiguration().getVmParameters();
-  if (vmParameters.length() > 0) {
-    vmOptionsParam.append(vmParameters);
-  }
-  String additionalVmOptions=getAdditionalTargetVMProperties(bundlesToInstall);
-  if (additionalVmOptions.length() > 0) {
-    vmOptionsParam.append(" ").append(additionalVmOptions);
-  }
-  if (isDebugRun()) {
-    String debugParams="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=n,suspend=n,address=" + getDebugPort();
-    vmOptionsParam.append(" ").append(debugParams);
-  }
-  commandLineParameters.add(vmOptionsParam.toString());
+  commandLineParameters.add("--executor=inProcess");
   commandLineParameters.add("--keepOriginalUrls");
   commandLineParameters.add("--skipInvalidBundles");
   final String additionalProgramParams=getRunConfiguration().getProgramParameters();
