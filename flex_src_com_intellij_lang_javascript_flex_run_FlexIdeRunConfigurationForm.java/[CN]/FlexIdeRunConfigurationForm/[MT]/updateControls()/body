@@ -3,9 +3,12 @@
   final FlexIdeBuildConfiguration config=item instanceof FlexIdeBuildConfiguration ? (FlexIdeBuildConfiguration)item : null;
   final boolean web=config != null && config.getTargetPlatform() == TargetPlatform.Web;
   final boolean desktop=config != null && config.getTargetPlatform() == TargetPlatform.Desktop;
+  final boolean mobile=config != null && config.getTargetPlatform() == TargetPlatform.Mobile;
   myLaunchPanel.setVisible(web);
   myWebOptionsPanel.setVisible(web);
   myDesktopOptionsPanel.setVisible(desktop);
+  myMobileRunPanel.setVisible(mobile);
+  myMobileOptionsPanel.setVisible(mobile);
   if (web) {
     String bcOutput=config.getOutputFileName();
     if (!bcOutput.isEmpty() && config.isUseHtmlWrapper()) {
@@ -15,5 +18,20 @@
     myURLTextField.setEnabled(myURLRadioButton.isSelected());
     myLauncherParametersTextWithBrowse.getTextField().setText(myLauncherParameters.getPresentableText());
     myRunTrustedCheckBox.setEnabled(!myURLRadioButton.isSelected());
+  }
+  if (mobile) {
+    myOnAndroidDeviceRadioButton.setEnabled(config.getAndroidPackagingOptions().isEnabled());
+    if (myOnAndroidDeviceRadioButton.isSelected() && !myOnAndroidDeviceRadioButton.isEnabled()) {
+      myOnEmulatorRadioButton.setSelected(true);
+    }
+    final boolean runOnEmulator=myOnEmulatorRadioButton.isSelected();
+    myEmulatorCombo.setEnabled(runOnEmulator);
+    UIUtil.setEnabled(myEmulatorScreenSizePanel,runOnEmulator,true);
+    myAdlOptionsLabel.setEnabled(runOnEmulator);
+    myEmulatorAdlOptionsEditor.setEnabled(runOnEmulator);
+    if (runOnEmulator) {
+      updateEmulatorRelatedControls();
+    }
+    updateDebugTransportRelatedControls();
   }
 }
