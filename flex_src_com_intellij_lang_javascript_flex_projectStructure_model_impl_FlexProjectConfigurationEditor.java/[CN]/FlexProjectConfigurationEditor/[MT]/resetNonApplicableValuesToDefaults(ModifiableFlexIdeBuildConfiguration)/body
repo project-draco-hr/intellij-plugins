@@ -1,0 +1,25 @@
+{
+  final FlexIdeBuildConfiguration defaultConfiguration=new FlexIdeBuildConfigurationImpl();
+  if (configuration.getOutputType() != OutputType.RuntimeLoadedModule) {
+    configuration.setOptimizeFor(defaultConfiguration.getOptimizeFor());
+  }
+  if (configuration.getOutputType() == OutputType.Library) {
+    configuration.setMainClass(defaultConfiguration.getMainClass());
+  }
+  if (configuration.getTargetPlatform() != TargetPlatform.Web || configuration.getOutputType() != OutputType.Application) {
+    configuration.setUseHtmlWrapper(defaultConfiguration.isUseHtmlWrapper());
+    configuration.setWrapperTemplatePath(defaultConfiguration.getWrapperTemplatePath());
+  }
+  if (configuration.getTargetPlatform() != TargetPlatform.Web) {
+    configuration.getDependencies().setTargetPlayer(defaultConfiguration.getDependencies().getTargetPlayer());
+  }
+  if (configuration.getTargetPlatform() == TargetPlatform.Mobile || configuration.isPureAs()) {
+    configuration.getDependencies().setComponentSet(defaultConfiguration.getDependencies().getComponentSet());
+  }
+  BuildConfigurationNature nature=configuration.getNature();
+  for (Iterator<ModifiableDependencyEntry> i=configuration.getDependencies().getModifiableEntries().iterator(); i.hasNext(); ) {
+    if (!BCUtils.isApplicable(nature,i.next().getDependencyType().getLinkageType())) {
+      i.remove();
+    }
+  }
+}

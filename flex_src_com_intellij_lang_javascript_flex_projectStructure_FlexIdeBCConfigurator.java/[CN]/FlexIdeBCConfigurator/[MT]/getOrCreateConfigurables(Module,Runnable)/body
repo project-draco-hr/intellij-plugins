@@ -1,16 +1,14 @@
 {
-  myFlexSdksModifiableModelInitializer.ensureInitialized(module.getProject());
-  List<NamedConfigurable<FlexIdeBuildConfiguration>> configurables=myModuleToConfigurablesMap.get(module);
-  if (configurables == null) {
-    final FlexIdeBuildConfiguration[] configurations=FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations();
-    configurables=new LinkedList<NamedConfigurable<FlexIdeBuildConfiguration>>();
-    for (    final FlexIdeBuildConfiguration configuration : configurations) {
-      ModifiableFlexIdeBuildConfiguration clonedConfiguration=Factory.getCopy(configuration);
-      FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,clonedConfiguration,mySdksModel,treeNodeNameUpdater);
-      configurables.add(configurable.wrapInTabsIfNeeded());
-      myConfigurationsToModuleMap.put(clonedConfiguration,module);
+  myModifiableModelInitializer.ensureInitialized(module.getProject());
+  final ModifiableFlexIdeBuildConfiguration[] configurations=myConfigEditor.getConfigurations(module);
+  List<NamedConfigurable<ModifiableFlexIdeBuildConfiguration>> configurables=new ArrayList<NamedConfigurable<ModifiableFlexIdeBuildConfiguration>>(configurations.length);
+  for (  final ModifiableFlexIdeBuildConfiguration configuration : configurations) {
+    NamedConfigurable<ModifiableFlexIdeBuildConfiguration> configurable=myConfigurablesMap.get(configuration);
+    if (configurable == null) {
+      configurable=new FlexIdeBCConfigurable(module,configuration,mySdksModel,treeNodeNameUpdater,myConfigEditor).wrapInTabsIfNeeded();
+      myConfigurablesMap.put(configuration,configurable);
     }
-    myModuleToConfigurablesMap.put(module,configurables);
+    configurables.add(configurable);
   }
   return configurables;
 }

@@ -23,8 +23,8 @@
     if (entry instanceof BuildConfigurationEntry) {
       final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
       Module module=bcEntry.findModule();
-      NamedConfigurable<FlexIdeBuildConfiguration> configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<NamedConfigurable<FlexIdeBuildConfiguration>>(){
-        @Override public boolean value(        NamedConfigurable<FlexIdeBuildConfiguration> configurable){
+      NamedConfigurable<ModifiableFlexIdeBuildConfiguration> configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<NamedConfigurable<ModifiableFlexIdeBuildConfiguration>>(){
+        @Override public boolean value(        NamedConfigurable<ModifiableFlexIdeBuildConfiguration> configurable){
           return configurable.getEditableObject().getName().equals(bcEntry.getBcName());
         }
       }
@@ -39,7 +39,7 @@
     }
  else     if (entry instanceof ModuleLibraryEntry) {
       ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)entry;
-      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),FlexProjectRootsUtil.findOrderEntry(moduleLibraryEntry,myModifiableRootModel));
+      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),myConfigEditor.findLibraryOrderEntry(myDependencies,moduleLibraryEntry));
       ((ModuleLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
     }
     if (item != null) {

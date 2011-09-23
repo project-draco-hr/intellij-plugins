@@ -15,7 +15,7 @@
     if (ModuleType.get(module) != FlexModuleType.getInstance()) {
       continue;
     }
-    for (    NamedConfigurable<FlexIdeBuildConfiguration> configurable : configurator.getBCConfigurables(module)) {
+    for (    NamedConfigurable<ModifiableFlexIdeBuildConfiguration> configurable : configurator.getBCConfigurables(module)) {
       FlexIdeBCConfigurable flexIdeBCConfigurable=FlexIdeBCConfigurable.unwrapIfNeeded(configurable);
       if (dependencies.contains(flexIdeBCConfigurable) || flexIdeBCConfigurable.isParentFor(DependenciesConfigurable.this)) {
         continue;
@@ -41,17 +41,6 @@
     return;
   }
   FlexIdeBCConfigurable[] configurables=d.getSelectedConfigurables();
-  Set<Module> newModulesToDependOn=ContainerUtil.map2Set(configurables,new Function<FlexIdeBCConfigurable,Module>(){
-    @Override public Module fun(    FlexIdeBCConfigurable flexIdeBCConfigurable){
-      return flexIdeBCConfigurable.getModule();
-    }
-  }
-);
-  newModulesToDependOn.remove(myModifiableRootModel.getModule());
-  newModulesToDependOn.removeAll(Arrays.asList(myModifiableRootModel.getModuleDependencies(true)));
-  for (  Module module : newModulesToDependOn) {
-    myModifiableRootModel.addModuleOrderEntry(module);
-  }
   DefaultMutableTreeNode root=myTable.getRoot();
   for (  FlexIdeBCConfigurable configurable : configurables) {
     root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));

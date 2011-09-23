@@ -1,0 +1,34 @@
+{
+  super(false,treeNodeNameUpdater);
+  myModule=module;
+  myConfiguration=configuration;
+  myTreeNodeNameUpdater=treeNodeNameUpdater;
+  myName=configuration.getName();
+  final BuildConfigurationNature nature=configuration.getNature();
+  myDependenciesConfigurable=new DependenciesConfigurable(configuration,module.getProject(),sdksModel,configEditor);
+  myCompilerOptionsConfigurable=new CompilerOptionsConfigurable(module,configuration.getCompilerOptions());
+  myAirDesktopPackagingConfigurable=nature.isDesktopPlatform() && nature.isApp() ? new AirDesktopPackagingConfigurable(module,configuration.getAirDesktopPackagingOptions()) : null;
+  myAndroidPackagingConfigurable=nature.isMobilePlatform() && nature.isApp() ? new AndroidPackagingConfigurable(module.getProject(),configuration.getAndroidPackagingOptions()) : null;
+  myIOSPackagingConfigurable=nature.isMobilePlatform() && nature.isApp() ? new IOSPackagingConfigurable(module.getProject(),configuration.getIosPackagingOptions()) : null;
+  myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      setDisplayName(myNameField.getText());
+      if (treeNodeNameUpdater != null) {
+        treeNodeNameUpdater.run();
+      }
+    }
+  }
+);
+  initCombos();
+  myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myUseHTMLWrapperCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+      IdeFocusManager.getInstance(module.getProject()).requestFocus(myWrapperTemplateTextWithBrowse.getTextField(),true);
+    }
+  }
+);
+  final String title="Select folder with HTML wrapper template";
+  final String description="Folder must contain 'index.template.html' file which must contain '${swf}' macro.";
+  myWrapperTemplateTextWithBrowse.addBrowseFolderListener(title,description,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+}

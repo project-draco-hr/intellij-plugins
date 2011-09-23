@@ -1,0 +1,22 @@
+{
+  myProject=project;
+  myProvider=provider;
+  provider.addListener(new FlexIdeBCConfigurator.Listener(){
+    @Override public void moduleRemoved(    final Module module){
+      if (!isFlex(module)) {
+        return;
+      }
+      LOG.assertTrue(myModule2Editors.containsKey(module),"Unknown module: " + module);
+      myModule2Editors.remove(module);
+    }
+    @Override public void buildConfigurationRemoved(    FlexIdeBCConfigurable configurable){
+    }
+  }
+,this);
+  for (  Module module : provider.getModules()) {
+    if (!isFlex(module)) {
+      continue;
+    }
+    addEditorsForModule(module);
+  }
+}

@@ -1,0 +1,96 @@
+{
+  for (  Module module : myModule2Editors.keySet()) {
+    ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
+    Map<Library,Boolean> sdksToAdd=new HashMap<Library,Boolean>();
+    for (    Editor editor : myModule2Editors.get(module)) {
+      SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
+      if (sdkEntry != null) {
+        Library sdk=sdkEntry.findLibrary();
+        if (sdk != null) {
+          sdksToAdd.put(sdk,true);
+        }
+      }
+    }
+    Collection<OrderEntry> sdkEntriesToRemove=new ArrayList<OrderEntry>();
+    for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        if (LibraryTablesRegistrar.APPLICATION_LEVEL.equals(((LibraryOrderEntry)orderEntry).getLibraryLevel())) {
+          Library library=((LibraryOrderEntry)orderEntry).getLibrary();
+          if (sdksToAdd.containsKey(library)) {
+            sdksToAdd.put(library,false);
+          }
+ else           if (library != null && ((LibraryEx)library).getType() instanceof FlexSdkLibraryType) {
+            sdkEntriesToRemove.add(orderEntry);
+          }
+        }
+      }
+    }
+    for (    OrderEntry e : sdkEntriesToRemove) {
+      modifiableModel.removeOrderEntry(e);
+    }
+    for (    Library library : sdksToAdd.keySet()) {
+      if (sdksToAdd.get(library)) {
+        modifiableModel.addLibraryEntry(library);
+      }
+    }
+    final Map<Module,Boolean> modulesToAdd=new HashMap<Module,Boolean>();
+    for (    Editor editor : myModule2Editors.get(module)) {
+      for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
+        if (dependencyEntry instanceof BuildConfigurationEntry) {
+          Editor bc=findBc((BuildConfigurationEntry)dependencyEntry);
+          if (bc != null) {
+            modulesToAdd.put(bc.myModule,true);
+          }
+        }
+      }
+    }
+    List<OrderEntry> moduleOrderEntriesToRemove=ContainerUtil.filter(modifiableModel.getOrderEntries(),new Condition<OrderEntry>(){
+      @Override public boolean value(      OrderEntry orderEntry){
+        if (orderEntry instanceof ModuleOrderEntry) {
+          Module m=((ModuleOrderEntry)orderEntry).getModule();
+          if (modulesToAdd.containsKey(m)) {
+            modulesToAdd.put(m,false);
+            return false;
+          }
+ else {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+);
+    for (    OrderEntry orderEntry : moduleOrderEntriesToRemove) {
+      modifiableModel.removeOrderEntry(orderEntry);
+    }
+    for (    Module m : modulesToAdd.keySet()) {
+      if (modulesToAdd.get(m)) {
+        modifiableModel.addModuleOrderEntry(m);
+      }
+    }
+  }
+  boolean commitModifiableModel=!ContainerUtil.process(myModule2Editors.keySet(),new Processor<Module>(){
+    @Override public boolean process(    Module module){
+      return !myProvider.getModuleModifiableModel(module).isChanged();
+    }
+  }
+);
+  if (commitModifiableModel) {
+    myProvider.commitModifiableModels();
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      for (      Module module : myModule2Editors.keySet()) {
+        Function<Editor,FlexIdeBuildConfiguration> f=new Function<Editor,FlexIdeBuildConfiguration>(){
+          @Override public FlexIdeBuildConfiguration fun(          Editor editor){
+            return editor.commit();
+          }
+        }
+;
+        FlexIdeBuildConfiguration[] current=ContainerUtil.map2Array(myModule2Editors.get(module),FlexIdeBuildConfiguration.class,f);
+        FlexBuildConfigurationManager.getInstance(module).setBuildConfigurations(current);
+      }
+    }
+  }
+);
+}

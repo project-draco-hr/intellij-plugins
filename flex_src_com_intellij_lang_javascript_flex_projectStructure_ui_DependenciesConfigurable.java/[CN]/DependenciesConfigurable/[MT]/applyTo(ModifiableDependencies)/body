@@ -5,25 +5,25 @@
   }
   dependencies.setComponentSet((ComponentSet)myComponentSetCombo.getSelectedItem());
   dependencies.setFrameworkLinkage((LinkageType)myFrameworkLinkageCombo.getSelectedItem());
-  dependencies.getModifiableEntries().clear();
   List<MyTableItem> items=myTable.getItems();
+  List<ModifiableDependencyEntry> newEntries=new ArrayList<ModifiableDependencyEntry>();
   for (  MyTableItem item : items) {
     ModifiableDependencyEntry entry;
     if (item instanceof BCItem) {
       FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
       if (configurable != null) {
-        entry=Factory.createBuildConfigurationEntry(configurable.getModule(),configurable.getDisplayName());
+        entry=myConfigEditor.createBcEntry(dependencies,configurable.getEditableObject());
       }
  else {
-        entry=Factory.createBuildConfigurationEntry(myProject,((BCItem)item).moduleName,((BCItem)item).bcName);
+        entry=myConfigEditor.createBcEntry(dependencies,((BCItem)item).moduleName,((BCItem)item).bcName);
       }
       entry.getDependencyType().copyFrom(((BCItem)item).dependencyType);
-      dependencies.getModifiableEntries().add(entry);
+      newEntries.add(entry);
     }
  else     if (item instanceof ModuleLibraryItem) {
-      entry=Factory.createModuleLibraryEntry(((ModuleLibraryItem)item).libraryId);
+      entry=myConfigEditor.createModuleLibraryEntry(dependencies,((ModuleLibraryItem)item).libraryId);
       entry.getDependencyType().copyFrom(((ModuleLibraryItem)item).dependencyType);
-      dependencies.getModifiableEntries().add(entry);
+      newEntries.add(entry);
     }
  else     if (item instanceof SdkItem || item instanceof SdkEntryItem) {
     }
@@ -31,6 +31,7 @@
       throw new IllegalArgumentException("unexpected item type: " + item);
     }
   }
+  myConfigEditor.setEntries(dependencies,newEntries);
   FlexSdk currentSdk=mySdkPanel.getCurrentSdk();
   if (currentSdk != null) {
     SdkEntry sdkEntry=Factory.createSdkEntry(currentSdk.getLibraryId(),currentSdk.getHomePath());

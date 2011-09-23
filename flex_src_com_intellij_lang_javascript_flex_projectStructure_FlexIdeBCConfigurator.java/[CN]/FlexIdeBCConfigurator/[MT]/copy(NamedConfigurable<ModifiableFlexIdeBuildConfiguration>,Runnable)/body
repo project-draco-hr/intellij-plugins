@@ -1,0 +1,18 @@
+{
+  ModifiableFlexIdeBuildConfiguration configuration=myConfigurablesMap.getKeysByValue(configurable).get(0);
+  FlexIdeBCConfigurable unwrapped=FlexIdeBCConfigurable.unwrapIfNeeded(configurable);
+  Pair<String,BuildConfigurationNature> nameAndNature=promptForCreation(unwrapped.getModule(),"Copy Build Configuration",configuration.getNature());
+  if (nameAndNature == null) {
+    return;
+  }
+  ModifiableFlexIdeBuildConfiguration newConfiguration=myConfigEditor.copyConfiguration(configuration,nameAndNature.second);
+  newConfiguration.setName(nameAndNature.first);
+  newConfiguration.getDependencies().setSdkEntry(findRecentSdk());
+  final String outputFileName=configuration.getOutputFileName();
+  final String lowercase=outputFileName.toLowerCase();
+  if (lowercase.endsWith(".swf") || lowercase.endsWith(".swc")) {
+    final String extension=configuration.getOutputType() == OutputType.Library ? ".swc" : ".swf";
+    newConfiguration.setOutputFileName(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension);
+  }
+  createConfigurableNode(newConfiguration,unwrapped.getModule(),treeNodeNameUpdater);
+}
