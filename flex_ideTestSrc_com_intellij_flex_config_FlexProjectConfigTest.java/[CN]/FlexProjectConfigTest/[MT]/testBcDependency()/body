@@ -1,0 +1,25 @@
+{
+  final Module module2=createModule("module2");
+  assertFalse(doesDepend(myModule,module2));
+  assertFalse(doesDepend(module2,myModule));
+  modifyConfig(new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    FlexProjectConfigurationEditor editor){
+      ModifiableFlexIdeBuildConfiguration module1Config=editor.getConfigurations(myModule)[0];
+      ModifiableFlexIdeBuildConfiguration module2Config=editor.getConfigurations(module2)[0];
+      ModifiableBuildConfigurationEntry entry=editor.createBcEntry(module1Config.getDependencies(),module2Config);
+      editor.setEntries(module1Config.getDependencies(),Collections.singletonList(entry));
+    }
+  }
+);
+  assertTrue(doesDepend(myModule,module2));
+  assertFalse(doesDepend(module2,myModule));
+  modifyConfig(new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    FlexProjectConfigurationEditor editor){
+      ModifiableFlexIdeBuildConfiguration module1Config=editor.getConfigurations(myModule)[0];
+      editor.setEntries(module1Config.getDependencies(),new ArrayList<ModifiableDependencyEntry>());
+    }
+  }
+);
+  assertFalse(doesDepend(myModule,module2));
+  assertFalse(doesDepend(module2,myModule));
+}
