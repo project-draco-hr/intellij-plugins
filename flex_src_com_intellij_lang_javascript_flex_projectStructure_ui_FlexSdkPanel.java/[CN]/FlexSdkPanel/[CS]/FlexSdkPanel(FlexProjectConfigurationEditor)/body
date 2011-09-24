@@ -1,9 +1,9 @@
 {
-  myModifiableModel=modifiableModel;
+  myConfigEditor=configEditor;
   myEventDispatcher=EventDispatcher.create(ChangeListener.class);
   mySdkLabel.setLabelFor(myCombo.getComboBox());
   myInfoLabel.setIcon(UIUtil.getBalloonWarningIcon());
-  myModifiableModel.addSdkListListener(new ChangeListener(){
+  myConfigEditor.addSdkListListener(new ChangeListener(){
     @Override public void stateChanged(    ChangeEvent e){
       rebuildComboModel();
     }
@@ -13,7 +13,7 @@
     @Override public void actionPerformed(    ActionEvent e){
       SdkConfigurationUtil.selectSdkHome(FlexIdeUtils.getSdkType(),new Consumer<String>(){
         @Override public void consume(        String homePath){
-          FlexSdk sdk=myModifiableModel.findOrCreateSdk(homePath);
+          FlexSdk sdk=myConfigEditor.findOrCreateSdk(homePath);
           setCurrentSdk(Factory.createSdkEntry(sdk.getLibraryId(),sdk.getHomePath()));
           myEventDispatcher.getMulticaster().stateChanged(new ChangeEvent(FlexSdkPanel.this));
         }
@@ -25,7 +25,7 @@
   myCombo.getChildComponent().addItemListener(new ItemListener(){
     @Override public void itemStateChanged(    ItemEvent e){
       Object selectedItem=myCombo.getComboBox().getSelectedItem();
-      myModifiableModel.setUsed(FlexSdkPanel.this,selectedItem instanceof Library ? (Library)selectedItem : null);
+      myConfigEditor.setSdkLibraryUsed(FlexSdkPanel.this,selectedItem instanceof Library ? (Library)selectedItem : null);
       if (myMute) {
         return;
       }

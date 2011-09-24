@@ -22,4 +22,26 @@
 );
   assertFalse(doesDepend(myModule,module2));
   assertFalse(doesDepend(module2,myModule));
+  final Module module3=createModule("module3");
+  final Module module4=createModule("module4");
+  modifyConfig(new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    FlexProjectConfigurationEditor editor){
+      ModifiableFlexIdeBuildConfiguration m1bc1=editor.getConfigurations(myModule)[0];
+      ModifiableFlexIdeBuildConfiguration m1bc2=createConfiguration(editor,myModule);
+      ModifiableFlexIdeBuildConfiguration m1bc3=createConfiguration(editor,myModule);
+      ModifiableFlexIdeBuildConfiguration m1bc4=createConfiguration(editor,myModule);
+      ModifiableFlexIdeBuildConfiguration m2bc1=editor.getConfigurations(module2)[0];
+      ModifiableFlexIdeBuildConfiguration m3bc1=editor.getConfigurations(module3)[0];
+      ModifiableFlexIdeBuildConfiguration m2bc2=createConfiguration(editor,module2);
+      ModifiableBuildConfigurationEntry e1=editor.createBcEntry(m1bc1.getDependencies(),m2bc1);
+      editor.setEntries(m1bc1.getDependencies(),Collections.singletonList(e1));
+      ModifiableBuildConfigurationEntry e2=editor.createBcEntry(m1bc2.getDependencies(),m2bc2);
+      ModifiableBuildConfigurationEntry e3=editor.createBcEntry(m1bc2.getDependencies(),m3bc1);
+      editor.setEntries(m1bc1.getDependencies(),Arrays.asList(e2,e3));
+    }
+  }
+);
+  assertTrue(doesDepend(myModule,module2));
+  assertTrue(doesDepend(myModule,module3));
+  assertFalse(doesDepend(myModule,module4));
 }
