@@ -1,11 +1,9 @@
 {
-  Set<Library> currentLibraries=new HashSet<Library>(ContainerUtil.filter(myModifiableModel.getLibraries(),new Condition<Library>(){
+  List<Library> originalSdkLibraries=ContainerUtil.filter(ApplicationLibraryTable.getApplicationTable().getLibraries(),new Condition<Library>(){
     @Override public boolean value(    Library library){
-      return !FlexSdk.isFlexSdk(library) || myUsedLibraries.containsValue(library);
+      return FlexSdk.isFlexSdk(library);
     }
   }
-));
-  currentLibraries.addAll(myLibrariesExistedBefore);
-  Set<Library> originalLibraries=new HashSet<Library>(Arrays.asList(ApplicationLibraryTable.getApplicationTable().getLibraries()));
-  return !currentLibraries.equals(originalLibraries);
+);
+  return !Arrays.asList(myConfigEditor.getSdksLibraries()).equals(originalSdkLibraries);
 }
