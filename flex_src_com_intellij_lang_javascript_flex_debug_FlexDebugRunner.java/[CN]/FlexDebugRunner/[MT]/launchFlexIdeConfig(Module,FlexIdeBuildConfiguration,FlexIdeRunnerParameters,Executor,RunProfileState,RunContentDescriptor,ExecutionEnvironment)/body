@@ -1,5 +1,18 @@
 {
   final Project project=module.getProject();
+  if (config.getTargetPlatform() == TargetPlatform.Mobile && params.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
+    final Sdk flexSdk=FlexUtils.createFlexSdkWrapper(config);
+    final String appId=getApplicationId(getAirDescriptorPath(config,config.getAndroidPackagingOptions()));
+    final MobileAirPackageParameters packageParameters=createAndroidPackageParams(flexSdk,config,params,true);
+    if (!packAndInstallToAndroidDevice(module,flexSdk,packageParameters,appId,true)) {
+      return null;
+    }
+    if (params.getDebugTransport() == AirMobileDebugTransport.USB) {
+      launchOnAndroidDevice(project,flexSdk,appId,true);
+      waitUntilCountdownStartsOnDevice(project,appId);
+      MobileAirUtil.forwardTcpPort(project,flexSdk,params.getUsbDebugPort());
+    }
+  }
   final XDebugSession debugSession=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @NotNull public XDebugProcess start(    @NotNull final XDebugSession session) throws ExecutionException {
       try {
