@@ -11,7 +11,12 @@ switch (params.getMobileRunTarget()) {
 case Emulator:
 return standardLaunch(module.getProject(),executor,state,contentToReuse,environment);
 case AndroidDevice:
-break;
+final String applicationId=getApplicationId(getAirDescriptorPath(config,config.getAndroidPackagingOptions()));
+final Sdk sdk=FlexUtils.createFlexSdkWrapper(config);
+if (packAndInstallToAndroidDevice(module,sdk,createAndroidPackageParams(sdk,config,params,false),applicationId,false)) {
+launchOnAndroidDevice(module.getProject(),sdk,applicationId,false);
+}
+return null;
 }
 break;
 }

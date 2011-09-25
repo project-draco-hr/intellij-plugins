@@ -2,11 +2,17 @@
   if (isRunOnDevice(flexRunnerParameters)) {
     final AirMobileRunnerParameters mobileParams=(AirMobileRunnerParameters)flexRunnerParameters;
     if (mobileParams.getAirMobileRunMode() == AirMobileRunnerParameters.AirMobileRunMode.ExistingPackage) {
-      return launchExistingPackage(project,flexSdk,mobileParams);
+      launchExistingPackage(project,flexSdk,mobileParams);
+      return null;
     }
  else {
       final Pair<String,String> swfPathAndApplicationId=getSwfPathAndApplicationId(mobileParams);
-      return packAndInstallToDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.first,swfPathAndApplicationId.second,false) ? launchOnDevice(project,flexSdk,mobileParams,swfPathAndApplicationId.second,false) : null;
+      final Module module=ModuleManager.getInstance(project).findModuleByName(mobileParams.getModuleName());
+      final MobileAirPackageParameters packageParameters=createAndroidPackageParams(flexSdk,swfPathAndApplicationId.first,mobileParams,false);
+      if (packAndInstallToAndroidDevice(module,flexSdk,packageParameters,swfPathAndApplicationId.second,false)) {
+        launchOnAndroidDevice(project,flexSdk,swfPathAndApplicationId.second,false);
+      }
+      return null;
     }
   }
   return isRunAsAir(flexRunnerParameters) ? launchAir(project,executor,state,contentToReuse,env,flexRunnerParameters) : launchFlex(project,executor,state,contentToReuse,env,flexSdk,flexRunnerParameters);
