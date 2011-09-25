@@ -5,13 +5,14 @@ case Web:
   launchWithSelectedApplication(urlOrPath,params.getLauncherParameters());
 break;
 case Desktop:
-final ExecutionResult executionResult=state.execute(executor,this);
-if (executionResult == null) return null;
-final RunContentBuilder contentBuilder=new RunContentBuilder(module.getProject(),this,executor);
-contentBuilder.setExecutionResult(executionResult);
-contentBuilder.setEnvironment(environment);
-return contentBuilder.showRunContent(contentToReuse);
+return standardLaunch(module.getProject(),executor,state,contentToReuse,environment);
 case Mobile:
+switch (params.getMobileRunTarget()) {
+case Emulator:
+return standardLaunch(module.getProject(),executor,state,contentToReuse,environment);
+case AndroidDevice:
+break;
+}
 break;
 }
 return null;
