@@ -1,0 +1,33 @@
+{
+  if (type != OrderRootType.CLASSES || !(forOrderEntry instanceof LibraryOrderEntry)) {
+    return false;
+  }
+  if (myActiveConfigurations == null) {
+    return false;
+  }
+  LibraryOrderEntry libraryOrderEntry=(LibraryOrderEntry)forOrderEntry;
+  if (libraryOrderEntry.getLibraryLevel() != LibraryTablesRegistrar.APPLICATION_LEVEL) {
+    return false;
+  }
+  Library library=libraryOrderEntry.getLibrary();
+  if (library == null || !FlexSdk.isFlexSdk(library)) {
+    return false;
+  }
+  final String[] allUrls=library.getUrls(OrderRootType.CLASSES);
+  Collection<FlexIdeBuildConfiguration> accessibleConfigurations=myActiveConfigurations.get(forOrderEntry.getOwnerModule());
+  final Set<String> allAccessibleUrls=new HashSet<String>();
+  ContainerUtil.process(accessibleConfigurations,new Processor<FlexIdeBuildConfiguration>(){
+    @Override public boolean process(    final FlexIdeBuildConfiguration bc){
+      allAccessibleUrls.addAll(ContainerUtil.filter(allUrls,new Condition<String>(){
+        @Override public boolean value(        String s){
+          return BCUtils.getSdkEntryLinkageType(s,bc.getNature(),bc.getDependencies().getTargetPlayer(),bc.getDependencies().getComponentSet()) != null;
+        }
+      }
+));
+      return true;
+    }
+  }
+);
+  urls.addAll(allAccessibleUrls);
+  return true;
+}
