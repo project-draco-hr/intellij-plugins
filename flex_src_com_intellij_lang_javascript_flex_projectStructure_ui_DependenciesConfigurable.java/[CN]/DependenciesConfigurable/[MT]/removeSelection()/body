@@ -1,13 +1,11 @@
 {
   TableUtil.stopEditing(myTable);
   int[] selectedRows=myTable.getSelectedRows();
-  Arrays.sort(selectedRows);
-  DefaultMutableTreeNode root=myTable.getRoot();
-  for (int i=0; i < selectedRows.length; i++) {
-    int index=selectedRows[i] - i;
-    root.remove(index);
+  Set<MyTableItem> itemsToRemove=new HashSet<MyTableItem>(selectedRows.length);
+  for (  int row : selectedRows) {
+    itemsToRemove.add(myTable.getItemAt(row));
   }
-  myTable.refresh();
+  removeItems(itemsToRemove);
   if (myTable.getRowCount() > 0) {
     int toSelect=Math.min(myTable.getRowCount() - 1,selectedRows[0]);
     myTable.clearSelection();
