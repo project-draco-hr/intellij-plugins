@@ -1,3 +1,11 @@
 {
-  ShowSettingsUtil.getInstance().editConfigurable(myProject,OptionsEditorDialog.DIMENSION_KEY,ProjectStructureConfigurable.getInstance(myProject));
+  final FlexIdeBuildConfiguration activeConfiguration=FlexBuildConfigurationManager.getInstance(myModule).getActiveConfiguration();
+  final ProjectStructureConfigurable c=ProjectStructureConfigurable.getInstance(myModule.getProject());
+  ShowSettingsUtil.getInstance().editConfigurable(myModule.getProject(),c,new Runnable(){
+    @Override public void run(){
+      Place p=FlexIdeModuleStructureExtension.getInstance().getConfigurator().getPlaceFor(myModule,activeConfiguration);
+      c.navigateTo(p,true);
+    }
+  }
+);
 }
