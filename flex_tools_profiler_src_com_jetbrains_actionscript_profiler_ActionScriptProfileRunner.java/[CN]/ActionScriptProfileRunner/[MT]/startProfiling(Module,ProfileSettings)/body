@@ -1,6 +1,6 @@
 {
   String s=ActionScriptProfileProvider.ACTIONSCRIPT_SNAPSHOT;
-  FileEditorManager editorManager=FileEditorManager.getInstance(project);
+  FileEditorManager editorManager=FileEditorManager.getInstance(module.getProject());
   ActionScriptProfileView profileView;
   for (  FileEditor fe : editorManager.getAllEditors()) {
     if (fe instanceof ActionScriptProfileView && (profileView=(ActionScriptProfileView)fe).getFile().getName().equals(s)) {
@@ -8,9 +8,9 @@
       editorManager.closeFile(profileView.getFile());
     }
   }
-  initProfilingAgent(sdk,project,profileSettings.getHost(),profileSettings.getPort());
+  initProfilingAgent(module,profileSettings.getHost(),profileSettings.getPort());
   VirtualFile virtualFile=new LightVirtualFile(s,"");
   virtualFile.putUserData(ActionScriptProfileView.ourProfilingManagerKey,new ProfilingManager(profileSettings.getPort()));
-  OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(project,virtualFile);
+  OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(module.getProject(),virtualFile);
   openFileDescriptor.navigate(true);
 }

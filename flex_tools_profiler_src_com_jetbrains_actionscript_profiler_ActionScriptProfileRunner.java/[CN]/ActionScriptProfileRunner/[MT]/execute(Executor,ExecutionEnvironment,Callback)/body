@@ -4,13 +4,15 @@
     return;
   }
   RunProfile runProfile=executionEnvironment.getRunProfile();
+  boolean started;
   if (runProfile instanceof FlexRunConfiguration) {
-    startProfiling((FlexRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData());
+    started=startProfiling((FlexRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData());
   }
  else {
-    if (!startProfiling((FlexIdeRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData())) {
-      return;
-    }
+    started=startProfiling((FlexIdeRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData());
+  }
+  if (!started) {
+    return;
   }
   Executor executorById=ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID);
   myFlexRunner.execute(executorById,executionEnvironment,callback);
