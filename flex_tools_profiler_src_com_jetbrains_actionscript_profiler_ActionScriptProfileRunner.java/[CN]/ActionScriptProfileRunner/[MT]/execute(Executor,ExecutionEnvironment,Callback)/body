@@ -3,8 +3,15 @@
   if (runnerSettings == null) {
     return;
   }
+  RunProfile runProfile=executionEnvironment.getRunProfile();
+  if (runProfile instanceof FlexRunConfiguration) {
+    startProfiling((FlexRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData());
+  }
+ else {
+    if (!startProfiling((FlexIdeRunConfiguration)runProfile,(ProfileSettings)runnerSettings.getData())) {
+      return;
+    }
+  }
   Executor executorById=ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID);
   myFlexRunner.execute(executorById,executionEnvironment,callback);
-  RunProfileState state=executionEnvironment.getState(executorById);
-  startProfiling((FlexRunConfiguration)state,(ProfileSettings)runnerSettings.getData());
 }
