@@ -10,7 +10,14 @@
       notifyUser(debug,message,module.getProject(),new Consumer<String>(){
         @Override public void consume(        String id){
           if ("edit".equals(id)) {
-            new ProjectJdksEditor(null,module.getProject(),WindowManager.getInstance().suggestParentWindow(module.getProject())).show();
+            if (PlatformUtils.isFlexIde()) {
+              if (ProjectSettingsService.getInstance(myProject).canOpenModuleDependenciesSettings()) {
+                ProjectSettingsService.getInstance(myProject).openModuleDependenciesSettings(module,null);
+              }
+            }
+ else {
+              new ProjectJdksEditor(null,module.getProject(),WindowManager.getInstance().suggestParentWindow(module.getProject())).show();
+            }
           }
  else {
             LOG.error("unexpected id: " + id);
