@@ -1,10 +1,11 @@
 {
   final PsiReference[] references=element.getReferences();
-  final JSFileReference fileReference;
+  final PsiPolyVariantReference fileReference;
   int i=references.length - 1;
   while (true) {
-    if (references[i] instanceof JSFileReference) {
-      fileReference=(JSFileReference)references[i];
+    final PsiReference reference=references[i];
+    if (reference instanceof JSFileReference || reference instanceof ResourceBundleReference) {
+      fileReference=(PsiPolyVariantReference)reference;
       break;
     }
  else     if (--i < 0) {
@@ -23,10 +24,15 @@
     psiFile=resolveResult(element,resolveResults);
   }
   if (psiFile == null) {
-    throw new InvalidPropertyException(fileReference.getUnresolvedMessagePattern(),element);
+    if (fileReference instanceof FileReference) {
+      throw new InvalidPropertyException(((FileReference)fileReference).getUnresolvedMessagePattern(),element);
+    }
+ else {
+      throw new InvalidPropertyException(element,"unresolved.resource.bundle",fileReference.getCanonicalText());
+    }
   }
  else   if (psiFile.isDirectory()) {
-    throw new InvalidPropertyException(element,"error.embed.source.is.directory",fileReference.getText());
+    throw new InvalidPropertyException(element,"error.embed.source.is.directory",fileReference.getCanonicalText());
   }
  else {
     return psiFile;
