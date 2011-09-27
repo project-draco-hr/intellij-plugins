@@ -1,5 +1,13 @@
 {
-  copyConfuguratorToLocalRepository(console);
+  try {
+    copyConfiguratorToLocalRepository();
+  }
+ catch (  IOException e) {
+    console.printException(e);
+    showWarning("",project);
+    MavenLog.LOG.error(e);
+    return;
+  }
   final List<MavenProject> rootProjects=myTree.getRootProjects();
   final String workingDirPath;
   if (rootProjects.size() > 1) {
@@ -18,7 +26,6 @@
   }
  catch (  ExecutionException e) {
     new Notification("Maven",FlexBundle.message("flexmojos.project.import"),e.getMessage(),NotificationType.ERROR).notify(project);
-    console.printException(e);
     MavenLog.LOG.warn(e);
     return;
   }
@@ -30,7 +37,7 @@
   }
  catch (  ExecutionException e) {
     console.printException(e);
-    MavenLog.LOG.warn(e);
+    MavenLog.LOG.error(e);
     showWarning("",project);
     return;
   }
