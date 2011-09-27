@@ -1,17 +1,17 @@
 {
   extend(CompletionType.BASIC,JstdConfigFileUtils.CONFIG_FILE_ELEMENT_PATTERN,new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
-      PsiElement element=parameters.getOriginalPosition();
-      if (element == null) {
-        element=parameters.getPosition();
-      }
-      UnquotedText text=new UnquotedText(element);
+      UnquotedText text=new UnquotedText(parameters.getPosition());
       int prefixLength=Math.max(0,parameters.getOffset() - text.getUnquotedDocumentTextRange().getStartOffset());
       BipartiteString caretBipartiteElementText=splitByPrefixLength(text.getUnquotedText(),prefixLength);
-      boolean atFirstColumn=isAtStart(element,parameters.getOffset());
-      addInnerSequencePathCompletionsIfNeeded(result,element,caretBipartiteElementText);
-      addBasePathCompletionsIfNeeded(result,element,caretBipartiteElementText,atFirstColumn);
-      addTopLevelKeysCompletionIfNeeded(result,element,caretBipartiteElementText,atFirstColumn);
+      boolean topLevelKeyCompletion=isTopLevelKeyCompletion(parameters);
+      addInnerSequencePathCompletionsIfNeeded(parameters,result,caretBipartiteElementText);
+      if (topLevelKeyCompletion) {
+        addTopLevelKeysCompletionIfNeeded(parameters,result,caretBipartiteElementText);
+      }
+ else {
+        addBasePathCompletionsIfNeeded(parameters,result,caretBipartiteElementText);
+      }
     }
   }
 );
