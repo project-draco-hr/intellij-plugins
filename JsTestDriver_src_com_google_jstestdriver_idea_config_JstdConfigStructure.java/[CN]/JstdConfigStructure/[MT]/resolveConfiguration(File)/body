@@ -1,0 +1,15 @@
+{
+  FlagsImpl flags=new FlagsImpl();
+  flags.setServer("test:1");
+  try {
+    ConfigurationSource confSrc=new UserConfigurationSource(jstdConfigFile);
+    File initialBasePath=jstdConfigFile.getParentFile();
+    Configuration parsedConf=confSrc.parse(initialBasePath,new YamlParser());
+    File resolvedBasePath=parsedConf.getBasePath().getCanonicalFile();
+    PathResolver pathResolver=new PathResolver(resolvedBasePath,Collections.<FileParsePostProcessor>emptySet(),new DisplayPathSanitizer(resolvedBasePath));
+    return parsedConf.resolvePaths(pathResolver,flags);
+  }
+ catch (  IOException e) {
+    throw new RuntimeException("Failed to read settings file " + jstdConfigFile,e);
+  }
+}
