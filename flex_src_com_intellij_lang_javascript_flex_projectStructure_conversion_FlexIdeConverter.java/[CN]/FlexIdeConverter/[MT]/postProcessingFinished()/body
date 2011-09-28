@@ -12,9 +12,11 @@
       document=new Document(element);
     }
     Element libraryTable=JDomConvertingUtil.findOrCreateComponentElement(document.getRootElement(),COMPONENT_NAME);
+    final PathMacroManager pathMacroManager=PathMacroManager.getInstance(ApplicationManager.getApplication());
     for (    Map.Entry<String,String> entry : sdks.entrySet()) {
-      final VirtualFile sdkHome=LocalFileSystem.getInstance().findFileByPath(entry.getKey());
-      ConverterFlexSdkModificator sdkModificator=new ConverterFlexSdkModificator(entry.getKey(),entry.getValue());
+      final String homePath=pathMacroManager.expandPath(entry.getKey());
+      final VirtualFile sdkHome=LocalFileSystem.getInstance().findFileByPath(homePath);
+      ConverterFlexSdkModificator sdkModificator=new ConverterFlexSdkModificator(homePath,entry.getValue());
       FlexSdkUtils.setupSdkPaths(sdkHome,null,sdkModificator);
       if (sdkModificator.getLibraryElement() != null) {
         libraryTable.addContent(sdkModificator.getLibraryElement());
