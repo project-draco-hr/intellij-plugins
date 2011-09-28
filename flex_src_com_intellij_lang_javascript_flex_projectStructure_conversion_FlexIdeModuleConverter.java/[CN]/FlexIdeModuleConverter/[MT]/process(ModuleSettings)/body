@@ -1,0 +1,57 @@
+{
+  FlexBuildConfigurationManagerImpl configurationManager=ConversionHelper.createBuildConfigurationManager();
+  ModifiableFlexIdeBuildConfiguration buildConfiguration=(ModifiableFlexIdeBuildConfiguration)configurationManager.getBuildConfigurations()[0];
+  Element flexBuildConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
+  FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(flexBuildConfigurationElement,FlexBuildConfiguration.class);
+  if (oldConfiguration == null) {
+    buildConfiguration.setOutputType(OutputType.Application);
+  }
+ else   if (FlexBuildConfiguration.APPLICATION.equals(oldConfiguration.OUTPUT_TYPE)) {
+    buildConfiguration.setOutputType(OutputType.Application);
+  }
+ else   if (FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+    buildConfiguration.setOutputType(OutputType.Library);
+  }
+ else {
+  }
+  for (  Element orderEntry : moduleSettings.getOrderEntries()) {
+    String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
+    if (ModuleLibraryOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
+      Element library=orderEntry.getChild(LibraryImpl.ELEMENT);
+      library.setAttribute(LibraryImpl.LIBRARY_TYPE_ATTR,FlexLibraryType.FLEX_LIBRARY.getKindId());
+      Element libraryProperties=new Element(LibraryImpl.PROPERTIES_ELEMENT);
+      library.getChildren().add(0,libraryProperties);
+      String libraryId=UUID.randomUUID().toString();
+      XmlSerializer.serializeInto(new FlexLibraryProperties(libraryId),libraryProperties);
+      ModifiableModuleLibraryEntry moduleLibraryEntry=ConversionHelper.createModuleLibraryEntry(libraryId);
+      DependencyScope scope=DependencyScope.readExternal(orderEntry);
+      boolean isExported=orderEntry.getAttribute(ModuleLibraryOrderEntryImpl.EXPORTED_ATTR) != null;
+      if (scope == DependencyScope.PROVIDED) {
+        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.External);
+      }
+ else       if (isExported) {
+        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.Include);
+      }
+ else {
+        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.Merged);
+      }
+      buildConfiguration.getDependencies().getModifiableEntries().add(moduleLibraryEntry);
+    }
+ else     if (ModuleOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
+      String moduleName=orderEntry.getAttributeValue(ModuleOrderEntryImpl.MODULE_NAME_ATTR);
+      ModifiableBuildConfigurationEntry bcEntry=ConversionHelper.createBuildConfigurationEntry(moduleName,"Unnamed");
+      buildConfiguration.getDependencies().getModifiableEntries().add(bcEntry);
+    }
+ else     if (ModuleJdkOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
+      String sdkName=orderEntry.getAttributeValue(ModuleJdkOrderEntryImpl.JDK_NAME_ATTR);
+      String sdkType=orderEntry.getAttributeValue(ModuleJdkOrderEntryImpl.JDK_TYPE_ATTR);
+      processSdkEntry(buildConfiguration,sdkName,sdkType);
+    }
+ else     if (InheritedJdkOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
+      processSdkEntry(buildConfiguration,myParams.projectSdkName,myParams.projectSdkType);
+    }
+  }
+  Element componentElement=JDomConvertingUtil.findOrCreateComponentElement(moduleSettings.getRootElement(),FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
+  Element e=XmlSerializer.serialize(configurationManager.getState(),new SkipDefaultValuesSerializationFilters());
+  addContent(e,componentElement);
+}

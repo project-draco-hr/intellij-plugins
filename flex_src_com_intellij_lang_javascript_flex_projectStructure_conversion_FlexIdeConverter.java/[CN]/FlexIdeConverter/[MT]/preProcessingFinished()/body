@@ -1,0 +1,67 @@
+{
+  ComponentManagerSettings projectRootManagerSettings=myContext.getProjectRootManagerSettings();
+  if (projectRootManagerSettings == null)   return;
+  Element projectRootManager=projectRootManagerSettings.getComponentElement(ProjectRootManager.class.getSimpleName());
+  if (projectRootManager == null)   return;
+  myParams.projectSdkName=projectRootManager.getAttributeValue(ProjectRootManagerImpl.PROJECT_JDK_NAME_ATTR);
+  myParams.projectSdkType=projectRootManager.getAttributeValue(ProjectRootManagerImpl.PROJECT_JDK_TYPE_ATTR);
+  File jdkConfigFile=PathManager.getOptionsFile("jdk.table");
+  if (jdkConfigFile.isFile()) {
+    try {
+      Document document=JDOMUtil.loadDocument(jdkConfigFile);
+      Element jdkTable=JDomConvertingUtil.findComponent(document.getRootElement(),"ProjectJdkTable");
+      if (jdkTable != null) {
+        for (        Object o : jdkTable.getChildren(ProjectJdkTableImpl.ELEMENT_JDK)) {
+          Element jdk=(Element)o;
+          if (!"2".equals(jdk.getAttributeValue(ProjectJdkImpl.ELEMENT_VERSION)))           continue;
+          Element typeElement=jdk.getChild(ProjectJdkImpl.ELEMENT_TYPE);
+          if (typeElement == null)           continue;
+          String type=typeElement.getAttributeValue(ProjectJdkImpl.ATTRIBUTE_VALUE);
+          if (!ArrayUtil.contains(type,SDK_TYPES))           continue;
+          Element nameElement=jdk.getChild(ProjectJdkImpl.ELEMENT_NAME);
+          if (nameElement == null)           continue;
+          String name=nameElement.getAttributeValue(ProjectJdkImpl.ATTRIBUTE_VALUE);
+          if (StringUtil.isEmpty(name))           continue;
+          Element homeElement=jdk.getChild(ProjectJdkImpl.ELEMENT_HOMEPATH);
+          if (homeElement == null)           continue;
+          String homePath=homeElement.getAttributeValue(ProjectJdkImpl.ATTRIBUTE_VALUE);
+          if (StringUtil.isEmpty(homePath)) {
+            continue;
+          }
+          myParams.addIdeaSdk(name,homePath);
+        }
+      }
+    }
+ catch (    JDOMException e) {
+      LOG.warn(e);
+    }
+catch (    IOException e) {
+      LOG.warn(e);
+    }
+  }
+  File libConfigFile=PathManager.getOptionsFile(ApplicationLibraryTable.getExternalFileName());
+  if (libConfigFile.isFile()) {
+    try {
+      Document document=JDOMUtil.loadDocument(libConfigFile);
+      Element libraryTable=JDomConvertingUtil.findComponent(document.getRootElement(),COMPONENT_NAME);
+      if (libraryTable != null) {
+        for (        Object o : libraryTable.getChildren(LibraryImpl.ELEMENT)) {
+          Element library=(Element)o;
+          String type=library.getAttributeValue(LibraryImpl.LIBRARY_TYPE_ATTR);
+          if (!FlexSdkLibraryType.FLEX_SDK.getKindId().equals(type)) {
+            continue;
+          }
+          Element propertiesElement=library.getChild(LibraryImpl.PROPERTIES_ELEMENT);
+          FlexSdkProperties properties=XmlSerializer.deserialize(propertiesElement,FlexSdkProperties.class);
+          myParams.addExistingFlexIdeSdk(properties.getHomePath(),properties.getId());
+        }
+      }
+    }
+ catch (    JDOMException e) {
+      LOG.warn(e);
+    }
+catch (    IOException e) {
+      LOG.warn(e);
+    }
+  }
+}

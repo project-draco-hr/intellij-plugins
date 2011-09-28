@@ -1,12 +1,17 @@
 {
   if (!ArrayUtil.contains(buildConfiguration,myConfigurations)) {
-    throw new IllegalArgumentException("Build configuration " + buildConfiguration.getName() + " does not belong to module "+ myModule.getName());
+    throw new IllegalArgumentException("Build configuration " + buildConfiguration.getName() + " does not belong to module "+ (myModule != null ? myModule.getName() : "(dummy)"));
   }
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    @Override public void run(){
-      myActiveConfiguration=(FlexIdeBuildConfigurationImpl)buildConfiguration;
-      resetHighlighting(myModule.getProject());
+  if (myModule != null) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        myActiveConfiguration=(FlexIdeBuildConfigurationImpl)buildConfiguration;
+        resetHighlighting(myModule.getProject());
+      }
     }
-  }
 );
+  }
+ else {
+    myActiveConfiguration=(FlexIdeBuildConfigurationImpl)buildConfiguration;
+  }
 }

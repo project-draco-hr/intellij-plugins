@@ -1,0 +1,31 @@
+{
+  Map<String,String> sdks=myParams.getFlexIdeSdksToCreate();
+  if (sdks.isEmpty())   return;
+  File libConfigFile=PathManager.getOptionsFile(ApplicationLibraryTable.getExternalFileName());
+  try {
+    Document document;
+    if (libConfigFile.isFile()) {
+      document=JDOMUtil.loadDocument(libConfigFile);
+    }
+ else {
+      Element element=new Element("application");
+      document=new Document(element);
+    }
+    Element libraryTable=JDomConvertingUtil.findOrCreateComponentElement(document.getRootElement(),COMPONENT_NAME);
+    for (    Map.Entry<String,String> entry : sdks.entrySet()) {
+      final VirtualFile sdkHome=LocalFileSystem.getInstance().findFileByPath(entry.getKey());
+      ConverterFlexSdkModificator sdkModificator=new ConverterFlexSdkModificator(entry.getKey(),entry.getValue());
+      FlexSdkUtils.setupSdkPaths(sdkHome,null,sdkModificator);
+      if (sdkModificator.getLibraryElement() != null) {
+        libraryTable.addContent(sdkModificator.getLibraryElement());
+      }
+    }
+    JDOMUtil.writeDocument(document,libConfigFile,"\n");
+  }
+ catch (  JDOMException e) {
+    LOG.warn(e);
+  }
+catch (  IOException e) {
+    LOG.warn(e);
+  }
+}
