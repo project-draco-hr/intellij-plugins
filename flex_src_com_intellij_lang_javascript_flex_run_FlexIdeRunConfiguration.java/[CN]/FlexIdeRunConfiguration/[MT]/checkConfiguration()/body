@@ -1,2 +1,12 @@
 {
+  if (myRunnerParameters.getModuleName().isEmpty() || myRunnerParameters.getBCName().isEmpty()) {
+    throw new RuntimeConfigurationException(FlexBundle.message("bc.not.specified"));
+  }
+  final Module module=ModuleManager.getInstance(getProject()).findModuleByName(myRunnerParameters.getModuleName());
+  if (module == null || !(ModuleType.get(module) instanceof FlexModuleType)) {
+    throw new RuntimeConfigurationException(FlexBundle.message("bc.not.specified"));
+  }
+  if (FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(myRunnerParameters.getBCName()) == null) {
+    throw new RuntimeConfigurationException(FlexBundle.message("module.does.not.contain.bc",myRunnerParameters.getModuleName(),myRunnerParameters.getBCName()));
+  }
 }
