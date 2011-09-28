@@ -8,6 +8,7 @@
     MavenLog.LOG.error(e);
     return;
   }
+  indicator.checkCanceled();
   final List<MavenProject> rootProjects=myTree.getRootProjects();
   final String workingDirPath;
   if (rootProjects.size() > 1) {
@@ -31,6 +32,7 @@
   }
   commandLine.setWorkDirectory(workingDirPath);
   commandLine.setRedirectErrorStream(true);
+  indicator.checkCanceled();
   final Process process;
   try {
     process=commandLine.createProcess();
@@ -48,6 +50,10 @@
     int read;
     while ((read=reader.read(buf,0,buf.length)) >= 0) {
       stringBuilder.append(buf,0,read);
+      if (indicator.isCanceled()) {
+        process.destroy();
+      }
+      indicator.checkCanceled();
     }
     try {
       process.waitFor();
