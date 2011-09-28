@@ -1,22 +1,15 @@
 {
   final AbcNameFilter sparkInclusionNameFilter=new AbcNameFilterStartsWith("com.intellij.flex.uiDesigner.flex",true);
-  final Collection<CharSequence> airsparkDefinitions=new ArrayList<CharSequence>(1);
-  airsparkDefinitions.add("spark.components:WindowedApplication");
   final Collection<CharSequence> commonDefinitions=new ArrayList<CharSequence>(1);
   commonDefinitions.add("com.intellij.flex.uiDesigner:SpecialClassForAdobeEngineers");
-  AbcNameFilterByNameSetAndStartsWith filter=new AbcNameFilterByNameSetAndStartsWith(commonDefinitions,new String[]{"mx.","spark."}){
-    @Override public boolean accept(    CharSequence name){
-      return StringUtil.startsWith(name,"com.intellij.flex.uiDesigner.flex:SpriteLoaderAsset") || StringUtil.startsWith(name,FlexSdkAbcInjector.STYLE_PROTO_CHAIN) || StringUtil.startsWith(name,"mx.styles:StyleManager")|| StringUtil.startsWith(name,FlexSdkAbcInjector.LAYOUT_MANAGER)|| StringUtil.startsWith(name,FlexSdkAbcInjector.RESOURCE_MANAGER)|| (super.accept(name) && !sparkInclusionNameFilter.accept(name) && !airsparkDefinitions.contains(name));
-    }
-  }
-;
+  final AbcNameFilter air4InclusionNameFilter=new AbcNameFilterByNameSet(SwcDependenciesSorter.OVERLOADED_AIR_SPARK_CLASSES,true);
   File source=getSourceFile(rootPath,flexVersion);
-  new AbcFilter(null).filter(source,createAbcFile(rootPath,flexVersion),filter);
-  new AbcFilter(null).filter(source,new File(rootPath + "/complement-flex" + flexVersion+ ".swf"),sparkInclusionNameFilter);
-  new AbcFilter(null).filter(source,new File(rootPath + "/complement-air4.swf"),new AbcNameFilter(){
+  new AbcFilter(null).filter(source,createAbcFile(rootPath,flexVersion),new AbcNameFilterByNameSetAndStartsWith(commonDefinitions,new String[]{"mx.","spark."}){
     @Override public boolean accept(    CharSequence name){
-      return airsparkDefinitions.contains(name);
+      return StringUtil.startsWith(name,"com.intellij.flex.uiDesigner.flex:SpriteLoaderAsset") || StringUtil.startsWith(name,FlexSdkAbcInjector.STYLE_PROTO_CHAIN) || StringUtil.startsWith(name,"mx.styles:StyleManager")|| StringUtil.startsWith(name,FlexSdkAbcInjector.LAYOUT_MANAGER)|| StringUtil.startsWith(name,FlexSdkAbcInjector.RESOURCE_MANAGER)|| (super.accept(name) && !sparkInclusionNameFilter.accept(name) && !air4InclusionNameFilter.accept(name));
     }
   }
 );
+  new AbcFilter(null).filter(source,new File(rootPath + "/complement-flex" + flexVersion+ ".swf"),sparkInclusionNameFilter);
+  new AbcFilter(null).filter(source,new File(rootPath + "/complement-air4.swf"),air4InclusionNameFilter);
 }
