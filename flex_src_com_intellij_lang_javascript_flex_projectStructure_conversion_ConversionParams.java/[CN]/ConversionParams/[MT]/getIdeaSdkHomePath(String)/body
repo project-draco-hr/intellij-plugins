@@ -1,3 +1,15 @@
 {
-  return myIdeaSkds.get(name);
+  Sdk sdk=ProjectJdkTable.getInstance().findJdk(name);
+  if (sdk == null) {
+    return null;
+  }
+  SdkType sdkType=sdk.getSdkType();
+  if (!(sdkType instanceof IFlexSdkType)) {
+    return null;
+  }
+  IFlexSdkType.Subtype subtype=((IFlexSdkType)sdkType).getSubtype();
+  if (subtype != IFlexSdkType.Subtype.Flex && subtype != IFlexSdkType.Subtype.AIR && subtype != IFlexSdkType.Subtype.AIRMobile) {
+    return null;
+  }
+  return sdk.getHomePath();
 }

@@ -19,6 +19,8 @@
     }
     buildConfiguration.setOutputFileName(oldConfiguration.OUTPUT_FILE_NAME);
   }
+  Collection<Element> orderEntriesToRemove=new ArrayList<Element>();
+  Collection<Element> orderEntriesToAdd=new ArrayList<Element>();
   for (  Element orderEntry : moduleSettings.getOrderEntries()) {
     String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
     if (ModuleLibraryOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
@@ -44,24 +46,27 @@
     }
  else     if (ModuleOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       String moduleName=orderEntry.getAttributeValue(ModuleOrderEntryImpl.MODULE_NAME_ATTR);
-      ModifiableBuildConfigurationEntry bcEntry=ConversionHelper.createBuildConfigurationEntry(moduleName,"Unnamed");
+      ModifiableBuildConfigurationEntry bcEntry=ConversionHelper.createBuildConfigurationEntry(moduleName,moduleName);
       buildConfiguration.getDependencies().getModifiableEntries().add(bcEntry);
     }
  else     if (ModuleJdkOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       String sdkName=orderEntry.getAttributeValue(ModuleJdkOrderEntryImpl.JDK_NAME_ATTR);
       String sdkType=orderEntry.getAttributeValue(ModuleJdkOrderEntryImpl.JDK_TYPE_ATTR);
-      processSdkEntry(buildConfiguration,sdkName,sdkType);
+      Element entryToAdd=processSdkEntry(buildConfiguration,sdkName,sdkType);
+      ContainerUtil.addIfNotNull(entryToAdd,orderEntriesToAdd);
+      orderEntriesToRemove.add(orderEntry);
     }
  else     if (InheritedJdkOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
-      processSdkEntry(buildConfiguration,myParams.projectSdkName,myParams.projectSdkType);
+      Element entryToAdd=processSdkEntry(buildConfiguration,myParams.projectSdkName,myParams.projectSdkType);
+      ContainerUtil.addIfNotNull(entryToAdd,orderEntriesToAdd);
+      orderEntriesToRemove.add(orderEntry);
     }
   }
-  if (buildConfiguration.getTargetPlatform() == TargetPlatform.Web) {
-    final SdkEntry sdkEntry=buildConfiguration.getDependencies().getSdkEntry();
-    if (sdkEntry != null) {
-      final String sdkHome=PathMacroManager.getInstance(ApplicationManager.getApplication()).expandPath(sdkEntry.getHomePath());
-      buildConfiguration.getDependencies().setTargetPlayer(getTargetPlayer(oldConfiguration,sdkHome));
-    }
+  if (!orderEntriesToRemove.isEmpty()) {
+    moduleSettings.getOrderEntries().removeAll(orderEntriesToRemove);
+  }
+  for (  Element entryToAdd : orderEntriesToAdd) {
+    moduleSettings.getComponentElement(ModuleSettingsImpl.MODULE_ROOT_MANAGER_COMPONENT).addContent(entryToAdd);
   }
   Element componentElement=JDomConvertingUtil.findOrCreateComponentElement(moduleSettings.getRootElement(),FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
   Element e=XmlSerializer.serialize(configurationManager.getState(),new SkipDefaultValuesSerializationFilters());
