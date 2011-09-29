@@ -1,18 +1,23 @@
 {
   FlexBuildConfigurationManagerImpl configurationManager=ConversionHelper.createBuildConfigurationManager();
   ModifiableFlexIdeBuildConfiguration buildConfiguration=(ModifiableFlexIdeBuildConfiguration)configurationManager.getBuildConfigurations()[0];
+  buildConfiguration.setName(moduleSettings.getModuleName());
   Element flexBuildConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
   FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(flexBuildConfigurationElement,FlexBuildConfiguration.class);
   if (oldConfiguration == null) {
     buildConfiguration.setOutputType(OutputType.Application);
   }
- else   if (FlexBuildConfiguration.APPLICATION.equals(oldConfiguration.OUTPUT_TYPE)) {
-    buildConfiguration.setOutputType(OutputType.Application);
-  }
- else   if (FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
-    buildConfiguration.setOutputType(OutputType.Library);
-  }
  else {
+    if (FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+      buildConfiguration.setOutputType(OutputType.Library);
+    }
+ else {
+      buildConfiguration.setOutputType(OutputType.Application);
+    }
+    if (buildConfiguration.getOutputType() == OutputType.Application) {
+      buildConfiguration.setMainClass(oldConfiguration.MAIN_CLASS);
+    }
+    buildConfiguration.setOutputFileName(oldConfiguration.OUTPUT_FILE_NAME);
   }
   for (  Element orderEntry : moduleSettings.getOrderEntries()) {
     String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
@@ -49,6 +54,13 @@
     }
  else     if (InheritedJdkOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       processSdkEntry(buildConfiguration,myParams.projectSdkName,myParams.projectSdkType);
+    }
+  }
+  if (buildConfiguration.getTargetPlatform() == TargetPlatform.Web) {
+    final SdkEntry sdkEntry=buildConfiguration.getDependencies().getSdkEntry();
+    if (sdkEntry != null) {
+      final String sdkHome=PathMacroManager.getInstance(ApplicationManager.getApplication()).expandPath(sdkEntry.getHomePath());
+      buildConfiguration.getDependencies().setTargetPlayer(getTargetPlayer(oldConfiguration,sdkHome));
     }
   }
   Element componentElement=JDomConvertingUtil.findOrCreateComponentElement(moduleSettings.getRootElement(),FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
