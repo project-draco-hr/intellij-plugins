@@ -19,6 +19,7 @@
     }
     buildConfiguration.setOutputFileName(oldConfiguration.OUTPUT_FILE_NAME);
   }
+  buildConfiguration.setOutputFolder(getOutputFolder(moduleSettings));
   Collection<Element> orderEntriesToRemove=new ArrayList<Element>();
   Collection<Element> orderEntriesToAdd=new ArrayList<Element>();
   for (  Element orderEntry : moduleSettings.getOrderEntries()) {
@@ -65,8 +66,11 @@
   if (!orderEntriesToRemove.isEmpty()) {
     moduleSettings.getOrderEntries().removeAll(orderEntriesToRemove);
   }
-  for (  Element entryToAdd : orderEntriesToAdd) {
-    moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT).addContent(entryToAdd);
+  final Element rootManagerElement=moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
+  if (rootManagerElement != null) {
+    for (    Element entryToAdd : orderEntriesToAdd) {
+      rootManagerElement.addContent(entryToAdd);
+    }
   }
   if (buildConfiguration.getTargetPlatform() == TargetPlatform.Web) {
     final SdkEntry sdkEntry=buildConfiguration.getDependencies().getSdkEntry();
