@@ -1,0 +1,19 @@
+{
+  ComponentManagerSettings modulesSettings=myContext.getModulesSettings();
+  if (modulesSettings == null)   return;
+  final Element modulesManager=modulesSettings.getComponentElement(ModuleManagerImpl.COMPONENT_NAME);
+  if (modulesManager == null)   return;
+  final Element modulesElement=modulesManager.getChild(ModuleManagerImpl.ELEMENT_MODULES);
+  List<Element> modules=JDOMUtil.getChildren(modulesElement,ModuleManagerImpl.ELEMENT_MODULE);
+  Collection<Element> modulesToRemove=ContainerUtil.findAll(modules,new Condition<Element>(){
+    @Override public boolean value(    Element module){
+      String filePath=module.getAttributeValue(ModuleManagerImpl.ATTRIBUTE_FILEPATH);
+      ModuleSettings moduleSettings=myContext.getModuleSettings(ModuleSettingsImpl.getModuleName(new File(filePath)));
+      return moduleSettings == null || !FlexIdeModuleConverter.isFlexModule(moduleSettings);
+    }
+  }
+);
+  if (!modulesToRemove.isEmpty()) {
+    modules.removeAll(modulesToRemove);
+  }
+}
