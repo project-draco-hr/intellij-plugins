@@ -2,8 +2,9 @@
   for (  XmlTagChild child : parent.getValue().getChildren()) {
     if (child instanceof XmlText && !MxmlUtil.containsOnlyWhitespace(child)) {
       final ValueWriter valueWriter;
+      final boolean referenceIdAssigned=injectedASWriter.lastMxmlObjectReference != null;
       try {
-        valueWriter=injectedASWriter.processProperty(child,name,null,false,null);
+        valueWriter=injectedASWriter.processProperty(child,tagLocalName,null,false,null);
       }
  catch (      InvalidPropertyException e) {
         injectedASWriter.lastMxmlObjectReference=null;
@@ -12,10 +13,9 @@
         return true;
       }
       if (valueWriter == InjectedASWriter.IGNORE) {
-        if (injectedASWriter.lastMxmlObjectReference != null) {
-          writer.objectReference(injectedASWriter.lastMxmlObjectReference.id);
-          injectedASWriter.lastMxmlObjectReference=null;
-          writer.resetPreallocatedId();
+        if (!referenceIdAssigned) {
+          writer.property("2");
+          writer.getOut().writeUInt29(injectedASWriter.lastMxmlObjectReference.id);
         }
       }
  else {
@@ -23,6 +23,7 @@
           throw new IllegalStateException("What?");
         }
  else {
+          writer.property(tagLocalName);
           writeUntypedPrimitiveValue(writer.getOut(),((XmlText)child).getValue());
         }
       }

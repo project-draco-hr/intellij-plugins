@@ -6,6 +6,12 @@
   }
   writer.getOut().write(AmfExtendedTypes.REFERABLE);
   mxmlWriter.processIdAttributeOfFxTag(tag,null,false);
+  try {
+    injectedASWriter.lastMxmlObjectReference=injectedASWriter.getValueReference(idAttribute.getDisplayValue());
+  }
+ catch (  InvalidPropertyException e) {
+    throw new IllegalStateException(e);
+  }
   final XmlTag[] subTags=tag.getSubTags();
   if (subTags.length == 1) {
     processFxModelTagChildren(subTags[0]);
@@ -17,5 +23,6 @@
       LOG.warn("Skip model, only one root tag is allowed: " + tag.getText());
     }
   }
+  injectedASWriter.lastMxmlObjectReference=null;
   return true;
 }
