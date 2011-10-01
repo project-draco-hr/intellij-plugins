@@ -1,0 +1,27 @@
+{
+  writer.objectHeader("mx.utils.ObjectProxy");
+  final XmlTag[] parentSubTags=parent.getSubTags();
+  for (  XmlTag tag : parentSubTags) {
+    final String tagLocalName=tag.getLocalName();
+    final XmlTag[] subTags=parent.findSubTags(tagLocalName,tag.getNamespace());
+    writer.property(tagLocalName);
+    if (subTags.length > 1) {
+      final int lengthPosition=writer.arrayHeader();
+      int length=0;
+      for (      XmlTag subTag : subTags) {
+        if (writeFxModelTagIfContainsXmlText(subTag) || processFxModelTagChildren(subTag)) {
+          length++;
+        }
+      }
+      writer.getOut().putShort(length,lengthPosition);
+    }
+ else     if (!writeFxModelTagIfContainsXmlText(tag)) {
+      processFxModelTagChildren(tag);
+    }
+  }
+  for (  final XmlAttribute attribute : parent.getAttributes()) {
+    mxmlWriter.writeProperty(attribute,new AnyXmlAttributeDescriptorWrapper(attribute.getDescriptor()),null,false,true);
+  }
+  writer.endObject();
+  return true;
+}
