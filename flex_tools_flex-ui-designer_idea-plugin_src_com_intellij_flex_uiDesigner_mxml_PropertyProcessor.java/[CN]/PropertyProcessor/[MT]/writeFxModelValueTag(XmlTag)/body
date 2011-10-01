@@ -1,0 +1,20 @@
+{
+  final XmlTag[] subTags=tag.getSubTags();
+  if (subTags.length == 0) {
+    writer.property(tag.getLocalName());
+    writer.getOut().write(Amf3Types.NULL);
+  }
+ else {
+    if (subTags.length == 0) {
+    }
+    for (    XmlTag subTag : subTags) {
+      final XmlTag[] tags=tag.findSubTags(subTag.getLocalName(),subTag.getNamespace());
+      if (tags.length == 0) {
+      }
+      final PropertyKind propertyKind=mxmlWriter.writeSimpleProperty(tag,mxmlWriter.valueProviderFactory.create(tag),new AnyXmlAttributeDescriptorWrapper(tag.getDescriptor()));
+      if (propertyKind.isComplex()) {
+        writeFxModelValueTag(tag);
+      }
+    }
+  }
+}

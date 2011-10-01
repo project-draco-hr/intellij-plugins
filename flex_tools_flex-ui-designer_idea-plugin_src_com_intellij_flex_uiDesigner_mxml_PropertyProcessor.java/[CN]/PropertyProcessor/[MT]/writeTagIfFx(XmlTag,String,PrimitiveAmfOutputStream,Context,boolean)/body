@@ -1,0 +1,35 @@
+{
+  if (!JavaScriptSupportLoader.MXML_URI3.equals(tag.getNamespace()) || type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME)) {
+    return false;
+  }
+  if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(type)) {
+    out.write(AmfExtendedTypes.MXML_ARRAY);
+    mxmlWriter.processTagChildren(tag,mxmlWriter.processIdAttributeOfFxTag(tag,parentContext,allowIncludeInExludeFrom),parentContext,false,PropertyKind.ARRAY,false);
+    return true;
+  }
+ else   if (CodeContext.AS3_VEC_VECTOR_QUALIFIED_NAME.equals(type)) {
+    return mxmlWriter.processMxmlVector(tag,parentContext,allowIncludeInExludeFrom);
+  }
+  final boolean isXml;
+  if (type.equals(JSCommonTypeNames.XML_LIST_CLASS_NAME)) {
+    out.write(AmfExtendedTypes.XML_LIST);
+    isXml=true;
+  }
+ else   if (type.equals(JSCommonTypeNames.XML_CLASS_NAME)) {
+    out.write(AmfExtendedTypes.XML);
+    isXml=true;
+  }
+ else {
+    out.write(AmfExtendedTypes.REFERABLE);
+    isXml=false;
+  }
+  mxmlWriter.processIdAttributeOfFxTag(tag,parentContext,allowIncludeInExludeFrom);
+  if (isXml) {
+    out.writeAmfUtf(tag.getValue().getText());
+  }
+ else {
+    final boolean result=writeIfPrimitive(mxmlWriter.valueProviderFactory.create(tag),type,out,null,false);
+    LOG.assertTrue(result);
+  }
+  return true;
+}

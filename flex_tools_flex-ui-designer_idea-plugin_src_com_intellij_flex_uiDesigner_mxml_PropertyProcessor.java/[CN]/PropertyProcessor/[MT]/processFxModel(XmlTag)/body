@@ -1,2 +1,20 @@
 {
+  final XmlAttribute idAttribute=tag.getAttribute("id");
+  if (idAttribute == null || StringUtil.isEmpty(idAttribute.getDisplayValue())) {
+    LOG.warn("Skip model, id is not specified or empty: " + tag.getText());
+    return;
+  }
+  writer.getOut().write(AmfExtendedTypes.REFERABLE);
+  final StaticObjectContext context=mxmlWriter.processIdAttributeOfFxTag(tag,null,false);
+  final XmlTag[] subTags=tag.getSubTags();
+  if (subTags.length == 1) {
+    final XmlTag[] subTags1=subTags[0].getSubTags();
+    for (    XmlTag childTag : subTags1) {
+      writeFxModelValueTag(childTag);
+    }
+  }
+ else   if (subTags.length > 1) {
+    LOG.warn("Skip model, only one root tag is allowed: " + tag.getText());
+  }
+  writer.endObject();
 }
