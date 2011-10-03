@@ -1,0 +1,21 @@
+{
+  JSFile jsFile=CastUtils.tryCast(psiElement.getContainingFile(),JSFile.class);
+  VirtualFile virtualFile=jsFile != null ? jsFile.getVirtualFile() : null;
+  if (virtualFile == null) {
+    return null;
+  }
+  TestFileStructurePack pack=TestFileStructureManager.fetchTestFileStructurePackByJsFile(jsFile);
+  if (pack != null) {
+    JstdRunElement jstdRunElement=pack.getJstdRunElement(psiElement);
+    if (jstdRunElement != null) {
+      String testMethodName=jstdRunElement.getTestMethodName();
+      if (testMethodName != null) {
+        return new JstdRunSettings.Builder().setTestType(TestType.TEST_METHOD).setJSFilePath(virtualFile.getPath()).setTestCaseName(jstdRunElement.getTestCaseName()).setTestMethodName(testMethodName).build();
+      }
+ else {
+        return new JstdRunSettings.Builder().setTestType(TestType.TEST_CASE).setJSFilePath(virtualFile.getPath()).setTestCaseName(jstdRunElement.getTestCaseName()).build();
+      }
+    }
+  }
+  return null;
+}

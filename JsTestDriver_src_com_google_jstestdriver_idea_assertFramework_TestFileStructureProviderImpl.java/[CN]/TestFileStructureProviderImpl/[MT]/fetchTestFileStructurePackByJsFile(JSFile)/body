@@ -1,0 +1,17 @@
+{
+  CachedValuesManager cachedValuesManager=CachedValuesManager.getManager(jsFile.getProject());
+  return cachedValuesManager.getCachedValue(jsFile,TEST_FILE_STRUCTURE_REGISTRY_KEY,new CachedValueProvider<TestFileStructurePack>(){
+    @Override public Result<TestFileStructurePack> compute(){
+      long startTime=System.currentTimeMillis();
+      List<AbstractTestFileStructure> fileStructures=Lists.newArrayList();
+      for (      AbstractTestFileStructureBuilder builder : myBuilders) {
+        AbstractTestFileStructure testFileStructure=builder.buildTestFileStructure(jsFile);
+        fileStructures.add(testFileStructure);
+      }
+      long endTime=System.currentTimeMillis();
+      System.out.println("Creating TestFileStructurePack for " + jsFile.getName() + " takes "+ (endTime - startTime)+ " ms");
+      return Result.create(new TestFileStructurePack(fileStructures),jsFile);
+    }
+  }
+,false);
+}

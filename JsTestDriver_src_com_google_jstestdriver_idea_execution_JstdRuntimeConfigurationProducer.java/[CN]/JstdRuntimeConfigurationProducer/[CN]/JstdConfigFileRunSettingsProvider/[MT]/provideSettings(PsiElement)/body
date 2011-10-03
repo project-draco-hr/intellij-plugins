@@ -1,11 +1,12 @@
 {
   PsiFile psiFile=psiElement.getContainingFile();
-  if (psiFile == null)   return null;
-  final VirtualFile virtualFile=psiFile.getVirtualFile();
-  if (virtualFile == null || !JstdConfigFileUtils.isJstdConfigFile(virtualFile)) {
-    return null;
+  if (psiFile != null) {
+    VirtualFile virtualFile=psiFile.getVirtualFile();
+    if (virtualFile != null && JstdConfigFileUtils.isJstdConfigFile(virtualFile)) {
+      JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+      builder.setConfigFile(virtualFile.getPath()).setServerType(ServerType.INTERNAL);
+      return builder.build();
+    }
   }
-  JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
-  builder.setConfigFile(virtualFile.getPath()).setServerType(ServerType.INTERNAL);
-  return builder.build();
+  return null;
 }

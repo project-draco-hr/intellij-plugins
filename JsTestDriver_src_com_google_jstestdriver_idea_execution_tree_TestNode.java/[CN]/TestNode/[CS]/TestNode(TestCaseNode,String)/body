@@ -1,8 +1,11 @@
 {
   myTestCaseNode=testCaseNode;
-  TestCase testCaseStructure=testCaseNode.getTestCaseStructure();
-  Test test=testCaseStructure != null ? testCaseStructure.getTestByName(testName) : null;
-  Location testLocation=test != null ? test.getLocation() : null;
-  setTestProxy(new SMTestProxyWithPrinterAndLocation(testName,false,LocationProvider.createConstantProvider(testLocation)));
+  setTestProxy(new SMTestProxyWithPrinterAndLocation(testName,false,new LocationProvider(){
+    @Override Location provideLocation(    @NotNull Project project){
+      PsiElement element=NavUtils.findPsiElement(project,testCaseNode.getJstdConfigFileNode().getConfigFile(),testCaseNode.getName(),testName);
+      return PsiLocation.fromPsiElement(element);
+    }
+  }
+));
   myTestCaseNode.registerTestNode(this);
 }

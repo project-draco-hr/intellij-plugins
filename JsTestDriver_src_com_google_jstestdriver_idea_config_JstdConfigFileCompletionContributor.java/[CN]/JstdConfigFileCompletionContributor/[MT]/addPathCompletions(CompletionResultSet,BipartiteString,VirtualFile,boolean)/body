@@ -1,0 +1,22 @@
+{
+  ParentDirWithLastComponentPrefix parentWithLastComponentPrefix=findParentDirWithLastComponentPrefix(basePath,caretBipartiteElementText.getPrefix());
+  if (parentWithLastComponentPrefix != null) {
+    PrefixMatcher matcher=new StrictPrefixMatcher(parentWithLastComponentPrefix.getLastComponentPrefix(),false);
+    result=result.withPrefixMatcher(matcher);
+    VirtualFile parentFile=parentWithLastComponentPrefix.getParent();
+    VirtualFile[] children=parentFile.getChildren();
+    Character dirSeparatorSuffix=extractDirectoryTrailingFileSeparator(caretBipartiteElementText);
+    if (parentFile.isDirectory()) {
+      result.addElement(LookupItem.fromString(".."));
+    }
+    for (    VirtualFile child : children) {
+      if (child.isDirectory() || !directoryExpected) {
+        String name=child.getName();
+        if (child.isDirectory() && dirSeparatorSuffix != null) {
+          name+=dirSeparatorSuffix;
+        }
+        result.addElement(LookupItem.fromString(name));
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  PsiElement element=parameters.getPosition();
+  YAMLKeyValue keyValue=JstdConfigFileUtils.getVerifiedHierarchyHead(element.getParent(),new Class[]{YAMLSequence.class,YAMLCompoundValue.class},YAMLKeyValue.class);
+  BasePathInfo basePathInfo=newBasePathInfo(parameters);
+  boolean keyMatched=keyValue != null && JstdConfigFileUtils.isTopLevelKeyWithInnerFileSequence(keyValue);
+  if (basePathInfo != null && keyMatched) {
+    VirtualFile basePath=basePathInfo.getBasePath();
+    if (basePath != null && keyValue.getParent() instanceof YAMLDocument) {
+      addPathCompletions(result,caretBipartiteElementText,basePath,false);
+    }
+  }
+}

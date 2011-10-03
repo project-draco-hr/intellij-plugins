@@ -1,17 +1,7 @@
 {
-  CachedValuesManager cachedValuesManager=CachedValuesManager.getManager(jsFile.getProject());
-  return cachedValuesManager.getCachedValue(jsFile,TEST_FILE_STRUCTURE_REGISTRY_KEY,new CachedValueProvider<TestFileStructurePack>(){
-    @Override public Result<TestFileStructurePack> compute(){
-      long startTime=System.currentTimeMillis();
-      List<AbstractTestFileStructure> fileStructures=Lists.newArrayList();
-      for (      AbstractTestFileStructureBuilder builder : myBuilders) {
-        AbstractTestFileStructure testFileStructure=builder.buildTestFileStructure(jsFile);
-        fileStructures.add(testFileStructure);
-      }
-      long endTime=System.currentTimeMillis();
-      System.out.println("Taken time is " + (endTime - startTime) + " ms");
-      return Result.create(new TestFileStructurePack(fileStructures),jsFile);
-    }
+  Provider provider=ServiceManager.getService(TestFileStructureProviderImpl.class);
+  if (provider == null) {
+    provider=EMPTY_PROVIDER;
   }
-,false);
+  return provider.fetchTestFileStructurePackByJsFile(jsFile);
 }
