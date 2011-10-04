@@ -1,11 +1,20 @@
 {
-  try {
-    File file=new File(myBasePath,relativeFilePath).getCanonicalFile();
-    if (myLoadFiles.contains(file)) {
-      return file;
+  File file=new File(myBasePath,filePath);
+  if (!file.isFile()) {
+    File absoluteFile=new File(filePath);
+    if (absoluteFile.isAbsolute() && absoluteFile.isFile()) {
+      file=absoluteFile;
     }
   }
- catch (  IOException ignored) {
+  if (file.isFile()) {
+    try {
+      File canonicalFile=file.getCanonicalFile();
+      if (myLoadFiles.contains(canonicalFile)) {
+        return file;
+      }
+    }
+ catch (    IOException ignored) {
+    }
   }
   return null;
 }
