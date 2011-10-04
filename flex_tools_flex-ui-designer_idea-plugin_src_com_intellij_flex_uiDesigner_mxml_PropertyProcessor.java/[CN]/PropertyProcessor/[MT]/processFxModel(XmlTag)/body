@@ -1,20 +1,18 @@
 {
   final XmlAttribute idAttribute=tag.getAttribute("id");
-  if (idAttribute == null || StringUtil.isEmpty(idAttribute.getDisplayValue())) {
+  final String id;
+  if (idAttribute == null || StringUtil.isEmpty((id=idAttribute.getDisplayValue()))) {
     LOG.warn("Skip model, id is not specified or empty: " + tag.getText());
     return false;
   }
-  writer.getOut().write(AmfExtendedTypes.REFERABLE);
-  mxmlWriter.processIdAttributeOfFxTag(tag,null,false);
-  try {
-    injectedASWriter.lastMxmlObjectReference=injectedASWriter.getValueReference(idAttribute.getDisplayValue());
-  }
- catch (  InvalidPropertyException e) {
-    throw new IllegalStateException(e);
-  }
+  final MxmlObjectReference objectReference=new MxmlObjectReference(writer.allocateAbsoluteStaticObjectId());
+  injectedASWriter.putMxmlObjectReference(id,objectReference);
+  writer.referableHeader(objectReference.id);
   final XmlTag[] subTags=tag.getSubTags();
   if (subTags.length == 1) {
-    processFxModelTagChildren(subTags[0]);
+    final ModelObjectReferenceProvider modelObjectReference=new ModelObjectReferenceProvider(writer);
+    modelObjectReference.reference=objectReference;
+    processFxModelTagChildren(subTags[0],modelObjectReference);
   }
  else {
     writer.objectHeader("mx.utils.ObjectProxy");
@@ -23,6 +21,5 @@
       LOG.warn("Skip model, only one root tag is allowed: " + tag.getText());
     }
   }
-  injectedASWriter.lastMxmlObjectReference=null;
   return true;
 }

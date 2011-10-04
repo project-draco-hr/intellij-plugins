@@ -1,0 +1,34 @@
+{
+  final InjectedPsiVisitor visitor;
+  if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(type)) {
+    visitor=new InjectedPsiVisitor(host,JSCommonTypeNames.ARRAY_CLASS_NAME,problemsHolder);
+  }
+ else {
+    visitor=new InjectedPsiVisitor(host,type,problemsHolder);
+  }
+  InjectedLanguageUtil.enumerate(host,visitor);
+  if (visitor.getInvalidPropertyException() != null) {
+    throw visitor.getInvalidPropertyException();
+  }
+ else {
+    final Binding binding=visitor.getBinding();
+    if (binding != null) {
+      if (binding instanceof VariableBinding) {
+        JSVariable variable=((VariableBinding)binding).variable;
+        VariableReference variableReference=variableReferenceMap.get(variable);
+        if (variableReference == null) {
+          variableReferenceMap.put(variable,new VariableReference(variable));
+        }
+ else {
+          variableReference.markAsMultipleReferred();
+        }
+      }
+      binding.setTarget(mxmlObjectReferenceProvider.getMxmlObjectReference(),writer.getNameReference(name),isStyle);
+      bindingItems.add(binding);
+      return IGNORE;
+    }
+ else {
+      return visitor.getValueWriter();
+    }
+  }
+}
