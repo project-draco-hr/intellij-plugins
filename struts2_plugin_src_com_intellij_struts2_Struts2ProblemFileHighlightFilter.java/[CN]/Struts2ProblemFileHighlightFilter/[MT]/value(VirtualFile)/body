@@ -1,0 +1,21 @@
+{
+  if (virtualFile.getFileType() != StdFileTypes.XML) {
+    return false;
+  }
+  final PsiFile file=PsiManager.getInstance(project).findFile(virtualFile);
+  if (file == null) {
+    return false;
+  }
+  final Module module=ModuleUtil.findModuleForFile(virtualFile,project);
+  if (module == null) {
+    return false;
+  }
+  if (StrutsFacet.getInstance(module) == null) {
+    return false;
+  }
+  final StrutsManager strutsManager=StrutsManager.getInstance(project);
+  if (strutsManager.isStruts2ConfigFile((XmlFile)file) && strutsManager.getModelByFile((XmlFile)file) != null) {
+    return true;
+  }
+  return ValidatorManager.getInstance(project).isValidatorsFile((XmlFile)file);
+}
