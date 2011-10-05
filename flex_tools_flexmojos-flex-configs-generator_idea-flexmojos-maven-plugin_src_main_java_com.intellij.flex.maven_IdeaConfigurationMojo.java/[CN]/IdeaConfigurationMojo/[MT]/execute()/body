@@ -1,15 +1,15 @@
 {
-  List<IdeaConfigurator> configurators=new ArrayList<IdeaConfigurator>(2);
+  List<String> configurators=new ArrayList<String>(2);
   if (generateNonShareable) {
-    configurators.add(new IdeaConfigurator(session));
+    configurators.add("com.intellij.flex.maven.IdeaConfigurator");
   }
   if (generateShareable) {
-    configurators.add(new ShareableFlexConfigGenerator(session));
+    configurators.add("com.intellij.flex.maven.ShareableFlexConfigGenerator");
   }
   final HashMap<Artifact,MavenProject> ourProjects=new HashMap<Artifact,MavenProject>(session.getProjects().size());
   final String rootProjectDirPath=session.getTopLevelProject().getBasedir().getPath();
   for (  MavenProject project : session.getProjects()) {
-    if (!Utils.isFlashProject(project)) {
+    if (!(project.getPackaging().equals("swc") || project.getPackaging().equals("swf"))) {
       continue;
     }
     for (    Artifact artifact : project.getArtifacts()) {

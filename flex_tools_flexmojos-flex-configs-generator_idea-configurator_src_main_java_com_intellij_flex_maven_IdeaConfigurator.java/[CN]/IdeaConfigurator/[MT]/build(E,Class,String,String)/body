@@ -1,7 +1,12 @@
 {
   boolean parentTagWritten=configurationName == null;
   final Method[] methods=configClass.getDeclaredMethods();
-  Arrays.sort(methods,new MethodComparator());
+  Arrays.sort(methods,new Comparator<Method>(){
+    @Override public int compare(    Method o1,    Method o2){
+      return o1.getName().compareTo(o2.getName());
+    }
+  }
+);
   for (  Method method : methods) {
     method.setAccessible(true);
     if (!Modifier.isPublic(method.getModifiers()) || method.getParameterTypes().length != 0) {
@@ -23,7 +28,7 @@
       out.append(indent,0,indent.length() - 1).append('<').append(configurationName).append('>');
     }
     final Class<?> returnType=method.getReturnType();
-    final String name=parseName(methodName);
+    final String name=camelCaseToSnake(methodName);
     if (value instanceof IFlexConfiguration) {
       build(value,returnType,indent + "\t",name.substring(0,name.length() - 14));
     }
