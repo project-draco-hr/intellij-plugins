@@ -1,17 +1,11 @@
 {
-  final RunResult<StrutsFacet> runResult=new WriteCommandAction<StrutsFacet>(myProject){
+  return new WriteCommandAction<StrutsFacet>(myProject){
     @Override protected void run(    final Result<StrutsFacet> result) throws Throwable {
-      final FacetType<StrutsFacet,StrutsFacetConfiguration> strutsFacetType=StrutsFacetType.getInstance();
-      final String name=strutsFacetType.getPresentableName();
-      final WebFacet webFacet=JavaeeUtil.addFacet(myModule,WebFacetType.getInstance());
-      final StrutsFacet facet=FacetManager.getInstance(myModule).addFacet(strutsFacetType,name,webFacet);
-      result.setResult(facet);
+      final FacetManager facetManager=FacetManager.getInstance(myModule);
+      final WebFacet webFacet=facetManager.addFacet(WebFacetType.getInstance(),"web",null);
+      final StrutsFacet strutsFacet=facetManager.addFacet(StrutsFacetType.getInstance(),"struts2",webFacet);
+      result.setResult(strutsFacet);
     }
   }
-.execute();
-  final Throwable throwable=runResult.getThrowable();
-  if (throwable != null) {
-    throw new RuntimeException("error setting up StrutsFacet",throwable);
-  }
-  return runResult.getResultObject();
+.execute().throwException().getResultObject();
 }
