@@ -1,2 +1,35 @@
 {
+  final ExtendClass extendClass=getExtendsAnnotation(psiClassGenericDomValue);
+  final GlobalSearchScope scope=getResolveScope(psiClassGenericDomValue);
+  final JavaClassReferenceProvider classReferenceProvider=new JavaClassReferenceProvider(){
+    @Override public GlobalSearchScope getScope(    final Project project){
+      return scope;
+    }
+  }
+;
+  if (extendClass.instantiatable()) {
+    classReferenceProvider.setOption(JavaClassReferenceProvider.INSTANTIATABLE,Boolean.TRUE);
+  }
+  if (!extendClass.allowAbstract()) {
+    classReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE,Boolean.TRUE);
+  }
+  final boolean allowInterface=extendClass.allowInterface();
+  if (!allowInterface) {
+    classReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE,Boolean.TRUE);
+  }
+  if (StringUtil.isNotEmpty(extendClass.value())) {
+    classReferenceProvider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES,new String[]{extendClass.value()});
+  }
+  classReferenceProvider.setSoft(true);
+  PsiReference[] javaClassReferences=classReferenceProvider.getReferencesByElement(element);
+  @NonNls String[] referenceTypes=allowInterface ? new String[]{"class","interface"} : new String[]{"class"};
+  for (  final ExtendableClassConverterContributor contributor : Extensions.getExtensions(EP_NAME)) {
+    if (contributor.isSuitable(context)) {
+      final PsiReference[] additionalReferences=contributor.getReferences(context,element,extendClass);
+      javaClassReferences=ArrayUtil.mergeArrays(javaClassReferences,additionalReferences,PsiReference.ARRAY_FACTORY);
+      referenceTypes=ArrayUtil.append(referenceTypes,contributor.getTypeName(),ArrayUtil.STRING_ARRAY_FACTORY);
+    }
+  }
+  psiClassGenericDomValue.putUserData(REFERENCES_TYPES,referenceTypes);
+  return javaClassReferences;
 }
