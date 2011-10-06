@@ -1,8 +1,14 @@
 {
   final StrutsFacetConfiguration facetConfiguration=myFacet.getConfiguration();
   final StrutsFileSet fileSet=new StrutsFileSet("test","test",facetConfiguration);
-  for (  final String fileName : fileNames) {
-    final VirtualFile file=myFixture.copyFileToProject(fileName);
+  for (  final String fileName : strutsXmlPaths) {
+    final VirtualFile file;
+    if (fileName.contains("!")) {
+      file=JarFileSystem.getInstance().findFileByPath(testDataRootPath + "/" + fileName);
+    }
+ else {
+      file=myFixture.copyFileToProject(fileName);
+    }
     assertNotNull("could not find file: '" + fileName + "'",file);
     fileSet.addFile(file);
   }
