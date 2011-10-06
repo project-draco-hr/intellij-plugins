@@ -1,7 +1,19 @@
 {
   TestNode testNode=findTestNode(message);
   if (testNode == null) {
-    testNode=createTestNode(message);
+    String fullName=message.getFullTestName();
+    final Iterator<TestNode> startedTestNodesIt=myRunningTestByFullNameMap.get(fullName).iterator();
+    if (startedTestNodesIt.hasNext()) {
+      TestNode startedTestNode=startedTestNodesIt.next();
+      startedTestNodesIt.remove();
+      startedTestNode.getTestProxy().setFixedName(message.testName);
+      TestCaseNode startedTestCaseNode=startedTestNode.getTestCaseNode();
+      startedTestCaseNode.getTestProxy().setFixedName(message.testCase);
+      testNode=startedTestNode;
+    }
+ else {
+      testNode=createTestNode(message);
+    }
   }
   testNode.done();
   TestCaseNode testCaseNode=testNode.getTestCaseNode();
