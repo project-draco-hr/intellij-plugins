@@ -1,0 +1,20 @@
+{
+  MavenExecutionRequest request=new DefaultMavenExecutionRequest();
+  request.setGlobalSettingsFile(new File(args[0]));
+  if (!args[1].equals(" ")) {
+    request.setUserSettingsFile(new File(args[1]));
+  }
+  request.setLocalRepository(createLocalRepository(args[2]));
+  request.setSystemProperties(System.getProperties());
+  request.setOffline(args[3].equals("t"));
+  int profilesLength=Integer.parseInt(args[4]);
+  if (profilesLength > 0) {
+    List<String> activeProfiles=new ArrayList<String>(profilesLength);
+    for (int i=5, n=profilesLength + 5; i < n; i++) {
+      activeProfiles.add(args[i]);
+    }
+    request.setActiveProfiles(activeProfiles);
+  }
+  plexusContainer.lookup(MavenExecutionRequestPopulator.class).populateFromSettings(request,createSettings(request));
+  return request;
+}
