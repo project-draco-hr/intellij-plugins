@@ -1,0 +1,93 @@
+{
+  try {
+    copyConfiguratorToLocalRepository();
+  }
+ catch (  IOException e) {
+    console.printException(e);
+    showWarning("",project);
+    MavenLog.LOG.error(e);
+    return;
+  }
+  indicator.checkCanceled();
+  final List<MavenProject> rootProjects=myTree.getRootProjects();
+  final String workingDirPath;
+  if (rootProjects.size() > 1) {
+    MavenLog.LOG.warn("Why root projects list > 1");
+  }
+  workingDirPath=rootProjects.get(0).getDirectory();
+  final long start=System.currentTimeMillis();
+  indicator.setText(FlexBundle.message("generating.flex.configs"));
+  final MavenProjectsManager mavenProjectsManager=MavenProjectsManager.getInstance(project);
+  MavenRunnerSettings mavenRunnerSettings=new MavenRunnerSettings();
+  MavenRunnerParameters runnerParameters=new MavenRunnerParameters(false,workingDirPath,Collections.singletonList(CONFIGURATOR_GOAL),mavenProjectsManager.getExplicitProfiles());
+  final GeneralCommandLine commandLine;
+  try {
+    JavaParameters javaParameters=MavenExternalParameters.createJavaParameters(project,runnerParameters,mavenProjectsManager.getGeneralSettings(),mavenRunnerSettings);
+    javaParameters.getProgramParametersList().add("-e");
+    commandLine=CommandLineBuilder.createFromJavaParameters(javaParameters);
+  }
+ catch (  ExecutionException e) {
+    new Notification("Maven",FlexBundle.message("flexmojos.project.import"),e.getMessage(),NotificationType.ERROR).notify(project);
+    MavenLog.LOG.warn(e);
+    return;
+  }
+  commandLine.setWorkDirectory(workingDirPath);
+  commandLine.setRedirectErrorStream(true);
+  indicator.checkCanceled();
+  MavenLog.LOG.info("Generating flex configs command line: " + commandLine.getCommandLineString());
+  final Process process;
+  try {
+    process=commandLine.createProcess();
+  }
+ catch (  ExecutionException e) {
+    console.printException(e);
+    MavenLog.LOG.error(e);
+    showWarning("",project);
+    return;
+  }
+  final StringBuilder stringBuilder=StringBuilderSpinAllocator.alloc();
+  final InputStreamReader reader=new InputStreamReader(process.getInputStream());
+  try {
+    char[] buf=new char[1024];
+    int read;
+    while ((read=reader.read(buf,0,buf.length)) >= 0) {
+      stringBuilder.append(buf,0,read);
+      if (indicator.isCanceled()) {
+        process.destroy();
+      }
+      indicator.checkCanceled();
+    }
+    try {
+      process.waitFor();
+    }
+ catch (    InterruptedException ignored) {
+    }
+    int exitCode=process.exitValue();
+    final String result=stringBuilder.toString();
+    if (exitCode != 0) {
+      MavenLog.LOG.warn("Generating flex configs exited with exit code " + exitCode);
+      final Matcher matcher=MAVEN_ERROR_PATTERN.matcher(result);
+      stringBuilder.setLength(0);
+      while (matcher.find()) {
+        stringBuilder.append("<br>").append(matcher.group(1));
+      }
+      showWarning(stringBuilder.toString(),project);
+    }
+    MavenLog.LOG.info("Generating flex configs out:\n" + result);
+  }
+ catch (  IOException e) {
+    process.destroy();
+    console.printException(e);
+    MavenLog.LOG.warn(stringBuilder.toString(),e);
+  }
+ finally {
+    StringBuilderSpinAllocator.dispose(stringBuilder);
+    try {
+      reader.close();
+    }
+ catch (    IOException ignored) {
+    }
+  }
+  final long duration=System.currentTimeMillis() - start;
+  MavenLog.LOG.info("Generating flex configs took " + duration + " ms: "+ duration / 60000 + " min " + (duration % 60000) / 1000 + "sec");
+}
