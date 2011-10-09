@@ -11,7 +11,11 @@
   if (actionExtensions.isEmpty()) {
     return false;
   }
-  final PsiReference actionReference=new ActionPathReference((XmlTag)psiElement,currentPackage,model,actionExtensions);
+  final TextRange rangeInElement=ElementManipulators.getManipulator(psiElement).getRangeInElement(psiElement);
+  final String fullPath=psiElement.getText();
+  final String trimmedPath=rangeInElement.substring(fullPath);
+  final TextRange trimmedPathRange=TextRange.from(rangeInElement.getStartOffset(),PathReference.trimPath(trimmedPath).length());
+  final PsiReference actionReference=new ActionPathReference((XmlTag)psiElement,trimmedPathRange,currentPackage,model,actionExtensions);
   references.add(actionReference);
   return false;
 }
