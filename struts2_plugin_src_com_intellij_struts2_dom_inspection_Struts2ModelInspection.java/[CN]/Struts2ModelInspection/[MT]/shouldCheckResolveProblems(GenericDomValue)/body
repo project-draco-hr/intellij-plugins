@@ -18,7 +18,7 @@
   }
   final String stringValue=value.getStringValue();
   if (converter instanceof StrutsPathReferenceConverter) {
-    if (stringValue != null && stringValue.contains("://")) {
+    if (stringValue == null) {
       return false;
     }
     if (!((ParamsElement)value).getParams().isEmpty()) {
@@ -34,6 +34,12 @@
     if (ConverterUtil.hasWildcardReference(stringValue)) {
       final Action action=DomUtil.getParentOfType(value,Action.class,true);
       return action != null && !action.isWildcardMapping();
+    }
+    if (StringUtil.startsWith(stringValue,"${")) {
+      return false;
+    }
+    if (stringValue.contains("://")) {
+      return false;
     }
   }
   return true;
