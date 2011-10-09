@@ -31,6 +31,10 @@
     if (!ResultTypeResolver.hasResultTypeContributor(resultType.getName().getStringValue())) {
       return false;
     }
+    if (ConverterUtil.hasWildcardReference(stringValue)) {
+      final Action action=DomUtil.getParentOfType(value,Action.class,true);
+      return action != null && !action.isWildcardMapping();
+    }
   }
-  return stringValue == null || !StringUtil.containsChar(stringValue,'{');
+  return true;
 }
