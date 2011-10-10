@@ -1,3 +1,25 @@
 {
-  return null;
+  final ArtifactData data=map.get(new ArtifactKey(artifact.getGroupId(),artifact.getArtifactId(),artifact.getVersion()));
+  if (data == null) {
+    return null;
+  }
+  if (data.file == null) {
+    data.file=new File(data.filePath);
+  }
+  if (!artifact.getExtension().equals(POM_EXTENSION)) {
+    if (!(artifact.getExtension().equals("swc") || artifact.getExtension().equals("swf"))) {
+      throw new IllegalStateException("Found artifact must be flash artifact (swc or swf)");
+    }
+    if (data.outputFile == null) {
+      try {
+        data.outputFile=generatorServer.getOutputFile(data.file);
+      }
+ catch (      Exception e) {
+        generatorServer.getLogger().warn("Error while resolve output file for " + artifact.toString(),e);
+        return null;
+      }
+    }
+    return data.outputFile;
+  }
+  return data.file;
 }
