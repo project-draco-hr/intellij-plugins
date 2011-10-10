@@ -6,15 +6,16 @@
   }
   request.setLocalRepository(createLocalRepository(args[2]));
   request.setSystemProperties(System.getProperties());
-  request.setOffline(args[3].equals("t"));
-  int profilesLength=Integer.parseInt(args[4]);
+  request.setOffline(args[3].equals("t")).setUpdateSnapshots(false).setCacheNotFound(true).setCacheTransferError(true);
+  int profilesLength=in.readShort();
   if (profilesLength > 0) {
     List<String> activeProfiles=new ArrayList<String>(profilesLength);
-    for (int i=5, n=profilesLength + 5; i < n; i++) {
-      activeProfiles.add(args[i]);
+    while (profilesLength-- > 0) {
+      activeProfiles.add(in.readUTF());
     }
     request.setActiveProfiles(activeProfiles);
   }
   plexusContainer.lookup(MavenExecutionRequestPopulator.class).populateFromSettings(request,createSettings(request));
+  request.setWorkspaceReader(new WorkspaceReaderImpl());
   return request;
 }
