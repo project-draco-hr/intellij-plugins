@@ -9,6 +9,16 @@
   final ModifiableFlexIdeBuildConfiguration configuration=myConfigEditor.createConfiguration(module);
   configuration.setName(nameAndNature.first);
   configuration.setNature(nameAndNature.second);
-  configuration.getDependencies().setSdkEntry(findRecentSdk());
+  final ModifiableFlexIdeBuildConfiguration someExistingConfig=myConfigEditor.getConfigurations(module)[0];
+  final FlexIdeBCConfigurable configurable=FlexIdeBCConfigurable.unwrap(myConfigurablesMap.get(someExistingConfig));
+  try {
+    configurable.apply();
+  }
+ catch (  ConfigurationException ignored) {
+  }
+  configuration.setOutputFolder(someExistingConfig.getOutputFolder());
+  final SdkEntry sdkEntry=someExistingConfig.getDependencies().getSdkEntry();
+  final SdkEntry newSdkEntry=sdkEntry == null ? findAnySdk() : Factory.createSdkEntry(sdkEntry.getLibraryId(),sdkEntry.getHomePath());
+  configuration.getDependencies().setSdkEntry(newSdkEntry);
   createConfigurableNode(configuration,module,treeNodeNameUpdater);
 }
