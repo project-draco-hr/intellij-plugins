@@ -1,12 +1,13 @@
 {
   final MavenProject project=maven.readProject(pomFile);
   final MavenProject oldProject=session.getCurrentProject();
+  final String compileGoal="compile-" + project.getPackaging();
+  MojoExecution flexmojosMojoExecution=null;
   try {
     session.setCurrentProject(project);
-    MojoExecution flexmojosMojoExecution=null;
     for (    Plugin plugin : project.getBuildPlugins()) {
       if (plugin.getGroupId().equals("org.sonatype.flexmojos") && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
-        flexmojosMojoExecution=maven.createMojoExecution(plugin,"compile-" + project.getPackaging(),project);
+        flexmojosMojoExecution=maven.createMojoExecution(plugin,compileGoal,project);
         break;
       }
     }
@@ -24,5 +25,8 @@
   }
   finally {
     session.setCurrentProject(oldProject);
+    if (flexmojosMojoExecution != null) {
+      maven.releaseMojoExecution(compileGoal,flexmojosMojoExecution);
+    }
   }
 }

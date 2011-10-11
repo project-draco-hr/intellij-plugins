@@ -9,7 +9,6 @@
   programParametersList.add(mavenGeneralSettings.isWorkOffline() ? "t" : "f");
   programParametersList.add(project.getBaseDir().getPath() + "/.idea/flexmojos");
   configureMavenClassPath(mavenGeneralSettings,params.getClassPath());
-  params.getClassPath().add("/Users/develar/Documents/flexmojos-idea-configurator/out/artifacts/flex-config-generator-server.jar");
   params.getVMParametersList().addParametersString("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5011");
   params.setMainClass("com.intellij.flex.maven.GeneratorServer");
   final GeneralCommandLine commandLine=CommandLineBuilder.createFromJavaParameters(params);
@@ -17,7 +16,10 @@
   LOG.info("Generate Flex Configs Task:" + commandLine.getCommandLineString());
   indicator.checkCanceled();
   process=commandLine.createProcess();
+  ApplicationManager.getApplication().executeOnPooledThread(new OutputReader(project));
   out=new DataOutputStream(new BufferedOutputStream(process.getOutputStream()));
   writeExplicitProfiles(mavenProjectsManager.getExplicitProfiles());
   writeWorkspaceMap(myTree.getProjects());
+  out.writeUTF(FlexUtils.getPathToBundledJar("flexmojos-idea-configurator.jar"));
+  out.writeUTF("com.intellij.flex.maven.IdeaConfigurator");
 }
