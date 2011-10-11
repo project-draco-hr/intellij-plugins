@@ -1,0 +1,23 @@
+{
+  final SimpleJavaParameters params=new SimpleJavaParameters();
+  params.setJdk(new SimpleJavaSdkType().createJdk("tmp",SystemProperties.getJavaHome()));
+  final MavenGeneralSettings mavenGeneralSettings=mavenProjectsManager.getGeneralSettings();
+  final ParametersList programParametersList=params.getProgramParametersList();
+  programParametersList.add(getSettingsFilePath(mavenGeneralSettings.getEffectiveGlobalSettingsIoFile()));
+  programParametersList.add(getSettingsFilePath(mavenGeneralSettings.getEffectiveUserSettingsIoFile()));
+  programParametersList.add(mavenGeneralSettings.getEffectiveLocalRepository().getAbsolutePath());
+  programParametersList.add(mavenGeneralSettings.isWorkOffline() ? "t" : "f");
+  programParametersList.add(project.getBaseDir().getPath() + "/.idea/flexmojos");
+  configureMavenClassPath(mavenGeneralSettings,params.getClassPath());
+  params.getClassPath().add("/Users/develar/Documents/flexmojos-idea-configurator/out/artifacts/flex-config-generator-server.jar");
+  params.getVMParametersList().addParametersString("-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5011");
+  params.setMainClass("com.intellij.flex.maven.GeneratorServer");
+  final GeneralCommandLine commandLine=CommandLineBuilder.createFromJavaParameters(params);
+  commandLine.setRedirectErrorStream(true);
+  LOG.info("Generate Flex Configs Task:" + commandLine.getCommandLineString());
+  indicator.checkCanceled();
+  process=commandLine.createProcess();
+  out=new DataOutputStream(new BufferedOutputStream(process.getOutputStream()));
+  writeExplicitProfiles(mavenProjectsManager.getExplicitProfiles());
+  writeWorkspaceMap(myTree.getProjects());
+}

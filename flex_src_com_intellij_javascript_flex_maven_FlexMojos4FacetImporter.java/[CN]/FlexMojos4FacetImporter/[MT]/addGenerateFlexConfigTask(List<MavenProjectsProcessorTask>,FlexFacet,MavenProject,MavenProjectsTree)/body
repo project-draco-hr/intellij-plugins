@@ -1,12 +1,19 @@
 {
   final Project project=facet.getModule().getProject();
-  if (FlexCompilerProjectConfiguration.getInstance(project).GENERATE_FLEXMOJOS_CONFIGS) {
-    for (    MavenProjectsProcessorTask postTask : postTasks) {
-      if (postTask instanceof GenerateFlexConfigTask) {
-        return;
-      }
-    }
-    ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreUnderDirectory(getCompilerConfigsDir(project),project));
-    postTasks.add(new GenerateFlexConfigTask(mavenProject,mavenTree));
+  if (!FlexCompilerProjectConfiguration.getInstance(project).GENERATE_FLEXMOJOS_CONFIGS) {
+    return;
   }
+  Flexmojos4GenerateFlexConfigTask generateFlexConfigTask=null;
+  for (  MavenProjectsProcessorTask postTask : postTasks) {
+    if (postTask instanceof Flexmojos4GenerateFlexConfigTask) {
+      generateFlexConfigTask=(Flexmojos4GenerateFlexConfigTask)postTask;
+      break;
+    }
+  }
+  if (generateFlexConfigTask == null) {
+    ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreUnderDirectory(getCompilerConfigsDir(project),project));
+    generateFlexConfigTask=new Flexmojos4GenerateFlexConfigTask(mavenTree);
+    postTasks.add(generateFlexConfigTask);
+  }
+  generateFlexConfigTask.submit(mavenProject);
 }

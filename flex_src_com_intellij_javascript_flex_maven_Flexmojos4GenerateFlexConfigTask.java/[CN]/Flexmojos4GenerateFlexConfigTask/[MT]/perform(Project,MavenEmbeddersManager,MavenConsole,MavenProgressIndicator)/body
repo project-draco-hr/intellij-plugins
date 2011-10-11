@@ -1,0 +1,106 @@
+{
+  final long start=System.currentTimeMillis();
+  this.indicator=indicator;
+  indicator.setText(FlexBundle.message("generating.flex.configs"));
+  try {
+    runGeneratorServer(MavenProjectsManager.getInstance(project),project);
+  }
+ catch (  IOException e) {
+    showWarning(project);
+    LOG.error(e);
+  }
+catch (  ExecutionException e) {
+    showWarning(e.getMessage(),project);
+    LOG.error(e);
+  }
+  if (process == null) {
+    return;
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      while (true) {
+        try {
+          Thread.sleep(500);
+        }
+ catch (        InterruptedException e) {
+          break;
+        }
+        if (indicator.isCanceled()) {
+          break;
+        }
+      }
+      LOG.warn("Generating flex configs canceled");
+      process.destroy();
+    }
+  }
+);
+  StringBuilder stringBuilder=null;
+  int exitCode=-1;
+  final InputStreamReader reader=new InputStreamReader(process.getInputStream());
+  try {
+    writeProjects();
+    stringBuilder=StringBuilderSpinAllocator.alloc();
+    char[] buf=new char[128];
+    int read;
+    final Matcher matcher=RESULT_PATTERN.matcher(stringBuilder);
+    while ((read=reader.read(buf,0,buf.length)) >= 0) {
+      final int startForResultParse=stringBuilder.length();
+      stringBuilder.append(buf,0,read);
+      if (indicator.isCanceled()) {
+        process.destroy();
+      }
+      if (matcher.find(startForResultParse)) {
+        indicator.setText2(matcher.group(1));
+      }
+    }
+    try {
+      process.waitFor();
+    }
+ catch (    InterruptedException ignored) {
+    }
+    exitCode=process.exitValue();
+  }
+ catch (  IOException e) {
+    if (stringBuilder != null) {
+      LOG.warn(stringBuilder.toString(),e);
+    }
+  }
+ finally {
+    if (stringBuilder != null) {
+      final String result=stringBuilder.toString();
+      StringBuilderSpinAllocator.dispose(stringBuilder);
+      if (exitCode != 0) {
+        LOG.warn("Generating flex configs exited with exit code " + exitCode);
+        showWarning(project);
+      }
+      LOG.info("Generating flex configs out:\n" + result);
+    }
+    final Matcher matcher=MAVEN_ERROR_PATTERN.matcher(stringBuilder);
+    if (matcher.find()) {
+      stringBuilder=StringBuilderSpinAllocator.alloc();
+      try {
+        do {
+          stringBuilder.append("<br>").append(matcher.group(1));
+        }
+ while (matcher.find());
+        showWarning(stringBuilder.toString(),project);
+      }
+  finally {
+        StringBuilderSpinAllocator.dispose(stringBuilder);
+      }
+    }
+    try {
+      reader.close();
+    }
+ catch (    IOException ignored) {
+    }
+    try {
+      out.close();
+    }
+ catch (    IOException ignored) {
+    }
+    process.destroy();
+    final long duration=System.currentTimeMillis() - start;
+    LOG.info("Generating flex configs took " + duration + " ms: "+ duration / 60000 + " min " + (duration % 60000) / 1000 + "sec");
+  }
+}
