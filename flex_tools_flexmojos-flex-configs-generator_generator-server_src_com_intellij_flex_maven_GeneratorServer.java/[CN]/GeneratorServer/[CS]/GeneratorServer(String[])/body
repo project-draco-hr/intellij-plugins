@@ -1,21 +1,37 @@
 {
   generatorOutputDirectory=new File(args[4]);
   in=new DataInputStream(new BufferedInputStream(System.in));
-  loggerManager=new LoggerManagerImpl(null);
-  plexusContainer=createPlexusContainer();
-  pluginManager=plexusContainer.lookup(BuildPluginManager.class);
+  final List<String> generators=new ArrayList<String>(2);
+  generators.add("com.intellij.flex.maven.IdeaConfigurator");
+  LoggerManager loggerManager=new ConsoleLoggerManager();
+  logger=loggerManager.getLoggerForComponent(null);
+  plexusContainer=createPlexusContainer(loggerManager);
   mavenPluginManager=plexusContainer.lookup(MavenPluginManager.class);
   session=createSession(createExecutionRequest(args));
   maven=new Maven(plexusContainer,session);
-  int projectsCount=in.readUnsignedShort();
-  for (int i=0; i < projectsCount; i++) {
-    final String pathname=in.readUTF();
-    try {
-      generate(pathname);
-      System.out.append("\n[fcg] generated: ").append(pathname).append("[/fcg]").flush();
+  final int projectsCount=in.readUnsignedShort();
+  final ExecutorService executorService=plexusContainer.lookup(ThreadConfigurationService.class).getExecutorService("1",true,projectsCount);
+  try {
+    for (int i=0; i < projectsCount; i++) {
+      final String pathname=in.readUTF();
+      executorService.submit(new Runnable(){
+        @Override public void run(){
+          try {
+            generate(pathname,generators);
+synchronized (System.out) {
+              System.out.append("\n[fcg] generated: ").append(pathname).append("[/fcg]").flush();
+            }
+          }
+ catch (          Exception e) {
+            getLogger().error("Cannnot generate flex config for " + pathname,e);
+          }
+        }
+      }
+);
     }
- catch (    Exception e) {
-      getLogger().error("Cannnot generate flex config for " + pathname,e);
-    }
+  }
+  finally {
+    executorService.shutdown();
+    executorService.awaitTermination(10,TimeUnit.MINUTES);
   }
 }

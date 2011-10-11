@@ -6,14 +6,14 @@
     MojoExecution flexmojosMojoExecution=null;
     for (    Plugin plugin : project.getBuildPlugins()) {
       if (plugin.getGroupId().equals("org.sonatype.flexmojos") && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
-        flexmojosMojoExecution=createMojoExecution(plugin,"compile-" + project.getPackaging(),project);
+        flexmojosMojoExecution=maven.createMojoExecution(plugin,"compile-" + project.getPackaging(),project);
         break;
       }
     }
     if (flexmojosMojoExecution == null) {
       return null;
     }
-    pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
+    maven.getPluginRealm(flexmojosMojoExecution);
     final Mojo mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
     try {
       return new File((String)mojo.getClass().getMethod("getOutput").invoke(mojo));

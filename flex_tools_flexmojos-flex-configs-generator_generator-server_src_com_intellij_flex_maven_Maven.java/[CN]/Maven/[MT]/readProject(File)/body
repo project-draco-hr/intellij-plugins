@@ -1,13 +1,34 @@
 {
-  MavenProject project=projectsCache.get(pomFile);
-  if (project != null) {
-    return project;
+  projectCacheLock.lock();
+  ProjectCacheData projectCacheData;
+  boolean unlocked=false;
+  try {
+    projectCacheData=projectsCache.get(pomFile);
+    if (projectCacheData != null) {
+      projectCacheLock.unlock();
+      unlocked=true;
+      while (projectCacheData.project == null) {
+        try {
+          Thread.sleep(5);
+        }
+ catch (        InterruptedException e) {
+          break;
+        }
+      }
+      return projectCacheData.project;
+    }
+    projectCacheData=new ProjectCacheData();
+    projectsCache.put(pomFile,projectCacheData);
+  }
+  finally {
+    if (!unlocked) {
+      projectCacheLock.unlock();
+    }
   }
   final ProjectBuildingRequest projectBuildingRequest=session.getRequest().getProjectBuildingRequest();
   projectBuildingRequest.setResolveDependencies(true);
   projectBuildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
   projectBuildingRequest.setRepositorySession(session.getRepositorySession());
-  project=plexusContainer.lookup(ProjectBuilder.class).build(pomFile,projectBuildingRequest).getProject();
-  projectsCache.put(pomFile,project);
-  return project;
+  projectCacheData.project=plexusContainer.lookup(ProjectBuilder.class).build(pomFile,projectBuildingRequest).getProject();
+  return projectCacheData.project;
 }
