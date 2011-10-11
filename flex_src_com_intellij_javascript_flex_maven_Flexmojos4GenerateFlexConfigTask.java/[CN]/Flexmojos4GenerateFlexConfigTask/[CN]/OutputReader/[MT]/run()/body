@@ -1,10 +1,11 @@
 {
   StringBuilder stringBuilder=null;
   int exitCode=-1;
-  final InputStreamReader reader=new InputStreamReader(process.getInputStream());
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") final InputStreamReader reader=new InputStreamReader(process.getInputStream());
+  final List<String> filesForRefresh=new ArrayList<String>();
   try {
     stringBuilder=StringBuilderSpinAllocator.alloc();
-    char[] buf=new char[1024];
+    char[] buf=new char[64];
     int read;
     final Matcher matcher=RESULT_PATTERN.matcher(stringBuilder);
     while ((read=reader.read(buf,0,buf.length)) >= 0) {
@@ -15,6 +16,7 @@
       }
       if (matcher.find(startForResultParse)) {
         indicator.setText2(matcher.group(1));
+        filesForRefresh.add(matcher.group(2));
       }
     }
     try {
@@ -55,5 +57,20 @@
         StringBuilderSpinAllocator.dispose(stringBuilder);
       }
     }
+    MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
+      public void run(){
+        final VirtualFile p=LocalFileSystem.getInstance().refreshAndFindFileByPath(FlexMojos4FacetImporter.getCompilerConfigsDir(project));
+        if (p == null) {
+          return;
+        }
+        for (        String path : filesForRefresh) {
+          final VirtualFile file=p.findChild(path);
+          if (file != null) {
+            file.refresh(false,false);
+          }
+        }
+      }
+    }
+);
   }
 }
