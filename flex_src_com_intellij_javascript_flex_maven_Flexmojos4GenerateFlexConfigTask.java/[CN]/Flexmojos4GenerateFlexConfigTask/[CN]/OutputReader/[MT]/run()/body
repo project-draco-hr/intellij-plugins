@@ -57,20 +57,6 @@
         StringBuilderSpinAllocator.dispose(stringBuilder);
       }
     }
-    MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
-      public void run(){
-        final VirtualFile p=LocalFileSystem.getInstance().refreshAndFindFileByPath(FlexMojos4FacetImporter.getCompilerConfigsDir(project));
-        if (p == null) {
-          return;
-        }
-        for (        String path : filesForRefresh) {
-          final VirtualFile file=p.findChild(path);
-          if (file != null) {
-            file.refresh(false,false);
-          }
-        }
-      }
-    }
-);
+    ApplicationManager.getApplication().invokeLater(new RefreshConfigFiles(filesForRefresh,FlexMojos4FacetImporter.getCompilerConfigsDir(project)));
   }
 }
