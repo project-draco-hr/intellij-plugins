@@ -1,6 +1,6 @@
 {
   if (!initializeSdksConfiguredInWorkspace(workspacePath)) {
-    final FlashBuilderSdkDialog dialog=new FlashBuilderSdkDialog(myProject,false);
+    final FlashBuilderSdkDialog dialog=new FlashBuilderSdkDialog(myProject,myFlexConfigEditor,false);
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       dialog.show();
     }
@@ -10,7 +10,12 @@
     if (dialog.isOK()) {
       if (dialog.isUseIdeaSdkSelected()) {
         myWhereToLookForSdkInfo=WhereToLookForSdkInfo.UseIdeaSdk;
-        mySdk=dialog.getSdk();
+        if (PlatformUtils.isFlexIde()) {
+          mySdkHome=dialog.getSdkHome();
+        }
+ else {
+          mySdk=dialog.getSdk();
+        }
       }
  else {
         initializeForFBInstallationDir(dialog.getFBInstallationPath());
