@@ -1,0 +1,28 @@
+{
+  ModuleSettings moduleSettings=myContext.getModuleSettings(moduleName);
+  if (moduleSettings == null)   return Collections.emptyList();
+  if (FlexIdeModuleConverter.isFlexModule(moduleSettings)) {
+    Element flexBuildConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
+    if (flexBuildConfigurationElement != null) {
+      FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(flexBuildConfigurationElement,FlexBuildConfiguration.class);
+      if (oldConfiguration != null && FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+        return Collections.singletonList(FlexIdeModuleConverter.generateModuleBcName(moduleSettings));
+      }
+    }
+    return Collections.emptyList();
+  }
+  List<Element> facets=FlexIdeModuleConverter.getFlexFacets(moduleSettings);
+  return ContainerUtil.mapNotNull(facets,new Function<Element,String>(){
+    @Override public String fun(    Element facet){
+      Element oldConfigurationElement=facet.getChild(FacetManagerImpl.CONFIGURATION_ELEMENT);
+      if (oldConfigurationElement != null) {
+        FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class);
+        if (oldConfiguration != null && FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+          return FlexIdeModuleConverter.generateFacetBcName(facet);
+        }
+      }
+      return null;
+    }
+  }
+);
+}

@@ -1,14 +1,14 @@
 {
   FlexBuildConfigurationManagerImpl configurationManager=ConversionHelper.createBuildConfigurationManager();
-  if (FlexModuleType.MODULE_TYPE_ID.equals(moduleSettings.getModuleType())) {
+  if (isFlexModule(moduleSettings)) {
     ModifiableFlexIdeBuildConfiguration newConfiguration=(ModifiableFlexIdeBuildConfiguration)configurationManager.getBuildConfigurations()[0];
-    newConfiguration.setName(moduleSettings.getModuleName());
+    newConfiguration.setName(generateModuleBcName(moduleSettings));
     Element oldConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
     FlexBuildConfiguration oldConfiguration=oldConfigurationElement != null ? XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class) : null;
     processConfiguration(oldConfiguration,newConfiguration,moduleSettings,false,null,null);
   }
  else {
-    List<Element> flexFacets=new ArrayList<Element>(moduleSettings.getFacetElements(FlexFacet.ID.toString()));
+    List<Element> flexFacets=getFlexFacets(moduleSettings);
     Set<String> sdkLibrariesIds=new HashSet<String>();
     for (int i=0; i < flexFacets.size(); i++) {
       Element facet=flexFacets.get(i);
@@ -19,7 +19,7 @@
  else {
         newConfiguration=ConversionHelper.createBuildConfiguration(configurationManager);
       }
-      newConfiguration.setName(facet.getAttributeValue(FacetManagerImpl.NAME_ATTRIBUTE));
+      newConfiguration.setName(generateFacetBcName(facet));
       Element oldConfigurationElement=facet.getChild(FacetManagerImpl.CONFIGURATION_ELEMENT);
       if (oldConfigurationElement != null) {
         FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class);

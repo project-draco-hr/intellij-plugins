@@ -55,11 +55,12 @@
     }
  else     if (ModuleOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       String moduleName=orderEntry.getAttributeValue(ModuleOrderEntryImpl.MODULE_NAME_ATTR);
-      if (myParams.isApplicableForDependency(moduleName)) {
-        ModifiableBuildConfigurationEntry bcEntry=ConversionHelper.createBuildConfigurationEntry(moduleName,moduleName);
+      Collection<String> bcNames=myParams.getBcNamesForDependency(moduleName);
+      for (      String bcName : bcNames) {
+        ModifiableBuildConfigurationEntry bcEntry=ConversionHelper.createBuildConfigurationEntry(moduleName,bcName);
         newBuildConfiguration.getDependencies().getModifiableEntries().add(bcEntry);
       }
- else {
+      if (bcNames.isEmpty()) {
         orderEntriesToRemove.add(orderEntry);
       }
     }
