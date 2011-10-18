@@ -18,31 +18,23 @@
     return;
   }
   ClassRealm flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
-  flexmojosPluginRealm.addURL(new URL(session.getLocalRepository().getUrl() + "/com/intellij/flex/maven/idea-configurator/1.4.4/idea-configurator-1.4.4.jar"));
+  flexmojosPluginRealm.addURL(new URL("file:///Users/develar/Documents/idea/flex/lib/flexmojos-idea-configurator.jar"));
+  flexmojosPluginRealm.importFrom(getClass().getClassLoader(),"com.intellij.flex.maven.FlexConfigGenerator");
+  flexmojosPluginRealm.importFrom(getClass().getClassLoader(),"com.intellij.flex.maven.Utils");
   Mojo mojo=null;
   try {
     mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
     for (    String configuratorClassName : configurators) {
       Class configuratorClass=flexmojosPluginRealm.loadClass(configuratorClassName);
-      FlexC configurator=configuratorClass.getConstructor(MavenSession.class).newInstance(session);
-      Method preGenerate=configuratorClass.getMethod("preGenerate",MavenProject.class,String.class,MojoExecution.class);
-      preGenerate.setAccessible(true);
-      preGenerate.invoke(configurator,project,getClassifier(mojo,flexmojosPluginRealm),flexmojosGeneratorMojoExecution);
-      try {
-        if ("swc".equals(project.getPackaging())) {
-          Method generate=configuratorClass.getMethod("generate",Mojo.class);
-          generate.setAccessible(true);
-          generate.invoke(configurator,mojo);
-        }
+      FlexConfigGenerator configurator=(FlexConfigGenerator)configuratorClass.getConstructor(MavenSession.class,File.class).newInstance(session,null);
+      configurator.preGenerate(project,getClassifier(mojo),flexmojosGeneratorMojoExecution);
+      if ("swc".equals(project.getPackaging())) {
+        configurator.generate(mojo);
+      }
  else {
-          Method generate=configuratorClass.getMethod("generate",Mojo.class,File.class);
-          generate.setAccessible(true);
-          generate.invoke(configurator,mojo,getSourceFileForSwf(mojo,flexmojosPluginRealm));
-        }
+        configurator.generate(mojo,getSourceFileForSwf(mojo));
       }
-  finally {
-        configuratorClass.getMethod("postGenerate").invoke(configurator);
-      }
+      configurator.postGenerate(project);
     }
   }
   finally {
