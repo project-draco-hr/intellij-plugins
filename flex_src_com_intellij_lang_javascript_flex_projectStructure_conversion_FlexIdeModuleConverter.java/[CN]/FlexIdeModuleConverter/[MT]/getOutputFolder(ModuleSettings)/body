@@ -6,10 +6,12 @@
       final Element outputElement=rootManagerElement.getChild("output");
       final String outputUrl=outputElement == null ? null : outputElement.getAttributeValue("url");
       if (outputUrl != null) {
-        return PathUtil.getCanonicalPath(VfsUtil.urlToPath(moduleSettings.expandPath(outputUrl)));
+        String path=PathUtil.getCanonicalPath(VfsUtil.urlToPath(moduleSettings.expandPath(outputUrl)));
+        return moduleSettings.collapsePath(path);
       }
     }
   }
   final String projectOutputUrl=moduleSettings.getProjectOutputUrl();
-  return projectOutputUrl == null ? "" : PathUtil.getCanonicalPath(VfsUtil.urlToPath(moduleSettings.expandPath(projectOutputUrl))) + "/" + CompilerModuleExtension.PRODUCTION+ "/"+ moduleSettings.getModuleName();
+  String path=projectOutputUrl == null ? "" : VfsUtil.urlToPath(moduleSettings.expandPath(projectOutputUrl) + "/" + CompilerModuleExtension.PRODUCTION+ "/"+ moduleSettings.getModuleName());
+  return moduleSettings.collapsePath(path);
 }
