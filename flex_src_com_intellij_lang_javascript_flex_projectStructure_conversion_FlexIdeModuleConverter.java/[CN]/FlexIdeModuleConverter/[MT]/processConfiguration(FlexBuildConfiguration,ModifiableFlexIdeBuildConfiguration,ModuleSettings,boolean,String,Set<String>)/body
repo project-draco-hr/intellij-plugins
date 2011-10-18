@@ -40,17 +40,7 @@
       String libraryId=FlexLibraryIdGenerator.generateId();
       XmlSerializer.serializeInto(new FlexLibraryProperties(libraryId),libraryProperties);
       ModifiableModuleLibraryEntry moduleLibraryEntry=ConversionHelper.createModuleLibraryEntry(libraryId);
-      DependencyScope scope=DependencyScope.readExternal(orderEntry);
-      boolean isExported=orderEntry.getAttribute(ModuleLibraryOrderEntryImpl.EXPORTED_ATTR) != null;
-      if (scope == DependencyScope.PROVIDED) {
-        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.External);
-      }
- else       if (isExported) {
-        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.Include);
-      }
- else {
-        moduleLibraryEntry.getDependencyType().setLinkageType(LinkageType.Merged);
-      }
+      convertDependencyType(orderEntry,moduleLibraryEntry.getDependencyType());
       newBuildConfiguration.getDependencies().getModifiableEntries().add(moduleLibraryEntry);
     }
  else     if (ModuleOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
