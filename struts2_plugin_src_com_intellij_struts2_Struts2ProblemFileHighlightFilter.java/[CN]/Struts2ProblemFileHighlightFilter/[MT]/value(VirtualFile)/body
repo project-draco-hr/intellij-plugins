@@ -2,15 +2,20 @@
   if (virtualFile.getFileType() != StdFileTypes.XML) {
     return false;
   }
-  final PsiFile file=PsiManager.getInstance(project).findFile(virtualFile);
-  if (file == null) {
-    return false;
-  }
   final Module module=ModuleUtil.findModuleForFile(virtualFile,project);
   if (module == null) {
     return false;
   }
   if (StrutsFacet.getInstance(module) == null) {
+    return false;
+  }
+  final PsiFile file=ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>(){
+    @Override public PsiFile compute(){
+      return PsiManager.getInstance(project).findFile(virtualFile);
+    }
+  }
+);
+  if (file == null) {
     return false;
   }
   final StrutsManager strutsManager=StrutsManager.getInstance(project);
