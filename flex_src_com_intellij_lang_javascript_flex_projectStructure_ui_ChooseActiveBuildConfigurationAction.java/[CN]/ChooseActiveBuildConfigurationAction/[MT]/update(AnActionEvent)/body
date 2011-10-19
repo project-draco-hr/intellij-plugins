@@ -1,19 +1,22 @@
 {
   super.update(e);
-  Module module=findModule(e.getDataContext());
-  if (module == null) {
-    if (myLastModule != null && myLastModule.isDisposed()) {
-      myLastModule=null;
-    }
-    module=myLastModule;
-  }
-  if (module == null || FlexModuleType.getInstance() != ModuleType.get(module)) {
-    e.getPresentation().setEnabled(false);
-    e.getPresentation().setText("(none)");
-    e.getPresentation().setIcon(null);
+  Project project=PlatformDataKeys.PROJECT.getData(e.getDataContext());
+  if (project == null) {
+    disable(e);
     return;
   }
-  myLastModule=module;
+  Module module=findModule(e.getDataContext());
+  if (module == null) {
+    if (myLastModules.get(project) != null && myLastModules.get(project).isDisposed()) {
+      myLastModules.remove(project);
+    }
+    module=myLastModules.get(project);
+  }
+  if (module == null || FlexModuleType.getInstance() != ModuleType.get(module)) {
+    disable(e);
+    return;
+  }
+  myLastModules.put(project,module);
   e.getPresentation().setEnabled(true);
   FlexIdeBuildConfiguration activeConfiguration=FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration();
   if (activeConfiguration != null) {
