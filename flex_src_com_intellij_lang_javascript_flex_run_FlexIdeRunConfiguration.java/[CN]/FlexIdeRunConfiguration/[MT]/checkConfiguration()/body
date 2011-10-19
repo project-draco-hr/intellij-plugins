@@ -6,7 +6,16 @@
   if (module == null || !(ModuleType.get(module) instanceof FlexModuleType)) {
     throw new RuntimeConfigurationException(FlexBundle.message("bc.not.specified"));
   }
-  if (FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(myRunnerParameters.getBCName()) == null) {
+  final FlexIdeBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(myRunnerParameters.getBCName());
+  if (bc == null) {
     throw new RuntimeConfigurationException(FlexBundle.message("module.does.not.contain.bc",myRunnerParameters.getModuleName(),myRunnerParameters.getBCName()));
+  }
+  if (bc.getOutputType() != OutputType.Application) {
+    throw new RuntimeConfigurationException(FlexBundle.message("bc.does.not.produce.app",myRunnerParameters.getBCName(),myRunnerParameters.getModuleName()));
+  }
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    if (myRunnerParameters.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice && !bc.getAndroidPackagingOptions().isEnabled()) {
+      throw new RuntimeConfigurationException(FlexBundle.message("android.disabled.in.bc",myRunnerParameters.getBCName(),myRunnerParameters.getModuleName()));
+    }
   }
 }
