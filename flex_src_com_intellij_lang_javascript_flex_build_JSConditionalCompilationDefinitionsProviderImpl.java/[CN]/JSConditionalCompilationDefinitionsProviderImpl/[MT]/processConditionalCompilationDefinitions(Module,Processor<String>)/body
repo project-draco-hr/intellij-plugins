@@ -1,0 +1,37 @@
+{
+  if (PlatformUtils.isFlexIde()) {
+    final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
+    String rawValue=manager.getActiveConfiguration().getCompilerOptions().getOption("compiler.define");
+    if (rawValue == null)     rawValue=manager.getModuleLevelCompilerOptions().getOption("compiler.define");
+    if (rawValue == null) {
+      rawValue=FlexProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions().getOption("compiler.define");
+    }
+    if (rawValue == null)     return;
+    int pos=0;
+    while (true) {
+      int index=rawValue.indexOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR,pos);
+      if (index == -1)       break;
+      String token=rawValue.substring(pos,index);
+      final int tabIndex=token.indexOf(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR);
+      if (tabIndex > 0 && !processor.process(token.substring(0,tabIndex))) {
+        return;
+      }
+      pos=index + 1;
+    }
+    final int tabIndex=rawValue.indexOf(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR,pos);
+    if (tabIndex > pos) {
+      processor.process(rawValue.substring(pos,tabIndex));
+    }
+  }
+ else {
+    outer:     for (    FlexBuildConfiguration config : FlexBuildConfiguration.getConfigForFlexModuleOrItsFlexFacets(module)) {
+      final Collection<ConditionalCompilationDefinition> definitions=config.USE_CUSTOM_CONFIG_FILE ? getDefinitionsFromConfigFile(config.CUSTOM_CONFIG_FILE) : config.CONDITIONAL_COMPILATION_DEFINITION_LIST;
+      for (      ConditionalCompilationDefinition definition : definitions) {
+        if (!processor.process(definition.NAME))         break outer;
+      }
+      for (      ConditionalCompilationDefinition definition : getDefinitionsFromCompilerOptions(config.ADDITIONAL_COMPILER_OPTIONS)) {
+        if (!processor.process(definition.NAME))         break outer;
+      }
+    }
+  }
+}
