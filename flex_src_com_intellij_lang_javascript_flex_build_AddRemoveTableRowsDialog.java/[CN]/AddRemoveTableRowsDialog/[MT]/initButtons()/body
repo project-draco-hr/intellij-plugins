@@ -1,13 +1,17 @@
 {
-  myAddButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  ToolbarDecorator d=ToolbarDecorator.createDecorator(myTable);
+  d.setAddAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton button){
       addObject();
       ((AbstractTableModel)myTable.getModel()).fireTableDataChanged();
+      if (myEditAddedRow) {
+        myTable.editCellAt(myTable.getRowCount() - 1,0);
+      }
     }
   }
 );
-  myRemoveButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  d.setRemoveAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton anActionButton){
       final int[] selectedRows=myTable.getSelectedRows();
       Arrays.sort(selectedRows);
       for (int i=selectedRows.length - 1; i >= 0; i--) {
@@ -17,4 +21,5 @@
     }
   }
 );
+  myMainPanel.add(d.createPanel(),BorderLayout.CENTER);
 }

@@ -1,0 +1,26 @@
+{
+  myProject=project;
+  getTextField().setEnabled(false);
+  setButtonIcon(PlatformIcons.OPEN_EDIT_DIALOG_ICON);
+  addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final List<String> entries=StringUtil.split(myValue,String.valueOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
+      final List<StringBuilder> buffers=new ArrayList<StringBuilder>(entries.size());
+      for (      String entry : entries) {
+        buffers.add(new StringBuilder(entry));
+      }
+      final RepeatableValueDialog dialog=new RepeatableValueDialog(myProject,StringUtil.capitalizeWords(myInfo.DISPLAY_NAME,true),buffers,myInfo);
+      dialog.show();
+      if (dialog.isOK()) {
+        myValue=StringUtil.join(dialog.getCurrentList(),new Function<StringBuilder,String>(){
+          public String fun(          final StringBuilder stringBuilder){
+            return stringBuilder.toString();
+          }
+        }
+,String.valueOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
+      }
+      TableUtil.stopEditing(myTreeTable);
+    }
+  }
+);
+}
