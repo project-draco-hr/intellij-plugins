@@ -50,7 +50,6 @@
   }
   newBuildConfiguration.setOutputFolder(outputFolder);
   Collection<Element> orderEntriesToRemove=new ArrayList<Element>();
-  Collection<Element> orderEntriesToAdd=new ArrayList<Element>();
   for (  Element orderEntry : module.getOrderEntries()) {
     String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
     if (ModuleLibraryOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
@@ -59,9 +58,18 @@
         orderEntriesToRemove.add(orderEntry);
         continue;
       }
-      library.setAttribute(LibraryImpl.LIBRARY_TYPE_ATTR,FlexLibraryType.FLEX_LIBRARY.getKindId());
-      Element libraryProperties=new Element(LibraryImpl.PROPERTIES_ELEMENT);
-      library.getChildren().add(0,libraryProperties);
+      Element libraryProperties;
+      if (facet && FlexLibraryType.FLEX_LIBRARY.getKindId().equals(library.getAttributeValue(LibraryImpl.LIBRARY_TYPE_ATTR))) {
+        Element newEntry=(Element)orderEntry.clone();
+        orderEntriesToAdd.add(newEntry);
+        library=orderEntry.getChild(LibraryImpl.ELEMENT);
+        libraryProperties=library.getChild(LibraryImpl.PROPERTIES_ELEMENT);
+      }
+ else {
+        library.setAttribute(LibraryImpl.LIBRARY_TYPE_ATTR,FlexLibraryType.FLEX_LIBRARY.getKindId());
+        libraryProperties=new Element(LibraryImpl.PROPERTIES_ELEMENT);
+        library.getChildren().add(0,libraryProperties);
+      }
       String libraryId=FlexLibraryIdGenerator.generateId();
       XmlSerializer.serializeInto(new FlexLibraryProperties(libraryId),libraryProperties);
       ModifiableModuleLibraryEntry moduleLibraryEntry=ConversionHelper.createModuleLibraryEntry(libraryId);
@@ -103,12 +111,6 @@
   }
   if (!orderEntriesToRemove.isEmpty()) {
     module.getOrderEntries().removeAll(orderEntriesToRemove);
-  }
-  final Element rootManagerElement=module.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
-  if (rootManagerElement != null) {
-    for (    Element entryToAdd : orderEntriesToAdd) {
-      rootManagerElement.addContent(entryToAdd);
-    }
   }
   if (newBuildConfiguration.getTargetPlatform() == TargetPlatform.Web) {
     final SdkEntry sdkEntry=newBuildConfiguration.getDependencies().getSdkEntry();
