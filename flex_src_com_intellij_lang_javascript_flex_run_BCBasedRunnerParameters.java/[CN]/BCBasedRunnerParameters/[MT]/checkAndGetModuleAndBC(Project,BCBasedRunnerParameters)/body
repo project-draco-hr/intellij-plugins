@@ -1,0 +1,18 @@
+{
+  if (params.getModuleName().isEmpty() || params.getBCName().isEmpty()) {
+    throw new RuntimeConfigurationError(FlexBundle.message("bc.not.specified"));
+  }
+  final Module module=ModuleManager.getInstance(project).findModuleByName(params.getModuleName());
+  if (module == null || !(ModuleType.get(module) instanceof FlexModuleType)) {
+    throw new RuntimeConfigurationError(FlexBundle.message("bc.not.specified"));
+  }
+  final FlexIdeBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(params.getBCName());
+  if (bc == null) {
+    throw new RuntimeConfigurationError(FlexBundle.message("module.does.not.contain.bc",params.getModuleName(),params.getBCName()));
+  }
+  final SdkEntry sdkEntry=bc.getDependencies().getSdkEntry();
+  if (sdkEntry == null) {
+    throw new RuntimeConfigurationError(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",bc.getName(),module.getName()));
+  }
+  return Pair.create(module,bc);
+}

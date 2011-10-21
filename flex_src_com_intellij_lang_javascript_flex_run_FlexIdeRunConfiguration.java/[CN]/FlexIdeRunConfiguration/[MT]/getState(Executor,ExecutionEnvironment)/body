@@ -1,5 +1,11 @@
 {
-  final FlexIdeBuildConfiguration config=FlexBaseRunner.getModuleAndConfig(getProject(),myRunnerParameters).second;
+  final FlexIdeBuildConfiguration config;
+  try {
+    config=BCBasedRunnerParameters.checkAndGetModuleAndBC(getProject(),myRunnerParameters).second;
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
+  }
   final BuildConfigurationNature nature=config.getNature();
   if (nature.isDesktopPlatform() || (nature.isMobilePlatform() && myRunnerParameters.getMobileRunTarget() == AirMobileRunTarget.Emulator)) {
     final AirRunState airRunState=new AirRunState(env);

@@ -1,21 +1,30 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
   final RunProfile runProfile=environment.getRunProfile();
-  if (runProfile instanceof FlexIdeRunConfiguration) {
-    final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runProfile).getRunnerParameters();
-    final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=getModuleAndConfig(project,params);
-    final Module module=moduleAndConfig.first;
-    final FlexIdeBuildConfiguration config=moduleAndConfig.second;
-    checkConfiguration(module,config);
-    if (config.getTargetPlatform() == TargetPlatform.Web && !params.isLaunchUrl()) {
-      try {
-        final String canonicalPath=new File(config.getOutputFilePath()).getCanonicalPath();
-        FlashPlayerTrustUtil.updateTrustedStatus(module.getProject(),params.isRunTrusted(),false,canonicalPath);
-      }
- catch (      IOException e) {
-      }
+  try {
+    if (runProfile instanceof RemoteFlashRunConfiguration) {
+      final BCBasedRunnerParameters params=((RemoteFlashRunConfiguration)runProfile).getRunnerParameters();
+      final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC=BCBasedRunnerParameters.checkAndGetModuleAndBC(project,params);
+      return launchDebugProcess(moduleAndBC.first,moduleAndBC.second,params,contentToReuse,environment);
     }
-    return launchFlexIdeConfig(module,config,params,executor,state,contentToReuse,environment);
+    if (runProfile instanceof FlexIdeRunConfiguration) {
+      final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runProfile).getRunnerParameters();
+      final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=FlexIdeRunConfiguration.checkAndGetModuleAndBC(project,params);
+      final Module module=moduleAndConfig.first;
+      final FlexIdeBuildConfiguration bc=moduleAndConfig.second;
+      if (bc.getTargetPlatform() == TargetPlatform.Web && !params.isLaunchUrl()) {
+        try {
+          final String canonicalPath=new File(bc.getOutputFilePath()).getCanonicalPath();
+          FlashPlayerTrustUtil.updateTrustedStatus(module.getProject(),params.isRunTrusted(),false,canonicalPath);
+        }
+ catch (        IOException e) {
+        }
+      }
+      return launchFlexIdeConfig(module,bc,params,executor,state,contentToReuse,environment);
+    }
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
   }
   final FlexRunnerParameters flexRunnerParameters=(((FlexRunConfiguration)runProfile)).getRunnerParameters();
   final Module module=ModuleManager.getInstance(project).findModuleByName(flexRunnerParameters.getModuleName());

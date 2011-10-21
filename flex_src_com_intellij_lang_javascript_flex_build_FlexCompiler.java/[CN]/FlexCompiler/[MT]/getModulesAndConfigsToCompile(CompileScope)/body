@@ -4,13 +4,13 @@
     final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
     final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runConfiguration).getRunnerParameters();
     final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig;
-    final Ref<ExecutionException> exceptionRef=new Ref<ExecutionException>();
+    final Ref<RuntimeConfigurationError> exceptionRef=new Ref<RuntimeConfigurationError>();
     moduleAndConfig=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexIdeBuildConfiguration>>(){
       public Pair<Module,FlexIdeBuildConfiguration> compute(){
         try {
-          return FlexBaseRunner.getModuleAndConfig(runConfiguration.getProject(),params);
+          return BCBasedRunnerParameters.checkAndGetModuleAndBC(runConfiguration.getProject(),params);
         }
- catch (        ExecutionException e) {
+ catch (        RuntimeConfigurationError e) {
           exceptionRef.set(e);
           return null;
         }

@@ -1,4 +1,10 @@
 {
-  final FlexIdeBuildConfiguration config=FlexBaseRunner.getModuleAndConfig(getProject(),myRunnerParameters).second;
+  final FlexIdeBuildConfiguration config;
+  try {
+    config=BCBasedRunnerParameters.checkAndGetModuleAndBC(getProject(),myRunnerParameters).second;
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
+  }
   return JavaCommandLineStateUtil.startProcess(FlexBaseRunner.createAdlCommandLine(myRunnerParameters,config));
 }
