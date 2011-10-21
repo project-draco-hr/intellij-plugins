@@ -141,4 +141,18 @@
     }
   }
 ,myDisposable);
+  myConfigEditor.addModulesModelChangeListener(new FlexProjectConfigurationEditor.ModulesModelChangeListener(){
+    @Override public void modulesModelsChanged(    Collection<Module> modules){
+      FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
+      for (      Module module : modules) {
+        for (        CompositeConfigurable configurable : configurator.getBCConfigurables(module)) {
+          FlexIdeBCConfigurable flexIdeBCConfigurable=FlexIdeBCConfigurable.unwrap(configurable);
+          if (flexIdeBCConfigurable.isParentFor(DependenciesConfigurable.this)) {
+            resetTable(myDependencies.getSdkEntry(),true);
+          }
+        }
+      }
+    }
+  }
+,myDisposable);
 }

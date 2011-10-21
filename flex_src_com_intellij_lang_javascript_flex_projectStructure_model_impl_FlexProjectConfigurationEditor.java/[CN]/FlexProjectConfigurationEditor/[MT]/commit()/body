@@ -69,14 +69,15 @@
       }
     }
   }
-  boolean commitModifiableModel=!ContainerUtil.process(myModule2Editors.keySet(),new Processor<Module>(){
-    @Override public boolean process(    Module module){
-      return !myProvider.getModuleModifiableModel(module).isChanged();
+  Collection<Module> modulesWithChangedModifiableModel=ContainerUtil.findAll(myModule2Editors.keySet(),new Condition<Module>(){
+    @Override public boolean value(    Module module){
+      return myProvider.getModuleModifiableModel(module).isChanged();
     }
   }
 );
-  if (commitModifiableModel) {
+  if (!modulesWithChangedModifiableModel.isEmpty()) {
     myProvider.commitModifiableModels();
+    myModulesModelChangeEventDispatcher.getMulticaster().modulesModelsChanged(modulesWithChangedModifiableModel);
   }
   ApplicationManager.getApplication().runWriteAction(new Runnable(){
     public void run(){

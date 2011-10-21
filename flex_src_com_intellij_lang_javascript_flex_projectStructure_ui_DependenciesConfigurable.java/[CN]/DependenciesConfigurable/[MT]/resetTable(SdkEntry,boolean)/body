@@ -1,0 +1,48 @@
+{
+  int[] selectedRows=keepSelection ? myTable.getSelectedRows() : new int[0];
+  DefaultMutableTreeNode root=myTable.getRoot();
+  root.removeAllChildren();
+  if (sdkEntry != null) {
+    FlexSdk flexSdk=myConfigEditor.findSdk(sdkEntry.getLibraryId());
+    if (flexSdk != null) {
+      DefaultMutableTreeNode sdkNode=new DefaultMutableTreeNode(new SdkItem(flexSdk),true);
+      myTable.getRoot().insert(sdkNode,0);
+      updateSdkEntries(sdkNode,flexSdk);
+    }
+  }
+  FlexIdeBCConfigurator configurator=FlexIdeModuleStructureExtension.getInstance().getConfigurator();
+  for (  DependencyEntry entry : myDependencies.getEntries()) {
+    MyTableItem item=null;
+    if (entry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+      Module module=bcEntry.findModule();
+      CompositeConfigurable configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<CompositeConfigurable>(){
+        @Override public boolean value(        CompositeConfigurable configurable){
+          return configurable.getDisplayName().equals(bcEntry.getBcName());
+        }
+      }
+) : null;
+      if (configurable == null) {
+        item=new BCItem(bcEntry.getModuleName(),bcEntry.getBcName());
+      }
+ else {
+        item=new BCItem(FlexIdeBCConfigurable.unwrap(configurable));
+      }
+      ((BCItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)entry;
+      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),myConfigEditor.findLibraryOrderEntry(myDependencies,moduleLibraryEntry),myProject);
+      ((ModuleLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
+    if (item != null) {
+      root.add(new DefaultMutableTreeNode(item,false));
+    }
+  }
+  myTable.refresh();
+  myTable.clearSelection();
+  for (  int row : selectedRows) {
+    myTable.getSelectionModel().addSelectionInterval(row,row);
+  }
+  updateEditButton();
+}
