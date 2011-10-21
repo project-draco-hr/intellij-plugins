@@ -1,10 +1,10 @@
 {
-  String localRepositoryBasedir=session.getLocalRepository().getBasedir();
-  File localRepositoryFile=new File(localRepositoryBasedir);
-  int localRepositoryBasedirLength=localRepositoryBasedir.length();
+  final String localRepositoryBasedir=session.getLocalRepository().getBasedir();
+  final File localRepositoryFile=new File(localRepositoryBasedir);
+  final int localRepositoryBasedirLength=localRepositoryBasedir.length();
   try {
-    PluginDescriptor pluginDescriptor=pluginManager.getPluginDescriptor(session.getTopLevelProject().getPlugin("org.sonatype.flexmojos:flexmojos-maven-plugin"),session.getCurrentProject().getRemotePluginRepositories(),session.getRepositorySession());
-    final File compilerLibsDirectory=new File(outputDirectory,"../../build-gant/compiler-libs");
+    final PluginDescriptor pluginDescriptor=pluginManager.getPluginDescriptor(session.getTopLevelProject().getPlugin("org.sonatype.flexmojos:flexmojos-maven-plugin"),session.getCurrentProject().getRemotePluginRepositories(),session.getRepositorySession());
+    final File compilerLibsDirectory=new File(outputDirectory,"compiler");
     compilerLibsDirectory.mkdirs();
     for (    ComponentDependency dependency : pluginDescriptor.getDependencies()) {
       if (dependency.getGroupId().equals("com.adobe.flex.compiler") && dependency.getType().equals("jar")) {
@@ -18,6 +18,17 @@
   }
  catch (  Exception e) {
     throw new MojoExecutionException("Cannot find flemxojos maven plugin",e);
+  }
+  final String[] existingFiles;
+  if (outputDirectory.exists()) {
+    final DirectoryScanner directoryScanner=new DirectoryScanner();
+    directoryScanner.setBasedir(outputDirectory);
+    directoryScanner.setIncludes(new String[]{"**/.swf","**/.swc"});
+    directoryScanner.scan();
+    existingFiles=directoryScanner.getIncludedFiles();
+  }
+ else {
+    existingFiles=null;
   }
   outputDirectory.mkdirs();
   for (  MavenProject project : session.getProjects()) {
