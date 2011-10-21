@@ -11,14 +11,14 @@
     }
     return Collections.emptyList();
   }
-  List<Element> facets=FlexIdeModuleConverter.getFlexFacets(moduleSettings);
+  final List<Element> facets=FlexIdeModuleConverter.getFlexFacets(moduleSettings);
   return ContainerUtil.mapNotNull(facets,new Function<Element,String>(){
     @Override public String fun(    Element facet){
       Element oldConfigurationElement=facet.getChild(FacetManagerImpl.CONFIGURATION_ELEMENT);
       if (oldConfigurationElement != null) {
         FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class);
         if (oldConfiguration != null && FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
-          return FlexIdeModuleConverter.generateFacetBcName(facet);
+          return FlexIdeModuleConverter.generateFacetBcName(facets,facet);
         }
       }
       return null;
