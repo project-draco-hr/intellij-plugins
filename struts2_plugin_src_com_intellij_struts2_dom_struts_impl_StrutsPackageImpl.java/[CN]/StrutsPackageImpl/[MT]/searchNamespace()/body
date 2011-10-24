@@ -1,10 +1,15 @@
 {
-  StrutsPackage currentPackage=this;
-  while (currentPackage != null) {
-    if (DomUtil.hasXml(currentPackage.getNamespace())) {
-      return currentPackage.getNamespace().getStringValue();
+  final Ref<String> result=new Ref<String>();
+  final StrutsPackageHierarchyWalker walker=new StrutsPackageHierarchyWalker(this,new Processor<StrutsPackage>(){
+    @Override public boolean process(    final StrutsPackage strutsPackage){
+      if (DomUtil.hasXml(strutsPackage.getNamespace())) {
+        result.set(strutsPackage.getNamespace().getStringValue());
+        return true;
+      }
+      return false;
     }
-    currentPackage=currentPackage.getExtends().getValue();
   }
-  return DEFAULT_NAMESPACE;
+);
+  walker.walkUp();
+  return result.isNull() ? DEFAULT_NAMESPACE : result.get();
 }
