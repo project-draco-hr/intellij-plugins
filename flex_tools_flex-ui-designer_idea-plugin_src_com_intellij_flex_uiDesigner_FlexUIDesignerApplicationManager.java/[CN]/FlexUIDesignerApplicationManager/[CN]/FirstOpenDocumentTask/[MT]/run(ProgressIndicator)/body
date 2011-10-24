@@ -3,8 +3,8 @@
   AdlRunConfiguration adlRunConfiguration;
   try {
     indicator.setText(FlexUIDesignerBundle.message("copy.app.files"));
-    copyAppFiles();
-    adlRunConfiguration=findSuitableFlexSdk(CHECK_DESCRIPTOR_PATH);
+    DesignerApplicationUtil.copyAppFiles();
+    adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
     if (adlRunConfiguration == null) {
       String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
       notifyUser(debug,message,module.getProject(),new Consumer<String>(){
@@ -32,10 +32,10 @@
     runInitializeLibrariesAndModuleThread();
     appParentDisposable=new ParentDisposable();
     final List<String> arguments=new ArrayList<String>();
-    arguments.add(String.valueOf(new MessageSocketManager(this).listen()));
+    arguments.add(String.valueOf(new MessageSocketManager(this,DesignerApplicationUtil.APP_DIR).listen()));
     arguments.add(String.valueOf(new ErrorSocketManager().listen()));
-    if (DebugPathManager.IS_DEV) {
-      addTestPlugin(arguments);
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      DesignerApplicationUtil.addTestPlugin(arguments);
     }
     adlRunConfiguration.arguments=arguments;
   }
@@ -50,10 +50,10 @@
         attachApplicationLevelListeners();
       }
       try {
-        adlProcessHandler=runAdl(runConfiguration,APP_DIR.getPath() + "/" + DESCRIPTOR_XML,new Consumer<Integer>(){
+        adlProcessHandler=runAdl(runConfiguration,DesignerApplicationUtil.APP_DIR.getPath() + "/" + DesignerApplicationUtil.DESCRIPTOR_XML,new Consumer<Integer>(){
           @Override public void consume(          Integer exitCode){
             adlProcessHandler=null;
-            LOG.error("ADL exited with error code " + exitCode + " OS: "+ SystemInfo.OS_NAME+ " runConfiguration: "+ runConfiguration.arguments.toString());
+            LOG.error(DesignerApplicationUtil.describeAdlExit(exitCode,runConfiguration));
             adlExitCode=exitCode;
             if (libraryAndModuleInitialized) {
               cancel();
@@ -74,7 +74,7 @@
     ApplicationManager.getApplication().invokeLater(new Runnable(){
       @Override public void run(){
         try {
-          runDebugger(module,task);
+          DesignerApplicationUtil.runDebugger(module,task);
         }
  catch (        ExecutionException e) {
           LOG.error(e);
