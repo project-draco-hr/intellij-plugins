@@ -3,5 +3,18 @@
   if (sdk == null) {
     throw new ConfigurationException("Flex SDK is not set");
   }
+  if (myTargetPlatformCombo.getSelectedItem() == TargetPlatform.Mobile && StringUtil.compareVersionNumbers(sdk.getFlexVersion(),"4.5") < 0) {
+    throw new ConfigurationException(FlexBundle.message("sdk.does.not.support.air.mobile",sdk.getFlexVersion()));
+  }
+  if (mySampleAppCheckBox.isSelected()) {
+    final String fileName=mySampleAppTextField.getText().trim();
+    if (fileName.isEmpty()) {
+      throw new ConfigurationException(FlexBundle.message("sample.app.name.empty"));
+    }
+    final String extension=FileUtil.getExtension(fileName).toLowerCase();
+    if (!"mxml".equals(extension) && !"as".equals(extension)) {
+      throw new ConfigurationException(FlexBundle.message("sample.app.incorrect.extension"));
+    }
+  }
   return true;
 }
