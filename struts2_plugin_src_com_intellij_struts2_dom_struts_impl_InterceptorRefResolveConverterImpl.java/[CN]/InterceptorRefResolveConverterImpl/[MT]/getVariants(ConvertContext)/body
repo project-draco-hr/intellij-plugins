@@ -1,7 +1,14 @@
 {
-  final StrutsModel strutsModel=ConverterUtil.getStrutsModel(context);
-  if (strutsModel == null) {
-    return Collections.emptySet();
+  final List<InterceptorOrStackBase> results=new SmartList<InterceptorOrStackBase>();
+  final Processor<StrutsPackage> processor=new Processor<StrutsPackage>(){
+    @Override public boolean process(    final StrutsPackage strutsPackage){
+      final List<InterceptorOrStackBase> allInterceptors=getAllInterceptors(strutsPackage);
+      results.addAll(allInterceptors);
+      return false;
+    }
   }
-  return strutsModel.getAllInterceptorsAndStacks();
+;
+  final StrutsPackageHierarchyWalker walker=new StrutsPackageHierarchyWalker(getCurrentStrutsPackage(context),processor);
+  walker.walkUp();
+  return results;
 }
