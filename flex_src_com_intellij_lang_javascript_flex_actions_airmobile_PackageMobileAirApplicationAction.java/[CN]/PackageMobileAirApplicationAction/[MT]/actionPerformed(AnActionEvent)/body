@@ -1,3 +1,42 @@
 {
-  new PackageMobileAirApplicationDialog(e.getData(PlatformDataKeys.PROJECT)).show();
+  final Project project=getEventProject(actionEvent);
+  final PackageMobileAirApplicationDialog dialog=new PackageMobileAirApplicationDialog(project);
+  dialog.show();
+  if (dialog.isOK()) {
+    FileDocumentManager.getInstance().saveAllDocuments();
+    final MobileAirPackageParameters parameters=dialog.getPackageParameters();
+    final Runnable onSuccess=new Runnable(){
+      public void run(){
+        final String href="<a href=''>" + parameters.INSTALLER_FILE_NAME + "</a>";
+        final String message=FlexBundle.message("application.created",parameters.MOBILE_PLATFORM,href);
+        final NotificationListener listener=new NotificationListener(){
+          public void hyperlinkUpdate(          @NotNull final Notification notification,          @NotNull final HyperlinkEvent event){
+            notification.expire();
+            ShowFilePathAction.open(new File(parameters.INSTALLER_FILE_LOCATION),new File(parameters.INSTALLER_FILE_LOCATION,parameters.INSTALLER_FILE_NAME));
+          }
+        }
+;
+        NOTIFICATION_GROUP.createNotification(PackageMobileAirApplicationDialog.TITLE,message,NotificationType.INFORMATION,listener).notify(project);
+      }
+    }
+;
+    final Consumer<List<String>> onFailure=new Consumer<List<String>>(){
+      public void consume(      final List<String> messages){
+        final String message=messages.isEmpty() ? FlexBundle.message("unexpected.empty.adt.output") : StringUtil.join(messages,"<br>");
+        final String html=message + "<br><a href='http://TryAgain'>Try again</a>";
+        final NotificationListener listener=new NotificationListener(){
+          public void hyperlinkUpdate(          @NotNull final Notification notification,          @NotNull final HyperlinkEvent event){
+            notification.expire();
+            if ("TryAgain".equals(event.getURL().getHost())) {
+              actionPerformed(actionEvent);
+            }
+          }
+        }
+;
+        NOTIFICATION_GROUP.createNotification(PackageMobileAirApplicationDialog.TITLE,html,NotificationType.ERROR,listener).notify(project);
+      }
+    }
+;
+    ExternalTask.runInBackground(MobileAirUtil.createMobileAirPackageTask(project,parameters),FlexBundle.message("packaging.application",parameters.MOBILE_PLATFORM),onSuccess,onFailure);
+  }
 }
