@@ -1,26 +1,11 @@
 {
   final File file=findFileByPath(url);
-  if (file == null) {
-    return null;
-  }
-  return new HyperlinkInfo(){
-    @Override public void navigate(    final Project project){
-      ApplicationManager.getApplication().runReadAction(new Runnable(){
-        @Override public void run(){
-          final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByIoFile(file);
-          if (virtualFile != null) {
-            Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
-            if (document != null) {
-              int startLineNumber=document.getLineStartOffset(lineNumber);
-              int resultOffset=startLineNumber + (columnNumber != null ? columnNumber : 0);
-              OpenFileDescriptor openFileDescriptor=new OpenFileDescriptor(project,virtualFile,resultOffset);
-              openFileDescriptor.navigate(true);
-            }
-          }
-        }
-      }
-);
+  if (file != null) {
+    VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByIoFile(file);
+    if (virtualFile != null) {
+      int column=columnNumber != null ? columnNumber : 0;
+      return new OpenFileHyperlinkInfo(myProject,virtualFile,lineNumber,column);
     }
   }
-;
+  return null;
 }
