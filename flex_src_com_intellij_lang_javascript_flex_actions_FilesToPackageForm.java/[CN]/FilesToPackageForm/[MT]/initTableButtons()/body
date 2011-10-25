@@ -1,19 +1,20 @@
 {
-  myAddButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  ToolbarDecorator d=ToolbarDecorator.createDecorator(myFilesToPackageTable);
+  d.setAddAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton button){
       VirtualFile[] files=FileChooser.chooseFiles(myProject,new FileChooserDescriptor(true,true,false,true,false,true));
       for (      final VirtualFile file : files) {
         myFilesToPackage.add(new FilePathAndPathInPackage(file.getPath(),file.getName()));
         fireDataChanged();
+        IdeFocusManager.getInstance(myProject).requestFocus(myFilesToPackageTable,true);
+        final int rowCount=myFilesToPackageTable.getRowCount();
+        myFilesToPackageTable.setRowSelectionInterval(rowCount - 1,rowCount - 1);
       }
     }
   }
 );
-  myRemoveButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      if (myFilesToPackageTable.isEditing()) {
-        myFilesToPackageTable.getCellEditor().stopCellEditing();
-      }
+  d.setRemoveAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton anActionButton){
       final int[] selectedRows=myFilesToPackageTable.getSelectedRows();
       Arrays.sort(selectedRows);
       for (int i=selectedRows.length - 1; i >= 0; i--) {
@@ -23,4 +24,5 @@
     }
   }
 );
+  myMainPanel.add(d.createPanel(),BorderLayout.CENTER);
 }
