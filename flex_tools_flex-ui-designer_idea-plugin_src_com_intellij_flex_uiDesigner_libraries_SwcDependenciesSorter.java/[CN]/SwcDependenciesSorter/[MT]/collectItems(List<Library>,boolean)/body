@@ -1,0 +1,27 @@
+{
+  final List<LibrarySetItem> unsortedItems=new ArrayList<LibrarySetItem>(libraries.size());
+  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(unsortedItems.size() * 128);
+  final CatalogXmlBuilder catalogXmlBuilder=new CatalogXmlBuilder(definitionMap);
+  for (  Library library : libraries) {
+    LibrarySetItem filteredLibrary=new LibrarySetItem(library);
+    catalogXmlBuilder.setLibrary(filteredLibrary);
+    new XmlBuilderDriver(getCharSequence(library.getCatalogFile())).build(catalogXmlBuilder);
+    if (filteredLibrary.hasDefinitions() || library.hasResourceBundles()) {
+      unsortedItems.add(filteredLibrary);
+      filteredLibrary.finalizeProcessCatalog();
+    }
+  }
+  if (isFromSdk) {
+    analyzeDefinitions(definitionMap);
+  }
+ else {
+    final AccessToken token=ReadAction.start();
+    try {
+      analyzeDefinitions(definitionMap);
+    }
+  finally {
+      token.finish();
+    }
+  }
+  return unsortedItems;
+}
