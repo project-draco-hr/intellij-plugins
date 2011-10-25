@@ -1,31 +1,21 @@
 {
-  List<Group> groups=buildGroups(yamlDocument);
-  if (groups == null) {
+  List<YAMLKeyValue> keyValues=fetchKeyValues(yamlDocument,holder);
+  if (keyValues == null) {
     return;
   }
   BasePathInfo basePathInfo=new BasePathInfo(yamlDocument);
   annotateBasePath(basePathInfo,holder);
   final Set<String> visitedKeys=Sets.newHashSet();
-  for (  Group group : groups) {
-    YAMLKeyValue keyValue=group.getKeyValue();
-    if (keyValue != null) {
-      PsiElement keyElement=keyValue.getKey();
-      String keyStr=keyValue.getKeyText();
-      if (!JstdConfigFileUtils.isTopLevelKey(keyValue)) {
-        holder.createErrorAnnotation(keyElement,"Unexpected key '" + keyStr + "'");
-      }
-      if (!visitedKeys.add(keyStr)) {
-        holder.createErrorAnnotation(keyElement,"Duplicated '" + keyStr + "' key");
-      }
- else       if (JstdConfigFileUtils.isTopLevelKeyWithInnerFileSequence(keyValue)) {
-        annotateKeyValueWithInnerFileSequence(keyValue,holder,basePathInfo.getBasePath());
-      }
+  for (  YAMLKeyValue keyValue : keyValues) {
+    String keyText=keyValue.getKeyText();
+    if (!JstdConfigFileUtils.isTopLevelKey(keyValue)) {
+      holder.createErrorAnnotation(keyValue.getKey(),"Unexpected key '" + keyText + "'");
     }
- else {
-      PsiElement element=group.getUnexpectedElement();
-      if (!JsPsiUtils.isElementOfType(element,YAMLTokenTypes.EOL,YAMLTokenTypes.INDENT)) {
-        holder.createErrorAnnotation(element,"Unexpected element '" + element.getText() + "'");
-      }
+ else     if (!visitedKeys.add(keyText)) {
+      holder.createErrorAnnotation(keyValue.getKey(),"Duplicated '" + keyText + "' key");
+    }
+ else     if (JstdConfigFileUtils.isTopLevelKeyWithInnerFileSequence(keyValue)) {
+      annotateKeyValueWithInnerFileSequence(keyValue,holder,basePathInfo.getBasePath());
     }
   }
 }
