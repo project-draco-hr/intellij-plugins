@@ -1,0 +1,19 @@
+{
+  registrar.startInjecting(OgnlLanguage.INSTANCE);
+  final String text=element.getText();
+  final int textLength=text.length() - 1;
+  final int lastStartPosition=Math.max(textLength,text.lastIndexOf(OgnlLanguage.EXPRESSION_SUFFIX));
+  int startOffset=0;
+  while (startOffset < lastStartPosition) {
+    startOffset=text.indexOf(OgnlLanguage.EXPRESSION_PREFIX,startOffset);
+    if (startOffset == -1) {
+      break;
+    }
+    final int closingBraceIdx=text.indexOf(OgnlLanguage.EXPRESSION_SUFFIX,startOffset);
+    final int length=(closingBraceIdx != -1 ? closingBraceIdx + 1 : textLength) - startOffset;
+    final TextRange range=TextRange.from(startOffset,length);
+    registrar.addPlace(null,null,element,range);
+    startOffset=startOffset + length;
+  }
+  registrar.doneInjecting();
+}
