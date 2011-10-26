@@ -4,6 +4,16 @@
     return new LibrarySet(id,parent,ApplicationDomainCreationPolicy.ONE,result.items,result.resourceBundleOnlyitems,result.embedItems);
   }
  catch (  Throwable e) {
-    throw new InitException(e,"error.sort.libraries");
+    String technicalMessage="Flex SDK " + flexSdkVersion;
+    final Attachment[] attachments=new Attachment[libraries.size()];
+    try {
+      for (int i=0, librariesSize=libraries.size(); i < librariesSize; i++) {
+        attachments[i]=new Attachment(libraries.get(i).getCatalogFile());
+      }
+    }
+ catch (    Throwable innerE) {
+      technicalMessage+=" Cannot collect library catalog files due to " + ExceptionUtil.getThrowableText(innerE);
+    }
+    throw new InitException(e,"error.sort.libraries",attachments,technicalMessage);
   }
 }

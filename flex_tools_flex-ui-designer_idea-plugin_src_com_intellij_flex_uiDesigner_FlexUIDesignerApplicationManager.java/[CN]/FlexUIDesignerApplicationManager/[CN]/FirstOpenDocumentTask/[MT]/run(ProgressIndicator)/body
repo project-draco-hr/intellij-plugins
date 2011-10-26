@@ -53,7 +53,9 @@
         adlProcessHandler=runAdl(runConfiguration,DesignerApplicationUtil.APP_DIR.getPath() + "/" + DesignerApplicationUtil.DESCRIPTOR_XML,new Consumer<Integer>(){
           @Override public void consume(          Integer exitCode){
             adlProcessHandler=null;
-            LOG.error(DesignerApplicationUtil.describeAdlExit(exitCode,runConfiguration));
+            if (!indicator.isCanceled()) {
+              LOG.error(DesignerApplicationUtil.describeAdlExit(exitCode,runConfiguration));
+            }
             adlExitCode=exitCode;
             if (libraryAndModuleInitialized) {
               cancel();
@@ -88,7 +90,9 @@
   }
   semaphore.down();
   semaphore.waitFor();
-  openDocument();
+  if (!indicator.isCanceled()) {
+    openDocument();
+  }
   if (isHeadless()) {
     if (indicator.isCanceled()) {
       onCancel();
