@@ -35,6 +35,13 @@
       item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),myConfigEditor.findLibraryOrderEntry(myDependencies,moduleLibraryEntry),myProject);
       ((ModuleLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
     }
+ else     if (entry instanceof SharedLibraryEntry) {
+      SharedLibraryEntry moduleLibraryEntry=(SharedLibraryEntry)entry;
+      LibrariesModifiableModel model=ProjectStructureConfigurable.getInstance(myProject).getContext().createModifiableModelProvider(moduleLibraryEntry.getLibraryLevel()).getModifiableModel();
+      Library library=model.getLibraryByName(moduleLibraryEntry.getLibraryName());
+      item=new SharedLibraryItem(moduleLibraryEntry.getLibraryName(),moduleLibraryEntry.getLibraryLevel(),library != null ? findConfigurable(library) : null,myProject);
+      ((SharedLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
     if (item != null) {
       root.add(new DefaultMutableTreeNode(item,false));
     }

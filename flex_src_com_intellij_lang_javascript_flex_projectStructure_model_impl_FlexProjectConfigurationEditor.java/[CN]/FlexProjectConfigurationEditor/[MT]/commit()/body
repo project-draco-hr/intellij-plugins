@@ -1,35 +1,43 @@
 {
   for (  Module module : myModule2Editors.keySet()) {
     ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
-    Map<LibraryEx,Boolean> sdksToAdd=new HashMap<LibraryEx,Boolean>();
+    Map<LibraryEx,Boolean> librariesToAdd=new HashMap<LibraryEx,Boolean>();
     for (    Editor editor : myModule2Editors.get(module)) {
       SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
       if (sdkEntry != null) {
-        LibraryEx sdkLibrary=((SdkEntryImpl)sdkEntry).findLibrary(myProvider.getGlobalLibrariesModifiableModel().getLibraries());
+        LibraryEx sdkLibrary=((SdkEntryImpl)sdkEntry).findLibrary(myProvider.getLibrariesModifiableModel(LibraryTablesRegistrar.APPLICATION_LEVEL).getLibraries());
         if (sdkLibrary != null) {
-          sdksToAdd.put(sdkLibrary,true);
+          librariesToAdd.put(sdkLibrary,true);
+        }
+      }
+      for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
+        if (dependencyEntry instanceof SharedLibraryEntry) {
+          SharedLibraryEntry sharedLibraryEntry=(SharedLibraryEntry)dependencyEntry;
+          LibraryTableBase.ModifiableModelEx m=myProvider.getLibrariesModifiableModel(sharedLibraryEntry.getLibraryLevel());
+          LibraryEx library=(LibraryEx)m.getLibraryByName(sharedLibraryEntry.getLibraryName());
+          if (library != null) {
+            librariesToAdd.put(library,true);
+          }
         }
       }
     }
-    Collection<OrderEntry> sdkEntriesToRemove=new ArrayList<OrderEntry>();
+    Collection<OrderEntry> entriesToRemove=new ArrayList<OrderEntry>();
     for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
-        if (LibraryTablesRegistrar.APPLICATION_LEVEL.equals(((LibraryOrderEntry)orderEntry).getLibraryLevel())) {
-          LibraryEx sdkLibrary=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
-          if (sdksToAdd.containsKey(sdkLibrary)) {
-            sdksToAdd.put(sdkLibrary,false);
-          }
- else           if (sdkLibrary != null && sdkLibrary.getType() instanceof FlexSdkLibraryType) {
-            sdkEntriesToRemove.add(orderEntry);
-          }
+        LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+        if (librariesToAdd.containsKey(library)) {
+          librariesToAdd.put(library,false);
+        }
+ else         if (library != null && (library.getType() instanceof FlexSdkLibraryType || FlexProjectRootsUtil.isFlexLibrary(library))) {
+          entriesToRemove.add(orderEntry);
         }
       }
     }
-    for (    OrderEntry e : sdkEntriesToRemove) {
+    for (    OrderEntry e : entriesToRemove) {
       modifiableModel.removeOrderEntry(e);
     }
-    for (    LibraryEx library : sdksToAdd.keySet()) {
-      if (!library.isDisposed() && sdksToAdd.get(library) && myProvider.getGlobalLibrariesModifiableModel().getLibraryByName(library.getName()) != null) {
+    for (    LibraryEx library : librariesToAdd.keySet()) {
+      if (!library.isDisposed() && librariesToAdd.get(library) && myProvider.getLibrariesModifiableModel(library.getTable().getTableLevel()).getLibraryByName(library.getName()) != null) {
         modifiableModel.addLibraryEntry(library);
       }
     }
