@@ -8,27 +8,9 @@
   List<MyTableItem> items=myTable.getItems();
   List<ModifiableDependencyEntry> newEntries=new ArrayList<ModifiableDependencyEntry>();
   for (  MyTableItem item : items) {
-    ModifiableDependencyEntry entry;
-    if (item instanceof BCItem) {
-      FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
-      if (configurable != null) {
-        entry=myConfigEditor.createBcEntry(dependencies,configurable.getEditableObject(),configurable.getDisplayName());
-      }
- else {
-        entry=myConfigEditor.createBcEntry(dependencies,((BCItem)item).moduleName,((BCItem)item).bcName);
-      }
-      entry.getDependencyType().copyFrom(((BCItem)item).dependencyType);
+    ModifiableDependencyEntry entry=item.apply(dependencies);
+    if (entry != null) {
       newEntries.add(entry);
-    }
- else     if (item instanceof ModuleLibraryItem) {
-      entry=myConfigEditor.createModuleLibraryEntry(dependencies,((ModuleLibraryItem)item).libraryId);
-      entry.getDependencyType().copyFrom(((ModuleLibraryItem)item).dependencyType);
-      newEntries.add(entry);
-    }
- else     if (item instanceof SdkItem || item instanceof SdkEntryItem) {
-    }
- else {
-      throw new IllegalArgumentException("unexpected item type: " + item);
     }
   }
   myConfigEditor.setEntries(dependencies,newEntries);
