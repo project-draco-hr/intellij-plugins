@@ -1,5 +1,20 @@
 {
-  final ChooseLibrariesDialog d=new ChooseLibrariesDialog();
+  final Collection<Library> usedLibraries=new HashSet<Library>();
+  List<MyTableItem> items=myTable.getItems();
+  for (  MyTableItem item : items) {
+    if (item instanceof SharedLibraryItem) {
+      FlexLibraryConfigurable libraryConfigurable=((SharedLibraryItem)item).configurable;
+      if (libraryConfigurable != null) {
+        usedLibraries.add(libraryConfigurable.getEditableObject());
+      }
+    }
+  }
+  ChooseLibrariesDialog d=new ChooseLibrariesDialog(new Condition<Library>(){
+    public boolean value(    final Library library){
+      return !usedLibraries.contains(library);
+    }
+  }
+);
   d.show();
   if (!d.isOK())   return;
   final List<Library> libraries=d.getSelectedLibraries();
