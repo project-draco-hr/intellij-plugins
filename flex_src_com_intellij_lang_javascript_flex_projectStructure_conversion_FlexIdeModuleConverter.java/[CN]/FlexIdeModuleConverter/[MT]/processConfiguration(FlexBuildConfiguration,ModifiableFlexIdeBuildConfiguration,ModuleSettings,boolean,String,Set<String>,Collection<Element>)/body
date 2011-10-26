@@ -76,6 +76,19 @@
       convertDependencyType(orderEntry,moduleLibraryEntry.getDependencyType());
       newBuildConfiguration.getDependencies().getModifiableEntries().add(moduleLibraryEntry);
     }
+ else     if ("library".equals(orderEntryType)) {
+      String libraryName=orderEntry.getAttributeValue("name");
+      String libraryLevel=orderEntry.getAttributeValue("level");
+      if (myParams.libraryExists(libraryName,libraryLevel)) {
+        myParams.changeLibraryTypeToFlex(libraryName,libraryLevel);
+        ModifiableSharedLibraryEntry sharedLibraryEntry=ConversionHelper.createSharedLibraryEntry(libraryName,libraryLevel);
+        convertDependencyType(orderEntry,sharedLibraryEntry.getDependencyType());
+        newBuildConfiguration.getDependencies().getModifiableEntries().add(sharedLibraryEntry);
+      }
+ else {
+        orderEntriesToRemove.add(orderEntry);
+      }
+    }
  else     if (ModuleOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       String moduleName=orderEntry.getAttributeValue(ModuleOrderEntryImpl.MODULE_NAME_ATTR);
       Collection<String> bcNames=myParams.getBcNamesForDependency(moduleName);
