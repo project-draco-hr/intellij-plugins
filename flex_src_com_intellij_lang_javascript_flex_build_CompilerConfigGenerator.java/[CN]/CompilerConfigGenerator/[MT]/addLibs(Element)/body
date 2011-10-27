@@ -10,15 +10,15 @@
     }
  else     if (entry instanceof ModuleLibraryEntry) {
       final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,ModuleRootManager.getInstance(myModule));
-      if (orderEntry == null)       continue;
-      for (      VirtualFile libFile : orderEntry.getRootFiles(OrderRootType.CLASSES)) {
-        libFile=FlexCompilerHandler.getRealFile(libFile);
-        if (libFile != null && libFile.isDirectory()) {
-          addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,libFile.getPath());
-        }
- else         if (libFile != null && !libFile.isDirectory() && "swc".equalsIgnoreCase(libFile.getExtension())) {
-          addLib(rootElement,libFile.getPath(),linkageType);
-        }
+      if (orderEntry != null) {
+        addLibraryRoots(rootElement,orderEntry.getRootFiles(OrderRootType.CLASSES),linkageType);
+      }
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      final LibraryTable libraryTable=LibraryTablesRegistrar.APPLICATION_LEVEL.equals(((SharedLibraryEntry)entry).getLibraryLevel()) ? ApplicationLibraryTable.getApplicationTable() : ProjectLibraryTable.getInstance(myModule.getProject());
+      final Library library=libraryTable.getLibraryByName(((SharedLibraryEntry)entry).getLibraryName());
+      if (library != null) {
+        addLibraryRoots(rootElement,library.getFiles((OrderRootType.CLASSES)),linkageType);
       }
     }
   }
