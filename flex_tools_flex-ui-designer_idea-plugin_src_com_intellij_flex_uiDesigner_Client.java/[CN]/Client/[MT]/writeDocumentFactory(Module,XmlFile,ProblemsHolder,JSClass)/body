@@ -1,0 +1,21 @@
+{
+  final AccessToken token=ReadAction.start();
+  final int flags;
+  try {
+    if (JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.SPARK_APPLICATION) || JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.MX_APPLICATION)) {
+      flags=1;
+    }
+ else     if (JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.FLASH_DISPLAY_OBJECT_CONTAINER) && !JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.IUI_COMPONENT)) {
+      flags=2;
+    }
+ else {
+      flags=0;
+    }
+  }
+  finally {
+    token.finish();
+  }
+  out.write(flags);
+  XmlFile[] unregisteredDocumentReferences=mxmlWriter.write(psiFile,problemsHolder,registeredModules.getInfo(module).assetCounterInfo.demanded);
+  return unregisteredDocumentReferences == null || registerDocumentReferences(unregisteredDocumentReferences,module,problemsHolder);
+}
