@@ -1,0 +1,40 @@
+{
+  final FlexIdeBuildConfiguration bc=moduleAndBC.second;
+  if (myOverrideMainClass) {
+    if (myOverriddenMainClass.isEmpty()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("main.class.not.set"));
+    }
+    if (myOverriddenOutputFileName.isEmpty()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("output.file.name.not.specified"));
+    }
+    if (!myOverriddenOutputFileName.toLowerCase().endsWith(".swf")) {
+      throw new RuntimeConfigurationError(FlexBundle.message("output.file.must.have.swf.extension"));
+    }
+  }
+ else {
+    if (bc.getOutputType() != OutputType.Application) {
+      throw new RuntimeConfigurationError(FlexBundle.message("bc.does.not.produce.app",getBCName(),getModuleName()));
+    }
+  }
+  if (bc.getTargetPlatform() == TargetPlatform.Web) {
+    if (myLaunchUrl) {
+      try {
+        new URL(myUrl);
+      }
+ catch (      MalformedURLException e) {
+        throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.incorrect.url"));
+      }
+      if (myLauncherParameters.getLauncherType() == LauncherParameters.LauncherType.Player) {
+        throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.url.can.not.be.run.with.flash.player"));
+      }
+    }
+    if (myLauncherParameters.getLauncherType() == LauncherParameters.LauncherType.Player && bc.getTargetPlatform() == TargetPlatform.Web && bc.isUseHtmlWrapper()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("html.wrapper.can.not.be.run.with.flash.player"));
+    }
+  }
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice && !bc.getAndroidPackagingOptions().isEnabled()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("android.disabled.in.bc",getBCName(),getModuleName()));
+    }
+  }
+}

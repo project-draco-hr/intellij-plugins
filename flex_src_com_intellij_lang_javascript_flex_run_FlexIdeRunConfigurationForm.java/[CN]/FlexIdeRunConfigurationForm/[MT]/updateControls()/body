@@ -1,6 +1,13 @@
 {
-  final Object item=myBCsCombo.getSelectedItem();
-  final FlexIdeBuildConfiguration config=item instanceof FlexIdeBuildConfiguration ? (FlexIdeBuildConfiguration)item : null;
+  final FlexIdeBuildConfiguration config=getCurrentBC();
+  final boolean overrideMainClass=myOverrideMainClassCheckBox.isSelected();
+  myMainClassComponent.setEnabled(overrideMainClass);
+  myOutputFileNameLabel.setEnabled(overrideMainClass);
+  myOutputFileNameTextField.setEnabled(overrideMainClass);
+  if (!overrideMainClass && config != null) {
+    myMainClassComponent.setText(config.getMainClass());
+    myOutputFileNameTextField.setText(config.getOutputFileName());
+  }
   final boolean web=config != null && config.getTargetPlatform() == TargetPlatform.Web;
   final boolean desktop=config != null && config.getTargetPlatform() == TargetPlatform.Desktop;
   final boolean mobile=config != null && config.getTargetPlatform() == TargetPlatform.Mobile;
@@ -10,10 +17,7 @@
   myMobileRunPanel.setVisible(mobile);
   myMobileOptionsPanel.setVisible(mobile);
   if (web) {
-    String bcOutput=config.getOutputFileName();
-    if (!bcOutput.isEmpty() && config.isUseHtmlWrapper()) {
-    }
-    myBCOutputLabel.setText(bcOutput);
+    updateBCOutputLabel(config);
     myURLTextField.setEnabled(myURLRadioButton.isSelected());
     myLauncherParametersTextWithBrowse.getTextField().setText(myLauncherParameters.getPresentableText());
     myRunTrustedCheckBox.setEnabled(!myURLRadioButton.isSelected());
