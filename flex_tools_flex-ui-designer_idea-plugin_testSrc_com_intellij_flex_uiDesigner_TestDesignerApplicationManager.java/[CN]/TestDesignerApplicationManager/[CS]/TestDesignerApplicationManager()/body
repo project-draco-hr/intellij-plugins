@@ -7,7 +7,7 @@
   adlRunConfiguration.arguments.add(String.valueOf(0));
   DesignerApplicationUtil.addTestPlugin(adlRunConfiguration.arguments);
   DesignerApplicationUtil.copyAppFiles();
-  adlProcessHandler=DesignerApplicationUtil.runAdl(adlRunConfiguration,DebugPathManager.getFudHome() + "/" + DesignerApplicationUtil.DESCRIPTOR_XML_DEV_PATH,DesignerApplicationUtil.APP_DIR.getPath(),new Consumer<Integer>(){
+  adlProcessHandler=DesignerApplicationUtil.runAdl(adlRunConfiguration,DebugPathManager.getFudHome() + '/' + DesignerApplicationUtil.DESCRIPTOR_XML_DEV_PATH,DesignerApplicationUtil.APP_DIR.getPath(),new Consumer<Integer>(){
     @Override public void consume(    Integer exitCode){
       if (exitCode != 0) {
         try {
@@ -20,19 +20,27 @@
     }
   }
 );
-  socket=serverSocket.accept();
   ShutDownTracker.getInstance().registerShutdownTask(new Runnable(){
     @Override public void run(){
+      if (socket != null) {
+        try {
+          socket.close();
+        }
+ catch (        IOException e) {
+          e.printStackTrace();
+        }
+      }
       adlProcessHandler.destroyProcess();
-      try {
-        socket.close();
-      }
- catch (      IOException e) {
-        e.printStackTrace();
-      }
     }
   }
 );
+  ApplicationManager.getApplication().executeOnPooledThread(new Callable<Void>(){
+    @Override public Void call() throws Exception {
+      socket=serverSocket.accept();
+      return null;
+    }
+  }
+).get(Boolean.valueOf(System.getProperty("fud.test.debug")) ? 8000 : 30,TimeUnit.SECONDS);
   changeServiceImplementation();
   Client.getInstance().setOut(socket.getOutputStream());
   socketInputHandler=(TestSocketInputHandler)ServiceManager.getService(SocketInputHandler.class);

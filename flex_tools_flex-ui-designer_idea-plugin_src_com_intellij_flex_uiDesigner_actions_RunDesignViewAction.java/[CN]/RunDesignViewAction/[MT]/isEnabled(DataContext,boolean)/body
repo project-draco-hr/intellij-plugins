@@ -15,6 +15,10 @@
   if (file == null || !ProjectRootManager.getInstance(project).getFileIndex().isInSourceContent(file)) {
     return false;
   }
-  JSClass jsClass=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)psiFile);
-  return jsClass != null && JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.IUI_COMPONENT);
+  final XmlTag rootTag=((XmlFile)psiFile).getRootTag();
+  if (rootTag == null || rootTag.getPrefixByNamespace(JavaScriptSupportLoader.MXML_URI3) == null) {
+    return false;
+  }
+  final JSClass jsClass=XmlBackedJSClassImpl.getXmlBackedClass(rootTag);
+  return jsClass != null && JSInheritanceUtil.isParentClass(jsClass,"flash.display.DisplayObjectContainer");
 }
