@@ -1,0 +1,27 @@
+{
+  BundleManifest manifest=getManifestByObject(module);
+  if (manifest == null) {
+    return Collections.emptySet();
+  }
+  Set<Object> result=new HashSet<Object>();
+  List<String> imports=manifest.getImports();
+  for (  String anImport : imports) {
+    Object o=whoProvidesBest(anImport);
+    if (o != null) {
+      result.add(o);
+    }
+  }
+  List<String> requiredBundles=manifest.getRequiredBundles();
+  for (  String requiredBundle : requiredBundles) {
+    ManifestHolder manifestHolder=myBundleCache.whoIsRequiredBundle(requiredBundle);
+    if (manifestHolder != null) {
+      try {
+        result.add(manifestHolder.getBoundObject());
+      }
+ catch (      ManifestHolderDisposedException e) {
+        myBundleCache.markUnclean();
+      }
+    }
+  }
+  return result;
+}

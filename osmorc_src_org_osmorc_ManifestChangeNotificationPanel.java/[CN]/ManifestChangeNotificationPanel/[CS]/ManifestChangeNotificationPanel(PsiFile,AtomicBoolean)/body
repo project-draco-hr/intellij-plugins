@@ -1,0 +1,25 @@
+{
+  myNeedsResync=needsResync;
+  setText("You have modified a manifest in your project. This may have change the dependencies of your bundle.");
+  createActionLabel("Synchronize Dependencies",new Runnable(){
+    @Override public void run(){
+      myNeedsResync.set(false);
+      EditorNotifications.getInstance(modifiedFile.getProject()).updateAllNotifications();
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        @Override public void run(){
+          new Task.Backgroundable(modifiedFile.getProject(),"Processing manifest change",false){
+            @Override public void run(            @NotNull ProgressIndicator indicator){
+              indicator.setText("Synchronizing dependencies.");
+              indicator.setIndeterminate(true);
+              ModuleDependencySynchronizer.resynchronizeAll(modifiedFile.getProject());
+            }
+          }
+.queue();
+        }
+      }
+);
+    }
+  }
+);
+  myLinksPanel.setBackground(LightColors.GREEN);
+}

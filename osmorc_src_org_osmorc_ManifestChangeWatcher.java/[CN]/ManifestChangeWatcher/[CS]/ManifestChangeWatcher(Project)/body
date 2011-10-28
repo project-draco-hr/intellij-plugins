@@ -1,0 +1,16 @@
+{
+  myProject=project;
+  PsiManager.getInstance(myProject).addPsiTreeChangeListener(new PsiTreeChangeAdapter(){
+    public void childrenChanged(    PsiTreeChangeEvent event){
+      final PsiFile file=event.getFile();
+      if (file instanceof ManifestFile) {
+        OsmorcFacet of=OsmorcFacet.getInstance(file);
+        if (of != null && of.getConfiguration().isManifestManuallyEdited() && !myNeedsResync.get()) {
+          myNeedsResync.set(true);
+          EditorNotifications.getInstance(myProject).updateAllNotifications();
+        }
+      }
+    }
+  }
+);
+}

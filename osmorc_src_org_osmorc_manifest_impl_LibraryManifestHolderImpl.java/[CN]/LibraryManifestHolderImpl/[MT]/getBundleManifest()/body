@@ -1,9 +1,9 @@
 {
-  if (_bundleManifest == null) {
-    if (_library instanceof LibraryEx && ((LibraryEx)_library).isDisposed()) {
-      return _bundleManifest;
-    }
-    VirtualFile[] classRoots=_library.getFiles(OrderRootType.CLASSES);
+  if (myLibrary instanceof LibraryEx && ((LibraryEx)myLibrary).isDisposed() || myProject.isDisposed()) {
+    throw new ManifestHolderDisposedException();
+  }
+  if (myBundleManifest == null) {
+    VirtualFile[] classRoots=myLibrary.getFiles(OrderRootType.CLASSES);
     for (    VirtualFile classRoot : classRoots) {
       VirtualFile classDir;
       if (classRoot.isDirectory()) {
@@ -17,14 +17,14 @@
         if (manifestFile != null) {
           PsiFile psiFile=new ReadAction<PsiFile>(){
             @Override protected void run(            Result<PsiFile> psiFileResult) throws Throwable {
-              psiFileResult.setResult(PsiManager.getInstance(_project).findFile(manifestFile));
+              psiFileResult.setResult(PsiManager.getInstance(myProject).findFile(manifestFile));
             }
           }
 .execute().getResultObject();
-          _bundleManifest=new BundleManifestImpl(psiFile);
+          myBundleManifest=new BundleManifestImpl((ManifestFile)psiFile);
         }
       }
     }
   }
-  return _bundleManifest;
+  return myBundleManifest;
 }

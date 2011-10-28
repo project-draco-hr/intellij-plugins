@@ -1,0 +1,24 @@
+{
+  return new ReadAction<List<ManifestHolder>>(){
+    @Override protected void run(    Result<List<ManifestHolder>> listResult) throws Throwable {
+      List<ManifestHolder> result=new ArrayList<ManifestHolder>();
+      for (      ManifestHolder manifestHolder : myManifestHolders) {
+        BundleManifest bundleManifest=null;
+        try {
+          bundleManifest=manifestHolder.getBundleManifest();
+        }
+ catch (        ManifestHolderDisposedException e) {
+          markUnclean();
+          continue;
+        }
+        if (bundleManifest != null) {
+          if (bundleSymbolicName.equals(bundleManifest.getBundleSymbolicName())) {
+            result.add(manifestHolder);
+          }
+        }
+      }
+      listResult.setResult(result);
+    }
+  }
+.execute().getResultObject();
+}

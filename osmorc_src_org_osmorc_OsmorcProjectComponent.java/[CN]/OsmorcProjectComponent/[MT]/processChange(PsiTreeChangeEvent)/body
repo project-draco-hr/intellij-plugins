@@ -1,19 +1,21 @@
 {
   final PsiFile file=event.getFile();
   if (!(file instanceof ManifestFile))   return;
-  Runnable onChangeRunnable=new Runnable(){
-    public void run(){
-      Module moduleOfChangedManifest=ModuleUtil.findModuleForPsiElement(file);
-      if (moduleOfChangedManifest != null) {
-        bundleManager.addOrUpdateBundle(moduleOfChangedManifest);
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      new Task.Backgroundable(myProject,"Processing manifest change",false){
+        @Override public void run(        @NotNull ProgressIndicator indicator){
+          indicator.setText("Updating OSGi indices");
+          indicator.setIndeterminate(true);
+          Module moduleOfChangedManifest=ModuleUtil.findModuleForPsiElement(file);
+          if (moduleOfChangedManifest != null) {
+            myBundleManager.reindex(moduleOfChangedManifest);
+            syncAllModuleDependencies();
+          }
+        }
       }
+.queue();
     }
   }
-;
-  if (ApplicationManager.getApplication().isCommandLine()) {
-    onChangeRunnable.run();
-  }
- else {
-    application.invokeLater(onChangeRunnable);
-  }
+);
 }

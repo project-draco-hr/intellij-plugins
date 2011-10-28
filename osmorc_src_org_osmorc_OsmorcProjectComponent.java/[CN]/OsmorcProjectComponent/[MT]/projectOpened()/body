@@ -1,3 +1,18 @@
 {
-  frameworkInstanceModuleManager.updateFrameworkInstanceModule();
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      new Task.Backgroundable(myProject,"Updating OSGi indices",false){
+        @Override public void run(        @NotNull ProgressIndicator indicator){
+          indicator.setIndeterminate(true);
+          indicator.setText("Refreshing framework instance");
+          myFrameworkInstanceModuleManager.updateFrameworkInstanceModule();
+          indicator.setText("Updating OSGi indices");
+          myBundleManager.reindex(myProject);
+          syncAllModuleDependencies();
+        }
+      }
+.queue();
+    }
+  }
+);
 }

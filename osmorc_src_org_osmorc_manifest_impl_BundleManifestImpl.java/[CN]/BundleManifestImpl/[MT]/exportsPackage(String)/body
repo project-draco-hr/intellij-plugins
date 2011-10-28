@@ -1,3 +1,36 @@
 {
-  return getExportPackage().contains(aPackage);
+  Header header=myManifestFile.getHeaderByName(EXPORT_PACKAGE);
+  if (header == null) {
+    return false;
+  }
+  List<ICapability> capabilities=new ArrayList<ICapability>();
+  Clause[] clauses=header.getClauses();
+  for (  Clause clause : clauses) {
+    try {
+      capabilities.addAll(Arrays.asList(ManifestParser.parseExportHeader(clause.getText())));
+    }
+ catch (    Exception e) {
+      return false;
+    }
+  }
+  IRequirement[] requirements;
+  try {
+    requirements=ManifestParser.parseImportHeader(packageSpec);
+  }
+ catch (  Exception e) {
+    return false;
+  }
+  for (  IRequirement requirement : requirements) {
+    boolean satisfied=false;
+    for (    ICapability capability : capabilities) {
+      if (requirement.isSatisfied(capability)) {
+        satisfied=true;
+        break;
+      }
+    }
+    if (!satisfied) {
+      return false;
+    }
+  }
+  return true;
 }

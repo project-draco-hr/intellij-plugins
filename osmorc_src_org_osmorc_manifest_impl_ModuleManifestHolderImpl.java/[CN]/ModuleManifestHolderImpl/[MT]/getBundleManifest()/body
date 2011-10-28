@@ -1,14 +1,17 @@
 {
-  final VirtualFile cachedFile=bundleManifest != null ? bundleManifest.getManifestFile().getVirtualFile() : null;
-  final VirtualFile fileFromSettings=getManifestFile();
-  if (bundleManifest != null && (cachedFile == null || fileFromSettings == null || !cachedFile.getPath().equals(fileFromSettings.getPath()))) {
-    bundleManifest=null;
+  if (myModule.isDisposed()) {
+    throw new ManifestHolderDisposedException();
   }
-  if (bundleManifest == null && OsmorcFacet.hasOsmorcFacet(module)) {
-    OsmorcFacet facet=OsmorcFacet.getInstance(module);
+  final VirtualFile cachedFile=myBundleManifest != null ? myBundleManifest.getManifestFile().getVirtualFile() : null;
+  final VirtualFile fileFromSettings=getManifestFile();
+  if (myBundleManifest != null && (cachedFile == null || fileFromSettings == null || !cachedFile.getPath().equals(fileFromSettings.getPath()))) {
+    myBundleManifest=null;
+  }
+  OsmorcFacet facet=OsmorcFacet.getInstance(myModule);
+  if (myBundleManifest == null && facet != null) {
     if (facet.getConfiguration().isManifestManuallyEdited()) {
-      bundleManifest=loadManifest();
+      myBundleManifest=loadManifest();
     }
   }
-  return bundleManifest;
+  return myBundleManifest;
 }

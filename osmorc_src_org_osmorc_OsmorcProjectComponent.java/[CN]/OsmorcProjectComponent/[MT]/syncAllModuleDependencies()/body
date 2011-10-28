@@ -1,0 +1,18 @@
+{
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      new Task.Backgroundable(myProject,"Synchronizing OSGi module dependencies",false){
+        @Override public void run(        @NotNull ProgressIndicator indicator){
+          Module[] modules=ModuleManager.getInstance(myProject).getModules();
+          for (          Module module : modules) {
+            if (OsmorcFacet.hasOsmorcFacet(module)) {
+              ModuleDependencySynchronizer.getInstance(module).syncDependenciesFromManifest();
+            }
+          }
+        }
+      }
+.queue();
+    }
+  }
+);
+}

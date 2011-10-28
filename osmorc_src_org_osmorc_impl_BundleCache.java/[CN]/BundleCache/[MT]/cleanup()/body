@@ -1,0 +1,20 @@
+{
+  if (myIsUnclean) {
+    new WriteAction(){
+      @Override protected void run(      Result result) throws Throwable {
+        Set<ManifestHolder> toDispose=new HashSet<ManifestHolder>();
+        for (        ManifestHolder manifestHolder : myManifestHolders) {
+          try {
+            manifestHolder.getBundleManifest();
+          }
+ catch (          ManifestHolderDisposedException e) {
+            toDispose.add(manifestHolder);
+          }
+        }
+        myManifestHolders.removeAll(toDispose);
+        myIsUnclean=false;
+      }
+    }
+.execute();
+  }
+}
