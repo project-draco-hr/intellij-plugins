@@ -1,2 +1,25 @@
 {
+  final DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance(module.getProject());
+  final boolean registered=!force && documentFactoryManager.isRegistered(virtualFile);
+  final int id=documentFactoryManager.getId(virtualFile);
+  if (!registered) {
+    boolean hasError=true;
+    try {
+      beginMessage(ClientMethod.registerDocumentFactory);
+      writeId(module);
+      out.writeShort(id);
+      writeVirtualFile(virtualFile,out);
+      hasError=!writeDocumentFactory(module,psiFile,problemsHolder);
+    }
+ catch (    Throwable e) {
+      LogMessageUtil.processInternalError(e,virtualFile);
+    }
+ finally {
+      if (hasError) {
+        blockOut.rollback();
+        return -1;
+      }
+    }
+  }
+  return id;
 }
