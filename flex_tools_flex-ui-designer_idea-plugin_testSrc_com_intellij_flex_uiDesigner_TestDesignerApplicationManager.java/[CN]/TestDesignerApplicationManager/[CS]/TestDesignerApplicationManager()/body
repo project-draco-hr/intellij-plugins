@@ -34,13 +34,19 @@
     }
   }
 );
-  ApplicationManager.getApplication().executeOnPooledThread(new Callable<Void>(){
-    @Override public Void call() throws Exception {
+  final Callable<Void> action=new Callable<Void>(){
+    @Override public Void call() throws IOException {
       socket=serverSocket.accept();
       return null;
     }
   }
-).get(Boolean.valueOf(System.getProperty("fud.test.debug")) ? 8000 : 30,TimeUnit.SECONDS);
+;
+  if (Boolean.valueOf(System.getProperty("fud.test.debug"))) {
+    action.call();
+  }
+ else {
+    ApplicationManager.getApplication().executeOnPooledThread(action).get(30,TimeUnit.SECONDS);
+  }
   changeServiceImplementation();
   Client.getInstance().setOut(socket.getOutputStream());
   socketInputHandler=(TestSocketInputHandler)ServiceManager.getService(SocketInputHandler.class);

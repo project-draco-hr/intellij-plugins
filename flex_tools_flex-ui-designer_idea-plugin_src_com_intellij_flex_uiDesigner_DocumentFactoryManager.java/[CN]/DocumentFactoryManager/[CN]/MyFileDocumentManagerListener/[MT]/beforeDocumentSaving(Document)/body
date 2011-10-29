@@ -1,26 +1,26 @@
 {
-  VirtualFile file=FileDocumentManager.getInstance().getFile(document);
+  final VirtualFile file=FileDocumentManager.getInstance().getFile(document);
   if (file == null) {
     return;
   }
-  DocumentInfo info=files.getNullableInfo(file);
+  final DocumentInfo info=files.getNullableInfo(file);
   if (info == null) {
     return;
   }
-  DesignerApplicationManager designerApplicationManager=DesignerApplicationManager.getInstance();
+  final DesignerApplicationManager designerApplicationManager=DesignerApplicationManager.getInstance();
   if (designerApplicationManager.isDocumentOpening()) {
     return;
   }
-  Module module=ModuleUtil.findModuleForFile(file,myProject);
+  if (info.documentModificationStamp == document.getModificationStamp()) {
+    info.documentModificationStamp=-1;
+    return;
+  }
+  final Module module=ModuleUtil.findModuleForFile(file,myProject);
   if (module == null) {
     return;
   }
-  XmlFile psiFile=(XmlFile)PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+  final XmlFile psiFile=(XmlFile)PsiDocumentManager.getInstance(myProject).getPsiFile(document);
   if (psiFile == null) {
-    return;
-  }
-  if (info.psiModificationStamp == psiFile.getModificationStamp()) {
-    info.psiModificationStamp=-1;
     return;
   }
   designerApplicationManager.updateDocumentFactory(info.getId(),module,psiFile);

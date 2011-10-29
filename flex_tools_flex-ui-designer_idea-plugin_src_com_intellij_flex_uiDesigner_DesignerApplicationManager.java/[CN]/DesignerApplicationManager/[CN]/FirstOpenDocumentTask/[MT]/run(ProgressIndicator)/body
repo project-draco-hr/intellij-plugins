@@ -5,7 +5,7 @@
     indicator.setText(FlexUIDesignerBundle.message("copying.app.files"));
     DesignerApplicationUtil.copyAppFiles();
     indicator.setText(FlexUIDesignerBundle.message("finding.suitable.air.runtime"));
-    adlRunConfiguration=DesignerApplicationUtil.findSuitableFlexSdk();
+    adlRunConfiguration=DesignerApplicationUtil.createAdlRunConfiguration();
     if (adlRunConfiguration == null) {
       String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
       notifyUser(debug,message,module.getProject(),new Consumer<String>(){
@@ -51,7 +51,7 @@
         attachApplicationLevelListeners();
       }
       try {
-        adlProcessHandler=runAdl(runConfiguration,DesignerApplicationUtil.APP_DIR.getPath() + "/" + DesignerApplicationUtil.DESCRIPTOR_XML,new Consumer<Integer>(){
+        adlProcessHandler=runAdl(runConfiguration,DesignerApplicationUtil.APP_DIR.getPath() + File.separatorChar + DesignerApplicationUtil.DESCRIPTOR_XML,new Consumer<Integer>(){
           @Override public void consume(          Integer exitCode){
             adlProcessHandler=null;
             if (!indicator.isCanceled()) {
