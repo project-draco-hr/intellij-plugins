@@ -1,4 +1,7 @@
 {
+  if (c != '{') {
+    return Result.CONTINUE;
+  }
   if (!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) {
     return Result.CONTINUE;
   }
@@ -6,14 +9,17 @@
     PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
     final int offset=editor.getCaretModel().getOffset();
     final PsiElement elementAtCursor=InjectedLanguageUtil.findElementAtNoCommit(file,offset);
+    if (elementAtCursor == null) {
+      return Result.CONTINUE;
+    }
     if (elementAtCursor.getLanguage() != OgnlLanguage.INSTANCE) {
       return Result.CONTINUE;
     }
   }
-  if (handleExpressionPrefix(c,editor)) {
+  if (handleExpressionPrefix(editor)) {
     return Result.STOP;
   }
-  if (handleOpeningBrace(c,editor)) {
+  if (handleOpeningBrace(editor)) {
     return Result.STOP;
   }
   return Result.CONTINUE;
