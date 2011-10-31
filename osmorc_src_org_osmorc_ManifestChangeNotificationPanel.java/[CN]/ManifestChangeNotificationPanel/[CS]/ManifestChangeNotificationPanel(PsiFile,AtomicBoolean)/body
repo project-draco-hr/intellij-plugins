@@ -5,19 +5,17 @@
     @Override public void run(){
       myNeedsResync.set(false);
       EditorNotifications.getInstance(modifiedFile.getProject()).updateAllNotifications();
-      ApplicationManager.getApplication().invokeLater(new Runnable(){
-        @Override public void run(){
-          new Task.Backgroundable(modifiedFile.getProject(),"Processing manifest change",false){
-            @Override public void run(            @NotNull ProgressIndicator indicator){
-              indicator.setText("Synchronizing dependencies.");
-              indicator.setIndeterminate(true);
-              ModuleDependencySynchronizer.resynchronizeAll(modifiedFile.getProject());
-            }
-          }
-.queue();
-        }
-      }
+      ManifestChangeWatcher.resynchronizeDependencies(modifiedFile);
+    }
+  }
 );
+  createActionLabel("Enable Automatic Synchronization",new Runnable(){
+    @Override public void run(){
+      myNeedsResync.set(false);
+      EditorNotifications.getInstance(modifiedFile.getProject()).updateAllNotifications();
+      ProjectSettings ps=ProjectSettings.getInstance(modifiedFile.getProject());
+      ps.setManifestSynchronizationType(ProjectSettings.ManifestSynchronizationType.AutomaticallySynchronize);
+      ManifestChangeWatcher.resynchronizeDependencies(modifiedFile);
     }
   }
 );
