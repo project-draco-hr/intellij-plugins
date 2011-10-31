@@ -4,27 +4,27 @@
   }
   final Sdk sdk=ModuleRootManager.getInstance(module).getSdk();
   if ((FlexUtils.isFlexModuleOrContainsFlexFacet(module) || (sdk != null && sdk.getSdkType() instanceof IFlexSdkType)) || !CodeContext.isStdNamespace(uri)) {
-    Map<String,CachedValue<XmlFile>> descriptors=module.getUserData(DESCRIPTORS_MAP_IN_MODULE);
+    Map<String,ParameterizedCachedValue<XmlFile,Module>> descriptors=module.getUserData(DESCRIPTORS_MAP_IN_MODULE);
     if (descriptors == null) {
-      descriptors=new THashMap<String,CachedValue<XmlFile>>();
+      descriptors=new THashMap<String,ParameterizedCachedValue<XmlFile,Module>>();
       module.putUserData(DESCRIPTORS_MAP_IN_MODULE,descriptors);
     }
-    CachedValue<XmlFile> reference=descriptors.get(uri);
+    ParameterizedCachedValue<XmlFile,Module> reference=descriptors.get(uri);
     if (reference == null) {
-      reference=CachedValuesManager.getManager(module.getProject()).createCachedValue(new CachedValueProvider<XmlFile>(){
-        final URL resource=FlexSchemaHandler.class.getResource("z.xsd");
-        final VirtualFile fileByURL=VfsUtil.findFileByURL(resource);
-        public Result<XmlFile> compute(){
+      reference=CachedValuesManager.getManager(module.getProject()).createParameterizedCachedValue(new ParameterizedCachedValueProvider<XmlFile,Module>(){
+        @Override public CachedValueProvider.Result<XmlFile> compute(        Module module){
+          final URL resource=FlexSchemaHandler.class.getResource("z.xsd");
+          final VirtualFile fileByURL=VfsUtil.findFileByURL(resource);
           XmlFile result=(XmlFile)PsiManager.getInstance(module.getProject()).findFile(fileByURL).copy();
           result.putUserData(FlexMxmlNSDescriptor.NS_KEY,uri);
           result.putUserData(FlexMxmlNSDescriptor.MODULE_KEY,module);
-          return new Result<XmlFile>(result,PsiModificationTracker.MODIFICATION_COUNT);
+          return new CachedValueProvider.Result<XmlFile>(result,PsiModificationTracker.MODIFICATION_COUNT);
         }
       }
 ,false);
       descriptors.put(uri,reference);
     }
-    return reference.getValue();
+    return reference.getValue(module);
   }
   return null;
 }
