@@ -1,0 +1,20 @@
+{
+  if (!CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) {
+    return Result.CONTINUE;
+  }
+  if (file.getFileType() != OgnlFileType.INSTANCE) {
+    PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
+    final int offset=editor.getCaretModel().getOffset();
+    final PsiElement elementAtCursor=InjectedLanguageUtil.findElementAtNoCommit(file,offset);
+    if (elementAtCursor.getLanguage() != OgnlLanguage.INSTANCE) {
+      return Result.CONTINUE;
+    }
+  }
+  if (handleExpressionPrefix(c,editor)) {
+    return Result.STOP;
+  }
+  if (handleOpeningBrace(c,editor)) {
+    return Result.STOP;
+  }
+  return Result.CONTINUE;
+}
