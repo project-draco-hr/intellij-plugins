@@ -9,6 +9,7 @@
     }
     return null;
   }
+  final LinkageType linkageType;
   final int lastSlashIndex=path.lastIndexOf('/');
   if (lastSlashIndex <= 0 || lastSlashIndex == path.length() - 1) {
     LOG.error("Unexpected Flex SDK root: " + path);
@@ -16,17 +17,20 @@
   final String swcName=path.substring(lastSlashIndex + 1);
   final String folderPath=path.substring(0,lastSlashIndex);
   if (folderPath.endsWith("/frameworks/libs")) {
-    return getLibraryFromLibsFolderLinkage(bcNature,componentSet,swcName);
+    linkageType=getLibraryFromLibsFolderLinkage(bcNature,componentSet,swcName);
   }
-  if (folderPath.endsWith("/frameworks/libs/air")) {
-    return getAirLibraryLinkage(bcNature,componentSet,swcName);
+ else   if (folderPath.endsWith("/frameworks/libs/air")) {
+    linkageType=getAirLibraryLinkage(bcNature,componentSet,swcName);
   }
-  if (folderPath.endsWith("/frameworks/libs/mobile")) {
-    return getMobileLibraryLinkage(bcNature,swcName);
+ else   if (folderPath.endsWith("/frameworks/libs/mobile")) {
+    linkageType=getMobileLibraryLinkage(bcNature,swcName);
   }
-  if (folderPath.endsWith("/frameworks/libs/mx")) {
-    return getMxLibraryLinkage(bcNature,componentSet,swcName);
+ else   if (folderPath.endsWith("/frameworks/libs/mx")) {
+    linkageType=getMxLibraryLinkage(bcNature,componentSet,swcName);
   }
-  LOG.error("Unknown Flex SDK root: " + path);
-  return LinkageType.Merged;
+ else {
+    LOG.error("Unknown Flex SDK root: " + path);
+    linkageType=LinkageType.Merged;
+  }
+  return bcNature.isLib() && linkageType != null ? LinkageType.Default : linkageType;
 }
