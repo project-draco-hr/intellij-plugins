@@ -1,5 +1,10 @@
 {
-  final AbcNameFilter sparkInclusionNameFilter=new AbcNameFilterStartsWith("com.intellij.flex.uiDesigner.flex",true);
+  final AbcNameFilter sparkInclusionNameFilter=new AbcNameFilterStartsWith("com.intellij.flex.uiDesigner.flex",true){
+    @Override public boolean accept(    CharSequence name){
+      return super.accept(name) && !StringUtil.equals(name,"com.intellij.flex.uiDesigner.flex:SpriteLoaderAsset");
+    }
+  }
+;
   final Collection<CharSequence> commonDefinitions=new ArrayList<CharSequence>(1);
   commonDefinitions.add("com.intellij.flex.uiDesigner:SpecialClassForAdobeEngineers");
   final AbcNameFilter air4InclusionNameFilter=new AbcNameFilterByNameSet(FlexOverloadedClasses.AIR_SPARK_CLASSES,true);
@@ -8,7 +13,7 @@
   if (classifier == InjectionClassifier.framework) {
     abcNameFilter=new AbcNameFilterByNameSetAndStartsWith(commonDefinitions,new String[]{"mx.","spark."}){
       @Override public boolean accept(      CharSequence name){
-        return StringUtil.equals(name,"com.intellij.flex.uiDesigner.flex:SpriteLoaderAsset") || StringUtil.equals(name,FlexOverloadedClasses.STYLE_PROTO_CHAIN) || FlexOverloadedClasses.MX_CLASSES.contains(name)|| (super.accept(name) && !sparkInclusionNameFilter.accept(name) && !air4InclusionNameFilter.accept(name));
+        return StringUtil.equals(name,FlexOverloadedClasses.STYLE_PROTO_CHAIN) || FlexOverloadedClasses.MX_CLASSES.contains(name) || (super.accept(name) && !sparkInclusionNameFilter.accept(name) && !air4InclusionNameFilter.accept(name));
       }
     }
 ;
