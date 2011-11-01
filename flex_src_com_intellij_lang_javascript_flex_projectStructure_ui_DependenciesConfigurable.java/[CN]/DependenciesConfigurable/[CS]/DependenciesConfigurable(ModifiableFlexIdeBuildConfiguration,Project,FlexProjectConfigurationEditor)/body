@@ -25,11 +25,12 @@
     }
   }
 );
-  final LinkageType defaultLinkage=BCUtils.getDefaultFrameworkLinkage(myNature);
   myFrameworkLinkageCombo.setRenderer(new ListCellRendererWrapper<LinkageType>(myFrameworkLinkageCombo.getRenderer()){
     public void customize(    JList list,    LinkageType value,    int index,    boolean selected,    boolean hasFocus){
       if (value == LinkageType.Default) {
-        setText(MessageFormat.format("Default ({0})",defaultLinkage.getLongText()));
+        final FlexSdk sdk=mySdkPanel.getCurrentSdk();
+        final String sdkVersion=sdk != null ? sdk.getFlexVersion() : null;
+        setText(sdkVersion == null ? "Default" : MessageFormat.format("Default ({0})",BCUtils.getDefaultFrameworkLinkage(sdkVersion,myNature).getLongText()));
       }
  else {
         setText(value.getLongText());
