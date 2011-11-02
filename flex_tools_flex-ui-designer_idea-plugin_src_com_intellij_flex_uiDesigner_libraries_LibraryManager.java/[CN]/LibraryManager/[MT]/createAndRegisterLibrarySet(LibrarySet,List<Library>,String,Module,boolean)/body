@@ -1,0 +1,22 @@
+{
+  try {
+    final int id=librarySetIdPool.allocate();
+    final SortResult result=new LibrarySorter(appDir,module).sort(libraries,id,flexSdkVersion,isFromSdk);
+    final LibrarySet librarySet=new LibrarySet(id,parent,ApplicationDomainCreationPolicy.ONE,result.items,result.resourceBundleOnlyitems,result.embedItems);
+    Client.getInstance().registerLibrarySet(librarySet);
+    return librarySet;
+  }
+ catch (  Throwable e) {
+    String technicalMessage="Flex SDK " + flexSdkVersion;
+    final Attachment[] attachments=new Attachment[libraries.size()];
+    try {
+      for (int i=0, librariesSize=libraries.size(); i < librariesSize; i++) {
+        attachments[i]=new Attachment(libraries.get(i).getCatalogFile());
+      }
+    }
+ catch (    Throwable innerE) {
+      technicalMessage+=" Cannot collect library catalog files due to " + ExceptionUtil.getThrowableText(innerE);
+    }
+    throw new InitException(e,"error.sort.libraries",attachments,technicalMessage);
+  }
+}

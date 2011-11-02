@@ -1,0 +1,21 @@
+{
+  for (  LibrarySet librarySet : moduleInfo.getLibrarySets()) {
+    do {
+      PropertiesFile propertiesFile;
+      final Project project=moduleInfo.getElement().getProject();
+      for (      LibrarySetItem item : librarySet.getItems()) {
+        Library library=item.library;
+        if (library.hasResourceBundles() && (propertiesFile=getResourceBundleFile(locale,bundleName,library,project)) != null) {
+          return propertiesFile;
+        }
+      }
+      for (      LibrarySetItem item : librarySet.getResourceBundleOnlyItems()) {
+        if ((propertiesFile=getResourceBundleFile(locale,bundleName,item.library,project)) != null) {
+          return propertiesFile;
+        }
+      }
+    }
+ while ((librarySet=librarySet.getParent()) != null);
+  }
+  return null;
+}

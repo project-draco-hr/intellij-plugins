@@ -14,7 +14,7 @@
   if (holders.isEmpty()) {
     return;
   }
-  final StyleTagWriter localStyleWriter=new StyleTagWriter(stringWriter,problemsHolder,unregisteredDocumentReferences);
+  final StyleTagWriter localStyleWriter=new StyleTagWriter(new LocalCssWriter(stringWriter,problemsHolder,unregisteredDocumentReferences,assetCounter));
   final Processor<JSClass> processor=new Processor<JSClass>(){
     @Override public boolean process(    JSClass jsClass){
       PsiFile containingFile=jsClass.getNavigationElement().getContainingFile();
@@ -51,5 +51,4 @@
   for (  JSClass holder : holders) {
     JSClassSearch.searchClassInheritors(new JSClassSearch.SearchParameters(holder,true,moduleScope)).forEach(processor);
   }
-  assetCounter.append(localStyleWriter.getRequiredAssetsInfo());
 }
