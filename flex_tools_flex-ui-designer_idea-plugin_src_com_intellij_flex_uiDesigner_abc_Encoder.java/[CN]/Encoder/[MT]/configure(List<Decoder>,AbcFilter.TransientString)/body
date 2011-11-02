@@ -27,6 +27,7 @@
   }
   metadataInfo=new MetadataInfoByteArray(sizes,total);
   estimatedSize=0;
+  int classEstimatedSize=0;
   total=0;
   sizes=new int[decoders.size()];
   for (int i=0, size=sizes.length; i < size; i++) {
@@ -34,12 +35,14 @@
     if (decoder == null) {
       continue;
     }
-    estimatedSize+=decoder.classInfo.estimatedSize;
+    estimatedSize+=decoder.classInfo.instanceEstimatedSize;
+    classEstimatedSize+=decoder.classInfo.classEstimatedSize;
     sizes[i]=decoder.classInfo.size();
     total+=sizes[i];
   }
-  classInfo=new DataBuffer2(estimatedSize,sizes);
-  classInfo.writeU32(total);
+  instanceInfo=new DataBuffer2(estimatedSize,sizes);
+  classInfo=new DataBuffer2(classEstimatedSize,sizes);
+  instanceInfo.writeU32(total);
   estimatedSize=0;
   total=0;
   sizes=new int[decoders.size()];
