@@ -23,8 +23,11 @@
     descriptor=myPredefinedDescriptors.get(attributeName);
   }
   if (descriptor == null) {
-    if (IMPLEMENTS_ATTR_NAME.equals(attributeName) && context != null && context.getParent() instanceof XmlDocument) {
-      descriptor=new AnnotationBackedDescriptorImpl(IMPLEMENTS_ATTR_NAME,this,true,null,null,null);
+    if (IMPLEMENTS_ATTR_NAME.equals(attributeName) && context != null) {
+      final PsiElement parent=context.getParent();
+      if (parent instanceof XmlDocument || (parent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)parent))) {
+        descriptor=new AnnotationBackedDescriptorImpl(IMPLEMENTS_ATTR_NAME,this,true,null,null,null);
+      }
     }
  else     if (XmlBackedJSClassImpl.CLASS_NAME_ATTRIBUTE_NAME.equals(attributeName) && MxmlLanguageTagsUtil.isComponentTag(context)) {
       descriptor=new ClassNameAttributeDescriptor(this);
