@@ -1,0 +1,50 @@
+{
+  lastWrittenPosition=0;
+  while (buffer.position() < buffer.limit()) {
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+switch (type) {
+case TagTypes.End:
+      processEnd(length);
+    return;
+case TagTypes.ShowFrame:
+  processShowFrame(length);
+continue;
+case TagTypes.SymbolClass:
+processSymbolClass(length);
+continue;
+case TagTypes.ExportAssets:
+processExportAssets(length);
+continue;
+case TagTypes.FileAttributes:
+processFileAttributes(length);
+continue;
+case TagTypes.EnableDebugger:
+case TagTypes.EnableDebugger2:
+case TagTypes.SetBackgroundColor:
+case TagTypes.ProductInfo:
+case TagTypes.DebugID:
+case TagTypes.ScriptLimits:
+case TagTypes.Metadata:
+skipTag(length);
+continue;
+case TagTypes.DoABC2:
+readAbcName(buffer.position() + 4);
+if (abcNameFilter != null && !abcNameFilter.value(transientNameString)) {
+skipTag(length);
+}
+ else {
+int oldPosition=buffer.position();
+writeDataBeforeTag(length);
+buffer.position(oldPosition);
+doAbc2(length);
+buffer.position(lastWrittenPosition);
+}
+continue;
+}
+}
+}

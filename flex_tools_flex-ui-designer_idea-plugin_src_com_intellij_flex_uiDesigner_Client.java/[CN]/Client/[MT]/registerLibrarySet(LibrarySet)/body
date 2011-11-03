@@ -8,12 +8,7 @@
     beginMessage(ClientMethod.registerLibrarySet);
     out.writeUInt29(librarySet.getId());
     LibrarySet parent=librarySet.getParent();
-    if (parent == null) {
-      out.write(0);
-    }
- else {
-      out.writeUInt29(parent.getId());
-    }
+    out.writeShort(parent == null ? -1 : parent.getId());
     out.write(librarySet.getApplicationDomainCreationPolicy());
     out.write(items.size());
     final LibraryManager libraryManager=LibraryManager.getInstance();
@@ -26,7 +21,7 @@
       }
       out.write(flags);
       if (registered) {
-        out.writeShort(library.getId());
+        out.writeUInt29(library.getId());
       }
  else {
         out.writeShort(libraryManager.add(library));
@@ -47,11 +42,6 @@
         }
       }
       writeParents(items,item);
-    }
-    out.write(librarySet.getEmbedItems().size());
-    for (    LibrarySetEmbedItem item : librarySet.getEmbedItems()) {
-      out.write(items.indexOf(item.parent));
-      out.writeAmfUtf(item.path);
     }
     hasError=false;
   }
