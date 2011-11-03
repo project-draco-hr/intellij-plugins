@@ -1,75 +1,60 @@
 {
   int estimatedSize=0, total=0;
-  int[] sizes=new int[decoders.size()];
-  for (int i=0, size=sizes.length; i < size; i++) {
+  final int n=decoders.size();
+  for (int i=0; i < n; i++) {
     Decoder decoder=decoders.get(i);
     if (excludedName != null && decoder.name != null && excludedName.same(decoder.name)) {
       decoders.set(i,null);
       continue;
     }
     estimatedSize+=decoder.methodInfo.estimatedSize;
-    sizes[i]=decoder.methodInfo.size();
-    total+=sizes[i];
+    total+=decoder.methodInfo.size();
   }
-  methodInfo=new DataBuffer2(estimatedSize,sizes);
+  methodInfo=new DataBuffer2(estimatedSize);
   methodInfo.writeU32(total);
-  estimatedSize=0;
   total=0;
-  sizes=new int[decoders.size()];
-  for (int i=0, size=sizes.length; i < size; i++) {
-    Decoder decoder=decoders.get(i);
+  for (  Decoder decoder : decoders) {
     if (decoder == null) {
       continue;
     }
-    estimatedSize+=decoder.metadataInfo.estimatedSize;
-    sizes[i]=decoder.metadataInfo.size();
-    total+=sizes[i];
+    total+=decoder.metadataInfo.size();
   }
-  metadataInfo=new MetadataInfoByteArray(sizes,total);
+  metadataInfo=new MetadataInfoByteArray(total);
   estimatedSize=0;
   int classEstimatedSize=0;
   total=0;
-  sizes=new int[decoders.size()];
-  for (int i=0, size=sizes.length; i < size; i++) {
-    Decoder decoder=decoders.get(i);
+  for (  Decoder decoder : decoders) {
     if (decoder == null) {
       continue;
     }
     estimatedSize+=decoder.classInfo.instanceEstimatedSize;
     classEstimatedSize+=decoder.classInfo.classEstimatedSize;
-    sizes[i]=decoder.classInfo.size();
-    total+=sizes[i];
+    total+=decoder.classInfo.size();
   }
-  instanceInfo=new DataBuffer2(estimatedSize,sizes);
-  classInfo=new DataBuffer2(classEstimatedSize,sizes);
+  instanceInfo=new DataBuffer2(estimatedSize);
+  classInfo=new DataBuffer2(classEstimatedSize);
   instanceInfo.writeU32(total);
   estimatedSize=0;
   total=0;
-  sizes=new int[decoders.size()];
-  for (int i=0, size=sizes.length; i < size; i++) {
-    Decoder decoder=decoders.get(i);
+  for (  Decoder decoder : decoders) {
     if (decoder == null) {
       continue;
     }
     estimatedSize+=decoder.scriptInfo.estimatedSize;
-    sizes[i]=decoder.scriptInfo.size();
-    total+=sizes[i];
+    total+=decoder.scriptInfo.size();
   }
-  scriptInfo=new DataBuffer2(estimatedSize,sizes);
+  scriptInfo=new DataBuffer2(estimatedSize);
   scriptInfo.writeU32(total);
   estimatedSize=0;
   total=0;
-  sizes=new int[decoders.size()];
-  for (int i=0, size=sizes.length; i < size; i++) {
-    Decoder decoder=decoders.get(i);
+  for (  Decoder decoder : decoders) {
     if (decoder == null) {
       continue;
     }
     estimatedSize+=decoder.methodBodies.estimatedSize;
-    sizes[i]=decoder.methodBodies.size();
-    total+=sizes[i];
+    total+=decoder.methodBodies.size();
   }
-  methodBodies=new DataBuffer2(estimatedSize,sizes);
+  methodBodies=new DataBuffer2(estimatedSize);
   methodBodies.writeU32(total);
   opcodes=new DataBuffer3(decoders,4096);
   exceptions=new WritableDataBuffer(4096);
