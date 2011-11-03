@@ -1,0 +1,19 @@
+{
+  final Encoder encoder=flexSdkVersion != null ? new FlexEncoder("test",flexSdkVersion) : new Encoder();
+  encoder.configure(decoders,null);
+  SwfUtil.mergeDoAbc(decoders,encoder);
+  encoder.writeDoAbc(channel,true);
+  buffer.clear();
+  symbolClassBuffer.flip();
+  encodeTagHeader(TagTypes.SymbolClass,symbolClassBuffer.limit() + 2);
+  buffer.putShort((short)totalNumSymbols);
+  buffer.flip();
+  channel.write(buffer);
+  channel.write(symbolClassBuffer);
+  buffer.clear();
+  SwfUtil.footer(buffer);
+  buffer.flip();
+  channel.write(buffer);
+  writeHeader();
+  out.close();
+}

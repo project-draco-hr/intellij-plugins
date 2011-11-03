@@ -1,0 +1,13 @@
+{
+  final List<LibrarySetItem> unsortedItems=new ArrayList<LibrarySetItem>(libraries.size());
+  final CatalogXmlBuilder catalogXmlBuilder=new CatalogXmlBuilder(definitionMap,isExternal);
+  for (  Library library : libraries) {
+    LibrarySetItem filteredLibrary=new LibrarySetItem(library);
+    catalogXmlBuilder.setLibrary(filteredLibrary);
+    IOUtil.parseXml(library.getCatalogFile(),catalogXmlBuilder);
+    if (filteredLibrary.hasDefinitions() || library.hasResourceBundles()) {
+      unsortedItems.add(filteredLibrary);
+    }
+  }
+  return unsortedItems;
+}
