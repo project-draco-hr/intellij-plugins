@@ -1,8 +1,9 @@
 {
   useIndexForFindDefinitions=!isFromSdk;
   ArrayList<LibrarySetItem> resourceBundleOnlyItems=null;
-  final List<LibrarySetItem> unsortedItems=collectItems(libraries,isFromSdk);
-  AbcFilter filter=null;
+  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128);
+  final List<LibrarySetItem> unsortedItems=collectItems(libraries,isFromSdk,definitionMap);
+  AbcMerger abcMerger=new AbcMerger(definitionMap,flexSdkVersion);
   for (  LibrarySetItem item : unsortedItems) {
     if (!item.hasDefinitions()) {
       if (item.library.hasResourceBundles()) {
@@ -13,6 +14,7 @@
       }
       continue;
     }
+    abcMerger.process(item.library);
     Collection<CharSequence> filteredDefinitions=null;
     item.filtered=item.hasUnresolvedDefinitions();
     if (isFromSdk) {
