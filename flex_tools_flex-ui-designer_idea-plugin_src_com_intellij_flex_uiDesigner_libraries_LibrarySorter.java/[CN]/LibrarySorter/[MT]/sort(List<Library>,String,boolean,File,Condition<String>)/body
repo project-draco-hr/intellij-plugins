@@ -1,7 +1,7 @@
 {
   useIndexForFindDefinitions=!isFromSdk;
   ArrayList<LibrarySetItem> resourceBundleOnlyItems=null;
-  final Map<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcFilter.HASHING_STRATEGY);
+  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcFilter.HASHING_STRATEGY);
   final List<LibrarySetItem> unsortedItems=collectItems(libraries,isFromSdk,definitionMap,isExternal);
   AbcMerger abcMerger=new AbcMerger(definitionMap,flexSdkVersion,outFile);
   final ArrayList<LibrarySetItem> items=new ArrayList<LibrarySetItem>(unsortedItems.size());
@@ -16,20 +16,21 @@
       continue;
     }
     items.add(item);
-    System.out.print("\n" + item.library.getName() + " \n");
     abcMerger.process(item.library);
   }
   final List<Decoder> decoders=new ArrayList<Decoder>(definitionMap.size());
-  for (  Entry<CharSequence,Definition> entry : definitionMap.entrySet()) {
-    final Definition definition=entry.getValue();
-    if (definition.doAbcData == null) {
-      continue;
-    }
-    if (definition.dependencies != null && (definition.unresolvedState == UnresolvedState.NO || (definition.unresolvedState == UnresolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap)))) {
-      decoders.add(new Decoder(definition.doAbcData));
-      definition.doAbcData=null;
+  definitionMap.forEachValue(new TObjectProcedure<Definition>(){
+    @Override public boolean execute(    Definition definition){
+      if (definition.doAbcData != null && definition.dependencies != null && (definition.unresolvedState == UnresolvedState.NO || (definition.unresolvedState == UnresolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap)))) {
+        if (definition.doAbcData != null) {
+          decoders.add(new Decoder(definition.doAbcData));
+          definition.doAbcData=null;
+        }
+      }
+      return true;
     }
   }
+);
   abcMerger.end(decoders,flexSdkVersion);
   return new SortResult(items,resourceBundleOnlyItems);
 }
