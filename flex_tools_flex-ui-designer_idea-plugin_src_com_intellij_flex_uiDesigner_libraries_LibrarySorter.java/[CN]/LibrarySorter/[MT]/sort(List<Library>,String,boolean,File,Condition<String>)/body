@@ -1,27 +1,27 @@
 {
   useIndexForFindDefinitions=!isFromSdk;
-  ArrayList<LibrarySetItem> resourceBundleOnlyItems=null;
+  ArrayList<Library> resourceBundleOnlyItems=null;
   final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcFilter.HASHING_STRATEGY);
-  final List<LibrarySetItem> unsortedItems=collectItems(libraries,isFromSdk,definitionMap,isExternal);
-  AbcMerger abcMerger=new AbcMerger(definitionMap,flexSdkVersion,outFile);
-  final ArrayList<LibrarySetItem> items=new ArrayList<LibrarySetItem>(unsortedItems.size());
+  final List<LibrarySetItem> unsortedItems=collectItems(libraries,definitionMap,isExternal);
+  final AbcMerger abcMerger=new AbcMerger(definitionMap,flexSdkVersion,outFile);
+  final ArrayList<Library> items=new ArrayList<Library>(unsortedItems.size());
   for (  LibrarySetItem item : unsortedItems) {
     if (!item.hasDefinitions()) {
       if (item.library.hasResourceBundles()) {
         if (resourceBundleOnlyItems == null) {
-          resourceBundleOnlyItems=new ArrayList<LibrarySetItem>();
+          resourceBundleOnlyItems=new ArrayList<Library>();
         }
-        resourceBundleOnlyItems.add(item);
+        resourceBundleOnlyItems.add(item.library);
       }
       continue;
     }
-    items.add(item);
+    items.add(item.library);
     abcMerger.process(item.library);
   }
   final List<Decoder> decoders=new ArrayList<Decoder>(definitionMap.size());
   definitionMap.forEachValue(new TObjectProcedure<Definition>(){
     @Override public boolean execute(    Definition definition){
-      if (definition.doAbcData != null && definition.dependencies != null && (definition.unresolvedState == UnresolvedState.NO || (definition.unresolvedState == UnresolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap)))) {
+      if (definition.doAbcData != null && definition.dependencies != null && (definition.resolved == ResolvedState.YES || (definition.resolved == ResolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap)))) {
         if (definition.doAbcData != null) {
           decoders.add(new Decoder(definition.doAbcData));
           definition.doAbcData=null;
@@ -32,5 +32,5 @@
   }
 );
   abcMerger.end(decoders,flexSdkVersion);
-  return new SortResult(items,resourceBundleOnlyItems);
+  return new SortResult(definitionMap,items,resourceBundleOnlyItems);
 }
