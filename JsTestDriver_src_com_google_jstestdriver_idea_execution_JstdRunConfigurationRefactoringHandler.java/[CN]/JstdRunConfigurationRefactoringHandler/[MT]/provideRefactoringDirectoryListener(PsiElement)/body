@@ -1,7 +1,7 @@
 {
   final JstdRunSettings currentRunSettings=myRunConfiguration.getRunSettings();
-  String directoryPath=asFileSystemItem(element);
-  if (currentRunSettings.getDirectory().equals(directoryPath)) {
+  VirtualFile directory=toVirtualFile(element);
+  if (directory != null && currentRunSettings.getDirectory().equals(directory.getPath())) {
     return new RefactoringElementListener(){
       @Override public void elementMoved(      @NotNull PsiElement newElement){
         refactorIt(newElement);
@@ -9,11 +9,10 @@
       @Override public void elementRenamed(      @NotNull PsiElement newElement){
         refactorIt(newElement);
       }
-      private void refactorIt(      PsiElement newElement){
-        System.out.println("Running provideRefactoringDirectoryListener ...");
-        String newDirectoryPath=asFileSystemItem(newElement);
-        if (newDirectoryPath != null) {
-          JstdRunSettings newRunSettings=new JstdRunSettings.Builder(currentRunSettings).setDirectory(newDirectoryPath).build();
+      private void refactorIt(      @NotNull PsiElement newElement){
+        VirtualFile newDirectory=toVirtualFile(newElement);
+        if (newDirectory != null) {
+          JstdRunSettings newRunSettings=new JstdRunSettings.Builder(currentRunSettings).setDirectory(newDirectory.getPath()).build();
           updateRunSettings(newRunSettings);
         }
       }
