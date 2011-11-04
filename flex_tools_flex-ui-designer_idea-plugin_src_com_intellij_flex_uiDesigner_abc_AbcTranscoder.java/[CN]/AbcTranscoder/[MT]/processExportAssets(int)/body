@@ -1,0 +1,19 @@
+{
+  final int bodyPosition=buffer.position();
+  writeDataBeforeTag(length);
+  buffer.position(bodyPosition);
+  final int numSymbols=buffer.getShort();
+  if (numSymbols == 0) {
+    return;
+  }
+  ensureExportAssetsStorageCreated(numSymbols);
+  for (int i=0; i < numSymbols; i++) {
+    int id=buffer.getShort();
+    int start=buffer.position();
+    int end=start + skipAbcName(start) + 1;
+    if (id != 0) {
+      storeExportAsset(id,start,end);
+    }
+    buffer.position(end);
+  }
+}

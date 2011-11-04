@@ -1,0 +1,14 @@
+{
+  int headerLength=length < 63 ? 2 : 6;
+  int limit=buffer.position() - headerLength;
+  if (limit == lastWrittenPosition) {
+    lastWrittenPosition+=length + headerLength;
+    return false;
+  }
+  buffer.limit(limit);
+  buffer.position(lastWrittenPosition);
+  channel.write(buffer);
+  lastWrittenPosition=buffer.limit() + length + headerLength;
+  buffer.limit(buffer.capacity());
+  return true;
+}
