@@ -1,7 +1,7 @@
 {
   final JstdRunSettings currentRunSettings=myRunConfiguration.getRunSettings();
-  String jsFilePath=asFileSystemItem(element);
-  if (currentRunSettings.getJsFilePath().equals(jsFilePath)) {
+  VirtualFile jsFile=toVirtualFile(element);
+  if (jsFile != null && currentRunSettings.getJsFilePath().equals(jsFile.getPath())) {
     return new RefactoringElementListener(){
       @Override public void elementMoved(      @NotNull PsiElement newElement){
         refactorIt(newElement);
@@ -10,9 +10,9 @@
         refactorIt(newElement);
       }
       private void refactorIt(      PsiElement newElement){
-        String newJsFilePath=asFileSystemItem(newElement);
-        if (newJsFilePath != null) {
-          JstdRunSettings newRunSettings=new JstdRunSettings.Builder(currentRunSettings).setJSFilePath(newJsFilePath).build();
+        VirtualFile newJsFile=toVirtualFile(newElement);
+        if (newJsFile != null) {
+          JstdRunSettings newRunSettings=new JstdRunSettings.Builder(currentRunSettings).setJSFilePath(newJsFile.getPath()).build();
           updateRunSettings(newRunSettings);
         }
       }

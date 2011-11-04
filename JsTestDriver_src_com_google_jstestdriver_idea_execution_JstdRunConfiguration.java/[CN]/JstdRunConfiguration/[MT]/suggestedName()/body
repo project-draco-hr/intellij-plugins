@@ -3,22 +3,19 @@
     TestType testType=myRunSettings.getTestType();
     if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
       String directoryPath=myRunSettings.getDirectory();
-      File directory=new File(directoryPath);
-      if (!directoryPath.isEmpty() && directory.isDirectory()) {
-        return "All in " + directory.getName();
+      String rootRelativePath=ProjectRootUtils.getRootRelativePath(getProject(),directoryPath);
+      if (rootRelativePath == null) {
+        rootRelativePath=directoryPath;
       }
+      return "All in " + rootRelativePath;
     }
  else     if (testType == TestType.CONFIG_FILE) {
       File file=new File(myRunSettings.getConfigFile());
-      if (file.isFile()) {
-        return file.getName();
-      }
+      return file.getName();
     }
  else     if (testType == TestType.JS_FILE) {
       File file=new File(myRunSettings.getJsFilePath());
-      if (file.isFile()) {
-        return file.getName();
-      }
+      return file.getName();
     }
  else     if (testType == TestType.TEST_CASE) {
       return myRunSettings.getTestCaseName();
@@ -27,5 +24,5 @@
       return myRunSettings.getTestCaseName() + "." + myRunSettings.getTestMethodName();
     }
   }
-  return "Unknown";
+  return "Unnamed";
 }
