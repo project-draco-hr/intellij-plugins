@@ -5,12 +5,15 @@
   if (!element.isPhysical() || !element.isValid()) {
     return null;
   }
-  final StrutsFacet strutsFacet=StrutsFacet.getInstance(element);
+  final Module module=ModuleUtil.findModuleForPsiElement(element);
+  if (module == null) {
+    return null;
+  }
+  final StrutsFacet strutsFacet=StrutsFacet.getInstance(module);
   if (strutsFacet == null) {
     return null;
   }
   final PsiClass psiClass=(PsiClass)element;
-  final Module module=ModuleUtil.findModuleForPsiElement(psiClass);
   final StrutsModel strutsModel=StrutsManager.getInstance(psiClass.getProject()).getCombinedModel(module);
   if (strutsModel == null || !strutsModel.isActionClass(psiClass)) {
     return null;
