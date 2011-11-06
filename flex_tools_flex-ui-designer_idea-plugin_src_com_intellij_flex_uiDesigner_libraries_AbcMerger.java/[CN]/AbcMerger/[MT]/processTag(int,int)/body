@@ -2,7 +2,14 @@
   if (super.processTag(type,length) == 1 || type == TagTypes.FileAttributes || type == TagTypes.ShowFrame) {
     return 1;
   }
+  int characterIdPosition=-1;
 switch (type) {
+case TagTypes.DefineSprite:
+case TagTypes.DefineShape:
+case TagTypes.DefineShape2:
+case TagTypes.DefineShape3:
+case TagTypes.DefineShape4:
+case TagTypes.DefineBinaryData:
 case TagTypes.DefineBitsLossless2:
 case TagTypes.DefineBitsLossless:
 case TagTypes.PlaceObject:
@@ -11,6 +18,27 @@ case TagTypes.DefineBitsJPEG2:
 case TagTypes.DefineBitsJPEG3:
 case TagTypes.DefineBitsJPEG4:
 case TagTypes.DefineBits:
-  }
-  return 1;
+    characterIdPosition=buffer.position();
+  break;
+case TagTypes.PlaceObject2:
+if ((buffer.get(buffer.position()) & PlaceObjectFlags.HAS_CHARACTER) != 0) {
+  characterIdPosition=buffer.position() + 2;
+}
+break;
+case TagTypes.PlaceObject3:
+throw new IOException("PlaceObject3 are not supported");
+}
+if (characterIdPosition != -1) {
+final int oldId=buffer.getShort(characterIdPosition);
+SymbolInfo info=currentSymbolsInfo.get(oldId);
+if (info == null) {
+info=new SymbolInfo(++symbolCounter,buffer);
+currentSymbolsInfo.put(oldId,info);
+}
+ else {
+throw new IllegalStateException("ff");
+}
+buffer.putShort(characterIdPosition,(short)info.newId);
+}
+return 0;
 }

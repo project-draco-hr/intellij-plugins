@@ -3,13 +3,24 @@
   encoder.configure(decoders,null);
   SwfUtil.mergeDoAbc(decoders,encoder);
   encoder.writeDoAbc(channel,true);
+  int length=0;
+  for (  SymbolInfo info : symbols) {
+    length+=2 + (info.end - info.start);
+  }
   buffer.clear();
-  symbolClassBuffer.flip();
-  encodeTagHeader(TagTypes.SymbolClass,symbolClassBuffer.limit() + 2);
-  buffer.putShort((short)totalNumSymbols);
+  encodeTagHeader(TagTypes.SymbolClass,length + 2);
+  buffer.putShort((short)symbols.size());
   buffer.flip();
   channel.write(buffer);
-  channel.write(symbolClassBuffer);
+  for (  SymbolInfo info : symbols) {
+    final ByteBuffer b=info.buffer;
+    final int start=info.start - 2;
+    b.putShort(start,(short)info.newId);
+    b.position(start);
+    b.limit(info.end);
+    channel.write(b);
+    b.limit(b.capacity());
+  }
   buffer.clear();
   SwfUtil.footer(buffer);
   buffer.flip();
