@@ -7,11 +7,18 @@
   for (  SymbolInfo info : symbols) {
     length+=2 + (info.end - info.start);
   }
+  Collections.sort(symbols,new Comparator<SymbolInfo>(){
+    @Override public int compare(    SymbolInfo o1,    SymbolInfo o2){
+      return o1.newId - o2.newId;
+    }
+  }
+);
   buffer.clear();
   encodeTagHeader(TagTypes.SymbolClass,length + 2);
   buffer.putShort((short)symbols.size());
   buffer.flip();
   channel.write(buffer);
+  buffer.clear();
   for (  SymbolInfo info : symbols) {
     final ByteBuffer b=info.buffer;
     final int start=info.start - 2;
