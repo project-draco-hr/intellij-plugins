@@ -2,9 +2,12 @@
   if (name.charAt(0) == 'm') {
     mod=value;
   }
- else   if (processDependencies) {
-    if (name.charAt(0) == 'i' && !isExternal.value(value)) {
-      dependencies.add(value);
+ else   if (dependenciesProcessing) {
+    if (name.charAt(0) == 'i') {
+      dep=value;
+    }
+ else     if (name.charAt(0) == 't' && (value.charAt(0) == 'i' || value.charAt(0) == 'n') && !isExternal.value(dep)) {
+      dependencies.add(dep);
     }
   }
  else   if (defProcessing) {
@@ -20,7 +23,6 @@
       }
     }
     definition=new Definition(library);
-    definition.name=value;
     if (time == -1) {
       definition.setTimeAsString(mod);
     }
@@ -29,10 +31,10 @@
     }
     definitionMap.put(value,definition);
     library.definitionCounter++;
-    processDependencies=true;
+    dependenciesProcessing=true;
   }
  else   if (filesProcessing && name.equals("path")) {
-    if (value.startsWith(LOCALE_PREFIX) && value.endsWith(PROPERTIES_EXTENSION)) {
+    if (value.startsWith(LOCALE_PREFIX) && value.endsWith(LibraryManager.PROPERTIES_EXTENSION)) {
       final int vlength=value.length();
       final int secondSlashPosition=StringUtil.lastIndexOf(value,'/',LOCALE_PREFIX_LENGTH + 2,vlength - PROPERTIES_EXTENSION_LENGTH - 1);
       final String locale=value.substring(LOCALE_PREFIX_LENGTH,secondSlashPosition);
