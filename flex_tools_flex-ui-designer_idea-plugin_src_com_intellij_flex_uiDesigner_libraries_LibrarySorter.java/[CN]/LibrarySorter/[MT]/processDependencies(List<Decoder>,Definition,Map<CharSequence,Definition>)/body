@@ -20,13 +20,21 @@
         continue;
       }
     }
+    final BufferWrapper depAbcData;
+    if (dependency == null) {
+      depAbcData=null;
+    }
+ else {
+      depAbcData=dependency.doAbcData;
+      dependency.doAbcData=null;
+    }
     if (dependency == null || dependency.resolved == ResolvedState.NO || (dependency.resolved == ResolvedState.UNKNOWN && !processDependencies(decoders,dependency,definitionMap))) {
       definition.markAsUnresolved();
       definition.resolved=ResolvedState.NO;
       return false;
     }
-    if (dependency.doAbcData != null) {
-      decoders.add(new Decoder(dependency.doAbcData));
+    if (depAbcData != null) {
+      decoders.add(new Decoder(depAbcData));
       dependency.doAbcData=null;
     }
   }

@@ -1,7 +1,9 @@
 {
-  final List<Library> items=librarySet.getLibraries();
-  if (items.isEmpty()) {
-    return;
+  final List<Library> styleOwners=new ArrayList<Library>();
+  for (  Library library : librarySet.getLibraries()) {
+    if (library.inheritingStyles != null || library.defaultsStyle != null) {
+      styleOwners.add(library);
+    }
   }
   boolean hasError=true;
   try {
@@ -10,9 +12,9 @@
     out.write(librarySet instanceof FlexLibrarySet);
     LibrarySet parent=librarySet.getParent();
     out.writeShort(parent == null ? -1 : parent.getId());
-    out.write(items.size());
+    out.write(styleOwners.size());
     final LibraryManager libraryManager=LibraryManager.getInstance();
-    for (    Library library : items) {
+    for (    Library library : styleOwners) {
       final boolean registered=libraryManager.isRegistered(library);
       out.write(registered);
       if (registered) {

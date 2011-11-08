@@ -1,0 +1,47 @@
+{
+  useIndexForFindDefinitions=!isFromSdk;
+  ArrayList<Library> resourceBundleOnlyItems=null;
+  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcFilter.HASHING_STRATEGY);
+  final List<LibrarySetItem> unsortedItems=collectItems(libraries,definitionMap,isExternal);
+  final AbcMerger abcMerger=new AbcMerger(definitionMap,outFile);
+  try {
+    final ArrayList<Library> items=new ArrayList<Library>(unsortedItems.size());
+    for (    LibrarySetItem item : unsortedItems) {
+      if (!item.hasDefinitions()) {
+        if (item.library.hasResourceBundles()) {
+          if (resourceBundleOnlyItems == null) {
+            resourceBundleOnlyItems=new ArrayList<Library>();
+          }
+          resourceBundleOnlyItems.add(item.library);
+        }
+        continue;
+      }
+      items.add(item.library);
+      abcMerger.process(item.library);
+    }
+    if (definitionMapPostProcessor != null) {
+      definitionMapPostProcessor.pass(definitionMap);
+    }
+    final List<Decoder> decoders=new ArrayList<Decoder>(definitionMap.size());
+    definitionMap.forEachValue(new TObjectProcedure<Definition>(){
+      @Override public boolean execute(      Definition definition){
+        final BufferWrapper abcData=definition.doAbcData;
+        if (abcData == null) {
+          return true;
+        }
+        definition.doAbcData=null;
+        if (definition.dependencies != null && (definition.resolved == ResolvedState.YES || (definition.resolved == ResolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap)))) {
+          decoders.add(new Decoder(abcData));
+        }
+        return true;
+      }
+    }
+);
+    final Encoder encoder=new Encoder();
+    abcMerger.end(decoders,encoder);
+    return new SortResult(definitionMap,items,resourceBundleOnlyItems);
+  }
+  finally {
+    abcMerger.close();
+  }
+}
