@@ -1,0 +1,32 @@
+{
+  String name=null;
+  StringTokenizer t=new StringTokenizer(var,".");
+  FormatNode current=root;
+  while (t.hasMoreTokens()) {
+    String token=t.nextToken();
+    if (name == null)     name=token;
+ else     name+="." + token;
+    if (current.children == null)     current.children=new TreeMap<String,FormatNode>();
+    if (cfgbuf.isChildConfig(name)) {
+      if (!current.children.containsKey(token)) {
+        FormatNode node=new FormatNode();
+        node.fullname=name;
+        node.shortname=token;
+        node.children=new TreeMap<String,FormatNode>();
+        current.children.put(token,node);
+        current=node;
+      }
+ else {
+        current=current.children.get(token);
+      }
+    }
+ else     if (cfgbuf.isValidVar(name)) {
+      FormatNode node=new FormatNode();
+      node.fullname=name;
+      node.shortname=token;
+      node.info=cfgbuf.getInfo(name);
+      node.values=cfgbuf.getVar(name);
+      current.children.put(token,node);
+    }
+  }
+}
