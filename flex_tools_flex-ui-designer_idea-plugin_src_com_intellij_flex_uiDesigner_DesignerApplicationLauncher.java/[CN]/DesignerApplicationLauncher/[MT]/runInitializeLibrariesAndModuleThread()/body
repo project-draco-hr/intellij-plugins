@@ -1,0 +1,27 @@
+{
+  LibraryManager.getInstance().setAppDir(APP_DIR);
+  initializeThread=ApplicationManager.getApplication().executeOnPooledThread(new Callable<XmlFile[]>(){
+    @Override public XmlFile[] call(){
+      LibraryManager.getInstance().garbageCollection(indicator);
+      indicator.checkCanceled();
+      try {
+        if (!StringRegistry.getInstance().isEmpty()) {
+          Client.getInstance().initStringRegistry();
+        }
+        indicator.setText(FlexUIDesignerBundle.message("collect.libraries"));
+        return LibraryManager.getInstance().initLibrarySets(module,true,problemsHolder);
+      }
+ catch (      Throwable e) {
+        if (e instanceof InitException) {
+          processInitException((InitException)e,module,debug);
+        }
+ else {
+          LOG.error(e);
+        }
+        indicator.cancel();
+        return null;
+      }
+    }
+  }
+);
+}

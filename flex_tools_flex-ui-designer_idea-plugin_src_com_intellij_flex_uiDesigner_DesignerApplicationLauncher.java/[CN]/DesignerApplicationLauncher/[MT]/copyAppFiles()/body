@@ -1,0 +1,16 @@
+{
+  @SuppressWarnings("unchecked") final Pair<String,String>[] files=new Pair[]{new Pair(DESIGNER_SWF,"main-loader/target/main-loader-1.0-SNAPSHOT.swf"),new Pair(DESCRIPTOR_XML,DESCRIPTOR_XML_DEV_PATH)};
+  if (DebugPathManager.IS_DEV) {
+    final String homePath=DebugPathManager.getFudHome();
+    final File home=new File(homePath);
+    for (    Pair<String,String> file : files) {
+      IOUtil.saveStream(new URL("file://" + home + "/"+ file.second),new File(APP_DIR,file.first));
+    }
+  }
+ else {
+    final ClassLoader classLoader=DesignerApplicationLauncher.class.getClassLoader();
+    for (    Pair<String,String> file : files) {
+      IOUtil.saveStream(classLoader.getResource(file.first),new File(APP_DIR,file.first));
+    }
+  }
+}

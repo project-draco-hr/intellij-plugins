@@ -10,7 +10,7 @@
   }
   documentOpening=true;
   if (appClosed) {
-    ProgressManager.getInstance().run(new FirstOpenDocumentTask(psiFile,module,debug));
+    ProgressManager.getInstance().run(new DesignerApplicationLauncher(module,debug,new FirstOpenDocumentTask(psiFile)));
   }
  else {
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
@@ -20,13 +20,13 @@
           final ProblemsHolder problemsHolder=new ProblemsHolder();
           if (!client.isModuleRegistered(module)) {
             try {
-              final XmlFile[] unregisteredDocumentReferences=LibraryManager.getInstance().initLibrarySets(module);
+              final XmlFile[] unregisteredDocumentReferences=LibraryManager.getInstance().initLibrarySets(module,true,problemsHolder);
               if (unregisteredDocumentReferences != null && !client.registerDocumentReferences(unregisteredDocumentReferences,module,problemsHolder)) {
                 return;
               }
             }
  catch (            InitException e) {
-              processInitException(e,module,debug);
+              DesignerApplicationLauncher.processInitException(e,module,debug);
             }
           }
           client.openDocument(module,psiFile,problemsHolder);

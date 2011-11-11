@@ -1,0 +1,21 @@
+{
+  String message=FlexUIDesignerBundle.message(SystemInfo.isLinux ? "no.sdk.to.launch.designer.linux" : "no.sdk.to.launch.designer");
+  DesignerApplicationManager.notifyUser(debug,message,module.getProject(),new Consumer<String>(){
+    @Override public void consume(    String id){
+      if ("edit".equals(id)) {
+        if (PlatformUtils.isFlexIde()) {
+          if (ProjectSettingsService.getInstance(myProject).canOpenModuleDependenciesSettings()) {
+            ProjectSettingsService.getInstance(myProject).openModuleDependenciesSettings(module,null);
+          }
+        }
+ else {
+          new ProjectJdksEditor(null,module.getProject(),WindowManager.getInstance().suggestParentWindow(myProject)).show();
+        }
+      }
+ else {
+        LOG.error("unexpected id: " + id);
+      }
+    }
+  }
+);
+}

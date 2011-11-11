@@ -1,0 +1,21 @@
+{
+  final Semaphore debuggerRunSemaphor=new Semaphore();
+  debuggerRunSemaphor.down();
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      try {
+        runDebugger(module,new Runnable(){
+          @Override public void run(){
+            debuggerRunSemaphor.up();
+          }
+        }
+);
+      }
+ catch (      ExecutionException e) {
+        LOG.error(e);
+      }
+    }
+  }
+);
+  debuggerRunSemaphor.waitFor();
+}

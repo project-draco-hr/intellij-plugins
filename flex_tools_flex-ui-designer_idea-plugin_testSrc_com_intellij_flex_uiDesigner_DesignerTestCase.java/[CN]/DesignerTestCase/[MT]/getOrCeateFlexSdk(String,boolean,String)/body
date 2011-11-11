@@ -1,0 +1,22 @@
+{
+  final String name=version + (air ? "-air-" : "-flex");
+  final ProjectJdkTable projectSdkTable=ProjectJdkTable.getInstance();
+  Sdk sdk=projectSdkTable.findJdk(name);
+  if (sdk == null) {
+    SdkType sdkType=air ? AirSdkType.getInstance() : FlexSdkType.getInstance();
+    sdk=PeerFactory.getInstance().createProjectJdk(name,version,homePath,sdkType);
+    sdkType.setupSdkPaths(sdk);
+    projectSdkTable.addJdk(sdk);
+  }
+  final SdkModificator modificator=sdk.getSdkModificator();
+  modificator.addRoot(getVirtualFile("lib/playerglobal"),OrderRootType.CLASSES);
+  String[] list=new File(homePath).list();
+  Arrays.sort(list);
+  for (  String filename : list) {
+    if (filename.endsWith(".swc")) {
+      addLibrary(modificator,homePath + "/" + filename);
+    }
+  }
+  modificator.commitChanges();
+  return sdk;
+}

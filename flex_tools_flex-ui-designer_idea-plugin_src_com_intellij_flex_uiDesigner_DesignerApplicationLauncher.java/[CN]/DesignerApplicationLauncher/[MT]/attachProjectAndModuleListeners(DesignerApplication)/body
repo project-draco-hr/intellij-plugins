@@ -1,0 +1,21 @@
+{
+  Application application=ApplicationManager.getApplication();
+  ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter(){
+    @Override public void projectClosed(    Project project){
+      Client client=Client.getInstance();
+      if (client.getRegisteredProjects().contains(project)) {
+        client.closeProject(project);
+      }
+    }
+  }
+,designerApplication);
+  application.getMessageBus().connect(designerApplication).subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void moduleRemoved(    Project project,    Module module){
+      Client client=Client.getInstance();
+      if (client.isModuleRegistered(module)) {
+        client.unregisterModule(module);
+      }
+    }
+  }
+);
+}
