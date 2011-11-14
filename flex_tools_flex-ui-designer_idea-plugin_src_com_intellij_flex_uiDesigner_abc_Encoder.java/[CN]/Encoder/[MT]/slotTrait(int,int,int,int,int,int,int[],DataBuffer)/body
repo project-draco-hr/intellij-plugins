@@ -1,14 +1,16 @@
 {
-  writeSlotTraitName(name,trait_kind,in);
-  TIntArrayList newMetadata=trimMetadata(metadata);
-  if (((trait_kind >> 4) & TRAIT_FLAG_metadata) != 0 && newMetadata == null) {
-    trait_kind=trait_kind & ~(TRAIT_FLAG_metadata << 4);
+  if (abcModifier == null || !abcModifier.writeSlotTraitName(name,traitKind,in,this)) {
+    currentBuffer.writeU32(history.getIndex(IndexHistory.MULTINAME,name));
   }
-  currentBuffer.writeU8(trait_kind);
+  TIntArrayList newMetadata=trimMetadata(metadata);
+  if (((traitKind >> 4) & TRAIT_FLAG_metadata) != 0 && newMetadata == null) {
+    traitKind=traitKind & ~(TRAIT_FLAG_metadata << 4);
+  }
+  currentBuffer.writeU8(traitKind);
   currentBuffer.writeU32(slotId);
   currentBuffer.writeU32(history.getIndex(IndexHistory.MULTINAME,type));
   int kind=-1;
-switch (value_kind) {
+switch (valueKind) {
 case CONSTANT_Utf8:
     kind=IndexHistory.STRING;
   break;
@@ -42,7 +44,7 @@ kind=IndexHistory.NS_SET;
 break;
 }
 int newIndex;
-switch (value_kind) {
+switch (valueKind) {
 case 0:
 case CONSTANT_False:
 case CONSTANT_True:
@@ -52,14 +54,14 @@ break;
 default :
 {
 if (kind == -1) {
-throw new DecoderException("writing slotTrait: don't know what constant type it is... " + value_kind + ","+ value);
+throw new DecoderException("writing slotTrait: don't know what constant type it is... " + valueKind + ","+ value);
 }
 newIndex=history.getIndex(kind,value);
 }
 }
 currentBuffer.writeU32(newIndex);
 if (value != 0) {
-currentBuffer.writeU8(value_kind);
+currentBuffer.writeU8(valueKind);
 }
 encodeMetaData(newMetadata);
 }
