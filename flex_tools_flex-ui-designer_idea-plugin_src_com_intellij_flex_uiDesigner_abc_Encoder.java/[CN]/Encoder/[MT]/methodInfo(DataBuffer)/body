@@ -2,12 +2,12 @@
   int paramCount=in.readU32();
   methodInfo.writeU32(paramCount);
   int returnType=in.readU32();
-  methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,returnType));
+  methodInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,returnType));
   for (int i=0; i < paramCount; i++) {
-    methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.MULTINAME,in.readU32()));
+    methodInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,in.readU32()));
   }
   int nativeName=in.readU32();
-  methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(poolIndex,IndexHistory.STRING,nativeName));
+  methodInfo.writeU32((disableDebugging) ? 0 : history.getIndex(IndexHistory.STRING,nativeName));
   int flags=in.readU8();
   if (disableDebugging) {
     flags&=~METHOD_HasParamNames;
@@ -66,7 +66,7 @@ default :
 if (kind == -1) {
 throw new DecoderException("Unknown constant type " + rawKind + " for "+ value);
 }
-newIndex=history.getIndex(poolIndex,kind,value);
+newIndex=history.getIndex(kind,value);
 }
 }
 methodInfo.writeU32(newIndex);
@@ -75,7 +75,7 @@ methodInfo.writeU8(rawKind);
 }
 if ((flags & METHOD_HasParamNames) != 0 && paramCount != 0) {
 for (int j=0; j < paramCount; ++j) {
-methodInfo.writeU32(history.getIndex(poolIndex,IndexHistory.STRING,in.readU32()));
+methodInfo.writeU32(history.getIndex(IndexHistory.STRING,in.readU32()));
 }
 }
 }
