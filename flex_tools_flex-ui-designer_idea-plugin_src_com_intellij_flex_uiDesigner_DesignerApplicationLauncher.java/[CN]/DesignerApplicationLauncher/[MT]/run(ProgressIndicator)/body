@@ -1,2 +1,28 @@
 {
+  this.indicator=indicator;
+  try {
+    Throwable error=null;
+    try {
+      doRun(indicator);
+    }
+ catch (    Throwable e) {
+      error=e;
+    }
+    if (error != null || indicator.isCanceled()) {
+      if (!DesignerApplicationManager.getInstance().isApplicationClosed()) {
+        DesignerApplicationManager.getInstance().disposeApplication();
+      }
+      if (initializeThread != null) {
+        initializeThread.cancel(true);
+        initializeThread=null;
+      }
+      semaphore.up();
+    }
+    if (error != null) {
+      LOG.error(error);
+    }
+  }
+  finally {
+    postTask.end();
+  }
 }

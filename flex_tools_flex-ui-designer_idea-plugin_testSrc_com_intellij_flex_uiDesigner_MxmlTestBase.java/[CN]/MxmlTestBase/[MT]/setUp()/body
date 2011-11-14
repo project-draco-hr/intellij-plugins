@@ -1,0 +1,41 @@
+{
+  super.setUp();
+  if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
+    final ExtensionPoint<ServiceDescriptor> extensionPoint=DesignerApplicationManager.getExtensionPoint();
+    ServiceDescriptor[] extensions=extensionPoint.getExtensions();
+    for (    ServiceDescriptor extension : extensions) {
+      if (extension.serviceInterface.equals(SocketInputHandler.class.getName())) {
+        extension.serviceImplementation=TestSocketInputHandler.class.getName();
+      }
+ else       if (extension.serviceInterface.equals(Client.class.getName())) {
+        extension.serviceImplementation=TestClient.class.getName();
+      }
+    }
+    changeServiceImplementation(DocumentProblemManager.class,TestDesignerApplicationManager.MyDocumentProblemManager.class);
+    new DesignerApplicationLauncher(myModule,false,new DesignerApplicationLauncher.PostTask(){
+      @Override public boolean run(      XmlFile[] unregisteredDocumentReferences,      ProgressIndicator indicator,      ProblemsHolder problemsHolder){
+        assertTrue(problemsHolder.isEmpty());
+        Client.getInstance().flush();
+        try {
+          assertAfterInitLibrarySets(unregisteredDocumentReferences);
+        }
+ catch (        IOException e) {
+          throw new AssertionError(e);
+        }
+        return true;
+      }
+      @Override public void end(){
+      }
+    }
+).run(new EmptyProgressIndicator());
+  }
+ else {
+    final ProblemsHolder problemsHolder=new ProblemsHolder();
+    XmlFile[] unregistedDocumentReferences=LibraryManager.getInstance().initLibrarySets(myModule,isRequireLocalStyleHolder(),problemsHolder);
+    assertTrue(problemsHolder.isEmpty());
+    assertAfterInitLibrarySets(unregistedDocumentReferences);
+  }
+  appDir=DesignerApplicationManager.APP_DIR;
+  socketInputHandler=(TestSocketInputHandler)SocketInputHandler.getInstance();
+  client=(TestClient)Client.getInstance();
+}
