@@ -29,8 +29,12 @@
       myAlarm.addRequest(new Runnable(){
         public void run(){
           final DefaultTreeModel treeModel=new DefaultTreeModel(new DefaultMutableTreeNode());
+          String[] frames=new String[]{mergedCallNode.frame};
+          final Pair<Map<String,Long>,Map<String,Long>> countMaps=mergedCallNode.callTree.getCalleesTimeMaps(frames);
+          final Map<String,Long> countMap=countMaps.getFirst();
+          final Map<String,Long> selfCountMap=countMaps.getSecond();
+          fillTreeModelRoot(treeModel,mergedCallNode.callTree,countMap,selfCountMap,false,frames);
           myTraces.setModel(treeModel);
-          treeModel.setRoot(new MergedCallNode(fixUserObjectStringForNode(lastPathComponent),mergedCallNode.countMap,mergedCallNode.profile,treeModel,false));
         }
       }
 ,500);
