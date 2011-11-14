@@ -2,7 +2,14 @@
   return new ReadAction<ManifestHolder>(){
     @Override protected void run(    Result<ManifestHolder> manifestHolderResult) throws Throwable {
       for (      ManifestHolder manifestHolder : myManifestHolders) {
-        if (manifestHolder.getBoundObject().equals(bundle)) {
+        Object boundObject;
+        try {
+          boundObject=manifestHolder.getBoundObject();
+        }
+ catch (        ManifestHolderDisposedException ignore) {
+          continue;
+        }
+        if (boundObject.equals(bundle)) {
           manifestHolderResult.setResult(manifestHolder);
           return;
         }

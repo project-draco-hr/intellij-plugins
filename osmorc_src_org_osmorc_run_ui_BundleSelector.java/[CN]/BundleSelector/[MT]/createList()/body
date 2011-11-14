@@ -1,6 +1,6 @@
 {
   allAvailableBundles.clear();
-  HashSet<SelectedBundle> hs=new HashSet<SelectedBundle>();
+  final HashSet<SelectedBundle> hs=new HashSet<SelectedBundle>();
   Module[] modules=ModuleManager.getInstance(project).getModules();
   for (  Module module : modules) {
     if (OsmorcFacet.hasOsmorcFacet(module)) {
@@ -9,21 +9,24 @@
     }
   }
   if (usedFramework != null) {
-    LibraryHandler libraryHandler=ServiceManager.getService(LibraryHandler.class);
-    List<Library> libs=libraryHandler.getLibraries(usedFramework.getName());
-    for (    Library lib : libs) {
-      String[] urls=lib.getUrls(OrderRootType.CLASSES);
-      for (      String url : urls) {
-        url=BundleCompiler.convertJarUrlToFileUrl(url);
-        url=BundleCompiler.fixFileURL(url);
-        String bundleName=CachingBundleInfoProvider.getBundleSymbolicName(url);
-        if (bundleName != null) {
-          String bundleVersion=CachingBundleInfoProvider.getBundleVersions(url);
-          SelectedBundle b=new SelectedBundle(bundleName + " - " + bundleVersion,url,SelectedBundle.BundleType.FrameworkBundle);
-          hs.add(b);
+    FrameworkIntegratorRegistry registry=ServiceManager.getService(FrameworkIntegratorRegistry.class);
+    FrameworkIntegrator integrator=registry.findIntegratorByInstanceDefinition(usedFramework);
+    integrator.getFrameworkInstanceManager().collectLibraries(usedFramework,new JarFileLibraryCollector(){
+      @Override protected void collectFrameworkJars(      @NotNull Collection<VirtualFile> jarFiles,      @NotNull FrameworkInstanceLibrarySourceFinder sourceFinder){
+        for (        VirtualFile jarFile : jarFiles) {
+          String url=jarFile.getUrl();
+          url=BundleCompiler.convertJarUrlToFileUrl(url);
+          url=BundleCompiler.fixFileURL(url);
+          String bundleName=CachingBundleInfoProvider.getBundleSymbolicName(url);
+          if (bundleName != null) {
+            String bundleVersion=CachingBundleInfoProvider.getBundleVersions(url);
+            SelectedBundle b=new SelectedBundle(bundleName + " - " + bundleVersion,url,SelectedBundle.BundleType.FrameworkBundle);
+            hs.add(b);
+          }
         }
       }
     }
+);
     final String[] urls=OrderEnumerator.orderEntries(project).withoutSdk().withoutModuleSourceEntries().satisfying(BundleCompiler.NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getUrls();
     for (    String url : urls) {
       url=BundleCompiler.convertJarUrlToFileUrl(url);

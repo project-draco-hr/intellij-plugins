@@ -1,32 +1,3 @@
 {
-  if (module.isDisposed()) {
-    return;
-  }
-  if (OsmorcFacet.hasOsmorcFacet(module)) {
-    ManifestHolder manifestHolder=myManifestHolderRegistry.getManifestHolder(module);
-    myBundleCache.updateWith(manifestHolder);
-  }
-  ModifiableRootModel model=new ReadAction<ModifiableRootModel>(){
-    protected void run(    Result<ModifiableRootModel> result) throws Throwable {
-      ModifiableRootModel model=ModuleRootManager.getInstance(module).getModifiableModel();
-      result.setResult(model);
-    }
-  }
-.execute().getResultObject();
-  OrderEntry[] entries=model.getOrderEntries();
-  try {
-    for (int i=0, entriesLength=entries.length; i < entriesLength; i++) {
-      OrderEntry entry=entries[i];
-      if (entry instanceof LibraryOrderEntry) {
-        final Library library=((LibraryOrderEntry)entry).getLibrary();
-        if (library != null) {
-          ManifestHolder manifestHolder=myManifestHolderRegistry.getManifestHolder(library);
-          myBundleCache.updateWith(manifestHolder);
-        }
-      }
-    }
-  }
-  finally {
-    model.dispose();
-  }
+  doReindex(module,true);
 }

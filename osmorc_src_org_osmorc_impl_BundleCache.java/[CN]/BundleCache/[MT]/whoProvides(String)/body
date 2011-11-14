@@ -1,0 +1,23 @@
+{
+  return new ReadAction<Set<ManifestHolder>>(){
+    @Override protected void run(    Result<Set<ManifestHolder>> manifestHolderResult) throws Throwable {
+      Set<ManifestHolder> result=new HashSet<ManifestHolder>();
+      for (      ManifestHolder manifestHolder : myManifestHolders) {
+        BundleManifest bundleManifest;
+        try {
+          bundleManifest=manifestHolder.getBundleManifest();
+        }
+ catch (        ManifestHolderDisposedException ignore) {
+          continue;
+        }
+        if (bundleManifest != null) {
+          if (bundleManifest.exportsPackage(packageSpec)) {
+            result.add(manifestHolder);
+          }
+        }
+      }
+      manifestHolderResult.setResult(result);
+    }
+  }
+.execute().getResultObject();
+}

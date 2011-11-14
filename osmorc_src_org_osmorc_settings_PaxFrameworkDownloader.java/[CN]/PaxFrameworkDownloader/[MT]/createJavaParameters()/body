@@ -1,0 +1,28 @@
+{
+  JavaParameters parameters=new JavaParameters();
+  Sdk sdk=JavaAwareProjectJdkTableImpl.getInstanceEx().getInternalJdk();
+  if (sdk == null) {
+    throw new ExecutionException("No Java SDK available.");
+  }
+  parameters.setJdk(sdk);
+  parameters.setMainClass(AbstractPaxBasedFrameworkRunner.PaxRunnerMainClass);
+  PathsList classpath=parameters.getClassPath();
+  for (  VirtualFile libraryFile : AbstractPaxBasedFrameworkRunner.getPaxLibraries()) {
+    classpath.add(libraryFile);
+  }
+  ParametersList parametersList=parameters.getProgramParametersList();
+  parametersList.add("--p=" + myFrameworkType);
+  if (!StringUtil.isEmpty(myVersion)) {
+    parametersList.add("--v=" + myVersion);
+  }
+  parametersList.add("--nologo=true");
+  parametersList.add("--executor=noop");
+  parametersList.add("--workingDirectory=" + myTargetFolder);
+  if (myClearDownloadFolder) {
+    parametersList.add("--clean");
+  }
+  if (!StringUtil.isEmpty(myProfiles)) {
+    parametersList.add("--profiles=" + myProfiles);
+  }
+  return parameters;
+}

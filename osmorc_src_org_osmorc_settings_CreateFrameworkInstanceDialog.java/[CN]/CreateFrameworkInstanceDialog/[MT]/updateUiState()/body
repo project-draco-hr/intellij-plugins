@@ -1,0 +1,27 @@
+{
+  boolean isDownload=isDownload();
+  myBaseFolderLabel.setEnabled(!isDownload);
+  myBaseFolderChooser.setEnabled(!isDownload);
+  myTargetFolder.setEnabled(isDownload);
+  myFolderLabel.setEnabled(isDownload);
+  myComboBox1.setEnabled(isDownload);
+  myProfilesLabel.setEnabled(isDownload);
+  myClearFolderBeforeDowloadCheckBox.setEnabled(isDownload);
+  final FrameworkIntegrator integrator=(FrameworkIntegrator)myIntegratorComboBox.getSelectedItem();
+  boolean hasFolderSelected=!StringUtil.isEmpty(getBaseFolder());
+  boolean hasIntegratorSelected=integrator != null;
+  myDownloadButton.setEnabled(isDownload && hasFolderSelected && hasIntegratorSelected);
+  boolean isFrameworkDefinitionValid=false;
+  if (integrator != null) {
+    FrameworkInstanceDefinition definition=new FrameworkInstanceDefinition();
+    definition.setName(getName());
+    definition.setFrameworkIntegratorName(getIntegratorName());
+    definition.setBaseFolder(getBaseFolder());
+    definition.setVersion(getVersion());
+    definition.setDownloadedByPaxRunner(isDownload());
+    String errorInfoText=integrator.getFrameworkInstanceManager().checkValidity(definition);
+    ((MyErrorText)myErrorText).setError(errorInfoText);
+    isFrameworkDefinitionValid=(errorInfoText == null || errorInfoText.length() == 0);
+  }
+  setOKActionEnabled(myNameTextField.getText().length() > 0 && integrator != null && isFrameworkDefinitionValid);
+}

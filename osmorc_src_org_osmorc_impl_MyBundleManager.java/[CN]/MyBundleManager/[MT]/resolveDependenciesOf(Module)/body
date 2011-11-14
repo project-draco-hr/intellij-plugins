@@ -6,9 +6,14 @@
   Set<Object> result=new HashSet<Object>();
   List<String> imports=manifest.getImports();
   for (  String anImport : imports) {
-    Object o=whoProvidesBest(anImport);
-    if (o != null) {
-      result.add(o);
+    Set<ManifestHolder> manifestHolders=myBundleCache.whoProvides(anImport);
+    for (    ManifestHolder manifestHolder : manifestHolders) {
+      try {
+        Object boundObject=manifestHolder.getBoundObject();
+        result.add(boundObject);
+      }
+ catch (      ManifestHolderDisposedException ignore) {
+      }
     }
   }
   List<String> requiredBundles=manifest.getRequiredBundles();
@@ -18,8 +23,18 @@
       try {
         result.add(manifestHolder.getBoundObject());
       }
- catch (      ManifestHolderDisposedException e) {
-        myBundleCache.markUnclean();
+ catch (      ManifestHolderDisposedException ignore) {
+      }
+    }
+  }
+  ManifestHolder manifestHolder=myBundleCache.getManifestHolder(module);
+  if (manifestHolder != null) {
+    Set<ManifestHolder> fragmentHosts=myBundleCache.getFragmentHosts(manifestHolder);
+    for (    ManifestHolder fragmentHost : fragmentHosts) {
+      try {
+        result.add(fragmentHost.getBoundObject());
+      }
+ catch (      ManifestHolderDisposedException ignore) {
       }
     }
   }

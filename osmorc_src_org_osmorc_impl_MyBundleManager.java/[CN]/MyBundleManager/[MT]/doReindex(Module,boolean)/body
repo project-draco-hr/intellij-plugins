@@ -1,0 +1,19 @@
+{
+  if (module.isDisposed()) {
+    return false;
+  }
+  if (!module.getProject().equals(myProject)) {
+    LOG.warn("Someone tried to index a module that doesn't belong to my project.");
+    return false;
+  }
+  if (OsmorcFacet.hasOsmorcFacet(module)) {
+    ManifestHolder manifestHolder=myManifestHolderRegistry.getManifestHolder(module);
+    boolean needsNotification=myBundleCache.updateWith(manifestHolder);
+    needsNotification|=myBundleCache.cleanup();
+    if (needsNotification && sendNotifications) {
+      notifyListenersOfBundleIndexChange();
+    }
+    return needsNotification && !sendNotifications;
+  }
+  return false;
+}

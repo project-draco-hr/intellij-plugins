@@ -3,42 +3,68 @@
   setTitle("OSGi Framework Instance");
   setModal(true);
   if (frameworkInstanceName != null) {
-    _nameTextField.setText(frameworkInstanceName);
+    myNameTextField.setText(frameworkInstanceName);
   }
   FrameworkIntegrator[] integrators=frameworkIntegratorRegistry.getFrameworkIntegrators();
-  _integratorComboBox.removeAllItems();
+  myIntegratorComboBox.removeAllItems();
   for (  FrameworkIntegrator integrator : integrators) {
-    _integratorComboBox.addItem(integrator);
+    myIntegratorComboBox.addItem(integrator);
   }
-  _integratorComboBox.addActionListener(new ActionListener(){
+  myIntegratorComboBox.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
-      if (_integratorComboBox.getSelectedItem() != null && _nameTextField.getText().length() == 0) {
-        _nameTextField.setText(((FrameworkIntegrator)_integratorComboBox.getSelectedItem()).getDisplayName());
+      if (myIntegratorComboBox.getSelectedItem() != null && myNameTextField.getText().length() == 0) {
+        myNameTextField.setText(((FrameworkIntegrator)myIntegratorComboBox.getSelectedItem()).getDisplayName());
       }
     }
   }
 );
-  _nameTextField.getDocument().addDocumentListener(new DocumentAdapter(){
+  myNameTextField.getDocument().addDocumentListener(new DocumentAdapter(){
     protected void textChanged(    DocumentEvent e){
-      checkButtonOKEnabled();
+      updateUiState();
     }
   }
 );
-  _integratorComboBox.addActionListener(new ActionListener(){
+  myIntegratorComboBox.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
-      checkButtonOKEnabled();
+      updateUiState();
+    }
+  }
+);
+  myUseLocallyInstalledFrameworkRadioButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      updateUiState();
+    }
+  }
+);
+  myDownloadAFrameworkWithRadioButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      updateUiState();
+    }
+  }
+);
+  myDownloadButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      downloadFramework();
     }
   }
 );
   FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
-  _baseFolderChooser.addBrowseFolderListener("Choose framework instance base folder","",null,fileChooserDescriptor);
-  _baseFolderChooser.getTextField().setEditable(false);
-  _baseFolderChooser.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+  myBaseFolderChooser.addBrowseFolderListener("Choose framework instance base folder","",null,fileChooserDescriptor);
+  myBaseFolderChooser.getTextField().setEditable(false);
+  myBaseFolderChooser.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
     protected void textChanged(    DocumentEvent e){
-      checkButtonOKEnabled();
+      updateUiState();
+    }
+  }
+);
+  myTargetFolder.addBrowseFolderListener("Choose folder where to download the framework to","",null,fileChooserDescriptor);
+  myTargetFolder.getTextField().setEditable(false);
+  myTargetFolder.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    DocumentEvent e){
+      updateUiState();
     }
   }
 );
   init();
-  checkButtonOKEnabled();
+  updateUiState();
 }
