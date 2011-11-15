@@ -1,0 +1,21 @@
+{
+  for (  final Element libraryPathElement : ((Iterable<Element>)compilerElement.getChildren(LIBRARY_PATH_TAG))) {
+    for (    final Element libraryPathEntryElement : ((Iterable<Element>)libraryPathElement.getChildren(LIBRARY_PATH_ENTRY_TAG))) {
+      final Attribute libraryKindAttr=libraryPathEntryElement.getAttribute(LIBRARY_KIND_ATTR);
+      final String libraryKind=libraryKindAttr != null ? libraryKindAttr.getValue() : SWC_FILE_KIND;
+      if (libraryKind.equals(USE_SDK_KIND)) {
+        project.setSdkUsed(true);
+      }
+ else {
+        final String libraryPath=libraryPathEntryElement.getAttributeValue(PATH_ATTR);
+        if (!StringUtil.isEmptyOrSpaces(libraryPath)) {
+          if (SWC_FILE_KIND.equals(libraryKind) || SWC_FOLDER_KIND.equals(libraryKind)) {
+            final Collection<String> librarySourcePaths=new ArrayList<String>();
+            final String replacedPath=pathReplacementMap.get(libraryPath);
+            project.addLibraryPathAndSources(FileUtil.toSystemIndependentName(replacedPath != null ? replacedPath : libraryPath),librarySourcePaths);
+          }
+        }
+      }
+    }
+  }
+}

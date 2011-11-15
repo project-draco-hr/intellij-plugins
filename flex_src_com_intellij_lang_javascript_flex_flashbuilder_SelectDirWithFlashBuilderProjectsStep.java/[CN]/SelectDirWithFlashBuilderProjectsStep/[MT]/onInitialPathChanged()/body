@@ -1,0 +1,34 @@
+{
+  final String path=myInitialPathComponent.getComponent().getText().trim();
+  ((FlashBuilderImporter)getBuilder()).setInitiallySelectedPath(path);
+  getWizardContext().requestWizardButtonsUpdate();
+  final VirtualFile file=path.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  final boolean isFxp=file != null && !file.isDirectory() && FlashBuilderProjectFinder.isArchivedFBProject(file.getPath());
+  final boolean multiProjectFxp=isFxp && FlashBuilderProjectFinder.isMultiProjectFxp(file.getPath());
+  if (getWizardContext().isCreatingNewProject()) {
+    if (file != null) {
+      final String suggestedProjectName=((FlashBuilderImporter)getBuilder()).getSuggestedProjectName();
+      myProjectNameComponent.getComponent().setText(suggestedProjectName);
+      if (isFxp) {
+        myProjectLocationComponent.setText(FlexBundle.message("project.location"));
+        final String pDir=FileUtil.toSystemDependentName(getWizardContext().getProjectFileDirectory() + "/" + suggestedProjectName);
+        myProjectLocationComponent.getComponent().setText(pDir);
+      }
+ else {
+        myProjectLocationComponent.setText(FlexBundle.message("project.file.location"));
+        myProjectLocationComponent.getComponent().setText(FileUtil.toSystemDependentName(file.isDirectory() ? file.getPath() : file.getParent().getPath()));
+      }
+    }
+    myMultiProjectNote.setVisible(isFxp && multiProjectFxp);
+    myCreateSubfolderCheckBox.setVisible(isFxp && !multiProjectFxp);
+    myCreateSubfolderCheckBox.setText(FlexBundle.message("extract.single.to.subfolder.0",file == null ? "" : file.getNameWithoutExtension()));
+  }
+ else {
+    myFxpExtractPathComponent.setVisible(isFxp);
+    if (isFxp) {
+      myFxpExtractPathComponent.setText(multiProjectFxp ? FlexBundle.message("folder.to.unzip.several.FB.projects") : FlexBundle.message("folder.to.unzip.one.FB.project"));
+      final String extractPath=multiProjectFxp ? getWizardContext().getProject().getLocation() : getWizardContext().getProject().getLocation() + "/" + file.getNameWithoutExtension();
+      myFxpExtractPathComponent.getComponent().setText(FileUtil.toSystemDependentName(extractPath));
+    }
+  }
+}

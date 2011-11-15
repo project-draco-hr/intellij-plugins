@@ -1,0 +1,15 @@
+{
+  final FilenameFilter filter=new FilenameFilter(){
+    public boolean accept(    final File dir,    final String name){
+      final String lowercased=name.toLowerCase();
+      return lowercased.endsWith(DOT_FXP) || lowercased.endsWith(DOT_FXPL);
+    }
+  }
+;
+  for (  File file : dir.listFiles(filter)) {
+    final File extractDir=new File(file.getParentFile().getParentFile(),FileUtil.getNameWithoutExtension(file.getName()));
+    ZipUtil.extract(file,extractDir,null);
+    dotProjectFiles.add(extractDir + "/" + DOT_PROJECT);
+    extractNestedFxpAndAppendProjects(extractDir,dotProjectFiles);
+  }
+}

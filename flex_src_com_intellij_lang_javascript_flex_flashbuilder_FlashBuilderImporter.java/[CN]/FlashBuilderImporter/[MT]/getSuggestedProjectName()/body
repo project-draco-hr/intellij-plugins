@@ -1,6 +1,20 @@
 {
-  if (getParameters().myFlashBuilderProjectFilePaths.size() == 1) {
-    return FlashBuilderProjectLoadUtil.getProjectName(getParameters().myFlashBuilderProjectFilePaths.get(0));
+  final String path=getInitiallySelectedPath();
+  VirtualFile file=path.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  if (file == null) {
+    return PathUtil.getFileName(path);
   }
-  return FlexBundle.message("unnamed");
+  if (FlashBuilderProjectFinder.isArchivedFBProject(path)) {
+    return file.getNameWithoutExtension();
+  }
+  if (file.isDirectory()) {
+    final VirtualFile dotProjectFile=file.findChild(DOT_PROJECT);
+    if (dotProjectFile != null && FlashBuilderProjectFinder.isFlashBuilderProject(dotProjectFile)) {
+      file=dotProjectFile;
+    }
+  }
+  if (DOT_PROJECT.equalsIgnoreCase(file.getName())) {
+    return FlashBuilderProjectLoadUtil.readProjectName(file.getPath());
+  }
+  return PathUtil.getFileName(path);
 }

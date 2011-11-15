@@ -1,7 +1,10 @@
 {
   FlexModuleBuilder.setupResourceFilePatterns(project);
   final ModifiableModuleModel moduleModel=model != null ? model : ModuleManager.getInstance(project).getModifiableModel();
-  final Collection<FlashBuilderProject> flashBuilderProjects=FlashBuilderProjectLoadUtil.loadProjects(getList());
+  final List<String> paths=getList();
+  final boolean isFxp=paths.size() == 1 && FlashBuilderProjectFinder.isArchivedFBProject(paths.get(0));
+  final List<String> dotProjectPaths=getDotProjectPaths(project);
+  final Collection<FlashBuilderProject> flashBuilderProjects=FlashBuilderProjectLoadUtil.loadProjects(dotProjectPaths,isFxp);
   final ModuleType moduleType=PlatformUtils.isFlexIde() ? FlexModuleType.getInstance() : StdModuleTypes.JAVA;
   final Map<FlashBuilderProject,ModifiableRootModel> flashBuilderProjectToModifiableModelMap=new THashMap<FlashBuilderProject,ModifiableRootModel>();
   final Map<Module,ModifiableRootModel> moduleToModifiableModelMap=new THashMap<Module,ModifiableRootModel>();
@@ -39,7 +42,7 @@
     globalLibrariesModifiableModel=(LibraryTableBase.ModifiableModelEx)ApplicationLibraryTable.getApplicationTable().getModifiableModel();
     flexConfigEditor=createFlexConfigEditor(project,moduleToModifiableModelMap,globalLibrariesModifiableModel);
   }
-  final FlashBuilderSdkFinder sdkFinder=new FlashBuilderSdkFinder(project,flexConfigEditor,getParameters().initiallySelectedDirPath,flashBuilderProjects);
+  final FlashBuilderSdkFinder sdkFinder=new FlashBuilderSdkFinder(project,flexConfigEditor,getParameters().myInitiallySelectedPath,flashBuilderProjects);
   final FlashBuilderModuleImporter flashBuilderModuleImporter=new FlashBuilderModuleImporter(project,flexConfigEditor,flashBuilderProjects,sdkFinder);
   for (  final FlashBuilderProject flashBuilderProject : flashBuilderProjects) {
     flashBuilderModuleImporter.setupModule(flashBuilderProjectToModifiableModelMap.get(flashBuilderProject),flashBuilderProject);

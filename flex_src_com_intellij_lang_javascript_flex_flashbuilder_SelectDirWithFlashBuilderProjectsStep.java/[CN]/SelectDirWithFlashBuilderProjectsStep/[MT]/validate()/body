@@ -1,14 +1,38 @@
 {
-  final String dirPath=myWorkspaceOrDirWithProjectsComponent.getComponent().getText().trim();
-  if (dirPath.length() == 0) {
+  final String path=myInitialPathComponent.getComponent().getText().trim();
+  if (path.length() == 0) {
     throw new ConfigurationException(FlexBundle.message("specify.flash.builder.workspace.or.project.dir"),CommonBundle.getErrorTitle());
   }
-  final VirtualFile dir=LocalFileSystem.getInstance().refreshAndFindFileByPath(dirPath);
-  if (dir == null || !dir.isDirectory()) {
-    throw new ConfigurationException(FlexBundle.message("folder.does.not.exist",dirPath),CommonBundle.getErrorTitle());
+  final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  if (file == null) {
+    throw new ConfigurationException(FlexBundle.message("file.or.folder.not.found",path),CommonBundle.getErrorTitle());
   }
-  final List<String> projectPaths=new ArrayList<String>();
-  final boolean ok=FlashBuilderProjectFinder.collectAllProjectPaths(getWizardContext().getProject(),projectPaths,dirPath);
-  ((FlashBuilderImporter)getBuilder()).setList(projectPaths);
-  return ok;
+  if (file.isDirectory()) {
+    final List<String> projectPaths=new ArrayList<String>();
+    final boolean ok=FlashBuilderProjectFinder.collectAllProjectPaths(getWizardContext().getProject(),projectPaths,path);
+    if (ok) {
+      if (projectPaths.isEmpty()) {
+        throw new ConfigurationException(FlexBundle.message("flash.builder.projects.not.found.in"),CommonBundle.getErrorTitle());
+      }
+      ((FlashBuilderImporter)getBuilder()).setList(projectPaths);
+    }
+    return ok && checkProjectNameAndPath();
+  }
+ else {
+    if (FlashBuilderProjectFinder.isArchivedFBProject(file.getPath())) {
+      FlashBuilderProjectFinder.checkFxpFile(file.getPath());
+      final File dir=new File(getWizardContext().isCreatingNewProject() ? myProjectLocationComponent.getComponent().getText().trim() : myFxpExtractPathComponent.getComponent().getText().trim());
+      if (dir.isDirectory() && dir.list().length > 0) {
+        final String title=StringUtil.capitalizeWords(ProjectBundle.message("project.new.wizard.import.title",getWizardContext().getPresentationName()),true);
+        if (Messages.OK != Messages.showYesNoDialog(myMainPanel,FlexBundle.message("folder.not.empty",dir.getPath()),title,Messages.getWarningIcon())) {
+          return false;
+        }
+      }
+    }
+ else     if (!FlashBuilderProjectFinder.isFlashBuilderProject(file)) {
+      throw new ConfigurationException(FlexBundle.message("not.flash.builder.project"),CommonBundle.getErrorTitle());
+    }
+    ((FlashBuilderImporter)getBuilder()).setList(Collections.singletonList(path));
+    return checkProjectNameAndPath();
+  }
 }
