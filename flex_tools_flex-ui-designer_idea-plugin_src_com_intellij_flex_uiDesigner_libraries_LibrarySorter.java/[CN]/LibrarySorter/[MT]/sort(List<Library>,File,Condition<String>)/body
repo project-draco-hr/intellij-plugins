@@ -1,6 +1,6 @@
 {
   ArrayList<Library> resourceBundleOnlyItems=null;
-  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcFilter.HASHING_STRATEGY);
+  final THashMap<CharSequence,Definition> definitionMap=new THashMap<CharSequence,Definition>(libraries.size() * 128,AbcTranscoder.HASHING_STRATEGY);
   final List<LibrarySetItem> unsortedItems=collectItems(libraries,definitionMap,isExternal);
   final AbcMerger abcMerger=new AbcMerger(definitionMap,outFile,definitionProcessor);
   try {
@@ -26,8 +26,7 @@
     definitionMap.forEachValue(new TObjectProcedure<Definition>(){
       @Override public boolean execute(      Definition definition){
         if (definition.doAbcData != null && (definition.resolved == ResolvedState.YES || (definition.resolved == ResolvedState.UNKNOWN && processDependencies(decoders,definition,definitionMap,singleStringArray)))) {
-          decoders.add(new Decoder(definition.doAbcData,definition.doAbcData.abcModifier));
-          definition.doAbcData=null;
+          decoders.add(createDecoder(definition));
         }
         return true;
       }

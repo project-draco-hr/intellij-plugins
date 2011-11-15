@@ -8,6 +8,45 @@
     flipDefinition(definition,definitionMap,SKINNABLE_COMPONENT);
   }
  else   if (StringUtil.equals(name,"mx.containers:Panel")) {
-    definition.doAbcData.abcModifier=new MethodAccessModifier("setControlBar");
+    definition.doAbcData.abcModifier=new MethodAccessModifier("setControlBar","addChildAt",null);
+  }
+ else {
+    final boolean mxCore=StringUtil.startsWith(name,MX_CORE);
+    if (mxCore) {
+      if (equals(name,MX_CORE.length(),"UIComponent")) {
+        definition.doAbcData.abcModifier=new VarAccessModifier("deferredSetStyles");
+      }
+ else       if (vGreaterOrEquals4_5 && equals(name,MX_CORE.length(),"FTETextField")) {
+        definition.doAbcData.abcModifier=new VarAccessModifier("staticHandlersAdded");
+      }
+    }
+    if (definition.doAbcData.abcModifier != null) {
+      return;
+    }
+    boolean skipInitialize=false;
+    boolean modifyConstructor=false;
+    boolean skipColorCorrection=false;
+    if (mxCore || StringUtil.startsWith(name,SPARK_COMPONENTS)) {
+      final int localNameOffset=mxCore ? MX_CORE.length() : SPARK_COMPONENTS.length();
+      skipInitialize=equals(name,localNameOffset,"Application");
+      if (mxCore) {
+        if (skipInitialize) {
+          modifyConstructor=true;
+        }
+      }
+ else {
+        skipColorCorrection=skipInitialize && vGreaterOrEquals4_5;
+        modifyConstructor=skipInitialize || equals(name,localNameOffset,"ViewNavigatorApplicationBase") || equals(name,localNameOffset,"TabbedViewNavigatorApplication");
+        if (!skipInitialize && vGreaterOrEquals4_5) {
+          skipInitialize=equals(name,localNameOffset,"View");
+        }
+      }
+    }
+ else     if (vGreaterOrEquals4_5 && StringUtil.equals(name,"spark.components.supportClasses:ViewNavigatorApplicationBase")) {
+      skipInitialize=true;
+    }
+    if (skipInitialize || modifyConstructor) {
+      definition.doAbcData.abcModifier=new MethodAccessModifier(null,skipInitialize ? "initialize" : null,skipColorCorrection ? "colorCorrection" : null);
+    }
   }
 }
