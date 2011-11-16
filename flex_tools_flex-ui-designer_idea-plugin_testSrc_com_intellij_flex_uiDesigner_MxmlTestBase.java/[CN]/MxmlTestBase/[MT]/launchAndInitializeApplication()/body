@@ -14,7 +14,8 @@
     new DesignerApplicationLauncher(myModule,false,new DesignerApplicationLauncher.PostTask(){
       @Override public boolean run(      XmlFile[] unregisteredDocumentReferences,      ProgressIndicator indicator,      ProblemsHolder problemsHolder){
         assertTrue(problemsHolder.isEmpty());
-        Client.getInstance().flush();
+        client=(TestClient)Client.getInstance();
+        client.flush();
         try {
           assertAfterInitLibrarySets(unregisteredDocumentReferences);
         }
@@ -29,6 +30,7 @@
 ).run(new EmptyProgressIndicator());
   }
  else {
+    client=(TestClient)Client.getInstance();
     final ProblemsHolder problemsHolder=new ProblemsHolder();
     XmlFile[] unregistedDocumentReferences=LibraryManager.getInstance().initLibrarySets(myModule,isRequireLocalStyleHolder(),problemsHolder);
     assertTrue(problemsHolder.isEmpty());
@@ -36,5 +38,4 @@
   }
   appDir=DesignerApplicationManager.APP_DIR;
   socketInputHandler=(TestSocketInputHandler)SocketInputHandler.getInstance();
-  client=(TestClient)Client.getInstance();
 }
