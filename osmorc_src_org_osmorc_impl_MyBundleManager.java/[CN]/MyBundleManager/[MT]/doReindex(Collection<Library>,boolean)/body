@@ -1,0 +1,14 @@
+{
+  boolean needsNotification=false;
+  for (  Library library : libraries) {
+    Collection<ManifestHolder> manifestHolders=myManifestHolderRegistry.getManifestHolders(library);
+    for (    ManifestHolder manifestHolder : manifestHolders) {
+      needsNotification|=myBundleCache.updateWith(manifestHolder);
+    }
+  }
+  needsNotification|=myBundleCache.cleanup();
+  if (needsNotification && sendNotifications) {
+    notifyListenersOfBundleIndexChange();
+  }
+  return needsNotification && !sendNotifications;
+}
