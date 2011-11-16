@@ -4,6 +4,7 @@
   }
   int characterIdPosition=-1;
 switch (type) {
+case TagTypes.DefineScalingGrid:
 case TagTypes.DefineSprite:
 case TagTypes.DefineShape:
 case TagTypes.DefineShape2:
@@ -12,19 +13,29 @@ case TagTypes.DefineShape4:
 case TagTypes.DefineBinaryData:
 case TagTypes.DefineBitsLossless2:
 case TagTypes.DefineBitsLossless:
-case TagTypes.PlaceObject:
-case TagTypes.DefineScalingGrid:
 case TagTypes.DefineBitsJPEG2:
 case TagTypes.DefineBitsJPEG3:
 case TagTypes.DefineBitsJPEG4:
 case TagTypes.DefineBits:
+case TagTypes.PlaceObject:
+case TagTypes.DefineFont:
+case TagTypes.DefineFont2:
+case TagTypes.DefineFont3:
+case TagTypes.DefineText:
+case TagTypes.DefineEditText:
     characterIdPosition=buffer.position();
   break;
 case TagTypes.PlaceObject2:
 if ((buffer.get(buffer.position()) & PlaceObjectFlags.HAS_CHARACTER) != 0) {
-  characterIdPosition=buffer.position() + 2;
+  updateReferenceById(buffer.position() + 2);
+  return 0;
 }
 break;
+case TagTypes.DefineFontName:
+case TagTypes.DefineFontAlignZones:
+case TagTypes.DefineFontInfo:
+updateReferenceById(buffer.position());
+return 0;
 case TagTypes.PlaceObject3:
 throw new IOException("PlaceObject3 are not supported");
 }

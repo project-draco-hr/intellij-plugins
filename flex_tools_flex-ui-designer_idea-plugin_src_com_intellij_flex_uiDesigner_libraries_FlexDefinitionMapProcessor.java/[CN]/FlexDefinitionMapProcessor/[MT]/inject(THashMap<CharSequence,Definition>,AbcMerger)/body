@@ -1,2 +1,22 @@
 {
+  final Pair<CharArrayReader,ByteArrayInputStream> data;
+  if (DebugPathManager.IS_DEV) {
+    data=LibraryUtil.openSwc(createAbcFile(DebugPathManager.getFudHome() + "/flex-injection/target",version));
+  }
+ else {
+    data=LibraryUtil.openSwc(getClass().getClassLoader().getResource(generateInjectionName(version)).openStream());
+  }
+  final Set<CharSequence> ownDefinitions=LibraryUtil.getDefinitions(data.first);
+  NanoXmlUtil.parse(data.first,new CatalogXmlBuilder(definitionMap,new Condition<String>(){
+    @Override public boolean value(    String name){
+      return globalContains.value(name) || (name.startsWith("com.intellij.") && !ownDefinitions.contains(name));
+    }
+  }
+,new Condition<String>(){
+    @Override public boolean value(    String name){
+      return globalContains.value(name) || name.equals("mx.styles:FtyleProtoChain") || name.equals("spark.components.supportClasses:FkinnableComponent");
+    }
+  }
+));
+  abcMerger.process(data.second);
 }
