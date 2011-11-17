@@ -1,0 +1,24 @@
+{
+  Lexer lexer=LanguageParserDefinitions.INSTANCE.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).createLexer(null);
+  lexer.start(chars);
+  if (FlexProjectStructureDetector.readPackageName(chars,lexer) == null) {
+    return;
+  }
+  while (true) {
+    while (lexer.getTokenType() != null && lexer.getTokenType() != JSTokenTypes.IMPORT_KEYWORD) {
+      lexer.advance();
+    }
+    if (lexer.getTokenType() == null) {
+      break;
+    }
+    lexer.advance();
+    FlexProjectStructureDetector.skipWhiteSpaceAndComments(lexer);
+    String packageName=FlexProjectStructureDetector.readQualifiedName(chars,lexer,true);
+    if (packageName != null) {
+      String s=packageName.endsWith(".*") ? StringUtil.trimEnd(packageName,".*") : StringUtil.getPackageName(packageName);
+      if (!s.isEmpty()) {
+        result.consume(s);
+      }
+    }
+  }
+}

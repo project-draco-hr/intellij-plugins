@@ -1,0 +1,28 @@
+{
+  for (  File child : children) {
+    if (child.isFile()) {
+      if (isActionScriptFile(child)) {
+        NullableFunction<CharSequence,String> f=new NullableFunction<CharSequence,String>(){
+          public String fun(          final CharSequence charSequence){
+            Lexer lexer=LanguageParserDefinitions.INSTANCE.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).createLexer(null);
+            lexer.start(charSequence);
+            return readPackageName(charSequence,lexer);
+          }
+        }
+;
+        Pair<File,String> root=CommonSourceRootDetectionUtil.suggestRootForFileWithPackageStatement(child,base,f,false);
+        if (root != null) {
+          result.add(new FlexModuleSourceRoot(root.getFirst()));
+          return DirectoryProcessingResult.skipChildrenAndParentsUpTo(root.getFirst());
+        }
+ else {
+          return DirectoryProcessingResult.SKIP_CHILDREN;
+        }
+      }
+ else       if (JavaScriptSupportLoader.isFlexMxmFile(child.getName())) {
+        result.add(new FlexModuleSourceRoot(dir));
+      }
+    }
+  }
+  return DirectoryProcessingResult.PROCESS_CHILDREN;
+}
