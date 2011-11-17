@@ -3,13 +3,13 @@
   ((FlashBuilderImporter)getBuilder()).setInitiallySelectedPath(path);
   getWizardContext().requestWizardButtonsUpdate();
   final VirtualFile file=path.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(path);
-  final boolean isFxp=file != null && !file.isDirectory() && FlashBuilderProjectFinder.isArchivedFBProject(file.getPath());
-  final boolean multiProjectFxp=isFxp && FlashBuilderProjectFinder.isMultiProjectFxp(file.getPath());
+  final boolean isArchive=file != null && !file.isDirectory() && FlashBuilderProjectFinder.hasArchiveExtension(file.getPath());
+  final boolean multiProjectArchive=isArchive && FlashBuilderProjectFinder.isMultiProjectArchive(file.getPath());
   if (getWizardContext().isCreatingNewProject()) {
     if (file != null) {
       final String suggestedProjectName=((FlashBuilderImporter)getBuilder()).getSuggestedProjectName();
       myProjectNameComponent.getComponent().setText(suggestedProjectName);
-      if (isFxp) {
+      if (isArchive) {
         myProjectLocationComponent.setText(FlexBundle.message("project.location"));
         final String pDir=FileUtil.toSystemDependentName(getWizardContext().getProjectFileDirectory() + "/" + suggestedProjectName);
         myProjectLocationComponent.getComponent().setText(pDir);
@@ -19,16 +19,16 @@
         myProjectLocationComponent.getComponent().setText(FileUtil.toSystemDependentName(file.isDirectory() ? file.getPath() : file.getParent().getPath()));
       }
     }
-    myMultiProjectNote.setVisible(isFxp && multiProjectFxp);
-    myCreateSubfolderCheckBox.setVisible(isFxp && !multiProjectFxp);
+    myMultiProjectNote.setVisible(isArchive && multiProjectArchive);
+    myCreateSubfolderCheckBox.setVisible(isArchive && !multiProjectArchive);
     myCreateSubfolderCheckBox.setText(FlexBundle.message("extract.single.to.subfolder.0",file == null ? "" : file.getNameWithoutExtension()));
   }
  else {
-    myFxpExtractPathComponent.setVisible(isFxp);
-    if (isFxp) {
-      myFxpExtractPathComponent.setText(multiProjectFxp ? FlexBundle.message("folder.to.unzip.several.FB.projects") : FlexBundle.message("folder.to.unzip.one.FB.project"));
-      final String extractPath=multiProjectFxp ? getWizardContext().getProject().getLocation() : getWizardContext().getProject().getLocation() + "/" + file.getNameWithoutExtension();
-      myFxpExtractPathComponent.getComponent().setText(FileUtil.toSystemDependentName(extractPath));
+    myExtractPathComponent.setVisible(isArchive);
+    if (isArchive) {
+      myExtractPathComponent.setText(multiProjectArchive ? FlexBundle.message("folder.to.unzip.several.FB.projects") : FlexBundle.message("folder.to.unzip.one.FB.project"));
+      final String extractPath=multiProjectArchive ? getWizardContext().getProject().getLocation() : getWizardContext().getProject().getLocation() + "/" + file.getNameWithoutExtension();
+      myExtractPathComponent.getComponent().setText(FileUtil.toSystemDependentName(extractPath));
     }
   }
 }
