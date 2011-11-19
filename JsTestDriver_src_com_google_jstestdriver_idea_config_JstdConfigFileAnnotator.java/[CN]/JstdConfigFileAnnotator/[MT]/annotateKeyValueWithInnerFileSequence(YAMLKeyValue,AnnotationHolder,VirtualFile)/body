@@ -9,29 +9,16 @@
     holder.createErrorAnnotation(value,"File sequence should start with a dash symbol");
     return;
   }
-  PsiElement firstIndentElement=compoundValue.getPrevSibling();
-  if (firstIndentElement == null || !JsPsiUtils.isElementOfType(firstIndentElement,YAMLTokenTypes.INDENT)) {
-    int offset=compoundValue.getTextRange().getStartOffset();
-    holder.createErrorAnnotation(TextRange.create(offset,offset),"Indent was expected here");
-    return;
-  }
-  final String firstIndent=StringUtil.notNullize(firstIndentElement.getText());
+  final String firstIndent=toIndentString(compoundValue.getPrevSibling());
   compoundValue.acceptChildren(new PsiElementVisitor(){
     @Override public void visitElement(    PsiElement element){
       final YAMLSequence sequence=CastUtils.tryCast(element,YAMLSequence.class);
       if (sequence != null) {
-        annotateFileSequence(sequence,holder,basePath);
+        annotateFileSequence(sequence,holder,basePath,firstIndent);
         return;
       }
-      boolean indentType=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.INDENT);
-      boolean whitespaceType=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.EOL,YAMLTokenTypes.WHITESPACE);
-      boolean comment=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.COMMENT);
-      if (indentType || whitespaceType || comment) {
-        if (indentType && !firstIndent.equals(element.getText())) {
-          holder.createErrorAnnotation(element,"All indents should be equal-sized");
-        }
-      }
- else {
+      boolean accepted=JsPsiUtils.isElementOfType(element,YAMLTokenTypes.EOL,YAMLTokenTypes.WHITESPACE,YAMLTokenTypes.COMMENT,YAMLTokenTypes.INDENT);
+      if (!accepted) {
         holder.createErrorAnnotation(element,"YAML sequence was expected here");
       }
     }

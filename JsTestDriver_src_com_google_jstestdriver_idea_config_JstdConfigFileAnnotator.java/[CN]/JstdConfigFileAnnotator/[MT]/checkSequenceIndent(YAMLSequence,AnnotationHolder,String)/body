@@ -1,0 +1,19 @@
+{
+  PsiElement prevSibling=sequence.getPrevSibling();
+  if (prevSibling != null) {
+    String indent=toIndentString(prevSibling);
+    if (!expectedIndent.equals(indent)) {
+      PsiElement errorElement=sequence;
+      if (JsPsiUtils.isElementOfType(prevSibling,YAMLTokenTypes.INDENT)) {
+        errorElement=prevSibling;
+      }
+ else {
+        PsiElement firstElement=sequence.getFirstChild();
+        if (firstElement != null && JsPsiUtils.isElementOfType(firstElement,YAMLTokenTypes.SEQUENCE_MARKER)) {
+          errorElement=firstElement;
+        }
+      }
+      holder.createErrorAnnotation(errorElement,"All indents should be equal-sized");
+    }
+  }
+}

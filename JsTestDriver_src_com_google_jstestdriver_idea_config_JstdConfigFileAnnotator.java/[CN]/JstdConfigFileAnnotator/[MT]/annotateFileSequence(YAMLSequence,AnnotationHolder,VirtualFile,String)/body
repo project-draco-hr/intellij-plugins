@@ -1,4 +1,15 @@
 {
+  checkSequenceIndent(sequence,holder,expectedIndent);
+  sequence.acceptChildren(new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement element){
+      if (element instanceof YAMLSequence) {
+        YAMLSequence childSequence=(YAMLSequence)element;
+        annotateFileSequence(childSequence,holder,basePath,expectedIndent);
+      }
+      super.visitElement(element);
+    }
+  }
+);
   if (!isOneLineText(sequence)) {
     holder.createErrorAnnotation(sequence,"Unexpected multiline path");
     return;
