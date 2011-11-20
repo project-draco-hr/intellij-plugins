@@ -3,7 +3,7 @@
     ProgressManager.getInstance().run(new Task.Modal(project,"Preparing bundles...",false){
       public void run(      @NotNull ProgressIndicator progressIndicator){
         progressIndicator.setIndeterminate(false);
-        HashSet<SelectedBundle> selectedBundles=new HashSet<SelectedBundle>();
+        final HashSet<SelectedBundle> selectedBundles=new HashSet<SelectedBundle>();
         ModuleManager moduleManager=ModuleManager.getInstance(project);
         int bundleCount=runConfiguration.getBundlesToDeploy().size();
         for (int i=0; i < bundleCount; i++) {
@@ -12,17 +12,13 @@
           if (selectedBundle.isModule()) {
             try {
               final Module module=moduleManager.findModuleByName(selectedBundle.getName());
+              if (module == null) {
+                showErrorMessage("Module '" + selectedBundle.getName() + "' does no longer exist. Please check your run configuration.");
+                _selectedBundles=null;
+                return;
+              }
               if (!OsmorcFacet.hasOsmorcFacet(module)) {
-                try {
-                  SwingUtilities.invokeAndWait(new Runnable(){
-                    public void run(){
-                      Messages.showErrorDialog("Module '" + selectedBundle.getName() + "' has no OSGi facet, but should have. Please re-add the OSGi facet to this module.","Error");
-                    }
-                  }
-);
-                }
- catch (                Exception e) {
-                }
+                showErrorMessage("Module '" + selectedBundle.getName() + "' has no OSGi facet, but should have. Please re-add the OSGi facet to this module.");
                 _selectedBundles=null;
                 return;
               }
