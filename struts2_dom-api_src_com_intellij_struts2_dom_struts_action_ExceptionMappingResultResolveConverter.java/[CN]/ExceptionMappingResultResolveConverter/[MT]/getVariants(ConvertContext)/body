@@ -1,8 +1,13 @@
 {
   final DomElement invocationElement=context.getInvocationElement();
   final Action action=invocationElement.getParentOfType(Action.class,true);
-  if (action != null) {
-    return action.getResults();
+  if (action == null) {
+    return Collections.emptySet();
   }
-  return Collections.emptySet();
+  final List<HasResultType> variants=new ArrayList<HasResultType>();
+  variants.addAll(action.getResults());
+  final StrutsPackage strutsPackage=action.getStrutsPackage();
+  final GlobalResults globalResults=strutsPackage.getGlobalResults();
+  variants.addAll(globalResults.getResults());
+  return variants;
 }
