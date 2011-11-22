@@ -1,15 +1,15 @@
 {
-  return new WriteAction<Boolean>(){
-    @Override protected void run(    Result<Boolean> result) throws Throwable {
-      result.setResult(false);
-      for (Iterator<ManifestHolder> iterator=myManifestHolders.iterator(); iterator.hasNext(); ) {
-        ManifestHolder manifestHolder=iterator.next();
-        if (manifestHolder.isDisposed()) {
-          iterator.remove();
-          result.setResult(true);
-        }
-      }
+  Set<ManifestHolder> toRemove=new HashSet<ManifestHolder>();
+  for (  ManifestHolder manifestHolder : myManifestHolders) {
+    if (manifestHolder.isDisposed()) {
+      toRemove.add(manifestHolder);
     }
   }
-.execute().getResultObject();
+  if (toRemove.isEmpty()) {
+    return false;
+  }
+  HashSet<ManifestHolder> copy=new HashSet<ManifestHolder>(myManifestHolders);
+  copy.removeAll(toRemove);
+  myManifestHolders=copy;
+  return true;
 }
