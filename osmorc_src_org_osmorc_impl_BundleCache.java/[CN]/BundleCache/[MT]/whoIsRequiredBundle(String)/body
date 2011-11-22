@@ -1,22 +1,17 @@
 {
-  return new ReadAction<ManifestHolder>(){
-    @Override protected void run(    Result<ManifestHolder> result) throws Throwable {
-      for (      ManifestHolder manifestHolder : myManifestHolders) {
-        BundleManifest bundleManifest;
-        try {
-          bundleManifest=manifestHolder.getBundleManifest();
-        }
- catch (        ManifestHolderDisposedException ignore) {
-          continue;
-        }
-        if (bundleManifest != null) {
-          if (bundleManifest.isRequiredBundle(requiredBundleSpec)) {
-            result.setResult(manifestHolder);
-            return;
-          }
-        }
+  for (  ManifestHolder manifestHolder : myManifestHolders) {
+    BundleManifest bundleManifest;
+    try {
+      bundleManifest=manifestHolder.getBundleManifest();
+    }
+ catch (    ManifestHolderDisposedException ignore) {
+      continue;
+    }
+    if (bundleManifest != null) {
+      if (bundleManifest.isRequiredBundle(requiredBundleSpec)) {
+        return manifestHolder;
       }
     }
   }
-.execute().getResultObject();
+  return null;
 }
