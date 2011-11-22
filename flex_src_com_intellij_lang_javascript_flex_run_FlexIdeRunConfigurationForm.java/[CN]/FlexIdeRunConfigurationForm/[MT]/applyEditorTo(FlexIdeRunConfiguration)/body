@@ -1,2 +1,38 @@
 {
+  final FlexIdeRunnerParameters params=configuration.getRunnerParameters();
+  myBCCombo.applyTo(params);
+  final boolean overrideMainClass=myOverrideMainClassCheckBox.isSelected();
+  params.setOverrideMainClass(overrideMainClass);
+  params.setOverriddenMainClass(overrideMainClass ? myMainClassComponent.getText().trim() : "");
+  params.setOverriddenOutputFileName(overrideMainClass ? myOutputFileNameTextField.getText().trim() : "");
+  params.setLaunchUrl(myURLRadioButton.isSelected());
+  params.setUrl(myURLTextField.getText().trim());
+  params.setLauncherParameters(myLauncherParameters);
+  params.setRunTrusted(myRunTrustedCheckBox.isSelected());
+  params.setAdlOptions(myAdlOptionsEditor.getText().trim());
+  params.setAirProgramParameters(myAirProgramParametersEditor.getText().trim());
+  final AirMobileRunnerParameters.AirMobileRunTarget mobileRunTarget=myOnEmulatorRadioButton.isSelected() ? AirMobileRunnerParameters.AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunnerParameters.AirMobileRunTarget.AndroidDevice : AirMobileRunnerParameters.AirMobileRunTarget.iOSDevice;
+  params.setMobileRunTarget(mobileRunTarget);
+  final AirMobileRunnerParameters.Emulator emulator=(AirMobileRunnerParameters.Emulator)myEmulatorCombo.getSelectedItem();
+  params.setEmulator(emulator);
+  if (emulator.adlAlias == null) {
+    try {
+      params.setScreenWidth(Integer.parseInt(myScreenWidth.getText()));
+      params.setScreenHeight(Integer.parseInt(myScreenHeight.getText()));
+      params.setFullScreenWidth(Integer.parseInt(myFullScreenWidth.getText()));
+      params.setFullScreenHeight(Integer.parseInt(myFullScreenHeight.getText()));
+    }
+ catch (    NumberFormatException e) {
+    }
+  }
+  params.setDebugTransport(myDebugOverNetworkRadioButton.isSelected() ? AirMobileRunnerParameters.AirMobileDebugTransport.Network : AirMobileRunnerParameters.AirMobileDebugTransport.USB);
+  try {
+    final int port=Integer.parseInt(myUsbDebugPortTextField.getText().trim());
+    if (port > 0 && port < 65535) {
+      params.setUsbDebugPort(port);
+    }
+  }
+ catch (  NumberFormatException ignore) {
+  }
+  params.setEmulatorAdlOptions(myEmulatorAdlOptionsEditor.getText().trim());
 }
