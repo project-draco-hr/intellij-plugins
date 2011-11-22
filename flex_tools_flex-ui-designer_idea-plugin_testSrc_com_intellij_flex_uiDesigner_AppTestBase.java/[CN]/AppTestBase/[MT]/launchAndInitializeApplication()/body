@@ -1,16 +1,6 @@
 {
   if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
-    final ExtensionPoint<ServiceDescriptor> extensionPoint=DesignerApplicationManager.getExtensionPoint();
-    ServiceDescriptor[] extensions=extensionPoint.getExtensions();
-    for (    ServiceDescriptor extension : extensions) {
-      if (extension.serviceInterface.equals(SocketInputHandler.class.getName())) {
-        extension.serviceImplementation=TestSocketInputHandler.class.getName();
-      }
- else       if (extension.serviceInterface.equals(Client.class.getName())) {
-        extension.serviceImplementation=TestClient.class.getName();
-      }
-    }
-    changeServiceImplementation(DocumentProblemManager.class,TestDesignerApplicationManager.MyDocumentProblemManager.class);
+    changeServicesImplementation();
     new DesignerApplicationLauncher(myModule,false,new DesignerApplicationLauncher.PostTask(){
       @Override public boolean run(      ProjectDocumentReferenceCounter projectDocumentReferenceCounter,      ProgressIndicator indicator,      ProblemsHolder problemsHolder){
         assertTrue(DocumentProblemManager.getInstance().toString(problemsHolder.getProblems()),problemsHolder.isEmpty());
@@ -36,6 +26,6 @@
     assertTrue(problemsHolder.isEmpty());
     assertAfterInitLibrarySets(projectDocumentReferenceCounter.unregistered);
   }
-  appDir=DesignerApplicationManager.APP_DIR;
   socketInputHandler=(TestSocketInputHandler)SocketInputHandler.getInstance();
+  applicationLaunchedAndInitialized();
 }
