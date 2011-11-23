@@ -1,7 +1,23 @@
 {
-  myStatusBar=new StatusBar(MessageBundle.getBundle());
-  myCapturedBrowsersPanel=new CapturedBrowsersPanel();
-  myCaptureUrl=createCaptureUrl();
+  final StatusBar statusBar=new StatusBar(MessageBundle.getBundle());
+  final CapturedBrowsersPanel capturedBrowsersPanel=new CapturedBrowsersPanel();
+  final JTextField captureUrl=createCaptureUrl();
+  final JButton startServerButton=new JButton(new ServerStartAction());
+  final JButton stopServerButton=new JButton(new ServerStopAction());
+  LocalManager localManager=new LocalManager(startServerButton,stopServerButton,captureUrl);
+  myServerListeners=Arrays.asList(statusBar,capturedBrowsersPanel,localManager);
+  for (  ServerListener serverListener : myServerListeners) {
+    if (myState.isServerRunning()) {
+      serverListener.serverStarted();
+      for (      BrowserInfo browserInfo : myState.getCapturedBrowsers()) {
+        serverListener.browserCaptured(browserInfo);
+      }
+    }
+ else {
+      serverListener.serverStopped();
+    }
+    myState.addServerListener(serverListener);
+  }
   setBackground(UIUtil.getTreeTextBackground());
   setLayout(new BorderLayout());
   add(new JPanel(){
@@ -10,12 +26,9 @@
       add(new JPanel(){
 {
           setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
-          add(myStatusBar);
-          myStartServerButton=new JButton(new ServerStartAction());
-          add(myStartServerButton);
-          myStopServerButton=new JButton(new ServerStopAction());
-          add(myStopServerButton);
-          myStopServerButton.setEnabled(false);
+          add(statusBar);
+          add(startServerButton);
+          add(stopServerButton);
         }
       }
 );
@@ -23,11 +36,11 @@
 {
           setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
           add(new JLabel(PluginResources.getCaptureUrlMessage()));
-          add(myCaptureUrl);
+          add(captureUrl);
         }
       }
 );
-      add(myCapturedBrowsersPanel);
+      add(capturedBrowsersPanel);
     }
   }
 ,BorderLayout.NORTH);
