@@ -1,0 +1,21 @@
+{
+  JPanel panel=new JPanel(new BorderLayout());
+  panel.setBorder(BorderFactory.createTitledBorder("Matched configuration files (*.jstd and jsTestDriver.conf)"));
+  final JBList fileList=new JBList(ArrayUtil.EMPTY_STRING_ARRAY);
+  fileList.setBorder(BorderFactory.createLineBorder(Color.gray));
+  fileList.setCellRenderer(new ListCellRendererWrapper<String>(fileList.getCellRenderer()){
+    @Override public void customize(    JList list,    String value,    int index,    boolean selected,    boolean hasFocus){
+      setText(value);
+    }
+  }
+);
+  SwingUtils.addTextChangeListener(directoryTextField,new TextChangeListener(){
+    @Override public void textChanged(    String oldText,    @NotNull String newText){
+      List<String> configs=getConfigsInDir(project,newText);
+      fileList.setListData(configs.toArray());
+    }
+  }
+);
+  panel.add(fileList,BorderLayout.CENTER);
+  return panel;
+}

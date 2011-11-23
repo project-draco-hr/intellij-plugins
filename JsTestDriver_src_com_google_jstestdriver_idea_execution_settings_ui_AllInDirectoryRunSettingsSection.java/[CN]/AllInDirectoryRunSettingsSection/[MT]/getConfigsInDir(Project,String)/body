@@ -1,0 +1,17 @@
+{
+  List<String> result=Collections.emptyList();
+  File dir=new File(dirPath);
+  if (!StringUtil.isEmpty(dirPath) && dir.isDirectory() && dir.isAbsolute()) {
+    VirtualFile directoryVFile=LocalFileSystem.getInstance().findFileByIoFile(dir);
+    if (directoryVFile != null) {
+      List<VirtualFile> configs=JstdClientCommandLineBuilder.collectJstdConfigFilesInDirectory(project,directoryVFile);
+      result=ContainerUtil.map(configs,new Function<VirtualFile,String>(){
+        @Override public String fun(        VirtualFile virtualFile){
+          return ProjectRootUtils.getRootRelativePath(project,virtualFile.getPath());
+        }
+      }
+);
+    }
+  }
+  return result;
+}
