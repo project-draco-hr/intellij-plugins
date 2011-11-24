@@ -1,0 +1,39 @@
+{
+  indicator.setText(FlashUIDesignerBundle.message("open.document"));
+  Client client=Client.getInstance();
+  if (!client.flush()) {
+    return false;
+  }
+  final Module module=ModuleUtil.findModuleForPsiElement(psiFile);
+  if (projectDocumentReferenceCounter != null && !client.registerDocumentReferences(projectDocumentReferenceCounter.unregistered,module,problemsHolder)) {
+    return false;
+  }
+  final Semaphore semaphore=new Semaphore();
+  final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(DesignerApplicationManager.getApplication());
+  connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentOpenedListener(){
+    @Override public void documentOpened(){
+      semaphoreUp();
+    }
+    @Override public void errorOccured(){
+      semaphoreUp();
+    }
+    private void semaphoreUp(){
+      connection.disconnect();
+      semaphore.up();
+    }
+  }
+);
+  semaphore.down();
+  if (client.openDocument(module,psiFile,true,problemsHolder)) {
+    if (!client.flush()) {
+      return false;
+    }
+    indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
+    semaphore.waitFor();
+  }
+ else {
+    semaphore.up();
+    connection.disconnect();
+  }
+  return true;
+}
