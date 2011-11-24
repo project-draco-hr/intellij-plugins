@@ -1,0 +1,21 @@
+{
+  String[] frames=Arrays.copyOf(callFrames,callFrames.length + 1);
+  frames[frames.length - 1]=getFrame();
+  Pair<Map<String,Long>,Map<String,Long>> countMaps;
+  if (backTrace) {
+    countMaps=callTree.getCallersTimeMaps(frames);
+  }
+ else {
+    countMaps=callTree.getCalleesTimeMaps(ArrayUtil.reverseArray(frames));
+  }
+  final Map<String,Long> countMap=countMaps.getFirst();
+  final Map<String,Long> selfCountMap=countMaps.getSecond();
+  List<String> traces=LocationResolverUtil.filterByScope(countMap.keySet(),scope);
+  ArrayList<CallInfo> callInfos=new ArrayList<CallInfo>();
+  for (  final String t : traces) {
+    callInfos.add(new CallInfo(t,countMap.get(t),selfCountMap.get(t)));
+  }
+  for (int index=0; index < callInfos.size(); ++index) {
+    insert(new MergedCallNode<T>(callInfos.get(index),callTree,frames,backTrace,scope),index);
+  }
+}

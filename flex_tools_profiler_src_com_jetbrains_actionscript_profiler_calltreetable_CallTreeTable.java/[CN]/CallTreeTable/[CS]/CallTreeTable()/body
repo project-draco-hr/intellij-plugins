@@ -1,0 +1,26 @@
+{
+  super(new SortableListTreeTableModel(new DefaultMutableTreeNode(),getHotSpotsColumns()));
+  TreeTableRowSorter rowSorter=new TreeTableRowSorter(this);
+  for (int i=0; i < getSortableTreeTableModel().getColumnCount(); ++i) {
+    TableCellRenderer tableCellRenderer=getSortableTreeTableModel().getRenderer(i);
+    if (tableCellRenderer != null) {
+      getColumnModel().getColumn(i).setCellRenderer(tableCellRenderer);
+    }
+    Comparator comparator=getSortableTreeTableModel().getComparator(i);
+    if (comparator != null) {
+      rowSorter.setComparator(i,comparator);
+    }
+  }
+  setRowSorter(rowSorter);
+  rowSorter.addRowSorterListener(new RowSorterListener(){
+    @Override public void sorterChanged(    RowSorterEvent e){
+      final List<TreePath> paths=TreeUtil.collectExpandedPaths(getTree());
+      reload();
+      repaint();
+      getTableHeader().repaint();
+      TreeUtil.restoreExpandedPaths(getTree(),paths);
+    }
+  }
+);
+  setRowHeight(DEFAULT_ROW_HEIGHT);
+}

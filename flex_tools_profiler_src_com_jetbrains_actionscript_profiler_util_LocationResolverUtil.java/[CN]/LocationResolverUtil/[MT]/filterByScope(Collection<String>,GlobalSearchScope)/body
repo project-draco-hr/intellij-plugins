@@ -1,0 +1,11 @@
+{
+  return ContainerUtil.filter(traces,new Condition<String>(){
+    @Override public boolean value(    String trace){
+      SampleLocationResolver.LocationInfo l=SampleLocationResolver.buildMethodInfo(trace);
+      final PsiElement classByQName=JSResolveUtil.findClassByQName(l.getClazz(),scope);
+      boolean isAnonymous="Function".equals(l.getClazz()) && "<anonymous>".equals(l.getName());
+      return isAnonymous || classByQName != null;
+    }
+  }
+);
+}

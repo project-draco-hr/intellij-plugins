@@ -1,0 +1,28 @@
+{
+  myHotSpotsTreeTable=new CallTreeTable();
+  myHotSpotsTreeTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+    public void valueChanged(    ListSelectionEvent e){
+      final TreePath path=myHotSpotsTreeTable.getTree().getSelectionPath();
+      if (path == null)       return;
+      final Object lastPathComponent=path.getLastPathComponent();
+      myAlarm.cancelAllRequests();
+      if (!(lastPathComponent instanceof MergedCallNode))       return;
+      final MergedCallNode mergedCallNode=(MergedCallNode)lastPathComponent;
+      myAlarm.addRequest(new Runnable(){
+        public void run(){
+          String[] frames=new String[]{mergedCallNode.getFrame()};
+          final Pair<Map<String,Long>,Map<String,Long>> countMaps=mergedCallNode.getCallTree().getCalleesTimeMaps(frames);
+          final Map<String,Long> countMap=countMaps.getFirst();
+          final Map<String,Long> selfCountMap=countMaps.getSecond();
+          DefaultMutableTreeNode tracesRoot=(DefaultMutableTreeNode)myTracesTreeTable.getSortableTreeTableModel().getRoot();
+          JTreeUtil.removeChildren(tracesRoot,myTracesTreeTable.getSortableTreeTableModel());
+          fillTreeModelRoot(tracesRoot,mergedCallNode.getCallTree(),countMap,selfCountMap,false,frames);
+          TreeUtil.expand(myTracesTreeTable.getTree(),1);
+          myTracesTreeTable.reload();
+        }
+      }
+,500);
+    }
+  }
+);
+}
