@@ -1,6 +1,16 @@
 {
+  myWhatToTestForm=new WhatToTestForm(myProject,new ThrowableComputable<Module,RuntimeConfigurationError>(){
+    public Module compute() throws RuntimeConfigurationError {
+      final Module module=myModulesComboboxWrapper.getSelectedModule();
+      if (module != null)       return module;
+      throw new RuntimeConfigurationError(FlexBundle.message("module.not.specified"));
+    }
+  }
+,new ThrowableComputable<FlexUnitSupport,RuntimeConfigurationError>(){
+    public FlexUnitSupport compute() throws RuntimeConfigurationError {
+      return FlexUnitRunConfiguration.getFlexUnitSupport(myProject,getSelectedModuleName()).second;
+    }
+  }
+);
   myDebuggerSdkCombo=new FlexSdkComboBoxWithBrowseButton(FlexSdkComboBoxWithBrowseButton.FLEX_RELATED_SDK);
-  myMainClassFilter=new TestClassFilter(myProject);
-  myClassField=JSReferenceEditor.forClassName("",myProject,null,GlobalSearchScope.EMPTY_SCOPE,null,myMainClassFilter,ExecutionBundle.message("choose.test.class.dialog.title"));
-  myPackageField=JSReferenceEditor.forPackageName("",myProject,null,GlobalSearchScope.EMPTY_SCOPE,ExecutionBundle.message("choose.package.dialog.title"));
 }

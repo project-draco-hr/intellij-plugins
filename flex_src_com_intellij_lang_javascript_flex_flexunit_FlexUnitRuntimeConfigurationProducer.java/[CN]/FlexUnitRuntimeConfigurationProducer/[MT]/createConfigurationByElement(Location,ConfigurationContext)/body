@@ -4,10 +4,13 @@
   element=findTestElement(element);
   if (element == null)   return null;
   final RunnerAndConfigurationSettings settings=cloneTemplateConfiguration(location.getProject(),context);
-  final FlexUnitRunConfiguration flexUnitRunConfiguration=(FlexUnitRunConfiguration)settings.getConfiguration();
-  final FlexUnitRunnerParameters params=flexUnitRunConfiguration.getRunnerParameters();
+  final LocatableConfiguration runConfig=(LocatableConfiguration)settings.getConfiguration();
+  final FlexUnitCommonParameters params=runConfig instanceof FlexUnitRunConfiguration ? ((FlexUnitRunConfiguration)runConfig).getRunnerParameters() : ((NewFlexUnitRunConfiguration)runConfig).getRunnerParameters();
   if (!configureRunnerParameters(params,context.getModule(),element))   return null;
+  if (params instanceof NewFlexUnitRunnerParameters) {
+    ((NewFlexUnitRunnerParameters)params).setBCName(FlexBuildConfigurationManager.getInstance(context.getModule()).getActiveConfiguration().getName());
+  }
   mySourceElement=location.getPsiElement();
-  settings.setName(flexUnitRunConfiguration.suggestedName());
+  settings.setName(runConfig.suggestedName());
   return settings;
 }
