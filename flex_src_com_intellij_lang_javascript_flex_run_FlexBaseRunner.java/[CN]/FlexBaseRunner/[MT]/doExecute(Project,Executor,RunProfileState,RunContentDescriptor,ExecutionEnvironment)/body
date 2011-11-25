@@ -5,7 +5,21 @@
     if (runProfile instanceof RemoteFlashRunConfiguration) {
       final BCBasedRunnerParameters params=((RemoteFlashRunConfiguration)runProfile).getRunnerParameters();
       final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC=params.checkAndGetModuleAndBC(project);
-      return launchDebugProcess(moduleAndBC.first,moduleAndBC.second,params,contentToReuse,environment);
+      return launchDebugProcess(moduleAndBC.first,moduleAndBC.second,params,executor,contentToReuse,environment);
+    }
+    if (runProfile instanceof NewFlexUnitRunConfiguration) {
+      final NewFlexUnitRunnerParameters params=((NewFlexUnitRunConfiguration)runProfile).getRunnerParameters();
+      final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=params.checkAndGetModuleAndBC(project);
+      final Module module=moduleAndConfig.first;
+      final FlexIdeBuildConfiguration bc=moduleAndConfig.second;
+      try {
+        final String canonicalPath=new File(bc.getOutputFilePath()).getCanonicalPath();
+        FlashPlayerTrustUtil.updateTrustedStatus(module.getProject(),true,false,canonicalPath);
+      }
+ catch (      IOException e) {
+      }
+      final LauncherParameters launcherParams=new LauncherParameters(LauncherParameters.LauncherType.OSDefault,BrowsersConfiguration.BrowserFamily.FIREFOX,"");
+      return launchFlexUnit(project,executor,contentToReuse,environment,params,launcherParams,bc.getOutputFilePath());
     }
     if (runProfile instanceof FlexIdeRunConfiguration) {
       final FlexIdeRunnerParameters params=((FlexIdeRunConfiguration)runProfile).getRunnerParameters();
