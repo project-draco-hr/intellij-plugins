@@ -2,20 +2,19 @@
   if (!(element instanceof XmlTag)) {
     return;
   }
+  final XmlTag xmlTag=(XmlTag)element;
+  if (!Comparing.equal(xmlTag.getNamespace(),StrutsConstants.TAGLIB_STRUTS_UI_URI)) {
+    return;
+  }
+  final String tagName=xmlTag.getLocalName();
+  if (Arrays.binarySearch(TAGS_WITH_ACTION_ATTRIBUTE,tagName) < 0) {
+    return;
+  }
   final Module module=ModuleUtil.findModuleForPsiElement(element);
   if (module == null) {
     return;
   }
   if (StrutsFacet.getInstance(module) == null) {
-    return;
-  }
-  final XmlTag xmlTag=(XmlTag)element;
-  final String tagName=xmlTag.getLocalName();
-  if (Arrays.binarySearch(TAGS_WITH_ACTION_ATTRIBUTE,tagName) < 0) {
-    return;
-  }
-  final String uiTaglibPrefix=getUITaglibPrefix(xmlTag);
-  if (uiTaglibPrefix == null || !Comparing.equal(xmlTag.getNamespacePrefix(),uiTaglibPrefix)) {
     return;
   }
   final String actionPath=Comparing.equal(tagName,ACTION_ATTRIBUTE_NAME) ? xmlTag.getAttributeValue("name") : xmlTag.getAttributeValue(ACTION_ATTRIBUTE_NAME);
