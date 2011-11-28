@@ -57,6 +57,18 @@
     @Override protected AbstractExternalFilter.RefConvertor[] getRefConvertors(){
       return myReferenceConvertors;
     }
+    @Override public String getExternalDocInfoForElement(    final String docURL,    final PsiElement element) throws Exception {
+      String result=super.getExternalDocInfoForElement(docURL,element);
+      if (StringUtil.isNotEmpty(result)) {
+        result=result.replace(DISPLAY_NAME_MARKER,ApplicationManager.getApplication().runReadAction(new Computable<CharSequence>(){
+          public CharSequence compute(){
+            return getDisplayName(element);
+          }
+        }
+));
+      }
+      return result;
+    }
     @Override protected void doBuildFromStream(    String surl,    Reader reader,    StringBuffer result) throws IOException {
       String input=StreamUtil.readTextFrom(reader);
       Matcher anchorMatcher=ourAnchorsuffix.matcher(surl);
@@ -109,8 +121,7 @@
       String text=description.substring(input);
       text=ourDetailHeaderTable.matcher(text).replaceAll("");
       text=ourClassHeaderTable.matcher(text).replaceAll("");
-      String displayName=getDisplayName(elementToShowDoc);
-      result.append(HTML).append("<PRE><b>").append(displayName);
+      result.append(HTML).append("<PRE><b>").append(DISPLAY_NAME_MARKER);
       result.append("</b></PRE>");
       result.append(prettyPrint(text));
       if (seeAlso != null) {
