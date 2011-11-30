@@ -1,8 +1,14 @@
 {
   return ApplicationManager.getApplication().runWriteAction(new Computable<List<VirtualFile>>(){
     @Override public List<VirtualFile> compute(){
-      VirtualFile extractDir=getExtractDirAsVirtualFile();
-      return copyVirtualFilesToDir(bundledAdapterFiles,extractDir);
+      try {
+        VirtualFile extractDir=getOrCreateExtractDirVirtualFile();
+        return copyVirtualFilesToDir(bundledAdapterFiles,extractDir);
+      }
+ catch (      Exception e) {
+        LOG.warn("Extraction of " + myAssertionFrameworkName + " adapter files failed",e);
+        return null;
+      }
     }
   }
 );
