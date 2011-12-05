@@ -1,0 +1,19 @@
+{
+  FrameInfo result=cache.get(data);
+  if (result == null) {
+    result=createInstance(data);
+    FrameInfo cashedInstance=cacheInstances.get(result);
+    if (!result.isAnonymous() && cashedInstance != null) {
+      int fileLine=Math.min(cashedInstance.getFileLine(),result.getFileLine());
+      if (fileLine != -1) {
+        cashedInstance.setFileLine(fileLine);
+      }
+      result=cashedInstance;
+    }
+ else     if (!result.isAnonymous()) {
+      cacheInstances.put(result,result);
+    }
+    cache.put(data,result);
+  }
+  return result;
+}
