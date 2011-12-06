@@ -1,6 +1,5 @@
 {
   if (ex != null) {
-    if (!(ex instanceof EOFException) && !myEOFReached)     LOG.error(ex);
     Runnable runnable=new Runnable(){
       public void run(){
         if (myEOFReached)         return;
@@ -15,7 +14,14 @@
           myStatus.setText("Profiler agent disconnected" + (agentVersionMismatch ? " , agent version is different" : ""));
           return;
         }
-        Notifications.Bus.notify(new Notification("ASProfiler","IOProblem",ex.getLocalizedMessage(),NotificationType.ERROR));
+        if (ex instanceof SocketException) {
+          myEOFReached=true;
+          myStatus.setText("Unexpected loss of connection");
+          final String message="Unexpected loss of connection with Profiler Agent:<br/>" + ex.getLocalizedMessage();
+          NOTIFICATION_GROUP.createNotification(message,NotificationType.WARNING).notify(getProject());
+          return;
+        }
+        NOTIFICATION_GROUP.createNotification("Connection error:<br/>" + ex.getLocalizedMessage(),NotificationType.ERROR).notify(getProject());
       }
     }
 ;
