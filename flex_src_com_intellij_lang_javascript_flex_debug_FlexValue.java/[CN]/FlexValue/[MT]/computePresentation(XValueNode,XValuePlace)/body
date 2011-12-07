@@ -1,22 +1,22 @@
 {
   final boolean isObject=myResult.contains(OBJECT_MARKER);
   String val=myResult;
-  String type=null;
+  String typeFromFlexValueResult=null;
   String additionalInfo=null;
   if (isObject) {
     final Pair<String,String> typeAndAdditionalInfo=getTypeAndAdditionalInfo(myResult);
-    type=typeAndAdditionalInfo.first;
+    typeFromFlexValueResult=typeAndAdditionalInfo.first;
     additionalInfo=typeAndAdditionalInfo.second;
-    if (type != null) {
+    if (typeFromFlexValueResult != null) {
       val="[".concat(getObjectId(myResult,myResult.indexOf(OBJECT_MARKER),OBJECT_MARKER)).concat("]");
     }
   }
-  if ((XML_TYPE.equals(type) || XMLLIST_TYPE.equals(type)) && myExpression.indexOf('=') == -1) {
+  if ((XML_TYPE.equals(typeFromFlexValueResult) || XMLLIST_TYPE.equals(typeFromFlexValueResult)) && myExpression.indexOf('=') == -1) {
     if (myDebugProcess.isDebuggerFromSdk4()) {
-      scheduleToXmlStringCalculation(node,type);
+      scheduleToXmlStringCalculation(node,typeFromFlexValueResult);
     }
  else     if (myDebugProcess.isDebuggerFromSdk3()) {
-      if (XMLLIST_TYPE.equals(type)) {
+      if (XMLLIST_TYPE.equals(typeFromFlexValueResult)) {
         setXmlListPresentation(node,val,this);
         return;
       }
@@ -26,15 +26,15 @@
       }
     }
   }
-  final String fqn=getFqn(type);
-  if (isCollection(fqn)) {
-    if (VECTOR.equals(fqn)) {
-      scheduleVectorPresentation(node);
+  final String type=getType(typeFromFlexValueResult);
+  if (type != null && isCollection(type)) {
+    if (type.equals(VECTOR) || type.startsWith(GENERIC_VECTOR_PREFIX)) {
+      scheduleVectorPresentation(node,typeFromFlexValueResult);
     }
  else {
-      scheduleCollectionSizePresentation(node,type,"");
+      scheduleCollectionSizePresentation(node,typeFromFlexValueResult,"");
     }
   }
   val=setFullValueEvaluatorIfNeeded(node,val,false);
-  node.setPresentation(getIcon(),type,val,isObject);
+  node.setPresentation(getIcon(),typeFromFlexValueResult,val,isObject);
 }

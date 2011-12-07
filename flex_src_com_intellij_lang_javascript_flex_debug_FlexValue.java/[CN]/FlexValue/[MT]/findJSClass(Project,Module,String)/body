@@ -1,16 +1,19 @@
 {
-  final String fqn=getFqn(typeFromFlexValueResult);
-  if (fqn != null) {
+  String type=getType(typeFromFlexValueResult);
+  if (type != null) {
+    if (isGenericVector(type)) {
+      type=VECTOR;
+    }
     final JavaScriptIndex jsIndex=JavaScriptIndex.getInstance(project);
-    PsiElement jsClass=JSResolveUtil.findClassByQName(fqn,jsIndex,module);
-    if (!(jsClass instanceof JSClass) && fqn.endsWith("$")) {
-      jsClass=JSResolveUtil.findClassByQName(fqn.substring(0,fqn.length() - 1),jsIndex,module);
+    PsiElement jsClass=JSResolveUtil.findClassByQName(type,jsIndex,module);
+    if (!(jsClass instanceof JSClass) && type.endsWith("$")) {
+      jsClass=JSResolveUtil.findClassByQName(type.substring(0,type.length() - 1),jsIndex,module);
     }
     if (!(jsClass instanceof JSClass) && module != null) {
       final GlobalSearchScope scope=ProjectScope.getAllScope(project);
-      jsClass=JSResolveUtil.findClassByQName(fqn,scope);
-      if (!(jsClass instanceof JSClass) && fqn.endsWith("$")) {
-        jsClass=JSResolveUtil.findClassByQName(fqn.substring(0,fqn.length() - 1),scope);
+      jsClass=JSResolveUtil.findClassByQName(type,scope);
+      if (!(jsClass instanceof JSClass) && type.endsWith("$")) {
+        jsClass=JSResolveUtil.findClassByQName(type.substring(0,type.length() - 1),scope);
       }
     }
     return jsClass instanceof JSClass ? (JSClass)jsClass : null;
