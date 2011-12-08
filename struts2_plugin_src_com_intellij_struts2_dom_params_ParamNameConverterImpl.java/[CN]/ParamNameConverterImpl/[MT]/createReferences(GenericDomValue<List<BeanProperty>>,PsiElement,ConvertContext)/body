@@ -3,6 +3,12 @@
   if (paramsElement == null) {
     return PsiReference.EMPTY_ARRAY;
   }
+  for (  ParamNameCustomConverter customConverter : Extensions.getExtensions(EP_NAME)) {
+    final PsiReference[] customReferences=customConverter.getCustomReferences((XmlAttributeValue)psiElement,paramsElement);
+    if (customReferences.length > 0) {
+      return customReferences;
+    }
+  }
   final PsiClass rootPsiClass=findBeanPropertyClass(paramsElement);
   return new BeanPropertyPathReferenceSet(psiElement,rootPsiClass,false).getPsiReferences();
 }
