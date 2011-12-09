@@ -1,31 +1,19 @@
 {
-  final VirtualFile flashPlayerTrustDir=getFlashPlayerTrustDir(project,isDebug,runTrusted);
+  final File flashPlayerTrustDir=getFlashPlayerTrustDir(project,isDebug,runTrusted);
   if (flashPlayerTrustDir == null) {
     return null;
   }
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    public void run(){
-      flashPlayerTrustDir.refresh(false,true);
-    }
-  }
-);
-  VirtualFile ideaTrustedCfgFile=flashPlayerTrustDir.findChild(INTELLIJ_IDEA_CFG);
-  if (ideaTrustedCfgFile == null && runTrusted) {
-    final Ref<IOException> exceptionRef=new Ref<IOException>();
-    ideaTrustedCfgFile=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
-      public VirtualFile compute(){
-        try {
-          return flashPlayerTrustDir.createChildData(FlashPlayerTrustUtil.class,INTELLIJ_IDEA_CFG);
-        }
- catch (        IOException e) {
-          exceptionRef.set(e);
-          return null;
-        }
+  final File ideaTrustedCfgFile=new File(flashPlayerTrustDir,INTELLIJ_IDEA_CFG);
+  if (!ideaTrustedCfgFile.exists() && runTrusted) {
+    try {
+      final boolean ok=ideaTrustedCfgFile.createNewFile();
+      if (!ok) {
+        showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,flashPlayerTrustDir.getPath()));
       }
     }
-);
-    if (!exceptionRef.isNull()) {
-      showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,exceptionRef.get().getMessage()));
+ catch (    IOException e) {
+      showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,e.getMessage()));
+      return null;
     }
   }
   return ideaTrustedCfgFile;
