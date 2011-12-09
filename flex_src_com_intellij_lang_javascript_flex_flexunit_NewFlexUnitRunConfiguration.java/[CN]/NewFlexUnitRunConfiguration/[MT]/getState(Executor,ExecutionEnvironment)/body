@@ -1,3 +1,23 @@
 {
+  final FlexIdeBuildConfiguration bc;
+  try {
+    bc=myRunnerParameters.checkAndGetModuleAndBC(getProject()).second;
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
+  }
+  final BuildConfigurationNature nature=bc.getNature();
+  if (nature.isDesktopPlatform()) {
+    final FlexIdeRunConfiguration.AirRunState airRunState=new FlexIdeRunConfiguration.AirRunState(getProject(),env,myRunnerParameters){
+      @Override public ExecutionResult execute(      @NotNull Executor executor,      @NotNull ProgramRunner runner) throws ExecutionException {
+        final ProcessHandler processHandler=startProcess();
+        final ExecutionConsole console=FlexBaseRunner.createFlexUnitRunnerConsole(getProject(),env,processHandler,executor);
+        return new DefaultExecutionResult(console,processHandler);
+      }
+    }
+;
+    airRunState.setConsoleBuilder(TextConsoleBuilderFactory.getInstance().createBuilder(getProject()));
+    return airRunState;
+  }
   return FlexBaseRunner.EMPTY_RUN_STATE;
 }
