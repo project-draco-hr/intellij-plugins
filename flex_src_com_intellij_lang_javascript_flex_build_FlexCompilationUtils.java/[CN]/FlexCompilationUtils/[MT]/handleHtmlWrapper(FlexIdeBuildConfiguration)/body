@@ -1,0 +1,59 @@
+{
+  final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
+  if (templateDir == null || !templateDir.isDirectory()) {
+    throw new FlexCompilerException(FlexBundle.message("html.wrapper.dir.not.found",bc.getWrapperTemplatePath()));
+  }
+  final VirtualFile templateFile=templateDir.findChild(CreateHtmlWrapperAction.HTML_WRAPPER_TEMPLATE_FILE_NAME);
+  if (templateFile == null) {
+    throw new FlexCompilerException(FlexBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()));
+  }
+  final VirtualFile outputDir=LocalFileSystem.getInstance().findFileByPath(bc.getOutputFolder());
+  if (outputDir == null || !outputDir.isDirectory()) {
+    throw new FlexCompilerException(FlexBundle.message("output.folder.does.not.exist",bc.getOutputFolder()));
+  }
+  final Ref<FlexCompilerException> exceptionRef=new Ref<FlexCompilerException>();
+  ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+    public void run(){
+      exceptionRef.set(ApplicationManager.getApplication().runWriteAction(new NullableComputable<FlexCompilerException>(){
+        public FlexCompilerException compute(){
+          for (          VirtualFile file : templateDir.getChildren()) {
+            if (file == templateFile) {
+              final String wrapperText;
+              try {
+                wrapperText=VfsUtil.loadText(file);
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexBundle.message("failed.to.load.file",file.getPath(),e.getMessage()));
+              }
+              if (!wrapperText.contains(SWF_MACRO)) {
+                return new FlexCompilerException(FlexBundle.message("no.swf.macro",FileUtil.toSystemDependentName(file.getPath())));
+              }
+              final String fixedText=replaceMacros(wrapperText,FileUtil.getNameWithoutExtension(bc.getOutputFileName()),bc.getDependencies().getTargetPlayer());
+              final String wrapperFileName=getWrapperFileName(bc);
+              try {
+                FlexUtils.addFileWithContent(wrapperFileName,fixedText,outputDir);
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexBundle.message("failed.to.create.file",wrapperFileName,outputDir.getPath(),e.getMessage()));
+              }
+            }
+ else {
+              try {
+                file.copy(this,outputDir,file.getName());
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexBundle.message("failed.to.copy.file",file.getName(),templateDir.getPath(),outputDir.getPath(),e.getMessage()));
+              }
+            }
+          }
+          return null;
+        }
+      }
+));
+    }
+  }
+,ModalityState.any());
+  if (!exceptionRef.isNull()) {
+    throw exceptionRef.get();
+  }
+}

@@ -1,7 +1,7 @@
 {
-switch (config.getTargetPlatform()) {
+switch (bc.getTargetPlatform()) {
 case Web:
-    final String urlOrPath=params.isLaunchUrl() ? params.getUrl() : config.getOutputFilePath();
+    final String urlOrPath=params.isLaunchUrl() ? params.getUrl() : bc.isUseHtmlWrapper() ? bc.getOutputFolder() + "/" + FlexCompilationUtils.getWrapperFileName(bc) : bc.getOutputFilePath();
   launchWithSelectedApplication(urlOrPath,params.getLauncherParameters());
 break;
 case Desktop:
@@ -11,9 +11,9 @@ switch (params.getMobileRunTarget()) {
 case Emulator:
 return standardLaunch(module.getProject(),executor,state,contentToReuse,environment);
 case AndroidDevice:
-final String applicationId=getApplicationId(getAirDescriptorPath(config,config.getAndroidPackagingOptions()));
-final Sdk sdk=FlexUtils.createFlexSdkWrapper(config);
-if (packAndInstallToAndroidDevice(module,sdk,createAndroidPackageParams(sdk,config,params,false),applicationId,false)) {
+final String applicationId=getApplicationId(getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
+final Sdk sdk=FlexUtils.createFlexSdkWrapper(bc);
+if (packAndInstallToAndroidDevice(module,sdk,createAndroidPackageParams(sdk,bc,params,false),applicationId,false)) {
 launchOnAndroidDevice(module.getProject(),sdk,applicationId,false);
 }
 return null;
