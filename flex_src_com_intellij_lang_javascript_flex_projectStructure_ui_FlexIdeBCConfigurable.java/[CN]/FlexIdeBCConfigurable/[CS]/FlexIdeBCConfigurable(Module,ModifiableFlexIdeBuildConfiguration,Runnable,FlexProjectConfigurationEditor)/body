@@ -39,7 +39,17 @@
         Messages.showInfoMessage(myModule.getProject(),FlexBundle.message("sdk.needed.to.create.wrapper"),CreateHtmlWrapperTemplateDialog.TITLE);
       }
  else {
-        final CreateHtmlWrapperTemplateDialog dialog=new CreateHtmlWrapperTemplateDialog(module,sdk,myWrapperTemplateTextWithBrowse.getText().trim());
+        String path=myWrapperTemplateTextWithBrowse.getText().trim();
+        if (path.isEmpty()) {
+          final String[] contentRootUrls=ModuleRootManager.getInstance(module).getContentRootUrls();
+          if (contentRootUrls.length > 0) {
+            path=VfsUtil.urlToPath(contentRootUrls[0]) + "/" + CreateHtmlWrapperTemplateDialog.HTML_TEMPLATE_FOLDER_NAME;
+          }
+ else {
+            path=PathUtil.getParentPath(module.getModuleFilePath()) + "/" + CreateHtmlWrapperTemplateDialog.HTML_TEMPLATE_FOLDER_NAME;
+          }
+        }
+        final CreateHtmlWrapperTemplateDialog dialog=new CreateHtmlWrapperTemplateDialog(module,sdk,path);
         dialog.show();
         if (dialog.isOK()) {
           myWrapperTemplateTextWithBrowse.setText(dialog.getWrapperFolderPath());
