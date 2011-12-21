@@ -3,43 +3,30 @@
   if (manifest == null) {
     return Collections.emptySet();
   }
-  Set<Object> result=new HashSet<Object>();
+  Set<ManifestHolder> dependencyHolders=new HashSet<ManifestHolder>();
   List<String> imports=manifest.getImports();
   for (  String anImport : imports) {
-    Set<ManifestHolder> manifestHolders=myBundleCache.whoProvides(anImport);
-    for (    ManifestHolder manifestHolder : manifestHolders) {
-      try {
-        Object boundObject=manifestHolder.getBoundObject();
-        result.add(boundObject);
-      }
- catch (      ManifestHolderDisposedException ignore) {
-      }
-    }
+    dependencyHolders.addAll(myBundleCache.whoProvides(anImport));
   }
   List<String> requiredBundles=manifest.getRequiredBundles();
   List<ManifestHolder> allRequiredBundles=new ArrayList<ManifestHolder>();
   for (  String requiredBundle : requiredBundles) {
     resolveRequiredBundle(requiredBundle,allRequiredBundles);
   }
-  for (  ManifestHolder manifestHolder : allRequiredBundles) {
-    if (manifestHolder != null) {
-      try {
-        result.add(manifestHolder.getBoundObject());
-      }
- catch (      ManifestHolderDisposedException ignore) {
-      }
-    }
-  }
+  dependencyHolders.addAll(allRequiredBundles);
   ManifestHolder manifestHolder=myBundleCache.getManifestHolder(module);
   if (manifestHolder != null) {
-    Set<ManifestHolder> fragmentHosts=myBundleCache.getFragmentHosts(manifestHolder);
-    for (    ManifestHolder fragmentHost : fragmentHosts) {
-      try {
-        result.add(fragmentHost.getBoundObject());
-      }
- catch (      ManifestHolderDisposedException ignore) {
-      }
+    dependencyHolders.addAll(myBundleCache.getFragmentHosts(manifestHolder));
+  }
+  Set<Object> result=new HashSet<Object>();
+  for (  ManifestHolder holder : dependencyHolders) {
+    try {
+      result.add(holder.getBoundObject());
+    }
+ catch (    ManifestHolderDisposedException e) {
     }
   }
+  List<String> entries=manifest.getBundleClassPathEntries();
+  result.addAll(resolveBundleClassPath(entries));
   return result;
 }

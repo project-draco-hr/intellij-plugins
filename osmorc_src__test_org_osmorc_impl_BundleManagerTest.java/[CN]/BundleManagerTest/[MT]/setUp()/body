@@ -9,4 +9,15 @@
   myBundleManager.addManifestHolder(makeHolder("Manifest6.MF",bundleSymbolicName("org.eclipse.fragment.host").bundleVersion("2.0.0").requireBundle("org.eclipse.ui.workbench;bundle-version=\"[3.3.0,4.0.0)\";visibility:=reexport").toString(),"org.eclipse.fragment.host"));
   myBundleManager.addManifestHolder(makeHolder("Manifest7.MF",bundleSymbolicName("org.eclipse.fragment.fragment").bundleVersion("2.0.0").requireBundle("org.eclipse.circular.one;bundle-version=\"[3.3.0,4.0.0)\";visibility:=reexport").fragmentHost("org.eclipse.fragment.host").toString(),"org.eclipse.fragment.fragment"));
   myBundleManager.addManifestHolder(makeHolder("Manifest8.MF",bundleSymbolicName("org.eclipse.fragment.fragment").bundleVersion("1.0.0").requireBundle("org.eclipse.ui;bundle-version=\"[3.3.0,4.0.0)\";visibility:=reexport").fragmentHost("org.eclipse.fragment.host").toString(),"org.eclipse.fragment.fragment.old"));
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      LibraryTable.ModifiableModel projectLibraryModel=ProjectLibraryTable.getInstance(getProject()).getModifiableModel();
+      myFakeJarLibrary=projectLibraryModel.createLibrary("fakeJar");
+      Library.ModifiableModel libraryModel=myFakeJarLibrary.getModifiableModel();
+      libraryModel.addRoot("file:///foo/bar/" + FAKE_JAR_NAME,OrderRootType.CLASSES);
+      libraryModel.commit();
+      projectLibraryModel.commit();
+    }
+  }
+);
 }
