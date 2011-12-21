@@ -22,7 +22,21 @@
     if (classDir != null) {
       final VirtualFile manifestFile=classDir.findFileByRelativePath("META-INF/MANIFEST.MF");
       if (manifestFile != null) {
-        LibraryManifestHolderImpl newHolder=new LibraryManifestHolderImpl(library,project,jarFileUrl);
+        final LibraryManifestHolderImpl newHolder=new LibraryManifestHolderImpl(library,project,jarFileUrl);
+        Disposer.register(project,new Disposable(){
+          @Override public void dispose(){
+synchronized (LibraryManifestHolderImpl.class) {
+              for (Iterator<LibraryManifestHolderImpl> iterator=myHolderCache.values().iterator(); iterator.hasNext(); ) {
+                LibraryManifestHolderImpl holder=iterator.next();
+                if (holder == newHolder) {
+                  iterator.remove();
+                  break;
+                }
+              }
+            }
+          }
+        }
+);
         myHolderCache.put(jarFileUrl,newHolder);
         result.add(newHolder);
       }
