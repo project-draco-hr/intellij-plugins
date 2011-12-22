@@ -1,0 +1,32 @@
+{
+  if (!isEmpty(libraryModel.getDocUrls()) || !isEmpty(libraryModel.getCompactFiles())) {
+    return false;
+  }
+  Collection<VirtualFile> sourceFiles=ObjectUtils.notNull(libraryModel.getSourceFiles(),Collections.<VirtualFile>emptySet());
+  if (sourceFiles.size() != expectedSourceFiles.size()) {
+    return false;
+  }
+  for (  VirtualFile sourceFile : sourceFiles) {
+    boolean found=false;
+    for (    VirtualFile expected : expectedSourceFiles) {
+      if (sourceFile.getName().equals(expected.getName())) {
+        if (sourceFile.getLength() == expected.getLength()) {
+          try {
+            byte[] content1=sourceFile.contentsToByteArray();
+            byte[] content2=expected.contentsToByteArray();
+            found=Arrays.equals(content1,content2);
+            if (found) {
+              break;
+            }
+          }
+ catch (          IOException ignored) {
+          }
+        }
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}

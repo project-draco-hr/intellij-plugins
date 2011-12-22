@@ -1,0 +1,23 @@
+{
+  Computable<Boolean> task=new Computable<Boolean>(){
+    @Override @NotNull public Boolean compute(){
+      try {
+        ScriptingLibraryMappings libraryMappings=ServiceManager.getService(myProject,JSLibraryMappings.class);
+        boolean isAssociated=libraryMappings.isAssociatedWith(dirForAssociation,libraryModel.getName());
+        if (isAssociated) {
+          LOG.info("Library '" + libraryModel.getName() + "' is already associated with "+ dirForAssociation.getPath());
+          return true;
+        }
+        libraryMappings.associate(dirForAssociation,libraryModel.getName());
+        LOG.info("Library '" + libraryModel.getName() + "' has been successfully associated with "+ dirForAssociation.getPath());
+        return true;
+      }
+ catch (      Exception ex) {
+        LOG.error(ex);
+        return false;
+      }
+    }
+  }
+;
+  return ApplicationManager.getApplication().runWriteAction(task);
+}
