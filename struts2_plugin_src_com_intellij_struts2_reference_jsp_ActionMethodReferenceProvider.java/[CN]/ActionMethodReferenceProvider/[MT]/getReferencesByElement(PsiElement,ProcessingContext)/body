@@ -1,0 +1,26 @@
+{
+  final XmlAttributeValue methodAttribute=(XmlAttributeValue)psiElement;
+  final PsiElement parent=methodAttribute.getParent().getParent();
+  if (!(parent instanceof XmlTag)) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final XmlTag tag=(XmlTag)parent;
+  final XmlAttribute action=tag.getAttribute("action");
+  if (action == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final XmlAttributeValue valueElement=action.getValueElement();
+  if (valueElement == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  for (  final PsiReference psiReference : valueElement.getReferences()) {
+    if (psiReference instanceof ActionReferenceProvider.ActionReference) {
+      final PsiElement resolve=psiReference.resolve();
+      if (!(resolve instanceof XmlTag)) {
+        continue;
+      }
+      return new PsiReference[]{new ActionMethodReference(methodAttribute,(XmlTag)resolve)};
+    }
+  }
+  return PsiReference.EMPTY_ARRAY;
+}
