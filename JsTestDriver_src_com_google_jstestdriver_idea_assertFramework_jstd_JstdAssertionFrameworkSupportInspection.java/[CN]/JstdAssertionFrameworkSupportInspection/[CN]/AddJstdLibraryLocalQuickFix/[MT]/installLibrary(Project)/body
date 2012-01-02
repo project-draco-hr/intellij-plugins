@@ -1,0 +1,20 @@
+{
+  List<VirtualFile> sources=VfsUtils.findVirtualFilesByResourceNames(JstdDefaultAssertionFrameworkSrcMarker.class,new String[]{"Asserts.js","TestCase.js"});
+  JsLibraryHelper libraryHelper=new JsLibraryHelper(project);
+  String libraryName="JsTestDriver Assertion Framework";
+  ScriptingLibraryModel libraryModel=libraryHelper.createJsLibrary(libraryName,sources);
+  String dialogTitle="Adding JsTestDriver assertion framework support";
+  if (libraryModel == null) {
+    Messages.showErrorDialog("Unable to create '" + libraryName + "' JavaScript library",dialogTitle);
+    return;
+  }
+  VirtualFile projectRootDir=project.getBaseDir();
+  if (projectRootDir == null) {
+    LOG.error("Project baseDir is null!");
+    return;
+  }
+  boolean associated=libraryHelper.associateLibraryWithDir(libraryModel,projectRootDir);
+  if (!associated) {
+    Messages.showErrorDialog("Unable to associate '" + libraryName + "' JavaScript library with project",dialogTitle);
+  }
+}
