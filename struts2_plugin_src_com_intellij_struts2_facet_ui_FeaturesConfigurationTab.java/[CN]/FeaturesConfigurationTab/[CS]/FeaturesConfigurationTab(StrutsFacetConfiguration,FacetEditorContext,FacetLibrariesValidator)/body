@@ -2,16 +2,6 @@
   this.originalConfiguration=originalConfiguration;
   this.validator=validator;
   disablePropertiesKeys.setSelected(originalConfiguration.isPropertiesKeysDisabled());
-  versionComboBox.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
-      final Artifact version=getSelectedVersion();
-      if (version != null) {
-        validator.setRequiredLibraries(getRequiredLibraries());
-        validator.setDescription(new StrutsFacetLibrariesValidatorDescription(version.getVersion()));
-      }
-    }
-  }
-);
   final Module module=editorContext.getModule();
   final String version=StrutsVersionDetector.detectStrutsVersion(module);
   if (version != null) {
@@ -20,12 +10,5 @@
     versionComboBox.setEnabled(false);
     return;
   }
-  final Artifact[] versions=LibrariesDownloadAssistant.getVersions(StrutsFrameworkSupportProvider.getLibrariesUrl());
-  versionComboBox.setModel(new DefaultComboBoxModel(versions));
-  if (versions.length > 0) {
-    final Artifact item=versions[0];
-    versionComboBox.getModel().setSelectedItem(item);
-    validator.setRequiredLibraries(getRequiredLibraries());
-    validator.setDescription(new StrutsFacetLibrariesValidatorDescription(item.getVersion()));
-  }
+  setupVersionComboBox();
 }
