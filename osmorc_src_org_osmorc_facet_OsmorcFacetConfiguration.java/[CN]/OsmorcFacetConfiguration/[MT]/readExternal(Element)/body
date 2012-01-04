@@ -1,13 +1,36 @@
 {
-  setOsmorcControlsManifest(Boolean.parseBoolean(element.getAttributeValue(OSMORC_CONTROLS_MANIFEST,"true")));
-  setUseBndFile(Boolean.parseBoolean(element.getAttributeValue(USE_BND_FILE,"false")));
+  if (element.getAttributeValue(MANIFEST_GENERATION_MODE) == null) {
+    boolean osmorcControlsManifest=Boolean.parseBoolean(element.getAttributeValue(OSMORC_CONTROLS_MANIFEST,"true"));
+    boolean useBndFile=Boolean.parseBoolean(element.getAttributeValue(USE_BND_FILE,"false"));
+    boolean useBundlorFile=Boolean.parseBoolean(element.getAttributeValue(USE_BUNDLOR_FILE,"false"));
+    setManifestGenerationMode(ManifestGenerationMode.OsmorcControlled);
+    if (osmorcControlsManifest && !useBndFile && !useBundlorFile) {
+      setManifestGenerationMode(ManifestGenerationMode.OsmorcControlled);
+    }
+ else     if (!osmorcControlsManifest && useBndFile && !useBundlorFile) {
+      setManifestGenerationMode(ManifestGenerationMode.Bnd);
+    }
+ else     if (!osmorcControlsManifest && !useBndFile && useBundlorFile) {
+      setManifestGenerationMode(ManifestGenerationMode.Bundlor);
+    }
+ else     if (!osmorcControlsManifest && !useBndFile && !useBundlorFile) {
+      setManifestGenerationMode(ManifestGenerationMode.Manually);
+    }
+ else {
+      OsmorcProjectComponent.IMPORTANT_ERROR_NOTIFICATION.createNotification("The configuration for OSGi facet '" + myFacet.getModule().getName() + "' is invalid and has been reset. Please check your facet settings!",NotificationType.WARNING).notify(myFacet.getModule().getProject());
+    }
+  }
+ else {
+    String manifestGenerationModeName=element.getAttributeValue(MANIFEST_GENERATION_MODE,ManifestGenerationMode.OsmorcControlled.name());
+    ManifestGenerationMode manifestGenerationMode=ManifestGenerationMode.valueOf(manifestGenerationModeName);
+    setManifestGenerationMode(manifestGenerationMode);
+  }
   setBndFileLocation(element.getAttributeValue(BND_FILE_LOCATION));
-  setUseBundlorFile(Boolean.parseBoolean(element.getAttributeValue(USE_BUNDLOR_FILE,"false")));
   setBundlorFileLocation(element.getAttributeValue(BUNDLOR_FILE_LOCATION));
   setManifestLocation(element.getAttributeValue(MANIFEST_LOCATION));
   String outputPathTypeName=element.getAttributeValue(OUTPUT_PATH_TYPE,OutputPathType.SpecificOutputPath.name());
   OutputPathType outputPathType=OutputPathType.valueOf(outputPathTypeName);
-  setJarFileLocation(element.getAttributeValue(JARFILE_LOCATION),outputPathType);
+  setJarFileLocation(element.getAttributeValue(JAR_FILE_LOCATION),outputPathType);
   setBundleActivator(element.getAttributeValue(BUNDLE_ACTIVATOR));
   setBundleSymbolicName(element.getAttributeValue(BUNDLE_SYMBOLIC_NAME));
   setBundleVersion(element.getAttributeValue(BUNDLE_VERSION));
