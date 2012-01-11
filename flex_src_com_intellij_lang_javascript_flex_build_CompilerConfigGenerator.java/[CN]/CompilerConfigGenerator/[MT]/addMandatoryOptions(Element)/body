@@ -1,14 +1,19 @@
 {
-switch (myConfig.getTargetPlatform()) {
-case Web:
-    final String revision="0";
-  final String targetPlayer=myConfig.getDependencies().getTargetPlayer() + "." + revision;
-addOption(rootElement,CompilerOptionInfo.TARGET_PLAYER_INFO,targetPlayer);
-break;
-case Mobile:
-addOption(rootElement,CompilerOptionInfo.MOBILE_INFO,"true");
-case Desktop:
-addOption(rootElement,CompilerOptionInfo.TARGET_PLAYER_INFO,TargetPlayerUtils.getMaximumTargetPlayer(mySdkHome));
-break;
-}
+  final BuildConfigurationNature nature=myConfig.getNature();
+  final String targetPlayer=nature.isWebPlatform() ? myConfig.getDependencies().getTargetPlayer() : TargetPlayerUtils.getMaximumTargetPlayer(mySdkHome);
+  addOption(rootElement,CompilerOptionInfo.TARGET_PLAYER_INFO,targetPlayer);
+  if (StringUtil.compareVersionNumbers(mySdkVersion,"4.5") >= 0) {
+    final String swfVersion=nature.isWebPlatform() ? getSwfVersionForTargetPlayer(targetPlayer) : getSwfVersionForSdk(mySdkVersion);
+    addOption(rootElement,CompilerOptionInfo.SWF_VERSION_INFO,swfVersion);
+  }
+  if (nature.isMobilePlatform()) {
+    addOption(rootElement,CompilerOptionInfo.MOBILE_INFO,"true");
+    addOption(rootElement,CompilerOptionInfo.PRELOADER_INFO,"spark.preloaders.SplashScreen");
+  }
+  final String accessible=nature.isMobilePlatform() ? "false" : StringUtil.compareVersionNumbers(mySdkVersion,"4") >= 0 ? "true" : "false";
+  addOption(rootElement,CompilerOptionInfo.ACCESSIBLE_INFO,accessible);
+  final String fontManagers=StringUtil.compareVersionNumbers(mySdkVersion,"4") >= 0 ? "flash.fonts.JREFontManager" + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + "flash.fonts.BatikFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.AFEFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.CFFFontManager" : "flash.fonts.JREFontManager" + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + "flash.fonts.AFEFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.BatikFontManager";
+  addOption(rootElement,CompilerOptionInfo.FONT_MANAGERS_INFO,fontManagers);
+  addOption(rootElement,CompilerOptionInfo.STATIC_RSLS_INFO,"false");
+  addOption(rootElement,CompilerOptionInfo.WARN_NO_CONSTRUCTOR_INFO,"false");
 }
