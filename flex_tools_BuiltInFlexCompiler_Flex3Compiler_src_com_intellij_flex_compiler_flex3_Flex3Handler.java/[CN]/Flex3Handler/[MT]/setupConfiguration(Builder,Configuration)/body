@@ -1,7 +1,12 @@
 {
   final flex2.tools.oem.Configuration oemConfig=builder.getDefaultConfiguration();
   populateDefaults(oemConfig,(ToolsConfiguration)configuration);
-  final String[] extras={"-load-config="};
+  final StringBuilder defaultsCssFiles=new StringBuilder();
+  for (  Object file : configuration.getCompilerConfiguration().getDefaultsCssFiles()) {
+    if (defaultsCssFiles.length() > 0)     defaultsCssFiles.insert(0,',');
+    defaultsCssFiles.insert(0,((VirtualFile)file).getName());
+  }
+  final String[] extras={"-defaults-css-files=" + defaultsCssFiles.toString(),"-load-config="};
   ((OEMConfiguration)oemConfig).setConfiguration(extras);
   builder.setConfiguration(oemConfig);
 }

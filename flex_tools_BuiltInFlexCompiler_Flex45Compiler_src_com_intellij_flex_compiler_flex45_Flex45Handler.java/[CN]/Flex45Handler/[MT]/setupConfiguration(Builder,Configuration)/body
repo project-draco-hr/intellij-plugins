@@ -1,7 +1,12 @@
 {
   final flex2.tools.oem.Configuration oemConfig=builder.getDefaultConfiguration();
   populateDefaults(oemConfig,(ToolsConfiguration)configuration);
-  final String[] extras={"-omit-trace-statements=" + configuration.getCompilerConfiguration().omitTraceStatements(),"-swf-version=" + configuration.getSwfVersion(),"-load-config="};
+  final StringBuilder defaultsCssFiles=new StringBuilder();
+  for (  VirtualFile file : configuration.getCompilerConfiguration().getDefaultsCssFiles()) {
+    if (defaultsCssFiles.length() > 0)     defaultsCssFiles.insert(0,',');
+    defaultsCssFiles.insert(0,file.getName());
+  }
+  final String[] extras={"-defaults-css-files=" + defaultsCssFiles.toString(),"-omit-trace-statements=" + configuration.getCompilerConfiguration().omitTraceStatements(),"-swf-version=" + configuration.getSwfVersion(),"-load-config="};
   oemConfig.setConfiguration(extras);
   builder.setConfiguration(oemConfig);
 }
