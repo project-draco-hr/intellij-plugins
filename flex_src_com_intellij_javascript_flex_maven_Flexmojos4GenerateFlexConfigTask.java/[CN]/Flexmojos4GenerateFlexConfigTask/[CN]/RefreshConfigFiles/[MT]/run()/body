@@ -1,16 +1,31 @@
 {
-  AccessToken token=WriteAction.start();
+  final AccessToken token=WriteAction.start();
   try {
-    final VirtualFile p=LocalFileSystem.getInstance().refreshAndFindFileByPath(compilerConfigsDir);
+    final VirtualFile p=LocalFileSystem.getInstance().refreshAndFindFileByPath(FlexMojos4FacetImporter.getCompilerConfigsDir(project));
     if (p == null) {
       return;
     }
+    final List<VirtualFile> virtualFiles=new ArrayList<VirtualFile>(filesForRefresh.size());
     for (    String path : filesForRefresh) {
       final VirtualFile file=p.findChild(path);
       if (file != null) {
-        file.refresh(false,false);
+        virtualFiles.add(file);
       }
     }
+    LocalFileSystem.getInstance().refreshFiles(virtualFiles);
+    final MavenProjectsManager mavenProjectsManager=MavenProjectsManager.getInstance(project);
+    sourceRoots.forEachEntry(new TObjectObjectProcedure<MavenProject,List<String>>(){
+      @Override public boolean execute(      MavenProject mavenProject,      List<String> sourceRoots){
+        MavenDefaultModifiableModelsProvider provider=new MavenDefaultModifiableModelsProvider(project);
+        MavenRootModelAdapter a=new MavenRootModelAdapter(mavenProject,mavenProjectsManager.findModule(mavenProject),provider);
+        for (        String sourceRoot : sourceRoots) {
+          a.addSourceFolder(sourceRoot,false);
+        }
+        provider.commit();
+        return true;
+      }
+    }
+);
   }
   finally {
     token.finish();
