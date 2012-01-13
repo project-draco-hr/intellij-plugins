@@ -1,0 +1,16 @@
+{
+  String serverUrl=settings.getServerUrl();
+  JstdServerFetchResult fetchResult=JstdServerUtils.syncFetchServerInfo(serverUrl);
+  String message=null;
+  if (fetchResult.isError()) {
+    message="Could not connect to a JsTestDriver server running at " + serverUrl + "\n"+ "Check that the server is running.";
+  }
+ else   if (fetchResult.getServerInfo().getCapturedBrowsers().isEmpty()) {
+    message="No captured browsers found.\n" + "To capture browser open '" + serverUrl + "' in browser.";
+  }
+  if (message == null) {
+    return true;
+  }
+  testResultProtocolMessageOutput.writeObject(new JstdTestRunnerFailure(JstdTestRunnerFailure.FailureType.WHOLE_TEST_RUNNER,message,null));
+  return false;
+}
