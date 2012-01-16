@@ -1,8 +1,25 @@
 {
   SdkEntry sdkEntry=myDependencies.getSdkEntry();
-  mySdkPanel.reset();
-  mySdkPanel.setCurrentSdk(sdkEntry);
-  BCUtils.updateAvailableTargetPlayers(mySdkPanel,myTargetPlayerCombo);
+  myFreeze=true;
+  try {
+    mySdkCombo.reloadModel(new JdkComboBox.NoneJdkComboBoxItem(),myProject);
+  }
+  finally {
+    myFreeze=false;
+  }
+  if (sdkEntry != null) {
+    final Sdk sdk=mySkdsModel.findSdk(sdkEntry.getName());
+    if (sdk != null) {
+      mySdkCombo.setSelectedJdk(sdk);
+    }
+ else {
+      mySdkCombo.setInvalidJdk(sdkEntry.getName());
+    }
+  }
+ else {
+    mySdkCombo.setSelectedJdk(null);
+  }
+  BCUtils.updateAvailableTargetPlayers(mySdkCombo.getSelectedJdk(),myTargetPlayerCombo);
   myTargetPlayerCombo.setSelectedItem(myDependencies.getTargetPlayer());
   overriddenTargetPlayerChanged(null);
   updateComponentSetCombo();

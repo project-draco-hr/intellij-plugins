@@ -1,29 +1,11 @@
 {
-  super.update(e);
-  Project project=PlatformDataKeys.PROJECT.getData(e.getDataContext());
-  if (project == null) {
-    disable(e);
-    return;
-  }
-  Module module=findModule(e.getDataContext());
-  if (module == null) {
-    if (myLastModules.get(project) != null && myLastModules.get(project).isDisposed()) {
-      myLastModules.remove(project);
-    }
-    module=myLastModules.get(project);
-  }
-  if (module == null || FlexModuleType.getInstance() != ModuleType.get(module)) {
-    disable(e);
-    return;
-  }
-  myLastModules.put(project,module);
-  e.getPresentation().setEnabled(true);
-  FlexIdeBuildConfiguration activeConfiguration=FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration();
-  if (activeConfiguration != null) {
-    e.getPresentation().setText(activeConfiguration.getName());
-    e.getPresentation().setIcon(activeConfiguration.getIcon());
+  boolean enabled=isEnabled(e.getDataContext());
+  if (ActionPlaces.isPopupPlace(e.getPlace())) {
+    e.getPresentation().setVisible(enabled);
+    e.getPresentation().setEnabled(enabled);
   }
  else {
-    e.getPresentation().setText("(none)");
+    e.getPresentation().setVisible(true);
+    e.getPresentation().setEnabled(enabled);
   }
 }

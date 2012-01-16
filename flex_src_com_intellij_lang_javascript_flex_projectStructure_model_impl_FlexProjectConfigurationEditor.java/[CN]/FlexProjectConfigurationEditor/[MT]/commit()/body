@@ -2,13 +2,11 @@
   for (  Module module : myModule2Editors.keySet()) {
     ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
     Map<LibraryEx,Boolean> librariesToAdd=new HashMap<LibraryEx,Boolean>();
+    Collection<String> sdksNames=new HashSet<String>();
     for (    Editor editor : myModule2Editors.get(module)) {
-      SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
+      final SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
       if (sdkEntry != null) {
-        LibraryEx sdkLibrary=((SdkEntryImpl)sdkEntry).findLibrary(myProvider.getLibrariesModifiableModel(LibraryTablesRegistrar.APPLICATION_LEVEL).getLibraries());
-        if (sdkLibrary != null) {
-          librariesToAdd.put(sdkLibrary,true);
-        }
+        sdksNames.add(sdkEntry.getName());
       }
       for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
         if (dependencyEntry instanceof SharedLibraryEntry) {
@@ -21,6 +19,7 @@
         }
       }
     }
+    modifiableModel.setSdk(sdksNames.isEmpty() ? null : new FlexCompositeSdk(sdksNames));
     Collection<OrderEntry> entriesToRemove=new ArrayList<OrderEntry>();
     for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
@@ -101,9 +100,6 @@
 ;
         FlexIdeBuildConfigurationImpl[] current=ContainerUtil.map2Array(myModule2Editors.get(module),FlexIdeBuildConfigurationImpl.class,f);
         ((FlexBuildConfigurationManagerImpl)FlexBuildConfigurationManager.getInstance(module)).setBuildConfigurations(current);
-      }
-      if (mySdksEditor.isModified()) {
-        mySdksEditor.commit();
       }
       if (myProject != null) {
         FlexBuildConfigurationManagerImpl.resetHighlighting(myProject);

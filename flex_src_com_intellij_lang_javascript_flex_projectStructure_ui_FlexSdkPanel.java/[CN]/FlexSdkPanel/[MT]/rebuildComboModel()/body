@@ -1,21 +1,21 @@
 {
-  LibraryEx matchingLibrary=null;
+  Sdk matchingSdk=null;
   myMute=true;
   try {
     Object selection=myCombo.getComboBox().getSelectedItem();
-    LibraryEx[] libraries=myConfigEditor.getSdksLibraries();
-    DefaultComboBoxModel model=new DefaultComboBoxModel(libraries);
+    Sdk[] sdks=myConfigEditor.getFlexSdks();
+    DefaultComboBoxModel model=new DefaultComboBoxModel(sdks);
     myCombo.getComboBox().setModel(model);
-    if (selection instanceof Pair) {
-      final String homePath=((Pair<String,String>)selection).second;
-      matchingLibrary=ContainerUtil.find(libraries,new Condition<LibraryEx>(){
-        @Override public boolean value(        LibraryEx library){
-          return FlexSdk.getHomePath(library).equals(homePath);
+    if (selection instanceof String) {
+      final String name=(String)selection;
+      matchingSdk=ContainerUtil.find(sdks,new Condition<Sdk>(){
+        @Override public boolean value(        Sdk sdk){
+          return name.equals(sdk.getName());
         }
       }
 );
-      if (matchingLibrary != null) {
-        selection=matchingLibrary;
+      if (matchingSdk != null) {
+        selection=matchingSdk;
       }
     }
     if (selection != null && !(selection instanceof Library)) {
@@ -27,7 +27,6 @@
     myMute=false;
   }
   comboItemChanged();
-  if (matchingLibrary != null) {
-    myConfigEditor.setSdkLibraryUsed(this,matchingLibrary);
+  if (matchingSdk != null) {
   }
 }
