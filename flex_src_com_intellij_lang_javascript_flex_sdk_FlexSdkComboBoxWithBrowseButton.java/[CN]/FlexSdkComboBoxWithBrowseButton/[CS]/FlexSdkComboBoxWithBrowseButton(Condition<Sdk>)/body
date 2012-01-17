@@ -1,5 +1,5 @@
 {
-  this.mySdkEvaluator=sdkEvaluator;
+  mySdkEvaluator=sdkEvaluator;
   rebuildSdkListAndSelectSdk(null);
   final JComboBox sdkCombo=getComboBox();
   sdkCombo.setRenderer(new ListCellRendererWrapper(sdkCombo.getRenderer()){
@@ -52,7 +52,12 @@
       if (project == null) {
         project=ProjectManager.getInstance().getDefaultProject();
       }
-      final ProjectJdksEditor editor=new ProjectJdksEditor(null,project,FlexSdkComboBoxWithBrowseButton.this);
+      final FlexProjectConfigurationEditor currentFlexEditor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+      ProjectSdksModel sdksModel=ProjectStructureConfigurable.getInstance(project).getProjectJdksModel();
+      if (currentFlexEditor != null) {
+        sdksModel=new NonCommittingWrapper(sdksModel,JdkListConfigurable.getInstance(project));
+      }
+      final ProjectJdksEditor editor=new ProjectJdksEditor(null,FlexSdkComboBoxWithBrowseButton.this,new ProjectJdksConfigurable(project,sdksModel));
       editor.show();
       if (editor.isOK()) {
         final Sdk selectedSdk=editor.getSelectedJdk();
