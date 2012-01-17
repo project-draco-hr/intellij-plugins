@@ -1,9 +1,11 @@
 {
   final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
   if (!contextHolder.areSdkComponentsHandledForModule(module)) {
-    final Sdk flexSdk=FlexUtils.getFlexSdkForFlexModuleOrItsFlexFacets(module);
-    handleAllStandardManifests(module,flexSdk);
-    handleSwcFromSdk(module,flexSdk);
+    final FlexIdeBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration();
+    if (bc != null) {
+      handleAllStandardManifests(module,bc);
+      handleSwcFromSdk(module,bc);
+    }
     createCodeContextFromLibraries(namespace,module);
     contextHolder.setSdkComponentsHandledForModule(module);
   }

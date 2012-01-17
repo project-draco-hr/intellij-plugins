@@ -1,0 +1,19 @@
+{
+  final SdkEntry sdkEntry=bc.getDependencies().getSdkEntry();
+  if (sdkEntry == null)   return;
+  final Sdk sdk=sdkEntry.findSdk();
+  if (sdk == null)   return;
+  final String homePath=sdk.getHomePath();
+  if (homePath == null)   return;
+  final VirtualFile sdkHome=LocalFileSystem.getInstance().findFileByPath(homePath);
+  if (sdkHome == null)   return;
+  FlexSdkUtils.processStandardNamespaces(sdk.getVersionString(),bc,new PairConsumer<String,String>(){
+    public void consume(    final String namespace,    final String relativePath){
+      final VirtualFile manifestFile=VfsUtil.findRelativeFile(relativePath,sdkHome);
+      if (manifestFile != null) {
+        handleStandardManifest(module,namespace,manifestFile,sdkHome);
+      }
+    }
+  }
+);
+}
