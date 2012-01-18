@@ -19,7 +19,7 @@
   }
   ClassRealm flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
   final ClassLoader classLoader=getClass().getClassLoader();
-  flexmojosPluginRealm.addURL(new URL(session.getLocalRepository().getUrl() + "com/intellij/flex/maven/idea-configurator/1.5.1/idea-configurator-1.5.1.jar"));
+  flexmojosPluginRealm.addURL(new URL(session.getLocalRepository().getUrl() + "com/intellij/flex/maven/idea-configurator/1.5.2/idea-configurator-1.5.2.jar"));
   flexmojosPluginRealm.importFrom(classLoader,"com.intellij.flex.maven.FlexConfigGenerator");
   flexmojosPluginRealm.importFrom(classLoader,"com.intellij.flex.maven.Utils");
   Mojo mojo=null;
@@ -28,12 +28,12 @@
     for (    String configuratorClassName : configurators) {
       Class configuratorClass=flexmojosPluginRealm.loadClass(configuratorClassName);
       FlexConfigGenerator configurator=(FlexConfigGenerator)configuratorClass.getConstructor(MavenSession.class,File.class).newInstance(session,null);
-      configurator.preGenerate(project,getClassifier(mojo),flexmojosGeneratorMojoExecution,buildHelperMojoExecution);
+      configurator.preGenerate(project,Flexmojos.getClassifier(mojo));
       if ("swc".equals(project.getPackaging())) {
         configurator.generate(mojo);
       }
  else {
-        configurator.generate(mojo,getSourceFileForSwf(mojo));
+        configurator.generate(mojo,Flexmojos.getSourceFileForSwf(mojo));
       }
       configurator.postGenerate(project);
     }
