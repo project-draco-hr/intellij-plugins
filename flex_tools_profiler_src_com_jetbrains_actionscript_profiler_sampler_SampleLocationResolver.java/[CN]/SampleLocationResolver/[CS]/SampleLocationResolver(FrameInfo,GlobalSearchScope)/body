@@ -1,7 +1,7 @@
 {
   this.frameInfo=frameInfo;
   this.scope=scope;
-  PsiElement element=JSResolveUtil.findClassByQName(frameInfo.getQName(),scope);
+  PsiElement element=ResolveUtil.findClassByQName(frameInfo.getQName(),scope);
   if (element instanceof XmlBackedJSClassImpl) {
     final PsiElement candidateElement=frameInfo.findFunctionOrField((XmlBackedJSClassImpl)element);
     if (candidateElement != null)     element=candidateElement;
@@ -16,7 +16,7 @@
   if (element instanceof Navigatable) {
     resolvedElement=element;
   }
-  boolean resolved=resolvedFile != null || resolvedElement != null;
+  final boolean resolved=resolvedFile != null || resolvedElement != null;
   if (!resolved && frameInfo.getFileName() != null) {
     String dir=frameInfo.getFileDirectory();
     String packageName=frameInfo.getPackageName();
@@ -32,7 +32,7 @@
       String className=packageName.replace('\\','.').replace('/','.');
       if (className.length() > 0)       className+=".";
       className+=filename.substring(0,filename.indexOf('.'));
-      PsiElement classElement=JSResolveUtil.findClassByQName(className,scope);
+      PsiElement classElement=ResolveUtil.findClassByQName(className,scope);
       if (classElement != null)       classElement=classElement.getNavigationElement();
       if (classElement != null && classElement.isWritable()) {
         relativeFile=classElement.getContainingFile().getVirtualFile();
@@ -40,7 +40,6 @@
     }
     if (relativeFile != null) {
       resolvedFile=relativeFile;
-      resolved=true;
     }
   }
 }

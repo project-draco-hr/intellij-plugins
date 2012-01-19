@@ -1,0 +1,14 @@
+{
+  final boolean skipSystemStuff=myFilterSystemStuff.isSelected();
+  CallTree filteredCallTree=rawCallTree;
+  if (skipSystemStuff) {
+    filteredCallTree=CallTreeUtil.filterSystemStuff(filteredCallTree);
+  }
+  final Pair<Map<FrameInfo,Long>,Map<FrameInfo,Long>> countMaps=filteredCallTree.getTimeMaps();
+  final Map<FrameInfo,Long> countMap=countMaps.getFirst();
+  final Map<FrameInfo,Long> selfCountMap=countMaps.getSecond();
+  DefaultMutableTreeNode tracesRoot=(DefaultMutableTreeNode)treeModel.getRoot();
+  JTreeUtil.removeChildren(tracesRoot,treeModel);
+  fillTreeModelRoot(tracesRoot,filteredCallTree,countMap,selfCountMap,true,new FrameInfo[0]);
+  treeModel.reload();
+}

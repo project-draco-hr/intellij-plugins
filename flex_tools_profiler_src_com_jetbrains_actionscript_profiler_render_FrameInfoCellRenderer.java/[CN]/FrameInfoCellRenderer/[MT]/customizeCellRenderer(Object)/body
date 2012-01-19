@@ -1,0 +1,28 @@
+{
+  if (value instanceof DefaultMutableTreeNode) {
+    value=((DefaultMutableTreeNode)value).getUserObject();
+  }
+  if (!(value instanceof FrameInfoProducer) && !(value instanceof FrameInfo)) {
+    if (value != null && value.toString() != null) {
+      append(value.toString());
+    }
+    return;
+  }
+  FrameInfo frameInfo;
+  if (value instanceof FrameInfoProducer) {
+    frameInfo=((FrameInfoProducer)value).getFrameInfo();
+  }
+ else {
+    frameInfo=(FrameInfo)value;
+  }
+  appendFrameInfo(frameInfo);
+  boolean scoped;
+  if (frameInfo.getFilePath() != null) {
+    final VirtualFile vf=VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(frameInfo.getFilePath()));
+    scoped=vf != null && scope.accept(vf);
+  }
+ else {
+    scoped=ResolveUtil.findClassByQName(frameInfo.getQName(),scope) != null;
+  }
+  setIcon(scoped ? scopeIcon : nonScopeIcon);
+}

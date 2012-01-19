@@ -1,0 +1,22 @@
+{
+  QNameProducer qNameProducer=null;
+  if (value instanceof QNameProducer) {
+    qNameProducer=(QNameProducer)value;
+  }
+  if (value instanceof DefaultMutableTreeNode && ((DefaultMutableTreeNode)value).getUserObject() instanceof QNameProducer) {
+    qNameProducer=(QNameProducer)((DefaultMutableTreeNode)value).getUserObject();
+  }
+  if (project == null || qNameProducer == null || qNameProducer.getQName() == null) {
+    return null;
+  }
+  Color color=qName2ColorCache.get(qNameProducer.getQName());
+  if (color != null) {
+    return color;
+  }
+  final PsiElement psiElement=ResolveUtil.findClassByQName(qNameProducer.getQName(),GlobalSearchScope.allScope(project));
+  if (psiElement != null) {
+    color=FileColorManager.getInstance(project).getRendererBackground(psiElement.getContainingFile());
+  }
+  qName2ColorCache.put(qNameProducer.getQName(),color);
+  return color;
+}

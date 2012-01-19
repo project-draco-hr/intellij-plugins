@@ -1,0 +1,19 @@
+{
+  FilePathProducer filePathProducer=null;
+  if (value instanceof FilePathProducer) {
+    filePathProducer=(FilePathProducer)value;
+  }
+  if (value instanceof DefaultMutableTreeNode && ((DefaultMutableTreeNode)value).getUserObject() instanceof FilePathProducer) {
+    filePathProducer=(FilePathProducer)((DefaultMutableTreeNode)value).getUserObject();
+  }
+  if (projectFileIndex == null || filePathProducer == null || filePathProducer.getFilePath() == null) {
+    return null;
+  }
+  Color color=path2ColorCache.get(filePathProducer.getFilePath());
+  final VirtualFile vf=VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(filePathProducer.getFilePath()));
+  if (vf != null && projectFileIndex.isInSource(vf)) {
+    color=FileColorManager.getInstance(project).getRendererBackground(vf);
+  }
+  path2ColorCache.put(filePathProducer.getFilePath(),color);
+  return color;
+}

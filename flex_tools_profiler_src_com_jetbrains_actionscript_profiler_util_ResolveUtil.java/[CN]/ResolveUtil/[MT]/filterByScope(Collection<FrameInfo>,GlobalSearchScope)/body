@@ -1,0 +1,15 @@
+{
+  if (scope == null) {
+    return new ArrayList<FrameInfo>(traces);
+  }
+  return ContainerUtil.filter(traces,new Condition<FrameInfo>(){
+    @Override public boolean value(    FrameInfo frameInfo){
+      final String qName=frameInfo.isAnonymous() ? frameInfo.getQNameByFile() : frameInfo.getQName();
+      if (qName == null) {
+        return false;
+      }
+      return ResolveUtil.findClassByQName(qName,scope) != null;
+    }
+  }
+);
+}

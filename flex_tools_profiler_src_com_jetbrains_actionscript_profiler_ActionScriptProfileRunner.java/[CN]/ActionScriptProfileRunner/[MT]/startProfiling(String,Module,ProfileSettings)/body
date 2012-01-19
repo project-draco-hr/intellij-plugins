@@ -1,0 +1,39 @@
+{
+  if (!initProfilingAgent(module,profileSettings.getHost(),profileSettings.getPort())) {
+    return;
+  }
+  final ToolWindowManager toolWindowManager=ToolWindowManager.getInstance(module.getProject());
+  if (toolWindowManager == null) {
+    return;
+  }
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      ToolWindow toolWindow=toolWindowManager.getToolWindow(TOOLWINDOW_ID);
+      if (toolWindow == null) {
+        toolWindow=toolWindowManager.registerToolWindow(TOOLWINDOW_ID,true,ToolWindowAnchor.BOTTOM,module.getProject(),true);
+        toolWindow.setToHideOnEmptyContent(true);
+      }
+      final ActionScriptProfileControlPanel profileControlPanel=new ActionScriptProfileControlPanel(runConfigurationName,module,profileSettings.getHost(),profileSettings.getPort());
+      final SimpleToolWindowPanel toolWindowPanel=new SimpleToolWindowPanel(false,true);
+      toolWindowPanel.setContent(profileControlPanel.getMainPanel());
+      ActionToolbar toolbar=ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,profileControlPanel.createProfilerActionGroup(),false);
+      toolbar.setTargetComponent(toolWindowPanel);
+      toolWindowPanel.setToolbar(toolbar.getComponent());
+      final Content content=ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel,runConfigurationName,false);
+      toolWindow.getContentManager().addContent(content);
+      toolWindow.getContentManager().setSelectedContent(content);
+      content.setDisposer(profileControlPanel);
+      final ToolWindow finalToolWindow=toolWindow;
+      profileControlPanel.setConnectionCallback(new Runnable(){
+        @Override public void run(){
+          finalToolWindow.show(null);
+          removePreloadingOfProfilerSwf();
+        }
+      }
+);
+      toolWindow.hide(null);
+      profileControlPanel.startProfiling();
+    }
+  }
+);
+}
