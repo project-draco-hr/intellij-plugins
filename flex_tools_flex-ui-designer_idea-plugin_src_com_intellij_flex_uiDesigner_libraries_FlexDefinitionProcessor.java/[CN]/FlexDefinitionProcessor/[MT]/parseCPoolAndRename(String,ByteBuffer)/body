@@ -14,17 +14,22 @@
   }
   n=AbcUtil.readU32(buffer);
   final CharsetEncoder charsetEncoder=Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
-  while (n-- > 1) {
+  o:   while (n-- > 1) {
     int l=AbcUtil.readU32(buffer);
     buffer.limit(buffer.position() + l);
     buffer.mark();
     final CharBuffer charBuffer=Charsets.UTF_8.decode(buffer);
     buffer.limit(buffer.capacity());
-    final int index=CharArrayUtil.indexOf(charBuffer,from,0);
-    if (index == -1) {
-      continue;
+    int index=0;
+    do {
+      index=CharArrayUtil.indexOf(charBuffer,from,index);
+      if (index == -1 || (index > 0 && !isSpecialSymbol(charBuffer.get(index - 1)))) {
+        continue o;
+      }
+      charBuffer.put(index,OVERLOADED_AND_BACKED_CLASS_MARK);
+      index+=from.length();
     }
-    charBuffer.put(index,OVERLOADED_AND_BACKED_CLASS_MARK);
+ while (index < charBuffer.length());
     buffer.reset();
     charsetEncoder.encode(charBuffer,buffer,true);
     charsetEncoder.reset();
