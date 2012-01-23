@@ -33,25 +33,21 @@
     flashBuilderProjectToModifiableModelMap.put(flashBuilderProject,rootModel);
     moduleToModifiableModelMap.put(module,rootModel);
   }
-  final LibraryTableBase.ModifiableModelEx globalLibrariesModifiableModel;
   final FlexProjectConfigurationEditor flexConfigEditor;
   final boolean needToCommitFlexEditor;
   final boolean needToCommitRootModels;
   if (!PlatformUtils.isFlexIde()) {
-    globalLibrariesModifiableModel=null;
     flexConfigEditor=null;
     needToCommitFlexEditor=false;
     needToCommitRootModels=true;
   }
  else   if (currentFlexEditor != null) {
-    globalLibrariesModifiableModel=null;
     flexConfigEditor=currentFlexEditor;
     needToCommitFlexEditor=false;
     needToCommitRootModels=false;
   }
  else {
-    globalLibrariesModifiableModel=(LibraryTableBase.ModifiableModelEx)ApplicationLibraryTable.getApplicationTable().getModifiableModel();
-    flexConfigEditor=createFlexConfigEditor(project,moduleToModifiableModelMap,globalLibrariesModifiableModel);
+    flexConfigEditor=FlexProjectConfigurationEditor.createEditor(project,moduleToModifiableModelMap,null,null);
     needToCommitFlexEditor=true;
     needToCommitRootModels=true;
   }
@@ -65,17 +61,12 @@
   }
   ApplicationManager.getApplication().runWriteAction(new Runnable(){
     public void run(){
-      if (PlatformUtils.isFlexIde()) {
-        if (globalLibrariesModifiableModel != null) {
-          globalLibrariesModifiableModel.commit();
+      if (PlatformUtils.isFlexIde() && needToCommitFlexEditor) {
+        try {
+          flexConfigEditor.commit();
         }
-        if (needToCommitFlexEditor) {
-          try {
-            flexConfigEditor.commit();
-          }
- catch (          ConfigurationException e) {
-            Logger.getInstance(FlashBuilderImporter.class).error(e);
-          }
+ catch (        ConfigurationException e) {
+          Logger.getInstance(FlashBuilderImporter.class).error(e);
         }
       }
       final Collection<ModifiableRootModel> rootModels=moduleToModifiableModelMap.values();
