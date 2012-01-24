@@ -1,12 +1,10 @@
 {
-  if (path == null || LocalFileSystem.getInstance().findFileByPath(path) == null) {
-    return null;
-  }
-  final String sdkHomePath=FileUtil.toSystemIndependentName(path);
+  final VirtualFile sdkHome=path == null ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  if (sdkHome == null)   return null;
   final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
   for (  final Sdk flexSdk : projectJdkTable.getSdksOfType(sdkType)) {
     final String existingHome=flexSdk.getHomePath();
-    if (existingHome != null && sdkHomePath.equals(FileUtil.toSystemIndependentName(existingHome))) {
+    if (existingHome != null && sdkHome.getPath().equals(FileUtil.toSystemIndependentName(existingHome))) {
       if (sdkType instanceof FlexmojosSdkType) {
         final SdkAdditionalData data=flexSdk.getSdkAdditionalData();
         if (data == null || ((FlexmojosSdkAdditionalData)data).getFlexCompilerClasspath().isEmpty()) {
@@ -16,5 +14,5 @@
       return flexSdk;
     }
   }
-  return createSdk(sdkType,sdkHomePath);
+  return createSdk(sdkType,sdkHome.getPath());
 }

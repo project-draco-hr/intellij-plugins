@@ -1,2 +1,19 @@
 {
+  if (!myInitialized) {
+    initialize();
+    myInitialized=true;
+  }
+  final String sdkHome=mySdkNameToRootPath.get(fbProject.getSdkName());
+  if (sdkHome != null)   return FlexSdkUtils.createOrGetSdk(FlexSdkType2.getInstance(),sdkHome);
+  if (myDialogWasShown)   return mySdk;
+  final FlashBuilderSdkDialog dialog=new FlashBuilderSdkDialog(myProject,myAllProjects.size());
+  if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    dialog.show();
+  }
+ else {
+    dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+  }
+  myDialogWasShown=true;
+  mySdk=dialog.isOK() ? dialog.getSdk() : null;
+  return mySdk;
 }
