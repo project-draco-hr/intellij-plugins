@@ -1,62 +1,15 @@
 {
-  if (PlatformUtils.isFlexIde()) {
-    try {
-      final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndConfigsToCompile=getModulesAndConfigsToCompile(scope);
-      for (      final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig : modulesAndConfigsToCompile) {
-        validateConfiguration(moduleAndConfig.first.getName(),moduleAndConfig.second);
-      }
-      checkSimilarOutputFiles(modulesAndConfigsToCompile);
+  try {
+    final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndConfigsToCompile=getModulesAndConfigsToCompile(scope);
+    for (    final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig : modulesAndConfigsToCompile) {
+      validateConfiguration(moduleAndConfig.first.getName(),moduleAndConfig.second);
     }
- catch (    ConfigurationException e) {
-      final String title=ConfigurationException.DEFAULT_TITLE.equals(e.getTitle()) ? FlexBundle.message("project.setup.problem.title") : e.getTitle();
-      Messages.showErrorDialog(e.getMessage(),title);
-      return false;
-    }
-    return true;
+    checkSimilarOutputFiles(modulesAndConfigsToCompile);
   }
-  Module moduleToSkipValidation=null;
-  final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(scope);
-  if (runConfiguration instanceof FlexUnitRunConfiguration || RunMainClassPrecompileTask.isMainClassBasedFlexRunConfiguration(runConfiguration)) {
-    try {
-      moduleToSkipValidation=FlexRunConfiguration.getAndValidateModule(runConfiguration.getProject(),((FlexRunConfiguration)runConfiguration).getRunnerParameters().getModuleName());
-    }
- catch (    RuntimeConfigurationError e) {
-    }
-  }
-  for (  final Module module : scope.getAffectedModules()) {
-    if (module.equals(moduleToSkipValidation)) {
-      continue;
-    }
-    if (ModuleType.get(module) instanceof FlexModuleType) {
-      final Pair<Boolean,String> validationResultWithMessage=validateConfiguration(FlexBuildConfiguration.getInstance(module),module,FlexUtils.getPresentableName(module,null),true);
-      if (!validationResultWithMessage.first) {
-        if (validationResultWithMessage.second != null) {
-          Messages.showErrorDialog(module.getProject(),validationResultWithMessage.second,FlexBundle.message("flex.compiler.problem"));
-        }
-        return false;
-      }
-    }
- else {
-      final Collection<FlexFacet> flexFacets=FacetManager.getInstance(module).getFacetsByType(FlexFacet.ID);
-      for (      final FlexFacet flexFacet : flexFacets) {
-        final Pair<Boolean,String> validationResultWithMessage=validateConfiguration(FlexBuildConfiguration.getInstance(flexFacet),module,FlexUtils.getPresentableName(module,flexFacet),true);
-        if (!validationResultWithMessage.first) {
-          if (validationResultWithMessage.second != null) {
-            Messages.showErrorDialog(module.getProject(),validationResultWithMessage.second,FlexBundle.message("flex.compiler.problem"));
-          }
-          if (runConfiguration != null && !(runConfiguration instanceof FlexRunConfiguration)) {
-            Collection<Module> modulesToSkip=scope.getUserData(MODULES_TO_SKIP_FLEX_FACET_COMPILATION);
-            if (modulesToSkip == null) {
-              modulesToSkip=new ArrayList<Module>();
-            }
-            modulesToSkip.add(module);
-            scope.putUserData(MODULES_TO_SKIP_FLEX_FACET_COMPILATION,modulesToSkip);
-            return true;
-          }
-          return false;
-        }
-      }
-    }
+ catch (  ConfigurationException e) {
+    final String title=ConfigurationException.DEFAULT_TITLE.equals(e.getTitle()) ? FlexBundle.message("project.setup.problem.title") : e.getTitle();
+    Messages.showErrorDialog(e.getMessage(),title);
+    return false;
   }
   return true;
 }
