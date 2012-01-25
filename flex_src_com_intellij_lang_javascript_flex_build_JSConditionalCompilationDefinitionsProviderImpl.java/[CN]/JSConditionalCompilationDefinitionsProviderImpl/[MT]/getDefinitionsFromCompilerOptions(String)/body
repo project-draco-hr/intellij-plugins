@@ -2,7 +2,7 @@
   if (StringUtil.isEmpty(compilerOptions)) {
     return Collections.emptyList();
   }
-  final Collection<ConditionalCompilationDefinition> result=new ArrayList<ConditionalCompilationDefinition>();
+  final Collection<String> result=new ArrayList<String>();
   for (CommandLineTokenizer stringTokenizer=new CommandLineTokenizer(compilerOptions); stringTokenizer.hasMoreTokens(); ) {
     final String token=stringTokenizer.nextToken();
     for (    String option : CONDITIONAL_COMPILATION_DEFINITION_OPTION_ALIASES) {
@@ -10,27 +10,16 @@
         final String optionValue=token.substring(token.indexOf("=") + 1);
         final int commaIndex=optionValue.indexOf(',');
         if (commaIndex > 0) {
-          final String name=optionValue.substring(0,commaIndex);
-          if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
-            final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
-            definition.NAME=name;
-            definition.VALUE=optionValue.substring(commaIndex + 1);
-            result.add(definition);
-          }
+          result.add(optionValue.substring(0,commaIndex));
         }
       }
  else       if (token.equals("-" + option) && stringTokenizer.countTokens() >= 2) {
         final String name=stringTokenizer.peekNextToken();
-        if (name.matches(FlexCompiler.CONDITIONAL_COMPILATION_VARIABLE_PATTERN)) {
+        stringTokenizer.nextToken();
+        final String value=stringTokenizer.peekNextToken();
+        if (FlexUtils.canBeCompilerOptionValue(value)) {
           stringTokenizer.nextToken();
-          final String value=stringTokenizer.peekNextToken();
-          if (FlexUtils.canBeCompilerOptionValue(value)) {
-            stringTokenizer.nextToken();
-            final ConditionalCompilationDefinition definition=new ConditionalCompilationDefinition();
-            definition.NAME=name;
-            definition.VALUE=value;
-            result.add(definition);
-          }
+          result.add(name);
         }
       }
     }
