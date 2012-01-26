@@ -11,7 +11,7 @@
     configFileToConditionalCompilerDefinitions.remove(configFile);
     try {
       final Document document=cachedDocument == null ? JDOMUtil.loadDocument(configFile.getInputStream()) : JDOMUtil.loadDocument(cachedDocument.getCharsSequence());
-      final Collection<String> result=new ArrayList<String>();
+      final Collection<Pair<String,String>> result=new ArrayList<Pair<String,String>>();
       final Element rootElement=document.getRootElement();
       if (rootElement.getName().equals(FLEX_CONFIG)) {
         for (        Element compilerElement : ((Iterable<Element>)rootElement.getChildren(COMPILER,rootElement.getNamespace()))) {
@@ -19,7 +19,7 @@
             final String name=defineElement.getChildText(NAME,rootElement.getNamespace());
             final String value=defineElement.getChildText(VALUE,rootElement.getNamespace());
             if (!StringUtil.isEmpty(name) && value != null) {
-              result.add(name);
+              result.add(Pair.create(name,value));
             }
           }
         }

@@ -1,8 +1,5 @@
 {
-  if (StringUtil.isEmpty(compilerOptions)) {
-    return Collections.emptyList();
-  }
-  final Collection<String> result=new ArrayList<String>();
+  if (StringUtil.isEmpty(compilerOptions))   return true;
   for (CommandLineTokenizer stringTokenizer=new CommandLineTokenizer(compilerOptions); stringTokenizer.hasMoreTokens(); ) {
     final String token=stringTokenizer.nextToken();
     for (    String option : CONDITIONAL_COMPILATION_DEFINITION_OPTION_ALIASES) {
@@ -10,7 +7,7 @@
         final String optionValue=token.substring(token.indexOf("=") + 1);
         final int commaIndex=optionValue.indexOf(',');
         if (commaIndex > 0) {
-          result.add(optionValue.substring(0,commaIndex));
+          if (!processor.process(Pair.create(optionValue.substring(0,commaIndex),optionValue.substring(commaIndex + 1))))           return false;
         }
       }
  else       if (token.equals("-" + option) && stringTokenizer.countTokens() >= 2) {
@@ -19,10 +16,10 @@
         final String value=stringTokenizer.peekNextToken();
         if (FlexUtils.canBeCompilerOptionValue(value)) {
           stringTokenizer.nextToken();
-          result.add(name);
+          if (!processor.process(Pair.create(name,value)))           return false;
         }
       }
     }
   }
-  return result;
+  return true;
 }

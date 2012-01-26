@@ -1,12 +1,16 @@
 {
-  if (StringUtil.isEmptyOrSpaces(namespace) || module == null || module.isDisposed())   return CodeContextHolder.EMPTY;
+  if (StringUtil.isEmptyOrSpaces(namespace) || module == null || module.isDisposed() || !(ModuleType.get(module) instanceof FlexModuleType)) {
+    return CodeContextHolder.EMPTY;
+  }
+  final FlexIdeBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration();
+  if (bc == null)   return CodeContextHolder.EMPTY;
   if (isStdNamespace(namespace)) {
-    return getStdCodeContext(namespace,module);
+    return getStdCodeContext(namespace,module,bc);
   }
   final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
   CodeContext codeContext=contextHolder.getCodeContext(namespace,module);
   if (codeContext == null) {
-    codeContext=createCodeContext(namespace,module,module.getProject());
+    codeContext=createCodeContext(namespace,module,bc);
     if (codeContext.getAllDescriptorsSize() > 0) {
       contextHolder.putCodeContext(namespace,module,codeContext);
     }
