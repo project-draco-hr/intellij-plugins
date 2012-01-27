@@ -1,0 +1,49 @@
+{
+  File sourceFile=dependency.getFile();
+  if (sourceFile.exists()) {
+    String embedDirectory=myEmbedDirectory;
+    if (myEmbedDirectory == null || embedDirectory.isEmpty() || ".".equals(embedDirectory)) {
+      embedDirectory=null;
+    }
+    if (!Boolean.valueOf(myEmbedStripGroup).booleanValue()) {
+      embedDirectory=new File(embedDirectory,dependency.getGroupId()).getPath();
+    }
+    StringBuilder targetFileName=new StringBuilder();
+    targetFileName.append(dependency.getArtifactId());
+    if (!Boolean.valueOf(myEmbedStripVersion).booleanValue()) {
+      targetFileName.append('-').append(dependency.getVersion());
+      if (StringUtils.isNotEmpty(dependency.getClassifier())) {
+        targetFileName.append('-').append(dependency.getClassifier());
+      }
+    }
+    String extension=dependency.getExtension();
+    if (StringUtils.isNotEmpty(extension)) {
+      targetFileName.append('.').append(extension);
+    }
+    File targetFile=new File(embedDirectory,targetFileName.toString());
+    String targetFilePath=targetFile.getPath();
+    if (File.separatorChar != '/') {
+      targetFilePath=targetFilePath.replace(File.separatorChar,'/');
+    }
+    if (includeResource.length() > 0) {
+      includeResource.append(',');
+    }
+    includeResource.append(targetFilePath);
+    includeResource.append('=');
+    includeResource.append(sourceFile);
+    if (bundleClassPath.length() > 0) {
+      bundleClassPath.append(',');
+    }
+    bundleClassPath.append(targetFilePath);
+    if (embeddedArtifacts.length() > 0) {
+      embeddedArtifacts.append(',');
+    }
+    embeddedArtifacts.append(targetFilePath).append(';');
+    embeddedArtifacts.append("g=\"").append(dependency.getGroupId()).append('"');
+    embeddedArtifacts.append(";a=\"").append(dependency.getArtifactId()).append('"');
+    embeddedArtifacts.append(";v=\"").append(dependency.getVersion()).append('"');
+    if (StringUtils.isNotEmpty(dependency.getClassifier())) {
+      embeddedArtifacts.append(";c=\"").append(dependency.getClassifier()).append('"');
+    }
+  }
+}

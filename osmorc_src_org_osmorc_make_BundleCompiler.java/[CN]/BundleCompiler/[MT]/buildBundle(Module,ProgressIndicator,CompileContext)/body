@@ -78,7 +78,14 @@
     for (    Pair<String,String> stringStringPair : list) {
       pathBuilder.append(",").append(stringStringPair.second).append(" = ").append(stringStringPair.first);
     }
-    additionalProperties.put("Include-Resource",pathBuilder.toString());
+    String includedResources=configuration.getAdditionalPropertiesAsMap().get("Include-Resource");
+    if (includedResources == null) {
+      includedResources=pathBuilder.toString();
+    }
+ else {
+      includedResources=includedResources + "," + pathBuilder.toString();
+    }
+    additionalProperties.put("Include-Resource",includedResources);
     if (!configuration.isIgnorePatternValid()) {
       compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "The file ignore pattern in the facet configuration is invalid.",null,0,0);
       return;

@@ -1,0 +1,105 @@
+{
+  Map<String,Map<String,String>> instructions=OSGiHeader.parseHeader(MISSING_KEY_PATTERN.matcher(header).replaceAll("$1$2*;$3"));
+  Collection<MavenArtifact> availableDependencies=new LinkedHashSet<MavenArtifact>(m_dependencyArtifacts);
+  DependencyFilter filter;
+  for (Iterator<Map.Entry<String,Map<String,String>>> clauseIterator=instructions.entrySet().iterator(); clauseIterator.hasNext(); ) {
+    String inline="false";
+    Collection<MavenArtifact> filteredDependencies=new LinkedHashSet<MavenArtifact>(availableDependencies);
+    Map.Entry<String,Map<String,String>> clause=clauseIterator.next();
+    String primaryKey=(clause.getKey()).replaceFirst("~+$","");
+    boolean isNegative=primaryKey.startsWith("!");
+    if (isNegative) {
+      primaryKey=primaryKey.substring(1);
+    }
+    if (!"*".equals(primaryKey)) {
+      filter=new DependencyFilter(primaryKey){
+        boolean matches(        MavenArtifact dependency){
+          return super.matches(dependency.getArtifactId());
+        }
+      }
+;
+      filter.filter(filteredDependencies);
+    }
+    for (    Map.Entry<String,String> entry : (clause.getValue()).entrySet()) {
+      Map.Entry attr=(Map.Entry)entry;
+      if ("groupId".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue()){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(dependency.getGroupId());
+          }
+        }
+;
+      }
+ else       if ("artifactId".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue()){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(dependency.getArtifactId());
+          }
+        }
+;
+      }
+ else       if ("version".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue()){
+          boolean matches(          MavenArtifact dependency){
+            try {
+              return super.matches(dependency.getVersion());
+            }
+ catch (            Exception e) {
+              return super.matches(dependency.getVersion());
+            }
+          }
+        }
+;
+      }
+ else       if ("scope".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue(),"compile"){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(dependency.getScope());
+          }
+        }
+;
+      }
+ else       if ("type".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue(),"jar"){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(dependency.getType());
+          }
+        }
+;
+      }
+ else       if ("classifier".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue()){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(dependency.getClassifier());
+          }
+        }
+;
+      }
+ else       if ("optional".equals(attr.getKey())) {
+        filter=new DependencyFilter((String)attr.getValue(),"false"){
+          boolean matches(          MavenArtifact dependency){
+            return super.matches(String.valueOf(dependency.isOptional()));
+          }
+        }
+;
+      }
+ else       if ("inline".equals(attr.getKey())) {
+        inline=(String)attr.getValue();
+        continue;
+      }
+ else {
+        throw new DependencyEmbedderException("Unexpected attribute " + attr.getKey());
+      }
+      filter.filter(filteredDependencies);
+    }
+    if (isNegative) {
+      availableDependencies.removeAll(filteredDependencies);
+      if (!clauseIterator.hasNext()) {
+        processDependencies(availableDependencies,inline);
+      }
+    }
+ else {
+      processDependencies(filteredDependencies,inline);
+    }
+  }
+}

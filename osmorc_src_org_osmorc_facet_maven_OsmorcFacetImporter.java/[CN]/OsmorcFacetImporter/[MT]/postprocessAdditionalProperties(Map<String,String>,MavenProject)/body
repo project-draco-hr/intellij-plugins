@@ -1,0 +1,43 @@
+{
+  Analyzer myFakeAnalyzer=new Analyzer(){
+    @Override public String getProperty(    String key){
+      return props.get(key);
+    }
+    @Override public String getProperty(    String key,    String deflt){
+      if (props.containsKey(key)) {
+        return key;
+      }
+ else {
+        return deflt;
+      }
+    }
+    @Override public void setProperty(    String key,    String value){
+      props.put(key,value);
+    }
+  }
+;
+  Collection<MavenArtifact> dependencies;
+  if (Boolean.parseBoolean(props.get(DependencyEmbedder.EMBED_TRANSITIVE))) {
+    Set<MavenArtifact> processed=new HashSet<MavenArtifact>();
+    LinkedList<MavenArtifactNode> nodes=new LinkedList<MavenArtifactNode>(project.getDependencyTree());
+    while (!nodes.isEmpty()) {
+      MavenArtifactNode node=nodes.pop();
+      MavenArtifact artifact=node.getArtifact();
+      if (!processed.contains(artifact)) {
+        processed.add(artifact);
+        nodes.addAll(node.getDependencies());
+      }
+    }
+    dependencies=processed;
+  }
+ else {
+    dependencies=project.getDependencies();
+  }
+  DependencyEmbedder embedder=new DependencyEmbedder(dependencies);
+  try {
+    embedder.processHeaders(myFakeAnalyzer);
+  }
+ catch (  DependencyEmbedderException e) {
+    OsmorcProjectComponent.IMPORTANT_ERROR_NOTIFICATION.createNotification("Error when processing Embed-Dependency directive in " + project.getPath() + ": "+ e.getMessage(),NotificationType.ERROR).notify(null);
+  }
+}
