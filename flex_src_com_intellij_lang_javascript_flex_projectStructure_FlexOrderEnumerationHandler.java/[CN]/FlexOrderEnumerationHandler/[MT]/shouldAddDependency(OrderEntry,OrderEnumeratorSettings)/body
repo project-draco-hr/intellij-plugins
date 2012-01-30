@@ -3,8 +3,11 @@
   if (ModuleType.get(module) != FlexModuleType.getInstance()) {
     return super.shouldAddDependency(orderEntry,settings);
   }
-  if (orderEntry instanceof JdkOrderEntry || orderEntry instanceof ModuleSourceOrderEntry) {
+  if (orderEntry instanceof ModuleSourceOrderEntry) {
     return AddDependencyType.DEFAULT;
+  }
+  if (orderEntry instanceof JdkOrderEntry) {
+    return module == myRootModule ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
   }
   Collection<FlexIdeBuildConfiguration> accessibleConfigurations;
   if (myActiveConfigurations != null) {
@@ -20,9 +23,6 @@
     }
     if (library.getType() instanceof FlexLibraryType) {
       return FlexProjectRootsUtil.dependOnLibrary(accessibleConfigurations,library,module != myRootModule) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
-    }
- else     if (library.getType() instanceof FlexSdkLibraryType) {
-      return module == myRootModule && FlexProjectRootsUtil.dependOnSdk(accessibleConfigurations,library) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
     }
  else {
       return AddDependencyType.DO_NOT_ADD;
