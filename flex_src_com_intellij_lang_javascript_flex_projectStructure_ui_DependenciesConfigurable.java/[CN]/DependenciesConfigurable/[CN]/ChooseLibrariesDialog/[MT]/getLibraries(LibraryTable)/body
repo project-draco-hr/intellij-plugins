@@ -1,8 +1,13 @@
 {
-  final List<Library> filtered=ContainerUtil.filter(super.getLibraries(table),new Condition<Library>(){
-    public boolean value(    final Library library){
-      if (!FlexProjectRootsUtil.isFlexLibrary(library) || !myFilter.value(library))       return false;
-      return true;
+  final StructureConfigurableContext context=ProjectStructureConfigurable.getInstance(myProject).getContext();
+  final Library[] libraries=context.createModifiableModelProvider(table.getTableLevel()).getModifiableModel().getLibraries();
+  final List<Library> filtered=ContainerUtil.mapNotNull(libraries,new Function<Library,Library>(){
+    @Nullable public Library fun(    final Library library){
+      Library liveLibrary=context.getLibraryModel(library);
+      if (liveLibrary == null || !FlexProjectRootsUtil.isFlexLibrary(liveLibrary) || !myFilter.value(liveLibrary)) {
+        return null;
+      }
+      return liveLibrary;
     }
   }
 );

@@ -1,7 +1,7 @@
 {
   for (  Module module : myModule2Editors.keySet()) {
     ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
-    Map<LibraryEx,Boolean> librariesToAdd=new HashMap<LibraryEx,Boolean>();
+    Map<Library,Boolean> librariesToAdd=new HashMap<Library,Boolean>();
     Collection<String> sdksNames=new HashSet<String>();
     for (    Editor editor : myModule2Editors.get(module)) {
       final SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
@@ -11,8 +11,7 @@
       for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
         if (dependencyEntry instanceof SharedLibraryEntry) {
           SharedLibraryEntry sharedLibraryEntry=(SharedLibraryEntry)dependencyEntry;
-          LibraryTableBase.ModifiableModelEx m=myProvider.getLibrariesModifiableModel(sharedLibraryEntry.getLibraryLevel());
-          LibraryEx library=(LibraryEx)m.getLibraryByName(sharedLibraryEntry.getLibraryName());
+          Library library=myProvider.findSourceLibraryForLiveName(sharedLibraryEntry.getLibraryName(),sharedLibraryEntry.getLibraryLevel());
           if (library != null) {
             librariesToAdd.put(library,true);
           }
@@ -38,8 +37,8 @@
     for (    OrderEntry e : entriesToRemove) {
       modifiableModel.removeOrderEntry(e);
     }
-    for (    LibraryEx library : librariesToAdd.keySet()) {
-      if (!library.isDisposed() && librariesToAdd.get(library) && myProvider.getLibrariesModifiableModel(library.getTable().getTableLevel()).getLibraryByName(library.getName()) != null) {
+    for (    Library library : librariesToAdd.keySet()) {
+      if (!((LibraryEx)library).isDisposed() && librariesToAdd.get(library) && myProvider.findSourceLibrary(library.getName(),library.getTable().getTableLevel()) != null) {
         modifiableModel.addLibraryEntry(library);
       }
     }

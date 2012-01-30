@@ -3,9 +3,9 @@
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
     if (item instanceof SharedLibraryItem) {
-      FlexLibraryConfigurable libraryConfigurable=((SharedLibraryItem)item).configurable;
-      if (libraryConfigurable != null) {
-        usedLibraries.add(libraryConfigurable.getEditableObject());
+      LibraryEx library=(LibraryEx)((SharedLibraryItem)item).findLiveLibrary();
+      if (library != null) {
+        usedLibraries.add(library);
       }
     }
   }
@@ -20,7 +20,7 @@
   final List<Library> libraries=d.getSelectedLibraries();
   DefaultMutableTreeNode rootNode=myTable.getRoot();
   for (  Library library : libraries) {
-    SharedLibraryItem item=new SharedLibraryItem(library.getName(),library.getTable().getTableLevel(),findConfigurable(library),myProject);
+    SharedLibraryItem item=new SharedLibraryItem(library.getName(),library.getTable().getTableLevel(),library,myProject);
     rootNode.add(new DefaultMutableTreeNode(item,false));
   }
   updateTableOnItemsAdded(libraries.size());
