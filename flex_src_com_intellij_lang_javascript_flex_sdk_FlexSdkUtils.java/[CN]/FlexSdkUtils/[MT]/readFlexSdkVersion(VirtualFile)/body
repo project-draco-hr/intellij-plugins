@@ -1,18 +1,3 @@
 {
-  if (flexSdkRoot == null) {
-    return FlexBundle.message("flex.sdk.version.unknown");
-  }
-  final VirtualFile flexSdkDescriptionFile=flexSdkRoot.findChild("flex-sdk-description.xml");
-  if (flexSdkDescriptionFile == null) {
-    return FlexBundle.message("flex.sdk.version.unknown");
-  }
-  try {
-    final String versionElement="<flex-sdk-description><version>";
-    final String buildElement="<flex-sdk-description><build>";
-    final Map<String,List<String>> versionInfo=FlexUtils.findXMLElements(flexSdkDescriptionFile.getInputStream(),Arrays.asList(versionElement,buildElement));
-    return (versionInfo.get(versionElement).isEmpty() ? FlexBundle.message("flex.sdk.version.unknown") : versionInfo.get(versionElement).get(0)) + (versionInfo.get(buildElement).isEmpty() ? "" : ("." + versionInfo.get(buildElement).get(0)));
-  }
- catch (  IOException e) {
-    return FlexBundle.message("flex.sdk.version.unknown");
-  }
+  return StringUtil.notNullize(doReadFlexSdkVersion(flexSdkRoot),FlexBundle.message("flex.sdk.version.unknown"));
 }
