@@ -1,6 +1,7 @@
 {
   for (  Module module : myModule2Editors.keySet()) {
     ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
+    Collection<String> usedModulesLibrariesIds=new ArrayList<String>();
     Map<Library,Boolean> librariesToAdd=new HashMap<Library,Boolean>();
     Collection<String> sdksNames=new HashSet<String>();
     for (    Editor editor : myModule2Editors.get(module)) {
@@ -9,6 +10,10 @@
         sdksNames.add(sdkEntry.getName());
       }
       for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
+        if (dependencyEntry instanceof ModuleLibraryEntry) {
+          ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)dependencyEntry;
+          usedModulesLibrariesIds.add(moduleLibraryEntry.getLibraryId());
+        }
         if (dependencyEntry instanceof SharedLibraryEntry) {
           SharedLibraryEntry sharedLibraryEntry=(SharedLibraryEntry)dependencyEntry;
           Library library=myProvider.findSourceLibraryForLiveName(sharedLibraryEntry.getLibraryName(),sharedLibraryEntry.getLibraryLevel());
@@ -23,14 +28,19 @@
     for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
         if (((LibraryOrderEntry)orderEntry).isModuleLevel()) {
-          continue;
+          LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+          if (FlexProjectRootsUtil.isFlexLibrary(library) && !usedModulesLibrariesIds.contains(FlexProjectRootsUtil.getLibraryId(library))) {
+            entriesToRemove.add(orderEntry);
+          }
         }
-        LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
-        if (librariesToAdd.containsKey(library)) {
-          librariesToAdd.put(library,false);
-        }
- else         if (library != null && FlexProjectRootsUtil.isFlexLibrary(library)) {
-          entriesToRemove.add(orderEntry);
+ else {
+          LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+          if (librariesToAdd.containsKey(library)) {
+            librariesToAdd.put(library,false);
+          }
+ else           if (library != null && FlexProjectRootsUtil.isFlexLibrary(library)) {
+            entriesToRemove.add(orderEntry);
+          }
         }
       }
     }
