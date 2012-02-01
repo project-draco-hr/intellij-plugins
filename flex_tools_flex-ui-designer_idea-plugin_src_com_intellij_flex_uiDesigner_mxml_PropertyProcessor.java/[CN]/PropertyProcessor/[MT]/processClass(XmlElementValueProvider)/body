@@ -1,27 +1,2 @@
 {
-  String trimmed=valueProvider.getTrimmed();
-  XmlElement exceptionElement=valueProvider.getElement();
-  if (trimmed.isEmpty() && valueProvider.getElement() instanceof XmlTag) {
-    final XmlTag propertyTag=(XmlTag)valueProvider.getElement();
-    final XmlTag[] propertyTagSubTags=propertyTag.getSubTags();
-    if (propertyTagSubTags.length == 1) {
-      final XmlTag contentTag=propertyTagSubTags[0];
-      exceptionElement=contentTag;
-      final XmlElementDescriptor contentTagDescriptor=contentTag.getDescriptor();
-      if (contentTagDescriptor instanceof ClassBackedElementDescriptor && AsCommonTypeNames.CLASS.equals(contentTagDescriptor.getQualifiedName())) {
-        trimmed=contentTag.getValue().getTrimmedText();
-      }
-    }
-  }
-  if (trimmed.isEmpty()) {
-    throw new InvalidPropertyException(exceptionElement,"invalid.class.value");
-  }
- else {
-    final Module module=ModuleUtil.findModuleForPsiElement(valueProvider.getElement());
-    if (module != null && JSResolveUtil.findClassByQName(trimmed,module.getModuleWithDependenciesAndLibrariesScope(false)) != null) {
-      writer.classReference(trimmed);
-      return true;
-    }
-    throw new InvalidPropertyException(exceptionElement,"error.unresolved.class",trimmed);
-  }
 }
