@@ -1,14 +1,13 @@
 {
-  super(project);
-  Disposer.register(project,this);
-  project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
-    public void beforeRootsChange(    final ModuleRootEvent event){
+  myProject=project;
+  myProject.getMessageBus().connect(myProject).subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void moduleAdded(    final Project project,    final Module module){
+      showOrHideWidget(false);
     }
-    public void rootsChanged(    final ModuleRootEvent event){
-      if (myStatusBar != null) {
-        myStatusBar.updateWidget(ID());
-      }
+    @Override public void moduleRemoved(    final Project project,    final Module module){
+      showOrHideWidget(false);
     }
   }
 );
+  showOrHideWidget(false);
 }
