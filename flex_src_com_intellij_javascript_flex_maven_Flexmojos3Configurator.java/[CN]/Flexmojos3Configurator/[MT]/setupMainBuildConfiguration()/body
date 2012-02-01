@@ -1,0 +1,23 @@
+{
+  final ModifiableFlexIdeBuildConfiguration mainBC=myFlexEditor.createConfiguration(myModule);
+  mainBC.setName(myModule.getName());
+  final TargetPlatform targetPlatform=handleDependencies(mainBC);
+  mainBC.setTargetPlatform(targetPlatform);
+  mainBC.setPureAs(false);
+  mainBC.setOutputType(FlexmojosImporter.isFlexApp(myMavenProject) ? OutputType.Application : OutputType.Library);
+  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
+  if (FlexmojosImporter.isFlexApp(myMavenProject) && configurationElement != null) {
+    final String sourceFile=configurationElement.getChildTextNormalize("sourceFile");
+    if (sourceFile != null && (sourceFile.endsWith(".as") || sourceFile.endsWith(".mxml"))) {
+      mainBC.setMainClass(sourceFile.substring(0,sourceFile.lastIndexOf(".")).replace("/",".").replace("\\","."));
+    }
+  }
+  final String outputFilePath=getOutputFilePath(myMavenProject);
+  mainBC.setOutputFileName(PathUtil.getFileName(outputFilePath));
+  mainBC.setOutputFolder(PathUtil.getParentPath(outputFilePath));
+  setupSdk(mainBC);
+  final String locales=StringUtil.join(myCompiledLocales,String.valueOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
+  mainBC.getCompilerOptions().setAllOptions(Collections.singletonMap("compiler.locale",locales));
+  mainBC.getCompilerOptions().setAdditionalConfigFilePath(getCompilerConfigFilePath());
+  return mainBC;
+}

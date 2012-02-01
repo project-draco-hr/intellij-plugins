@@ -1,0 +1,15 @@
+{
+  final Element mainConfigRootElement=getClonedRootElementOfMainConfigFile(myMainConfigFilePath);
+  if (mainConfigRootElement == null)   return;
+  for (  RLMInfo info : myRlmInfos) {
+    indicator.setText("Generating Flex compiler configuration file for " + info.myRLMName);
+    final String mainClassAbsolutePath=findAbsolutePath(myModule,info.myMainClassRelativePath);
+    changeInputAndOutputFilePaths(mainConfigRootElement,mainClassAbsolutePath,info.myOutputFolderPath + "/" + info.myOutputFileName);
+    removeChildrenWithNames(mainConfigRootElement,ELEMENTS_TO_REMOVE);
+    try {
+      JDOMUtil.writeDocument(mainConfigRootElement.getDocument(),info.myConfigFilePath,CodeStyleSettingsManager.getSettings(project).getLineSeparator());
+    }
+ catch (    IOException e) {
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
+  final Element moduleFilesElement=configurationElement == null ? null : configurationElement.getChild("moduleFiles",configurationElement.getNamespace());
+  if (moduleFilesElement == null) {
+    return Collections.emptyList();
+  }
+  final List<RLMInfo> result=new ArrayList<RLMInfo>();
+  for (  final Element moduleFilePathElement : (Iterable<Element>)moduleFilesElement.getChildren()) {
+    final String path=moduleFilePathElement.getTextNormalize();
+    if (path.endsWith(".mxml") || path.endsWith(".as")) {
+      final String mainClassRelativePath=FileUtil.toSystemIndependentName(path);
+      final String mainClass=FileUtil.getNameWithoutExtension(mainClassRelativePath.replace('/','.'));
+      final String rlmName=StringUtil.getShortName(mainClass);
+      final String outputFileName=myMavenProject.getFinalName() + "-" + rlmName+ ".swf";
+      final String outputFolderPath=FileUtil.toSystemIndependentName(myMavenProject.getBuildDirectory());
+      final String configFilePath=getCompilerConfigFilePath(rlmName);
+      result.add(new RLMInfo(rlmName,mainClass,mainClassRelativePath,outputFileName,outputFolderPath,configFilePath));
+    }
+  }
+  return result;
+}

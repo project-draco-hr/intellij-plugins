@@ -2,31 +2,19 @@
   for (  ModifiableFlexIdeBuildConfiguration oldBC : myFlexEditor.getConfigurations(myModule)) {
     myFlexEditor.removeConfiguration(oldBC);
   }
-  final ModifiableFlexIdeBuildConfiguration bc=myFlexEditor.createConfiguration(myModule);
-  bc.setName(myModule.getName());
-  final TargetPlatform targetPlatform=handleDependencies(bc);
-  bc.setTargetPlatform(targetPlatform);
-  bc.setPureAs(false);
-  final boolean app=FlexmojosImporter.isFlexApp(myMavenProject);
-  bc.setOutputType(app ? OutputType.Application : OutputType.Library);
-  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
-  if (app && configurationElement != null) {
-    final String sourceFile=configurationElement.getChildTextNormalize("sourceFile");
-    if (sourceFile != null && (sourceFile.endsWith(".as") || sourceFile.endsWith(".mxml"))) {
-      bc.setMainClass(sourceFile.substring(0,sourceFile.lastIndexOf(".")).replace("/",".").replace("\\","."));
-    }
+  final ModifiableFlexIdeBuildConfiguration mainBC=setupMainBuildConfiguration();
+  final Collection<String> usedNames=new HashSet<String>();
+  usedNames.add(mainBC.getName());
+  final Collection<RLMInfo> rlmInfos=FlexmojosImporter.isFlexApp(myMavenProject) ? getRLMInfos() : Collections.<RLMInfo>emptyList();
+  for (  RLMInfo info : rlmInfos) {
+    configureRuntimeLoadedModule(mainBC,info,usedNames);
   }
-  final String outputFilePath=getOutputFilePath();
-  bc.setOutputFileName(PathUtil.getFileName(outputFilePath));
-  bc.setOutputFolder(PathUtil.getParentPath(outputFilePath));
-  setupSdk(bc);
-  final String locales=StringUtil.join(myCompiledLocales,String.valueOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
-  bc.getCompilerOptions().setAllOptions(Collections.singletonMap("compiler.locale",locales));
-  final String configFilePath=getCompilerConfigFilePath();
-  bc.getCompilerOptions().setAdditionalConfigFilePath(configFilePath);
   if (FlexCompilerProjectConfiguration.getInstance(myModule.getProject()).GENERATE_FLEXMOJOS_CONFIGS) {
     if (StringUtil.compareVersionNumbers(myFlexmojosPlugin.getVersion(),"3.4") >= 0) {
-      appendGenerateConfigTask(postTasks,configFilePath);
+      appendGenerateConfigTask(postTasks,mainBC.getCompilerOptions().getAdditionalConfigFilePath());
+      if (!rlmInfos.isEmpty()) {
+        postTasks.add(new RuntimeModulesGenerateConfigTask(myModule,myMavenProject,myMavenTree,mainBC.getCompilerOptions().getAdditionalConfigFilePath(),rlmInfos));
+      }
     }
  else {
       myInformer.showFlexConfigWarningIfNeeded(myModule.getProject());
