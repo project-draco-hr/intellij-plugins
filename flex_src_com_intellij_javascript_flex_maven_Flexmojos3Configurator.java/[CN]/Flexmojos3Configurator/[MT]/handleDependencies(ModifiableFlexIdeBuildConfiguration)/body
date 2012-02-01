@@ -1,0 +1,53 @@
+{
+  boolean playerglobal=false;
+  boolean airglobal=false;
+  boolean mobilecomponents=false;
+  final ModifiableRootModel rootModel=myModelsProvider.getRootModel(myModule);
+  for (  OrderEntry entry : rootModel.getOrderEntries()) {
+    if ((entry instanceof ModuleOrderEntry)) {
+      rootModel.removeOrderEntry(entry);
+      final String dependencyModuleName=((ModuleOrderEntry)entry).getModuleName();
+      final ModifiableBuildConfigurationEntry bcEntry=myFlexEditor.createBcEntry(bc.getDependencies(),dependencyModuleName,dependencyModuleName);
+      bc.getDependencies().getModifiableEntries().add(bcEntry);
+      continue;
+    }
+    if (!(entry instanceof LibraryOrderEntry))     continue;
+    if (!LibraryTablesRegistrar.PROJECT_LEVEL.equals(((LibraryOrderEntry)entry).getLibraryLevel()))     continue;
+    final Library library=((LibraryOrderEntry)entry).getLibrary();
+    if (library == null || !MavenRootModelAdapter.isMavenLibrary(library))     continue;
+    final String libraryName=library.getName();
+    if (libraryName.contains(":rb.swc:")) {
+      final Library.ModifiableModel libraryModifiableModel=myModelsProvider.getLibraryModel(library);
+      for (      final String rbSwcPlaceholdersUrl : findRbSwcPlaceholderUrls(libraryModifiableModel)) {
+        final Collection<String> rootsToAdd=getRbSwcUrlsForCompiledLocales(rbSwcPlaceholdersUrl);
+        libraryModifiableModel.removeRoot(rbSwcPlaceholdersUrl,OrderRootType.CLASSES);
+        for (        final String rootToAdd : rootsToAdd) {
+          if (!ArrayUtil.contains(rootToAdd,libraryModifiableModel.getUrls(OrderRootType.CLASSES))) {
+            libraryModifiableModel.addRoot(rootToAdd,OrderRootType.CLASSES);
+          }
+        }
+      }
+    }
+    if (libraryName.contains(":swc:") || libraryName.contains(":rb.swc:")) {
+      playerglobal|=libraryName.contains("playerglobal");
+      airglobal|=libraryName.contains("airglobal");
+      mobilecomponents|=libraryName.contains("mobilecomponents");
+      final LibraryType<?> type=((LibraryEx)library).getType();
+      final FlexLibraryType flexLibraryType=FlexLibraryType.getInstance();
+      if (type != flexLibraryType) {
+        if (type == null) {
+          final LibraryEx.ModifiableModelEx libraryModel=(LibraryEx.ModifiableModelEx)myModelsProvider.getLibraryModel(library);
+          libraryModel.setType(flexLibraryType);
+          libraryModel.setProperties(flexLibraryType.createDefaultProperties());
+        }
+      }
+      rootModel.removeOrderEntry(entry);
+      final ModifiableDependencyEntry sharedLibraryEntry=myFlexEditor.createSharedLibraryEntry(bc.getDependencies(),((LibraryOrderEntry)entry).getLibraryName(),((LibraryOrderEntry)entry).getLibraryLevel());
+      bc.getDependencies().getModifiableEntries().add(sharedLibraryEntry);
+    }
+ else {
+      MavenLog.LOG.warn("Unexpected library in dependencies of module '" + myModule.getName() + "': "+ libraryName+ ". Only swc and rb.swc libraries expected.");
+    }
+  }
+  return mobilecomponents && airglobal ? TargetPlatform.Mobile : airglobal && !playerglobal ? TargetPlatform.Desktop : TargetPlatform.Web;
+}

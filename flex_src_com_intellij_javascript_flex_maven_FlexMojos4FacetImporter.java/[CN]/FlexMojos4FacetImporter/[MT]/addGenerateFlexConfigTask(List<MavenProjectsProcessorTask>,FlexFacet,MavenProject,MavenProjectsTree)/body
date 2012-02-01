@@ -3,17 +3,17 @@
   if (!FlexCompilerProjectConfiguration.getInstance(project).GENERATE_FLEXMOJOS_CONFIGS) {
     return;
   }
-  Flexmojos4GenerateFlexConfigTask generateFlexConfigTask=null;
+  Flexmojos4GenerateConfigTask existingTask=null;
   for (  MavenProjectsProcessorTask postTask : postTasks) {
-    if (postTask instanceof Flexmojos4GenerateFlexConfigTask) {
-      generateFlexConfigTask=(Flexmojos4GenerateFlexConfigTask)postTask;
+    if (postTask instanceof Flexmojos4GenerateConfigTask) {
+      existingTask=(Flexmojos4GenerateConfigTask)postTask;
       break;
     }
   }
-  if (generateFlexConfigTask == null) {
+  if (existingTask == null) {
     ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreUnderDirectory(getCompilerConfigsDir(project),project));
-    generateFlexConfigTask=new Flexmojos4GenerateFlexConfigTask(mavenTree);
-    postTasks.add(generateFlexConfigTask);
+    existingTask=new Flexmojos4GenerateConfigTask(mavenTree);
+    postTasks.add(existingTask);
   }
-  generateFlexConfigTask.submit(mavenProject);
+  existingTask.submit(mavenProject);
 }

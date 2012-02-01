@@ -1,0 +1,14 @@
+{
+  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
+  String overriddenTargetFileName=configurationElement == null ? null : configurationElement.getChildTextNormalize("output",configurationElement.getNamespace());
+  if (overriddenTargetFileName != null && !overriddenTargetFileName.isEmpty() && !FileUtil.isAbsolute(overriddenTargetFileName)) {
+    overriddenTargetFileName=myMavenProject.getDirectory() + "/" + overriddenTargetFileName;
+  }
+  if (overriddenTargetFileName != null) {
+    return FileUtil.toSystemIndependentName(overriddenTargetFileName);
+  }
+ else {
+    final String suffix=myClassifier == null ? "" : "-" + myClassifier;
+    return FileUtil.toSystemIndependentName(myMavenProject.getBuildDirectory()) + "/" + myMavenProject.getFinalName()+ suffix+ "."+ myMavenProject.getPackaging();
+  }
+}
