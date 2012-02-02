@@ -1,0 +1,21 @@
+{
+  boolean hasError=true;
+  try {
+    if (kind == ClassPoolGenerator.Kind.IMAGE) {
+      beginMessage(ClientMethod.fillImageClassPool);
+    }
+ else {
+      beginMessage(kind == ClassPoolGenerator.Kind.SWF ? ClientMethod.fillSwfClassPool : ClientMethod.fillViewClassPool);
+    }
+    writeId(flexLibrarySet.getId());
+    out.writeShort(classCount);
+    ClassPoolGenerator.generate(kind,classCount,flexLibrarySet.assetCounterInfo.allocated,blockOut);
+    hasError=false;
+  }
+ catch (  Throwable e) {
+    LogMessageUtil.processInternalError(e,null);
+  }
+ finally {
+    finalizeMessage(hasError);
+  }
+}
