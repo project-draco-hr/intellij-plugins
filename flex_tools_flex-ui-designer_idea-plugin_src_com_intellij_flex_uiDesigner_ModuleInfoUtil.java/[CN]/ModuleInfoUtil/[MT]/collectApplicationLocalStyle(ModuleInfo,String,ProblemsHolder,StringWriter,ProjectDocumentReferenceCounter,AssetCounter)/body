@@ -11,10 +11,12 @@
   if (mxApplicationClass != null) {
     holders.add(mxApplicationClass);
   }
+  final LocalCssWriter localCssWriter=new LocalCssWriter(stringWriter,problemsHolder,projectDocumentReferenceCounter,assetCounter);
+  sparkTheme(moduleInfo,localCssWriter);
   if (holders.isEmpty()) {
     return;
   }
-  final StyleTagWriter localStyleWriter=new StyleTagWriter(new LocalCssWriter(stringWriter,problemsHolder,projectDocumentReferenceCounter,assetCounter));
+  final StyleTagWriter styleTagWriter=new StyleTagWriter(localCssWriter);
   final Processor<JSClass> processor=new Processor<JSClass>(){
     @Override public boolean process(    JSClass jsClass){
       PsiFile containingFile=jsClass.getNavigationElement().getContainingFile();
@@ -27,7 +29,7 @@
             for (            final XmlTag subTag : rootTag.getSubTags()) {
               if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
                 try {
-                  LocalStyleHolder localStyleHolder=localStyleWriter.write(subTag,moduleInfo.getModule(),virtualFile);
+                  LocalStyleHolder localStyleHolder=styleTagWriter.write(subTag,moduleInfo.getModule(),virtualFile);
                   if (localStyleHolder != null) {
                     moduleInfo.addLocalStyleHolder(localStyleHolder);
                   }
