@@ -1,0 +1,26 @@
+{
+  final String instruction=analyzer.getProperty(directiveName);
+  if (StringUtils.isNotEmpty(instruction)) {
+    if (instruction.contains(MAVEN_DEPENDENCIES)) {
+      if (mavenDependencies.length() == 0) {
+        String cleanInstruction=removeTagFromInstruction(instruction,MAVEN_DEPENDENCIES);
+        analyzer.setProperty(directiveName,cleanInstruction);
+      }
+ else {
+        String mergedInstruction=StringUtils.replace(instruction,MAVEN_DEPENDENCIES,mavenDependencies);
+        analyzer.setProperty(directiveName,mergedInstruction);
+      }
+    }
+ else     if (mavenDependencies.length() > 0) {
+      if (Analyzer.INCLUDE_RESOURCE.equalsIgnoreCase(directiveName)) {
+        analyzer.setProperty(directiveName,mavenDependencies + ',' + instruction);
+      }
+ else {
+        analyzer.setProperty(directiveName,instruction + ',' + mavenDependencies);
+      }
+    }
+  }
+ else   if (mavenDependencies.length() > 0) {
+    analyzer.setProperty(directiveName,mavenDependencies);
+  }
+}
