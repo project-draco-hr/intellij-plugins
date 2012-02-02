@@ -1,9 +1,15 @@
 {
   final DefaultActionGroup actionGroup=new DefaultActionGroup();
-  actionGroup.addSeparator("Build Configurations");
+  actionGroup.addSeparator(FlexBundle.message("build.configurations.popup.separator.text"));
   final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
   final FlexIdeBuildConfiguration active=manager.getActiveConfiguration();
   FlexIdeBuildConfiguration[] bcs=manager.getBuildConfigurations();
+  Arrays.sort(bcs,new Comparator<FlexIdeBuildConfiguration>(){
+    @Override public int compare(    final FlexIdeBuildConfiguration o1,    final FlexIdeBuildConfiguration o2){
+      return o1.getName().compareToIgnoreCase(o2.getName());
+    }
+  }
+);
   for (  final FlexIdeBuildConfiguration bc : bcs) {
     actionGroup.add(new SelectBcAction(bc,manager));
   }
