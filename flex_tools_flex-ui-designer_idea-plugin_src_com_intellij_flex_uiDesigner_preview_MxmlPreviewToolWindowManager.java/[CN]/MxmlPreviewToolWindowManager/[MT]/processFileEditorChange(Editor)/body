@@ -1,0 +1,41 @@
+{
+  toolWindowUpdateQueue.cancelAllUpdates();
+  toolWindowUpdateQueue.queue(new Update("update"){
+    @SuppressWarnings("PointlessBooleanExpression") public void run(){
+      if (!toolWindowReady || toolWindowDisposed) {
+        return;
+      }
+      if (toolWindow == null) {
+        if (newEditor == null) {
+          return;
+        }
+        initToolWindow();
+      }
+      final boolean hideForNonLayoutFiles=true;
+      if (newEditor == null) {
+        toolWindowForm.setFile(null);
+        toolWindow.setAvailable(!hideForNonLayoutFiles,null);
+        return;
+      }
+      final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(newEditor.getDocument());
+      if (psiFile == null) {
+        toolWindow.setAvailable(!hideForNonLayoutFiles,null);
+        return;
+      }
+      final boolean toRender=toolWindowForm.getFile() != psiFile;
+      if (toRender) {
+        ApplicationManager.getApplication().saveAll();
+        toolWindowForm.setFile(psiFile);
+      }
+      toolWindow.setAvailable(true,null);
+      final boolean visible=PropertiesComponent.getInstance(project).getBoolean("mxml.preview.tool.window.visible",false);
+      if (visible) {
+        toolWindow.show(null);
+      }
+      if (toRender) {
+        render();
+      }
+    }
+  }
+);
+}
