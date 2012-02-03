@@ -3,7 +3,7 @@
   MavenPlugin p=mavenProject.findPlugin(myPluginGroupID,myPluginArtifactID);
   MavenId id=mavenProject.getMavenId();
   conf.setBundleSymbolicName(id.getGroupId() + "." + id.getArtifactId());
-  conf.setBundleVersion(cleanupVersion(id.getVersion()));
+  conf.setBundleVersion(ImporterUtil.cleanupVersion(id.getVersion()));
   if (p != null) {
     logger.debug("Plugin found.");
     conf.setBundleSymbolicName(computeSymbolicName(mavenProject));
@@ -11,7 +11,7 @@
     setConfigProperty(mavenProject,conf,"bundleActivator","instructions." + Constants.BUNDLE_ACTIVATOR);
     if ("".equals(conf.getBundleVersion().trim())) {
       String version=mavenProject.getMavenId().getVersion();
-      conf.setBundleVersion(cleanupVersion(version));
+      conf.setBundleVersion(ImporterUtil.cleanupVersion(version));
     }
     Map<String,String> props=new LinkedHashMap<String,String>();
     Map<String,String> modelMap=mavenProject.getModelMap();
@@ -57,7 +57,7 @@
         props.put(Constants.BUNDLE_NAME,computeBundleName(mavenProject));
       }
     }
-    postprocessAdditionalProperties(props,mavenProject);
+    ImporterUtil.postprocessAdditionalProperties(props,mavenProject);
     conf.importAdditionalProperties(props,true);
     String jarFileName=mavenProject.getFinalName() + ".jar";
 switch (conf.getOutputPathType()) {

@@ -1,0 +1,20 @@
+{
+  Collection<MavenArtifact> dependencies;
+  if (Boolean.parseBoolean(props.get(DependencyEmbedder.EMBED_TRANSITIVE))) {
+    Set<MavenArtifact> processed=new HashSet<MavenArtifact>();
+    LinkedList<MavenArtifactNode> nodes=new LinkedList<MavenArtifactNode>(project.getDependencyTree());
+    while (!nodes.isEmpty()) {
+      MavenArtifactNode node=nodes.pop();
+      MavenArtifact artifact=node.getArtifact();
+      if (!processed.contains(artifact)) {
+        processed.add(artifact);
+        nodes.addAll(node.getDependencies());
+      }
+    }
+    dependencies=processed;
+  }
+ else {
+    dependencies=project.getDependencies();
+  }
+  return dependencies;
+}

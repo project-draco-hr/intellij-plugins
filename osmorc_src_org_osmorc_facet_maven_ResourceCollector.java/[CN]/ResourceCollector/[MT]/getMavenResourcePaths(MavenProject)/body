@@ -1,0 +1,48 @@
+{
+  final String basePath=currentProject.getDirectory();
+  Set<String> pathSet=new LinkedHashSet<String>();
+  for (  MavenResource resource : getMavenResources(currentProject)) {
+    final String sourcePath=resource.getDirectory();
+    final String targetPath=resource.getTargetPath();
+    if (new File(sourcePath).exists() && ((targetPath == null) || (!targetPath.contains("..")))) {
+      DirectoryScanner scanner=new DirectoryScanner();
+      scanner.setBasedir(sourcePath);
+      if (resource.getIncludes() != null && !resource.getIncludes().isEmpty()) {
+        scanner.setIncludes(ArrayUtil.toStringArray(resource.getIncludes()));
+      }
+ else {
+        scanner.setIncludes(DEFAULT_INCLUDES);
+      }
+      if (resource.getExcludes() != null && !resource.getExcludes().isEmpty()) {
+        scanner.setExcludes(ArrayUtil.toStringArray(resource.getExcludes()));
+      }
+      scanner.addDefaultExcludes();
+      scanner.scan();
+      List<String> includedFiles=Arrays.asList(scanner.getIncludedFiles());
+      for (      Object includedFile : includedFiles) {
+        String name=(String)includedFile;
+        String path=sourcePath + '/' + name;
+        if (File.separatorChar != '/') {
+          name=name.replace(File.separatorChar,'/');
+          path=path.replace(File.separatorChar,'/');
+        }
+        path=name + '=' + path;
+        if (targetPath != null) {
+          path=targetPath + '/' + path;
+        }
+        if (resource.isFiltered()) {
+          path='{' + path + '}';
+        }
+        pathSet.add(path);
+      }
+    }
+  }
+  StringBuilder resourcePaths=new StringBuilder();
+  for (Iterator<String> i=pathSet.iterator(); i.hasNext(); ) {
+    resourcePaths.append(i.next());
+    if (i.hasNext()) {
+      resourcePaths.append(',');
+    }
+  }
+  return resourcePaths.toString();
+}

@@ -1,0 +1,27 @@
+{
+  final String mavenResourcePaths=getMavenResourcePaths(currentProject);
+  final String includeResource=(String)analyzer.getProperty(Analyzer.INCLUDE_RESOURCE);
+  if (includeResource != null) {
+    if (includeResource.contains(MAVEN_RESOURCES)) {
+      if (mavenResourcePaths.length() == 0) {
+        String cleanedResource=ImporterUtil.removeTagFromInstruction(includeResource,MAVEN_RESOURCES);
+        if (cleanedResource.length() > 0) {
+          analyzer.setProperty(Analyzer.INCLUDE_RESOURCE,cleanedResource);
+        }
+ else {
+          analyzer.unsetProperty(Analyzer.INCLUDE_RESOURCE);
+        }
+      }
+ else {
+        String combinedResource=StringUtils.replace(includeResource,MAVEN_RESOURCES,mavenResourcePaths);
+        analyzer.setProperty(Analyzer.INCLUDE_RESOURCE,combinedResource);
+      }
+    }
+ else     if (mavenResourcePaths.length() > 0) {
+      OsmorcProjectComponent.IMPORTANT_ERROR_NOTIFICATION.createNotification(Analyzer.INCLUDE_RESOURCE + ": overriding " + mavenResourcePaths+ " with "+ includeResource+ " (add "+ MAVEN_RESOURCES+ " if you want to include the maven resources)",MessageType.WARNING).notify(null);
+    }
+  }
+ else   if (mavenResourcePaths.length() > 0) {
+    analyzer.setProperty(Analyzer.INCLUDE_RESOURCE,mavenResourcePaths);
+  }
+}
