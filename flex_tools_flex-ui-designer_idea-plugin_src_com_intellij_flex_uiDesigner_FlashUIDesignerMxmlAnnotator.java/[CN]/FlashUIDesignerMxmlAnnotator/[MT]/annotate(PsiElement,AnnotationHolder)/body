@@ -2,9 +2,13 @@
   if (!(element instanceof XmlTag)) {
     return;
   }
-  XmlFile psiFile=(XmlFile)element.getContainingFile();
-  if (psiFile.getRootTag() != element || !RunDesignViewAction.isSupported(element.getProject(),psiFile)) {
+  final XmlTag tag=(XmlTag)element;
+  final XmlFile psiFile=(XmlFile)tag.getContainingFile();
+  if (psiFile.getRootTag() != tag || !RunDesignViewAction.isSupported(tag.getProject(),psiFile)) {
     return;
   }
-  holder.createInfoAnnotation(element,null).setGutterIconRenderer(new MyRenderer());
+  final TextRange textRange=XmlTagUtil.getStartTagRange(tag);
+  if (textRange != null) {
+    holder.createInfoAnnotation(textRange,null).setGutterIconRenderer(new MyRenderer());
+  }
 }
