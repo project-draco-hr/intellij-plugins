@@ -1,41 +1,27 @@
 {
   final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(scope);
-  if (runConfiguration instanceof FlashRunConfiguration || runConfiguration instanceof NewFlexUnitRunConfiguration) {
-    final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
-    final BCBasedRunnerParameters params=runConfiguration instanceof FlashRunConfiguration ? ((FlashRunConfiguration)runConfiguration).getRunnerParameters() : ((NewFlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
-    final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig;
-    final Ref<RuntimeConfigurationError> exceptionRef=new Ref<RuntimeConfigurationError>();
-    moduleAndConfig=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexIdeBuildConfiguration>>(){
-      public Pair<Module,FlexIdeBuildConfiguration> compute(){
-        try {
-          return params.checkAndGetModuleAndBC(runConfiguration.getProject());
-        }
- catch (        RuntimeConfigurationError e) {
-          exceptionRef.set(e);
-          return null;
-        }
+  final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
+  final BCBasedRunnerParameters params=runConfiguration instanceof FlashRunConfiguration ? ((FlashRunConfiguration)runConfiguration).getRunnerParameters() : ((NewFlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
+  final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig;
+  final Ref<RuntimeConfigurationError> exceptionRef=new Ref<RuntimeConfigurationError>();
+  moduleAndConfig=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexIdeBuildConfiguration>>(){
+    public Pair<Module,FlexIdeBuildConfiguration> compute(){
+      try {
+        return params.checkAndGetModuleAndBC(runConfiguration.getProject());
+      }
+ catch (      RuntimeConfigurationError e) {
+        exceptionRef.set(e);
+        return null;
       }
     }
+  }
 );
-    if (!exceptionRef.isNull()) {
-      throw new ConfigurationException(exceptionRef.get().getMessage(),FlexBundle.message("run.configuration.0",runConfiguration.getName()));
-    }
-    if (!moduleAndConfig.second.isSkipCompile()) {
-      result.add(moduleAndConfig);
-      appendBCDependencies(result,moduleAndConfig.first,moduleAndConfig.second);
-    }
-    return result;
+  if (!exceptionRef.isNull()) {
+    throw new ConfigurationException(exceptionRef.get().getMessage(),FlexBundle.message("run.configuration.0",runConfiguration.getName()));
   }
- else {
-    final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new ArrayList<Pair<Module,FlexIdeBuildConfiguration>>();
-    for (    final Module module : scope.getAffectedModules()) {
-      if (ModuleType.get(module) != FlexModuleType.getInstance())       continue;
-      for (      final FlexIdeBuildConfiguration config : FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
-        if (!config.isSkipCompile()) {
-          result.add(Pair.create(module,config));
-        }
-      }
-    }
-    return result;
+  if (!moduleAndConfig.second.isSkipCompile()) {
+    result.add(moduleAndConfig);
+    appendBCDependencies(result,moduleAndConfig.first,moduleAndConfig.second);
   }
+  return result;
 }
