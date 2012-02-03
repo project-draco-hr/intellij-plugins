@@ -9,10 +9,11 @@
   finally {
     bytes.reset();
   }
-  VirtualFile defaultsCssVirtualFile=library.getDefaultsCssFile();
+  final VirtualFile defaultsCssVirtualFile=library.getDefaultsCssFile();
   if (defaultsCssVirtualFile != null) {
-    library.defaultsStyle=cssWriter.write(defaultsCssVirtualFile,module);
-    library.assetCounter=new AssetCounter(assetCounter);
-    assetCounter.clear();
+    final AssetCounter libAssetCounter=new AssetCounter();
+    library.defaultsStyle=new CssWriter(stringWriter,problemsHolder,libAssetCounter).write(defaultsCssVirtualFile,module);
+    library.assetCounter=libAssetCounter;
+    assetCounter.append(libAssetCounter);
   }
 }
