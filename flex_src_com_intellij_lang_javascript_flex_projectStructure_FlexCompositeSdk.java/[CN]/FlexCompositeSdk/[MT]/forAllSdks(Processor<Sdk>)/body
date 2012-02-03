@@ -1,9 +1,14 @@
 {
-  final Sdk[] allSdks=ProjectJdkTable.getInstance().getAllJdks();
-  for (  Sdk sdk : allSdks) {
-    if (!myNames.contains(sdk.getName())) {
-      continue;
+  if (mySdks == null) {
+    List<Sdk> sdks=ContainerUtil.findAll(ProjectJdkTable.getInstance().getAllJdks(),new Condition<Sdk>(){
+      @Override public boolean value(      final Sdk sdk){
+        return ArrayUtil.contains(sdk.getName(),myNames);
+      }
     }
+);
+    mySdks=sdks.toArray(new Sdk[sdks.size()]);
+  }
+  for (  Sdk sdk : mySdks) {
     if (!processor.process(sdk)) {
       return;
     }

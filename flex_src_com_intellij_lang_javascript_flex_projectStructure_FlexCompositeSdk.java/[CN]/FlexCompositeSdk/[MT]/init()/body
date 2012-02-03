@@ -1,0 +1,20 @@
+{
+  Application application=ApplicationManager.getApplication();
+  final Disposable d=Disposer.newDisposable();
+  Disposer.register(application,d);
+  application.getMessageBus().connect(d).subscribe(ProjectJdkTable.JDK_TABLE_TOPIC,new ProjectJdkTable.Listener(){
+    @Override public void jdkAdded(    final Sdk jdk){
+      resetSdks();
+    }
+    @Override public void jdkRemoved(    final Sdk jdk){
+      if (jdk == FlexCompositeSdk.this) {
+        Disposer.dispose(d);
+      }
+      resetSdks();
+    }
+    @Override public void jdkNameChanged(    final Sdk jdk,    final String previousName){
+      resetSdks();
+    }
+  }
+);
+}
