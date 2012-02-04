@@ -1,23 +1,29 @@
 {
-  final FlexIdeBuildConfiguration config=myBCCombo.getBC();
+  final FlexIdeBuildConfiguration bc=myBCCombo.getBC();
+  final Module module=myBCCombo.getModule();
   final boolean overrideMainClass=myOverrideMainClassCheckBox.isSelected();
   myMainClassComponent.setEnabled(overrideMainClass);
   myOutputFileNameLabel.setEnabled(overrideMainClass);
   myOutputFileNameTextField.setEnabled(overrideMainClass);
-  if (!overrideMainClass && config != null) {
-    myMainClassComponent.setText(config.getMainClass());
-    myOutputFileNameTextField.setText(config.getOutputFileName());
+  if (!overrideMainClass && bc != null && module != null) {
+    InfoFromConfigFile info=InfoFromConfigFile.DEFAULT;
+    final String configFilePath=bc.getCompilerOptions().getAdditionalConfigFilePath();
+    if (!configFilePath.isEmpty()) {
+      info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(module,configFilePath);
+    }
+    myMainClassComponent.setText(StringUtil.notNullize(info.mainClass,bc.getMainClass()));
+    myOutputFileNameTextField.setText(StringUtil.notNullize(info.outputFileName,bc.getOutputFileName()));
   }
-  final boolean web=config != null && config.getTargetPlatform() == TargetPlatform.Web;
-  final boolean desktop=config != null && config.getTargetPlatform() == TargetPlatform.Desktop;
-  final boolean mobile=config != null && config.getTargetPlatform() == TargetPlatform.Mobile;
+  final boolean web=bc != null && bc.getTargetPlatform() == TargetPlatform.Web;
+  final boolean desktop=bc != null && bc.getTargetPlatform() == TargetPlatform.Desktop;
+  final boolean mobile=bc != null && bc.getTargetPlatform() == TargetPlatform.Mobile;
   myLaunchPanel.setVisible(web);
   myWebOptionsPanel.setVisible(web);
   myDesktopOptionsPanel.setVisible(desktop);
   myMobileRunPanel.setVisible(mobile);
   myMobileOptionsPanel.setVisible(mobile);
   if (web) {
-    updateBCOutputLabel(config);
+    updateBCOutputLabel(bc);
     myURLTextField.setEnabled(myURLRadioButton.isSelected());
     myLauncherParametersTextWithBrowse.getTextField().setText(myLauncherParameters.getPresentableText());
     myRunTrustedCheckBox.setEnabled(!myURLRadioButton.isSelected());
