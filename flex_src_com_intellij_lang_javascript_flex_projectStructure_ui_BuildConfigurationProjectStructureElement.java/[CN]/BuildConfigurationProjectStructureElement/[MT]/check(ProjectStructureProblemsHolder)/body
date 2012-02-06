@@ -1,0 +1,17 @@
+{
+  FlexProjectConfigurationEditor editor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+  final ModulesConfigurator modulesConfigurator=myContext.getModulesConfigurator();
+  final SdkEntry sdkEntry=myBc.getDependencies().getSdkEntry();
+  if (sdkEntry == null) {
+    Pair<String,Object> location=Pair.<String,Object>create(DependenciesConfigurable.LOCATION,DependenciesConfigurable.Location.SDK);
+    PlaceInProjectStructure place=new PlaceInBuildConfiguration(this,DependenciesConfigurable.TAB_NAME,location);
+    problemsHolder.registerProblem(FlexBundle.message("bc.problem.no.sdk"),null,ProjectStructureProblemType.error("flex-bc-sdk"),place,null);
+  }
+ else {
+    if (editor.findSdk(sdkEntry.getName()) == null) {
+      Pair<String,Object> location=Pair.<String,Object>create(DependenciesConfigurable.LOCATION,DependenciesConfigurable.Location.SDK);
+      PlaceInProjectStructure place=new PlaceInBuildConfiguration(this,DependenciesConfigurable.TAB_NAME,location);
+      problemsHolder.registerProblem(FlexBundle.message("bc.problem.sdk.not.found",sdkEntry.getName()),null,ProjectStructureProblemType.error("flex-bc-sdk"),place,null);
+    }
+  }
+}
