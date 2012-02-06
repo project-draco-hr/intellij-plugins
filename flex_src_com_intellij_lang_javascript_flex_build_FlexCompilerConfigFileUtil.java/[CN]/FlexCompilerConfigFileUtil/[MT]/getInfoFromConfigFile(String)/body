@@ -1,0 +1,39 @@
+{
+  String mainClassPath=null;
+  String outputPath=null;
+  String targetPlayer=null;
+  final VirtualFile configFile=configFilePath.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(configFilePath);
+  if (configFile != null) {
+    final FileDocumentManager manager=FileDocumentManager.getInstance();
+    if (manager.isFileModified(configFile)) {
+      final com.intellij.openapi.editor.Document document=manager.getCachedDocument(configFile);
+      if (document != null) {
+        manager.saveDocument(document);
+      }
+    }
+    final List<String> xmlElements=Arrays.asList(FILE_SPEC_ELEMENT,OUTPUT_ELEMENT,TARGET_PLAYER_ELEMENT);
+    try {
+      final Map<String,List<String>> map=FlexUtils.findXMLElements(configFile.getInputStream(),xmlElements);
+      final List<String> fileSpecList=map.get(FILE_SPEC_ELEMENT);
+      if (!fileSpecList.isEmpty()) {
+        mainClassPath=fileSpecList.get(0);
+      }
+      final List<String> outputList=map.get(OUTPUT_ELEMENT);
+      if (!outputList.isEmpty()) {
+        outputPath=outputList.get(0);
+        if (!FileUtil.isAbsolute(outputPath)) {
+          outputPath=configFile.getParent().getPath() + "/" + outputPath;
+        }
+      }
+      final List<String> targetPlayerList=map.get(TARGET_PLAYER_ELEMENT);
+      if (!targetPlayerList.isEmpty()) {
+        targetPlayer=targetPlayerList.get(0);
+      }
+    }
+ catch (    IOException ignore) {
+    }
+  }
+  final String outputFileName=outputPath == null ? null : PathUtil.getFileName(outputPath);
+  final String outputFolderPath=outputPath == null ? null : PathUtil.getParentPath(outputPath);
+  return new InfoFromConfigFile(configFile,mainClassPath,outputFileName,outputFolderPath,targetPlayer);
+}
