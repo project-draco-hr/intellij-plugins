@@ -6,19 +6,21 @@
     if (startupErrorFile.exists()) {
       startupErrorFile.delete();
     }
+    boolean result=false;
     try {
-      doRun(indicator);
+      result=doRun(indicator);
     }
  catch (    Throwable e) {
       error=e;
     }
-    if (error != null || indicator.isCanceled()) {
-      if (!DesignerApplicationManager.getInstance().isApplicationClosed()) {
-        DesignerApplicationManager.getInstance().disposeApplication();
-      }
+    if (!result || indicator.isCanceled()) {
+      problemsHolder.disableLog();
       if (initializeThread != null) {
         initializeThread.cancel(true);
         initializeThread=null;
+      }
+      if (!DesignerApplicationManager.getInstance().isApplicationClosed()) {
+        DesignerApplicationManager.getInstance().disposeApplication();
       }
       semaphore.up();
     }
