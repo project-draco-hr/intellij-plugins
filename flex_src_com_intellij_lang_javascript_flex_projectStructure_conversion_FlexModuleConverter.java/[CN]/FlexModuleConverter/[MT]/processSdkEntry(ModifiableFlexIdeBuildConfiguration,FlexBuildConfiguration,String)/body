@@ -1,0 +1,33 @@
+{
+  if (ideaSdkName == null) {
+    buildConfiguration.setTargetPlatform(TargetPlatform.Web);
+    return null;
+  }
+  Sdk oldSdk=ProjectJdkTable.getInstance().findJdk(ideaSdkName);
+  final String sdkTypeName;
+  if (oldSdk == null || oldSdk.getHomePath() == null || !ArrayUtil.contains((sdkTypeName=oldSdk.getSdkType().getName()),ConversionParams.OLD_SDKS_TYPES)) {
+    buildConfiguration.setTargetPlatform(TargetPlatform.Web);
+    return null;
+  }
+  if (ConversionParams.OLD_AIR_MOBIE_SDK_TYPE_NAME.equals(sdkTypeName)) {
+    buildConfiguration.setTargetPlatform(TargetPlatform.Mobile);
+    buildConfiguration.getAndroidPackagingOptions().setEnabled(true);
+  }
+ else   if (ConversionParams.OLD_AIR_SDK_TYPE_NAME.equals(sdkTypeName)) {
+    buildConfiguration.setTargetPlatform(TargetPlatform.Desktop);
+  }
+ else {
+    buildConfiguration.setTargetPlatform(TargetPlatform.Web);
+    final String targetPlayer=TargetPlayerUtils.getTargetPlayer(oldConfiguration == null ? null : oldConfiguration.TARGET_PLAYER_VERSION,oldSdk.getHomePath());
+    buildConfiguration.getDependencies().setTargetPlayer(targetPlayer);
+  }
+  Sdk sdk=ConversionParams.findNewSdk(oldSdk.getHomePath());
+  if (sdk != null) {
+    SdkEntry sdkEntry=Factory.createSdkEntry(sdk.getName());
+    buildConfiguration.getDependencies().setSdkEntry(sdkEntry);
+    return sdk.getName();
+  }
+ else {
+    return null;
+  }
+}
