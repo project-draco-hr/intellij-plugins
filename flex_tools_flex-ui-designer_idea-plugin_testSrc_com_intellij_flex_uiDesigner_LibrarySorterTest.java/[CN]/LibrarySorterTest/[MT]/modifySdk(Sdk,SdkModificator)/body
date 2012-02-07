@@ -1,20 +1,12 @@
 {
-  Condition<String> condition=null;
   if (getName().equals("testDelete")) {
     addLibrary(sdkModificator,"flash-integration_4.1.swc");
   }
  else   if (getName().equals("testIgnoreSwcWithoutLibraryFile")) {
     addLibrary(sdkModificator,"swcWithoutLibrarySwf.swc");
   }
- else   if (getName().equals("testMoveFlexSdkLibToSdkLibsIfNot")) {
-    condition=new Condition<String>(){
-      @Override public boolean value(      String name){
-        return !name.startsWith(FlexLibsNames.FRAMEWORK);
-      }
-    }
-;
-  }
-  super.modifySdk(sdkModificator,condition);
+  sdkModificator.removeRoot(sdk.getHomeDirectory().findFileByRelativePath("frameworks/libs/framework.swc"),OrderRootType.CLASSES);
+  super.modifySdk(sdk,sdkModificator);
   if (getName().equals("testResolveToClassWithBiggestTimestamp")) {
     final String path=getTestDataPath() + "/ResolveToClassWithBiggestTimestamp/bin/";
     addLibrary(sdkModificator,path + "lib_1.swc");
