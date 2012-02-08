@@ -7,7 +7,15 @@
     }
   }
   if (StringUtil.equals(name,"mx.containers:Panel")) {
-    definition.doAbcData.abcModifier=new MethodAccessModifier("setControlBar",vGreaterOrEquals4_5 ? "addChildAt" : null,null,false);
+    final List<SkipMethodKey> skippedMethods;
+    if (vGreaterOrEquals4_5) {
+      skippedMethods=new ArrayList<SkipMethodKey>(1);
+      skippedMethods.add(new SkipMethodKey("addChildAt",true));
+    }
+ else {
+      skippedMethods=null;
+    }
+    definition.doAbcData.abcModifier=new MethodAccessModifier("setControlBar",skippedMethods,null,false);
   }
  else {
     final boolean mxCore=StringUtil.startsWith(name,MX_CORE);
@@ -23,11 +31,13 @@
       return;
     }
     boolean skipInitialize=false;
+    boolean skipCommitProperties=false;
     boolean modifyConstructor=false;
     boolean skipColorCorrection=false;
     if (mxCore || StringUtil.startsWith(name,SPARK_COMPONENTS)) {
       final int localNameOffset=mxCore ? MX_CORE.length() : SPARK_COMPONENTS.length();
       skipInitialize=equals(name,localNameOffset,"Application");
+      skipCommitProperties=skipInitialize;
       if (mxCore) {
         if (skipInitialize) {
           modifyConstructor=true;
@@ -44,8 +54,19 @@
  else     if (vGreaterOrEquals4_5 && StringUtil.equals(name,"spark.components.supportClasses:ViewNavigatorApplicationBase")) {
       skipInitialize=true;
     }
-    if (skipInitialize || modifyConstructor) {
-      definition.doAbcData.abcModifier=new MethodAccessModifier(null,skipInitialize ? "initialize" : null,skipColorCorrection ? "colorCorrection" : null,modifyConstructor);
+    final List<SkipMethodKey> skippedMethods;
+    if (skipInitialize || skipCommitProperties) {
+      skippedMethods=new ArrayList<SkipMethodKey>(2);
+      skippedMethods.add(new SkipMethodKey("initialize",true));
+      if (skipCommitProperties) {
+        skippedMethods.add(new SkipMethodKey("commitProperties",false));
+      }
+    }
+ else {
+      skippedMethods=null;
+    }
+    if (skippedMethods != null || modifyConstructor) {
+      definition.doAbcData.abcModifier=new MethodAccessModifier(null,skippedMethods,skipColorCorrection ? "colorCorrection" : null,modifyConstructor);
     }
   }
 }
