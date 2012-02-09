@@ -20,7 +20,22 @@
       return null;
     }
   }
- else   if (typeName.equals(FlexAnnotationNames.EVENT) || type.equals(JSCommonTypeNames.FUNCTION_CLASS_NAME)) {
+ else   if (type.equals(JSCommonTypeNames.FUNCTION_CLASS_NAME)) {
+    if (name.equals("itemRendererFunction")) {
+      PsiElement parent=descriptor.getDeclaration().getParent();
+      if (parent instanceof JSClass && ((JSClass)parent).getQualifiedName().equals("spark.components.DataGroup")) {
+        name="itemRenderer";
+        return new ValueWriter(){
+          @Override public PropertyKind write(          AnnotationBackedDescriptor descriptor,          XmlElementValueProvider valueProvider,          PrimitiveAmfOutputStream out,          BaseWriter writer,          boolean isStyle,          Context parentContext) throws InvalidPropertyException {
+            writeNonProjectClassFactory("com.intellij.flex.uiDesigner.flex.UnknownItemRenderer");
+            return PRIMITIVE;
+          }
+        }
+;
+      }
+    }
+  }
+ else   if (typeName.equals(FlexAnnotationNames.EVENT)) {
     return null;
   }
   ValueWriter valueWriter=processInjected(valueProvider,descriptor,isStyle,objectReferenceProvider);

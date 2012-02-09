@@ -7,9 +7,7 @@
     }
   }
   String className=valueProvider.getTrimmed();
-  int reference=classFactoryMap.get(className);
-  if (reference != -1) {
-    writer.objectReference(reference);
+  if (writeReferenceIfReferenced(className)) {
     return;
   }
   JSClass jsClass=valueProvider.getJsClass();
@@ -18,9 +16,7 @@
   }
   final int projectComponentFactoryId=getProjectComponentFactoryId(jsClass);
   if (projectComponentFactoryId == -1) {
-    reference=writer.getRootScope().referenceCounter++;
-    classFactoryMap.put(className,reference);
-    writer.referableHeader(reference).newInstance(FlexCommonTypeNames.CLASS_FACTORY,1,false).classReference(className);
+    writeNonProjectUnreferencedClassFactory(className);
   }
  else {
     writer.documentFactoryReference(projectComponentFactoryId);
