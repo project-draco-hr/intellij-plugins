@@ -1,2 +1,28 @@
 {
+  final boolean allowIncludeInExludeFrom=hasStates && isListItem && parentContext != null;
+  final Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo;
+  try {
+    if (propertyProcessor.writeTagIfFx(tag,descriptor.getQualifiedName(),out,parentContext,allowIncludeInExludeFrom)) {
+      return true;
+    }
+    effectiveClassInfo=MxmlUtil.computeEffectiveClass(tag,descriptor.getDeclaration(),projectComponentReferenceCounter,true);
+  }
+ catch (  InvalidPropertyException e) {
+    problemsHolder.add(e);
+    return false;
+  }
+  final int childDataPosition=out.size();
+  if (effectiveClassInfo.first == -1) {
+    if (isListItem) {
+      out.write(Amf3Types.OBJECT);
+    }
+    writer.classOrPropertyName(effectiveClassInfo.second == null ? descriptor.getQualifiedName() : effectiveClassInfo.second);
+  }
+ else {
+    if (!isListItem) {
+      writer.getBlockOut().setPosition(writer.getBlockOut().size() - 1);
+    }
+    writer.documentReference(effectiveClassInfo.first);
+  }
+  return processElements(tag,parentContext,allowIncludeInExludeFrom,childDataPosition,out.allocateClearShort(),JSResolveUtil.isAssignableType(FlexCommonTypeNames.IVISUAL_ELEMENT,descriptor.getQualifiedName(),descriptor.getDeclaration()) || JSResolveUtil.isAssignableType(FlexCommonTypeNames.FLASH_DISPLAY_OBJECT,descriptor.getQualifiedName(),descriptor.getDeclaration()),effectiveClassInfo.third);
 }
