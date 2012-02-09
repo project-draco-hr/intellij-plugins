@@ -1,17 +1,12 @@
 {
-  final Ref<VirtualFile[]> result=new Ref<VirtualFile[]>();
-  forAllSdks(new Processor<Sdk>(){
-    @Override public boolean process(    final Sdk sdk){
-      for (      OrderRootType t : RELEVANT_ROOT_TYPES) {
-        VirtualFile[] files=sdk.getRootProvider().getFiles(t);
-        if (isAncestorOf(files,hint)) {
-          result.set(t == rootType ? files : sdk.getRootProvider().getFiles(rootType));
-          return false;
-        }
+  Sdk[] sdks=getSdks();
+  for (  Sdk sdk : sdks) {
+    for (    OrderRootType t : RELEVANT_ROOT_TYPES) {
+      VirtualFile[] files=sdk.getRootProvider().getFiles(t);
+      if (isAncestorOf(files,hint)) {
+        return t == rootType ? files : sdk.getRootProvider().getFiles(rootType);
       }
-      return true;
     }
   }
-);
-  return result.isNull() ? VirtualFile.EMPTY_ARRAY : result.get();
+  return VirtualFile.EMPTY_ARRAY;
 }
