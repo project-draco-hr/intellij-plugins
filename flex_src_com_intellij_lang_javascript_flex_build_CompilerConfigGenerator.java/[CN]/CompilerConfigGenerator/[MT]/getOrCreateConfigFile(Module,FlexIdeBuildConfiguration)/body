@@ -1,6 +1,11 @@
 {
   final CompilerConfigGenerator generator=new CompilerConfigGenerator(module,bc,FlexBuildConfigurationManager.getInstance(module).getModuleLevelCompilerOptions(),FlexProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions());
-  final String text=generator.generateConfigFileText();
-  final String name=FlexCompilerHandler.generateConfigFileName(module,bc.getName(),PlatformUtils.getPlatformPrefix().toLowerCase(),null);
-  return FlexCompilationUtils.getOrCreateConfigFile(module.getProject(),name,text);
+  String text=generator.generateConfigFileText();
+  if (bc.isTempBCForCompilation()) {
+    final FlexIdeBuildConfiguration originalBC=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(bc.getName());
+    final boolean makeExternalLibsMerged=originalBC != null && originalBC.getOutputType() == OutputType.Library;
+    text=FlexCompilerConfigFileUtil.mergeWithCustomConfigFile(text,bc.getCompilerOptions().getAdditionalConfigFilePath(),makeExternalLibsMerged,null);
+  }
+  final String name=getConfigFileName(module,bc.getName(),PlatformUtils.getPlatformPrefix().toLowerCase(),null);
+  return getOrCreateConfigFile(module.getProject(),name,text);
 }
