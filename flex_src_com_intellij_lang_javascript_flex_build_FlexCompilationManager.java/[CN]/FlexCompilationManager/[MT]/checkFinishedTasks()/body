@@ -29,21 +29,12 @@
           }
         }
       }
-      if (task.useCache()) {
-        final Module module=task.getModule();
-        if (task.isCompilationFailed()) {
-          myCompilerDependenciesCache.markModuleAndDependentModulesDirty(module);
-        }
- else         if (areAllModuleCompilationsSuccessful(module)) {
-          final Collection<List<VirtualFile>> allConfigFiles=new ArrayList<List<VirtualFile>>();
-          for (          final FlexCompilationTask t : myFinishedTasks) {
-            if (!(t instanceof CssCompilationTask) && t.getModule().equals(module)) {
-              allConfigFiles.add(t.getConfigFiles());
-            }
-          }
+      if (task.isCompilationFailed()) {
+        myCompilerDependenciesCache.markBCDirty(task.getModule(),task.getBC());
+      }
+ else {
 synchronized (this) {
-            myCompilerDependenciesCache.cacheModuleWithDependencies(myCompileContext,module,allConfigFiles);
-          }
+          myCompilerDependenciesCache.cacheBC(myCompileContext,task.getModule(),task.getBC(),task.getConfigFiles());
         }
       }
     }

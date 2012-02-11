@@ -1,31 +1,16 @@
 {
   final Collection<FlexCompilationTask> tasksToCancel=new ArrayList<FlexCompilationTask>();
-  if (task.getBC() == null) {
-    final Iterator<Module> dependentModulesIterator=myModuleGraph.getOut(task.getModule());
-    while (dependentModulesIterator.hasNext()) {
-      final Module dependentModule=dependentModulesIterator.next();
-      for (      FlexCompilationTask notStartedTask : myNotStartedTasks) {
-        if (dependentModule.equals(notStartedTask.getModule())) {
-          tasksToCancel.add(notStartedTask);
-        }
-      }
+  for (  FlexCompilationTask notStartedTask : myNotStartedTasks) {
+    if (notStartedTask.getDependencies().contains(task.getBC())) {
+      tasksToCancel.add(notStartedTask);
     }
   }
- else {
-    for (    FlexCompilationTask notStartedTask : myNotStartedTasks) {
-      if (notStartedTask.getDependencies().contains(task.getBC())) {
-        tasksToCancel.add(notStartedTask);
-      }
-    }
-  }
-  if (!tasksToCancel.isEmpty()) {
-    for (    FlexCompilationTask taskToCancel : tasksToCancel) {
-      taskToCancel.cancel();
-      if (myNotStartedTasks.remove(taskToCancel)) {
-        myFinishedTasks.add(taskToCancel);
-        cancelledTasks.add(taskToCancel);
-        appendNotStartedDependentTasks(cancelledTasks,taskToCancel);
-      }
+  for (  FlexCompilationTask taskToCancel : tasksToCancel) {
+    taskToCancel.cancel();
+    if (myNotStartedTasks.remove(taskToCancel)) {
+      myFinishedTasks.add(taskToCancel);
+      cancelledTasks.add(taskToCancel);
+      appendNotStartedDependentTasks(cancelledTasks,taskToCancel);
     }
   }
 }
