@@ -1,31 +1,19 @@
 {
-  final String content=FileUtil.loadFile(ideaCfgFile);
-  for (  final String trustedSwfPath : trustedPaths) {
-    int startIndex=content.indexOf(trustedSwfPath);
-    int endIndex=startIndex + trustedSwfPath.length();
-    if (startIndex != -1 && (startIndex == 0 || content.charAt(startIndex - 1) == '\n' || content.charAt(startIndex - 1) == '\r') && (endIndex == content.length() || content.charAt(endIndex) == '\n' || content.charAt(endIndex) == '\r')) {
-      if (!runTrusted) {
-        final StringBuilder newContent=new StringBuilder();
-        newContent.append(content,0,startIndex);
-        while (endIndex < content.length() && (content.charAt(endIndex) == '\n' || content.charAt(endIndex) == '\r')) {
-          endIndex++;
-        }
-        if (endIndex < content.length()) {
-          newContent.append(content,endIndex,content.length());
-        }
-        FileUtil.writeToFile(ideaCfgFile,newContent.toString());
-      }
+  final StringBuilder buf=new StringBuilder();
+  final List<String> lines=StringUtil.split(FileUtil.loadFile(ideaCfgFile),"\n");
+  for (  String line : lines) {
+    boolean appendLine=true;
+    for (    String path : trustedPaths) {
+      appendLine&=!line.equals(path) && !line.startsWith(path + File.separatorChar) && !path.startsWith(line + File.separatorChar);
     }
- else {
-      if (runTrusted) {
-        final StringBuilder newContent=new StringBuilder(content);
-        if (content.length() > 0 && content.charAt(content.length() - 1) != '\n') {
-          newContent.append('\n');
-        }
-        newContent.append(trustedSwfPath);
-        newContent.append('\n');
-        FileUtil.writeToFile(ideaCfgFile,newContent.toString());
-      }
+    if (appendLine) {
+      buf.append(line).append('\n');
     }
   }
+  if (runTrusted) {
+    for (    String path : trustedPaths) {
+      buf.append(path).append('\n');
+    }
+  }
+  FileUtil.writeToFile(ideaCfgFile,buf.toString());
 }
