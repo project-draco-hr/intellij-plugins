@@ -9,6 +9,18 @@
         return Collections.singletonList(FlexModuleConverter.generateModuleBcName(moduleSettings));
       }
     }
+ else {
+      Element buildConfigManagerElement=moduleSettings.getComponentElement(FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
+      if (buildConfigManagerElement != null) {
+        FlexBuildConfigurationManagerImpl.State s=XmlSerializer.deserialize(buildConfigManagerElement,FlexBuildConfigurationManagerImpl.State.class);
+        return ContainerUtil.mapNotNull(s.CONFIGURATIONS,new Function<FlexBuildConfigurationState,String>(){
+          @Nullable @Override public String fun(          final FlexBuildConfigurationState bcState){
+            return BCUtils.isApplicableForDependency(dependantNature,bcState.OUTPUT_TYPE) ? bcState.NAME : null;
+          }
+        }
+);
+      }
+    }
     return Collections.emptyList();
   }
   final List<Element> facets=FlexModuleConverter.getFlexFacets(moduleSettings);
