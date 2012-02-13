@@ -1,42 +1,23 @@
 {
   LOG.assertTrue(!documentOpening);
-  final boolean appClosed=isApplicationClosed();
-  if (appClosed || !Client.getInstance().isModuleRegistered(module)) {
-    final Sdk sdk=FlexUtils.getSdkForActiveBC(module);
-    if (sdk == null || !checkFlexSdkVersion(sdk)) {
-      reportInvalidFlexSdk(module,debug,sdk);
-      return;
-    }
-  }
   documentOpening=true;
-  if (appClosed) {
-    ProgressManager.getInstance().run(new DesignerApplicationLauncher(module,debug,new FirstOpenDocumentTask(psiFile)));
-  }
- else {
-    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-      @Override public void run(){
-        final Client client=Client.getInstance();
-        try {
-          final ProblemsHolder problemsHolder=new ProblemsHolder();
-          if (!client.isModuleRegistered(module)) {
-            try {
-              final ProjectDocumentReferenceCounter projectDocumentReferenceCounter=LibraryManager.getInstance().initLibrarySets(module,true,problemsHolder);
-              if (projectDocumentReferenceCounter != null && !client.registerDocumentReferences(projectDocumentReferenceCounter.unregistered,module,problemsHolder)) {
-                return;
-              }
-            }
- catch (            InitException e) {
-              DesignerApplicationLauncher.processInitException(e,module,debug);
-            }
-          }
-          client.openDocument(module,psiFile,problemsHolder);
-          client.flush();
-        }
-  finally {
-          documentOpening=false;
-        }
+  final boolean appClosed=isApplicationClosed();
+  boolean hasError=true;
+  try {
+    if (appClosed || !Client.getInstance().isModuleRegistered(module)) {
+      final Sdk sdk=FlexUtils.getSdkForActiveBC(module);
+      if (sdk == null || !checkFlexSdkVersion(sdk)) {
+        reportInvalidFlexSdk(module,debug,sdk);
+        return;
       }
     }
-);
+    hasError=false;
   }
+  finally {
+    if (hasError) {
+      documentOpening=false;
+    }
+  }
+  final OpenDocumentTask openDocumentTask=new OpenDocumentTask(psiFile);
+  ProgressManager.getInstance().run(appClosed ? new DesignerApplicationLauncher(module,debug,openDocumentTask) : new DocumentTaskExecutor(module,openDocumentTask));
 }

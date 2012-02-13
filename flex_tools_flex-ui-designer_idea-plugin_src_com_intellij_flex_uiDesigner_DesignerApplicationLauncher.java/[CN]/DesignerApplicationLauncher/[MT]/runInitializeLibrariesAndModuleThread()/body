@@ -1,7 +1,7 @@
 {
   LibraryManager.getInstance().setAppDir(DesignerApplicationManager.APP_DIR);
-  initializeThread=ApplicationManager.getApplication().executeOnPooledThread(new Callable<ProjectDocumentReferenceCounter>(){
-    @Nullable @Override public ProjectDocumentReferenceCounter call(){
+  initializeThread=ApplicationManager.getApplication().executeOnPooledThread(new Callable<ProjectComponentReferenceCounter>(){
+    @Nullable @Override public ProjectComponentReferenceCounter call(){
       LibraryManager.getInstance().garbageCollection(indicator);
       indicator.checkCanceled();
       try {
@@ -9,7 +9,7 @@
           Client.getInstance().initStringRegistry();
         }
         indicator.setText(FlashUIDesignerBundle.message("collect.libraries"));
-        return LibraryManager.getInstance().initLibrarySets(module,true,problemsHolder);
+        return LibraryManager.getInstance().initLibrarySets(module,problemsHolder);
       }
  catch (      Throwable e) {
         if (initializeThread == null || initializeThread.isCancelled()) {
