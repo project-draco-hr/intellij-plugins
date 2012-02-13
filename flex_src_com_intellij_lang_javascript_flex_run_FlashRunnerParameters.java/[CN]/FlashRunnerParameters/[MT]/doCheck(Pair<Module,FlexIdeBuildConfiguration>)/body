@@ -1,5 +1,9 @@
 {
   final FlexIdeBuildConfiguration bc=moduleAndBC.second;
+  final Sdk sdk=bc.getSdk();
+  if (sdk == null) {
+    throw new RuntimeConfigurationError(FlexBundle.message("sdk.not.set.for.bc.0.of.module.1",bc.getName(),moduleAndBC.first.getName()));
+  }
   if (myOverrideMainClass) {
     if (myOverriddenMainClass.isEmpty()) {
       throw new RuntimeConfigurationError(FlexBundle.message("main.class.not.set"));
@@ -16,7 +20,8 @@
       throw new RuntimeConfigurationError(FlexBundle.message("bc.does.not.produce.app",getBCName(),getModuleName()));
     }
   }
-  if (bc.getTargetPlatform() == TargetPlatform.Web) {
+switch (bc.getTargetPlatform()) {
+case Web:
     if (myLaunchUrl) {
       try {
         if (BrowserUtil.getURL(myUrl) == null)         throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.incorrect.url"));
@@ -28,13 +33,20 @@
         throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.url.can.not.be.run.with.flash.player"));
       }
     }
-    if (myLauncherParameters.getLauncherType() == LauncherParameters.LauncherType.Player && bc.getTargetPlatform() == TargetPlatform.Web && bc.isUseHtmlWrapper()) {
-      throw new RuntimeConfigurationError(FlexBundle.message("html.wrapper.can.not.be.run.with.flash.player"));
-    }
+  if (myLauncherParameters.getLauncherType() == LauncherParameters.LauncherType.Player && bc.getTargetPlatform() == TargetPlatform.Web && bc.isUseHtmlWrapper()) {
+    throw new RuntimeConfigurationError(FlexBundle.message("html.wrapper.can.not.be.run.with.flash.player"));
   }
-  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
-    if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice && !bc.getAndroidPackagingOptions().isEnabled()) {
-      throw new RuntimeConfigurationError(FlexBundle.message("android.disabled.in.bc",getBCName(),getModuleName()));
-    }
-  }
+break;
+case Desktop:
+checkAdlAndAirRuntime(sdk);
+break;
+case Mobile:
+if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice && !bc.getAndroidPackagingOptions().isEnabled()) {
+throw new RuntimeConfigurationError(FlexBundle.message("android.disabled.in.bc",getBCName(),getModuleName()));
+}
+if (myMobileRunTarget == AirMobileRunTarget.Emulator) {
+checkAdlAndAirRuntime(sdk);
+}
+break;
+}
 }
