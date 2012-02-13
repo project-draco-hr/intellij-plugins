@@ -11,7 +11,21 @@
         usages.add(new UsageInBcDependencies(this,new LibraryProjectStructureElement(myContext,library)));
       }
     }
- else     if (dependencyEntry instanceof ModuleLibraryEntry) {
+ else     if (dependencyEntry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)dependencyEntry;
+      Module module=modulesConfigurator.getModule(bcEntry.getModuleName());
+      if (module != null) {
+        FlexIdeBuildConfiguration bc=ContainerUtil.find(editor.getConfigurations(module),new Condition<ModifiableFlexIdeBuildConfiguration>(){
+          @Override public boolean value(          final ModifiableFlexIdeBuildConfiguration configuration){
+            return bcEntry.getBcName().equals(configuration.getName());
+          }
+        }
+);
+        if (bc != null) {
+          usages.add(new UsageInBcDependencies(this,new BuildConfigurationProjectStructureElement(bc,module,myContext)));
+        }
+      }
+      bcEntry.findBuildConfiguration();
     }
   }
   return usages;
