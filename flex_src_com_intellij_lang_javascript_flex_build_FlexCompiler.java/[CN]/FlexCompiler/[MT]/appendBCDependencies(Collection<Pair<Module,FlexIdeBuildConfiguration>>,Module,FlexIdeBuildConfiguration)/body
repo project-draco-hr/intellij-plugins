@@ -1,16 +1,16 @@
 {
-  for (  final DependencyEntry entry : config.getDependencies().getEntries()) {
+  for (  final DependencyEntry entry : bc.getDependencies().getEntries()) {
     if (entry instanceof BuildConfigurationEntry) {
       final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
-      final Module otherModule=bcEntry.findModule();
-      final FlexIdeBuildConfiguration otherConfig=otherModule == null ? null : bcEntry.findBuildConfiguration();
-      if (otherModule == null || otherConfig == null) {
-        throw new ConfigurationException(FlexBundle.message("bc.dependency.does.not.exist",bcEntry.getBcName(),bcEntry.getModuleName(),config.getName(),module.getName()));
+      final Module dependencyModule=bcEntry.findModule();
+      final FlexIdeBuildConfiguration dependencyBC=dependencyModule == null ? null : bcEntry.findBuildConfiguration();
+      if (dependencyModule == null || dependencyBC == null) {
+        throw new ConfigurationException(FlexBundle.message("bc.dependency.does.not.exist",bcEntry.getBcName(),bcEntry.getModuleName(),bc.getName(),module.getName()));
       }
-      final Pair<Module,FlexIdeBuildConfiguration> otherModuleAndConfig=Pair.create(otherModule,otherConfig);
-      if (!otherConfig.isSkipCompile()) {
-        if (modulesAndConfigs.add(otherModuleAndConfig)) {
-          appendBCDependencies(modulesAndConfigs,otherModule,otherConfig);
+      final Pair<Module,FlexIdeBuildConfiguration> dependencyModuleAndBC=Pair.create(dependencyModule,dependencyBC);
+      if (!dependencyBC.isSkipCompile()) {
+        if (modulesAndBCs.add(dependencyModuleAndBC)) {
+          appendBCDependencies(modulesAndBCs,dependencyModule,dependencyBC);
         }
       }
     }

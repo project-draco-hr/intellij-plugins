@@ -13,11 +13,12 @@
     if (!(entry instanceof BuildConfigurationEntry)) {
       continue;
     }
-    if (entry.getDependencyType().getLinkageType() == LinkageType.LoadInRuntime) {
+    final LinkageType linkageType=entry.getDependencyType().getLinkageType();
+    if (linkageType == LinkageType.LoadInRuntime) {
       continue;
     }
     FlexIdeBuildConfiguration dependencyBc=((BuildConfigurationEntry)entry).findBuildConfiguration();
-    if (dependencyBc == null) {
+    if (dependencyBc == null || !FlexCompiler.checkDependencyType(configuration,dependencyBc,linkageType)) {
       continue;
     }
     Module dependencyModule=((BuildConfigurationEntry)entry).findModule();
