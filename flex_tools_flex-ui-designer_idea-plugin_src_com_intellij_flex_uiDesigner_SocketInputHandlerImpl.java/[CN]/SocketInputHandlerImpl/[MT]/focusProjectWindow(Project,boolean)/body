@@ -1,20 +1,23 @@
 {
-  FocusCommand cmd=new FocusCommand(){
-    @Override public ActionCallback run(){
-      JFrame f=WindowManager.getInstance().getFrame(p);
-      if (f != null) {
-        f.toFront();
-        f.requestFocus();
+  final JFrame projectFrame=WindowManager.getInstance().getFrame(p);
+  if (projectFrame == null) {
+    return;
+  }
+  projectFrame.toFront();
+  projectFrame.requestFocus();
+  if (activateApp) {
+    if (SystemInfo.isWindows) {
+      int state=projectFrame.getExtendedState();
+      if ((state & JFrame.ICONIFIED) == 0) {
+        projectFrame.setExtendedState(JFrame.ICONIFIED);
+        projectFrame.setExtendedState(state);
       }
-      return new ActionCallback.Done();
-    }
-  }
-;
-  if (executeIfAppInactive) {
-    AppIcon.getInstance().requestFocus((IdeFrame)WindowManager.getInstance().getFrame(p));
-    cmd.run();
-  }
  else {
-    IdeFocusManager.getInstance(p).requestFocus(cmd,false);
+        projectFrame.setExtendedState(state&=~JFrame.ICONIFIED);
+      }
+    }
+ else {
+      AppIcon.getInstance().requestFocus((IdeFrame)WindowManager.getInstance().getFrame(p));
+    }
   }
 }
