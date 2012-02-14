@@ -1,34 +1,18 @@
 {
-  super(new VerticalFlowLayout(VerticalFlowLayout.TOP,0,0,true,true));
   setBackground(Color.WHITE);
   setOpaque(true);
-  myImagePanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.GRAY));
-  myHyperlinkMessageLabel.addHyperlinkListener(new HyperlinkListener(){
-    public void hyperlinkUpdate(    final HyperlinkEvent e){
+  imagePanel.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.GRAY));
+  JPanel imageWrapper=new JPanel(new MyLayout());
+  imageWrapper.add(imagePanel);
+  loadingDecorator=new LoadingDecorator(imageWrapper,this,-1){
+    @Override protected NonOpaquePanel customizeLoadingLayer(    JPanel parent,    JLabel text,    AsyncProcessIcon icon){
+      final NonOpaquePanel panel=super.customizeLoadingLayer(parent,text,icon);
+      final Font font=text.getFont();
+      text.setFont(font.deriveFont(font.getStyle(),font.getSize() + 6));
+      text.setForeground(new Color(0,0,0,150));
+      return panel;
     }
   }
-);
-  myHyperlinkMessageLabel.setOpaque(false);
-  myFileNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-  myFileNameLabel.setBorder(new EmptyBorder(5,0,5,0));
-  final JPanel progressPanel=new JPanel();
-  progressPanel.setLayout(new BoxLayout(progressPanel,BoxLayout.X_AXIS));
-  myProgressIcon=new AsyncProcessIcon("Mxml layout rendering");
-  myProgressIconWrapper.setLayout(new CardLayout());
-  myProgressIconWrapper.add(PROGRESS_ICON_CARD_NAME,myProgressIcon);
-  myProgressIconWrapper.add(EMPTY_CARD_NAME,new JBLabel(" "));
-  myProgressIconWrapper.setOpaque(false);
-  Disposer.register(this,myProgressIcon);
-  progressPanel.add(myProgressIconWrapper);
-  progressPanel.add(new JBLabel(" "));
-  progressPanel.setOpaque(false);
-  final JPanel titlePanel=new JPanel(new BorderLayout());
-  titlePanel.setOpaque(false);
-  titlePanel.add(myFileNameLabel,BorderLayout.CENTER);
-  titlePanel.add(progressPanel,BorderLayout.EAST);
-  ((CardLayout)myProgressIconWrapper.getLayout()).show(myProgressIconWrapper,EMPTY_CARD_NAME);
-  add(titlePanel);
-  add(myHyperlinkMessageLabel);
-  add(myMessageLabel);
-  add(new MyImagePanelWrapper());
+;
+  add(loadingDecorator.getComponent());
 }

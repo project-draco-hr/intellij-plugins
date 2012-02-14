@@ -17,22 +17,21 @@
         toolWindow.setAvailable(!hideForNonLayoutFiles,null);
         return;
       }
-      final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(newEditor.getDocument());
+      final XmlFile psiFile=(XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(newEditor.getDocument());
       if (psiFile == null) {
         toolWindow.setAvailable(!hideForNonLayoutFiles,null);
         return;
       }
-      final boolean toRender=toolWindowForm.getFile() != psiFile;
-      if (toRender) {
-        ApplicationManager.getApplication().saveAll();
+      final boolean doRender=toolWindowForm.getFile() != psiFile;
+      if (doRender) {
+        FileDocumentManager.getInstance().saveAllDocuments();
         toolWindowForm.setFile(psiFile);
       }
       toolWindow.setAvailable(true,null);
-      final boolean visible=PropertiesComponent.getInstance(project).getBoolean("mxml.preview.tool.window.visible",true);
-      if (visible) {
+      if (PropertiesComponent.getInstance(project).getBoolean("mxml.preview.tool.window.visible",true)) {
         toolWindow.show(null);
       }
-      if (toRender) {
+      if (doRender) {
         render();
       }
     }

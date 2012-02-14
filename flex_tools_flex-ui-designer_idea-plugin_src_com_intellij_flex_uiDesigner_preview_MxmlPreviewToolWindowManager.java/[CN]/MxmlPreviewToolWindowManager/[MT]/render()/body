@@ -3,17 +3,16 @@
   if (toolWindow == null || !toolWindow.isVisible()) {
     return;
   }
-  final PsiFile psiFile=toolWindowForm.getFile();
+  final XmlFile psiFile=toolWindowForm.getFile();
   if (psiFile == null) {
     return;
   }
   renderingQueue.queue(new Update("render"){
     @Override public void run(){
-      ProgressManager.getInstance().runProcess(new Runnable(){
-        @Override public void run(){
-        }
-      }
-,new MxmlPreviewProgressIndicator(toolWindowForm,1000));
+      LoadingDecorator loadingPanel=toolWindowForm.getPreviewPanel().getLoadingDecorator();
+      loadingPanel.setLoadingText("Rendering...");
+      loadingPanel.startLoading(false);
+      DesignerApplicationManager.getInstance().renderDocument(psiFile,new RenderTask());
     }
     @Override public boolean canEat(    Update update){
       return true;

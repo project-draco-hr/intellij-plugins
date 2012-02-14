@@ -7,21 +7,23 @@
   if (projectComponentReferenceCounter != null && !client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,module,problemsHolder)) {
     return false;
   }
-  final Ref<Boolean> result=new Ref<Boolean>(false);
+  final Ref<BufferedImage> result=new Ref<BufferedImage>();
+  final AtomicBoolean done=new AtomicBoolean(false);
   final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(this);
   connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
     @Override public void documentRendered(    int id,    BufferedImage image){
       DocumentFactoryManager.DocumentInfo info=DocumentFactoryManager.getInstance().getNullableInfo(psiFile.getVirtualFile());
       if (info != null && info.getId() == id) {
-        semaphoreUp();
+        result.set(image);
+        up();
       }
     }
     @Override public void errorOccured(){
-      semaphoreUp();
+      up();
     }
-    private void semaphoreUp(){
+    private void up(){
       connection.disconnect();
-      result.set(true);
+      done.set(true);
     }
   }
 );
@@ -30,7 +32,7 @@
       return false;
     }
     indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
-    while (!result.get()) {
+    while (!done.get()) {
       try {
         Thread.sleep(5);
       }
@@ -42,6 +44,9 @@
   }
  else {
     connection.disconnect();
+  }
+  if (consumer != null) {
+    consumer.consume(result.get());
   }
   return true;
 }
