@@ -9,10 +9,12 @@
  catch (  ConfigurationException e) {
     throw new RuntimeException(e);
   }
-  if (!itemList.isEmpty() && context.isRebuild()) {
+  if (!itemList.isEmpty() && !context.isMake()) {
     final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(context.getProject());
     flexCompilerHandler.quitCompilerShell();
-    flexCompilerHandler.getCompilerDependenciesCache().clear();
+    for (    ProcessingItem item : itemList) {
+      flexCompilerHandler.getCompilerDependenciesCache().markModuleDirty(((MyProcessingItem)item).myModule);
+    }
   }
   return itemList.toArray(new ProcessingItem[itemList.size()]);
 }

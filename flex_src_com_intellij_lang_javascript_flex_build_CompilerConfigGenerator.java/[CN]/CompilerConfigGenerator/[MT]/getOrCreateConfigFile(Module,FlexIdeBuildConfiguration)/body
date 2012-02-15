@@ -4,9 +4,9 @@
   if (bc.isTempBCForCompilation()) {
     final FlexIdeBuildConfiguration originalBC=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(bc.getName());
     final boolean makeExternalLibsMerged=originalBC != null && originalBC.getOutputType() == OutputType.Library;
-    text=FlexCompilerConfigFileUtil.mergeWithCustomConfigFile(text,bc.getCompilerOptions().getAdditionalConfigFilePath(),makeExternalLibsMerged,null);
+    final boolean makeIncludedLibsMerged=bc.getMainClass().toLowerCase().endsWith(".css");
+    text=FlexCompilerConfigFileUtil.mergeWithCustomConfigFile(text,bc.getCompilerOptions().getAdditionalConfigFilePath(),makeExternalLibsMerged,makeIncludedLibsMerged);
   }
-  final String postfix=bc.getMainClass().equals(FlexUnitPrecompileTask.getFlexUnitLauncherName(module.getName())) ? "flexunit" : bc.isTempBCForCompilation() ? StringUtil.getShortName(bc.getMainClass()) : null;
-  final String name=getConfigFileName(module,bc.getName(),PlatformUtils.getPlatformPrefix().toLowerCase(),postfix);
+  final String name=getConfigFileName(module,bc.getName(),PlatformUtils.getPlatformPrefix().toLowerCase(),BCUtils.getBCSpecifier(module,bc));
   return getOrCreateConfigFile(module.getProject(),name,text);
 }

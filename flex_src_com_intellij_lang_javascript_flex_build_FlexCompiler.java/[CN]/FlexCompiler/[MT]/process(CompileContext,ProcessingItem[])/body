@@ -17,7 +17,8 @@
     final Collection<FlexCompilationTask> compilationTasks=new ArrayList<FlexCompilationTask>();
     for (    final ProcessingItem item : items) {
       final Collection<FlexIdeBuildConfiguration> dependencies=new HashSet<FlexIdeBuildConfiguration>();
-      for (      final DependencyEntry entry : ((MyProcessingItem)item).myBC.getDependencies().getEntries()) {
+      final FlexIdeBuildConfiguration bc=((MyProcessingItem)item).myBC;
+      for (      final DependencyEntry entry : bc.getDependencies().getEntries()) {
         if (entry instanceof BuildConfigurationEntry) {
           final FlexIdeBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
           if (dependencyBC != null && !dependencyBC.isSkipCompile() && entry.getDependencyType().getLinkageType() != LinkageType.LoadInRuntime) {
@@ -25,7 +26,23 @@
           }
         }
       }
-      compilationTasks.add(builtIn ? new BuiltInCompilationTask(((MyProcessingItem)item).myModule,((MyProcessingItem)item).myBC,dependencies) : new MxmlcCompcCompilationTask(((MyProcessingItem)item).myModule,((MyProcessingItem)item).myBC,dependencies));
+      compilationTasks.add(builtIn ? new BuiltInCompilationTask(((MyProcessingItem)item).myModule,bc,dependencies) : new MxmlcCompcCompilationTask(((MyProcessingItem)item).myModule,bc,dependencies));
+      if (BCUtils.canHaveRuntimeStylesheets(bc)) {
+        for (        String cssPath : bc.getCssFilesToCompile()) {
+          final VirtualFile cssFile=LocalFileSystem.getInstance().findFileByPath(cssPath);
+          if (cssFile == null)           continue;
+          final ModifiableFlexIdeBuildConfiguration cssBC=Factory.getTemporaryCopyForCompilation(bc);
+          cssBC.setMainClass(cssPath);
+          cssBC.setOutputFileName(FileUtil.getNameWithoutExtension(PathUtil.getFileName(cssPath)) + ".swf");
+          VirtualFile root=ProjectRootManager.getInstance(context.getProject()).getFileIndex().getSourceRootForFile(cssFile);
+          if (root == null)           root=ProjectRootManager.getInstance(context.getProject()).getFileIndex().getContentRootForFile(cssFile);
+          final String relativePath=root == null ? null : VfsUtilCore.getRelativePath(cssFile.getParent(),root,'/');
+          if (!StringUtil.isEmpty(relativePath)) {
+            cssBC.setOutputFolder(cssBC.getOutputFolder() + "/" + relativePath);
+          }
+          compilationTasks.add(builtIn ? new BuiltInCompilationTask(((MyProcessingItem)item).myModule,cssBC,dependencies) : new MxmlcCompcCompilationTask(((MyProcessingItem)item).myModule,cssBC,dependencies));
+        }
+      }
     }
     if (builtIn) {
       try {
