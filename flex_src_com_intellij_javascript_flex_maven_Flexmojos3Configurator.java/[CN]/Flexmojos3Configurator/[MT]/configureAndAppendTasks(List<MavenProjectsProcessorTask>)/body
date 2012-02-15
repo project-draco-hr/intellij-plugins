@@ -1,5 +1,6 @@
 {
-  for (  ModifiableFlexIdeBuildConfiguration oldBC : myFlexEditor.getConfigurations(myModule)) {
+  final ModifiableFlexIdeBuildConfiguration[] oldBCs=myFlexEditor.getConfigurations(myModule);
+  for (  ModifiableFlexIdeBuildConfiguration oldBC : oldBCs) {
     myFlexEditor.configurationRemoved(oldBC);
   }
   final ModifiableFlexIdeBuildConfiguration mainBC=setupMainBuildConfiguration();
@@ -9,6 +10,7 @@
   for (  RLMInfo info : rlmInfos) {
     configureRuntimeLoadedModule(mainBC,info,usedNames);
   }
+  respectPreviousBCState(myFlexEditor.getConfigurations(myModule),oldBCs);
   if (FlexCompilerProjectConfiguration.getInstance(myModule.getProject()).GENERATE_FLEXMOJOS_CONFIGS) {
     if (StringUtil.compareVersionNumbers(myFlexmojosPlugin.getVersion(),"3.4") >= 0) {
       appendGenerateConfigTask(postTasks,mainBC.getCompilerOptions().getAdditionalConfigFilePath());
