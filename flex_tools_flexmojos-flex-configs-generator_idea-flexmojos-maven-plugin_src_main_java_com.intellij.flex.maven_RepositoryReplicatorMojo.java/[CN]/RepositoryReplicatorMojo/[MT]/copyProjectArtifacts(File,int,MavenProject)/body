@@ -7,12 +7,9 @@
     final File artifactFile=artifact.getFile();
     final String localPath=artifactFile.getPath().substring(localRepositoryBasedirLength);
     try {
-      File outFile=new File(outputDirectory,localPath);
-      if (outFile.lastModified() == artifactFile.lastModified()) {
+      if (copyArtifact(artifactFile,localPath)) {
         continue;
       }
-      outFile.getParentFile().mkdirs();
-      Utils.copyFile(artifactFile,outFile);
       if (("configs".equals(artifact.getClassifier()) || (artifact.getClassifier() == null && "framework".equals(artifact.getArtifactId()) && artifact.getType().equals("swc"))) && !extractedConfigs.contains(artifact.getVersion())) {
         extractedConfigs.add(artifact.getVersion());
         final File sourceDirectory=new File(artifactFile.getParentFile(),"configs_zip");

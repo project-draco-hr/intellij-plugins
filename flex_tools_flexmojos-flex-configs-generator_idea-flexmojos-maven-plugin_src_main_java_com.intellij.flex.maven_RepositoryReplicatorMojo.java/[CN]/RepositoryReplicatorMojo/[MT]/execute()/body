@@ -29,10 +29,15 @@
   }
   outputDirectory.mkdirs();
   for (  MavenProject project : session.getProjects()) {
-    if (!(project.getPackaging().equals("swf") || project.getPackaging().equals("swc"))) {
-      continue;
-    }
     copiedArtifacts.add(project.getArtifact());
     copyProjectArtifacts(localRepositoryFile,localRepositoryBasedirLength,project);
+  }
+  for (  MavenProject project : session.getProjects()) {
+    try {
+      copyParentPom(project.getParent(),localRepositoryBasedirLength);
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("",e);
+    }
   }
 }

@@ -1,0 +1,29 @@
+{
+  if (project == null) {
+    return;
+  }
+  Artifact artifact=project.getArtifact();
+  if (copiedArtifacts.contains(artifact)) {
+    return;
+  }
+  copiedArtifacts.add(artifact);
+  File artifactFile=artifact.getFile();
+  if (artifactFile == null && !artifact.isResolved()) {
+    ArtifactResolutionRequest request=new ArtifactResolutionRequest();
+    request.setArtifact(artifact);
+    request.setLocalRepository(session.getLocalRepository());
+    request.setRemoteRepositories(remoteRepositories);
+    ArtifactResolutionResult result=repositorySystem.resolve(request);
+    artifactFile=artifact.getFile();
+    if (!result.isSuccess() && artifactFile == null) {
+      if (getLog().isDebugEnabled()) {
+        for (        Exception e : result.getExceptions()) {
+          getLog().error(e);
+        }
+      }
+      throw new MojoExecutionException("Failed to resolve artifact " + artifact);
+    }
+  }
+  copyArtifact(artifactFile,artifactFile.getPath().substring(localRepositoryBasedirLength));
+  copyParentPom(project.getParent(),localRepositoryBasedirLength);
+}
