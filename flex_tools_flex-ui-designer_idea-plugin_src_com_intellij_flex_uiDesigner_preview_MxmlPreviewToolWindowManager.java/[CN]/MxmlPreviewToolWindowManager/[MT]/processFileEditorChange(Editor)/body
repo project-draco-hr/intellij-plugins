@@ -1,7 +1,7 @@
 {
   toolWindowUpdateQueue.cancelAllUpdates();
   toolWindowUpdateQueue.queue(new Update("update"){
-    @SuppressWarnings("PointlessBooleanExpression") public void run(){
+    public void run(){
       if (!toolWindowReady || toolWindowDisposed) {
         return;
       }
@@ -11,15 +11,12 @@
         }
         initToolWindow();
       }
-      final boolean hideForNonLayoutFiles=true;
-      if (newEditor == null) {
-        toolWindowForm.setFile(null);
-        toolWindow.setAvailable(!hideForNonLayoutFiles,null);
-        return;
-      }
-      final XmlFile psiFile=(XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(newEditor.getDocument());
+      final PropertiesComponent propertiesComponent=PropertiesComponent.getInstance(project);
+      final boolean hideForNonMxmlFiles=propertiesComponent.getBoolean("mxml.preview.tool.window.hideForNonMxmlFiles",false);
+      XmlFile psiFile=newEditor == null ? null : (XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(newEditor.getDocument());
       if (psiFile == null) {
-        toolWindow.setAvailable(!hideForNonLayoutFiles,null);
+        toolWindowForm.setFile(null);
+        toolWindow.setAvailable(!hideForNonMxmlFiles,null);
         return;
       }
       final boolean doRender=toolWindowForm.getFile() != psiFile;
@@ -28,7 +25,7 @@
         toolWindowForm.setFile(psiFile);
       }
       toolWindow.setAvailable(true,null);
-      if (PropertiesComponent.getInstance(project).getBoolean("mxml.preview.tool.window.visible",true)) {
+      if (propertiesComponent.getBoolean("mxml.preview.tool.window.visible",false)) {
         toolWindow.show(null);
       }
       if (doRender) {
