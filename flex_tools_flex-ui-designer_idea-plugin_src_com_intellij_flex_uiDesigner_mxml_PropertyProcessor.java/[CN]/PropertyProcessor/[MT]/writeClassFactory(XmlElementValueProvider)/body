@@ -10,11 +10,19 @@
   if (writeReferenceIfReferenced(className)) {
     return;
   }
-  JSClass jsClass=valueProvider.getJsClass();
+  final JSClass jsClass=valueProvider.getJsClass();
   if (jsClass == null) {
     throw new InvalidPropertyException(valueProvider.getElement(),"error.unresolved.class",valueProvider.getTrimmed());
   }
-  Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo=MxmlUtil.computeEffectiveClass(valueProvider.getElement(),jsClass,mxmlWriter.projectComponentReferenceCounter,false);
+  final Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo;
+  final PsiElement parent=jsClass.getNavigationElement().getParent();
+  if (parent instanceof XmlTag && MxmlUtil.isComponentLanguageTag((XmlTag)parent)) {
+    LOG.warn("AS-125 " + valueProvider.getElement());
+    effectiveClassInfo=new Trinity<Integer,String,Condition<AnnotationBackedDescriptor>>(-1,"mx.core.UIComponent",null);
+  }
+ else {
+    effectiveClassInfo=MxmlUtil.computeEffectiveClass(valueProvider.getElement(),jsClass,mxmlWriter.projectComponentReferenceCounter,false);
+  }
   if (effectiveClassInfo.first == -1) {
     if (effectiveClassInfo.second != null) {
       if (effectiveClassInfo.second.equals("mx.core.UIComponent")) {
