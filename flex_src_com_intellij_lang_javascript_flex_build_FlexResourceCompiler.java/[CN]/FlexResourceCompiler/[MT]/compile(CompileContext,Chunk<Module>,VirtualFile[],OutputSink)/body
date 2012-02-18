@@ -1,0 +1,85 @@
+{
+  context.getProgressIndicator().pushState();
+  context.getProgressIndicator().setText(CompilerBundle.message("progress.copying.resources"));
+  final Map<String,Collection<OutputItem>> processed=new HashMap<String,Collection<OutputItem>>();
+  final LinkedList<CopyCommand> copyCommands=new LinkedList<CopyCommand>();
+  final Module singleChunkModule=moduleChunk.getNodes().size() == 1 ? moduleChunk.getNodes().iterator().next() : null;
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    public void run(){
+      final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(context);
+      final String testModuleName=runConfig instanceof NewFlexUnitRunConfiguration ? ((NewFlexUnitRunConfiguration)runConfig).getRunnerParameters().getModuleName() : null;
+      final Module testModule=testModuleName == null ? null : ModuleManager.getInstance(myProject).findModuleByName(testModuleName);
+      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(myProject).getFileIndex();
+      for (      final VirtualFile file : files) {
+        if (context.getProgressIndicator().isCanceled()) {
+          break;
+        }
+        final Module module=singleChunkModule != null ? singleChunkModule : context.getModuleByFile(file);
+        if (module == null) {
+          continue;
+        }
+        final VirtualFile sourceRoot=fileIndex.getSourceRootForFile(file);
+        if (sourceRoot == null) {
+          continue;
+        }
+        final String filePath=file.getPath();
+        final String relativePath=VfsUtilCore.getRelativePath(file,sourceRoot,'/');
+        final boolean inTests=((CompileContextEx)context).isInTestSourceContent(file);
+        final Collection<Pair<String,String>> outputDirPathsAndTargetFilePaths=new ArrayList<Pair<String,String>>();
+        if (inTests) {
+          if (module == testModule) {
+            final VirtualFile outputDir=context.getModuleOutputDirectoryForTests(module);
+            addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,outputDir,relativePath,fileIndex);
+          }
+        }
+ else {
+          for (          FlexIdeBuildConfiguration bc : FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
+            if (!bc.isSkipCompile() && BCUtils.canHaveResourceFiles(bc.getNature())) {
+              final ResourceFilesMode mode=bc.getCompilerOptions().getResourceFilesMode();
+              if (mode == ResourceFilesMode.All && !isSourceFile(file) || mode == ResourceFilesMode.ResourcePatterns && myConfiguration.isResourceFile(file)) {
+                final VirtualFile outputDir=LocalFileSystem.getInstance().findFileByPath(bc.getOutputFolder());
+                addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,outputDir,relativePath,fileIndex);
+              }
+            }
+          }
+        }
+        for (        Pair<String,String> outputDirPathAndTargetFilePath : outputDirPathsAndTargetFilePaths) {
+          final String outputDirPath=outputDirPathAndTargetFilePath.first;
+          final String targetFilePath=outputDirPathAndTargetFilePath.second;
+          if (filePath.equals(targetFilePath)) {
+            addToMap(processed,outputDirPath,new MyOutputItem(targetFilePath,file));
+          }
+ else {
+            copyCommands.add(new CopyCommand(outputDirPath,filePath,targetFilePath,file));
+          }
+        }
+      }
+    }
+  }
+);
+  final List<File> filesToRefresh=new ArrayList<File>();
+  while (!copyCommands.isEmpty()) {
+    final CopyCommand command=copyCommands.removeFirst();
+    if (context.getProgressIndicator().isCanceled()) {
+      break;
+    }
+    context.getProgressIndicator().setText2("Copying " + command.getFromPath() + "...");
+    try {
+      final MyOutputItem outputItem=command.copy(filesToRefresh);
+      addToMap(processed,command.getOutputDirPath(),outputItem);
+    }
+ catch (    IOException e) {
+      context.addMessage(CompilerMessageCategory.ERROR,CompilerBundle.message("error.copying",command.getFromPath(),command.getToPath(),e.getMessage()),command.getSourceFileUrl(),-1,-1);
+    }
+  }
+  if (!filesToRefresh.isEmpty()) {
+    CompilerUtil.refreshIOFiles(filesToRefresh);
+    filesToRefresh.clear();
+  }
+  for (Iterator<Map.Entry<String,Collection<OutputItem>>> it=processed.entrySet().iterator(); it.hasNext(); ) {
+    Map.Entry<String,Collection<OutputItem>> entry=it.next();
+    sink.add(entry.getKey(),entry.getValue(),VirtualFile.EMPTY_ARRAY);
+    it.remove();
+  }
+  context.getProgressIndicator().popState();
+}
