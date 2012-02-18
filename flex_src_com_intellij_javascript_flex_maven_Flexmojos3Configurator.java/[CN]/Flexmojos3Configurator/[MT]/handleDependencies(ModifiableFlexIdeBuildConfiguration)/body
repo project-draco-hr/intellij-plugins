@@ -9,6 +9,10 @@
     if (entry instanceof ModuleOrderEntry) {
       rootModel.removeOrderEntry(entry);
       final String dependencyModuleName=((ModuleOrderEntry)entry).getModuleName();
+      final MavenProject dependencyMavenProject=findMavenProjectByModuleName(dependencyModuleName);
+      if (dependencyMavenProject == null || !ArrayUtil.contains(dependencyMavenProject.getPackaging(),FlexmojosImporter.SUPPORTED_PACKAGINGS)) {
+        continue;
+      }
       final ModifiableBuildConfigurationEntry bcEntry=myFlexEditor.createBcEntry(bc.getDependencies(),dependencyModuleName,dependencyModuleName);
       bcEntry.getDependencyType().setLinkageType(FlexUtils.convertLinkageType(scope,isExported));
       bc.getDependencies().getModifiableEntries().add(0,bcEntry);
