@@ -2,13 +2,11 @@
   context.getProgressIndicator().pushState();
   context.getProgressIndicator().setText(CompilerBundle.message("progress.copying.resources"));
   final Map<String,Collection<OutputItem>> processed=new HashMap<String,Collection<OutputItem>>();
+  final Collection<VirtualFile> filesProcessedMoreThanOnce=new ArrayList<VirtualFile>();
   final LinkedList<CopyCommand> copyCommands=new LinkedList<CopyCommand>();
   final Module singleChunkModule=moduleChunk.getNodes().size() == 1 ? moduleChunk.getNodes().iterator().next() : null;
   ApplicationManager.getApplication().runReadAction(new Runnable(){
     public void run(){
-      final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(context);
-      final String testModuleName=runConfig instanceof NewFlexUnitRunConfiguration ? ((NewFlexUnitRunConfiguration)runConfig).getRunnerParameters().getModuleName() : null;
-      final Module testModule=testModuleName == null ? null : ModuleManager.getInstance(myProject).findModuleByName(testModuleName);
       final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(myProject).getFileIndex();
       for (      final VirtualFile file : files) {
         if (context.getProgressIndicator().isCanceled()) {
@@ -27,9 +25,12 @@
         final boolean inTests=((CompileContextEx)context).isInTestSourceContent(file);
         final Collection<Pair<String,String>> outputDirPathsAndTargetFilePaths=new ArrayList<Pair<String,String>>();
         if (inTests) {
-          if (module == testModule && !isSourceFile(file)) {
-            final VirtualFile outputDir=context.getModuleOutputDirectoryForTests(module);
-            addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,outputDir,relativePath,fileIndex);
+          if (!isSourceFile(file)) {
+            final CompilerModuleExtension compilerModuleExtension=CompilerModuleExtension.getInstance(module);
+            final String outputUrl=compilerModuleExtension == null ? null : compilerModuleExtension.getCompilerOutputUrlForTests();
+            if (outputUrl != null) {
+              addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,VfsUtil.urlToPath(outputUrl),relativePath,fileIndex);
+            }
           }
         }
  else {
@@ -37,11 +38,13 @@
             if (!bc.isSkipCompile() && BCUtils.canHaveResourceFiles(bc.getNature())) {
               final ResourceFilesMode mode=bc.getCompilerOptions().getResourceFilesMode();
               if (mode == ResourceFilesMode.All && !isSourceFile(file) || mode == ResourceFilesMode.ResourcePatterns && myConfiguration.isResourceFile(file)) {
-                final VirtualFile outputDir=LocalFileSystem.getInstance().findFileByPath(bc.getOutputFolder());
-                addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,outputDir,relativePath,fileIndex);
+                addOutputDirPathAndTargetFilePath(outputDirPathsAndTargetFilePaths,sourceRoot,bc.getOutputFolder(),relativePath,fileIndex);
               }
             }
           }
+        }
+        if (outputDirPathsAndTargetFilePaths.size() > 1) {
+          filesProcessedMoreThanOnce.add(file);
         }
         for (        Pair<String,String> outputDirPathAndTargetFilePath : outputDirPathsAndTargetFilePaths) {
           final String outputDirPath=outputDirPathAndTargetFilePath.first;
@@ -76,9 +79,10 @@
     CompilerUtil.refreshIOFiles(filesToRefresh);
     filesToRefresh.clear();
   }
+  final VirtualFile[] toRecompile=filesProcessedMoreThanOnce.toArray(new VirtualFile[filesProcessedMoreThanOnce.size()]);
   for (Iterator<Map.Entry<String,Collection<OutputItem>>> it=processed.entrySet().iterator(); it.hasNext(); ) {
     Map.Entry<String,Collection<OutputItem>> entry=it.next();
-    sink.add(entry.getKey(),entry.getValue(),VirtualFile.EMPTY_ARRAY);
+    sink.add(entry.getKey(),entry.getValue(),toRecompile);
     it.remove();
   }
   context.getProgressIndicator().popState();
