@@ -9,10 +9,14 @@
   }
   renderingQueue.queue(new Update("render"){
     @Override public void run(){
-      LoadingDecorator loadingPanel=toolWindowForm.getPreviewPanel().getLoadingDecorator();
-      loadingPanel.setLoadingText("Rendering...");
-      loadingPanel.startLoading(false);
-      DesignerApplicationManager.getInstance().renderDocument(psiFile,new RenderTask());
+      LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
+      loadingDecorator.startLoading(false);
+      DesignerApplicationManager.getInstance().renderDocument(psiFile).doWhenProcessed(new Runnable(){
+        @Override public void run(){
+          toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
+        }
+      }
+);
     }
     @Override public boolean canEat(    Update update){
       return true;

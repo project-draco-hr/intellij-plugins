@@ -5,16 +5,14 @@
   renderingQueue=new MergingUpdateQueue("mxml.rendering",300,true,null,project,null,true);
   MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(project);
   connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
-    @Override public void documentRendered(    int id,    final BufferedImage image){
+    @Override public void documentRendered(    DocumentFactoryManager.DocumentInfo info,    final BufferedImage image){
       if (toolWindowForm.getFile() == null) {
         return;
       }
-      DocumentFactoryManager.DocumentInfo info=DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile().getVirtualFile());
-      if (info != null && info.getId() == id) {
+      if (info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
         ApplicationManager.getApplication().invokeLater(new Runnable(){
           @Override public void run(){
-            MxmlPreviewPanel previewPanel=toolWindowForm.getPreviewPanel();
-            previewPanel.setImage(image);
+            toolWindowForm.getPreviewPanel().setImage(image);
           }
         }
 );

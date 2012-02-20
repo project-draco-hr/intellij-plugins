@@ -1,0 +1,54 @@
+{
+  indicator.setText(FlashUIDesignerBundle.message("open.document"));
+  Client client=Client.getInstance();
+  if (!client.flush()) {
+    return false;
+  }
+  if (projectComponentReferenceCounter != null && !client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,module,problemsHolder)) {
+    return false;
+  }
+  final Ref<BufferedImage> result=new Ref<BufferedImage>();
+  final AtomicBoolean done=new AtomicBoolean(false);
+  final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(this);
+  connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
+    @Override public void documentRendered(    DocumentFactoryManager.DocumentInfo info,    BufferedImage image){
+      if (info.equals(DocumentFactoryManager.getInstance().getNullableInfo(psiFile))) {
+        result.set(image);
+        up();
+      }
+    }
+    @Override public void errorOccured(){
+      up();
+    }
+    private void up(){
+      connection.disconnect();
+      done.set(true);
+    }
+  }
+);
+  if (client.openDocument(module,psiFile,problemsHolder)) {
+    if (!client.flush()) {
+      return false;
+    }
+    indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
+    while (!done.get()) {
+      try {
+        Thread.sleep(5);
+      }
+ catch (      InterruptedException e) {
+        return false;
+      }
+      indicator.checkCanceled();
+      if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
+        return false;
+      }
+    }
+  }
+ else {
+    connection.disconnect();
+  }
+  if (actionCallback != null) {
+    actionCallback.setDone();
+  }
+  return true;
+}
