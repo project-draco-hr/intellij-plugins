@@ -1,17 +1,16 @@
 {
-  final String key=createKey(libraryCollector.sdkLibraries);
+  final String key=createKey(libraryCollector.sdkLibraries,true);
   FlexLibrarySet flexLibrarySet=(FlexLibrarySet)librarySets.get(key);
   if (flexLibrarySet == null) {
     final Set<CharSequence> globalDefinitions=getGlobalDefinitions(libraryCollector.getGlobalLibrary());
-    final int id=librarySetIdPool.allocate();
-    Condition<String> globalContains=new Condition<String>(){
+    final Condition<String> globalContains=new Condition<String>(){
       @Override public boolean value(      String name){
         return globalDefinitions.contains(name);
       }
     }
 ;
-    final SortResult sortResult=sortLibraries(new LibrarySorter(new FlexDefinitionProcessor(libraryCollector.getFlexSdkVersion()),new FlexDefinitionMapProcessor(libraryCollector.getFlexSdkVersion(),globalContains)),id,libraryCollector.sdkLibraries,libraryCollector.getFlexSdkVersion(),globalContains);
-    flexLibrarySet=new FlexLibrarySet(id,null,sortResult.items,new ContainsCondition(globalDefinitions,sortResult.definitionMap),assetCounter);
+    final SortResult sortResult=sortLibraries(new LibrarySorter(new FlexDefinitionProcessor(libraryCollector.getFlexSdkVersion()),new FlexDefinitionMapProcessor(libraryCollector.getFlexSdkVersion(),globalContains)),libraryCollector,globalContains,key,true);
+    flexLibrarySet=new FlexLibrarySet(sortResult,null,new ContainsCondition(globalDefinitions,sortResult.definitionMap),assetCounter);
     registerLibrarySet(key,flexLibrarySet);
   }
   return flexLibrarySet;
