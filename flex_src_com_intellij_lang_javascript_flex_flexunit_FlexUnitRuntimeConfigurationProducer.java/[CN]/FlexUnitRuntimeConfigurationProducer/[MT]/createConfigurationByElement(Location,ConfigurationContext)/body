@@ -1,15 +1,15 @@
 {
   if (!(location instanceof PsiLocation))   return null;
+  final Module module=location.getModule();
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return null;
   PsiElement element=location.getPsiElement();
   element=findTestElement(element);
   if (element == null)   return null;
   final RunnerAndConfigurationSettings settings=cloneTemplateConfiguration(location.getProject(),context);
   final LocatableConfiguration runConfig=(LocatableConfiguration)settings.getConfiguration();
-  final FlexUnitCommonParameters params=runConfig instanceof FlexUnitRunConfiguration ? ((FlexUnitRunConfiguration)runConfig).getRunnerParameters() : ((NewFlexUnitRunConfiguration)runConfig).getRunnerParameters();
+  final NewFlexUnitRunnerParameters params=((NewFlexUnitRunConfiguration)runConfig).getRunnerParameters();
   if (!configureRunnerParameters(params,context.getModule(),element))   return null;
-  if (params instanceof NewFlexUnitRunnerParameters) {
-    ((NewFlexUnitRunnerParameters)params).setBCName(FlexBuildConfigurationManager.getInstance(context.getModule()).getActiveConfiguration().getName());
-  }
+  params.setBCName(FlexBuildConfigurationManager.getInstance(context.getModule()).getActiveConfiguration().getName());
   mySourceElement=location.getPsiElement();
   settings.setName(runConfig.suggestedName());
   return settings;
