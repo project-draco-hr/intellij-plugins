@@ -1,0 +1,41 @@
+{
+  super(false,true);
+  final StatusBar statusBar=new StatusBar(MessageBundle.getBundle());
+  final CapturedBrowsersPanel capturedBrowsersPanel=new CapturedBrowsersPanel();
+  myCaptureUrlTextField=createCaptureUrlTextField();
+  ActionToolbar actionToolbar=createActionToolbar();
+  setToolbar(actionToolbar.getComponent());
+  List<ServerListener> myServerListeners=Arrays.asList(statusBar,capturedBrowsersPanel,new LocalManager(actionToolbar,myCaptureUrlTextField));
+  for (  ServerListener serverListener : myServerListeners) {
+    if (SHARED_STATE.isServerRunning()) {
+      serverListener.serverStarted();
+      for (      BrowserInfo browserInfo : SHARED_STATE.getCapturedBrowsers()) {
+        serverListener.browserCaptured(browserInfo);
+      }
+    }
+ else {
+      serverListener.serverStopped();
+    }
+    SHARED_STATE.addServerListener(serverListener);
+  }
+  setBackground(UIUtil.getTreeTextBackground());
+  JPanel content=new JPanel(){
+{
+      setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+      add(statusBar);
+      add(new JPanel(){
+{
+          setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
+          add(new JLabel(PluginResources.getCaptureUrlMessage()));
+          add(myCaptureUrlTextField);
+        }
+      }
+);
+      add(capturedBrowsersPanel);
+    }
+  }
+;
+  JPanel wrapPanel=new JPanel(new BorderLayout());
+  wrapPanel.add(content,BorderLayout.NORTH);
+  setContent(wrapPanel);
+}
