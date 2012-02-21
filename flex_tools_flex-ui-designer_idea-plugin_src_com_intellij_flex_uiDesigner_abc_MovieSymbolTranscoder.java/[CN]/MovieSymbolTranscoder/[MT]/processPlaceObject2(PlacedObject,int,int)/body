@@ -1,13 +1,13 @@
 {
   int flags=buffer.get();
-  int objectId=-1;
+  int objectIdPosition=-1;
   if ((flags & HAS_CLIP_ACTION) != 0) {
     flags=flags & ~HAS_CLIP_ACTION;
     int bufferPosition=buffer.position();
     buffer.put(bufferPosition - 1,(byte)flags);
     bufferPosition+=2;
     if ((flags & HAS_CHARACTER) != 0) {
-      objectId=buffer.getShort(bufferPosition);
+      objectIdPosition=bufferPosition;
       bufferPosition+=2;
     }
     if ((flags & HAS_MATRIX) != 0) {
@@ -35,27 +35,25 @@
     placedObject.positions.add(position + length);
   }
  else   if ((flags & HAS_CHARACTER) != 0) {
-    objectId=buffer.getShort(buffer.position() + 2);
+    objectIdPosition=buffer.position() + 2;
   }
-  if (objectId != -1) {
+  if (objectIdPosition != -1) {
+    final int objectId=buffer.getShort(objectIdPosition);
     final PlacedObject referredObject=placedObjects.get(objectId);
     if (referredObject.used) {
       return;
     }
-    usedPlacedObjects.add(referredObject);
     referredObject.used=true;
     if (referredObject.tagType == TagTypes.DefineSprite) {
       processDefineSprite(referredObject);
-      if (referredObject.positions == null) {
-        fileLength+=referredObject.computeFullLengthAsProvided();
-      }
- else {
-        fileLength+=computeFullLength(referredObject.actualLength);
-      }
+      fileLength+=referredObject.filelength();
     }
  else     if (bounds == null) {
       findBounds(referredObject);
       fileLength+=referredObject.computeFullLengthAsProvided();
     }
+    usedPlacedObjects.add(referredObject);
+    referredObject.newId=usedPlacedObjects.size();
+    buffer.putShort(objectIdPosition,(short)referredObject.newId);
   }
 }
