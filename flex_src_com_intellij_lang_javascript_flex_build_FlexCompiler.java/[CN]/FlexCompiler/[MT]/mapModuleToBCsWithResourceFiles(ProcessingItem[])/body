@@ -1,0 +1,16 @@
+{
+  final Map<Module,Collection<FlexIdeBuildConfiguration>> result=new THashMap<Module,Collection<FlexIdeBuildConfiguration>>();
+  for (  ProcessingItem item : items) {
+    final Module module=((MyProcessingItem)item).myModule;
+    final FlexIdeBuildConfiguration bc=((MyProcessingItem)item).myBC;
+    if (!bc.isSkipCompile() && BCUtils.canHaveResourceFiles(bc.getNature()) && bc.getCompilerOptions().getResourceFilesMode() != ResourceFilesMode.None) {
+      Collection<FlexIdeBuildConfiguration> bcs=result.get(module);
+      if (bcs == null) {
+        bcs=new ArrayList<FlexIdeBuildConfiguration>();
+        result.put(module,bcs);
+      }
+      bcs.add(bc);
+    }
+  }
+  return result;
+}
