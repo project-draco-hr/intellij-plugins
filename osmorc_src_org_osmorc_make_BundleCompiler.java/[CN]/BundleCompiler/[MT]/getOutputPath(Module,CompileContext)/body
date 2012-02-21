@@ -1,12 +1,16 @@
 {
   final CompilerModuleExtension extension=CompilerModuleExtension.getInstance(m);
+  if (extension == null) {
+    context.addMessage(CompilerMessageCategory.WARNING,"Unable to determine the compiler output path for module " + m.getName(),null,0,0);
+    return null;
+  }
   VirtualFile moduleCompilerOutputPath=extension.getCompilerOutputPath();
   String path;
   if (moduleCompilerOutputPath == null) {
     String outputPathUrl=extension.getCompilerOutputUrl();
     File f=new File(VfsUtil.urlToPath(outputPathUrl));
     if (!f.exists() && !f.mkdirs()) {
-      context.addMessage(CompilerMessageCategory.ERROR,OsmorcBundle.getTranslation("faceteditor.cannot.create.outputpath"),null,0,0);
+      context.addMessage(CompilerMessageCategory.ERROR,"Cannot create compiler output path!",null,0,0);
       return null;
     }
     path=f.getParentFile().getPath() + File.separator + "bundles";
