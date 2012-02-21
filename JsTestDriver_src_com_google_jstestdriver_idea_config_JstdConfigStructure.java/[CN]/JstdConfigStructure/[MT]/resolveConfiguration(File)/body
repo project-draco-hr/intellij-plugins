@@ -4,9 +4,11 @@
   try {
     ConfigurationSource confSrc=new UserConfigurationSource(jstdConfigFile);
     File initialBasePath=jstdConfigFile.getParentFile();
-    Configuration parsedConf=confSrc.parse(initialBasePath,new YamlParser());
-    File resolvedBasePath=parsedConf.getBasePath().getCanonicalFile();
-    PathResolver pathResolver=new PathResolver(resolvedBasePath,Collections.<FileParsePostProcessor>emptySet(),new DisplayPathSanitizer(resolvedBasePath));
+    BasePaths initialBasePaths=new BasePaths(initialBasePath);
+    Configuration parsedConf=confSrc.parse(initialBasePaths,new YamlParser());
+    File resolvedBasePath=initialBasePath.getCanonicalFile();
+    BasePaths resolvedBasePaths=new BasePaths(resolvedBasePath);
+    PathResolver pathResolver=new PathResolver(resolvedBasePaths,Collections.<FileParsePostProcessor>emptySet(),new DisplayPathSanitizer());
     return parsedConf.resolvePaths(pathResolver,flags);
   }
  catch (  IOException e) {
