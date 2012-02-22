@@ -7,8 +7,10 @@
   if (templateFile == null) {
     throw new FlexCompilerException(FlexBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()));
   }
-  final String outputFilePath=bc.getOutputFilePath(true);
-  final String outputFolderPath=PathUtil.getParentPath(outputFilePath);
+  final InfoFromConfigFile info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(bc.getCompilerOptions().getAdditionalConfigFilePath());
+  final String outputFolderPath=StringUtil.notNullize(info.getOutputFolderPath(),bc.getOutputFolder());
+  final String outputFileName=StringUtil.notNullize(info.getOutputFileName(),bc.getOutputFileName());
+  final String targetPlayer=StringUtil.notNullize(info.getTargetPlayer(),bc.getDependencies().getTargetPlayer());
   final VirtualFile outputDir=LocalFileSystem.getInstance().findFileByPath(outputFolderPath);
   if (outputDir == null || !outputDir.isDirectory()) {
     throw new FlexCompilerException(FlexBundle.message("output.folder.does.not.exist",outputFolderPath));
@@ -30,8 +32,7 @@
               if (!wrapperText.contains(SWF_MACRO)) {
                 return new FlexCompilerException(FlexBundle.message("no.swf.macro",FileUtil.toSystemDependentName(file.getPath())));
               }
-              final String outputFileName=PathUtil.getFileName(outputFilePath);
-              final String fixedText=replaceMacros(wrapperText,FileUtil.getNameWithoutExtension(outputFileName),bc.getDependencies().getTargetPlayer());
+              final String fixedText=replaceMacros(wrapperText,FileUtil.getNameWithoutExtension(outputFileName),targetPlayer);
               final String wrapperFileName=BCUtils.getWrapperFileName(bc);
               try {
                 FlexUtils.addFileWithContent(wrapperFileName,fixedText,outputDir);
