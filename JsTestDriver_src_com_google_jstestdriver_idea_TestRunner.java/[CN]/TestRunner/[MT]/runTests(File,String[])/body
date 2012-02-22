@@ -1,14 +1,10 @@
 {
-  JsTestDriverBuilder builder=new JsTestDriverBuilder();
-  builder.setConfigurationSource(new UserConfigurationSource(config));
-  builder.setPort(mySettings.getPort());
-  builder.addTestListener(new IDETestListener(myTestResultProtocolMessageOutput,config));
-  builder.setRunnerMode(RunnerMode.QUIET);
-  builder.setServer(mySettings.getServerUrl());
-  List<String> flagArgs=new ArrayList<String>(Arrays.asList("--captureConsole","--server",mySettings.getServerUrl()));
-  flagArgs.addAll(Arrays.asList(extraArgs));
-  String[] args=flagArgs.toArray(new String[flagArgs.size()]);
-  builder.setFlags(args);
-  JsTestDriver jstd=builder.build();
-  jstd.runConfiguration();
+  PrintStream old=System.out;
+  System.setOut(new PrintStream(new NullOutputStream()));
+  try {
+    doRunTests(config,extraArgs);
+  }
+  finally {
+    System.setOut(old);
+  }
 }
