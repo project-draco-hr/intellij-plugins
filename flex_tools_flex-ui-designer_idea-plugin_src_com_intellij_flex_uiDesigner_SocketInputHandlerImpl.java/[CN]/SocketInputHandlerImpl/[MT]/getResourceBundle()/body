@@ -12,7 +12,22 @@
       resourceBundleFile=null;
     }
  else {
-      resourceBundleFile=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+      final PsiManager psiManager=PsiManager.getInstance(moduleInfo.getModule().getProject());
+      final Ref<PropertiesFile> result=new Ref<PropertiesFile>();
+      FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,PropertiesFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
+        public boolean process(        VirtualFile file,        Void value){
+          if (file.getNameWithoutExtension().equals(bundleName)) {
+            PsiFile psiFile=psiManager.findFile(file);
+            if (psiFile != null) {
+              result.set((PropertiesFile)psiFile);
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+,moduleInfo.getModule().getModuleContentScope());
+      resourceBundleFile=result.get() != null ? result.get() : LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
     }
     final FileOutputStream fileOut=new FileOutputStream(resultFile);
     try {
