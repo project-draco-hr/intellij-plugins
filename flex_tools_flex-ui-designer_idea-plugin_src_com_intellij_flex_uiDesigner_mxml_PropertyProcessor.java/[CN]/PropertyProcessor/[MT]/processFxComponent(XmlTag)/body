@@ -1,0 +1,21 @@
+{
+  final MxmlObjectReference objectReference=processFxDeclarationId(tag);
+  if (objectReference == null) {
+    return -2;
+  }
+  final int sizePosition=writer.componentFactory(objectReference.id);
+  final XmlTag[] subTags=tag.getSubTags();
+  if (subTags.length == 1) {
+    writer.getOut().writeUInt29(0);
+    writer.getOut().write(Amf3Types.OBJECT);
+    return sizePosition;
+  }
+ else {
+    writer.objectHeader("Object");
+    writer.endObject();
+    if (subTags.length > 1) {
+      LOG.warn("Skip model, only one root tag is allowed: " + tag.getText());
+    }
+    return -1;
+  }
+}
