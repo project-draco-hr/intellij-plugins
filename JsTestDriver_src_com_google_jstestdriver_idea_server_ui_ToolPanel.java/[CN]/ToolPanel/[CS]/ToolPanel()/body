@@ -5,7 +5,8 @@
   myCaptureUrlTextField=createCaptureUrlTextField();
   ActionToolbar actionToolbar=createActionToolbar();
   setToolbar(actionToolbar.getComponent());
-  List<ServerListener> myServerListeners=Arrays.asList(statusBar,capturedBrowsersPanel,new LocalManager(actionToolbar,myCaptureUrlTextField));
+  final Pair<JPanel,ActionToolbar> captureUrlInfo=createCaptureUrlInfo(myCaptureUrlTextField);
+  List<ServerListener> myServerListeners=Arrays.asList(statusBar,capturedBrowsersPanel,new LocalManager(new ActionToolbar[]{actionToolbar,captureUrlInfo.second},myCaptureUrlTextField));
   for (  ServerListener serverListener : myServerListeners) {
     if (SHARED_STATE.isServerRunning()) {
       serverListener.serverStarted();
@@ -22,22 +23,14 @@
   JPanel content=new JPanel(){
 {
       setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-      add(statusBar);
       statusBar.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-      add(new JPanel(){
-{
-          setLayout(new BoxLayout(this,BoxLayout.X_AXIS));
-          add(new JLabel(PluginResources.getCaptureUrlMessage()));
-          add(myCaptureUrlTextField);
-          setBorder(BorderFactory.createEmptyBorder(5,5,10,4));
-        }
-      }
-);
+      add(statusBar);
+      JPanel captureUrlPanel=captureUrlInfo.first;
+      captureUrlPanel.setBorder(BorderFactory.createEmptyBorder(0,5,10,0));
+      add(captureUrlPanel);
       add(capturedBrowsersPanel);
     }
   }
 ;
-  JPanel wrapPanel=new JPanel(new BorderLayout());
-  wrapPanel.add(content,BorderLayout.NORTH);
-  setContent(wrapPanel);
+  setContent(minimizeHeight(content));
 }
