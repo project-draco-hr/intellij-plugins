@@ -1,0 +1,18 @@
+{
+  final XmlAttribute idAttribute=tag.getAttribute("id");
+  String id=null;
+  if (idAttribute == null || StringUtil.isEmpty((id=idAttribute.getDisplayValue()))) {
+    LOG.warn("Skip fx:model/fx:component, id is not specified or empty: " + tag.getText());
+    if (classNameTrick == null) {
+      return null;
+    }
+  }
+  final MxmlObjectReference objectReference=new MxmlObjectReference(writer.allocateAbsoluteStaticObjectId());
+  if (id != null) {
+    injectedASWriter.putMxmlObjectReference(id,objectReference);
+  }
+  if (classNameTrick != null) {
+    injectedASWriter.putMxmlObjectReference('$' + classNameTrick,objectReference);
+  }
+  return objectReference;
+}
