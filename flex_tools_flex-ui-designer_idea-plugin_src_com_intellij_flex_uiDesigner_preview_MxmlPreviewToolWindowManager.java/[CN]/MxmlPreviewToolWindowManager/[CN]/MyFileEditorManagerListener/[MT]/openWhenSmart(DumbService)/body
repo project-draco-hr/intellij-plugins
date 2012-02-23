@@ -1,23 +1,6 @@
 {
-  if (waitingForSmartMode) {
-    return;
+  if (!waitingForSmartMode) {
+    waitingForSmartMode=true;
+    dumbService.runWhenSmart(this);
   }
-  waitingForSmartMode=true;
-  dumbService.runWhenSmart(new Runnable(){
-    @Override public void run(){
-      waitingForSmartMode=false;
-      final AccessToken token=ReadAction.start();
-      final Editor selectedTextEditor;
-      try {
-        selectedTextEditor=fileEditorManager.getSelectedTextEditor();
-      }
-  finally {
-        token.finish();
-      }
-      if (selectedTextEditor != null && isApplicableEditor(selectedTextEditor)) {
-        processFileEditorChange(selectedTextEditor);
-      }
-    }
-  }
-);
 }
