@@ -6,28 +6,42 @@
   final ModuleInfo moduleInfo=Client.getInstance().getRegisteredModules().getNullableInfo(moduleId);
   final AccessToken token=ReadAction.start();
   try {
-    final PropertiesFile resourceBundleFile;
+    PropertiesFile resourceBundleFile=null;
     if (moduleInfo == null) {
       LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find project with id "+ moduleId);
       resourceBundleFile=null;
     }
  else {
       final PsiManager psiManager=PsiManager.getInstance(moduleInfo.getModule().getProject());
-      final Ref<PropertiesFile> result=new Ref<PropertiesFile>();
+      final List<VirtualFile> result=new ArrayList<VirtualFile>();
       FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,PropertiesFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
         public boolean process(        VirtualFile file,        Void value){
           if (file.getNameWithoutExtension().equals(bundleName)) {
-            PsiFile psiFile=psiManager.findFile(file);
-            if (psiFile != null) {
-              result.set((PropertiesFile)psiFile);
+            result.add(file);
+            if (file.getParent().getName().equals("en_US")) {
               return false;
             }
           }
           return true;
         }
       }
-,moduleInfo.getModule().getModuleContentScope());
-      resourceBundleFile=result.get() != null ? result.get() : LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+,moduleInfo.getModule().getModuleScope(false));
+      PropertiesFile defaultLocale=null;
+      for (      VirtualFile file : result) {
+        PsiFile psiFile=psiManager.findFile(file);
+        if (psiFile != null) {
+          if (file.getParent().getName().equals("en_US")) {
+            defaultLocale=(PropertiesFile)psiFile;
+          }
+ else {
+            resourceBundleFile=(PropertiesFile)psiFile;
+            break;
+          }
+        }
+      }
+      if (resourceBundleFile == null) {
+        resourceBundleFile=defaultLocale != null ? defaultLocale : LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+      }
     }
     final FileOutputStream fileOut=new FileOutputStream(resultFile);
     try {
