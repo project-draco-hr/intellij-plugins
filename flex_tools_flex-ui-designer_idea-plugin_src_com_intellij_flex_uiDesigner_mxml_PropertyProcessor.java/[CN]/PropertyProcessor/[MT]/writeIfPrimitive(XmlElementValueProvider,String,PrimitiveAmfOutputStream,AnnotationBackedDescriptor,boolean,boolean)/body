@@ -15,7 +15,13 @@
  else   if (type.equals(JSCommonTypeNames.INT_TYPE_NAME) || type.equals(JSCommonTypeNames.UINT_TYPE_NAME)) {
     final String trimmed=valueProvider.getTrimmed();
     if (trimmed.isEmpty()) {
-      throw new InvalidPropertyException(valueProvider.getElement(),"invalid.integer.value");
+      if (emptyIntAs0) {
+        out.writeAmfInt(0);
+        return true;
+      }
+ else {
+        throw new InvalidPropertyException(valueProvider.getElement(),"invalid.integer.value");
+      }
     }
     if (descriptor != null && FlexCssPropertyDescriptor.COLOR_FORMAT.equals(descriptor.getFormat())) {
       writer.color(valueProvider.getElement(),trimmed,isStyle);
