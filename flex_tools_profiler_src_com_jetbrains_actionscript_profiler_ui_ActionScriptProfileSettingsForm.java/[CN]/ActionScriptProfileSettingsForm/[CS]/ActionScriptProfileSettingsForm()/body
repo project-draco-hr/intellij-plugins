@@ -1,23 +1,21 @@
 {
-  final ActionListener radioButtonListener=new ActionListener(){
+  myCustomPathCheckBox.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      setUseCustomDirectory(myUseCustomDirectoryRadioButton.isSelected());
+      if (!myCustomPathCheckBox.isSelected()) {
+        customPathToMmCfg=myPathToMmCfgTextField.getText();
+      }
+      updateMmCfg();
     }
   }
-;
-  final ButtonGroup group=new ButtonGroup();
-  group.add(myUseCustomDirectoryRadioButton);
-  group.add(myUseLocalUserDirectoryRadioButton);
-  myUseCustomDirectoryRadioButton.addActionListener(radioButtonListener);
-  myUseLocalUserDirectoryRadioButton.addActionListener(radioButtonListener);
+);
   myPathToMmCfgTextField.getButton().addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      final VirtualFile folder=FileChooser.chooseFile(getPanel(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
-      if (folder != null) {
-        myPathToMmCfgTextField.setText(folder.getPresentableUrl());
+      final VirtualFile mmCfg=FileChooser.chooseFile(getPanel(),FlexUtils.createFileChooserDescriptor("cfg"));
+      if (mmCfg != null) {
+        customPathToMmCfg=mmCfg.getPath();
+        updateMmCfg();
       }
     }
   }
 );
-  myFolderPathLabel.setLabelFor(myPathToMmCfgTextField.getTextField());
 }
