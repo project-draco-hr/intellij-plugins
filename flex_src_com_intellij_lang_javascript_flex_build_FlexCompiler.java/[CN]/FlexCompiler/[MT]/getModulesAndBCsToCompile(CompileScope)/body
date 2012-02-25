@@ -1,7 +1,17 @@
 {
   final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
+  final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCsToCompile=scope.getUserData(MODULES_AND_BCS_TO_COMPILE);
   final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(scope);
-  if (runConfiguration instanceof FlashRunConfiguration || runConfiguration instanceof NewFlexUnitRunConfiguration) {
+  if (modulesAndBCsToCompile != null) {
+    for (    Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
+      if (!moduleAndBC.second.isSkipCompile()) {
+        final FlexIdeBuildConfiguration bcWithForcedDebugStatus=forceDebugStatus(moduleAndBC.first.getProject(),moduleAndBC.second);
+        result.add(Pair.create(moduleAndBC.first,bcWithForcedDebugStatus));
+        appendBCDependencies(result,moduleAndBC.first,moduleAndBC.second);
+      }
+    }
+  }
+ else   if (runConfiguration instanceof FlashRunConfiguration || runConfiguration instanceof NewFlexUnitRunConfiguration) {
     final BCBasedRunnerParameters params=runConfiguration instanceof FlashRunConfiguration ? ((FlashRunConfiguration)runConfiguration).getRunnerParameters() : ((NewFlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
     final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC;
     final Ref<RuntimeConfigurationError> exceptionRef=new Ref<RuntimeConfigurationError>();

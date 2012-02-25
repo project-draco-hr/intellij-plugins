@@ -2,6 +2,12 @@
   new FlexResourceCompiler(context,mapModuleToBCsWithResourceFiles(items)).processResourceFiles();
   final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(context.getProject());
   final FlexCompilerProjectConfiguration flexCompilerConfiguration=FlexCompilerProjectConfiguration.getInstance(context.getProject());
+  if (!context.isMake()) {
+    flexCompilerHandler.quitCompilerShell();
+    for (    ProcessingItem item : items) {
+      flexCompilerHandler.getCompilerDependenciesCache().markBCDirty(((MyProcessingItem)item).myModule,((MyProcessingItem)item).myBC);
+    }
+  }
   if (flexCompilerConfiguration.USE_FCSH) {
     context.addMessage(CompilerMessageCategory.INFORMATION,"FCSH tool is not supported yet. Please choose another compiler at File | Settings | Compiler | Flex Compiler",null,-1,-1);
     return ProcessingItem.EMPTY_ARRAY;

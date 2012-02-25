@@ -1,0 +1,52 @@
+{
+  final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCs=getSelectedBCs();
+  if (modulesAndBCs.isEmpty())   return new ValidationInfo("Please select one or more build configurations");
+  if (myApkDebugHostTextField.isVisible() && myApkDebugHostTextField.isEnabled()) {
+    try {
+      final String portValue=myApkDebugPortTextField.getText().trim();
+      final int port=portValue.isEmpty() ? MobileAirUtil.DEBUG_PORT_DEFAULT : Integer.parseInt(portValue);
+      if (port <= 0 || port > 65535)       return new ValidationInfo("Incorrect port",myApkDebugPortPanel);
+    }
+ catch (    NumberFormatException e) {
+      return new ValidationInfo("Incorrect port",myApkDebugPortTextField);
+    }
+  }
+  for (  Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : getSelectedBCs()) {
+    final FlexIdeBuildConfiguration bc=moduleAndBC.second;
+    if (bc.isSkipCompile() && LocalFileSystem.getInstance().findFileByPath(bc.getOutputFilePath(true)) == null) {
+      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"compilation is switched off and output *.swf doesn''t exist"));
+    }
+    final BuildConfigurationNature nature=bc.getNature();
+    if (nature.isDesktopPlatform()) {
+      if (bc.getAirDesktopPackagingOptions().getPackageFileName().isEmpty()) {
+        return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"package file name is not set"));
+      }
+    }
+ else {
+      if (!bc.getAndroidPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isEnabled()) {
+        return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"both Android and iOS packaging disabled"));
+      }
+      if (bc.getAndroidPackagingOptions().isEnabled() && bc.getIosPackagingOptions().isEnabled()) {
+        final AndroidPackageType androidPackage=(AndroidPackageType)myAndroidTypeCombo.getSelectedItem();
+        final IOSPackageType iosPackage=(IOSPackageType)myIOSTypeCombo.getSelectedItem();
+        final boolean androidDebug=androidPackage != AndroidPackageType.Release;
+        final boolean iosDebug=iosPackage == IOSPackageType.DebugOverNetwork;
+        if (androidDebug != iosDebug) {
+          final String message=androidDebug ? "can''t create debuggable package for Android and non-debuggable package for iOS at once" : "can''t create debuggable package for iOS and non-debuggable package for Android at once";
+          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),message));
+        }
+      }
+      if (bc.getAndroidPackagingOptions().isEnabled()) {
+        if (bc.getAndroidPackagingOptions().getPackageFileName().isEmpty()) {
+          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"Android package file name is not set"));
+        }
+      }
+      if (bc.getIosPackagingOptions().isEnabled()) {
+        if (bc.getIosPackagingOptions().getPackageFileName().isEmpty()) {
+          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"iOS package file name is not set"));
+        }
+      }
+    }
+  }
+  return null;
+}

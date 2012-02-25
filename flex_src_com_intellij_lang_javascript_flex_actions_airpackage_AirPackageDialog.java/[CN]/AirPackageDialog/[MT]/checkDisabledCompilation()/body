@@ -1,0 +1,18 @@
+{
+  final Collection<FlexIdeBuildConfiguration> bcsWithDisabledCompilation=new ArrayList<FlexIdeBuildConfiguration>();
+  for (  Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : getSelectedBCs()) {
+    if (moduleAndBC.second.isSkipCompile()) {
+      bcsWithDisabledCompilation.add(moduleAndBC.second);
+    }
+  }
+  if (!bcsWithDisabledCompilation.isEmpty()) {
+    final StringBuilder bcs=new StringBuilder();
+    for (    FlexIdeBuildConfiguration bc : bcsWithDisabledCompilation) {
+      bcs.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>").append(StringUtil.escapeXml(bc.getName())).append("</b><br>");
+    }
+    final String message=FlexBundle.message("package.bc.with.disabled.compilation",bcsWithDisabledCompilation.size(),bcs.toString());
+    final int answer=Messages.showYesNoDialog(myProject,message,getTitle(),Messages.getWarningIcon());
+    return answer == Messages.YES;
+  }
+  return true;
+}

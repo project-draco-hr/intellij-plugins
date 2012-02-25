@@ -1,0 +1,19 @@
+{
+  final boolean debug;
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    final AirPackageParameters params=AirPackageParameters.getInstance(project);
+    if (bc.getAndroidPackagingOptions().isEnabled()) {
+      debug=params.androidPackageType != AirPackageParameters.AndroidPackageType.Release;
+    }
+ else {
+      debug=params.iosPackageType == AirPackageParameters.IOSPackageType.DebugOverNetwork;
+    }
+  }
+ else {
+    debug=false;
+  }
+  final ModifiableFlexIdeBuildConfiguration result=Factory.getCopy(bc);
+  final String additionalOptions=FlexUtils.removeDebugOption(bc.getCompilerOptions().getAdditionalOptions());
+  result.getCompilerOptions().setAdditionalOptions(additionalOptions + " -debug=" + String.valueOf(debug));
+  return result;
+}
