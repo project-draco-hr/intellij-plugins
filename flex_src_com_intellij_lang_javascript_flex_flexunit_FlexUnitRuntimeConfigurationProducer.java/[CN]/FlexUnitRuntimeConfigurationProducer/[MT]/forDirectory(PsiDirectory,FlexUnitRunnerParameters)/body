@@ -1,0 +1,14 @@
+{
+  final VirtualFile file=directory.getVirtualFile();
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(directory.getProject()).getFileIndex();
+  VirtualFile rootForFile=projectFileIndex.getSourceRootForFile(file);
+  if (rootForFile == null)   return false;
+  final Module module=FlexRunConfiguration.findModuleFromFile(file,directory.getProject());
+  if (FlexUnitSupport.getSupport(module) == null)   return false;
+  String packageName=VfsUtilCore.getRelativePath(file,rootForFile,'.');
+  if (!JSUtils.packageExists(packageName,GlobalSearchScope.moduleScope(module)))   return false;
+  params.setPackageName(packageName);
+  params.setScope(FlexUnitRunnerParameters.Scope.Package);
+  params.setModuleName(module.getName());
+  return true;
+}

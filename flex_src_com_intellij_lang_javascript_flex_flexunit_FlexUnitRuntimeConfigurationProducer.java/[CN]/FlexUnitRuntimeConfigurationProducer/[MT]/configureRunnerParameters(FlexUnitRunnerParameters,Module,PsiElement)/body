@@ -1,0 +1,33 @@
+{
+  if (element instanceof JSClass) {
+    final JSClass clazz=(JSClass)element;
+    Pair<Module,FlexUnitSupport> supportForModule=FlexUnitSupport.getModuleAndSupport(clazz);
+    if (supportForModule == null || !supportForModule.second.isTestClass(clazz,true))     return false;
+    forClass(clazz,supportForModule.first,params);
+  }
+ else   if (element instanceof JSFunction) {
+    JSFunction method=(JSFunction)element;
+    final JSClass clazz=(JSClass)element.getParent();
+    Pair<Module,FlexUnitSupport> supportForModule=FlexUnitSupport.getModuleAndSupport(clazz);
+    if (supportForModule == null || !supportForModule.second.isTestClass(clazz,true))     return false;
+    if (!supportForModule.second.isTestMethod(method)) {
+      forClass(clazz,supportForModule.first,params);
+    }
+ else {
+      params.setClassName(clazz.getQualifiedName());
+      params.setMethodName(method.getName());
+      params.setScope(FlexUnitRunnerParameters.Scope.Method);
+      params.setModuleName(supportForModule.first.getName());
+    }
+  }
+ else   if (element instanceof PsiDirectory) {
+    if (!forDirectory((PsiDirectory)element,params))     return false;
+  }
+ else   if (element instanceof PsiDirectoryContainer) {
+    if (!forPackage((PsiDirectoryContainer)element,module,params))     return false;
+  }
+ else {
+    return false;
+  }
+  return true;
+}
