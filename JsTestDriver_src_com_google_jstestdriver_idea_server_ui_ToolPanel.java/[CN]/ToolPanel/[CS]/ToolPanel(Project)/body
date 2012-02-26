@@ -1,0 +1,39 @@
+{
+  super(false,true);
+  final StatusBar statusBar=new StatusBar(MessageBundle.getBundle());
+  myCaptureUrlTextField=createCaptureUrlTextField();
+  final CapturedBrowsersUI capturedBrowsersPanel=new CapturedBrowsersUI(myCaptureUrlTextField);
+  ActionToolbar actionToolbar=createActionToolbar();
+  setToolbar(actionToolbar.getComponent());
+  final Pair<JPanel,ActionButton> captureUrlInfo=createCaptureUrlInfo(myCaptureUrlTextField);
+  List<ServerListener> myServerListeners=Arrays.asList(statusBar,capturedBrowsersPanel,new LocalManager(actionToolbar,captureUrlInfo.second,myCaptureUrlTextField));
+  for (  ServerListener serverListener : myServerListeners) {
+    if (SHARED_STATE.isServerRunning()) {
+      serverListener.serverStarted();
+      for (      BrowserInfo browserInfo : SHARED_STATE.getCapturedBrowsers()) {
+        serverListener.browserCaptured(browserInfo);
+      }
+    }
+ else {
+      serverListener.serverStopped();
+    }
+    SHARED_STATE.addServerListener(serverListener);
+  }
+  setBackground(UIUtil.getTreeTextBackground());
+  JPanel content=new JPanel(){
+{
+      setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+      statusBar.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+      add(statusBar);
+      JPanel captureUrlPanel=captureUrlInfo.first;
+      captureUrlPanel.setBorder(BorderFactory.createEmptyBorder(3,5,10,3));
+      add(captureUrlPanel);
+      add(capturedBrowsersPanel.getComponent());
+      JPanel configureWebBrowsersPanel=createHyperlinkPanel(project);
+      configureWebBrowsersPanel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
+      add(configureWebBrowsersPanel);
+    }
+  }
+;
+  setContent(minimizeHeight(content));
+}
