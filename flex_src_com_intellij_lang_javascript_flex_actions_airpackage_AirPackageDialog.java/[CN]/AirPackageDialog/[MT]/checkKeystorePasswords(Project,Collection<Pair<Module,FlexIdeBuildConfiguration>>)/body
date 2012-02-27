@@ -1,0 +1,32 @@
+{
+  final Collection<AirSigningOptions> signingOptionsWithUnknownPasswords=new ArrayList<AirSigningOptions>();
+  for (  Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : selectedBCs) {
+    final FlexIdeBuildConfiguration bc=moduleAndBC.second;
+    if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+      final AirSigningOptions signingOptions=bc.getAirDesktopPackagingOptions().getSigningOptions();
+      if (!signingOptions.isUseTempCertificate() && !PasswordStore.isPasswordKnown(project,signingOptions)) {
+        signingOptionsWithUnknownPasswords.add(signingOptions);
+      }
+    }
+ else {
+      if (bc.getAndroidPackagingOptions().isEnabled()) {
+        final AirSigningOptions signingOptions=bc.getAndroidPackagingOptions().getSigningOptions();
+        if (!signingOptions.isUseTempCertificate() && !PasswordStore.isPasswordKnown(project,signingOptions)) {
+          signingOptionsWithUnknownPasswords.add(signingOptions);
+        }
+      }
+      if (bc.getIosPackagingOptions().isEnabled()) {
+        final AirSigningOptions signingOptions=bc.getIosPackagingOptions().getSigningOptions();
+        if (!PasswordStore.isPasswordKnown(project,signingOptions)) {
+          signingOptionsWithUnknownPasswords.add(signingOptions);
+        }
+      }
+    }
+  }
+  if (!signingOptionsWithUnknownPasswords.isEmpty()) {
+    final KeystorePasswordDialog dialog=new KeystorePasswordDialog(project,signingOptionsWithUnknownPasswords);
+    dialog.show();
+    return dialog.isOK();
+  }
+  return true;
+}

@@ -1,0 +1,18 @@
+{
+  for (  Trinity<AirSigningOptions,JPasswordField,JPasswordField> entry : myKeystoresAndPasswordFields) {
+    final AirSigningOptions signingOptions=entry.first;
+    final JPasswordField keystorePasswordField=entry.second;
+    final String keystorePassword=new String(keystorePasswordField.getPassword());
+    final JPasswordField keyPasswordField=entry.third;
+    final String keyPassword=keyPasswordField == null ? "" : new String(keyPasswordField.getPassword());
+    try {
+      PasswordStore.checkPassword(signingOptions,keystorePassword,keyPassword);
+    }
+ catch (    PasswordStore.SigningOptionsException e) {
+      final JPasswordField errorField=e.wrongKeyPassword ? keyPasswordField : e.wrongKeystorePassword ? keystorePasswordField : null;
+      final String message=errorField == null ? PathUtil.getFileName(signingOptions.getKeystorePath()) + ": " + e.getMessage() : e.getMessage();
+      return new ValidationInfo(message,errorField);
+    }
+  }
+  return null;
+}
