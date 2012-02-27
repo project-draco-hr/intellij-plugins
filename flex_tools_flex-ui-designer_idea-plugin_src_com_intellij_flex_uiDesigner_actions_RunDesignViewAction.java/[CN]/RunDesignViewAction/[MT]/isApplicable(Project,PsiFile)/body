@@ -1,15 +1,7 @@
 {
-  if (psiFile == null || !JavaScriptSupportLoader.isFlexMxmFile(psiFile)) {
+  if (!dumbAwareIsApplicable(project,psiFile)) {
     return false;
   }
-  final VirtualFile file=psiFile.getVirtualFile();
-  if (file == null || !ProjectRootManager.getInstance(project).getFileIndex().isInSourceContent(file)) {
-    return false;
-  }
-  final XmlTag rootTag=((XmlFile)psiFile).getRootTag();
-  if (rootTag == null || rootTag.getPrefixByNamespace(JavaScriptSupportLoader.MXML_URI3) == null) {
-    return false;
-  }
-  final JSClass jsClass=XmlBackedJSClassImpl.getXmlBackedClass(rootTag);
+  final JSClass jsClass=XmlBackedJSClassImpl.getXmlBackedClass(((XmlFile)psiFile).getRootTag());
   return jsClass != null && JSInheritanceUtil.isParentClass(jsClass,FlexCommonTypeNames.FLASH_DISPLAY_OBJECT_CONTAINER);
 }

@@ -1,0 +1,40 @@
+{
+  FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
+  DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
+  Client client=Client.getInstance();
+  for (  Document document : unsavedDocuments) {
+    final VirtualFile file=fileDocumentManager.getFile(document);
+    if (file == null) {
+      continue;
+    }
+    final DocumentInfo info=documentFactoryManager.getNullableInfo(file);
+    if (info == null) {
+      continue;
+    }
+    if (info.documentModificationStamp == document.getModificationStamp()) {
+      info.documentModificationStamp=-1;
+      continue;
+    }
+    final Project project=ProjectUtil.guessProjectForFile(file);
+    if (project == null) {
+      continue;
+    }
+    final Module module=ModuleUtil.findModuleForFile(file,project);
+    if (module == null) {
+      continue;
+    }
+    final XmlFile psiFile;
+    final AccessToken token=ReadAction.start();
+    try {
+      psiFile=(XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(document);
+      if (psiFile == null) {
+        return;
+      }
+    }
+  finally {
+      token.finish();
+    }
+    client.updateDocumentFactory(info.getId(),module,psiFile);
+  }
+  client.flush();
+}

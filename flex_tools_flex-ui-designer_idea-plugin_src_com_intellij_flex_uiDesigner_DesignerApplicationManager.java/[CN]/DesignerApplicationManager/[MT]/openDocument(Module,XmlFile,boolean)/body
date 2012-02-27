@@ -1,9 +1,9 @@
 {
-  final ActionCallback actionCallback=new ActionCallback();
-  renderDocument(module,psiFile,debug,actionCallback);
-  actionCallback.doWhenDone(new Runnable(){
-    @Override public void run(){
-      Client.getInstance().openDocument(module,psiFile);
+  final AsyncResult<DocumentInfo> result=new AsyncResult<DocumentInfo>();
+  renderDocument(module,psiFile,debug,result);
+  result.doWhenDone(new AsyncResult.Handler<DocumentInfo>(){
+    @Override public void run(    DocumentInfo documentInfo){
+      Client.getInstance().selectComponent(documentInfo.getId(),0);
     }
   }
 );

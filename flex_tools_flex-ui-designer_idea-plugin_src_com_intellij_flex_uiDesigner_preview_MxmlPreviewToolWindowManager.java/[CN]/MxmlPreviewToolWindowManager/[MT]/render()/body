@@ -9,11 +9,18 @@
   }
   renderingQueue.queue(new Update("render"){
     @Override public void run(){
-      LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
+      final LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
       loadingDecorator.startLoading(false);
-      DesignerApplicationManager.getInstance().renderDocument(psiFile).doWhenProcessed(new Runnable(){
+      AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
+      result.doWhenProcessed(new Runnable(){
         @Override public void run(){
-          toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
+          loadingDecorator.stopLoading();
+        }
+      }
+);
+      result.doWhenDone(new AsyncResult.Handler<java.awt.image.BufferedImage>(){
+        @Override public void run(        BufferedImage image){
+          setDocumentImage(image);
         }
       }
 );

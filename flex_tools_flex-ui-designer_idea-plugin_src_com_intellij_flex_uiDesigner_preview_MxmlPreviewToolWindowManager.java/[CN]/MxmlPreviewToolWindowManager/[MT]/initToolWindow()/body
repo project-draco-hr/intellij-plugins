@@ -38,16 +38,8 @@
   MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(project);
   connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
     @Override public void documentRendered(    DocumentFactoryManager.DocumentInfo info,    final BufferedImage image){
-      if (toolWindowForm == null || toolWindowForm.getFile() == null) {
-        return;
-      }
-      if (info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
-        ApplicationManager.getApplication().invokeLater(new Runnable(){
-          @Override public void run(){
-            toolWindowForm.getPreviewPanel().setImage(image);
-          }
-        }
-);
+      if (toolWindowForm != null && toolWindowForm.getFile() != null && info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
+        setDocumentImage(image);
       }
     }
     @Override public void errorOccured(){

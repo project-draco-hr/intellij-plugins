@@ -1,16 +1,23 @@
 {
+  final FileEditor newFileEditor=event.getNewEditor();
+  Editor mxmlEditor=null;
+  if (newFileEditor instanceof TextEditor) {
+    final Editor editor=((TextEditor)newFileEditor).getEditor();
+    if (RunDesignViewAction.dumbAwareIsApplicable(project,PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument()))) {
+      mxmlEditor=editor;
+    }
+  }
+  if (mxmlEditor == null) {
+    processFileEditorChange(null);
+    return;
+  }
   final DumbService dumbService=DumbService.getInstance(project);
   if (dumbService.isDumb()) {
     openWhenSmart(dumbService);
   }
  else {
-    final FileEditor newFileEditor=event.getNewEditor();
-    Editor mxmlEditor=null;
-    if (event.getNewEditor() instanceof TextEditor) {
-      final Editor editor=((TextEditor)newFileEditor).getEditor();
-      if (isApplicableEditor(editor)) {
-        mxmlEditor=editor;
-      }
+    if (!isApplicableEditor(mxmlEditor)) {
+      mxmlEditor=null;
     }
     processFileEditorChange(mxmlEditor);
   }

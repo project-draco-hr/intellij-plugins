@@ -7,13 +7,13 @@
   if (projectComponentReferenceCounter != null && !client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,module,problemsHolder)) {
     return false;
   }
-  final Ref<BufferedImage> result=new Ref<BufferedImage>();
+  final Ref<DocumentInfo> result=new Ref<DocumentInfo>();
   final AtomicBoolean done=new AtomicBoolean(false);
   final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(this);
   connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
-    @Override public void documentRendered(    DocumentFactoryManager.DocumentInfo info,    BufferedImage image){
+    @Override public void documentRendered(    DocumentInfo info,    BufferedImage image){
       if (info.equals(DocumentFactoryManager.getInstance().getNullableInfo(psiFile))) {
-        result.set(image);
+        result.set(info);
         up();
       }
     }
@@ -47,8 +47,8 @@
  else {
     connection.disconnect();
   }
-  if (actionCallback != null) {
-    actionCallback.setDone();
+  if (asyncResult != null) {
+    asyncResult.setDone(result.get());
   }
   return true;
 }
