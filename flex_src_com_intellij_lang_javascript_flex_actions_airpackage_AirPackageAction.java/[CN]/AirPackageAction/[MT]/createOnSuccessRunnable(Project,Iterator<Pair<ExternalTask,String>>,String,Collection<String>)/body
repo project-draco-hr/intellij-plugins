@@ -1,0 +1,32 @@
+{
+  return new Runnable(){
+    public void run(){
+      allCreatedPackages.add(createdPackagePath);
+      if (iterator.hasNext()) {
+        final Pair<ExternalTask,String> taskAndPackagePath=iterator.next();
+        final String packagePath=taskAndPackagePath.second;
+        final Runnable onSuccessRunnable=createOnSuccessRunnable(project,iterator,packagePath,allCreatedPackages);
+        ExternalTask.runInBackground(taskAndPackagePath.first,FlexBundle.message("packaging.air.application",PathUtil.getFileName(packagePath)),onSuccessRunnable,createFailureConsumer(project,packagePath));
+      }
+ else {
+        final String hrefs=StringUtil.join(allCreatedPackages,new Function<String,String>(){
+          public String fun(          final String packagePath){
+            return "<a href='" + packagePath + "'>"+ PathUtil.getFileName(packagePath)+ "</a>";
+          }
+        }
+,"<br>");
+        final String message=FlexBundle.message("air.application.created",allCreatedPackages.size(),hrefs);
+        final NotificationListener listener=new NotificationListener(){
+          public void hyperlinkUpdate(          @NotNull final Notification notification,          @NotNull final HyperlinkEvent event){
+            notification.expire();
+            final String packagePath=event.getDescription();
+            ShowFilePathAction.open(new File(PathUtil.getParentPath(packagePath)),new File(packagePath));
+          }
+        }
+;
+        NOTIFICATION_GROUP.createNotification("",message,NotificationType.INFORMATION,listener).notify(project);
+      }
+    }
+  }
+;
+}

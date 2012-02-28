@@ -1,0 +1,22 @@
+{
+  final AirDesktopPackagingOptions packagingOptions=bc.getAirDesktopPackagingOptions();
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final boolean tempCertificate=signingOptions.isUseTempCertificate();
+  final String keystorePassword=tempCertificate ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=tempCertificate || signingOptions.getKeyAlias().isEmpty() ? "" : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  return new AdtTask(project,bc.getSdk()){
+    protected void appendAdtOptions(    List<String> command){
+switch (packageType) {
+case AirInstaller:
+        command.add("-package");
+      appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+    break;
+case Airi:
+  command.add("-prepare");
+break;
+}
+appendPaths(command,bc,packagingOptions,packageType.getFileExtension());
+}
+}
+;
+}

@@ -2,7 +2,8 @@
   final Collection<AirSigningOptions> signingOptionsWithUnknownPasswords=new ArrayList<AirSigningOptions>();
   for (  AirPackagingOptions packagingOptions : allPackagingOptions) {
     final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
-    if ((packagingOptions instanceof IosPackagingOptions || !signingOptions.isUseTempCertificate()) && !PasswordStore.isPasswordKnown(project,signingOptions)) {
+    final boolean tempCertificate=!(packagingOptions instanceof IosPackagingOptions) && signingOptions.isUseTempCertificate();
+    if (!tempCertificate && !PasswordStore.isPasswordKnown(project,signingOptions)) {
       signingOptionsWithUnknownPasswords.add(signingOptions);
     }
   }

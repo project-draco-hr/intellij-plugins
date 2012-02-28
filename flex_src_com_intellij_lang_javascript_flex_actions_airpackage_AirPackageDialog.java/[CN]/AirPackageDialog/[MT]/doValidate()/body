@@ -1,7 +1,7 @@
 {
   final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCs=getSelectedBCs();
   if (modulesAndBCs.isEmpty())   return new ValidationInfo("Please select one or more build configurations");
-  if (myApkDebugHostTextField.isVisible() && myApkDebugHostTextField.isEnabled()) {
+  if (myApkDebugPortTextField.isVisible() && myApkDebugPortPanel.isEnabled()) {
     try {
       final String portValue=myApkDebugPortTextField.getText().trim();
       final int port=portValue.isEmpty() ? AirPackageUtil.DEBUG_PORT_DEFAULT : Integer.parseInt(portValue);
@@ -11,7 +11,7 @@
       return new ValidationInfo("Incorrect port",myApkDebugPortTextField);
     }
   }
-  for (  Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : getSelectedBCs()) {
+  for (  Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCs) {
     final FlexIdeBuildConfiguration bc=moduleAndBC.second;
     if (bc.isSkipCompile() && LocalFileSystem.getInstance().findFileByPath(bc.getOutputFilePath(true)) == null) {
       return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"compilation is switched off and output *.swf doesn''t exist"));
@@ -36,16 +36,12 @@
           return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),message));
         }
       }
-      if (bc.getAndroidPackagingOptions().isEnabled()) {
-        if (bc.getAndroidPackagingOptions().getPackageFileName().isEmpty()) {
-          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"Android package file name is not set"));
-        }
-      }
-      if (bc.getIosPackagingOptions().isEnabled()) {
-        if (bc.getIosPackagingOptions().getPackageFileName().isEmpty()) {
-          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"iOS package file name is not set"));
-        }
-      }
+    }
+    try {
+      checkPackagingOptions(bc);
+    }
+ catch (    ConfigurationException e) {
+      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),e.getMessage()));
     }
   }
   return null;
