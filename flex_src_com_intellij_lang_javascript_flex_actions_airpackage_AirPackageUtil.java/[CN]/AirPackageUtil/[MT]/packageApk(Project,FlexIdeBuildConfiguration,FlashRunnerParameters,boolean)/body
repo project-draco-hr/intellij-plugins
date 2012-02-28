@@ -1,0 +1,13 @@
+{
+  final AndroidPackagingOptions packagingOptions=bc.getAndroidPackagingOptions();
+  final boolean tempCertificate=packagingOptions.getSigningOptions().isUseTempCertificate();
+  final PasswordStore passwords=tempCertificate ? null : AirPackageAction.getPasswords(project,Collections.singletonList(packagingOptions));
+  if (!tempCertificate && passwords == null)   return false;
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final AndroidPackageType packageType=isDebug ? runnerParameters.getDebugTransport() == AirMobileDebugTransport.Network ? AndroidPackageType.DebugOverNetwork : AndroidPackageType.DebugOverUSB : AndroidPackageType.Release;
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final String keystorePassword=tempCertificate ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=tempCertificate || signingOptions.getKeyAlias().isEmpty() ? "" : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  final ExternalTask task=createAndroidPackageTask(project,bc,packageType,false,runnerParameters.getUsbDebugPort(),"",keystorePassword,keyPassword);
+  return ExternalTask.runWithProgress(task,FlexBundle.message("creating.android.package"),FlexBundle.message("create.android.package.title"));
+}
