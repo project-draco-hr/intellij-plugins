@@ -1,0 +1,19 @@
+{
+  final FlexIdeBuildConfiguration bc=myBCCombo.getBC();
+  final Object previousSelection=myAppDescriptorForEmulatorCombo.getSelectedItem();
+  if (bc == null || bc.getTargetPlatform() != TargetPlatform.Mobile || bc.getOutputType() != OutputType.Application) {
+    myAppDescriptorForEmulatorCombo.setModel(new DefaultComboBoxModel(new AppDescriptorForEmulator[]{AppDescriptorForEmulator.Generated}));
+  }
+ else {
+    final Collection<AppDescriptorForEmulator> items=new ArrayList<AppDescriptorForEmulator>();
+    items.add(AppDescriptorForEmulator.Generated);
+    if (bc.getAndroidPackagingOptions().isEnabled() && !bc.getAndroidPackagingOptions().isUseGeneratedDescriptor()) {
+      items.add(AppDescriptorForEmulator.Android);
+    }
+    if (bc.getIosPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isUseGeneratedDescriptor()) {
+      items.add(AppDescriptorForEmulator.IOS);
+    }
+    myAppDescriptorForEmulatorCombo.setModel(new DefaultComboBoxModel(items.toArray(new AppDescriptorForEmulator[items.size()])));
+  }
+  myAppDescriptorForEmulatorCombo.setSelectedItem(previousSelection);
+}

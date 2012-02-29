@@ -33,13 +33,25 @@ case Web:
   break;
 case Desktop:
 checkAdlAndAirRuntime(sdk);
+checkCustomDescriptor(bc.getAirDesktopPackagingOptions());
 break;
 case Mobile:
-if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice && !bc.getAndroidPackagingOptions().isEnabled()) {
-throw new RuntimeConfigurationError(FlexBundle.message("android.disabled.in.bc",getBCName(),getModuleName()));
+if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice) {
+final AndroidPackagingOptions packagingOptions=bc.getAndroidPackagingOptions();
+checkCustomDescriptor(packagingOptions);
 }
 if (myMobileRunTarget == AirMobileRunTarget.Emulator) {
 checkAdlAndAirRuntime(sdk);
+switch (myAppDescriptorForEmulator) {
+case Generated:
+break;
+case Android:
+checkCustomDescriptor(bc.getAndroidPackagingOptions());
+break;
+case IOS:
+checkCustomDescriptor(bc.getIosPackagingOptions());
+break;
+}
 }
 break;
 }
