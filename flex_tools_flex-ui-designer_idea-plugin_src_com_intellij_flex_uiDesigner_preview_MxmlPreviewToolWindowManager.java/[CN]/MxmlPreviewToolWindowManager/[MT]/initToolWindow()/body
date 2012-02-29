@@ -4,23 +4,23 @@
   toolWindow=ToolWindowManager.getInstance(project).registerToolWindow(toolWindowId,false,ToolWindowAnchor.RIGHT,project,false);
   toolWindow.setIcon(PlatformIcons.UI_FORM_ICON);
   ((ToolWindowManagerEx)ToolWindowManager.getInstance(project)).addToolWindowManagerListener(new ToolWindowManagerAdapter(){
-    private boolean visible=false;
     @Override public void stateChanged(){
       if (project.isDisposed() || toolWindow == null || !toolWindow.isAvailable()) {
         return;
       }
       final boolean currentVisible=toolWindow.isVisible();
+      if (currentVisible == toolWindowVisible) {
+        return;
+      }
+      toolWindowVisible=currentVisible;
       PropertiesComponent propertiesComponent=PropertiesComponent.getInstance(project);
       if (currentVisible) {
         propertiesComponent.setValue(SETTINGS_TOOL_WINDOW_VISIBLE,"true");
+        render();
       }
  else {
         propertiesComponent.unsetValue(SETTINGS_TOOL_WINDOW_VISIBLE);
       }
-      if (currentVisible && !visible) {
-        render();
-      }
-      visible=currentVisible;
     }
   }
 );
@@ -35,7 +35,7 @@
   MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(project);
   connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
     @Override public void documentRenderedOnAutoSave(    DocumentFactoryManager.DocumentInfo info){
-      if (!toolWindowDisposed && toolWindowForm != null && toolWindowForm.getFile() != null && info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
+      if (toolWindowVisible && toolWindowForm.getFile() != null && info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
         render();
       }
     }

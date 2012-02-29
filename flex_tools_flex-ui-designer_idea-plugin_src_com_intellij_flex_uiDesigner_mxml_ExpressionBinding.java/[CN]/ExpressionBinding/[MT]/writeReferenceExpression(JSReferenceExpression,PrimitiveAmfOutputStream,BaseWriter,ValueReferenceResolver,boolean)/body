@@ -16,8 +16,26 @@
     element=resolveReferenceExpression(expression,false);
   }
   if (element instanceof JSClass) {
-    checkQualifier(expression);
-    writer.classReference(((JSClass)element).getQualifiedName());
+    if (qualifiers == null) {
+      writer.classReference(((JSClass)element).getQualifiedName());
+    }
+ else {
+      PsiElement possibleVariable=resolveReferenceExpression(expression,true);
+      if (possibleVariable instanceof JSVariable) {
+        JSVariable variable=(JSVariable)possibleVariable;
+        if (variable.isConst()) {
+          JSExpression initializer=((JSVariable)possibleVariable).getInitializer();
+          if (initializer != null) {
+            writeExpression(initializer,out,writer,valueReferenceResolver);
+            return;
+          }
+ else {
+            throw new InvalidPropertyException(expression,"const.without.initializer",expression.getText());
+          }
+        }
+      }
+      throw new UnsupportedOperationException(expression.getText());
+    }
   }
  else   if (element instanceof JSVariable) {
     checkQualifier(expression);
