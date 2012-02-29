@@ -1,10 +1,17 @@
 {
-  callbacks.add(actionCallback);
+  final int callbackIndex=callbackIdPool.allocate();
+  if (callbackIndex == callbacks.size()) {
+    callbacks.add(actionCallback);
+  }
+ else {
+    callbacks.set(callbackIndex,actionCallback);
+  }
   actionCallback.doWhenProcessed(new Runnable(){
     @Override public void run(){
-      callbacks.remove(actionCallback);
+      callbacks.set(callbackIndex,null);
+      callbackIdPool.dispose(callbackIndex);
     }
   }
 );
-  return callbacks.size();
+  return callbackIndex + 1;
 }

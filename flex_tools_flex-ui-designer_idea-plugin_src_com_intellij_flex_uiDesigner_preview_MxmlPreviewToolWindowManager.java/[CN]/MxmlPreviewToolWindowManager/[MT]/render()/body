@@ -3,29 +3,21 @@
     return;
   }
   final XmlFile psiFile=toolWindowForm.getFile();
-  if (psiFile == null || DesignerApplicationManager.getInstance().isDocumentOpening()) {
+  if (psiFile == null) {
     return;
   }
-  renderingQueue.queue(new Update("render"){
-    @Override public void run(){
-      final LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
-      loadingDecorator.startLoading(false);
-      AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
-      result.doWhenProcessed(new Runnable(){
-        @Override public void run(){
-          loadingDecorator.stopLoading();
-        }
-      }
-);
-      result.doWhenDone(new AsyncResult.Handler<java.awt.image.BufferedImage>(){
-        @Override public void run(        BufferedImage image){
-          setDocumentImage(image);
-        }
-      }
-);
+  final LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
+  loadingDecorator.startLoading(false);
+  AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
+  result.doWhenDone(new AsyncResult.Handler<BufferedImage>(){
+    @Override public void run(    BufferedImage image){
+      setDocumentImage(image);
     }
-    @Override public boolean canEat(    Update update){
-      return true;
+  }
+);
+  result.doWhenProcessed(new Runnable(){
+    @Override public void run(){
+      loadingDecorator.stopLoading();
     }
   }
 );

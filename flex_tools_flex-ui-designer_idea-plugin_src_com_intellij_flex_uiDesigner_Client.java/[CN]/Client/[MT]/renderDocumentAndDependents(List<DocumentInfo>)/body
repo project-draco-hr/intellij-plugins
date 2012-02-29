@@ -1,0 +1,25 @@
+{
+  final AsyncResult<List<DocumentInfo>> result=new AsyncResult<List<DocumentInfo>>();
+  final ActionCallback callback=new ActionCallback();
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.renderDocumentsAndDependents,callback,result,new Runnable(){
+      @Override public void run(){
+        result.setDone(infos);
+      }
+    }
+);
+    out.writeUInt29(infos.size());
+    for (    DocumentInfo info : infos) {
+      out.writeUInt29(info.getId());
+    }
+    hasError=false;
+  }
+  finally {
+    finalizeMessageAndFlush(hasError);
+    if (hasError) {
+      callback.setRejected();
+    }
+  }
+  return result;
+}

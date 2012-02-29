@@ -1,2 +1,25 @@
 {
+  final AsyncResult<DocumentInfo> result=new AsyncResult<DocumentInfo>();
+  final VirtualFile virtualFile=psiFile.getVirtualFile();
+  final int factoryId=registerDocumentFactoryIfNeed(module,psiFile,virtualFile,false,problemsHolder);
+  if (factoryId == -1) {
+    result.setRejected();
+    return result;
+  }
+  FlexLibrarySet flexLibrarySet=registeredModules.getInfo(module).getFlexLibrarySet();
+  if (flexLibrarySet != null) {
+    fillAssetClassPoolIfNeed(flexLibrarySet);
+  }
+  if (!problemsHolder.isEmpty()) {
+    DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
+  }
+  final ActionCallback callback=new ActionCallback();
+  beginMessage(ClientMethod.renderDocument,callback,result,new Runnable(){
+    @Override public void run(){
+      result.setDone(DocumentFactoryManager.getInstance().getInfo(factoryId));
+    }
+  }
+);
+  out.writeShort(factoryId);
+  return result;
 }

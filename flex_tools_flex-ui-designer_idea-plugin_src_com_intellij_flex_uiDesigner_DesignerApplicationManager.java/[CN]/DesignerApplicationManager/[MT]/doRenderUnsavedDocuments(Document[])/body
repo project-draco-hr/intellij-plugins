@@ -2,6 +2,7 @@
   FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
   DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
   Client client=Client.getInstance();
+  List<DocumentInfo> documentInfos=new ArrayList<DocumentInfo>(unsavedDocuments.length);
   for (  Document document : unsavedDocuments) {
     final VirtualFile file=fileDocumentManager.getFile(document);
     if (file == null) {
@@ -28,13 +29,15 @@
     try {
       psiFile=(XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(document);
       if (psiFile == null) {
-        return;
+        continue;
       }
     }
   finally {
       token.finish();
     }
-    client.updateDocumentFactory(info.getId(),module,psiFile);
+    if (client.updateDocumentFactory(info.getId(),module,psiFile)) {
+      documentInfos.add(info);
+    }
   }
-  client.flush();
+  return client.renderDocumentAndDependents(documentInfos);
 }

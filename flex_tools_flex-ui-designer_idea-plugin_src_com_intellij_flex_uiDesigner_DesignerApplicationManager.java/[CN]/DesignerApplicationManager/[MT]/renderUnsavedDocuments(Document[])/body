@@ -3,12 +3,32 @@
   documentOpening=true;
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
+      boolean hasError=true;
+      final AsyncResult<List<DocumentInfo>> result;
       try {
-        doRenderUnsavedDocuments(unsavedDocuments);
+        result=doRenderUnsavedDocuments(unsavedDocuments);
+        hasError=false;
       }
   finally {
-        documentOpening=false;
+        if (hasError) {
+          documentOpening=false;
+        }
       }
+      result.doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
+        @Override public void run(        List<DocumentInfo> infos){
+          MessageBus messageBus=ApplicationManager.getApplication().getMessageBus();
+          for (          DocumentInfo info : infos) {
+            messageBus.syncPublisher(SocketInputHandler.MESSAGE_TOPIC).documentRenderedOnAutoSave(info);
+          }
+        }
+      }
+);
+      result.doWhenProcessed(new Runnable(){
+        @Override public void run(){
+          documentOpening=false;
+        }
+      }
+);
     }
   }
 );

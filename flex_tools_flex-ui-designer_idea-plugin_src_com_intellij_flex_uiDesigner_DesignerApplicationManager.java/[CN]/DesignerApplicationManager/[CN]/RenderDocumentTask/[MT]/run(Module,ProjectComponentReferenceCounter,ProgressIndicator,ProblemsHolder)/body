@@ -1,5 +1,5 @@
 {
-  indicator.setText(FlashUIDesignerBundle.message("open.document"));
+  indicator.setText(FlashUIDesignerBundle.message("rendering.document"));
   Client client=Client.getInstance();
   if (!client.flush()) {
     return false;
@@ -7,48 +7,38 @@
   if (projectComponentReferenceCounter != null && !client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,module,problemsHolder)) {
     return false;
   }
-  final Ref<DocumentInfo> result=new Ref<DocumentInfo>();
-  final AtomicBoolean done=new AtomicBoolean(false);
-  final MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(this);
-  connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
-    @Override public void documentRendered(    DocumentInfo info,    BufferedImage image){
-      if (info.equals(DocumentFactoryManager.getInstance().getNullableInfo(psiFile))) {
-        result.set(info);
-        up();
+  final AsyncResult<DocumentInfo> renderResult=client.renderDocument(module,psiFile,problemsHolder);
+  if (renderResult.isRejected() || !client.flush()) {
+    return false;
+  }
+  final AtomicBoolean processed=new AtomicBoolean(false);
+  indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
+  renderResult.doWhenDone(new AsyncResult.Handler<DocumentInfo>(){
+    @Override public void run(    DocumentInfo documentInfo){
+      if (asyncResult != null) {
+        asyncResult.setDone(documentInfo);
       }
-    }
-    @Override public void errorOccured(){
-      up();
-    }
-    private void up(){
-      connection.disconnect();
-      done.set(true);
     }
   }
 );
-  if (client.renderDocument(module,psiFile,problemsHolder)) {
-    if (!client.flush()) {
+  renderResult.doWhenProcessed(new Runnable(){
+    @Override public void run(){
+      processed.set(true);
+    }
+  }
+);
+  while (!processed.get()) {
+    try {
+      Thread.sleep(5);
+    }
+ catch (    InterruptedException e) {
+      renderResult.setRejected();
       return false;
     }
-    indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
-    while (!done.get()) {
-      try {
-        Thread.sleep(5);
-      }
- catch (      InterruptedException e) {
-        return false;
-      }
-      indicator.checkCanceled();
-      if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
-        return false;
-      }
+    if (indicator.isCanceled() || DesignerApplicationManager.getInstance().isApplicationClosed()) {
+      renderResult.setRejected();
+      return false;
     }
-  }
- else {
-    connection.disconnect();
-  }
-  if (asyncResult != null) {
-    asyncResult.setDone(result.get());
   }
   return true;
 }
