@@ -6,15 +6,15 @@
   if (psiFile == null) {
     return;
   }
-  final LoadingDecorator loadingDecorator=toolWindowForm.getPreviewPanel().getLoadingDecorator();
-  loadingDecorator.startLoading(false);
+  toolWindowForm.getPreviewPanel().getLoadingDecorator().startLoading(false);
+  loadingDecoratorStarted++;
   AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
-  result.doWhenDone(new AsyncResult.Handler<BufferedImage>(){
-    @Override public void run(    final BufferedImage image){
-      if (toolWindowForm == null || toolWindowForm.getFile() == null) {
-        return;
-      }
-      ApplicationManager.getApplication().invokeLater(new Runnable(){
+  result.doWhenDone(new QueuedAsyncResultHandler<BufferedImage>(){
+    @Override protected boolean isExpired(){
+      return toolWindowForm == null || toolWindowForm.getFile() != psiFile;
+    }
+    @Override public void process(    final BufferedImage image){
+      UIUtil.invokeLaterIfNeeded(new Runnable(){
         @Override public void run(){
           toolWindowForm.getPreviewPanel().setImage(image);
         }
@@ -25,7 +25,9 @@
 );
   result.doWhenProcessed(new Runnable(){
     @Override public void run(){
-      loadingDecorator.stopLoading();
+      if (--loadingDecoratorStarted == 0 && toolWindowForm != null) {
+        toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
+      }
     }
   }
 );
