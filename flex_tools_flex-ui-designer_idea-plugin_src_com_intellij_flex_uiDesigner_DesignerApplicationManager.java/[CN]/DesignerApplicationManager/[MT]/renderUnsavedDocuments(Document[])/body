@@ -1,31 +1,13 @@
 {
-  LOG.assertTrue(!documentOpening);
-  documentOpening=true;
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
-      boolean hasError=true;
-      final AsyncResult<List<DocumentInfo>> result;
-      try {
-        result=doRenderUnsavedDocuments(unsavedDocuments);
-        hasError=false;
-      }
-  finally {
-        if (hasError) {
-          documentOpening=false;
-        }
-      }
+      AsyncResult<List<DocumentInfo>> result=doRenderUnsavedDocuments(unsavedDocuments);
       result.doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
         @Override public void run(        List<DocumentInfo> infos){
           MessageBus messageBus=ApplicationManager.getApplication().getMessageBus();
           for (          DocumentInfo info : infos) {
             messageBus.syncPublisher(SocketInputHandler.MESSAGE_TOPIC).documentRenderedOnAutoSave(info);
           }
-        }
-      }
-);
-      result.doWhenProcessed(new Runnable(){
-        @Override public void run(){
-          documentOpening=false;
         }
       }
 );

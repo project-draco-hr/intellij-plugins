@@ -1,17 +1,4 @@
 {
-  final AsyncResult<DocumentInfo> result=new AsyncResult<DocumentInfo>();
-  if (documentOpening) {
-    result.setRejected();
-    LOG.error("documentOpening must be false");
-    return result;
-  }
-  result.doWhenProcessed(new Runnable(){
-    @Override public void run(){
-      documentOpening=false;
-    }
-  }
-);
-  documentOpening=true;
   final boolean appClosed=isApplicationClosed();
   boolean hasError=true;
   try {
@@ -20,7 +7,7 @@
       if (sdk == null || !checkFlexSdkVersion(sdk)) {
         reportInvalidFlexSdk(module,debug,sdk);
         result.setRejected();
-        return result;
+        return;
       }
     }
     hasError=false;
@@ -32,5 +19,4 @@
   }
   final RenderDocumentTask renderDocumentTask=new RenderDocumentTask(psiFile,result);
   ProgressManager.getInstance().run(appClosed ? new DesignerApplicationLauncher(module,renderDocumentTask,debug) : new DocumentTaskExecutor(module,renderDocumentTask));
-  return result;
 }

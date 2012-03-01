@@ -2,7 +2,7 @@
   if (popupPlace) {
     final VirtualFile virtualFile=PlatformDataKeys.VIRTUAL_FILE.getData(dataContext);
     if (virtualFile != null) {
-      return FileDocumentManager.getInstance().getDocument(virtualFile);
+      return PsiManager.getInstance(project).findFile(virtualFile);
     }
   }
  else {
@@ -10,7 +10,9 @@
     if (editor == null) {
       editor=FileEditorManager.getInstance(project).getSelectedTextEditor();
     }
-    return editor == null ? null : editor.getDocument();
+    if (editor != null) {
+      return PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    }
   }
   return null;
 }

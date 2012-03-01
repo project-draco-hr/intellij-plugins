@@ -1,2 +1,19 @@
 {
+  for (  XmlFile file : files) {
+    VirtualFile virtualFile=file.getViewProvider().getVirtualFile();
+    Module documentModule=ModuleUtil.findModuleForFile(virtualFile,file.getProject());
+    if (module != documentModule && !isModuleRegistered(module)) {
+      try {
+        LibraryManager.getInstance().initLibrarySets(module,problemsHolder);
+      }
+ catch (      InitException e) {
+        LogMessageUtil.LOG.error(e.getCause());
+        problemsHolder.add(e.getMessage());
+      }
+    }
+    if (registerDocumentFactoryIfNeed(module,file,virtualFile,true,problemsHolder) == -1) {
+      return false;
+    }
+  }
+  return true;
 }

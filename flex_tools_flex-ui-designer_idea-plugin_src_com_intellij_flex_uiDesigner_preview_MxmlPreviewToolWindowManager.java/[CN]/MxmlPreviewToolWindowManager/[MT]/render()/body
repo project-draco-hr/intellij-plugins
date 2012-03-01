@@ -10,8 +10,16 @@
   loadingDecorator.startLoading(false);
   AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
   result.doWhenDone(new AsyncResult.Handler<BufferedImage>(){
-    @Override public void run(    BufferedImage image){
-      setDocumentImage(image);
+    @Override public void run(    final BufferedImage image){
+      if (toolWindowForm == null || toolWindowForm.getFile() == null) {
+        return;
+      }
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        @Override public void run(){
+          toolWindowForm.getPreviewPanel().setImage(image);
+        }
+      }
+);
     }
   }
 );
