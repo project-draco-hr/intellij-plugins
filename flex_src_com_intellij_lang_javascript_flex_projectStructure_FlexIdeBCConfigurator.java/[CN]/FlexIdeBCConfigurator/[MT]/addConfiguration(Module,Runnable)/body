@@ -6,9 +6,12 @@
   if (nameAndNature == null) {
     return;
   }
-  final ModifiableFlexIdeBuildConfiguration configuration=myConfigEditor.createConfiguration(module);
-  configuration.setName(nameAndNature.first);
-  configuration.setNature(nameAndNature.second);
+  final ModifiableFlexIdeBuildConfiguration bc=myConfigEditor.createConfiguration(module);
+  final String bcName=nameAndNature.first;
+  final String fileName=PathUtil.suggestFileName(bcName);
+  final BuildConfigurationNature nature=nameAndNature.second;
+  bc.setName(bcName);
+  bc.setNature(nature);
   final ModifiableFlexIdeBuildConfiguration someExistingConfig=myConfigEditor.getConfigurations(module)[0];
   final FlexIdeBCConfigurable configurable=FlexIdeBCConfigurable.unwrap(myConfigurablesMap.get(someExistingConfig));
   try {
@@ -16,10 +19,19 @@
   }
  catch (  ConfigurationException ignored) {
   }
-  configuration.setOutputFileName(nameAndNature.first + (configuration.getOutputType() == OutputType.Library ? ".swc" : ".swf"));
-  configuration.setOutputFolder(someExistingConfig.getOutputFolder());
+  bc.setOutputFileName(fileName + (bc.getOutputType() == OutputType.Library ? ".swc" : ".swf"));
+  bc.setOutputFolder(someExistingConfig.getOutputFolder());
+  if (nature.isApp()) {
+    if (nature.isDesktopPlatform()) {
+      bc.getAirDesktopPackagingOptions().setPackageFileName(fileName);
+    }
+ else     if (nature.isMobilePlatform()) {
+      bc.getAndroidPackagingOptions().setPackageFileName(fileName);
+      bc.getIosPackagingOptions().setPackageFileName(fileName);
+    }
+  }
   final SdkEntry sdkEntry=someExistingConfig.getDependencies().getSdkEntry();
   final SdkEntry newSdkEntry=sdkEntry == null ? findAnySdk() : Factory.createSdkEntry(sdkEntry.getName());
-  configuration.getDependencies().setSdkEntry(newSdkEntry);
-  createConfigurableNode(configuration,module,treeNodeNameUpdater);
+  bc.getDependencies().setSdkEntry(newSdkEntry);
+  createConfigurableNode(bc,module,treeNodeNameUpdater);
 }

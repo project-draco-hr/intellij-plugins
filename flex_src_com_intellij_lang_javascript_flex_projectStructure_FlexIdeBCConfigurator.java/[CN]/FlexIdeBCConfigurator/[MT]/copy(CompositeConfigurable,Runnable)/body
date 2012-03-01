@@ -4,20 +4,32 @@
   }
  catch (  ConfigurationException ignored) {
   }
-  ModifiableFlexIdeBuildConfiguration configuration=myConfigurablesMap.getKeysByValue(configurable).get(0);
+  ModifiableFlexIdeBuildConfiguration existingBC=myConfigurablesMap.getKeysByValue(configurable).get(0);
   FlexIdeBCConfigurable unwrapped=FlexIdeBCConfigurable.unwrap(configurable);
   final String title=FlexBundle.message("copy.build.configuration",unwrapped.getModule().getName());
-  Pair<String,BuildConfigurationNature> nameAndNature=promptForCreation(unwrapped.getModule(),title,configuration.getNature());
+  Pair<String,BuildConfigurationNature> nameAndNature=promptForCreation(unwrapped.getModule(),title,existingBC.getNature());
   if (nameAndNature == null) {
     return;
   }
-  ModifiableFlexIdeBuildConfiguration newConfiguration=myConfigEditor.copyConfiguration(configuration,nameAndNature.second);
-  newConfiguration.setName(nameAndNature.first);
-  final String outputFileName=configuration.getOutputFileName();
+  final String newBCName=nameAndNature.first;
+  final String fileName=PathUtil.suggestFileName(newBCName);
+  final BuildConfigurationNature newBCNature=nameAndNature.second;
+  ModifiableFlexIdeBuildConfiguration newBC=myConfigEditor.copyConfiguration(existingBC,newBCNature);
+  newBC.setName(newBCName);
+  final String outputFileName=existingBC.getOutputFileName();
   final String lowercase=outputFileName.toLowerCase();
   if (lowercase.endsWith(".swf") || lowercase.endsWith(".swc")) {
-    final String extension=newConfiguration.getOutputType() == OutputType.Library ? ".swc" : ".swf";
-    newConfiguration.setOutputFileName(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension);
+    final String extension=newBC.getOutputType() == OutputType.Library ? ".swc" : ".swf";
+    newBC.setOutputFileName(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension);
   }
-  createConfigurableNode(newConfiguration,unwrapped.getModule(),treeNodeNameUpdater);
+  if (newBCNature.isApp()) {
+    if (newBCNature.isDesktopPlatform()) {
+      newBC.getAirDesktopPackagingOptions().setPackageFileName(fileName);
+    }
+ else     if (newBCNature.isMobilePlatform()) {
+      newBC.getAndroidPackagingOptions().setPackageFileName(fileName);
+      newBC.getIosPackagingOptions().setPackageFileName(fileName);
+    }
+  }
+  createConfigurableNode(newBC,unwrapped.getModule(),treeNodeNameUpdater);
 }

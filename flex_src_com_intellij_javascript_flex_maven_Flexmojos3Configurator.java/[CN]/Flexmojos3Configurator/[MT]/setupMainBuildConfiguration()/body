@@ -13,12 +13,23 @@
     }
   }
   final String outputFilePath=FlexmojosImporter.getOutputFilePath(myMavenProject);
-  mainBC.setOutputFileName(PathUtil.getFileName(outputFilePath));
+  final String fileName=PathUtil.getFileName(outputFilePath);
+  mainBC.setOutputFileName(fileName);
   mainBC.setOutputFolder(PathUtil.getParentPath(outputFilePath));
+  final BuildConfigurationNature nature=mainBC.getNature();
+  if (nature.isApp()) {
+    if (nature.isDesktopPlatform()) {
+      mainBC.getAirDesktopPackagingOptions().setPackageFileName(fileName);
+    }
+ else     if (nature.isMobilePlatform()) {
+      mainBC.getAndroidPackagingOptions().setPackageFileName(fileName);
+      mainBC.getIosPackagingOptions().setPackageFileName(fileName);
+    }
+  }
   setupSdk(mainBC);
   final String locales=StringUtil.join(myCompiledLocales,CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
   mainBC.getCompilerOptions().setAllOptions(Collections.singletonMap("compiler.locale",locales));
-  if (BCUtils.canHaveResourceFiles(mainBC.getNature())) {
+  if (BCUtils.canHaveResourceFiles(nature)) {
     mainBC.getCompilerOptions().setResourceFilesMode(CompilerOptions.ResourceFilesMode.None);
   }
   mainBC.getCompilerOptions().setAdditionalConfigFilePath(getCompilerConfigFilePath());
