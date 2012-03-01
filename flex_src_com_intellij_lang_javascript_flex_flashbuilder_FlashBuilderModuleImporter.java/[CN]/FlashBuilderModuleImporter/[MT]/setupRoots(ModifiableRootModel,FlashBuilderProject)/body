@@ -1,32 +1,25 @@
 {
-  final String mainContentEntryUrl=VfsUtil.pathToUrl(flashBuilderProject.getProjectRootPath());
+  final String mainContentEntryUrl=VfsUtil.pathToUrl(fbProject.getProjectRootPath());
   final ContentEntry mainContentEntry=rootModel.addContentEntry(mainContentEntryUrl);
   final Collection<ContentEntry> otherContentEntries=new ArrayList<ContentEntry>();
-  final Collection<String> sourcePaths=flashBuilderProject.getSourcePaths();
+  final Collection<String> sourcePaths=fbProject.getSourcePaths();
   if (sourcePaths.isEmpty()) {
     final VirtualFile contentRoot=mainContentEntry.getFile();
-    final String mainClass=flashBuilderProject.getMainAppClassName();
+    final String mainClass=fbProject.getMainAppClassName();
     if (contentRoot != null && !StringUtil.isEmpty(mainClass) && (contentRoot.findChild(mainClass + ".mxml") != null || contentRoot.findChild(mainClass + ".as") != null)) {
       mainContentEntry.addSourceFolder(mainContentEntry.getUrl(),false);
     }
   }
  else {
-    OUTER:     for (    final String _sourcePath : sourcePaths) {
-      final String sourcePath=getAbsolutePathWithLinksHandled(flashBuilderProject,_sourcePath);
-      final String sourceUrl=VfsUtil.pathToUrl(sourcePath);
-      if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
-        mainContentEntry.addSourceFolder(sourceUrl,false);
+    final List<String> locales=FlexUtils.getOptionValues(fbProject.getAdditionalCompilerOptions(),"locale","compiler.locale");
+    for (    final String rawSourcePath : sourcePaths) {
+      if (rawSourcePath.contains(FlexSdkUtils.LOCALE_TOKEN)) {
+        for (        String locale : locales) {
+          handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,rawSourcePath.replace(FlexSdkUtils.LOCALE_TOKEN,locale));
+        }
       }
  else {
-        for (        final ContentEntry otherContentEntry : otherContentEntries) {
-          if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
-            otherContentEntry.addSourceFolder(sourceUrl,false);
-            continue OUTER;
-          }
-        }
-        final ContentEntry newContentEntry=rootModel.addContentEntry(sourceUrl);
-        newContentEntry.addSourceFolder(sourceUrl,false);
-        otherContentEntries.add(newContentEntry);
+        handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,rawSourcePath);
       }
     }
   }

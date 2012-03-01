@@ -1,0 +1,18 @@
+{
+  final String sourcePath=getAbsolutePathWithLinksHandled(fbProject,rawSourcePath);
+  final String sourceUrl=VfsUtil.pathToUrl(sourcePath);
+  if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
+    mainContentEntry.addSourceFolder(sourceUrl,false);
+  }
+ else {
+    for (    final ContentEntry otherContentEntry : otherContentEntries) {
+      if (FileUtil.isAncestor(new File(mainContentEntryUrl),new File(sourceUrl),false)) {
+        otherContentEntry.addSourceFolder(sourceUrl,false);
+        return;
+      }
+    }
+    final ContentEntry newContentEntry=rootModel.addContentEntry(sourceUrl);
+    newContentEntry.addSourceFolder(sourceUrl,false);
+    otherContentEntries.add(newContentEntry);
+  }
+}
