@@ -1,0 +1,16 @@
+{
+  FileDocumentManager.getInstance().saveAllDocuments();
+  JstdRunConfiguration runConfiguration=(JstdRunConfiguration)env.getRunProfile();
+  CoverageEnabledConfiguration coverageEnabledConfiguration=CoverageEnabledConfiguration.getOrCreate(runConfiguration);
+  String coverageFilePath=coverageEnabledConfiguration.getCoverageFilePath();
+  RunProfileState state=runConfiguration.getCoverageState(env,coverageFilePath);
+  ExecutionResult executionResult=state.execute(executor,this);
+  if (executionResult == null) {
+    return null;
+  }
+  CoverageHelper.attachToProcess(runConfiguration,executionResult.getProcessHandler(),env.getRunnerSettings());
+  final RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor);
+  contentBuilder.setExecutionResult(executionResult);
+  contentBuilder.setEnvironment(env);
+  return contentBuilder.showRunContent(contentToReuse);
+}

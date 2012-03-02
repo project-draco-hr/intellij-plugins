@@ -4,7 +4,7 @@
   if (serverUrl == null) {
     throw new RuntimeException("server_url parameter must be specified");
   }
-  String configFilesStr=ObjectUtils.notNull(parameters.get(ParameterKey.CONFIG_FILE),"");
+  String configFilesStr=notNullize(parameters.get(ParameterKey.CONFIG_FILE));
   String[] paths=configFilesStr.split(Pattern.quote(","));
   List<File> configFiles=Lists.newArrayList();
   for (  String urlEncodedPath : paths) {
@@ -21,7 +21,12 @@
   if (configFiles.isEmpty()) {
     throw new RuntimeException("No valid config files found");
   }
-  String testCaseName=ObjectUtils.notNull(parameters.get(ParameterKey.TEST_CASE),"");
-  String testMethodName=ObjectUtils.notNull(parameters.get(ParameterKey.TEST_METHOD),"");
-  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName);
+  String testCaseName=notNullize(parameters.get(ParameterKey.TEST_CASE));
+  String testMethodName=notNullize(parameters.get(ParameterKey.TEST_METHOD));
+  String coverageFilePath=notNullize(parameters.get(ParameterKey.OUTPUT_COVERAGE_FILE));
+  File ideCoverageFile=null;
+  if (!coverageFilePath.isEmpty()) {
+    ideCoverageFile=new File(coverageFilePath);
+  }
+  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile);
 }

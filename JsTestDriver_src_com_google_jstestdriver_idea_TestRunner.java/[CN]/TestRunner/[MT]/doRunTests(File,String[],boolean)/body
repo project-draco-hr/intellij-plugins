@@ -1,0 +1,53 @@
+{
+  JsTestDriverBuilder builder=new JsTestDriverBuilder();
+  builder.setConfigurationSource(new UserConfigurationSource(configFile));
+  builder.setPort(mySettings.getPort());
+  builder.withPluginInitializer(new PluginInitializer(){
+    @Override public Module initializeModule(    Flags flags,    Configuration config){
+      return new AbstractModule(){
+        @Override public void configure(){
+          Multibinder<TestListener> listeners=Multibinder.newSetBinder(binder(),TestListener.class);
+          listeners.addBinding().to(TestResultHolder.class);
+          TestListener reporter=new IDETestListener(myTestResultProtocolMessageOutput,configFile);
+          listeners.addBinding().toInstance(reporter);
+        }
+      }
+;
+    }
+  }
+);
+  builder.setRunnerMode(RunnerMode.QUIET);
+  builder.setServer(mySettings.getServerUrl());
+  List<String> flagArgs=Lists.newArrayList("--captureConsole","--server",mySettings.getServerUrl());
+  flagArgs.addAll(Arrays.asList(extraArgs));
+  File ideCoverageFilePath=mySettings.getIdeCoverageFile();
+  File dir=null;
+  boolean runCoverage=false;
+  if (runTests && ideCoverageFilePath != null) {
+    dir=createTempDir();
+    if (dir != null) {
+      flagArgs.add("--testOutput");
+      flagArgs.add(dir.getAbsolutePath());
+      PluginInitializer coverageInitializer=getCoverageInitializer();
+      if (coverageInitializer != null) {
+        builder.withPluginInitializer(coverageInitializer);
+        runCoverage=true;
+      }
+    }
+  }
+  String[] args=flagArgs.toArray(new String[flagArgs.size()]);
+  builder.setFlags(args);
+  JsTestDriver jstd=builder.build();
+  jstd.runConfiguration();
+  if (runCoverage) {
+    File[] coverageFiles=dir.listFiles(new FilenameFilter(){
+      @Override public boolean accept(      File dir,      String name){
+        return name.endsWith("-coverage.dat");
+      }
+    }
+);
+    if (coverageFiles != null && coverageFiles.length == 1) {
+      copyFile(ideCoverageFilePath,coverageFiles[0]);
+    }
+  }
+}

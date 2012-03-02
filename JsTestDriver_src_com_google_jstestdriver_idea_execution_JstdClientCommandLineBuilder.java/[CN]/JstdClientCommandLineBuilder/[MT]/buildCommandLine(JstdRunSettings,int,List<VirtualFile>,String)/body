@@ -1,0 +1,19 @@
+{
+  final Map<TestRunner.ParameterKey,String> parameters=Maps.newHashMap();
+  final String serverURL=runSettings.getServerType() == ServerType.INTERNAL ? "http://localhost:" + ToolPanel.serverPort : runSettings.getServerAddress();
+  parameters.put(TestRunner.ParameterKey.SERVER_URL,serverURL);
+  parameters.put(TestRunner.ParameterKey.PORT,String.valueOf(testResultPort));
+  String joinedConfigPaths=joinConfigs(configVirtualFiles);
+  parameters.put(TestRunner.ParameterKey.CONFIG_FILE,joinedConfigPaths);
+  if (runSettings.getTestType() == TestType.TEST_CASE) {
+    parameters.put(TestRunner.ParameterKey.TEST_CASE,runSettings.getTestCaseName());
+  }
+  if (runSettings.getTestType() == TestType.TEST_METHOD) {
+    parameters.put(TestRunner.ParameterKey.TEST_CASE,runSettings.getTestCaseName());
+    parameters.put(TestRunner.ParameterKey.TEST_METHOD,runSettings.getTestMethodName());
+  }
+  if (coverageFilePath != null) {
+    parameters.put(TestRunner.ParameterKey.OUTPUT_COVERAGE_FILE,coverageFilePath);
+  }
+  return buildCommandLine(parameters);
+}
