@@ -1,6 +1,7 @@
 {
   if (isFileBased(command) || command == ServerMethod.SAVE_PROJECT_WINDOW_BOUNDS || command == ServerMethod.CALLBACK || command == ServerMethod.UNREGISTER_LIBRARY_SETS || command == ServerMethod.LOG_WARNING) {
-    return super.processCommand(command);
+    super.processCommand(command);
+    return;
   }
 switch (command) {
 case ServerMethod.SHOW_ERROR:
@@ -15,25 +16,13 @@ case ServerMethod.SHOW_ERROR:
     expectedError=null;
   }
 break;
-case TestServerMethod.fail:
-throw new IOException(reader.readUTF());
-case TestServerMethod.success:
-String message=reader.readUTF();
-if (message.equals("__passed__")) {
-return false;
-}
- else {
-throw new IOException(message);
-}
 default :
 if (customMessageHandler != null && customMessageHandler.getExpectedCommand() == command) {
 customMessageHandler.process();
 customMessageHandler=null;
-return false;
 }
  else {
 throw new IllegalStateException("Unexpected server command: " + command);
 }
 }
-return true;
 }

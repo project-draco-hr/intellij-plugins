@@ -1,16 +1,19 @@
 {
-  String documentName=file.getNameWithoutExtension();
+  final String documentName=file.getNameWithoutExtension();
   System.out.print(documentName + '\n');
-  client.renderDocument(myModule,xmlFile);
-  client.test(myModule,documentName,originalFile.getParent().getName());
   socketInputHandler.setExpectedErrorMessage(expectedErrorForDocument(documentName));
-  try {
-    socketInputHandler.process();
+  AsyncResult<DocumentFactoryManager.DocumentInfo> renderResult=client.renderDocument(myModule,xmlFile,new ProblemsHolder());
+  client.flush();
+  socketInputHandler.processUntil(renderResult);
+  if (renderResult.isDone()) {
+    ActionCallback testCallback=client.test(DocumentFactoryManager.getInstance().getId(file),documentName,originalFile.getParent().getName());
+    socketInputHandler.processUntil(testCallback);
+    if (testCallback.isDone()) {
+      passedCounter++;
+    }
+ else {
+      throw new AssertionError(socketInputHandler.reader.readUTF());
+    }
   }
- catch (  IOException e) {
-    LOG.error(e);
-    return false;
-  }
-  passedCounter++;
-  return true;
+  return null;
 }
