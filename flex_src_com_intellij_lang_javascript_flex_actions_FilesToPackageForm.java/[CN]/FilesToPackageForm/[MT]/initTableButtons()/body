@@ -3,12 +3,17 @@
   d.setAddAction(new AnActionButtonRunnable(){
     public void run(    AnActionButton button){
       VirtualFile[] files=FileChooser.chooseFiles(myProject,new FileChooserDescriptor(true,true,false,true,false,true));
+      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(myProject).getFileIndex();
       for (      final VirtualFile file : files) {
-        myFilesToPackage.add(new FilePathAndPathInPackage(file.getPath(),file.getName()));
+        final VirtualFile sourceRoot=fileIndex.getSourceRootForFile(file);
+        final String relativePath=sourceRoot == null ? null : VfsUtilCore.getRelativePath(file,sourceRoot,'/');
+        myFilesToPackage.add(new FilePathAndPathInPackage(file.getPath(),StringUtil.notNullize(relativePath,file.getName())));
+      }
+      if (files.length > 0) {
         fireDataChanged();
         IdeFocusManager.getInstance(myProject).requestFocus(myFilesToPackageTable,true);
         final int rowCount=myFilesToPackageTable.getRowCount();
-        myFilesToPackageTable.setRowSelectionInterval(rowCount - 1,rowCount - 1);
+        myFilesToPackageTable.setRowSelectionInterval(rowCount - files.length,rowCount - 1);
       }
     }
   }
