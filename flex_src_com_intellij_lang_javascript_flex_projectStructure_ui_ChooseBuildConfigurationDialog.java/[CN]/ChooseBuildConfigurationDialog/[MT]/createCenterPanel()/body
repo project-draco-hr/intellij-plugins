@@ -1,14 +1,28 @@
 {
   DefaultMutableTreeNode root=new DefaultMutableTreeNode();
-  for (  Module module : myTreeItems.keySet()) {
+  List<Module> modules=new ArrayList<Module>(myTreeItems.keySet());
+  Collections.sort(modules,new Comparator<Module>(){
+    @Override public int compare(    final Module o1,    final Module o2){
+      return o1.getName().compareToIgnoreCase(o2.getName());
+    }
+  }
+);
+  for (  Module module : modules) {
     DefaultMutableTreeNode moduleNode=new DefaultMutableTreeNode(module,true);
     root.add(moduleNode);
-    for (    FlexIdeBCConfigurable bc : myTreeItems.get(module)) {
+    List<FlexIdeBCConfigurable> bcs=myTreeItems.get(module);
+    Collections.sort(bcs,new Comparator<FlexIdeBCConfigurable>(){
+      @Override public int compare(      final FlexIdeBCConfigurable o1,      final FlexIdeBCConfigurable o2){
+        return o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+      }
+    }
+);
+    for (    FlexIdeBCConfigurable bc : bcs) {
       DefaultMutableTreeNode bcNode=new DefaultMutableTreeNode(bc,false);
       moduleNode.add(bcNode);
     }
   }
-  myTree=new Tree(new DefaultTreeModel(root));
+  myTree.setModel(new DefaultTreeModel(root));
   myTree.setRootVisible(false);
   new TreeSpeedSearch(myTree,new Convertor<TreePath,String>(){
     @Override public String convert(    TreePath o){
@@ -21,7 +35,7 @@
   myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
   myTree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener(){
     @Override public void valueChanged(    TreeSelectionEvent e){
-      updateOkButton();
+      updateOnSelectionChange();
     }
   }
 );
@@ -39,9 +53,6 @@
     }
   }
 );
-  JPanel p=new JPanel(new BorderLayout());
-  p.setPreferredSize(new Dimension(400,430));
-  p.add(ScrollPaneFactory.createScrollPane(myTree),BorderLayout.CENTER);
   TreeUtil.expandAll(myTree);
   myTree.addMouseListener(new MouseAdapter(){
     @Override public void mouseClicked(    MouseEvent e){
@@ -59,6 +70,6 @@
     }
   }
 );
-  updateOkButton();
-  return p;
+  updateOnSelectionChange();
+  return myContentPane;
 }

@@ -1,5 +1,5 @@
 {
-  Collection<FlexIdeBCConfigurable> dependencies=new ArrayList<FlexIdeBCConfigurable>();
+  final Collection<FlexIdeBCConfigurable> dependencies=new ArrayList<FlexIdeBCConfigurable>();
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
     if (item instanceof BCItem) {
@@ -9,33 +9,22 @@
       }
     }
   }
-  Map<Module,List<FlexIdeBCConfigurable>> treeItems=new HashMap<Module,List<FlexIdeBCConfigurable>>();
-  FlexIdeBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
-  for (  Module module : ModuleStructureConfigurable.getInstance(myProject).getModules()) {
-    if (ModuleType.get(module) != FlexModuleType.getInstance()) {
-      continue;
-    }
-    for (    CompositeConfigurable configurable : configurator.getBCConfigurables(module)) {
-      FlexIdeBCConfigurable flexIdeBCConfigurable=FlexIdeBCConfigurable.unwrap(configurable);
-      if (dependencies.contains(flexIdeBCConfigurable) || flexIdeBCConfigurable.isParentFor(DependenciesConfigurable.this)) {
-        continue;
+  ChooseBuildConfigurationDialog d=ChooseBuildConfigurationDialog.createForApplicableBCs(FlexBundle.message("add.bc.dependency.dialog.title"),FlexBundle.message("add.dependency.bc.dialog.label"),myProject,false,new Condition<FlexIdeBCConfigurable>(){
+    @Override public boolean value(    final FlexIdeBCConfigurable configurable){
+      if (dependencies.contains(configurable) || configurable.isParentFor(DependenciesConfigurable.this)) {
+        return false;
       }
-      if (!BCUtils.isApplicableForDependency(myNature,flexIdeBCConfigurable.getOutputType())) {
-        continue;
+      if (!BCUtils.isApplicableForDependency(myNature,configurable.getOutputType())) {
+        return false;
       }
-      List<FlexIdeBCConfigurable> list=treeItems.get(module);
-      if (list == null) {
-        list=new ArrayList<FlexIdeBCConfigurable>();
-        treeItems.put(module,list);
-      }
-      list.add(flexIdeBCConfigurable);
+      return true;
     }
   }
-  if (treeItems.isEmpty()) {
-    Messages.showInfoMessage(myProject,"No applicable build configurations found","Add Dependency");
+);
+  if (d == null) {
+    Messages.showInfoMessage(myProject,FlexBundle.message("no.applicable.bcs"),FlexBundle.message("add.bc.dependency.dialog.title"));
     return;
   }
-  ChooseBuildConfigurationDialog d=new ChooseBuildConfigurationDialog(myProject,treeItems);
   d.show();
   if (!d.isOK()) {
     return;
