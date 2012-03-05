@@ -1,5 +1,14 @@
 {
-  testFiles(getTestDir(),getVFile(getTestDataPath() + "/src/mx"));
+  moduleInitializer=new TripleFunction<ModifiableRootModel,VirtualFile,List<String>,Void>(){
+    @Override public Void fun(    ModifiableRootModel model,    VirtualFile file,    List<String> libs){
+      libs.add(getFudHome() + "/test-data-helper/target/test-data-helper.swc");
+      final VirtualFile assetsDir=DesignerTests.getVFile("assets");
+      model.addContentEntry(assetsDir).addSourceFolder(assetsDir,false);
+      return null;
+    }
+  }
+;
+  testFiles(getTestDir(),DesignerTests.getVFile(DesignerTests.getTestDataPath() + "/src/mx"));
   String[] problems=getLastProblems();
   if (System.getProperty("testFile") != null) {
     assertThat(problems,emptyArray());
