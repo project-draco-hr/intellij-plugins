@@ -1,16 +1,15 @@
 {
   final Project project=moduleInfo.getElement().getProject();
-  for (  LibrarySet librarySet : moduleInfo.getLibrarySets()) {
-    do {
-      PropertiesFile propertiesFile;
-      for (      Library library : librarySet.getLibraries()) {
-        if (library.hasResourceBundles() && (propertiesFile=getResourceBundleFile(locale,bundleName,library,project)) != null) {
-          return propertiesFile;
-        }
+  LibrarySet librarySet=moduleInfo.getLibrarySet();
+  do {
+    PropertiesFile propertiesFile;
+    for (    Library library : librarySet.getLibraries()) {
+      if (library.hasResourceBundles() && (propertiesFile=getResourceBundleFile(locale,bundleName,library,project)) != null) {
+        return propertiesFile;
       }
     }
- while ((librarySet=librarySet.getParent()) != null);
   }
+ while ((librarySet=librarySet.getParent()) != null);
   final Sdk sdk=FlexUtils.getSdkForActiveBC(moduleInfo.getModule());
   VirtualFile dir=sdk == null ? null : sdk.getHomeDirectory();
   if (dir != null) {
