@@ -1,5 +1,5 @@
 {
-  PsiReference[] references=element.getReferences();
+  PsiReference[] references=valueProvider.getElement().getReferences();
   if (references.length < 2) {
     return false;
   }
@@ -23,7 +23,7 @@
         filteredStates.add(state);
       }
  else {
-        MxmlWriter.LOG.warn("Skip " + element.getText() + " from "+ state.name+ " "+ "due to element parent object included only in "+ includeInStates);
+        MxmlWriter.LOG.warn("Skip " + valueProvider.getElement().getText() + " from "+ state.name+ " "+ "due to element parent object included only in "+ includeInStates);
       }
     }
     if (filteredStates.isEmpty()) {
@@ -35,7 +35,7 @@
   }
   ValueWriter valueWriter=null;
   try {
-    valueWriter=propertyProcessor.process(element,valueProvider,descriptor,objectReferenceProvider);
+    valueWriter=propertyProcessor.process(valueProvider.getElement(),valueProvider,descriptor,objectReferenceProvider);
   }
  catch (  InvalidPropertyException ignored) {
   }
@@ -55,7 +55,7 @@
     throw new UnsupportedOperationException("");
   }
   if (propertyKind.isComplex()) {
-    mxmlWriter.processPropertyTagValue((XmlTag)element,context,propertyKind);
+    mxmlWriter.processPropertyTagValue(descriptor,(XmlTag)valueProvider.getElement(),context,propertyKind);
   }
   override.targetId=context.getOrAllocateId();
   if (pendingFirstSetProperty == null && context instanceof NullContext) {
