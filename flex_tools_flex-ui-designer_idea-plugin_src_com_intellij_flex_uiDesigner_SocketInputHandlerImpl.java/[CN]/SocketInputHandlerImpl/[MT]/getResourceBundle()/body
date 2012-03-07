@@ -1,69 +1,31 @@
 {
   initResultFile();
+  final boolean fromModuleSource=reader.readBoolean();
   final int moduleId=readEntityId();
   final String locale=reader.readUTF();
   final String bundleName=reader.readUTF();
   final ModuleInfo moduleInfo=Client.getInstance().getRegisteredModules().getNullableInfo(moduleId);
   PropertiesFile resourceBundle=null;
-  int sourceKind=0;
-  int sourceId=0;
+  int sourceId=-1;
   if (moduleInfo == null) {
-    LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find project with id "+ moduleId);
-    resourceBundle=null;
+    LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find module with id "+ moduleId);
   }
  else {
-    final AccessToken token=ReadAction.start();
-    try {
-      final PsiManager psiManager=PsiManager.getInstance(moduleInfo.getModule().getProject());
-      final List<VirtualFile> result=new ArrayList<VirtualFile>();
-      FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,PropertiesFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
-        public boolean process(        VirtualFile file,        Void value){
-          if (file.getNameWithoutExtension().equals(bundleName)) {
-            result.add(file);
-            if (file.getParent().getName().equals("en_US")) {
-              return false;
-            }
-          }
-          return true;
-        }
-      }
-,moduleInfo.getModule().getModuleScope(false));
-      PropertiesFile defaultResourceBundle=null;
-      for (      VirtualFile file : result) {
-        PsiFile psiFile=psiManager.findFile(file);
-        if (psiFile != null) {
-          if (file.getParent().getName().equals("en_US")) {
-            defaultResourceBundle=(PropertiesFile)psiFile;
-          }
- else {
-            resourceBundle=(PropertiesFile)psiFile;
-            break;
-          }
-        }
-      }
-      if (resourceBundle == null) {
-        resourceBundle=defaultResourceBundle;
-      }
-      if (resourceBundle == null) {
-        Pair<PropertiesFile,Integer> bundleInfo=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
-        if (bundleInfo != null) {
-          resourceBundle=bundleInfo.first;
-          sourceKind=1;
-          sourceId=bundleInfo.second;
-        }
-      }
- else {
-        sourceKind=2;
-        sourceId=moduleInfo.getId();
-      }
+    if (fromModuleSource) {
+      resourceBundle=getResourceBundleFromModuleSource(moduleInfo.getModule(),bundleName);
+      sourceId=moduleId;
     }
-  finally {
-      token.finish();
+ else {
+      Pair<PropertiesFile,Integer> bundleInfo=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+      if (bundleInfo != null) {
+        resourceBundle=bundleInfo.first;
+        sourceId=bundleInfo.second;
+      }
     }
   }
   final FileOutputStream fileOut=new FileOutputStream(resultFile);
   try {
-    writeResourceBundle(resourceBundle,fileOut,sourceKind,sourceId);
+    writeResourceBundle(resourceBundle,fileOut,sourceId);
   }
   finally {
     fileOut.close();
