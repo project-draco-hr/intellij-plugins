@@ -4,10 +4,12 @@
   final String locale=reader.readUTF();
   final String bundleName=reader.readUTF();
   final ModuleInfo moduleInfo=Client.getInstance().getRegisteredModules().getNullableInfo(moduleId);
-  PropertiesFile resourceBundleFile=null;
+  PropertiesFile resourceBundle=null;
+  int sourceKind=0;
+  int sourceId=0;
   if (moduleInfo == null) {
     LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find project with id "+ moduleId);
-    resourceBundleFile=null;
+    resourceBundle=null;
   }
  else {
     final AccessToken token=ReadAction.start();
@@ -26,21 +28,33 @@
         }
       }
 ,moduleInfo.getModule().getModuleScope(false));
-      PropertiesFile defaultLocale=null;
+      PropertiesFile defaultResourceBundle=null;
       for (      VirtualFile file : result) {
         PsiFile psiFile=psiManager.findFile(file);
         if (psiFile != null) {
           if (file.getParent().getName().equals("en_US")) {
-            defaultLocale=(PropertiesFile)psiFile;
+            defaultResourceBundle=(PropertiesFile)psiFile;
           }
  else {
-            resourceBundleFile=(PropertiesFile)psiFile;
+            resourceBundle=(PropertiesFile)psiFile;
             break;
           }
         }
       }
-      if (resourceBundleFile == null) {
-        resourceBundleFile=defaultLocale != null ? defaultLocale : LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+      if (resourceBundle == null) {
+        resourceBundle=defaultResourceBundle;
+      }
+      if (resourceBundle == null) {
+        Pair<PropertiesFile,Integer> bundleInfo=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+        if (bundleInfo != null) {
+          resourceBundle=bundleInfo.first;
+          sourceKind=1;
+          sourceId=bundleInfo.second;
+        }
+      }
+ else {
+        sourceKind=2;
+        sourceId=moduleInfo.getId();
       }
     }
   finally {
@@ -49,7 +63,7 @@
   }
   final FileOutputStream fileOut=new FileOutputStream(resultFile);
   try {
-    writeResourceBundle(resourceBundleFile,fileOut);
+    writeResourceBundle(resourceBundle,fileOut,sourceKind,sourceId);
   }
   finally {
     fileOut.close();
