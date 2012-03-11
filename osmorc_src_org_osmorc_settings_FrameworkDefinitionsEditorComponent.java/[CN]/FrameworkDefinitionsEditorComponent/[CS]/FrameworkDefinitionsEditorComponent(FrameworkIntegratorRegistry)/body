@@ -1,44 +1,46 @@
 {
-  this.frameworkIntegratorRegistry=frameworkIntegratorRegistry;
-  this.myModel=new DefaultListModel();
-  frameworkInstances.setModel(this.myModel);
-  frameworkInstances.getEmptyText().setText("No frameworks configured");
-  addFramework.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  myFrameworkIntegratorRegistry=frameworkIntegratorRegistry;
+  myModel=new DefaultListModel();
+  myFrameworkInstances=new JBList(myModel);
+  myFrameworkInstances.getEmptyText().setText("No frameworks configured");
+  myFrameworkInstancesPanel.add(ToolbarDecorator.createDecorator(myFrameworkInstances).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       addFrameworkInstance();
     }
   }
-);
-  editFramework.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      editFrameworkInstance();
-    }
-  }
-);
-  removeFramework.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       removeFrameworkInstance();
     }
   }
-);
-  editFramework.setEnabled(selectedFrameworkInstance != null);
-  frameworkInstances.addListSelectionListener(new ListSelectionListener(){
-    public void valueChanged(    ListSelectionEvent e){
-      selectedFrameworkInstance=(FrameworkInstanceDefinition)frameworkInstances.getSelectedValue();
-      if (selectedFrameworkInstance != null) {
-        frameworkIntegrator.setText(selectedFrameworkInstance.getFrameworkIntegratorName());
-        baseFolder.setText(selectedFrameworkInstance.getBaseFolder());
-        final String theVersion=selectedFrameworkInstance.getVersion();
-        version.setText(theVersion != null && theVersion.length() > 0 ? theVersion : "latest");
-        frameworkInstanceName.setText(selectedFrameworkInstance.getName());
-      }
-      editFramework.setEnabled(selectedFrameworkInstance != null);
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      editFrameworkInstance();
+    }
+  }
+).disableUpDownActions().createPanel(),BorderLayout.CENTER);
+  ToolbarDecorator.findEditButton(myFrameworkInstancesPanel).addCustomUpdater(new AnActionButtonUpdater(){
+    @Override public boolean isEnabled(    AnActionEvent e){
+      return mySelectedFrameworkInstance != null;
     }
   }
 );
-  frameworkInstances.addMouseListener(new MouseAdapter(){
+  myFrameworkInstances.addListSelectionListener(new ListSelectionListener(){
+    public void valueChanged(    ListSelectionEvent e){
+      mySelectedFrameworkInstance=(FrameworkInstanceDefinition)myFrameworkInstances.getSelectedValue();
+      if (mySelectedFrameworkInstance != null) {
+        myFrameworkIntegrator.setText(mySelectedFrameworkInstance.getFrameworkIntegratorName());
+        myBaseFolder.setText(mySelectedFrameworkInstance.getBaseFolder());
+        final String theVersion=mySelectedFrameworkInstance.getVersion();
+        myVersion.setText(theVersion != null && theVersion.length() > 0 ? theVersion : "latest");
+        myFrameworkInstanceName.setText(mySelectedFrameworkInstance.getName());
+      }
+    }
+  }
+);
+  myFrameworkInstances.addMouseListener(new MouseAdapter(){
     @Override public void mouseClicked(    MouseEvent e){
-      if (selectedFrameworkInstance != null && e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
+      if (mySelectedFrameworkInstance != null && e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
         editFrameworkInstance();
       }
     }
