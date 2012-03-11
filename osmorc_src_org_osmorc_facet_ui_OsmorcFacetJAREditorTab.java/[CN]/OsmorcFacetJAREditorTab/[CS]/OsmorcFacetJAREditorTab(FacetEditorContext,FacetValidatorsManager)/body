@@ -35,7 +35,7 @@
   myPlaceInCompilerOutputPathRadioButton.addChangeListener(listener);
   watcher.register(myRoot);
   myAdditionalJARContentsTableModel=new AdditionalJARContentsTableModel();
-  myAdditionalJARContentsTable.setModel(myAdditionalJARContentsTableModel);
+  myAdditionalJARContentsTable=new JBTable(myAdditionalJARContentsTableModel);
   TableColumn col=myAdditionalJARContentsTable.getColumnModel().getColumn(0);
   final FileSelectorTableCellEditor selectorTableCellEditor=new FileSelectorTableCellEditor(project,myEditorContext.getModule());
   col.setCellEditor(selectorTableCellEditor);
@@ -61,32 +61,21 @@
     }
   }
 );
-  myAdditionalJARContentsTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-    public void valueChanged(    ListSelectionEvent e){
-      myRemoveButton.setEnabled(myAdditionalJARContentsTable.getSelectedRowCount() > 0);
-      myEditButton.setEnabled(myAdditionalJARContentsTable.getSelectedRowCount() > 0);
-    }
-  }
-);
-  myAddButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  myAdditionalJarContentsPanel.add(ToolbarDecorator.createDecorator(myAdditionalJARContentsTable).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       onAddAdditionalJARContent();
     }
   }
-);
-  myRemoveButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       onRemoveAdditionalJARContent();
     }
   }
-);
-  myEditButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       onEditAdditionalJARContent();
     }
   }
-);
-  myEditButton.setEnabled(false);
-  myRemoveButton.setEnabled(false);
+).disableUpDownActions().createPanel(),BorderLayout.CENTER);
   myValidatorsManager.registerValidator(new OsmorcFacetJarEditorValidator(myEditorContext,this));
 }
