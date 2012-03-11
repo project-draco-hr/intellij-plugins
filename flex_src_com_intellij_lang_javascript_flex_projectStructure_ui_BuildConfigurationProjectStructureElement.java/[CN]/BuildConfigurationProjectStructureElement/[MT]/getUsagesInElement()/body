@@ -1,5 +1,6 @@
 {
-  final FlexProjectConfigurationEditor editor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+  FlexIdeBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
+  final FlexProjectConfigurationEditor editor=configurator.getConfigEditor();
   final ModulesConfigurator modulesConfigurator=myContext.getModulesConfigurator();
   final List<ProjectStructureElementUsage> usages=new ArrayList<ProjectStructureElementUsage>();
   for (  DependencyEntry dependencyEntry : myBc.getDependencies().getEntries()) {
@@ -10,7 +11,10 @@
       if (library != null) {
         usages.add(new UsageInBcDependencies(this,new LibraryProjectStructureElement(myContext,library)){
           @Override public void removeSourceElement(){
-            libraryRemoved(library);
+            libraryReplaced(library,null);
+          }
+          @Override public void replaceElement(          final ProjectStructureElement newElement){
+            libraryReplaced(library,((LibraryProjectStructureElement)newElement).getLibrary());
           }
         }
 );
@@ -30,6 +34,9 @@
           usages.add(new UsageInBcDependencies(this,new BuildConfigurationProjectStructureElement(bc,module,myContext)){
             @Override public void removeSourceElement(){
             }
+            @Override public void replaceElement(            final ProjectStructureElement newElement){
+              throw new UnsupportedOperationException();
+            }
           }
 );
         }
@@ -42,6 +49,9 @@
     usages.add(new UsageInBcDependencies(this,new SdkProjectStructureElement(myContext,sdk)){
       @Override public void removeSourceElement(){
         myBc.getDependencies().setSdkEntry(null);
+      }
+      @Override public void replaceElement(      final ProjectStructureElement newElement){
+        throw new UnsupportedOperationException();
       }
     }
 );
