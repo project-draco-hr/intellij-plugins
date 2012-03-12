@@ -19,6 +19,7 @@
     }
   }
 ;
+  myTree=new SimpleTree();
   myTree.setRootVisible(false);
   myTree.setShowsRootHandles(true);
   myBuilder=new SimpleTreeBuilder(myTree,(DefaultTreeModel)myTree.getModel(),structure,null);
@@ -32,8 +33,8 @@
     }
   }
 );
-  myAddSetButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
+  myTreePanel.add(ToolbarDecorator.createDecorator(myTree).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       final StrutsFileSet fileSet=new StrutsFileSet(StrutsFileSet.getUniqueId(myBuffer),StrutsFileSet.getUniqueName(StrutsBundle.message("facet.fileset.my.fileset"),myBuffer),originalConfiguration){
         public boolean isNew(){
           return true;
@@ -53,9 +54,16 @@
       myTree.requestFocus();
     }
   }
-);
-  myEditButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      remove();
+      myModified=true;
+      myBuilder.updateFromRoot();
+      myTree.requestFocus();
+    }
+  }
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       final StrutsFileSet fileSet=getCurrentFileSet();
       if (fileSet != null) {
         final FileSetEditor editor=new FileSetEditor(myPanel,fileSet,facetEditorContext,myConfigsSearcher);
@@ -74,16 +82,10 @@
       }
     }
   }
-);
-  myRemoveButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
-      remove();
-      myModified=true;
-      myBuilder.updateFromRoot();
-      myTree.requestFocus();
-    }
-  }
-);
-  dumbService.makeDumbAware(myAddSetButton,this);
-  dumbService.makeDumbAware(myEditButton,this);
+).disableUpDownActions().createPanel());
+  AnActionButton addButton=ToolbarDecorator.findAddButton(myTreePanel);
+  myEditButton=ToolbarDecorator.findEditButton(myTreePanel);
+  myRemoveButton=ToolbarDecorator.findRemoveButton(myTreePanel);
+  dumbService.makeDumbAware(addButton.getContextComponent(),this);
+  dumbService.makeDumbAware(myEditButton.getContextComponent(),this);
 }
