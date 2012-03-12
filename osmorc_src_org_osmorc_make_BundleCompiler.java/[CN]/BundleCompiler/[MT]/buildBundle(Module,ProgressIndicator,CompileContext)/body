@@ -20,39 +20,37 @@
   if (moduleOutputDir != null) {
     classPaths.add(moduleOutputDir.getUrl());
   }
-  String bndFileUrl="";
-  Map<String,String> additionalProperties=new HashMap<String,String>();
-  if (configuration.isOsmorcControlsManifest() || configuration.isUseBndFile() || configuration.isUseBundlorFile()) {
-    if (configuration.isUseBndFile()) {
-      File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
-      if (bndFile == null || !bndFile.exists()) {
-        compileContext.addMessage(CompilerMessageCategory.ERROR,String.format(messagePrefix + "The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
-        return;
-      }
- else {
-        bndFileUrl=VfsUtil.pathToUrl(bndFile.getPath());
-      }
-    }
- else     if (configuration.isUseBundlorFile()) {
-      bndFileUrl=makeBndFile(module,"",compileContext);
-      if (bndFileUrl == null) {
-        return;
-      }
+  Map<String,String> buildProperties=new LinkedHashMap<String,String>();
+  if (configuration.isUseBndFile()) {
+    File bndFile=findFileInModuleContentRoots(configuration.getBndFileLocation(),module);
+    if (bndFile == null || !bndFile.exists()) {
+      compileContext.addMessage(CompilerMessageCategory.ERROR,String.format(messagePrefix + "The bnd file \"%s\" for module \"%s\" does not exist.",configuration.getBndFileLocation(),module.getName()),configuration.getBndFileLocation(),0,0);
+      return;
     }
  else {
-      bndFileUrl=makeBndFile(module,configuration.asBndFile(),compileContext);
-      if (bndFileUrl == null) {
-        return;
+      OrderedProperties props=new OrderedProperties();
+      FileInputStream fis=new FileInputStream(bndFile);
+      try {
+        props.load(fis);
       }
+  finally {
+        fis.close();
+      }
+      buildProperties.putAll(props.toMap());
     }
   }
- else {
+ else   if (configuration.isUseBundlorFile()) {
+  }
+ else   if (configuration.isOsmorcControlsManifest()) {
+    buildProperties.putAll(configuration.getBndFileProperties());
+  }
+ else   if (configuration.isManifestManuallyEdited()) {
     boolean manifestExists=false;
     VirtualFile manifestFile=osmorcFacet.getManifestFile();
     if (manifestFile != null) {
       String manifestFilePath=manifestFile.getPath();
       if (manifestFilePath != null) {
-        bndFileUrl=makeBndFile(module,"-manifest " + manifestFilePath + "\n",compileContext);
+        buildProperties.put("-manifest",manifestFilePath);
         manifestExists=true;
       }
     }
@@ -61,11 +59,14 @@
       return;
     }
   }
+ else {
+    compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "OSGi facet configuration for module " + module.getName()+ " seems to be invalid. No supported manifest handling method is set up."+ " Please check configuration and try again.",null,0,0);
+  }
   if (configuration.isManifestManuallyEdited() || configuration.isOsmorcControlsManifest()) {
     StringBuilder pathBuilder=new StringBuilder();
     for (int i=0; i < classPaths.size(); i++) {
       String classPath=classPaths.get(i);
-      String relPath=FileUtil.getRelativePath(new File(VfsUtil.urlToPath(bndFileUrl)),new File(VfsUtil.urlToPath(classPath)));
+      String relPath=FileUtil.getRelativePath(new File(BndWrapper.getOutputPath(module,compileContext)),new File(VfsUtil.urlToPath(classPath)));
       if (i != 0) {
         pathBuilder.append(",");
       }
@@ -82,20 +83,20 @@
  else {
       includedResources=includedResources + "," + pathBuilder.toString();
     }
-    additionalProperties.put("Include-Resource",includedResources);
+    buildProperties.put("Include-Resource",includedResources);
     if (!configuration.isIgnorePatternValid()) {
       compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "The file ignore pattern in the facet configuration is invalid.",null,0,0);
       return;
     }
     if (!configuration.getIgnoreFilePattern().isEmpty()) {
-      additionalProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
+      buildProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
     }
   }
   String outputPath=jarFile.getPath();
   if (configuration.isUseBundlorFile()) {
     outputPath+=".tmp.jar";
   }
-  wrapper.build(module,compileContext,bndFileUrl,ArrayUtil.toStringArray(classPaths),outputPath,additionalProperties);
+  BndWrapper.build(module,compileContext,ArrayUtil.toStringArray(classPaths),outputPath,buildProperties);
   if (configuration.isUseBundlorFile()) {
     File bundlorFile=findFileInModuleContentRoots(configuration.getBundlorFileLocation(),module);
     if (bundlorFile == null || !bundlorFile.exists()) {

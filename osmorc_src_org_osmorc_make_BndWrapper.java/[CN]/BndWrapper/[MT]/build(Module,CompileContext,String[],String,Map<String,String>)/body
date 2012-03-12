@@ -5,14 +5,17 @@
     String classPathUrl=classPathUrls[i];
     classPathEntries[i]=new File(VfsUtil.urlToPath(classPathUrl));
   }
-  File bndFile=new File(VfsUtil.urlToPath(bndFileUrl));
-  File outFile=new File(outputPath);
-  Properties props=new Properties();
-  for (  Map.Entry<String,String> stringStringEntry : additionalProperties.entrySet()) {
-    props.setProperty(stringStringEntry.getKey(),stringStringEntry.getValue());
-  }
+  File bndFile;
   try {
-    return doBuild(module,compileContext,bndFile,classPathEntries,outFile,props);
+    bndFile=makeBndFile(module,buildProperties,compileContext);
+  }
+ catch (  IOException e) {
+    compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Problem when generating bnd file " + e.getMessage(),null,0,0);
+    return false;
+  }
+  File outFile=new File(outputPath);
+  try {
+    return doBuild(module,compileContext,bndFile,classPathEntries,outFile);
   }
  catch (  Exception e) {
     compileContext.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Unexpected error: " + e.getMessage(),null,0,0);
