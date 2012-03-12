@@ -9,7 +9,11 @@
   if (configuration == null || !processedConfigurations.add(configuration)) {
     return;
   }
-  modules2activeConfigurations.putValue(module,configuration);
+  ModuleData moduleData=modules2activeConfigurations.get(module);
+  if (moduleData == null) {
+    modules2activeConfigurations.put(module,moduleData=new ModuleData());
+  }
+  moduleData.addBc(configuration,productionDependency);
   for (  DependencyEntry entry : configuration.getDependencies().getEntries()) {
     if (!(entry instanceof BuildConfigurationEntry)) {
       continue;
@@ -29,6 +33,6 @@
     if (dependencyModule == null || dependencyModule == module) {
       continue;
     }
-    processModuleWithBuildConfiguration(dependencyModule,dependencyBc,modules2activeConfigurations,processedConfigurations);
+    processModuleWithBuildConfiguration(dependencyModule,dependencyBc,modules2activeConfigurations,processedConfigurations,entry.getDependencyType().getLinkageType() != LinkageType.Test);
   }
 }

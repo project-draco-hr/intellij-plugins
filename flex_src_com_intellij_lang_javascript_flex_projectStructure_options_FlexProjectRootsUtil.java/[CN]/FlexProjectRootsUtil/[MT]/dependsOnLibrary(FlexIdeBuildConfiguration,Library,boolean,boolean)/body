@@ -3,10 +3,10 @@
   if (LibraryTablesRegistrar.APPLICATION_LEVEL.equals(libraryLevel) || LibraryTablesRegistrar.PROJECT_LEVEL.equals(libraryLevel)) {
     return !ContainerUtil.process(bc.getDependencies().getEntries(),new Processor<DependencyEntry>(){
       @Override public boolean process(      DependencyEntry dependencyEntry){
-        if (transitive && dependencyEntry.getDependencyType().getLinkageType() != LinkageType.Include) {
+        if (!(dependencyEntry instanceof SharedLibraryEntry)) {
           return true;
         }
-        if (!(dependencyEntry instanceof SharedLibraryEntry)) {
+        if (!canDependOn(dependencyEntry,transitive,productionOnly)) {
           return true;
         }
         return !((SharedLibraryEntry)dependencyEntry).getLibraryName().equals(library.getName()) || !((SharedLibraryEntry)dependencyEntry).getLibraryLevel().equals(libraryLevel);
@@ -18,10 +18,10 @@
     final String libraryId=getLibraryId(library);
     return libraryId != null && !ContainerUtil.process(bc.getDependencies().getEntries(),new Processor<DependencyEntry>(){
       @Override public boolean process(      DependencyEntry dependencyEntry){
-        if (transitive && dependencyEntry.getDependencyType().getLinkageType() != LinkageType.Include) {
+        if (!(dependencyEntry instanceof ModuleLibraryEntry)) {
           return true;
         }
-        if (!(dependencyEntry instanceof ModuleLibraryEntry)) {
+        if (!canDependOn(dependencyEntry,transitive,productionOnly)) {
           return true;
         }
         return !((ModuleLibraryEntry)dependencyEntry).getLibraryId().equals(libraryId);

@@ -13,8 +13,8 @@
     if (myActiveConfigurations == null) {
       return AddDependencyType.DEFAULT;
     }
-    Collection<FlexIdeBuildConfiguration> accessibleConfigurations=myActiveConfigurations.get(module);
-    for (    FlexIdeBuildConfiguration bc : accessibleConfigurations) {
+    ModuleData moduleData=myActiveConfigurations.get(module);
+    for (    FlexIdeBuildConfiguration bc : moduleData.bcs) {
       if (bc.getSdk() != null) {
         return AddDependencyType.DEFAULT;
       }
@@ -23,7 +23,8 @@
   }
   Collection<FlexIdeBuildConfiguration> accessibleConfigurations;
   if (myActiveConfigurations != null) {
-    accessibleConfigurations=myActiveConfigurations.get(module);
+    ModuleData moduleData=myActiveConfigurations.get(module);
+    accessibleConfigurations=moduleData != null ? moduleData.bcs : Collections.<FlexIdeBuildConfiguration>emptyList();
   }
  else {
     accessibleConfigurations=Arrays.asList(FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations());
@@ -34,7 +35,7 @@
       return AddDependencyType.DEFAULT;
     }
     if (library.getType() instanceof FlexLibraryType) {
-      return FlexProjectRootsUtil.dependOnLibrary(accessibleConfigurations,library,module != myRootModule) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+      return FlexProjectRootsUtil.dependOnLibrary(accessibleConfigurations,library,module != myRootModule,settings.isProductionOnly()) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
     }
  else {
       return AddDependencyType.DO_NOT_ADD;
@@ -46,7 +47,8 @@
       return AddDependencyType.DO_NOT_ADD;
     }
     if (myActiveConfigurations != null) {
-      return myActiveConfigurations.containsKey(dependencyModule) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+      ModuleData moduleData=myActiveConfigurations.get(dependencyModule);
+      return moduleData != null && (moduleData.accessibleInProduction || !settings.isProductionOnly()) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
     }
  else {
       return AddDependencyType.DEFAULT;
