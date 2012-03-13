@@ -1,0 +1,58 @@
+{
+  Collection<String> packages=new LinkedHashSet<String>();
+  if (outputDirectory != null && outputDirectory.isDirectory()) {
+    DirectoryScanner scanner=new DirectoryScanner();
+    scanner.setBasedir(outputDirectory);
+    scanner.setIncludes(new String[]{"**/*.class"});
+    scanner.addDefaultExcludes();
+    scanner.scan();
+    String[] paths=scanner.getIncludedFiles();
+    for (    String path : paths) {
+      packages.add(getPackageName(path));
+    }
+  }
+  StringBuilder exportedPkgs=new StringBuilder();
+  StringBuilder privatePkgs=new StringBuilder();
+  boolean noprivatePackages="!*".equals(analyzer.getProperty(Constants.PRIVATE_PACKAGE));
+  for (  Object aPackage : packages) {
+    String pkg=(String)aPackage;
+    if (privatePkgs.length() > 0) {
+      privatePkgs.append(';');
+    }
+    privatePkgs.append(pkg);
+    if (noprivatePackages || !(".".equals(pkg) || pkg.contains(".internal") || pkg.contains(".impl"))) {
+      if (exportedPkgs.length() > 0) {
+        exportedPkgs.append(';');
+      }
+      exportedPkgs.append(pkg);
+    }
+  }
+  if (analyzer.getProperty(Constants.EXPORT_PACKAGE) == null) {
+    if (analyzer.getProperty(Constants.EXPORT_CONTENTS) == null) {
+      analyzer.setProperty(Constants.EXPORT_PACKAGE,exportedPkgs + ";-split-package:=merge-first");
+    }
+ else {
+      analyzer.setProperty(Constants.EXPORT_PACKAGE,"");
+    }
+  }
+ else {
+    String exported=analyzer.getProperty(Constants.EXPORT_PACKAGE);
+    if (exported.contains(LOCAL_PACKAGES)) {
+      String newExported=StringUtils.replace(exported,LOCAL_PACKAGES,exportedPkgs.toString());
+      analyzer.setProperty(Constants.EXPORT_PACKAGE,newExported);
+    }
+  }
+  String internal=analyzer.getProperty(Constants.PRIVATE_PACKAGE);
+  if (internal == null) {
+    if (privatePkgs.length() > 0) {
+      analyzer.setProperty(Constants.PRIVATE_PACKAGE,privatePkgs + ";-split-package:=merge-first");
+    }
+ else {
+      analyzer.setProperty(Constants.PRIVATE_PACKAGE,"!*");
+    }
+  }
+ else   if (internal.contains(LOCAL_PACKAGES)) {
+    String newInternal=StringUtils.replace(internal,LOCAL_PACKAGES,privatePkgs.toString());
+    analyzer.setProperty(Constants.PRIVATE_PACKAGE,newInternal);
+  }
+}

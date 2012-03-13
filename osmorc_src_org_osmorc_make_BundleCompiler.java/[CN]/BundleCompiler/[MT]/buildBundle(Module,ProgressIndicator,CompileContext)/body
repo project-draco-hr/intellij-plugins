@@ -92,12 +92,18 @@
       buildProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
     }
   }
+  if (configuration.isOsmorcControlsManifest()) {
+    progressIndicator.setText2("Calculating local packages");
+    LocalPackageCollector.addLocalPackages(VfsUtil.virtualToIoFile(moduleOutputDir),buildProperties);
+  }
   String outputPath=jarFile.getPath();
   if (configuration.isUseBundlorFile()) {
     outputPath+=".tmp.jar";
   }
+  progressIndicator.setText2("Running bnd to build the bundle");
   BndWrapper.build(module,compileContext,ArrayUtil.toStringArray(classPaths),outputPath,buildProperties);
   if (configuration.isUseBundlorFile()) {
+    progressIndicator.setText2("Running bundlor to calculate the manifest");
     File bundlorFile=findFileInModuleContentRoots(configuration.getBundlorFileLocation(),module);
     if (bundlorFile == null || !bundlorFile.exists()) {
       compileContext.addMessage(CompilerMessageCategory.ERROR,String.format(messagePrefix + "The Bundlor file \"%s\" for module \"%s\" does not exist.",configuration.getBundlorFileLocation(),module.getName()),configuration.getBundlorFileLocation(),0,0);
