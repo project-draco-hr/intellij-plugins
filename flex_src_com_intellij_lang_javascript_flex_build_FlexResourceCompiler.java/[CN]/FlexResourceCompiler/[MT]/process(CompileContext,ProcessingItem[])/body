@@ -1,4 +1,20 @@
 {
+  if (CompilerPathsEx.CLEAR_ALL_OUTPUTS_KEY.get(context.getCompileScope()) == Boolean.TRUE) {
+    context.getProgressIndicator().pushState();
+    context.getProgressIndicator().setText(CompilerBundle.message("progress.clearing.output"));
+    Collection<File> outputDirectories=new HashSet<File>();
+    try {
+      Collection<Pair<Module,FlexIdeBuildConfiguration>> toCompile=FlexCompiler.getModulesAndBCsToCompile(context.getCompileScope());
+      for (      Pair<Module,FlexIdeBuildConfiguration> pair : toCompile) {
+        outputDirectories.add(new File(pair.second.getOutputFilePath(true)).getParentFile());
+      }
+    }
+ catch (    ConfigurationException e) {
+      LOG.error("Validation error unexpected",e);
+    }
+    CompilerUtil.clearOutputDirectories(outputDirectories);
+    context.getProgressIndicator().popState();
+  }
   context.getProgressIndicator().pushState();
   context.getProgressIndicator().setText(CompilerBundle.message("progress.copying.resources"));
   final Collection<ProcessingItem> processed=new ArrayList<ProcessingItem>(items.length);
