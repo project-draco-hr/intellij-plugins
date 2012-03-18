@@ -1,7 +1,9 @@
 {
-  final String baseClass=myConfiguration.getOutputType() == OutputType.RuntimeLoadedModule ? FlashRunConfigurationForm.MODULE_BASE_CLASS_NAME : FlashRunConfigurationForm.SPRITE_CLASS_NAME;
-  final GlobalSearchScope scope=GlobalSearchScope.moduleScope(myModule);
-  GlobalSearchScope filterScope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,myConfiguration,false);
-  final Condition<JSClass> filter=new JSClassChooserDialog.PublicInheritor(myModule.getProject(),baseClass,filterScope,true);
-  myMainClassComponent=JSReferenceEditor.forClassName("",myModule.getProject(),null,scope,null,filter,ExecutionBundle.message("choose.main.class.dialog.title"));
+  rebuildMainClassFilter();
+  myMainClassComponent=JSReferenceEditor.forClassName("",myModule.getProject(),null,GlobalSearchScope.moduleScope(myModule),null,new Condition<JSClass>(){
+    @Override public boolean value(    final JSClass jsClass){
+      return myMainClassFilter.value(jsClass);
+    }
+  }
+,ExecutionBundle.message("choose.main.class.dialog.title"));
 }
