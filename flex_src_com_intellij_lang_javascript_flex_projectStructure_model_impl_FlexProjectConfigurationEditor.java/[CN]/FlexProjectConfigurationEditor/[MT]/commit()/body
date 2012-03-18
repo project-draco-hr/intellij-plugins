@@ -1,4 +1,5 @@
 {
+  final Map<Pair<String,String>,String> renamedConfigs=new HashMap<Pair<String,String>,String>();
   for (  Module module : myModule2Editors.keySet()) {
     ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
     Collection<String> usedModulesLibrariesIds=new ArrayList<String>();
@@ -21,6 +22,10 @@
             librariesToAdd.put(library,true);
           }
         }
+      }
+      String originalName=editor.getOriginalName();
+      if (originalName != null && !originalName.equals(editor.getName())) {
+        renamedConfigs.put(Pair.create(module.getName(),originalName),editor.getName());
       }
     }
     modifiableModel.setSdk(sdkNames.isEmpty() ? null : new FlexCompositeSdk(ArrayUtil.toStringArray(sdkNames)));
@@ -113,6 +118,9 @@
       }
       if (myProject != null) {
         FlexBuildConfigurationManagerImpl.resetHighlighting(myProject);
+        if (!renamedConfigs.isEmpty()) {
+          myProject.getMessageBus().syncPublisher(FlexBuildConfigurationChangeListener.TOPIC).buildConfigurationsRenamed(renamedConfigs);
+        }
       }
     }
   }
