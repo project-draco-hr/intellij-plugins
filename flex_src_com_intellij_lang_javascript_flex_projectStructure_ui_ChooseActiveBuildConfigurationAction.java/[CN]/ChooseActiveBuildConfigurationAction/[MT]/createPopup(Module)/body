@@ -1,8 +1,7 @@
 {
   final DefaultActionGroup actionGroup=new DefaultActionGroup();
-  actionGroup.addSeparator(FlexBundle.message("build.configurations.popup.separator.text"));
   final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
-  final FlexIdeBuildConfiguration active=manager.getActiveConfiguration();
+  final FlexIdeBuildConfiguration activeBc=manager.getActiveConfiguration();
   FlexIdeBuildConfiguration[] bcs=manager.getBuildConfigurations();
   Arrays.sort(bcs,new Comparator<FlexIdeBuildConfiguration>(){
     @Override public int compare(    final FlexIdeBuildConfiguration o1,    final FlexIdeBuildConfiguration o2){
@@ -16,10 +15,56 @@
   actionGroup.addSeparator();
   actionGroup.add(new EditBcsAction(module));
   final DataContext dataContext=SimpleDataContext.getProjectContext(module.getProject());
-  return JBPopupFactory.getInstance().createActionGroupPopup(FlexBundle.message("choose.build.configuration.popup.title",module.getName()),actionGroup,dataContext,false,false,true,null,-1,new Condition<AnAction>(){
-    public boolean value(    final AnAction anAction){
-      return anAction instanceof SelectBcAction && ((SelectBcAction)anAction).getBc() == active;
+  return new PopupFactoryImpl.ActionGroupPopup(FlexBundle.message("choose.build.configuration.popup.title",module.getName()),actionGroup,dataContext,false,false,false,true,null,-1,new Condition<AnAction>(){
+    @Override public boolean value(    final AnAction anAction){
+      return anAction instanceof SelectBcAction && ((SelectBcAction)anAction).getBc() == activeBc;
     }
   }
-);
+,null){
+    @Override protected ListCellRenderer getListElementRenderer(){
+      return new PopupListElementRenderer(this){
+{
+        }
+        @Override protected JComponent createItemComponent(){
+          return new MyPanel();
+        }
+        @Override public Component getListCellRendererComponent(        final JList list,        final Object value,        final int index,        final boolean isSelected,        final boolean cellHasFocus){
+          MyPanel p=(MyPanel)myComponent;
+          p.clear();
+          PopupFactoryImpl.ActionItem actionItem=(PopupFactoryImpl.ActionItem)value;
+          AnAction anAction=actionItem.getAction();
+          SimpleColoredText text;
+          Icon icon;
+          boolean isActive;
+          if (anAction instanceof SelectBcAction) {
+            FlexIdeBuildConfiguration bc=((SelectBcAction)anAction).getBc();
+            isActive=bc == activeBc;
+            text=BCUtils.renderBuildConfiguration(bc,null,isActive);
+            icon=bc.getIcon();
+          }
+ else {
+            text=new SimpleColoredText(anAction.getTemplatePresentation().getText(),SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            icon=anAction.getTemplatePresentation().getIcon();
+            isActive=false;
+          }
+          RowIcon rowIcon=new RowIcon(2);
+          rowIcon.setIcon(isActive ? (isSelected ? ICON_ACTIVE_SELECTED : ICON_ACTIVE) : ICON_EMPTY,0);
+          rowIcon.setIcon(icon,1);
+          p.setIcon(rowIcon);
+          if (isSelected) {
+            text=text.derive(SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES,true);
+            setSelected(p);
+          }
+ else {
+            setDeselected(p);
+          }
+          p.setText(text);
+          mySeparatorComponent.setVisible(actionItem.isPrependWithSeparator());
+          return myRendererComponent;
+        }
+      }
+;
+    }
+  }
+;
 }

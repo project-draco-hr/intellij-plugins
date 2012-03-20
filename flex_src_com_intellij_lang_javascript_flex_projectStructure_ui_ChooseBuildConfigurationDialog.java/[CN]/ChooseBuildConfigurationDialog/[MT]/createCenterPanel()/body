@@ -42,13 +42,16 @@
   myTree.setCellRenderer(new ColoredTreeCellRenderer(){
     @Override public void customizeCellRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
       DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)value;
-      append(getText(treeNode));
       Object object=treeNode.getUserObject();
       if (object instanceof Module) {
-        setIcon(ModuleType.get((Module)object).getNodeIcon(expanded));
+        Module module=(Module)object;
+        setIcon(ModuleType.get(module).getNodeIcon(expanded));
+        append(module.getName());
       }
  else {
-        setIcon(((FlexIdeBCConfigurable)object).getIcon());
+        FlexIdeBCConfigurable configurable=(FlexIdeBCConfigurable)object;
+        setIcon((configurable).getIcon());
+        BCUtils.renderBuildConfiguration(configurable.getEditableObject(),null).appendToComponent(this);
       }
     }
   }
