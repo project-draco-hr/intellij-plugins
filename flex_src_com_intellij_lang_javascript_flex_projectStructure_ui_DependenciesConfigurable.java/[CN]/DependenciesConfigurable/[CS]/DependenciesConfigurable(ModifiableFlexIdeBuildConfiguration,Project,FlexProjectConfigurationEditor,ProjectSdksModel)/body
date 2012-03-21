@@ -94,37 +94,39 @@
   myTable.setRootVisible(false);
   myTable.getTree().setShowsRootHandles(true);
   myTable.getTree().setLineStyleAngled();
-  myTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-    @Override public void valueChanged(    ListSelectionEvent e){
-      updateEditButton();
-      updateRemoveButton();
-    }
-  }
-);
-  ToolbarDecorator d=ToolbarDecorator.createDecorator(myTable);
-  d.setAddAction(new AnActionButtonRunnable(){
+  myTablePanel.add(ToolbarDecorator.createDecorator(myTable).setAddAction(new AnActionButtonRunnable(){
     @Override public void run(    AnActionButton button){
       addItem(button);
     }
   }
-);
-  d.setRemoveAction(new AnActionButtonRunnable(){
+).setRemoveAction(new AnActionButtonRunnable(){
     @Override public void run(    AnActionButton anActionButton){
       removeSelection();
     }
   }
-);
-  myEditAction=new AnActionButton(ProjectBundle.message("module.classpath.button.edit"),IconUtil.getEditIcon()){
-    @Override public void actionPerformed(    AnActionEvent e){
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
       editLibrary(((ModuleLibraryItem)item).orderEntry);
     }
   }
-;
-  d.addExtraAction(myEditAction);
-  JPanel panel=d.createPanel();
-  myTablePanel.add(panel,BorderLayout.CENTER);
-  myRemoveButton=ToolbarDecorator.findRemoveButton(panel);
+).setRemoveActionUpdater(new AnActionButtonUpdater(){
+    @Override public boolean isEnabled(    AnActionEvent e){
+      if (myTable.getSelectedRowCount() == 0)       return false;
+      for (      int row : myTable.getSelectedRows()) {
+        MyTableItem item=myTable.getItemAt(row);
+        if (item instanceof SdkItem || item instanceof SdkEntryItem)         return false;
+      }
+      return true;
+    }
+  }
+).setEditActionUpdater(new AnActionButtonUpdater(){
+    @Override public boolean isEnabled(    AnActionEvent e){
+      MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
+      return item != null && item.canEdit();
+    }
+  }
+).disableUpDownActions().createPanel(),BorderLayout.CENTER);
   myTable.addMouseListener(new MouseAdapter(){
     @Override public void mouseClicked(    MouseEvent e){
       if (e.getClickCount() == 2) {
