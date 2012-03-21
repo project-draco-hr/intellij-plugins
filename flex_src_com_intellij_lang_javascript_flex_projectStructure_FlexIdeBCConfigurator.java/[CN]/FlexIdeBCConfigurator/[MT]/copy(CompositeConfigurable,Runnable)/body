@@ -16,20 +16,7 @@
   final BuildConfigurationNature newBCNature=nameAndNature.second;
   ModifiableFlexIdeBuildConfiguration newBC=myConfigEditor.copyConfiguration(existingBC,newBCNature);
   newBC.setName(newBCName);
-  final String outputFileName=existingBC.getOutputFileName();
-  final String lowercase=outputFileName.toLowerCase();
-  if (lowercase.endsWith(".swf") || lowercase.endsWith(".swc")) {
-    final String extension=newBC.getOutputType() == OutputType.Library ? ".swc" : ".swf";
-    newBC.setOutputFileName(outputFileName.substring(0,outputFileName.length() - ".sw_".length()) + extension);
-  }
-  if (newBCNature.isApp()) {
-    if (newBCNature.isDesktopPlatform()) {
-      newBC.getAirDesktopPackagingOptions().setPackageFileName(fileName);
-    }
- else     if (newBCNature.isMobilePlatform()) {
-      newBC.getAndroidPackagingOptions().setPackageFileName(fileName);
-      newBC.getIosPackagingOptions().setPackageFileName(fileName);
-    }
-  }
+  newBC.setOutputFileName(fileName + (newBC.getOutputType() == OutputType.Library ? ".swc" : ".swf"));
+  updatePackageFileName(newBC,fileName);
   createConfigurableNode(newBC,unwrapped.getModule(),treeNodeNameUpdater);
 }

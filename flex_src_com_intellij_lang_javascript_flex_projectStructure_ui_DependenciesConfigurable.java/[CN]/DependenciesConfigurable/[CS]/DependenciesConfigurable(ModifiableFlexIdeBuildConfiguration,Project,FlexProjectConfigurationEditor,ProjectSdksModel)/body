@@ -161,6 +161,22 @@
         }
       }
     }
+    public void natureChanged(    final FlexIdeBCConfigurable configurable){
+      if (configurable.isParentFor(DependenciesConfigurable.this)) {
+        return;
+      }
+      for (int row=0; row < myTable.getRowCount(); row++) {
+        final MyTableItem item=myTable.getItemAt(row);
+        if (item instanceof BCItem && ((BCItem)item).configurable == configurable) {
+          final BuildConfigurationNature dependencyNature=((BCItem)item).configurable.getEditableObject().getNature();
+          final LinkageType linkageType=item.getLinkageType();
+          if (!BCUtils.isApplicable(myNature,dependencyNature,linkageType)) {
+            removeItems(Collections.singleton(item),true);
+            break;
+          }
+        }
+      }
+    }
   }
 ,myDisposable);
   myConfigEditor.addModulesModelChangeListener(new FlexProjectConfigurationEditor.ModulesModelChangeListener(){

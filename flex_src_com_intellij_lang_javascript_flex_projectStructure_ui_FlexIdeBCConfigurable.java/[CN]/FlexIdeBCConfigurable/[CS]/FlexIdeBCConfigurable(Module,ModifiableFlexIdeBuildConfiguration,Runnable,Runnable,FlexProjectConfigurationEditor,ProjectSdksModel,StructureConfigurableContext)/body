@@ -1,0 +1,116 @@
+{
+  super(false,treeNodeNameUpdater);
+  myModule=module;
+  myConfiguration=bc;
+  myTreeNodeNameUpdater=treeNodeNameUpdater;
+  myConfigEditor=configEditor;
+  mySdksModel=sdksModel;
+  myContext=context;
+  myName=bc.getName();
+  myStructureElement=new BuildConfigurationProjectStructureElement(bc,module,context){
+    @Override protected void libraryReplaced(    @NotNull final Library library,    @Nullable final Library replacement){
+      myDependenciesConfigurable.libraryReplaced(library,replacement);
+    }
+  }
+;
+  myCssFilesToCompile=Collections.emptyList();
+  myDisposable=Disposer.newDisposable();
+  myUserActivityListener=new UserActivityListener(){
+    @Override public void stateChanged(){
+      if (myFreeze) {
+        return;
+      }
+      try {
+        apply();
+      }
+ catch (      ConfigurationException ignored) {
+      }
+      myContext.getDaemonAnalyzer().queueUpdate(myStructureElement);
+    }
+  }
+;
+  final UserActivityWatcher watcher=new UserActivityWatcher();
+  watcher.register(myMainPanel);
+  watcher.addUserActivityListener(myUserActivityListener,myDisposable);
+  createChildConfigurables();
+  myChangeNatureHyperlink.addHyperlinkListener(new HyperlinkAdapter(){
+    protected void hyperlinkActivated(    final HyperlinkEvent e){
+      bcNatureModifier.run();
+    }
+  }
+);
+  myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      setDisplayName(myNameField.getText().trim());
+      if (treeNodeNameUpdater != null) {
+        treeNodeNameUpdater.run();
+      }
+    }
+  }
+);
+  myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myUseHTMLWrapperCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+      IdeFocusManager.getInstance(module.getProject()).requestFocus(myWrapperTemplateTextWithBrowse.getTextField(),true);
+    }
+  }
+);
+  final String title="Select folder with HTML wrapper template";
+  final String description="Folder must contain 'index.template.html' file which must contain '${swf}' macro.";
+  myWrapperTemplateTextWithBrowse.addBrowseFolderListener(title,description,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myCreateHtmlWrapperTemplateButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final Sdk sdk=myDependenciesConfigurable.getCurrentSdk();
+      if (sdk == null) {
+        Messages.showInfoMessage(myModule.getProject(),FlexBundle.message("sdk.needed.to.create.wrapper"),CreateHtmlWrapperTemplateDialog.TITLE);
+      }
+ else {
+        String path=myWrapperTemplateTextWithBrowse.getText().trim();
+        if (path.isEmpty()) {
+          path=FlexUtils.getContentOrModuleFolderPath(module) + "/" + CreateHtmlWrapperTemplateDialog.HTML_TEMPLATE_FOLDER_NAME;
+        }
+        final CreateHtmlWrapperTemplateDialog dialog=new CreateHtmlWrapperTemplateDialog(module,sdk,path);
+        dialog.show();
+        if (dialog.isOK()) {
+          myWrapperTemplateTextWithBrowse.setText(FileUtil.toSystemDependentName(dialog.getWrapperFolderPath()));
+        }
+      }
+    }
+  }
+);
+  myCssFilesTextWithBrowse.getTextField().setEditable(false);
+  myCssFilesTextWithBrowse.setButtonIcon(PlatformIcons.OPEN_EDIT_DIALOG_ICON);
+  myCssFilesTextWithBrowse.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final List<StringBuilder> value=new ArrayList<StringBuilder>();
+      for (      String cssFilePath : myCssFilesToCompile) {
+        value.add(new StringBuilder(cssFilePath));
+      }
+      final RepeatableValueDialog dialog=new RepeatableValueDialog(module.getProject(),FlexBundle.message("css.files.to.compile.dialog.title"),value,CompilerOptionInfo.CSS_FILES_INFO_FOR_UI);
+      dialog.show();
+      if (dialog.isOK()) {
+        final List<StringBuilder> newValue=dialog.getCurrentList();
+        myCssFilesToCompile=new ArrayList<String>(newValue.size());
+        for (        StringBuilder cssPath : newValue) {
+          myCssFilesToCompile.add(cssPath.toString());
+        }
+        updateCssFilesText();
+      }
+    }
+  }
+);
+  myOptimizeForCombo.setModel(new CollectionComboBoxModel(Arrays.asList(""),""));
+  myOptimizeForCombo.setRenderer(new ListCellRendererWrapper(myOptimizeForCombo.getRenderer()){
+    @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
+      if ("".equals(value)) {
+        setText("<no optimization>");
+      }
+    }
+  }
+);
+  myMainClassWarning.setIcon(IconLoader.getIcon("smallWarning.png"));
+  myOutputFileNameWarning.setIcon(IconLoader.getIcon("smallWarning.png"));
+  myOutputFolderWarning.setIcon(IconLoader.getIcon("smallWarning.png"));
+  myWarning.setIcon(UIUtil.getBalloonWarningIcon());
+}

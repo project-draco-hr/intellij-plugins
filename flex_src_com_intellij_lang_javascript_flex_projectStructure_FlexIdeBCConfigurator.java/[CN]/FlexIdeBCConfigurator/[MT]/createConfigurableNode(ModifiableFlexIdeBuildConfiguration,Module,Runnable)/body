@@ -1,11 +1,12 @@
 {
   final ProjectStructureConfigurable c=ProjectStructureConfigurable.getInstance(myConfigEditor.getProject());
-  final FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,configuration,treeNodeNameUpdater,myConfigEditor,c.getProjectJdksModel(),c.getContext());
+  final Runnable bcNatureModifier=createBCNatureModifier(bc);
+  final FlexIdeBCConfigurable configurable=new FlexIdeBCConfigurable(module,bc,bcNatureModifier,treeNodeNameUpdater,myConfigEditor,c.getProjectJdksModel(),c.getContext());
   CompositeConfigurable wrapped=configurable.wrapInTabs();
-  myConfigurablesMap.put(configuration,wrapped);
+  myConfigurablesMap.put(bc,wrapped);
   final MasterDetailsComponent.MyNode node=new BuildConfigurationNode(wrapped);
   final ModuleStructureConfigurable moduleStructureConfigurable=ModuleStructureConfigurable.getInstance(module.getProject());
   moduleStructureConfigurable.addNode(node,moduleStructureConfigurable.findModuleNode(module));
-  Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,moduleStructureConfigurable).putPath(MasterDetailsComponent.TREE_OBJECT,configuration);
+  Place place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,moduleStructureConfigurable).putPath(MasterDetailsComponent.TREE_OBJECT,bc);
   ProjectStructureConfigurable.getInstance(module.getProject()).navigateTo(place,true);
 }

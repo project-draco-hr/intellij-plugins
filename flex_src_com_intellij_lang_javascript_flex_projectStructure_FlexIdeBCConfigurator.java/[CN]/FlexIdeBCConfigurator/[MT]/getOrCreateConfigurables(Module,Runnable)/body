@@ -2,12 +2,13 @@
   myModifiableModelInitializer.ensureInitialized(module.getProject());
   final ModifiableFlexIdeBuildConfiguration[] configurations=myConfigEditor.getConfigurations(module);
   List<CompositeConfigurable> configurables=new ArrayList<CompositeConfigurable>(configurations.length);
-  for (  final ModifiableFlexIdeBuildConfiguration configuration : configurations) {
-    CompositeConfigurable configurable=myConfigurablesMap.get(configuration);
+  for (  final ModifiableFlexIdeBuildConfiguration bc : configurations) {
+    CompositeConfigurable configurable=myConfigurablesMap.get(bc);
     if (configurable == null) {
+      final Runnable bcNatureModifier=createBCNatureModifier(bc);
       final ProjectStructureConfigurable c=ProjectStructureConfigurable.getInstance(myConfigEditor.getProject());
-      configurable=new FlexIdeBCConfigurable(module,configuration,treeNodeNameUpdater,myConfigEditor,c.getProjectJdksModel(),c.getContext()).wrapInTabs();
-      myConfigurablesMap.put(configuration,configurable);
+      configurable=new FlexIdeBCConfigurable(module,bc,bcNatureModifier,treeNodeNameUpdater,myConfigEditor,c.getProjectJdksModel(),c.getContext()).wrapInTabs();
+      myConfigurablesMap.put(bc,configurable);
     }
     configurables.add(configurable);
   }

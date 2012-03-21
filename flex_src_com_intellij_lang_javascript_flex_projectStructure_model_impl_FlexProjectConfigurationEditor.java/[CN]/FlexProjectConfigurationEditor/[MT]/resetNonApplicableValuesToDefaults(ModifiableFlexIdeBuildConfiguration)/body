@@ -24,8 +24,12 @@
     configuration.getDependencies().setComponentSet(defaultConfiguration.getDependencies().getComponentSet());
   }
   for (Iterator<ModifiableDependencyEntry> i=configuration.getDependencies().getModifiableEntries().iterator(); i.hasNext(); ) {
-    if (!BCUtils.isApplicable(nature,i.next().getDependencyType().getLinkageType())) {
-      i.remove();
+    final ModifiableDependencyEntry entry=i.next();
+    if (entry instanceof BuildConfigurationEntry) {
+      final FlexIdeBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (dependencyBC == null || !BCUtils.isApplicable(nature,dependencyBC.getNature(),entry.getDependencyType().getLinkageType())) {
+        i.remove();
+      }
     }
   }
   if (configuration.getTargetPlatform() != TargetPlatform.Desktop || configuration.getOutputType() != OutputType.Application) {
