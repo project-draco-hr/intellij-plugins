@@ -150,32 +150,37 @@
       removeItems(itemsToRemove,true);
     }
     @Override public void buildConfigurationRemoved(    FlexIdeBCConfigurable configurable){
-      if (configurable.isParentFor(DependenciesConfigurable.this)) {
-        return;
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        removeItems(Collections.singleton(item.first),true);
       }
-      for (int row=0; row < myTable.getRowCount(); row++) {
-        MyTableItem item=myTable.getItemAt(row);
-        if (item instanceof BCItem && ((BCItem)item).configurable == configurable) {
-          removeItems(Collections.singleton(item),true);
-          break;
-        }
+    }
+    @Override public void buildConfigurationRenamed(    final FlexIdeBCConfigurable configurable){
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        myTable.refreshItemAt(item.second);
       }
     }
     public void natureChanged(    final FlexIdeBCConfigurable configurable){
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        final BuildConfigurationNature dependencyNature=item.first.configurable.getEditableObject().getNature();
+        if (!BCUtils.isApplicable(myNature,dependencyNature,item.first.getLinkageType())) {
+          removeItems(Collections.singleton(item.first),true);
+        }
+      }
+    }
+    @Nullable private Pair<BCItem,Integer> findDependencyItem(    FlexIdeBCConfigurable configurable){
       if (configurable.isParentFor(DependenciesConfigurable.this)) {
-        return;
+        return null;
       }
       for (int row=0; row < myTable.getRowCount(); row++) {
         final MyTableItem item=myTable.getItemAt(row);
         if (item instanceof BCItem && ((BCItem)item).configurable == configurable) {
-          final BuildConfigurationNature dependencyNature=((BCItem)item).configurable.getEditableObject().getNature();
-          final LinkageType linkageType=item.getLinkageType();
-          if (!BCUtils.isApplicable(myNature,dependencyNature,linkageType)) {
-            removeItems(Collections.singleton(item),true);
-            break;
-          }
+          return Pair.create((BCItem)item,row);
         }
       }
+      return null;
     }
   }
 ,myDisposable);
