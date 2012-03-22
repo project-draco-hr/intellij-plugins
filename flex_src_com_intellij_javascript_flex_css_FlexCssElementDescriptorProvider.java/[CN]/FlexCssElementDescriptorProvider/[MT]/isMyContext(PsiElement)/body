@@ -5,7 +5,11 @@
   if (HtmlUtil.hasHtml(file))   return false;
   final VirtualFile vFile=file.getOriginalFile().getVirtualFile();
   if (vFile != null) {
-    if (vFile.getFileType() != CssFileType.INSTANCE)     return false;
+    final FileType type=vFile.getFileType();
+    if (type instanceof LanguageFileType) {
+      Language lang=((LanguageFileType)type).getLanguage();
+      if (lang.isKindOf(CSSLanguage.INSTANCE) && !lang.is(CSSLanguage.INSTANCE))       return false;
+    }
   }
   Module module=ModuleUtil.findModuleForPsiElement(file);
   if (module == null) {
