@@ -1,0 +1,16 @@
+{
+  final HyperlinkListener listener=new HyperlinkAdapter(){
+    protected void hyperlinkActivated(    final HyperlinkEvent e){
+      final ProjectStructureConfigurable projectStructureConfigurable=ProjectStructureConfigurable.getInstance(module.getProject());
+      ShowSettingsUtil.getInstance().editConfigurable(module.getProject(),projectStructureConfigurable,new Runnable(){
+        public void run(){
+          Place p=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getPlaceFor(module,bc);
+          projectStructureConfigurable.navigateTo(p,true);
+        }
+      }
+);
+    }
+  }
+;
+  ToolWindowManager.getInstance(module.getProject()).notifyByBalloon(isDebug ? ToolWindowId.DEBUG : ToolWindowId.RUN,MessageType.WARNING,FlexBundle.message("run.when.ide.builder.turned.off",bc.getName(),module.getName()),null,listener);
+}

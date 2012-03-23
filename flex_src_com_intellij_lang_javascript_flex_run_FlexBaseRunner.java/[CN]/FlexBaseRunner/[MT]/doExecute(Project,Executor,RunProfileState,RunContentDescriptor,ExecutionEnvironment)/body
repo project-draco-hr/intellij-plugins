@@ -3,6 +3,7 @@
   final RunProfile runProfile=env.getRunProfile();
   final boolean isDebug=this instanceof FlexDebugRunner;
   try {
+    checkMakeBeforeRunEnabled(project,runProfile,isDebug);
     if (runProfile instanceof RemoteFlashRunConfiguration) {
       final BCBasedRunnerParameters params=((RemoteFlashRunConfiguration)runProfile).getRunnerParameters();
       final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC=params.checkAndGetModuleAndBC(project);
@@ -32,6 +33,9 @@
       final Pair<Module,FlexIdeBuildConfiguration> moduleAndConfig=params.checkAndGetModuleAndBC(project);
       final Module module=moduleAndConfig.first;
       final FlexIdeBuildConfiguration bc=moduleAndConfig.second;
+      if (bc.isSkipCompile()) {
+        showBCCompilationSkippedWarning(module,bc,isDebug);
+      }
       if (bc.getTargetPlatform() == TargetPlatform.Web && !params.isLaunchUrl()) {
         try {
           final String canonicalPath=new File(PathUtil.getParentPath(bc.getActualOutputFilePath())).getCanonicalPath();
