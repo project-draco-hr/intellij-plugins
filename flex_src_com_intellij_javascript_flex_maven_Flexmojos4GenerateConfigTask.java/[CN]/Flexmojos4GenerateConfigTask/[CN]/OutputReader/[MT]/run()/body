@@ -1,11 +1,10 @@
 {
-  StringBuilder stringBuilder=null;
+  final StringBuilder stringBuilder=StringBuilderSpinAllocator.alloc();
   int exitCode=-1;
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") final InputStreamReader reader=new InputStreamReader(process.getInputStream());
   final List<String> filesForRefresh=new ArrayList<String>(projects.size());
   final THashMap<MavenProject,List<String>> sourceRoots=new THashMap<MavenProject,List<String>>(projects.size());
   try {
-    stringBuilder=StringBuilderSpinAllocator.alloc();
     char[] buf=new char[128];
     int read;
     final Matcher matcher=RESULT_PATTERN.matcher(stringBuilder);
@@ -36,35 +35,28 @@
     exitCode=process.exitValue();
   }
  catch (  IOException e) {
-    if (stringBuilder != null) {
-      LOG.warn(stringBuilder.toString(),e);
-    }
+    LOG.warn(stringBuilder.toString(),e);
   }
  finally {
     process.destroy();
     process=null;
-    if (stringBuilder != null) {
-      final String result=stringBuilder.toString();
-      StringBuilderSpinAllocator.dispose(stringBuilder);
-      if (exitCode != 0) {
-        LOG.warn("Generating flex configs exited with exit code " + exitCode);
-        showWarning(project);
-      }
-      LOG.info("Generating flex configs out:\n" + result);
+    final String result=stringBuilder.toString().replace('\r','\n');
+    StringBuilderSpinAllocator.dispose(stringBuilder);
+    if (exitCode != 0) {
+      LOG.warn("Generating flex configs exited with exit code " + exitCode);
+      showWarning(project,"exit code: " + exitCode);
     }
-    final Matcher matcher=MAVEN_ERROR_PATTERN.matcher(stringBuilder);
-    if (matcher.find()) {
-      stringBuilder=StringBuilderSpinAllocator.alloc();
-      try {
-        do {
-          stringBuilder.append("<br>").append(matcher.group(1));
+    LOG.info("Generating flex configs out:\n" + result);
+    if (result.startsWith(ERROR) || result.contains("\n" + ERROR)) {
+      final StringBuilder errorBuf=new StringBuilder();
+      final List<String> lines=StringUtil.split(result,"\n");
+      for (      String line : lines) {
+        if (line.startsWith(ERROR)) {
+          if (errorBuf.length() > 0)           errorBuf.append("\n");
+          errorBuf.append(line);
         }
- while (matcher.find());
-        showWarning(stringBuilder.toString(),project);
       }
-  finally {
-        StringBuilderSpinAllocator.dispose(stringBuilder);
-      }
+      showWarningWithDetails(project,errorBuf.toString());
     }
     if (!filesForRefresh.isEmpty()) {
       postTask=new RefreshConfigFiles(filesForRefresh,sourceRoots,project);
