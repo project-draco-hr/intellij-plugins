@@ -36,11 +36,17 @@
         }
       }
     }
-    try {
-      checkPackagingOptions(bc);
+    final Ref<String> firstErrorRef=new Ref<String>();
+    FlexCompiler.checkPackagingOptions(bc,new Consumer<String>(){
+      public void consume(      final String error){
+        if (firstErrorRef.isNull()) {
+          firstErrorRef.set(error);
+        }
+      }
     }
- catch (    ConfigurationException e) {
-      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),e.getMessage()));
+);
+    if (!firstErrorRef.isNull()) {
+      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),firstErrorRef.get()));
     }
   }
   return null;

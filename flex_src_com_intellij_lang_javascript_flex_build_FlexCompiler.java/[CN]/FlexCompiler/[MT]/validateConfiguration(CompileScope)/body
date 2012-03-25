@@ -1,14 +1,47 @@
 {
+  final StringBuilder errors=new StringBuilder();
   try {
     final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCsToCompile=getModulesAndBCsToCompile(scope);
     for (    final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
-      validateConfiguration(scope,moduleAndBC.first,moduleAndBC.second);
+      final StringBuilder s=new StringBuilder();
+      final Consumer<String> errorConsumer=new Consumer<String>(){
+        @Override public void consume(        final String message){
+          if (s.length() > 0) {
+            s.append("\n");
+          }
+          s.append("- ").append(message);
+        }
+      }
+;
+      validateConfiguration(moduleAndBC.first,moduleAndBC.second,false,errorConsumer);
+      if (moduleAndBC.second.getNature().isMobilePlatform() && moduleAndBC.second.getNature().isApp()) {
+        final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(scope);
+        if (runConfig instanceof FlashRunConfiguration) {
+          final FlashRunnerParameters params=((FlashRunConfiguration)runConfig).getRunnerParameters();
+          if (moduleAndBC.first.getName().equals(params.getModuleName()) && moduleAndBC.second.getName().equals(params.getBCName()) && params.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
+            checkPackagingOptions(moduleAndBC.second.getAndroidPackagingOptions(),errorConsumer);
+          }
+        }
+      }
+      if (s.length() > 0) {
+        if (errors.length() > 0)         errors.append("\n\n");
+        errors.append(FlexBundle.message("bc.0.of.module.1",moduleAndBC.second.getName(),moduleAndBC.first.getName())).append(":\n").append(s);
+      }
     }
     checkSimilarOutputFiles(modulesAndBCsToCompile);
   }
  catch (  ConfigurationException e) {
-    final String title=ConfigurationException.DEFAULT_TITLE.equals(e.getTitle()) ? FlexBundle.message("project.setup.problem.title") : e.getTitle();
-    Messages.showErrorDialog(e.getMessage(),title);
+    if (errors.length() > 0)     errors.append("\n\n");
+    errors.append("- ").append(e.getMessage());
+  }
+  if (errors.length() > 0) {
+    final int choice=Messages.showDialog(errors.toString(),FlexBundle.message("project.setup.problem.title"),new String[]{FlexBundle.message("open.project.structure"),CommonBundle.message("button.cancel")},0,Messages.getErrorIcon());
+    if (choice == 0) {
+      final Module[] modules=scope.getAffectedModules();
+      if (modules.length > 0) {
+        ShowSettingsUtil.getInstance().editConfigurable(modules[0].getProject(),ProjectStructureConfigurable.getInstance(modules[0].getProject()));
+      }
+    }
     return false;
   }
   return true;
