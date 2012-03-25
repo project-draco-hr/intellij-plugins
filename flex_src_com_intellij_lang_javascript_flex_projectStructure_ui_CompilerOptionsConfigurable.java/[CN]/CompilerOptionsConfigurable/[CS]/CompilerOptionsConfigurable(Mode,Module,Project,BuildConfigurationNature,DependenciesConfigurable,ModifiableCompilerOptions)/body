@@ -4,7 +4,7 @@
   myProject=project;
   myNature=nature;
   myDependenciesConfigurable=dependenciesConfigurable;
-  myName=myMode == Mode.BC ? FlexBundle.message("compiler.options.title") : myMode == Mode.Module ? FlexBundle.message("default.compiler.options.for.module.title",module.getName()) : FlexBundle.message("default.compiler.options.for.project.title",project.getName());
+  myName=myMode == Mode.BC ? TAB_NAME : myMode == Mode.Module ? FlexBundle.message("default.compiler.options.for.module.title",module.getName()) : FlexBundle.message("default.compiler.options.for.project.title",project.getName());
   myBCManager=myMode == Mode.BC ? FlexBuildConfigurationManager.getInstance(module) : null;
   myProjectLevelOptionsHolder=FlexProjectLevelCompilerOptionsHolder.getInstance(project);
   myModel=model;
@@ -56,4 +56,16 @@
   initButtonsAndAdditionalOptions();
   myShowAllOptionsCheckBox.setSelected(true);
   myShowAllOptionsCheckBox.setVisible(false);
+  UserActivityWatcher watcher=new UserActivityWatcher();
+  watcher.register(myMainPanel);
+  myUserActivityDispatcher=EventDispatcher.create(UserActivityListener.class);
+  watcher.addUserActivityListener(new UserActivityListener(){
+    @Override public void stateChanged(){
+      if (myFreeze) {
+        return;
+      }
+      myUserActivityDispatcher.getMulticaster().stateChanged();
+    }
+  }
+,myDisposable);
 }
