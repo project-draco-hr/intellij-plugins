@@ -1,9 +1,11 @@
 {
-  final HyperlinkListener listener=new HyperlinkAdapter(){
-    protected void hyperlinkActivated(    final HyperlinkEvent e){
-      RunDialog.editConfiguration(project,configuration,FlexBundle.message("edit.configuration.title"));
+  final String message=FlexBundle.message("run.when.compile.before.run.turned.off");
+  COMPILE_BEFORE_LAUNCH_NOTIFICATION_GROUP.createNotification("",message,NotificationType.WARNING,new NotificationListener(){
+    public void hyperlinkUpdate(    @NotNull final Notification notification,    @NotNull final HyperlinkEvent event){
+      if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        RunDialog.editConfiguration(project,configuration,FlexBundle.message("edit.configuration.title"));
+      }
     }
   }
-;
-  ToolWindowManager.getInstance(project).notifyByBalloon(isDebug ? ToolWindowId.DEBUG : ToolWindowId.RUN,MessageType.WARNING,FlexBundle.message("run.when.compile.before.run.turned.off"),null,listener);
+).notify(project);
 }
