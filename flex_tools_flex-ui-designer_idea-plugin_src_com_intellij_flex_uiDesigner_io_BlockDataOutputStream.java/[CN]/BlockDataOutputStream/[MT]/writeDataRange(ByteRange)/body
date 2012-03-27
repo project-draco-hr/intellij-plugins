@@ -1,22 +1,25 @@
 {
-  int childIndex=dataRange.getIndex() + 1;
+  ByteRange possibleChild=dataRange;
   int start=dataRange.getStart();
   final int ownEnd=dataRange.getEnd();
   while (true) {
-    Marker possibleChild=markers.get(childIndex++);
-    int childEnd=possibleChild.getEnd();
-    if (childEnd < ownEnd) {
+    TLinkable next=possibleChild.getNext();
+    while (next != null && !(next instanceof ByteRange)) {
+      next=next.getNext();
+    }
+    possibleChild=(ByteRange)next;
+    if (possibleChild == null || possibleChild.getEnd() > ownEnd) {
+      out.write(buffer,start,ownEnd - start);
+      break;
+    }
+ else {
       int length=possibleChild.getStart() - start;
       if (length > -1) {
         if (length != 0) {
           out.write(buffer,start,length);
         }
-        start=childEnd;
+        start=possibleChild.getEnd();
       }
-    }
- else {
-      out.write(buffer,start,ownEnd - start);
-      break;
     }
   }
 }
