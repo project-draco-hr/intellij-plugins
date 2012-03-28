@@ -1,9 +1,16 @@
 {
   return ApplicationManager.getApplication().runWriteAction(new Computable<Sdk>(){
     public Sdk compute(){
-      final Sdk sdk=PeerFactory.getInstance().createProjectJdk(sdkType.suggestSdkName(null,sdkHomePath),"",sdkHomePath,sdkType);
-      sdkType.setupSdkPaths(sdk);
       final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
+      final String sdkName;
+      if (sdkType instanceof FlexmojosSdkType) {
+        sdkName=SdkConfigurationUtil.createUniqueSdkName(sdkType,sdkHomePath,projectJdkTable.getSdksOfType(sdkType));
+      }
+ else {
+        sdkName=sdkType.suggestSdkName(null,sdkHomePath);
+      }
+      final Sdk sdk=PeerFactory.getInstance().createProjectJdk(sdkName,"",sdkHomePath,sdkType);
+      sdkType.setupSdkPaths(sdk);
       projectJdkTable.addJdk(sdk);
       return sdk;
     }
