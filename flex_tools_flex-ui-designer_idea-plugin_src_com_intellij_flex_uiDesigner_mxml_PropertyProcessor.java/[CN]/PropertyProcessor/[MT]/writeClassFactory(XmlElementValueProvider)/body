@@ -3,16 +3,12 @@
     XmlTag tag=((XmlTagValueProvider)valueProvider).getTag();
     XmlTag[] subTags=tag.getSubTags();
     if (subTags.length > 0) {
-      throw new InvalidPropertyException(tag,"inline.component.are.not.supported");
+      processFxComponent(subTags[0],true);
+      return;
     }
   }
   String className=valueProvider.getTrimmed();
-  MxmlObjectReference fxComponentFactoryReference=injectedASWriter.getNullableValueReference('$' + className);
-  if (fxComponentFactoryReference != null) {
-    writer.objectReference(fxComponentFactoryReference.id);
-    return;
-  }
-  if (writeReferenceIfReferenced(className)) {
+  if (writeFxComponentReferenceIfProcessed(className) || writeReferenceIfReferenced(className)) {
     return;
   }
   final JSClass jsClass=valueProvider.getJsClass();
@@ -22,8 +18,13 @@
   final Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo;
   final PsiElement parent=jsClass.getNavigationElement().getParent();
   if (parent instanceof XmlTag && MxmlUtil.isComponentLanguageTag((XmlTag)parent)) {
-    LOG.warn("AS-125 " + valueProvider.getElement().getText());
-    effectiveClassInfo=new Trinity<Integer,String,Condition<AnnotationBackedDescriptor>>(-1,"mx.core.UIComponent",null);
+    if (parent.getContainingFile().equals(valueProvider.getElement().getContainingFile())) {
+      processFxComponent((XmlTag)parent,false);
+      return;
+    }
+ else {
+      effectiveClassInfo=new Trinity<Integer,String,Condition<AnnotationBackedDescriptor>>(-1,"mx.core.UIComponent",null);
+    }
   }
  else {
     effectiveClassInfo=MxmlUtil.computeEffectiveClass(valueProvider.getElement(),jsClass,mxmlWriter.projectComponentReferenceCounter,false);
