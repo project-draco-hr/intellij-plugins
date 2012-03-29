@@ -31,7 +31,12 @@
     String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
     if (ModuleLibraryOrderEntryImpl.ENTRY_TYPE.equals(orderEntryType)) {
       Element library=orderEntry.getChild(LibraryImpl.ELEMENT);
-      if (!isApplicableLibrary(library)) {
+      if (!isApplicableLibrary(library,new Function<String,String>(){
+        @Override public String fun(        final String s){
+          return module.expandPath(s);
+        }
+      }
+)) {
         orderEntriesToRemove.add(orderEntry);
         continue;
       }
