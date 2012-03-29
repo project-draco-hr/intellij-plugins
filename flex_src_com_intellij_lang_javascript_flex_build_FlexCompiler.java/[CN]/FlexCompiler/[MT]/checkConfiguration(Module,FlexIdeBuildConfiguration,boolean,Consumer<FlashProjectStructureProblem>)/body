@@ -2,14 +2,14 @@
   final String moduleName=module.getName();
   final Sdk sdk=bc.getSdk();
   if (sdk == null) {
-    errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.not.set"),"sdk",DependenciesConfigurable.Location.SDK));
+    errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.not.set"),DependenciesConfigurable.Location.SDK));
   }
   InfoFromConfigFile info=InfoFromConfigFile.DEFAULT;
   final String additionalConfigFilePath=bc.getCompilerOptions().getAdditionalConfigFilePath();
   if (!additionalConfigFilePath.isEmpty()) {
     final VirtualFile additionalConfigFile=LocalFileSystem.getInstance().findFileByPath(additionalConfigFilePath);
     if (additionalConfigFile == null || additionalConfigFile.isDirectory()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("additional.config.file.not.found",additionalConfigFilePath),"additional.config.file"));
+      errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("additional.config.file.not.found",additionalConfigFilePath),CompilerOptionsConfigurable.Location.AdditonalConfigFile));
     }
     if (!bc.isTempBCForCompilation()) {
       info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(additionalConfigFilePath);
@@ -17,56 +17,58 @@
   }
   final BuildConfigurationNature nature=bc.getNature();
   if (!nature.isLib() && info.getMainClass(module) == null && bc.getMainClass().isEmpty()) {
-    errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("main.class.not.set"),"main.class"));
+    errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("main.class.not.set"),FlexIdeBCConfigurable.Location.MainClass));
   }
   if (info.getOutputFileName() == null && info.getOutputFolderPath() == null) {
     if (bc.getOutputFileName().isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.name.not.set"),"output.file.name"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.name.not.set"),FlexIdeBCConfigurable.Location.OutputFileName));
     }
     if (!nature.isLib() && !bc.getOutputFileName().toLowerCase().endsWith(".swf")) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swf"),"output.file.name"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swf"),FlexIdeBCConfigurable.Location.OutputFileName));
     }
     if (nature.isLib() && !bc.getOutputFileName().toLowerCase().endsWith(".swc")) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swc"),"output.file.name"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swc"),FlexIdeBCConfigurable.Location.OutputFileName));
     }
     if (bc.getOutputFolder().isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.set"),"output.folder"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.set"),FlexIdeBCConfigurable.Location.OutputFolder));
     }
  else     if (!FileUtil.isAbsoluteFilePath(bc.getOutputFolder())) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.absolute",bc.getOutputFolder()),"output.folder"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.absolute",bc.getOutputFolder()),FlexIdeBCConfigurable.Location.OutputFolder));
     }
   }
   if (nature.isWebPlatform() && nature.isApp() && bc.isUseHtmlWrapper()) {
     if (bc.getWrapperTemplatePath().isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.set"),"html.template"));
-    }
-    final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
-    if (templateDir == null || !templateDir.isDirectory()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.found",bc.getWrapperTemplatePath()),"html.template"));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.set"),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
     }
  else {
-      final VirtualFile templateFile=templateDir.findChild(CreateHtmlWrapperTemplateDialog.HTML_WRAPPER_TEMPLATE_FILE_NAME);
-      if (templateFile == null) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()),"html.template"));
+      final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
+      if (templateDir == null || !templateDir.isDirectory()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.found",bc.getWrapperTemplatePath()),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
       }
  else {
+        final VirtualFile templateFile=templateDir.findChild(CreateHtmlWrapperTemplateDialog.HTML_WRAPPER_TEMPLATE_FILE_NAME);
+        if (templateFile == null) {
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
+        }
+ else {
+        }
       }
     }
   }
   if (BCUtils.canHaveRuntimeStylesheets(bc)) {
     for (    String cssPath : bc.getCssFilesToCompile()) {
       if (!cssPath.toLowerCase().endsWith(".css")) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("not.a.css.runtime.stylesheet",FileUtil.toSystemDependentName(cssPath)),"runtime.stylesheets"));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("not.a.css.runtime.stylesheet",FileUtil.toSystemDependentName(cssPath)),FlexIdeBCConfigurable.Location.RuntimeStyleSheets));
       }
  else       if (LocalFileSystem.getInstance().findFileByPath(cssPath) == null) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("css.not.found",bc.getName(),moduleName,FileUtil.toSystemDependentName(cssPath)),"runtime.stylesheets"));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("css.not.found",bc.getName(),moduleName,FileUtil.toSystemDependentName(cssPath)),FlexIdeBCConfigurable.Location.RuntimeStyleSheets));
       }
     }
   }
   if (nature.isLib()) {
     for (    String path : bc.getCompilerOptions().getFilesToIncludeInSWC()) {
       if (LocalFileSystem.getInstance().findFileByPath(path) == null) {
-        errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("file.to.include.in.swc.not.found",FileUtil.toSystemDependentName(path)),"file.to.include.in.swc"));
+        errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("file.to.include.in.swc.not.found",FileUtil.toSystemDependentName(path)),CompilerOptionsConfigurable.Location.FilesToIncludeInSwc));
       }
     }
   }
