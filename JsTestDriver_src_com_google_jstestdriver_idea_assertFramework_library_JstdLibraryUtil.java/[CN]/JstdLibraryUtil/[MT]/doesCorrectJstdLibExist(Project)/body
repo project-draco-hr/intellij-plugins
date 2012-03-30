@@ -1,0 +1,22 @@
+{
+  Boolean correctJstdLibExists=JSTD_LIBRARY_EXISTS;
+  if (correctJstdLibExists == null) {
+    correctJstdLibExists=ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+      @Override public Boolean compute(){
+        VirtualFile libVirtualFile=VfsUtil.findFileByURL(JstdDefaultAssertionFrameworkSrcMarker.class.getResource("TestCase.js"));
+        if (libVirtualFile == null) {
+          return false;
+        }
+        ScriptingLibraryManager libraryManager=ServiceManager.getService(project,JSLibraryManager.class);
+        ScriptingLibraryModel libraryModel=libraryManager.getLibraryByName(JstdLibraryUtil.LIBRARY_NAME);
+        if (libraryModel == null) {
+          return false;
+        }
+        return libraryModel.containsFile(libVirtualFile);
+      }
+    }
+);
+    JSTD_LIBRARY_EXISTS=correctJstdLibExists;
+  }
+  return correctJstdLibExists;
+}
