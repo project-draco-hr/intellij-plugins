@@ -65,23 +65,27 @@
         values=new IFlexArgument[]{(IFlexArgument)value};
         type=returnType;
       }
-      Field orderField=type.getField("ORDER");
-      orderField.setAccessible(true);
       String[] order=(String[])type.getField("ORDER").get(returnType);
       for (      IFlexArgument iFlexArgument : values) {
         out.append(indent).append('<').append(name).append('>');
         for (        String argMethodName : order) {
           Object argValue=type.getDeclaredMethod(argMethodName).invoke(iFlexArgument);
-          if (argValue == null) {
-            throw new UnsupportedOperationException();
-          }
- else           if (argValue instanceof Collection<?> || argValue.getClass().isArray()) {
-            throw new UnsupportedOperationException();
+          if (argValue instanceof Collection<?> || argValue.getClass().isArray()) {
+            Object[] subValues=argValue.getClass().isArray() ? (Object[])argValue : ((Collection<?>)argValue).toArray();
+            for (            Object subArgValue : subValues) {
+              writeTag(indent,argMethodName,subArgValue.toString(),name);
+            }
           }
  else           if (argValue instanceof Map<?,?>) {
-            throw new UnsupportedOperationException();
+            Map<?,?> map=((Map<?,?>)argValue);
+            for (            Object argValue1 : map.entrySet()) {
+              @SuppressWarnings("unchecked") Map.Entry<String,?> entry=(Map.Entry<String,?>)argValue1;
+              if (entry.getValue() != null) {
+                writeTag(indent,entry.getKey(),entry.getValue().toString(),name);
+              }
+            }
           }
- else {
+ else           if (argValue != null) {
             writeTag(indent,argMethodName.equals("serialNumber") ? "serial-number" : argMethodName,(String)argValue,name);
           }
         }
@@ -94,13 +98,7 @@
       }
     }
  else     if (returnType.isArray() || value instanceof Collection<?>) {
-      Object[] values;
-      if (returnType.isArray()) {
-        values=(Object[])value;
-      }
- else {
-        values=((Collection<?>)value).toArray();
-      }
+      Object[] values=returnType.isArray() ? (Object[])value : ((Collection<?>)value).toArray();
       if (values.length == 0) {
         if (name.equals("theme") || name.equals("locale")) {
           out.append(indent).append('<').append(name).append("/>");
