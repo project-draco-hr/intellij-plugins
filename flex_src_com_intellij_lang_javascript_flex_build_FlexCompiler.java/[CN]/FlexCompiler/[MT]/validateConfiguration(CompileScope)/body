@@ -1,15 +1,14 @@
 {
-  final StringBuilder errors=new StringBuilder();
+  final Module[] modules=scope.getAffectedModules();
+  final Project project=modules.length > 0 ? modules[0].getProject() : null;
+  if (project == null)   return true;
+  final FlashProjectStructureErrorsDialog dialog=new FlashProjectStructureErrorsDialog(project);
   try {
     final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCsToCompile=getModulesAndBCsToCompile(scope);
     for (    final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
-      final StringBuilder s=new StringBuilder();
       final Consumer<FlashProjectStructureProblem> errorConsumer=new Consumer<FlashProjectStructureProblem>(){
-        @Override public void consume(        final FlashProjectStructureProblem problem){
-          if (s.length() > 0) {
-            s.append("\n");
-          }
-          s.append("- ").append(problem.errorMessage);
+        public void consume(        final FlashProjectStructureProblem problem){
+          dialog.addProblem(moduleAndBC.first,moduleAndBC.second,problem);
         }
       }
 ;
@@ -23,24 +22,22 @@
           }
         }
       }
-      if (s.length() > 0) {
-        if (errors.length() > 0)         errors.append("\n\n");
-        errors.append(FlexBundle.message("bc.0.of.module.1",moduleAndBC.second.getName(),moduleAndBC.first.getName())).append(":\n").append(s);
+    }
+    checkSimilarOutputFiles(modulesAndBCsToCompile,new Consumer<Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem>>(){
+      public void consume(      final Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem> trinity){
+        dialog.addProblem(trinity.first,trinity.second,trinity.third);
       }
     }
-    checkSimilarOutputFiles(modulesAndBCsToCompile);
+);
   }
  catch (  ConfigurationException e) {
-    if (errors.length() > 0)     errors.append("\n\n");
-    errors.append("- ").append(e.getMessage());
+    Messages.showErrorDialog(project,e.getMessage(),FlexBundle.message("project.setup.problem.title"));
+    return false;
   }
-  if (errors.length() > 0) {
-    final int choice=Messages.showDialog(errors.toString(),FlexBundle.message("project.setup.problem.title"),new String[]{FlexBundle.message("open.project.structure"),CommonBundle.message("button.cancel")},0,Messages.getErrorIcon());
-    if (choice == 0) {
-      final Module[] modules=scope.getAffectedModules();
-      if (modules.length > 0) {
-        ShowSettingsUtil.getInstance().editConfigurable(modules[0].getProject(),ProjectStructureConfigurable.getInstance(modules[0].getProject()));
-      }
+  if (dialog.containsProblems()) {
+    dialog.show();
+    if (dialog.isOK()) {
+      ShowSettingsUtil.getInstance().editConfigurable(project,ProjectStructureConfigurable.getInstance(project));
     }
     return false;
   }
