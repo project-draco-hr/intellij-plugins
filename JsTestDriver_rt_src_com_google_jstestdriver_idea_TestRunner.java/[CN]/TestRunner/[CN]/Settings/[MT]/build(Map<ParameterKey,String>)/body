@@ -23,10 +23,16 @@
   }
   String testCaseName=notNullize(parameters.get(ParameterKey.TEST_CASE));
   String testMethodName=notNullize(parameters.get(ParameterKey.TEST_METHOD));
-  String coverageFilePath=notNullize(parameters.get(ParameterKey.OUTPUT_COVERAGE_FILE));
+  String coverageFilePath=notNullize(parameters.get(ParameterKey.COVERAGE_OUTPUT_FILE));
   File ideCoverageFile=null;
+  List<String> excludedPathList=Collections.emptyList();
   if (!coverageFilePath.isEmpty()) {
     ideCoverageFile=new File(coverageFilePath);
+    String joinedPaths=notNullize(parameters.get(ParameterKey.COVERAGE_EXCLUDED_PATHS));
+    String[] excludedPaths=joinedPaths.split(",");
+    if (excludedPaths != null) {
+      excludedPathList=Arrays.asList(excludedPaths);
+    }
   }
-  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile);
+  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile,excludedPathList);
 }

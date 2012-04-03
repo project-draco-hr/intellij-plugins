@@ -1,0 +1,22 @@
+{
+  int[] selected=table.getSelectedRows();
+  if (selected == null || selected.length <= 0) {
+    return;
+  }
+  if (table.isEditing()) {
+    TableCellEditor editor=table.getCellEditor();
+    if (editor != null) {
+      editor.stopCellEditing();
+    }
+  }
+  ExcludedTableModel model=(ExcludedTableModel)table.getModel();
+  Arrays.sort(selected);
+  int removedCount=0;
+  for (  int indexToRemove : selected) {
+    final int row=indexToRemove - removedCount;
+    model.removeRow(row);
+    model.fireTableRowsDeleted(row,row);
+    removedCount++;
+  }
+  table.requestFocus();
+}

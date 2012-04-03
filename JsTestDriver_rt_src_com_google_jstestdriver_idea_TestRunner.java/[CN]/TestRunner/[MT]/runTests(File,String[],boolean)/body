@@ -1,10 +1,65 @@
 {
-  PrintStream old=System.out;
-  System.setOut(new PrintStream(new NullOutputStream()));
-  try {
-    doRunTests(config,extraArgs,runTests);
+  JsTestDriverBuilder builder=new JsTestDriverBuilder();
+  builder.setConfigurationSource(new UserConfigurationSource(configFile));
+  builder.setPort(mySettings.getPort());
+  builder.withPluginInitializer(new PluginInitializer(){
+    @Override public Module initializeModule(    Flags flags,    Configuration config){
+      return new AbstractModule(){
+        @Override public void configure(){
+          Multibinder<TestListener> listeners=Multibinder.newSetBinder(binder(),TestListener.class);
+          listeners.addBinding().to(TestResultHolder.class);
+          TestListener reporter=new IDETestListener(myTestResultProtocolMessageOutput,configFile);
+          listeners.addBinding().toInstance(reporter);
+        }
+      }
+;
+    }
   }
-  finally {
-    System.setOut(old);
+);
+  builder.setRunnerMode(RunnerMode.QUIET);
+  builder.setServer(mySettings.getServerUrl());
+  List<String> flagArgs=Lists.newArrayList("--captureConsole","--server",mySettings.getServerUrl());
+  flagArgs.addAll(Arrays.asList(extraArgs));
+  File ideCoverageFilePath=mySettings.getIdeCoverageFile();
+  List<String> coverageExcludedFiles=null;
+  File emptyOutputDir=null;
+  boolean runCoverage=false;
+  if (runTests && ideCoverageFilePath != null) {
+    emptyOutputDir=createTempDir();
+    if (emptyOutputDir != null) {
+      flagArgs.add("--testOutput");
+      flagArgs.add(emptyOutputDir.getAbsolutePath());
+      List<String> testPaths=getTestPaths(configFile);
+      coverageExcludedFiles=Lists.newArrayList(testPaths);
+      coverageExcludedFiles.addAll(mySettings.getFilesExcludedFromCoverage());
+      PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
+      if (coverageInitializer != null) {
+        builder.withPluginInitializer(coverageInitializer);
+        runCoverage=true;
+      }
+    }
+  }
+  builder.setFlags(toStringArray(flagArgs));
+  JsTestDriver jstd=builder.build();
+  jstd.runConfiguration();
+  if (runCoverage) {
+    File[] coverageFiles=emptyOutputDir.listFiles(new FilenameFilter(){
+      @Override public boolean accept(      File dir,      String name){
+        return name.endsWith("-coverage.dat");
+      }
+    }
+);
+    if (coverageFiles != null && coverageFiles.length == 1) {
+      try {
+        CoverageReport coverageReport=CoverageSerializationUtils.readLCOV(coverageFiles[0]);
+        for (        String excludedPath : coverageExcludedFiles) {
+          coverageReport.clearReportByFilePath(excludedPath);
+        }
+        myCoverageSession.mergeReport(coverageReport);
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 }

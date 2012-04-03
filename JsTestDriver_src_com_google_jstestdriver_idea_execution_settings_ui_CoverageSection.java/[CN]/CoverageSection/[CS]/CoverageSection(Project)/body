@@ -1,0 +1,28 @@
+{
+  myExcludedTableModel=new ExcludedTableModel();
+  final JBTable table=new JBTable(myExcludedTableModel);
+  table.getEmptyText().setText("No files excluded from coverage");
+  table.setRowHeight((int)(table.getRowHeight() * 1.2));
+  Dimension preferredScrollableViewportSize=new Dimension(table.getPreferredScrollableViewportSize().width,table.getRowHeight() * 6);
+  table.setPreferredScrollableViewportSize(preferredScrollableViewportSize);
+  table.getSelectionModel().setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+  table.setMinimumSize(preferredScrollableViewportSize);
+  JTableHeader tableHeader=table.getTableHeader();
+  tableHeader.setResizingAllowed(false);
+  tableHeader.setReorderingAllowed(false);
+  tableHeader.setPreferredSize(new Dimension(tableHeader.getPreferredSize().width,(int)(tableHeader.getPreferredSize().height * 1.1)));
+  JScrollPane scrollPane=new JScrollPane(table,ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+  Dimension scrollDimension=new Dimension(preferredScrollableViewportSize.width,table.getTableHeader().getPreferredSize().height + preferredScrollableViewportSize.height + 4);
+  scrollPane.setMinimumSize(scrollDimension);
+  myComponent=ToolbarDecorator.createDecorator(table).disableUpAction().disableDownAction().setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton anActionButton){
+      addPath(project,table);
+    }
+  }
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton anActionButton){
+      removePaths(table);
+    }
+  }
+).createPanel();
+}
