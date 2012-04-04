@@ -1,7 +1,17 @@
 {
   final PsiElement element;
   List<String> qualifiers=null;
-  JSReferenceExpression qualifier=(JSReferenceExpression)expression.getQualifier();
+  JSExpression expressionQualifier=expression.getQualifier();
+  JSReferenceExpression qualifier;
+  if (expressionQualifier instanceof JSReferenceExpression) {
+    qualifier=(JSReferenceExpression)expressionQualifier;
+  }
+ else   if (expressionQualifier != null && !(expressionQualifier instanceof JSThisExpression)) {
+    throw new IllegalArgumentException("unknown qualifier " + expressionQualifier.toString() + " "+ expression.getText());
+  }
+ else {
+    qualifier=null;
+  }
   if (qualificatorSupportedForMxmlBinding && qualifier != null) {
     JSReferenceExpression topElement;
     qualifiers=new ArrayList<String>();
@@ -47,6 +57,9 @@
  else {
       writeJSVariable(((JSVariable)element),out,writer,valueReferenceResolver);
     }
+  }
+ else   if (element instanceof JSFunction) {
+    writeFunction((JSFunction)element,null,out,writer,valueReferenceResolver,null);
   }
  else {
     final String hostObjectId;
