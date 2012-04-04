@@ -1,0 +1,25 @@
+{
+  if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
+    return null;
+  }
+  PsiElement element=event.getParent();
+  while (!(element instanceof XmlAttribute)) {
+    element=element.getParent();
+    if (element instanceof XmlTag || element instanceof PsiFile || element == null) {
+      return null;
+    }
+  }
+  XmlAttribute attribute=(XmlAttribute)element;
+  if (JavaScriptSupportLoader.MXML_URI3.equals(attribute.getNamespace())) {
+    return null;
+  }
+  XmlAttributeDescriptor xmlDescriptor=attribute.getDescriptor();
+  if (!(xmlDescriptor instanceof AnnotationBackedDescriptor)) {
+    return null;
+  }
+  AnnotationBackedDescriptor descriptor=(AnnotationBackedDescriptor)xmlDescriptor;
+  if (descriptor.isPredefined()) {
+    return null;
+  }
+  return attribute;
+}
