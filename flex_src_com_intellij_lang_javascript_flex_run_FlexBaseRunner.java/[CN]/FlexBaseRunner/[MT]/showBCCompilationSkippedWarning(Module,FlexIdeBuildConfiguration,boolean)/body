@@ -4,14 +4,19 @@
     public void hyperlinkUpdate(    @NotNull final Notification notification,    @NotNull final HyperlinkEvent event){
       if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         notification.expire();
-        final ProjectStructureConfigurable projectStructureConfigurable=ProjectStructureConfigurable.getInstance(module.getProject());
-        ShowSettingsUtil.getInstance().editConfigurable(module.getProject(),projectStructureConfigurable,new Runnable(){
-          public void run(){
-            Place p=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getPlaceFor(module,bc.getName());
-            projectStructureConfigurable.navigateTo(p,true);
+        if ("BuildConfiguration".equals(event.getDescription())) {
+          final ProjectStructureConfigurable projectStructureConfigurable=ProjectStructureConfigurable.getInstance(module.getProject());
+          ShowSettingsUtil.getInstance().editConfigurable(module.getProject(),projectStructureConfigurable,new Runnable(){
+            public void run(){
+              Place p=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getPlaceFor(module,bc.getName());
+              projectStructureConfigurable.navigateTo(p,true);
+            }
           }
-        }
 );
+        }
+ else         if ("DisableWarning".equals(event.getDescription())) {
+          disableWarning(module.getProject());
+        }
       }
     }
   }
