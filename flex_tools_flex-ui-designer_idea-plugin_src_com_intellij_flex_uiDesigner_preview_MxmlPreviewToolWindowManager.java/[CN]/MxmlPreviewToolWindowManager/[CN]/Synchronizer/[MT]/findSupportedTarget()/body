@@ -18,8 +18,25 @@
     return null;
   }
   AnnotationBackedDescriptor descriptor=(AnnotationBackedDescriptor)xmlDescriptor;
-  if (descriptor.isPredefined()) {
+  if (descriptor.isPredefined() || MxmlUtil.isIdLanguageAttribute(attribute,descriptor)) {
     return null;
+  }
+  PsiReference[] references=attribute.getReferences();
+  if (references.length > 1) {
+    for (int i=references.length - 1; i > -1; i--) {
+      PsiReference psiReference=references[i];
+      if (psiReference instanceof FlexReferenceContributor.StateReference) {
+        return null;
+      }
+    }
+  }
+ else {
+    String prefix=attribute.getName() + '.';
+    for (    XmlAttribute anotherAttribute : attribute.getParent().getAttributes()) {
+      if (anotherAttribute != attribute && anotherAttribute.getName().startsWith(prefix)) {
+        return null;
+      }
+    }
   }
   return attribute;
 }
