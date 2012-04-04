@@ -1,0 +1,38 @@
+{
+  if (!toolWindowVisible) {
+    return;
+  }
+  final XmlFile psiFile=toolWindowForm.getFile();
+  if (psiFile == null) {
+    return;
+  }
+  if (isSlow) {
+    toolWindowForm.getPreviewPanel().getLoadingDecorator().startLoading(false);
+    loadingDecoratorStarted++;
+  }
+  AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
+  result.doWhenDone(new QueuedAsyncResultHandler<BufferedImage>(){
+    @Override protected boolean isExpired(){
+      return toolWindowForm == null || toolWindowForm.getFile() != psiFile;
+    }
+    @Override public void process(    final BufferedImage image){
+      UIUtil.invokeLaterIfNeeded(new Runnable(){
+        @Override public void run(){
+          toolWindowForm.getPreviewPanel().setImage(image);
+        }
+      }
+);
+    }
+  }
+);
+  if (isSlow) {
+    result.doWhenProcessed(new Runnable(){
+      @Override public void run(){
+        if (--loadingDecoratorStarted == 0 && toolWindowForm != null) {
+          toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
+        }
+      }
+    }
+);
+  }
+}
