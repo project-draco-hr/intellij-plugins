@@ -1,6 +1,7 @@
 {
   JsTestDriverBuilder builder=new JsTestDriverBuilder();
-  builder.setConfigurationSource(new UserConfigurationSource(configFile));
+  final ParsedConfiguration parsedConfiguration=JstdConfigParsingUtils.parseConfiguration(configFile);
+  builder.setDefaultConfiguration(parsedConfiguration);
   builder.setPort(mySettings.getPort());
   builder.withPluginInitializer(new PluginInitializer(){
     @Override public Module initializeModule(    Flags flags,    Configuration config){
@@ -8,7 +9,7 @@
         @Override public void configure(){
           Multibinder<TestListener> listeners=Multibinder.newSetBinder(binder(),TestListener.class);
           listeners.addBinding().to(TestResultHolder.class);
-          TestListener reporter=new IDETestListener(myTestResultProtocolMessageOutput,configFile);
+          TestListener reporter=new IdeaTestListener(myTestResultProtocolMessageOutput,configFile,parsedConfiguration.getBasePaths());
           listeners.addBinding().toInstance(reporter);
         }
       }
@@ -20,16 +21,15 @@
   builder.setServer(mySettings.getServerUrl());
   List<String> flagArgs=Lists.newArrayList("--captureConsole","--server",mySettings.getServerUrl());
   flagArgs.addAll(Arrays.asList(extraArgs));
-  File ideCoverageFilePath=mySettings.getIdeCoverageFile();
   List<String> coverageExcludedFiles=null;
   File emptyOutputDir=null;
   boolean runCoverage=false;
-  if (runTests && ideCoverageFilePath != null) {
+  if (runTests && myCoverageSession != null) {
     emptyOutputDir=createTempDir();
     if (emptyOutputDir != null) {
       flagArgs.add("--testOutput");
       flagArgs.add(emptyOutputDir.getAbsolutePath());
-      List<String> testPaths=getTestPaths(configFile);
+      List<String> testPaths=getTestFilePaths(parsedConfiguration);
       coverageExcludedFiles=Lists.newArrayList(testPaths);
       coverageExcludedFiles.addAll(mySettings.getFilesExcludedFromCoverage());
       PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
