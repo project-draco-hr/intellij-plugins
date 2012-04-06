@@ -53,14 +53,30 @@
  else {
       final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
       if (templateDir == null || !templateDir.isDirectory()) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.found",bc.getWrapperTemplatePath()),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.found",FileUtil.toSystemDependentName(bc.getWrapperTemplatePath())),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
       }
  else {
         final VirtualFile templateFile=templateDir.findChild(CreateHtmlWrapperTemplateDialog.HTML_WRAPPER_TEMPLATE_FILE_NAME);
         if (templateFile == null) {
-          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("no.index.template.html.file",templateDir.getPresentableUrl()),FlexIdeBCConfigurable.Location.HtmlTemplatePath));
         }
  else {
+          final String templateFolderPath=templateDir.getPath();
+          boolean ok=true;
+          for (          String url : ModuleRootManager.getInstance(module).getContentRootUrls()) {
+            if (ok) {
+              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtil.urlToPath(url),"module content root",errorConsumer);
+            }
+          }
+          for (          String url : ModuleRootManager.getInstance(module).getSourceRootUrls()) {
+            if (ok) {
+              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtil.urlToPath(url),"source folder",errorConsumer);
+            }
+          }
+          final String outputFolderPath=StringUtil.notNullize(info.getOutputFolderPath(),bc.getOutputFolder());
+          if (ok && !outputFolderPath.isEmpty()) {
+            ok=checkWrapperFolderClash(bc,templateFolderPath,outputFolderPath,"output folder",errorConsumer);
+          }
         }
       }
     }
