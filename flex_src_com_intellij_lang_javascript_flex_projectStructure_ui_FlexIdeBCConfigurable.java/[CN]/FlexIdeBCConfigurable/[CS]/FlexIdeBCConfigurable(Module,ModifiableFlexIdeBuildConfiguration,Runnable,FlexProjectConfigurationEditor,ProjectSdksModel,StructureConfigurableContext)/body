@@ -58,19 +58,18 @@
   myCreateHtmlWrapperTemplateButton.addActionListener(new ActionListener(){
     public void actionPerformed(    final ActionEvent e){
       final Sdk sdk=myDependenciesConfigurable.getCurrentSdk();
-      if (sdk == null) {
-        Messages.showInfoMessage(myModule.getProject(),FlexBundle.message("sdk.needed.to.create.wrapper"),CreateHtmlWrapperTemplateDialog.TITLE);
-      }
- else {
-        String path=myWrapperTemplateTextWithBrowse.getText().trim();
-        if (path.isEmpty()) {
-          path=FlexUtils.getContentOrModuleFolderPath(module) + "/" + CreateHtmlWrapperTemplateDialog.HTML_TEMPLATE_FOLDER_NAME;
-        }
-        final CreateHtmlWrapperTemplateDialog dialog=new CreateHtmlWrapperTemplateDialog(module,sdk,myOutputFolderField.getText().trim(),path);
+      if (sdk == null || sdk.getSdkType() == FlexmojosSdkType.getInstance()) {
+        final SelectFlexSdkDialog dialog=new SelectFlexSdkDialog(module.getProject(),CreateHtmlWrapperTemplateDialog.TITLE,FlexBundle.message("take.wrapper.template.from.sdk"));
         dialog.show();
         if (dialog.isOK()) {
-          myWrapperTemplateTextWithBrowse.setText(FileUtil.toSystemDependentName(dialog.getWrapperFolderPath()));
+          final Sdk dialogSdk=dialog.getSdk();
+          if (dialogSdk != null) {
+            showHtmlWrapperCreationDialog(dialogSdk);
+          }
         }
+      }
+ else {
+        showHtmlWrapperCreationDialog(sdk);
       }
     }
   }
