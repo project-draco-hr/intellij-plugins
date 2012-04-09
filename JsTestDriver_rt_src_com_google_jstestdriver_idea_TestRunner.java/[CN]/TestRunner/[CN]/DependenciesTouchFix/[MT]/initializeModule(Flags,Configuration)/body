@@ -1,0 +1,24 @@
+{
+  return new AbstractModule(){
+    @Override protected void configure(){
+      Multibinder.newSetBinder(binder(),ResourcePreProcessor.class).addBinding().toInstance(new ResourcePreProcessor(){
+        @Override public List<FileInfo> processDependencies(        List<FileInfo> files){
+          List<FileInfo> out=Lists.newArrayList();
+          for (          FileInfo file : files) {
+            FileInfo touchedFileInfo=file.fromResolvedPath(file.getFilePath(),file.getDisplayPath(),new DateTime().toInstant().getMillis());
+            out.add(touchedFileInfo);
+          }
+          return out;
+        }
+        @Override public List<FileInfo> processTests(        List<FileInfo> files){
+          return files;
+        }
+        @Override public List<FileInfo> processPlugins(        List<FileInfo> files){
+          return files;
+        }
+      }
+);
+    }
+  }
+;
+}

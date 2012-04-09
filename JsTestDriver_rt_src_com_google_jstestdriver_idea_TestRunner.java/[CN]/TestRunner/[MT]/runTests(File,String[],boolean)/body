@@ -7,10 +7,9 @@
     @Override public Module initializeModule(    Flags flags,    Configuration config){
       return new AbstractModule(){
         @Override public void configure(){
-          Multibinder<TestListener> listeners=Multibinder.newSetBinder(binder(),TestListener.class);
-          listeners.addBinding().to(TestResultHolder.class);
-          TestListener reporter=new IdeaTestListener(myTestResultProtocolMessageOutput,configFile,parsedConfiguration.getBasePaths());
-          listeners.addBinding().toInstance(reporter);
+          Multibinder<TestListener> testListeners=Multibinder.newSetBinder(binder(),TestListener.class);
+          testListeners.addBinding().to(TestResultHolder.class);
+          testListeners.addBinding().toInstance(new IdeaTestListener(myTestResultProtocolMessageOutput,configFile,parsedConfiguration.getBasePaths()));
         }
       }
 ;
@@ -24,8 +23,11 @@
   List<String> coverageExcludedFiles=null;
   File emptyOutputDir=null;
   boolean runCoverage=false;
-  if (runTests && myCoverageSession != null) {
+  if (myCoverageSession != null && !dryRun) {
     emptyOutputDir=createTempDir();
+    for (    FileInfo info : parsedConfiguration.getFilesList()) {
+      info.setTimestamp(info.getTimestamp() + 1);
+    }
     if (emptyOutputDir != null) {
       flagArgs.add("--testOutput");
       flagArgs.add(emptyOutputDir.getAbsolutePath());
@@ -35,6 +37,7 @@
       PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
       if (coverageInitializer != null) {
         builder.withPluginInitializer(coverageInitializer);
+        builder.withPluginInitializer(new DependenciesTouchFix());
         runCoverage=true;
       }
     }
