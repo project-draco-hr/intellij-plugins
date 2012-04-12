@@ -1,7 +1,17 @@
 {
-  if (changeAccessModifier != null && isNotOverridenMethod(traitKind) && encoder.changeAccessModifier(changeAccessModifier,name,in)) {
-    changeAccessModifier=null;
-    return true;
+  if (changeAccessModifier != null && !changeAccessModifier.isEmpty() && isNotOverridenMethod(traitKind)) {
+    for (int i=0, size=changeAccessModifier.size(); i < size; i++) {
+      String mname=changeAccessModifier.get(i);
+      if (encoder.changeAccessModifier(mname,name,in)) {
+        if (changeAccessModifier.size() == 1) {
+          changeAccessModifier=null;
+        }
+ else {
+          changeAccessModifier.remove(i);
+        }
+        return true;
+      }
+    }
   }
   return false;
 }
