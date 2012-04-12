@@ -9,6 +9,19 @@
     ToolPanel.myServerStartupAction=serverStartupAction;
   }
  catch (  Exception ex) {
-    Messages.showErrorDialog("Can't start JsTestDriver server on port " + serverPort + ".\nMake sure the port is free.","JsTestDriver Server Launching");
+    ServerStopAction.runStopAction(serverStartupAction);
+    String title="JsTestDriver Server Launching";
+    int sslPort=serverPort + 1;
+    if (!isLocalPortAvailable(serverPort)) {
+      Messages.showErrorDialog("Can't start JsTestDriver server on port " + serverPort + ".\nMake sure the port is free.",title);
+    }
+ else     if (!isLocalPortAvailable(sslPort)) {
+      Messages.showErrorDialog("Can't start JsTestDriver server.\nMake sure the ssl port " + sslPort + " is free.",title);
+    }
+ else {
+      String message="Can't start JsTestDriver server due to unknown reasons.";
+      Messages.showErrorDialog(message + "\n" + "See idea.log (Help->Reveal Log in ...).",title);
+      LOG.warn(message,ex);
+    }
   }
 }
