@@ -38,10 +38,23 @@
   contentManager.addContent(content);
   contentManager.setSelectedContent(content,true);
   MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(project);
-  connection.subscribe(SocketInputHandler.MESSAGE_TOPIC,new SocketInputHandler.DocumentRenderedListener(){
+  connection.subscribe(DesignerApplicationManager.MESSAGE_TOPIC,new DesignerApplicationManager.DocumentRenderedListener(){
     @Override public void documentRenderedOnAutoSave(    DocumentFactoryManager.DocumentInfo info){
-      if (toolWindowVisible && toolWindowForm.getFile() != null && info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()))) {
+      if (isApplicable(info)) {
         render();
+      }
+    }
+    private boolean isApplicable(    DocumentFactoryManager.DocumentInfo info){
+      return toolWindowVisible && toolWindowForm.getFile() != null && info.equals(DocumentFactoryManager.getInstance().getNullableInfo(toolWindowForm.getFile()));
+    }
+    @Override public void documentIncrementallyUpdated(    DocumentFactoryManager.DocumentInfo info){
+      if (isApplicable(info)) {
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            render();
+          }
+        }
+);
       }
     }
     @Override public void errorOccured(){
