@@ -1,6 +1,6 @@
 {
   final AsyncResult<List<DocumentInfo>> result=new AsyncResult<List<DocumentInfo>>();
-  if (infos.isEmpty()) {
+  if (infos.isEmpty() && outdatedLocalStyleHolders.isEmpty()) {
     result.setDone(infos);
     return result;
   }
@@ -13,10 +13,13 @@
       }
     }
 );
-    out.writeUInt29(infos.size());
-    for (    DocumentInfo info : infos) {
-      out.writeUInt29(info.getId());
+    out.write(outdatedLocalStyleHolders,new PairConsumer<Pair<ModuleInfo,List<LocalStyleHolder>>,AmfOutputStream>(){
+      @Override public void consume(      Pair<ModuleInfo,List<LocalStyleHolder>> pair,      AmfOutputStream out){
+        out.writeUInt29(pair.first.getId());
+      }
     }
+);
+    out.write(infos);
     hasError=false;
   }
   finally {

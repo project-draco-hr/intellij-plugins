@@ -1,0 +1,22 @@
+{
+  final AssetCounter assetCounter=new AssetCounter();
+  stringWriter.startChange();
+  final AccessToken token=ReadAction.start();
+  try {
+    LocalCssWriter cssWriter=new LocalCssWriter(stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter);
+    for (    Pair<ModuleInfo,List<LocalStyleHolder>> pair : holders) {
+      for (      LocalStyleHolder holder : pair.second) {
+        holder.setData(cssWriter.write(holder.file,pair.first.getModule()));
+      }
+    }
+  }
+ catch (  Throwable e) {
+    stringWriter.rollback();
+    LOG.error(e);
+    return false;
+  }
+ finally {
+    token.finish();
+  }
+  return true;
+}

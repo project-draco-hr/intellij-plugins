@@ -2,7 +2,8 @@
   FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
   DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
   Client client=Client.getInstance();
-  List<DocumentInfo> documentInfos=new ArrayList<DocumentInfo>(unsavedDocuments.length);
+  final List<DocumentInfo> documentInfos=new ArrayList<DocumentInfo>(unsavedDocuments.length);
+  final List<Pair<ModuleInfo,List<LocalStyleHolder>>> outdatedLocalStyleHolders=new ArrayList<Pair<ModuleInfo,List<LocalStyleHolder>>>();
   for (  Document document : unsavedDocuments) {
     final VirtualFile file=fileDocumentManager.getFile(document);
     if (file == null) {
@@ -10,6 +11,27 @@
     }
     final DocumentInfo info=documentFactoryManager.getNullableInfo(file);
     if (info == null) {
+      if ("css".equalsIgnoreCase(file.getExtension())) {
+        client.getRegisteredModules().forEach(new TObjectProcedure<ModuleInfo>(){
+          @Override public boolean execute(          ModuleInfo moduleInfo){
+            List<LocalStyleHolder> styleHolders=moduleInfo.getLocalStyleHolders();
+            if (styleHolders != null) {
+              List<LocalStyleHolder> list=null;
+              for (              LocalStyleHolder styleHolder : styleHolders) {
+                if (styleHolder.file.equals(file)) {
+                  if (list == null) {
+                    list=new ArrayList<LocalStyleHolder>();
+                    outdatedLocalStyleHolders.add(new Pair<ModuleInfo,List<LocalStyleHolder>>(moduleInfo,list));
+                  }
+                  list.add(styleHolder);
+                }
+              }
+            }
+            return true;
+          }
+        }
+);
+      }
       continue;
     }
     if (info.documentModificationStamp == document.getModificationStamp()) {
@@ -39,5 +61,19 @@
       documentInfos.add(info);
     }
   }
-  return client.renderDocumentAndDependents(documentInfos);
+  if (!outdatedLocalStyleHolders.isEmpty()) {
+    final ProblemsHolder problemsHolder=new ProblemsHolder();
+    final ProjectComponentReferenceCounter projectComponentReferenceCounter=new ProjectComponentReferenceCounter();
+    final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
+    if (ModuleInfoUtil.updateLocalStyle(outdatedLocalStyleHolders,projectComponentReferenceCounter,problemsHolder,stringWriter)) {
+      client.updateLocalStyleHolders(outdatedLocalStyleHolders,stringWriter);
+      if (projectComponentReferenceCounter.hasUnregistered()) {
+        client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,null,problemsHolder);
+      }
+    }
+    if (!problemsHolder.isEmpty()) {
+      DocumentProblemManager.getInstance().report(null,problemsHolder);
+    }
+  }
+  return client.renderDocumentAndDependents(documentInfos,outdatedLocalStyleHolders);
 }
