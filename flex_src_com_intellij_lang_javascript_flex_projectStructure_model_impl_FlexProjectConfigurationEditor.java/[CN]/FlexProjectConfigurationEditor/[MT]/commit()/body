@@ -28,7 +28,17 @@
         renamedConfigs.put(Pair.create(module.getName(),originalName),editor.getName());
       }
     }
-    modifiableModel.setSdk(sdkNames.isEmpty() ? null : new FlexCompositeSdk(ArrayUtil.toStringArray(sdkNames)));
+    final Sdk sdk;
+    if (sdkNames.isEmpty()) {
+      sdk=null;
+    }
+ else     if (sdkNames.size() == 1) {
+      sdk=FlexSdkUtils.findFlexOrFlexmojosSdk(sdkNames.iterator().next());
+    }
+ else {
+      sdk=new FlexCompositeSdk(ArrayUtil.toStringArray(sdkNames));
+    }
+    modifiableModel.setSdk(sdk);
     Collection<OrderEntry> entriesToRemove=new ArrayList<OrderEntry>();
     for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
       if (orderEntry instanceof LibraryOrderEntry) {
