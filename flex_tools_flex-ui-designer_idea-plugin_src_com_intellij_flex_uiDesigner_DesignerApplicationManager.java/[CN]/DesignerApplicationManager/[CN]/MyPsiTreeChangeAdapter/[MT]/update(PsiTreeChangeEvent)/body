@@ -1,0 +1,16 @@
+{
+  if (isApplicationClosed()) {
+    return;
+  }
+  PsiFile psiFile=event.getFile();
+  if (psiFile instanceof XmlFile) {
+    DocumentInfo info=DocumentFactoryManager.getInstance().getNullableInfo(psiFile);
+    if (info == null && psiFile != previewToolWindowManager.getServedFile()) {
+      return;
+    }
+  }
+ else   if (!(psiFile instanceof CssFile)) {
+    return;
+  }
+  updateQueue.queue(new IncrementalDocumentSynchronizer(event));
+}

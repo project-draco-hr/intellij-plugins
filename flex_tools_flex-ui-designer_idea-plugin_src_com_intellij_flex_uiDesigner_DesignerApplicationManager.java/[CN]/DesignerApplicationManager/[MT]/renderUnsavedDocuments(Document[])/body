@@ -1,17 +1,3 @@
 {
-  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-    @Override public void run(){
-      AsyncResult<List<DocumentInfo>> result=doRenderUnsavedDocuments(unsavedDocuments);
-      result.doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
-        @Override public void run(        List<DocumentInfo> infos){
-          MessageBus messageBus=ApplicationManager.getApplication().getMessageBus();
-          for (          DocumentInfo info : infos) {
-            messageBus.syncPublisher(MESSAGE_TOPIC).documentRenderedOnAutoSave(info);
-          }
-        }
-      }
-);
-    }
-  }
-);
+  doRenderUnsavedDocuments(unsavedDocuments).doWhenDone(createTotalRenderDoneHandler());
 }

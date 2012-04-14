@@ -1,0 +1,29 @@
+{
+  Client client=Client.getInstance();
+  if (!changedLocalStyleHolders.isEmpty()) {
+    final ProblemsHolder problemsHolder=new ProblemsHolder();
+    final ProjectComponentReferenceCounter projectComponentReferenceCounter=new ProjectComponentReferenceCounter();
+    final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
+    try {
+      for (      Pair<ModuleInfo,List<LocalStyleHolder>> pair : changedLocalStyleHolders) {
+        ModuleInfo moduleInfo=pair.first;
+        moduleInfo.getLocalStyleHolders().clear();
+        FlexLibrarySet flexLibrarySet=moduleInfo.getFlexLibrarySet();
+        ModuleInfoUtil.collectLocalStyle(moduleInfo,flexLibrarySet.getVersion(),stringWriter,problemsHolder,projectComponentReferenceCounter,flexLibrarySet.assetCounterInfo.demanded);
+        client.fillAssetClassPoolIfNeed(flexLibrarySet);
+        client.updateLocalStyleHolders(changedLocalStyleHolders,stringWriter);
+        if (projectComponentReferenceCounter.hasUnregistered()) {
+          client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,null,problemsHolder);
+        }
+      }
+    }
+ catch (    Throwable e) {
+      stringWriter.rollback();
+      LOG.error(e);
+    }
+    if (!problemsHolder.isEmpty()) {
+      DocumentProblemManager.getInstance().report(null,problemsHolder);
+    }
+  }
+  return client.renderDocumentAndDependents(documentInfos,changedLocalStyleHolders);
+}

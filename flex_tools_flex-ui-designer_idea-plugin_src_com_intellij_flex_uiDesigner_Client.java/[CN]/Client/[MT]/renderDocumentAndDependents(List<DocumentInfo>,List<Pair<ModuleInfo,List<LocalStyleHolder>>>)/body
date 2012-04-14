@@ -1,6 +1,6 @@
 {
   final AsyncResult<List<DocumentInfo>> result=new AsyncResult<List<DocumentInfo>>();
-  if (infos.isEmpty() && outdatedLocalStyleHolders.isEmpty()) {
+  if ((infos == null || infos.isEmpty()) && outdatedLocalStyleHolders.isEmpty()) {
     result.setDone(infos);
     return result;
   }
@@ -9,7 +9,20 @@
   try {
     beginMessage(ClientMethod.renderDocumentsAndDependents,callback,result,new Runnable(){
       @Override public void run(){
-        result.setDone(infos);
+        final int[] ids;
+        try {
+          ids=SocketInputHandler.getInstance().getReader().readIntArray();
+        }
+ catch (        IOException e) {
+          LogMessageUtil.processInternalError(e);
+          return;
+        }
+        DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
+        List<DocumentInfo> rendered=new ArrayList<DocumentInfo>(ids.length);
+        for (        int id : ids) {
+          rendered.add(documentFactoryManager.getInfo(id));
+        }
+        result.setDone(rendered);
       }
     }
 );
