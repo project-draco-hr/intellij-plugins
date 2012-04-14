@@ -1,3 +1,11 @@
 {
-  doRenderUnsavedDocuments(unsavedDocuments).doWhenDone(createTotalRenderDoneHandler());
+  doRenderUnsavedDocuments(unsavedDocuments).doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
+    @Override public void run(    List<DocumentInfo> infos){
+      MessageBus messageBus=ApplicationManager.getApplication().getMessageBus();
+      for (      DocumentInfo info : infos) {
+        messageBus.syncPublisher(MESSAGE_TOPIC).documentRendered(info);
+      }
+    }
+  }
+);
 }

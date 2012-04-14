@@ -1,2 +1,20 @@
 {
+  boolean hasError=false;
+  try {
+    beginMessage(ClientMethod.updateLocalStyleHolders);
+    stringWriter.writeTo(out);
+    out.writeUInt29(holders.size());
+    for (    Pair<ModuleInfo,List<LocalStyleHolder>> pair : holders) {
+      out.writeUInt29(pair.first.getId());
+      out.write(pair.first.getLocalStyleHolders(),"lsh",true);
+    }
+  }
+ catch (  Throwable e) {
+    hasError=true;
+    stringWriter.rollback();
+    LogMessageUtil.processInternalError(e);
+  }
+ finally {
+    finalizeMessage(hasError);
+  }
 }
