@@ -1,11 +1,20 @@
 {
-  if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
-    return null;
-  }
   PsiElement element=event.getParent();
   while (!(element instanceof XmlAttribute)) {
     element=element.getParent();
-    if (element instanceof XmlTag || element instanceof PsiFile || element == null) {
+    if (element instanceof XmlTag) {
+      XmlTag tag=(XmlTag)element;
+      XmlElementDescriptor descriptor=tag.getDescriptor();
+      if (descriptor instanceof ClassBackedElementDescriptor) {
+        ClassBackedElementDescriptor classBackedElementDescriptor=(ClassBackedElementDescriptor)descriptor;
+        if (classBackedElementDescriptor.isPredefined()) {
+          isStyleDataChanged=descriptor.getQualifiedName().equals(FlexPredefinedTagNames.STYLE);
+          isSkippedXml=isStyleDataChanged || (!MxmlUtil.isObjectLanguageTag(tag) && !descriptor.getQualifiedName().equals(FlexPredefinedTagNames.DECLARATIONS));
+        }
+      }
+      return null;
+    }
+ else     if (element instanceof PsiFile || element == null) {
       return null;
     }
   }
