@@ -10,6 +10,7 @@
         newAdditionalJARContents.add(file);
       }
     }
+    List<LocalFileSystem.WatchRequest> toRemove=new ArrayList<LocalFileSystem.WatchRequest>();
     for (Iterator<VirtualFile> jarContentsIterator=_additionalBundleJARContents.iterator(); jarContentsIterator.hasNext(); ) {
       VirtualFile file=jarContentsIterator.next();
       if (!newAdditionalJARContents.contains(file)) {
@@ -17,30 +18,23 @@
         for (Iterator<LocalFileSystem.WatchRequest> watchIterator=_watchRequests.iterator(); watchIterator.hasNext(); ) {
           LocalFileSystem.WatchRequest watchRequest=watchIterator.next();
           if (Comparing.strEqual(file.getPath(),watchRequest.getRootPath())) {
-            _fileSystem.removeWatchedRoot(watchRequest);
+            toRemove.add(watchRequest);
             watchIterator.remove();
           }
         }
       }
     }
+    List<String> toAdd=new ArrayList<String>();
     for (    VirtualFile newAdditionalJARContent : newAdditionalJARContents) {
       if (!_additionalBundleJARContents.contains(newAdditionalJARContent)) {
-        final LocalFileSystem.WatchRequest watchRequest=_fileSystem.addRootToWatch(newAdditionalJARContent.getPath(),true);
-        if (watchRequest != null) {
-          _watchRequests.add(watchRequest);
-        }
- else {
-          logger.warn("It seems like " + newAdditionalJARContent.getPath() + " doesn't belong to the file system or the file watcher is not operational.");
-        }
+        toAdd.add(newAdditionalJARContent.getPath());
         _additionalBundleJARContents.add(newAdditionalJARContent);
       }
     }
+    final Set<LocalFileSystem.WatchRequest> requests=_fileSystem.replaceWatchedRoots(toRemove,toAdd,true);
+    _watchRequests.addAll(requests);
   }
  else {
-    _additionalBundleJARContents.clear();
-    for (    LocalFileSystem.WatchRequest watchRequest : _watchRequests) {
-      _fileSystem.removeWatchedRoot(watchRequest);
-    }
-    _watchRequests.clear();
+    cleanup();
   }
 }
