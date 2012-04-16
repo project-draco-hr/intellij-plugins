@@ -1,21 +1,22 @@
 {
-  AsyncResult<List<DocumentInfo>> result=doRenderDocumentsAndCheckLocalStyleModification(documents,onlyStyle);
-  result.doWhenProcessed(new Runnable(){
-    @Override public void run(){
-    }
-  }
-);
-  result.doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
-    @Override public void run(    List<DocumentInfo> infos){
-      Application application=ApplicationManager.getApplication();
-      if (application.isDisposed()) {
-        return;
-      }
-      MessageBus messageBus=application.getMessageBus();
-      for (      DocumentInfo info : infos) {
-        messageBus.syncPublisher(MESSAGE_TOPIC).documentRendered(info);
+synchronized (initialRenderQueue) {
+    final AtomicBoolean result=new AtomicBoolean();
+    initialRenderQueue.processActions(new Processor<RenderAction>(){
+      @Override public boolean process(      RenderAction renderAction){
+        if (renderAction.file == null) {
+          ComplexRenderAction action=(ComplexRenderAction)renderAction;
+          if (onlyStyle == action.onlyStyle) {
+            action.documents=ArrayUtil.mergeArrays(action.documents,documents);
+            result.set(true);
+            return false;
+          }
+        }
+        return true;
       }
     }
-  }
 );
+    if (!result.get()) {
+      initialRenderQueue.add(new ComplexRenderAction(documents,onlyStyle));
+    }
+  }
 }

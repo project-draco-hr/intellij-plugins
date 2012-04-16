@@ -1,0 +1,16 @@
+{
+  doRenderDocumentsAndCheckLocalStyleModification(documents,onlyStyle,result);
+  result.doWhenDone(new AsyncResult.Handler<List<DocumentInfo>>(){
+    @Override public void run(    List<DocumentInfo> infos){
+      Application application=ApplicationManager.getApplication();
+      if (application.isDisposed()) {
+        return;
+      }
+      MessageBus messageBus=application.getMessageBus();
+      for (      DocumentInfo info : infos) {
+        messageBus.syncPublisher(MESSAGE_TOPIC).documentRendered(info);
+      }
+    }
+  }
+);
+}

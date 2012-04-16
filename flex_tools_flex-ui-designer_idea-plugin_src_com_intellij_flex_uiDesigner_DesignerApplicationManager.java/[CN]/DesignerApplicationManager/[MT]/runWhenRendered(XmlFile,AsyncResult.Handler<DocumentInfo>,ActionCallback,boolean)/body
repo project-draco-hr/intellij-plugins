@@ -20,15 +20,25 @@ synchronized (initialRenderQueue) {
       if (renderRejectedCallback != null) {
         renderResult.notifyWhenRejected(renderRejectedCallback);
       }
-      RenderAction renderAction=new RenderAction(psiFile,renderResult){
-        @Override public void run(){
-          Module module=ModuleUtil.findModuleForPsiElement(file);
-          LOG.assertTrue(module != null);
-          renderDocument(module,file,debug,result);
+      initialRenderQueue.add(new RenderAction<AsyncResult<DocumentInfo>>(psiFile.getProject(),psiFile.getViewProvider().getVirtualFile(),renderResult){
+        @Override protected boolean isNeedEdt(){
+          return true;
+        }
+        @Override protected void doRun(){
+          if (project.isDisposed()) {
+            return;
+          }
+          PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+          if (!(psiFile instanceof XmlFile)) {
+            return;
+          }
+          Module module=ModuleUtil.findModuleForFile(file,project);
+          if (module != null) {
+            renderDocument(module,(XmlFile)psiFile,debug,result);
+          }
         }
       }
-;
-      initialRenderQueue.add(renderAction);
+);
     }
     renderResult.doWhenDone(handler);
   }
