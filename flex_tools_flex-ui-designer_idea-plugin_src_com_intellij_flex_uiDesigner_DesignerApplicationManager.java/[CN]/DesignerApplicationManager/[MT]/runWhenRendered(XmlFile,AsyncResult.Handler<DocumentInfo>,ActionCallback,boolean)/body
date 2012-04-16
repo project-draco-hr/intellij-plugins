@@ -1,2 +1,35 @@
 {
+  boolean needInitialRender=isApplicationClosed();
+  DocumentInfo documentInfo=null;
+  if (!needInitialRender) {
+    Document[] unsavedDocuments=FileDocumentManager.getInstance().getUnsavedDocuments();
+    if (unsavedDocuments.length > 0) {
+      renderDocumentsAndCheckLocalStyleModification(unsavedDocuments);
+    }
+    documentInfo=DocumentFactoryManager.getInstance().getNullableInfo(psiFile);
+    needInitialRender=documentInfo == null;
+  }
+  if (!needInitialRender) {
+    handler.run(documentInfo);
+    return;
+  }
+synchronized (initialRenderQueue) {
+    AsyncResult<DocumentInfo> renderResult=initialRenderQueue.findResult(psiFile);
+    if (renderResult == null) {
+      renderResult=new AsyncResult<DocumentInfo>();
+      if (renderRejectedCallback != null) {
+        renderResult.notifyWhenRejected(renderRejectedCallback);
+      }
+      RenderAction renderAction=new RenderAction(psiFile,renderResult){
+        @Override public void run(){
+          Module module=ModuleUtil.findModuleForPsiElement(file);
+          LOG.assertTrue(module != null);
+          renderDocument(module,file,debug,result);
+        }
+      }
+;
+      initialRenderQueue.add(renderAction);
+    }
+    renderResult.doWhenDone(handler);
+  }
 }
