@@ -4,6 +4,7 @@
       blockOut.rollback();
     }
   finally {
+      outLock.unlock();
       if (callback != null) {
         callback.setRejected();
       }
@@ -14,7 +15,13 @@
       out.flush();
     }
  catch (    IOException e) {
+      if (callback != null) {
+        callback.setRejected();
+      }
       LogMessageUtil.processInternalError(e);
+    }
+ finally {
+      outLock.unlock();
     }
   }
 }

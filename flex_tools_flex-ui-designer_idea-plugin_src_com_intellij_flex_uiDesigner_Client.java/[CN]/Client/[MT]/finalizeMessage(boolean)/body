@@ -1,14 +1,19 @@
 {
-  if (hasError) {
-    blockOut.rollback();
-  }
+  try {
+    if (hasError) {
+      blockOut.rollback();
+    }
  else {
-    try {
-      blockOut.end();
+      try {
+        blockOut.end();
+      }
+ catch (      IOException e) {
+        LogMessageUtil.processInternalError(e);
+      }
     }
- catch (    IOException e) {
-      LogMessageUtil.processInternalError(e);
-    }
+    out.resetAfterMessage();
   }
-  out.resetAfterMessage();
+  finally {
+    outLock.unlock();
+  }
 }

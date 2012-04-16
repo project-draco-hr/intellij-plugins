@@ -14,12 +14,19 @@
     DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
   }
   final ActionCallback callback=new ActionCallback("renderDocument");
-  beginMessage(ClientMethod.renderDocument,callback,result,new Runnable(){
-    @Override public void run(){
-      result.setDone(DocumentFactoryManager.getInstance().getInfo(factoryId));
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.renderDocument,callback,result,new Runnable(){
+      @Override public void run(){
+        result.setDone(DocumentFactoryManager.getInstance().getInfo(factoryId));
+      }
     }
-  }
 );
-  out.writeShort(factoryId);
+    out.writeShort(factoryId);
+    hasError=false;
+  }
+  finally {
+    finalizeMessageAndFlush(hasError);
+  }
   return result;
 }

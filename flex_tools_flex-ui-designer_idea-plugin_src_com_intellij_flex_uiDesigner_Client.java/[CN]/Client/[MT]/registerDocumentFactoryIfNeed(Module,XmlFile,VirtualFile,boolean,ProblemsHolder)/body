@@ -15,9 +15,14 @@
       LogMessageUtil.processInternalError(e,virtualFile);
     }
  finally {
-      if (hasError) {
-        blockOut.rollback();
-        return -1;
+      try {
+        if (hasError) {
+          blockOut.rollback();
+          return -1;
+        }
+      }
+  finally {
+        outLock.unlock();
       }
     }
   }
