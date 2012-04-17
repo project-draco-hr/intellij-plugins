@@ -1,5 +1,5 @@
 {
-  final GlobalSearchScope moduleWithDependenciesAndLibrariesScope=moduleInfo.getModule().getModuleWithDependenciesAndLibrariesScope(false);
+  GlobalSearchScope moduleWithDependenciesAndLibrariesScope=module.getModuleWithDependenciesAndLibrariesScope(false);
   final List<JSClass> holders=new ArrayList<JSClass>(2);
   if (flexSdkVersion.charAt(0) > '3') {
     JSClass clazz=((JSClass)JSResolveUtil.findClassByQName(FlexCommonTypeNames.SPARK_APPLICATION,moduleWithDependenciesAndLibrariesScope));
@@ -12,9 +12,10 @@
     holders.add(mxApplicationClass);
   }
   if (holders.isEmpty()) {
-    return;
+    return null;
   }
   final StyleTagWriter styleTagWriter=new StyleTagWriter(new LocalCssWriter(stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter));
+  final List<LocalStyleHolder> result=new ArrayList<LocalStyleHolder>();
   final Processor<JSClass> processor=new Processor<JSClass>(){
     @Override public boolean process(    JSClass jsClass){
       PsiFile psiFile=jsClass.getNavigationElement().getContainingFile();
@@ -31,9 +32,9 @@
         for (        final XmlTag subTag : rootTag.getSubTags()) {
           if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
             try {
-              LocalStyleHolder localStyleHolder=styleTagWriter.write(subTag,moduleInfo.getModule(),virtualFile);
+              LocalStyleHolder localStyleHolder=styleTagWriter.write(subTag,module,virtualFile);
               if (localStyleHolder != null) {
-                moduleInfo.addLocalStyleHolder(localStyleHolder);
+                result.add(localStyleHolder);
               }
             }
  catch (            InvalidPropertyException e) {
@@ -49,8 +50,9 @@
     }
   }
 ;
-  final GlobalSearchScope moduleScope=moduleInfo.getModule().getModuleScope(false);
+  final GlobalSearchScope moduleScope=module.getModuleScope(false);
   for (  JSClass holder : holders) {
     JSClassSearch.searchClassInheritors(new JSClassSearch.SearchParameters(holder,true,moduleScope)).forEach(processor);
   }
+  return result;
 }

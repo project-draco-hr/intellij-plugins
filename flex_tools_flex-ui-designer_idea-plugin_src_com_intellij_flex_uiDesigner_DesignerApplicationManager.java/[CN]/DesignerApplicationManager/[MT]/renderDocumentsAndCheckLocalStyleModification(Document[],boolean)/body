@@ -1,20 +1,22 @@
 {
 synchronized (initialRenderQueue) {
     final AtomicBoolean result=new AtomicBoolean();
-    initialRenderQueue.processActions(new Processor<RenderAction>(){
-      @Override public boolean process(      RenderAction renderAction){
-        if (renderAction.file == null) {
-          ComplexRenderAction action=(ComplexRenderAction)renderAction;
-          if (onlyStyle == action.onlyStyle) {
-            action.documents=ArrayUtil.mergeArrays(action.documents,documents);
-            result.set(true);
-            return false;
+    if (!initialRenderQueue.isEmpty()) {
+      initialRenderQueue.processActions(new Processor<RenderAction>(){
+        @Override public boolean process(        RenderAction renderAction){
+          if (renderAction.file == null) {
+            ComplexRenderAction action=(ComplexRenderAction)renderAction;
+            if (onlyStyle == action.onlyStyle) {
+              action.documents=ArrayUtil.mergeArrays(action.documents,documents);
+              result.set(true);
+              return false;
+            }
           }
+          return true;
         }
-        return true;
       }
-    }
 );
+    }
     if (!result.get()) {
       initialRenderQueue.add(new ComplexRenderAction(documents,onlyStyle));
     }

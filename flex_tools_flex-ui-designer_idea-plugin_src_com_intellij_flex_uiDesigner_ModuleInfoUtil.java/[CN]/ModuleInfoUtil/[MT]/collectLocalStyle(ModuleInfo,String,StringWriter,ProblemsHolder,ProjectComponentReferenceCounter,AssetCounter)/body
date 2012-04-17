@@ -1,12 +1,15 @@
 {
-  final PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(moduleInfo.getModule().getProject());
+  Project project=moduleInfo.getModule().getProject();
+  DumbService dumbService=DumbService.getInstance(project);
+  if (dumbService.isDumb()) {
+    dumbService.waitForSmartMode();
+  }
+  final PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(project);
   if (psiDocumentManager.hasUncommitedDocuments()) {
     final Semaphore semaphore=new Semaphore();
     semaphore.down();
     Application application=ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      LogMessageUtil.LOG.error("must be not called in EDT");
-    }
+    LogMessageUtil.LOG.assertTrue(!application.isReadAccessAllowed());
     application.invokeLater(new Runnable(){
       @Override public void run(){
         psiDocumentManager.performWhenAllCommitted(new Runnable(){
@@ -23,10 +26,10 @@
   final AccessToken token=ReadAction.start();
   try {
     if (moduleInfo.isApp()) {
-      collectApplicationLocalStyle(moduleInfo,flexSdkVersion,problemsHolder,stringWriter,projectComponentReferenceCounter,assetCounter);
+      return collectApplicationLocalStyle(moduleInfo.getModule(),flexSdkVersion,problemsHolder,stringWriter,projectComponentReferenceCounter,assetCounter);
     }
  else {
-      collectLibraryLocalStyle(moduleInfo,stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter);
+      return collectLibraryLocalStyle(moduleInfo.getModule(),stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter);
     }
   }
   finally {
