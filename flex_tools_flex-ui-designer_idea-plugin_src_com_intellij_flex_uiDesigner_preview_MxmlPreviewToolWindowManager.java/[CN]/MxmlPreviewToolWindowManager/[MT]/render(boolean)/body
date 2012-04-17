@@ -2,18 +2,18 @@
   if (!toolWindowVisible) {
     return;
   }
-  final XmlFile psiFile=toolWindowForm.getFile();
-  if (psiFile == null) {
+  final VirtualFile file=toolWindowForm.getFile();
+  if (file == null) {
     return;
   }
   if (isSlow) {
     toolWindowForm.getPreviewPanel().getLoadingDecorator().startLoading(false);
     loadingDecoratorStarted++;
   }
-  AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(psiFile);
+  @SuppressWarnings("ConstantConditions") AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage((XmlFile)PsiManager.getInstance(project).findFile(file));
   result.doWhenDone(new QueuedAsyncResultHandler<BufferedImage>(){
     @Override protected boolean isExpired(){
-      return toolWindowForm == null || toolWindowForm.getFile() != psiFile;
+      return toolWindowForm == null || toolWindowForm.getFile() != file;
     }
     @Override public void process(    final BufferedImage image){
       UIUtil.invokeLaterIfNeeded(new Runnable(){
