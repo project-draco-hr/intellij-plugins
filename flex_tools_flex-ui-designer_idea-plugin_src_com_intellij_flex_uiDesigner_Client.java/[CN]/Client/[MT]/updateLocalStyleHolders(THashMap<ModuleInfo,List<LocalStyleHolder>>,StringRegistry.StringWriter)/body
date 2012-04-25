@@ -4,10 +4,14 @@
     beginMessage(ClientMethod.updateLocalStyleHolders);
     stringWriter.writeTo(out);
     out.writeUInt29(holders.size());
-    for (    Pair<ModuleInfo,List<LocalStyleHolder>> pair : holders) {
-      out.writeUInt29(pair.first.getId());
-      out.write(pair.first.getLocalStyleHolders(),"lsh",true);
+    holders.forEachKey(new TObjectProcedure<ModuleInfo>(){
+      @Override public boolean execute(      ModuleInfo moduleInfo){
+        out.writeUInt29(moduleInfo.getId());
+        out.write(moduleInfo.getLocalStyleHolders(),"lsh",true,true);
+        return true;
+      }
     }
+);
   }
  catch (  Throwable e) {
     hasError=true;

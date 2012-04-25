@@ -10,7 +10,19 @@
     needInitialRender=documentInfo == null;
   }
   if (!needInitialRender) {
-    handler.run(documentInfo);
+    Application app=ApplicationManager.getApplication();
+    if (app.isDispatchThread()) {
+      final DocumentInfo finalDocumentInfo=documentInfo;
+      app.executeOnPooledThread(new Runnable(){
+        @Override public void run(){
+          handler.run(finalDocumentInfo);
+        }
+      }
+);
+    }
+ else {
+      handler.run(documentInfo);
+    }
     return;
   }
 synchronized (initialRenderQueue) {
