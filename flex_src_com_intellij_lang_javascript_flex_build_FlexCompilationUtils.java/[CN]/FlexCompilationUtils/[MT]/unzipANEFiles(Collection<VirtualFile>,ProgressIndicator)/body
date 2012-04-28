@@ -1,0 +1,25 @@
+{
+  final File baseDir=new File(getPathToUnzipANE());
+  if (!baseDir.exists()) {
+    if (!baseDir.mkdir()) {
+      Logger.getLogger(FlexCompilationUtils.class.getName()).warning("Failed to create " + baseDir.getPath());
+      return;
+    }
+  }
+  for (  VirtualFile file : aneFiles) {
+    if (indicator != null && indicator.isCanceled())     return;
+    final File subDir=new File(baseDir,file.getName());
+    if (!subDir.exists()) {
+      if (!subDir.mkdir()) {
+        Logger.getLogger(FlexCompilationUtils.class.getName()).warning("Failed to create " + baseDir.getPath());
+        continue;
+      }
+    }
+    try {
+      ZipUtil.extract(new File(file.getPath()),subDir,null,true);
+    }
+ catch (    IOException e) {
+      Logger.getLogger(FlexCompilationUtils.class.getName()).warning("Failed to unzip " + file.getPath() + " to "+ baseDir.getPath());
+    }
+  }
+}
