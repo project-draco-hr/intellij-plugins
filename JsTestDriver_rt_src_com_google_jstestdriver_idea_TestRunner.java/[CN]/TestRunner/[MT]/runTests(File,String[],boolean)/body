@@ -2,14 +2,13 @@
   JsTestDriverBuilder builder=new JsTestDriverBuilder();
   final ParsedConfiguration parsedConfiguration=JstdConfigParsingUtils.parseConfiguration(configFile);
   builder.setDefaultConfiguration(parsedConfiguration);
-  builder.setPort(mySettings.getPort());
   builder.withPluginInitializer(new PluginInitializer(){
     @Override public Module initializeModule(    Flags flags,    Configuration config){
       return new AbstractModule(){
         @Override public void configure(){
           Multibinder<TestListener> testListeners=Multibinder.newSetBinder(binder(),TestListener.class);
           testListeners.addBinding().to(TestResultHolder.class);
-          testListeners.addBinding().toInstance(new IdeaTestListener(myTestResultProtocolMessageOutput,configFile,parsedConfiguration.getBasePaths()));
+          testListeners.addBinding().toInstance(new IdeaTestListener(myOutputManager,configFile,parsedConfiguration.getBasePaths()));
         }
       }
 ;
@@ -25,9 +24,6 @@
   boolean runCoverage=false;
   if (myCoverageSession != null && !dryRun) {
     emptyOutputDir=createTempDir();
-    for (    FileInfo info : parsedConfiguration.getFilesList()) {
-      info.setTimestamp(info.getTimestamp() + 1);
-    }
     if (emptyOutputDir != null) {
       flagArgs.add("--testOutput");
       flagArgs.add(emptyOutputDir.getAbsolutePath());
@@ -36,6 +32,7 @@
       coverageExcludedFiles.addAll(mySettings.getFilesExcludedFromCoverage());
       PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
       if (coverageInitializer != null) {
+        wipeCoveragePlugin(parsedConfiguration);
         builder.withPluginInitializer(coverageInitializer);
         builder.withPluginInitializer(new DependenciesTouchFix());
         runCoverage=true;
@@ -46,22 +43,22 @@
   JsTestDriver jstd=builder.build();
   jstd.runConfiguration();
   if (runCoverage) {
-    File[] coverageFiles=emptyOutputDir.listFiles(new FilenameFilter(){
+    File[] coverageReportFiles=emptyOutputDir.listFiles(new FilenameFilter(){
       @Override public boolean accept(      File dir,      String name){
         return name.endsWith("-coverage.dat");
       }
     }
 );
-    if (coverageFiles != null && coverageFiles.length == 1) {
+    if (coverageReportFiles != null && coverageReportFiles.length == 1) {
       try {
-        CoverageReport coverageReport=CoverageSerializationUtils.readLCOV(coverageFiles[0]);
+        CoverageReport coverageReport=CoverageSerializationUtils.readLCOV(coverageReportFiles[0]);
         for (        String excludedPath : coverageExcludedFiles) {
           coverageReport.clearReportByFilePath(excludedPath);
         }
         myCoverageSession.mergeReport(coverageReport);
       }
  catch (      Exception e) {
-        e.printStackTrace();
+        myOutputManager.printThrowable(e);
       }
     }
   }

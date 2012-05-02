@@ -1,21 +1,15 @@
 {
-  int port=Integer.parseInt(parameters.get(ParameterKey.PORT));
   String serverUrl=parameters.get(ParameterKey.SERVER_URL);
   if (serverUrl == null) {
     throw new RuntimeException("server_url parameter must be specified");
   }
   String configFilesStr=notNullize(parameters.get(ParameterKey.CONFIG_FILE));
-  String[] paths=configFilesStr.split(Pattern.quote(","));
+  List<String> paths=EscapeUtils.split(configFilesStr,',');
   List<File> configFiles=Lists.newArrayList();
-  for (  String urlEncodedPath : paths) {
-    try {
-      String path=URLDecoder.decode(urlEncodedPath,"UTF-8");
-      File file=new File(path);
-      if (file.isFile()) {
-        configFiles.add(file);
-      }
-    }
- catch (    UnsupportedEncodingException ignored) {
+  for (  String path : paths) {
+    File file=new File(path);
+    if (file.isFile()) {
+      configFiles.add(file);
     }
   }
   if (configFiles.isEmpty()) {
@@ -25,14 +19,11 @@
   String testMethodName=notNullize(parameters.get(ParameterKey.TEST_METHOD));
   String coverageFilePath=notNullize(parameters.get(ParameterKey.COVERAGE_OUTPUT_FILE));
   File ideCoverageFile=null;
-  List<String> excludedPathList=Collections.emptyList();
+  List<String> excludedPaths=Collections.emptyList();
   if (!coverageFilePath.isEmpty()) {
     ideCoverageFile=new File(coverageFilePath);
     String joinedPaths=notNullize(parameters.get(ParameterKey.COVERAGE_EXCLUDED_PATHS));
-    String[] excludedPaths=joinedPaths.split(",");
-    if (excludedPaths != null) {
-      excludedPathList=Arrays.asList(excludedPaths);
-    }
+    excludedPaths=EscapeUtils.split(joinedPaths,',');
   }
-  return new Settings(port,serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile,excludedPathList);
+  return new Settings(serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile,excludedPaths);
 }

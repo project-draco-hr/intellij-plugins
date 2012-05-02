@@ -1,0 +1,14 @@
+{
+  GeneralCommandLine commandLine=new GeneralCommandLine();
+  commandLine.setExePath(System.getProperty("java.home") + File.separator + "bin"+ File.separator+ "java");
+  File file=new File(PathUtil.getJarPathForClass(JsTestDriverServer.class));
+  commandLine.setWorkDirectory(file.getParentFile());
+  commandLine.addParameter("-cp");
+  commandLine.addParameter(buildClasspath());
+  commandLine.addParameter(TestRunner.class.getName());
+  for (  Map.Entry<TestRunner.ParameterKey,String> param : parameters.entrySet()) {
+    String keyValue=EscapeUtils.join(Arrays.asList(param.getKey().name().toLowerCase(),param.getValue()),'=');
+    commandLine.addParameter("--" + keyValue);
+  }
+  return commandLine;
+}

@@ -1,24 +1,14 @@
 {
   Map<ParameterKey,String> paramMap=parseParams(args);
   Settings settings=Settings.build(paramMap);
-  ObjectOutput testResultProtocolMessageOutput=fetchSocketObjectOutput(settings.getPort());
-  if (!validateServer(testResultProtocolMessageOutput,settings)) {
+  OutputManager outputManager=new OutputManager();
+  if (!validateServer(settings,outputManager)) {
     return;
   }
   try {
-    new TestRunner(settings,testResultProtocolMessageOutput).executeAll();
+    new TestRunner(settings,outputManager).executeAll();
   }
  catch (  Exception ex) {
-    String message=formatMessage("JsTestDriver crashed!",ex);
-    testResultProtocolMessageOutput.writeObject(new JstdTestRunnerFailure(JstdTestRunnerFailure.FailureType.WHOLE_TEST_RUNNER,message,null));
-  }
- finally {
-    try {
-      testResultProtocolMessageOutput.close();
-    }
- catch (    Exception e) {
-      System.err.println("Exception occurred while closing testResultProtocolMessageOutput");
-      e.printStackTrace();
-    }
+    outputManager.printThrowable("JsTestDriver crashed!",ex);
   }
 }
