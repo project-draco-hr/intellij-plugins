@@ -4,6 +4,10 @@
   CssRuleset[] rulesets=stylesheet.getRulesets();
   final DocumentWindow documentWindow=document instanceof DocumentWindow ? (DocumentWindow)document : null;
   for (  CssRuleset ruleset : rulesets) {
+    final CssBlock block=ruleset.getBlock();
+    if (block == null) {
+      continue;
+    }
     PrimitiveAmfOutputStream rulesetOut=rulesetVectorWriter.getOutputForIteration();
     int textOffset=ruleset.getTextOffset();
     if (documentWindow != null) {
@@ -16,15 +20,18 @@
     rulesetOut.writeUInt29(textOffset);
     writeSelectors(ruleset,rulesetOut,module);
     declarationVectorWriter.prepareIteration();
-    for (    CssDeclaration declaration : ruleset.getBlock().getDeclarations()) {
-      CssPropertyDescriptor propertyDescriptor=declaration.getDescriptor();
+    for (    CssDeclaration declaration : block.getDeclarations()) {
       CssTermList value=declaration.getValue();
+      if (value == null || PsiTreeUtil.getChildOfType(value,PsiErrorElement.class) != null) {
+        continue;
+      }
       propertyOut=declarationVectorWriter.getOutputForIteration();
       try {
         stringWriter.write(declaration.getPropertyName(),propertyOut);
         textOffset=declaration.getTextOffset();
         propertyOut.writeUInt29(documentWindow == null ? textOffset : documentWindow.injectedToHost(textOffset));
-        writePropertyValue(value,propertyDescriptor == null || !(propertyDescriptor instanceof FlexCssPropertyDescriptor) ? null : ((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo());
+        CssPropertyDescriptor propertyDescriptor=declaration.getDescriptor();
+        writePropertyValue(value,propertyDescriptor != null && propertyDescriptor instanceof FlexCssPropertyDescriptor ? ((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo() : null);
         continue;
       }
  catch (      RuntimeException e) {
