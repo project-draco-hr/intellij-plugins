@@ -1,0 +1,21 @@
+{
+  if (component instanceof JTable) {
+    component.addPropertyChangeListener("tableCellEditor",new PropertyChangeListener(){
+      public void propertyChange(      final PropertyChangeEvent e){
+        if (e.getOldValue() != null && e.getNewValue() == null) {
+          fireUIChanged();
+        }
+      }
+    }
+);
+  }
+ else {
+    Component parent=component;
+    while ((parent=parent.getParent()) != null) {
+      if (parent instanceof JTable) {
+        return;
+      }
+    }
+  }
+  super.processComponent(component);
+}
