@@ -5,7 +5,7 @@
   if (hasShortCuts) {
     final String shortCutClassName=shortCutToPsiClassMap.get(s);
     if (StringUtil.isNotEmpty(shortCutClassName)) {
-      return super.fromString(shortCutClassName,convertContext);
+      return DomJavaUtil.findClass(shortCutClassName,convertContext.getInvocationElement());
     }
   }
   for (  final ConstantValueConverterClassContributor converterClassContributor : Extensions.getExtensions(ConstantValueConverterClassContributor.EP_NAME)) {
@@ -14,5 +14,9 @@
       return contributorClass;
     }
   }
-  return super.fromString(s,convertContext);
+  final PsiClass psiClass=DomJavaUtil.findClass(s,convertContext.getInvocationElement());
+  if (psiClass == null) {
+    return null;
+  }
+  return !psiClass.isInterface() && !psiClass.hasModifierProperty(PsiModifier.ABSTRACT) ? psiClass : null;
 }
