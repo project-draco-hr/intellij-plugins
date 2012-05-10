@@ -9,7 +9,16 @@
 {
     GridBagConstraints c=new GridBagConstraints(1,0,1,1,1.0,0.0,GridBagConstraints.WEST,GridBagConstraints.HORIZONTAL,new Insets(UIUtil.DEFAULT_VGAP,0,0,0),0,0);
     myConfigFileTextFieldWithBrowseButton=new TextFieldWithBrowseButton();
-    myConfigFileTextFieldWithBrowseButton.addBrowseFolderListener("Select JsTestDriver configuration file","",creationContext.getProject(),FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+    myConfigFileTextFieldWithBrowseButton.addBrowseFolderListener("Select JsTestDriver configuration file",null,creationContext.getProject(),new FileChooserDescriptor(true,false,false,false,false,false){
+      @Override public boolean isFileVisible(      VirtualFile file,      boolean showHiddenFiles){
+        boolean visible=super.isFileVisible(file,showHiddenFiles);
+        if (visible && !file.isDirectory() && !showHiddenFiles) {
+          visible=JstdConfigFileUtils.isJstdConfigFile(file);
+        }
+        return visible;
+      }
+    }
+);
     panel.add(myConfigFileTextFieldWithBrowseButton,c);
   }
 {
