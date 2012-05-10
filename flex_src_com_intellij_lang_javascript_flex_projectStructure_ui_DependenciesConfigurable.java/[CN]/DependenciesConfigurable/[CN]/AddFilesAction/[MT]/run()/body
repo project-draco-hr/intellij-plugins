@@ -18,13 +18,13 @@
   LibraryTableBase.ModifiableModelEx modifiableModel=myConfigEditor.getLibraryModel(myDependencies);
   LibraryTable.ModifiableModel librariesModelWrapper=new LibraryTableModifiableModelWrapper(modifiableModel,filter);
   Module module=myConfigEditor.getModule(myDependencies);
-  List<? extends FlexLibraryType> libraryTypes=Collections.singletonList(new FlexLibraryType(){
-    @NotNull @Override public FlexLibraryProperties createDefaultProperties(){
+  List<? extends FlexLibraryType> libraryTypes=Collections.singletonList(FlexLibraryType.getInstance());
+  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModelWrapper,new Function<LibraryType,LibraryProperties>(){
+    @Override public LibraryProperties fun(    LibraryType type){
       return new FlexLibraryProperties(FlexLibraryIdGenerator.generateId());
     }
   }
 );
-  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModelWrapper);
   final List<Library> libraries=c.chooseElements();
   if (libraries.isEmpty()) {
     return;
