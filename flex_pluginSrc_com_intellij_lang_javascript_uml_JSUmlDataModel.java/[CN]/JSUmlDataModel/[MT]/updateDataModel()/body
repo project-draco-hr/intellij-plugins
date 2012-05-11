@@ -85,6 +85,23 @@
       }
     }
   }
+  if (isShowDependencies()) {
+    final Task.Backgroundable task=new Task.Backgroundable(getProject(),FlexBundle.message("uml.calculating.dependencies.message"),true){
+      @Override public void run(      @NotNull ProgressIndicator indicator){
+        ApplicationManager.getApplication().runReadAction(new Runnable(){
+          @Override public void run(){
+            for (            JSClass psiClass : classes) {
+              showDependenciesFor(psiClass);
+            }
+            getBuilder().update();
+          }
+        }
+);
+      }
+    }
+;
+    ProgressManager.getInstance().run(task);
+  }
   mergeWithBackup(myNodes,myNodesOld);
   mergeWithBackup(myEdges,myEdgesOld);
   mergeWithBackup(myDependencyEdges,myDependencyEdgesOld);

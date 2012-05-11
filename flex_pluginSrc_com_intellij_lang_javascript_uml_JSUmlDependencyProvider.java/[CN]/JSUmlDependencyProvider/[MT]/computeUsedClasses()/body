@@ -1,0 +1,102 @@
+{
+  final Map<JSClass,DiagramRelationshipInfo> result=new HashMap<JSClass,DiagramRelationshipInfo>();
+  final JSElementVisitor visitor=new JSElementVisitor(){
+    boolean myInVariable;
+    boolean myInNewExpression;
+    @Override public void visitJSReferenceExpression(    final JSReferenceExpression node){
+      if (!myInVariable && !myInNewExpression) {
+        return;
+      }
+      if (myInNewExpression && node.getParent() instanceof JSGenericSignature) {
+        return;
+      }
+      PsiElement resolved=node.resolve();
+      if (myInNewExpression && resolved instanceof JSFunction) {
+        if (((JSFunction)resolved).isConstructor()) {
+          resolved=JSResolveUtil.findParent(resolved);
+        }
+      }
+      if (resolved instanceof JSClass && !JSPsiImplUtils.isTheSameClass(resolved,myClazz)) {
+        DiagramRelationshipInfo relType;
+        if (myInNewExpression) {
+          relType=DiagramRelationships.CREATE;
+        }
+ else         if (node.getParent() instanceof JSGenericSignature) {
+          relType=DiagramRelationships.TO_MANY;
+        }
+ else {
+          relType=DiagramRelationships.TO_ONE;
+        }
+        add(result,((JSClass)resolved),relType);
+      }
+      super.visitJSReferenceExpression(node);
+    }
+    @Override public void visitJSVariable(    final JSVariable node){
+      if (node instanceof JSParameter) {
+        return;
+      }
+      myInVariable=true;
+      try {
+        super.visitJSVariable(node);
+      }
+  finally {
+        myInVariable=false;
+      }
+    }
+    @Override public void visitJSNewExpression(    final JSNewExpression node){
+      myInNewExpression=true;
+      try {
+        super.visitJSNewExpression(node);
+      }
+  finally {
+        myInNewExpression=false;
+      }
+    }
+    @Override public void visitElement(    final PsiElement element){
+      super.visitElement(element);
+      element.acceptChildren(this);
+    }
+  }
+;
+  if (myClazz instanceof XmlBackedJSClassImpl) {
+    ((XmlBackedJSClassImpl)myClazz).processInjectedFiles(new Processor<JSFile>(){
+      @Override public boolean process(      final JSFile jsFile){
+        jsFile.accept(visitor);
+        return true;
+      }
+    }
+);
+    myClazz.getParent().acceptChildren(new XmlElementVisitor(){
+      @Override public void visitXmlTag(      final XmlTag tag){
+        XmlElementDescriptor descriptor=tag.getDescriptor();
+        if (descriptor != null) {
+          PsiElement declaration=descriptor.getDeclaration();
+          if (declaration instanceof JSClass && !JSPsiImplUtils.isTheSameClass(declaration,myClazz)) {
+            add(result,(JSClass)declaration,DiagramRelationships.TO_ONE);
+          }
+        }
+        super.visitXmlTag(tag);
+      }
+      @Override public void visitElement(      final PsiElement element){
+        super.visitElement(element);
+        element.acceptChildren(this);
+      }
+    }
+);
+  }
+ else {
+  }
+  myClazz.processDeclarations(new BaseScopeProcessor(){
+    @Override public boolean execute(    final PsiElement element,    final ResolveState state){
+      element.accept(visitor);
+      return true;
+    }
+  }
+,ResolveState.initial(),myClazz,myClazz);
+  return ContainerUtil.map(result.entrySet(),new Function<Map.Entry<JSClass,DiagramRelationshipInfo>,Pair<JSClass,DiagramRelationshipInfo>>(){
+    @Override public Pair<JSClass,DiagramRelationshipInfo> fun(    final Map.Entry<JSClass,DiagramRelationshipInfo> e){
+      return Pair.create(e.getKey(),e.getValue());
+    }
+  }
+);
+}

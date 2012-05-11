@@ -1,0 +1,19 @@
+{
+  DiagramNode<Object> mainNode=findNode(clazz);
+  if (mainNode == null)   return;
+  JSUmlDependencyProvider provider=new JSUmlDependencyProvider(clazz);
+  Collection<Pair<JSClass,DiagramRelationshipInfo>> list=provider.computeUsedClasses();
+  for (  Pair<JSClass,DiagramRelationshipInfo> pair : list) {
+    DiagramNode<Object> node=findNode(pair.first);
+    if (node != null) {
+      addDependencyEdge(mainNode,node,pair.second);
+    }
+  }
+  list=provider.computeUsingClasses();
+  for (  Pair<JSClass,DiagramRelationshipInfo> pair : list) {
+    DiagramNode<Object> node=findNode(pair.first);
+    if (node != null) {
+      addDependencyEdge(node,mainNode,pair.second);
+    }
+  }
+}
