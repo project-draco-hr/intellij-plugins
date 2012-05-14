@@ -73,6 +73,7 @@
     }
 );
     myClazz.getParent().acceptChildren(new XmlElementVisitor(){
+      private boolean myInClassAttribute;
       @Override public void visitXmlTag(      final XmlTag tag){
         XmlElementDescriptor descriptor=tag.getDescriptor();
         if (descriptor != null) {
@@ -86,14 +87,37 @@
         }
         super.visitXmlTag(tag);
       }
+      @Override public void visitXmlAttribute(      final XmlAttribute attribute){
+        XmlAttributeDescriptor descriptor=attribute.getDescriptor();
+        if (descriptor instanceof AnnotationBackedDescriptor) {
+          if (FlexReferenceContributor.isObjectType(((AnnotationBackedDescriptor)descriptor).getType())) {
+            myInClassAttribute=true;
+            try {
+              super.visitXmlAttribute(attribute);
+            }
+  finally {
+              myInClassAttribute=false;
+            }
+          }
+        }
+      }
+      @Override public void visitXmlAttributeValue(      final XmlAttributeValue value){
+        if (myInClassAttribute) {
+          PsiReference[] references=value.getReferences();
+          if (references.length > 0) {
+            PsiElement element=references[references.length - 1].resolve();
+            if (element instanceof JSClass && !JSPsiImplUtils.isTheSameClass(element,myClazz)) {
+              add(result,(JSClass)element,DiagramRelationships.TO_ONE);
+            }
+          }
+        }
+      }
       @Override public void visitElement(      final PsiElement element){
         super.visitElement(element);
         element.acceptChildren(this);
       }
     }
 );
-  }
- else {
   }
   myClazz.processDeclarations(new BaseScopeProcessor(){
     @Override public boolean execute(    final PsiElement element,    final ResolveState state){
