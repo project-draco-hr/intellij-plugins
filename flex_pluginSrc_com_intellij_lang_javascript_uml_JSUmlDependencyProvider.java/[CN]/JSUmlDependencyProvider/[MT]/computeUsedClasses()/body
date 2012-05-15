@@ -4,11 +4,9 @@
     boolean myInVariable;
     boolean myInNewExpression;
     boolean myInField;
+    boolean myInParameter;
     @Override public void visitJSReferenceExpression(    final JSReferenceExpression node){
-      if (!myInVariable && !myInNewExpression) {
-        return;
-      }
-      if (myInNewExpression && node.getParent() instanceof JSGenericSignature) {
+      if (!myInVariable && !myInNewExpression && !myInParameter&& isReturnTypeReference(node)) {
         return;
       }
       PsiElement resolved=node.resolve();
@@ -20,7 +18,12 @@
       if (resolved instanceof JSClass) {
         DiagramRelationshipInfo relType;
         if (myInNewExpression) {
-          relType=DiagramRelationships.CREATE;
+          if (node.getParent() instanceof JSGenericSignature) {
+            relType=DiagramRelationships.DEPENDENCY;
+          }
+ else {
+            relType=DiagramRelationships.CREATE;
+          }
         }
  else         if (myInField && node.getParent() instanceof JSGenericSignature) {
           relType=DiagramRelationships.TO_MANY;
@@ -37,9 +40,11 @@
     }
     @Override public void visitJSVariable(    final JSVariable node){
       if (node instanceof JSParameter) {
-        return;
+        myInParameter=true;
       }
-      myInVariable=true;
+ else {
+        myInVariable=true;
+      }
       myInField=JSResolveUtil.findParent(node) instanceof JSClass;
       try {
         super.visitJSVariable(node);
@@ -47,6 +52,7 @@
   finally {
         myInVariable=false;
         myInField=false;
+        myInParameter=false;
       }
     }
     @Override public void visitJSNewExpression(    final JSNewExpression node){
