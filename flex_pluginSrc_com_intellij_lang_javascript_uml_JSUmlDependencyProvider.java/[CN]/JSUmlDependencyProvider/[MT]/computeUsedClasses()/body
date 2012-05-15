@@ -82,7 +82,8 @@
             declaration=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)declaration);
           }
           if (declaration instanceof JSClass) {
-            result.add(Pair.create((JSClass)declaration,DiagramRelationships.TO_ONE));
+            DiagramRelationshipInfo type=StringUtil.isNotEmpty(tag.getAttributeValue("id")) ? DiagramRelationships.TO_ONE : DiagramRelationships.DEPENDENCY;
+            result.add(Pair.create((JSClass)declaration,type));
           }
         }
         super.visitXmlTag(tag);
@@ -90,7 +91,7 @@
       @Override public void visitXmlAttribute(      final XmlAttribute attribute){
         XmlAttributeDescriptor descriptor=attribute.getDescriptor();
         if (descriptor instanceof AnnotationBackedDescriptor) {
-          if (FlexReferenceContributor.isObjectType(((AnnotationBackedDescriptor)descriptor).getType())) {
+          if (FlexReferenceContributor.isClassReferenceType(((AnnotationBackedDescriptor)descriptor).getType())) {
             myInClassAttribute=true;
             try {
               super.visitXmlAttribute(attribute);
@@ -103,7 +104,7 @@
       }
       @Override public void visitXmlAttributeValue(      final XmlAttributeValue value){
         if (myInClassAttribute) {
-          processReferenceSet(value.getReferences(),result,DiagramRelationships.TO_ONE);
+          processReferenceSet(value.getReferences(),result,DiagramRelationships.DEPENDENCY);
         }
       }
       @Override public void visitXmlText(      final XmlText text){
