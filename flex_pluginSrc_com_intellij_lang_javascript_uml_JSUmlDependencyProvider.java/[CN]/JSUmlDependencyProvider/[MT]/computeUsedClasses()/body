@@ -1,5 +1,5 @@
 {
-  final Map<JSClass,DiagramRelationshipInfo> result=new HashMap<JSClass,DiagramRelationshipInfo>();
+  final Collection<Pair<JSClass,DiagramRelationshipInfo>> result=new ArrayList<Pair<JSClass,DiagramRelationshipInfo>>();
   final JSElementVisitor visitor=new JSElementVisitor(){
     boolean myInVariable;
     boolean myInNewExpression;
@@ -31,7 +31,7 @@
  else {
           relType=DiagramRelationships.DEPENDENCY;
         }
-        add(result,((JSClass)resolved),relType);
+        result.add(Pair.create((JSClass)resolved,relType));
       }
       super.visitJSReferenceExpression(node);
     }
@@ -82,7 +82,7 @@
             declaration=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)declaration);
           }
           if (declaration instanceof JSClass) {
-            add(result,(JSClass)declaration,DiagramRelationships.TO_ONE);
+            result.add(Pair.create((JSClass)declaration,DiagramRelationships.TO_ONE));
           }
         }
         super.visitXmlTag(tag);
@@ -154,10 +154,5 @@
     }
   }
 ,ResolveState.initial(),myClazz,myClazz);
-  return ContainerUtil.map(result.entrySet(),new Function<Map.Entry<JSClass,DiagramRelationshipInfo>,Pair<JSClass,DiagramRelationshipInfo>>(){
-    @Override public Pair<JSClass,DiagramRelationshipInfo> fun(    final Map.Entry<JSClass,DiagramRelationshipInfo> e){
-      return Pair.create(e.getKey(),e.getValue());
-    }
-  }
-);
+  return result;
 }
