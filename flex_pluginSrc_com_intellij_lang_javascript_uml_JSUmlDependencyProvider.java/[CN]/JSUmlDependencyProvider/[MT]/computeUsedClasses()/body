@@ -103,14 +103,42 @@
       }
       @Override public void visitXmlAttributeValue(      final XmlAttributeValue value){
         if (myInClassAttribute) {
-          PsiReference[] references=value.getReferences();
-          if (references.length > 0) {
-            PsiElement element=references[references.length - 1].resolve();
-            if (element instanceof JSClass) {
-              add(result,(JSClass)element,DiagramRelationships.TO_ONE);
+          processReferenceSet(value.getReferences(),result,DiagramRelationships.TO_ONE);
+        }
+      }
+      @Override public void visitXmlText(      final XmlText text){
+        List<Pair<PsiElement,TextRange>> injectedFiles=InjectedLanguageUtil.getInjectedPsiFiles(text);
+        if (injectedFiles != null) {
+          for (          Pair<PsiElement,TextRange> pair : injectedFiles) {
+            if (CSS.is(pair.first.getLanguage())) {
+              pair.first.accept(new CssElementVisitor(){
+                private boolean myInClassReference;
+                @Override public void visitElement(                final PsiElement element){
+                  super.visitElement(element);
+                  element.acceptChildren(this);
+                }
+                @Override public void visitCssFunction(                final CssFunction _function){
+                  if (FlexReferenceContributor.CLASS_REFERENCE.equals(_function.getFunctionName())) {
+                    myInClassReference=true;
+                    try {
+                      super.visitCssFunction(_function);
+                    }
+  finally {
+                      myInClassReference=false;
+                    }
+                  }
+                }
+                @Override public void visitCssString(                final CssString _string){
+                  if (myInClassReference) {
+                    processReferenceSet(_string.getReferences(),result,DiagramRelationships.DEPENDENCY);
+                  }
+                }
+              }
+);
             }
           }
         }
+        super.visitXmlText(text);
       }
       @Override public void visitElement(      final PsiElement element){
         super.visitElement(element);
