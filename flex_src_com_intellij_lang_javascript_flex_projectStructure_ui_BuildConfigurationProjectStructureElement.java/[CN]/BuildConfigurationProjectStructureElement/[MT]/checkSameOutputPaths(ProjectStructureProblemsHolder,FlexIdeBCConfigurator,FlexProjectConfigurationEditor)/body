@@ -1,0 +1,17 @@
+{
+  final String outputPath=myBc.getActualOutputFilePath();
+  final List<ModifiableFlexIdeBuildConfiguration> bcs=configurator.getBCsByOutputPath(outputPath);
+  if (bcs != null && bcs.size() > 1) {
+    final StringBuilder buf=new StringBuilder();
+    for (    ModifiableFlexIdeBuildConfiguration bc : bcs) {
+      if (bc != myBc) {
+        if (buf.length() > 0)         buf.append(", ");
+        buf.append(FlexBundle.message("0.module.1",bc.getName(),editor.getModule(bc).getName()));
+      }
+    }
+    final String message=FlexBundle.message("same.output.files.as.in.bcs",bcs.size() - 1,buf.toString(),FileUtil.toSystemDependentName(outputPath));
+    final FlexIdeBCConfigurable.Location location=FlexIdeBCConfigurable.Location.OutputFileName;
+    final PlaceInProjectStructure placeInPS=new PlaceInBuildConfiguration(this,myBc.getName(),location);
+    problemsHolder.registerProblem(message,null,ProjectStructureProblemType.warning(location.errorId),placeInPS,null);
+  }
+}

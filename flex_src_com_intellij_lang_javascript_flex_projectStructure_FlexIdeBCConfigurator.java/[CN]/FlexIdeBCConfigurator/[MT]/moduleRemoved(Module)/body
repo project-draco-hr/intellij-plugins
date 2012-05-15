@@ -11,7 +11,9 @@
   final ProjectStructureDaemonAnalyzer daemonAnalyzer=ProjectStructureConfigurable.getInstance(myConfigEditor.getProject()).getContext().getDaemonAnalyzer();
   for (  ModifiableFlexIdeBuildConfiguration bc : configsToRemove) {
     CompositeConfigurable configurable=myConfigurablesMap.remove(bc);
+    myBCToOutputPathMap.remove(bc);
     daemonAnalyzer.removeElement(configurable.getProjectStructureElement());
+    daemonAnalyzer.queueUpdateForAllElementsWithErrors();
     configurable.disposeUIResources();
   }
   myEventDispatcher.getMulticaster().moduleRemoved(module);
