@@ -1,12 +1,12 @@
 {
-  final Collection<Pair<JSClass,DiagramRelationshipInfo>> result=new ArrayList<Pair<JSClass,DiagramRelationshipInfo>>();
+  final Collection<Pair<JSClass,FlashDiagramRelationship>> result=new ArrayList<Pair<JSClass,FlashDiagramRelationship>>();
   final JSElementVisitor visitor=new JSElementVisitor(){
-    boolean myInVariable;
+    String myVariableName;
     boolean myInNewExpression;
     boolean myInField;
     boolean myInParameter;
     @Override public void visitJSReferenceExpression(    final JSReferenceExpression node){
-      if (!myInVariable && !myInNewExpression && !myInParameter&& isReturnTypeReference(node)) {
+      if (myVariableName == null && !myInNewExpression && !myInParameter && isReturnTypeReference(node)) {
         return;
       }
       PsiElement resolved=node.resolve();
@@ -16,23 +16,23 @@
         }
       }
       if (resolved instanceof JSClass) {
-        DiagramRelationshipInfo relType;
+        FlashDiagramRelationship relType;
         if (myInNewExpression) {
           if (node.getParent() instanceof JSGenericSignature) {
-            relType=DiagramRelationships.DEPENDENCY;
+            relType=Factory.dependency(myVariableName);
           }
  else {
-            relType=DiagramRelationships.CREATE;
+            relType=Factory.create();
           }
         }
  else         if (myInField && node.getParent() instanceof JSGenericSignature) {
-          relType=DiagramRelationships.TO_MANY;
+          relType=Factory.oneToMany(myVariableName);
         }
  else         if (myInField) {
-          relType=DiagramRelationships.TO_ONE;
+          relType=Factory.oneToOne(myVariableName);
         }
  else {
-          relType=DiagramRelationships.DEPENDENCY;
+          relType=Factory.dependency(myVariableName);
         }
         result.add(Pair.create((JSClass)resolved,relType));
       }
@@ -43,14 +43,14 @@
         myInParameter=true;
       }
  else {
-        myInVariable=true;
+        myVariableName=node.getName();
       }
       myInField=JSResolveUtil.findParent(node) instanceof JSClass;
       try {
         super.visitJSVariable(node);
       }
   finally {
-        myInVariable=false;
+        myVariableName=null;
         myInField=false;
         myInParameter=false;
       }
@@ -79,7 +79,7 @@
     }
 );
     myClazz.getParent().acceptChildren(new XmlElementVisitor(){
-      private boolean myInClassAttribute;
+      private String myInClassAttributeName;
       @Override public void visitXmlTag(      final XmlTag tag){
         XmlElementDescriptor descriptor=tag.getDescriptor();
         if (descriptor != null) {
@@ -88,7 +88,8 @@
             declaration=XmlBackedJSClassImpl.getXmlBackedClass((XmlFile)declaration);
           }
           if (declaration instanceof JSClass) {
-            DiagramRelationshipInfo type=StringUtil.isNotEmpty(tag.getAttributeValue("id")) ? DiagramRelationships.TO_ONE : DiagramRelationships.DEPENDENCY;
+            String id=tag.getAttributeValue("id");
+            FlashDiagramRelationship type=StringUtil.isNotEmpty(id) ? Factory.oneToOne(id) : Factory.dependency("");
             result.add(Pair.create((JSClass)declaration,type));
           }
         }
@@ -98,19 +99,19 @@
         XmlAttributeDescriptor descriptor=attribute.getDescriptor();
         if (descriptor instanceof AnnotationBackedDescriptor) {
           if (FlexReferenceContributor.isClassReferenceType(((AnnotationBackedDescriptor)descriptor).getType())) {
-            myInClassAttribute=true;
+            myInClassAttributeName=StringUtil.notNullize(attribute.getName());
             try {
               super.visitXmlAttribute(attribute);
             }
   finally {
-              myInClassAttribute=false;
+              myInClassAttributeName=null;
             }
           }
         }
       }
       @Override public void visitXmlAttributeValue(      final XmlAttributeValue value){
-        if (myInClassAttribute) {
-          processReferenceSet(value.getReferences(),result,DiagramRelationships.DEPENDENCY);
+        if (myInClassAttributeName != null) {
+          processReferenceSet(value.getReferences(),result,Factory.dependency(myInClassAttributeName));
         }
       }
       @Override public void visitXmlText(      final XmlText text){
@@ -137,7 +138,10 @@
                 }
                 @Override public void visitCssString(                final CssString _string){
                   if (myInClassReference) {
-                    processReferenceSet(_string.getReferences(),result,DiagramRelationships.DEPENDENCY);
+                    CssDeclaration declaration=PsiTreeUtil.getParentOfType(_string,CssDeclaration.class);
+                    if (declaration != null) {
+                      processReferenceSet(_string.getReferences(),result,Factory.dependency(declaration.getPropertyName()));
+                    }
                   }
                 }
               }
