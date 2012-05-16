@@ -3,11 +3,13 @@
     beginMessage(ClientMethod.updateDocumentFactory);
     out.writeShort(factoryId);
     final ProblemsHolder problemsHolder=new ProblemsHolder();
-    writeDocumentFactory(DocumentFactoryManager.getInstance().getInfo(factoryId),module,psiFile,problemsHolder);
+    boolean result=writeDocumentFactory(DocumentFactoryManager.getInstance().getInfo(factoryId),module,psiFile,problemsHolder);
     if (!problemsHolder.isEmpty()) {
       DocumentProblemManager.getInstance().report(module.getProject(),problemsHolder);
     }
-    return true;
+    if (result) {
+      return true;
+    }
   }
  catch (  Throwable e) {
     LogMessageUtil.processInternalError(e,psiFile.getVirtualFile());
