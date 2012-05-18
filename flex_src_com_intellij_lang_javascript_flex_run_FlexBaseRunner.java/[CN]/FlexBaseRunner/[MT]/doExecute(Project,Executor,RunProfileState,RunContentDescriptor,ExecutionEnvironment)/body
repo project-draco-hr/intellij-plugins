@@ -3,7 +3,9 @@
   final RunProfile runProfile=env.getRunProfile();
   final boolean isDebug=this instanceof FlexDebugRunner;
   try {
-    checkMakeBeforeRunEnabled(project,runProfile,isDebug);
+    if (runProfile instanceof RunProfileWithCompileBeforeLaunchOption) {
+      checkMakeBeforeRunEnabled(project,runProfile,isDebug);
+    }
     if (runProfile instanceof RemoteFlashRunConfiguration) {
       final BCBasedRunnerParameters params=((RemoteFlashRunConfiguration)runProfile).getRunnerParameters();
       final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC=params.checkAndGetModuleAndBC(project);
@@ -35,6 +37,9 @@
       final FlexIdeBuildConfiguration bc=moduleAndConfig.second;
       if (bc.isSkipCompile()) {
         showBCCompilationSkippedWarning(module,bc,isDebug);
+      }
+      if (isDebug && SystemInfo.isMac && bc.getTargetPlatform() == TargetPlatform.Web) {
+        checkDebuggerFromSdk4(project,runProfile,params,bc);
       }
       if (bc.getTargetPlatform() == TargetPlatform.Web && !params.isLaunchUrl()) {
         try {
