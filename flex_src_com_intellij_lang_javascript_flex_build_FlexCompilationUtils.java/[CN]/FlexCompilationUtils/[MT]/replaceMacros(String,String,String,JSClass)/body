@@ -1,0 +1,45 @@
+{
+  final List<String> versionParts=StringUtil.split(targetPlayer,".");
+  final String major=versionParts.size() >= 1 ? versionParts.get(0) : "0";
+  final String minor=versionParts.size() >= 2 ? versionParts.get(1) : "0";
+  final String revision=versionParts.size() >= 3 ? versionParts.get(2) : "0";
+  final Ref<JSAttribute> swfMetadataRef=new Ref<JSAttribute>();
+  final PsiFile psiFile=mainClass == null ? null : mainClass.getContainingFile();
+  if (psiFile instanceof XmlFile) {
+    final XmlTag rootTag=((XmlFile)psiFile).getRootTag();
+    if (rootTag != null) {
+      final String ns=rootTag.getPrefixByNamespace(JavaScriptSupportLoader.MXML_URI3) == null ? JavaScriptSupportLoader.MXML_URI : JavaScriptSupportLoader.MXML_URI3;
+      for (      XmlTag tag : rootTag.findSubTags(FlexPredefinedTagNames.METADATA,ns)) {
+        JSResolveUtil.processInjectedFileForTag(tag,new JSResolveUtil.JSInjectedFilesVisitor(){
+          protected void process(          final JSFile file){
+            for (            PsiElement elt : file.getChildren()) {
+              if (elt instanceof JSAttributeList) {
+                final JSAttribute swfMetadata=((JSAttributeList)elt).findAttributeByName("SWF");
+                if (swfMetadataRef.isNull() && swfMetadata != null) {
+                  swfMetadataRef.set(swfMetadata);
+                  return;
+                }
+              }
+            }
+          }
+        }
+);
+      }
+    }
+  }
+ else {
+    final JSAttributeList attributeList=mainClass == null ? null : mainClass.getAttributeList();
+    swfMetadataRef.set(attributeList == null ? null : attributeList.findAttributeByName("SWF"));
+  }
+  final JSAttribute swfMetadata=swfMetadataRef.isNull() ? null : swfMetadataRef.get();
+  final JSAttributeNameValuePair titleAttr=swfMetadata == null ? null : swfMetadata.getValueByName("pageTitle");
+  final String title=titleAttr != null ? titleAttr.getSimpleValue() : outputFileName;
+  final JSAttributeNameValuePair bgColorAttr=swfMetadata == null ? null : swfMetadata.getValueByName("backgroundColor");
+  final String bgColor=bgColorAttr != null ? bgColorAttr.getSimpleValue() : "#ffffff";
+  final JSAttributeNameValuePair widthAttr=swfMetadata == null ? null : swfMetadata.getValueByName("width");
+  final String width=widthAttr != null ? widthAttr.getSimpleValue() : "100%";
+  final JSAttributeNameValuePair heightAttr=swfMetadata == null ? null : swfMetadata.getValueByName("height");
+  final String height=heightAttr != null ? heightAttr.getSimpleValue() : "100%";
+  final String[] replacement={outputFileName,title,outputFileName,bgColor,width,height,major,minor,revision};
+  return StringUtil.replace(wrapperText,MACROS_TO_REPLACE,replacement);
+}
