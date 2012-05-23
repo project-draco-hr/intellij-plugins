@@ -1,0 +1,14 @@
+{
+  return new AsyncResult.Handler<DocumentInfo>(){
+    @Override public void run(    DocumentInfo info){
+      Document document=FileDocumentManager.getInstance().getCachedDocument(info.getElement());
+      if (document != null) {
+        if (syncTimestamp) {
+          info.documentModificationStamp=document.getModificationStamp();
+        }
+        ApplicationManager.getApplication().getMessageBus().syncPublisher(DesignerApplicationManager.MESSAGE_TOPIC).documentRendered(info);
+      }
+    }
+  }
+;
+}

@@ -10,6 +10,9 @@
     needInitialRender=documentInfo == null;
   }
   if (!needInitialRender) {
+    if (handler == null) {
+      return;
+    }
     Application app=ApplicationManager.getApplication();
     if (app.isDispatchThread()) {
       final DocumentInfo finalDocumentInfo=documentInfo;
@@ -52,6 +55,9 @@ synchronized (initialRenderQueue) {
       }
 );
     }
-    renderResult.doWhenDone(handler);
+    if (handler != null) {
+      renderResult.doWhenDone(handler);
+    }
+    renderResult.doWhenDone(createDocumentRenderedNotificationDoneHandler(false));
   }
 }

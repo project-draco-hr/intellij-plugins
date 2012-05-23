@@ -10,6 +10,7 @@
     toolWindowForm.getPreviewPanel().getLoadingDecorator().startLoading(false);
     loadingDecoratorStarted++;
   }
+  toolWindowForm.waitingForGetDocument.set(true);
   @SuppressWarnings("ConstantConditions") AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage((XmlFile)PsiManager.getInstance(project).findFile(file));
   result.doWhenDone(new QueuedAsyncResultHandler<BufferedImage>(){
     @Override protected boolean isExpired(){
@@ -25,14 +26,13 @@
     }
   }
 );
-  if (isSlow) {
-    result.doWhenProcessed(new Runnable(){
-      @Override public void run(){
-        if (--loadingDecoratorStarted == 0 && toolWindowForm != null) {
-          toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
-        }
+  result.doWhenProcessed(new Runnable(){
+    @Override public void run(){
+      toolWindowForm.waitingForGetDocument.set(false);
+      if (isSlow && --loadingDecoratorStarted == 0 && toolWindowForm != null) {
+        toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
       }
     }
-);
   }
+);
 }
