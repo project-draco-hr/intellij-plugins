@@ -2,8 +2,10 @@
   final boolean isNewBC=existingBC == null;
   final ModifiableFlexIdeBuildConfiguration mainBC=isNewBC ? myFlexEditor.createConfiguration(myModule) : existingBC;
   mainBC.setName(myModule.getName());
-  final TargetPlatform targetPlatform=handleDependencies(mainBC);
+  final TargetPlatform guessedTargetPlatform=handleDependencies(mainBC);
+  final boolean producesAirPackage="air".equals(myMavenProject.getPackaging()) || containsSignAirGoal(myFlexmojosPlugin);
   if (isNewBC) {
+    final TargetPlatform targetPlatform=producesAirPackage ? TargetPlatform.Desktop : guessedTargetPlatform;
     mainBC.setTargetPlatform(targetPlatform);
     mainBC.setPureAs(false);
   }
@@ -13,10 +15,13 @@
     FlexProjectConfigurationEditor.resetNonApplicableValuesToDefaults(mainBC);
   }
   final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
-  if (FlexmojosImporter.isFlexApp(myMavenProject) && configurationElement != null) {
-    final String sourceFile=configurationElement.getChildTextNormalize("sourceFile");
+  if (FlexmojosImporter.isFlexApp(myMavenProject)) {
+    final String sourceFile=configurationElement == null ? null : configurationElement.getChildTextNormalize("sourceFile");
     if (sourceFile != null && (sourceFile.endsWith(".as") || sourceFile.endsWith(".mxml"))) {
       mainBC.setMainClass(sourceFile.substring(0,sourceFile.lastIndexOf(".")).replace("/",".").replace("\\","."));
+    }
+    if (producesAirPackage) {
+      setupPackagingOptions(mainBC.getAirDesktopPackagingOptions(),configurationElement);
     }
   }
   final String outputFilePath=FlexmojosImporter.getOutputFilePath(myMavenProject);
@@ -25,12 +30,13 @@
   mainBC.setOutputFolder(PathUtil.getParentPath(outputFilePath));
   final BuildConfigurationNature nature=mainBC.getNature();
   if (nature.isApp() && isNewBC) {
+    final String packageFileName=FileUtil.getNameWithoutExtension(fileName);
     if (nature.isDesktopPlatform()) {
-      mainBC.getAirDesktopPackagingOptions().setPackageFileName(fileName);
+      mainBC.getAirDesktopPackagingOptions().setPackageFileName(packageFileName);
     }
  else     if (nature.isMobilePlatform()) {
-      mainBC.getAndroidPackagingOptions().setPackageFileName(fileName);
-      mainBC.getIosPackagingOptions().setPackageFileName(fileName);
+      mainBC.getAndroidPackagingOptions().setPackageFileName(packageFileName);
+      mainBC.getIosPackagingOptions().setPackageFileName(packageFileName);
     }
   }
   setupSdk(mainBC);
