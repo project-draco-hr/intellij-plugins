@@ -1,14 +1,17 @@
 {
   Map<ParameterKey,String> paramMap=parseParams(args);
   Settings settings=Settings.build(paramMap);
-  OutputManager outputManager=new OutputManager();
-  if (!validateServer(settings,outputManager)) {
+  TreeManager treeManager=new TreeManager(settings.getRunAllConfigsInDirectory());
+  if (!validateServer(settings,treeManager)) {
     return;
   }
   try {
-    new TestRunner(settings,outputManager).executeAll();
+    new TestRunner(settings,treeManager).executeAll();
   }
  catch (  Exception ex) {
-    outputManager.printThrowable("JsTestDriver crashed!",ex);
+    treeManager.printThrowable("JsTestDriver crashed!",ex);
+  }
+ finally {
+    treeManager.onTestingFinished();
   }
 }

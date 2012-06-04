@@ -3,7 +3,7 @@
   if (serverUrl == null) {
     throw new RuntimeException("server_url parameter must be specified");
   }
-  String configFilesStr=notNullize(parameters.get(ParameterKey.CONFIG_FILE));
+  String configFilesStr=notNullize(parameters.get(ParameterKey.CONFIG_FILES));
   List<String> paths=EscapeUtils.split(configFilesStr,',');
   List<File> configFiles=Lists.newArrayList();
   for (  String path : paths) {
@@ -15,6 +15,14 @@
   if (configFiles.isEmpty()) {
     throw new RuntimeException("No valid config files found");
   }
+  String runAllConfigsInDirectoryPath=parameters.get(ParameterKey.ALL_CONFIGS_IN_DIRECTORY);
+  File runAllConfigsInDirectory=null;
+  if (runAllConfigsInDirectoryPath != null && !runAllConfigsInDirectoryPath.isEmpty()) {
+    runAllConfigsInDirectory=new File(runAllConfigsInDirectoryPath);
+    if (!runAllConfigsInDirectory.isDirectory()) {
+      runAllConfigsInDirectory=null;
+    }
+  }
   String testCaseName=notNullize(parameters.get(ParameterKey.TEST_CASE));
   String testMethodName=notNullize(parameters.get(ParameterKey.TEST_METHOD));
   String coverageFilePath=notNullize(parameters.get(ParameterKey.COVERAGE_OUTPUT_FILE));
@@ -25,5 +33,5 @@
     String joinedPaths=notNullize(parameters.get(ParameterKey.COVERAGE_EXCLUDED_PATHS));
     excludedPaths=EscapeUtils.split(joinedPaths,',');
   }
-  return new Settings(serverUrl,configFiles,testCaseName,testMethodName,ideCoverageFile,excludedPaths);
+  return new Settings(serverUrl,configFiles,runAllConfigsInDirectory,testCaseName,testMethodName,ideCoverageFile,excludedPaths);
 }

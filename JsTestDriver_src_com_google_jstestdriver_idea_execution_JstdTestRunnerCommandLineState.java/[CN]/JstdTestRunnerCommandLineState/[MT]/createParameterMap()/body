@@ -2,7 +2,11 @@
   Map<TestRunner.ParameterKey,String> parameters=Maps.newLinkedHashMap();
   String serverUrl=myRunSettings.getServerType() == ServerType.INTERNAL ? "http://localhost:" + ToolPanel.serverPort : myRunSettings.getServerAddress();
   parameters.put(TestRunner.ParameterKey.SERVER_URL,serverUrl);
-  parameters.put(TestRunner.ParameterKey.CONFIG_FILE,joinJstdConfigs(myConfigVirtualFiles));
+  if (myRunSettings.getTestType() == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    parameters.put(TestRunner.ParameterKey.ALL_CONFIGS_IN_DIRECTORY,myRunSettings.getDirectory());
+  }
+  List<VirtualFile> jstdConfigs=JstdSettingsUtil.collectJstdConfigs(myProject,myRunSettings);
+  parameters.put(TestRunner.ParameterKey.CONFIG_FILES,joinJstdConfigs(jstdConfigs));
   if (myRunSettings.getTestType() == TestType.TEST_CASE) {
     parameters.put(TestRunner.ParameterKey.TEST_CASE,myRunSettings.getTestCaseName());
   }

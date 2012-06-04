@@ -1,6 +1,7 @@
 {
   JsTestDriverBuilder builder=new JsTestDriverBuilder();
   final ParsedConfiguration parsedConfiguration=JstdConfigParsingUtils.parseConfiguration(configFile);
+  wipeCoveragePlugin(parsedConfiguration);
   builder.setDefaultConfiguration(parsedConfiguration);
   builder.withPluginInitializer(new PluginInitializer(){
     @Override public Module initializeModule(    Flags flags,    Configuration config){
@@ -8,7 +9,7 @@
         @Override public void configure(){
           Multibinder<TestListener> testListeners=Multibinder.newSetBinder(binder(),TestListener.class);
           testListeners.addBinding().to(TestResultHolder.class);
-          testListeners.addBinding().toInstance(new IdeaTestListener(myOutputManager,configFile,parsedConfiguration.getBasePaths()));
+          testListeners.addBinding().toInstance(new IdeaTestListener(myTreeManager,configFile,parsedConfiguration.getBasePaths()));
         }
       }
 ;
@@ -32,7 +33,6 @@
       coverageExcludedFiles.addAll(mySettings.getFilesExcludedFromCoverage());
       PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
       if (coverageInitializer != null) {
-        wipeCoveragePlugin(parsedConfiguration);
         builder.withPluginInitializer(coverageInitializer);
         builder.withPluginInitializer(new DependenciesTouchFix());
         runCoverage=true;
@@ -58,7 +58,7 @@
         myCoverageSession.mergeReport(coverageReport);
       }
  catch (      Exception e) {
-        myOutputManager.printThrowable(e);
+        myTreeManager.printThrowable(e);
       }
     }
   }
