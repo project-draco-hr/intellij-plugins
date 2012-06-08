@@ -4,13 +4,14 @@
   if (!StringUtil.isEmpty(dirPath) && dir.isDirectory() && dir.isAbsolute()) {
     VirtualFile directoryVFile=LocalFileSystem.getInstance().findFileByIoFile(dir);
     if (directoryVFile != null) {
-      List<VirtualFile> configs=JstdClientCommandLineBuilder.collectJstdConfigFilesInDirectory(project,directoryVFile);
-      result=ContainerUtil.map(configs,new Function<VirtualFile,String>(){
+      List<VirtualFile> configs=JstdSettingsUtil.collectJstdConfigFilesInDirectory(project,directoryVFile);
+      result=ContainerUtil.filter(ContainerUtil.map(configs,new NullableFunction<VirtualFile,String>(){
         @Override public String fun(        VirtualFile virtualFile){
           return ProjectRootUtils.getRootRelativePath(project,virtualFile.getPath());
         }
       }
-);
+),Condition.NOT_NULL);
+      Collections.sort(result);
     }
   }
   return result;
