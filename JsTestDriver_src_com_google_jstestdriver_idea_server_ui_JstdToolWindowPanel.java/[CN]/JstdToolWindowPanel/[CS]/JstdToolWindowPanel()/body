@@ -1,0 +1,30 @@
+{
+  super(false,true);
+  StatusBar statusBar=new StatusBar();
+  myCaptureUrlController=new CaptureUrlController();
+  JTextField captureUrlTextField=myCaptureUrlController.getCaptureUrlTextField();
+  CapturedBrowsersController capturedBrowsersController=new CapturedBrowsersController(captureUrlTextField);
+  final ActionToolbar actionToolbar=createActionToolbar();
+  setToolbar(actionToolbar.getComponent());
+  List<ServerListener> serverListeners=Arrays.asList(statusBar,capturedBrowsersController,myCaptureUrlController.getServerListener(),new EdtServerAdapter(){
+    @Override public void serverStateChanged(    boolean started){
+      actionToolbar.updateActionsImmediately();
+    }
+  }
+);
+  for (  ServerListener serverListener : serverListeners) {
+    if (SHARED_STATE.isServerRunning()) {
+      serverListener.serverStarted();
+      for (      BrowserInfo browserInfo : SHARED_STATE.getCapturedBrowsers()) {
+        serverListener.browserCaptured(browserInfo);
+      }
+    }
+ else {
+      serverListener.serverStopped();
+    }
+    SHARED_STATE.addServerListener(serverListener);
+  }
+  setBackground(UIUtil.getTreeTextBackground());
+  JPanel content=newVerticalPanelWithLeftAlignedChildren(statusBar.getComponent(),myCaptureUrlController.getComponent(),capturedBrowsersController.getComponent());
+  setContent(content);
+}
