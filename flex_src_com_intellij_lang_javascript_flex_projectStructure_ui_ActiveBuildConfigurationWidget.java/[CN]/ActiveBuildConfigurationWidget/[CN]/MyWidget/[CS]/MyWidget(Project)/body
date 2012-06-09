@@ -31,8 +31,8 @@
   c.gridx++;
   c.weightx=0;
   myPanel.add(myUpDownLabel,c);
-  MouseAdapter listener=new MouseAdapter(){
-    @Override public void mouseClicked(    final MouseEvent e){
+  ClickListener listener=new ClickListener(){
+    @Override public boolean onClick(    MouseEvent e,    int clickCount){
       Module module=findCurrentFlexModule();
       if (module != null) {
         ListPopup popup=ChooseActiveBuildConfigurationAction.createPopup(module);
@@ -44,12 +44,13 @@
         HintHint hintHint=new HintHint(e).setShowImmediately(true).setAwtTooltip(true);
         new LightweightHint(new JLabel(myDisabledLabel.getToolTipText())).show(myPanel,e.getX(),e.getY(),myPanel,hintHint);
       }
+      return true;
     }
   }
 ;
-  myEnabledLabel.addMouseListener(listener);
-  myDisabledLabel.addMouseListener(listener);
-  myPanel.addMouseListener(listener);
-  myUpDownLabel.addMouseListener(listener);
+  listener.installOn(myEnabledLabel);
+  listener.installOn(myDisabledLabel);
+  listener.installOn(myPanel);
+  listener.installOn(myUpDownLabel);
   update();
 }
