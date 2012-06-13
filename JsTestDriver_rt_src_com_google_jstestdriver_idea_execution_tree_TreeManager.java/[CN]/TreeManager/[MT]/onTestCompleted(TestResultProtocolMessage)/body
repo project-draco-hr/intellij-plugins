@@ -1,13 +1,13 @@
 {
   TestNode testNode=getOrCreateTestNode(message);
   if (message.log != null && !message.log.isEmpty()) {
-    TCMessage stdOutMessage=TC.testStdOut(testNode);
+    TCMessage stdOutMessage=TC.newTestStdOutMessage(testNode);
     stdOutMessage.addAttribute(TCAttribute.STDOUT,message.log + "\n");
     printTCMessage(stdOutMessage);
   }
   TestResult.Result result=TestResult.Result.valueOf(message.result);
   if (result == TestResult.Result.passed) {
-    TCMessage testFinishedMessage=TC.testFinished(testNode);
+    TCMessage testFinishedMessage=TC.newTestFinishedMessage(testNode);
     testFinishedMessage.addIntAttribute(TCAttribute.TEST_DURATION,(int)message.duration);
     printTCMessage(testFinishedMessage);
   }
@@ -20,7 +20,7 @@
  else {
       stackStr=message.stack;
     }
-    TCMessage testFailedMessage=TC.testFailed(testNode);
+    TCMessage testFailedMessage=TC.newTestFailedMessage(testNode);
     testFailedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,message.message);
     testFailedMessage.addAttribute(TCAttribute.EXCEPTION_STACKTRACE,stackStr);
     if (result == TestResult.Result.error) {

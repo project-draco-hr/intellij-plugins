@@ -1,6 +1,12 @@
 {
   JsTestDriverBuilder builder=new JsTestDriverBuilder();
-  final ParsedConfiguration parsedConfiguration=JstdConfigParsingUtils.parseConfiguration(configFile);
+  final ParsedConfiguration parsedConfiguration;
+  try {
+    parsedConfiguration=JstdConfigParsingUtils.parseConfiguration(configFile);
+  }
+ catch (  Exception e) {
+    throw new ConfigurationException("Configuration file parsing failed.\n" + "See http://code.google.com/p/js-test-driver/wiki/ConfigurationFile for clarification.\n\n" + "Details:",e);
+  }
   wipeCoveragePlugin(parsedConfiguration);
   builder.setDefaultConfiguration(parsedConfiguration);
   builder.withPluginInitializer(new PluginInitializer(){

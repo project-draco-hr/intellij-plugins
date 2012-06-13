@@ -1,0 +1,22 @@
+{
+  ConfigNode configNode=getCurrentConfigNode();
+  for (  BrowserNode browserNode : configNode.getChildren()) {
+    for (    TestCaseNode testCaseNode : browserNode.getChildren()) {
+      TCMessage testCaseFinishedMessage=TC.newTestSuiteFinishedMessage(testCaseNode);
+      printTCMessage(testCaseFinishedMessage);
+    }
+    TCMessage browserFinishedMessage=TC.newTestSuiteFinishedMessage(browserNode);
+    printTCMessage(browserFinishedMessage);
+  }
+  if (testsRunException != null) {
+    ConfigErrorNode configErrorNode=new ConfigErrorNode(configNode);
+    TCMessage startedMessage=TC.newConfigErrorStartedMessage(configErrorNode);
+    printTCMessage(startedMessage);
+    TCMessage finishedMessage=TC.newConfigErrorFinishedMessage(configErrorNode);
+    String fullMessage=formatMessage(testsRunException.getMessage(),testsRunException.getCause());
+    finishedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,fullMessage);
+    printTCMessage(finishedMessage);
+  }
+  TCMessage configFinishedMessage=TC.newTestSuiteFinishedMessage(configNode);
+  printTCMessage(configFinishedMessage);
+}
