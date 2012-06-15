@@ -1,0 +1,50 @@
+{
+  String prefix="error loading file: ";
+  if (!text.startsWith(prefix)) {
+    return null;
+  }
+  String pathAndOther=text.substring(prefix.length());
+  int filePathEndInd=pathAndOther.indexOf(':');
+  if (filePathEndInd < 0) {
+    return null;
+  }
+  String filePath=pathAndOther.substring(0,filePathEndInd);
+  File file=resolveFile(filePath,basePath);
+  if (file == null) {
+    return null;
+  }
+  int lineNumberEndInd=pathAndOther.indexOf(':',filePathEndInd + 1);
+  if (lineNumberEndInd < 0) {
+    return null;
+  }
+  String lineNumberStr=pathAndOther.substring(filePathEndInd + 1,lineNumberEndInd);
+  Integer lineNumber=toInteger(lineNumberStr);
+  if (lineNumber == null) {
+    return null;
+  }
+  int columnNumberEndInd=pathAndOther.indexOf(':',lineNumberEndInd + 1);
+  int textMessageStartInd=lineNumberEndInd + 1;
+  Integer columnNumber=null;
+  if (columnNumberEndInd > 0) {
+    String columnNumberStr=pathAndOther.substring(lineNumberEndInd + 1,columnNumberEndInd);
+    columnNumber=toInteger(columnNumberStr);
+    if (columnNumber != null) {
+      textMessageStartInd=columnNumberEndInd + 1;
+    }
+  }
+  String errorNameAndOther=pathAndOther.substring(textMessageStartInd).trim();
+  String uncaughtPrefix="Uncaught ";
+  String errorName=null;
+  if (errorNameAndOther.startsWith(uncaughtPrefix)) {
+    errorName=errorNameAndOther.substring(uncaughtPrefix.length()).trim();
+    String exceptionStr="exception:";
+    if (errorName.startsWith(exceptionStr)) {
+      errorName=errorName.substring(exceptionStr.length()).trim();
+    }
+    int detailsStartInd=errorName.indexOf(':');
+    if (detailsStartInd > 0) {
+      errorName=errorName.substring(0,detailsStartInd);
+    }
+  }
+  return new JsErrorMessage(file,lineNumber,columnNumber,errorName,prefix.length(),prefix.length() + textMessageStartInd - 1);
+}

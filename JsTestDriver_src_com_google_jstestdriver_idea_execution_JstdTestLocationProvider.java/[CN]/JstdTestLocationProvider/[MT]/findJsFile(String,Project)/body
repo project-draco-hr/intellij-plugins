@@ -1,0 +1,14 @@
+{
+  List<String> components=EscapeUtils.split(locationData,':');
+  if (components.size() != 3) {
+    return null;
+  }
+  String jsFilePath=components.get(0);
+  Integer lineNumber=toInteger(components.get(1));
+  int line=lineNumber != null ? lineNumber : 1;
+  VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByIoFile(new File(jsFilePath));
+  if (virtualFile != null && virtualFile.isValid()) {
+    return FileUrlProvider.createLocationFor(project,virtualFile,line);
+  }
+  return null;
+}

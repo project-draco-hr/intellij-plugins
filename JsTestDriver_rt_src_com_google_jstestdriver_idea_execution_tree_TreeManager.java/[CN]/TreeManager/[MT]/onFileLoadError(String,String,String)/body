@@ -1,0 +1,16 @@
+{
+  ConfigNode configNode=getCurrentConfigNode();
+  BrowserNode browserNode=configNode.findChildByName(browserName);
+  if (browserNode == null) {
+    browserNode=new BrowserNode(browserName,configNode);
+    configNode.addChild(browserNode);
+  }
+  BrowserErrorNode browserErrorNode=BrowserErrorNode.newBrowserErrorNode(browserNode,pathToJsFileWithError,errorMessage);
+  TCMessage startedMessage=browserErrorNode.createStartedMessage();
+  printTCMessage(startedMessage);
+  TCMessage finishedMessage=TC.newBrowserErrorFinishedMessage(browserErrorNode);
+  if (errorMessage != null) {
+    finishedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,errorMessage);
+  }
+  printTCMessage(finishedMessage);
+}
