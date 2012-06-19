@@ -1,0 +1,20 @@
+{
+  super(module.getProject());
+  myModule=module;
+  myContextClass=contextClass;
+  myTestClassNameTextField.setText(myContextClass.getName() + "Test");
+  setTitle(CodeInsightBundle.message("intention.create.test"));
+  myExistingTestSourceRoot=findExistingTestSourceRoot(module);
+  myCreateTestSourceFolderCheckBox.setVisible(myExistingTestSourceRoot == null);
+  myTestSourceFolderTextField.setVisible(myExistingTestSourceRoot == null);
+  myTestSourceFolderTextField.setText(FileUtil.toSystemDependentName(suggestTestSourceRootPath(module,contextClass.getContainingFile().getVirtualFile())));
+  myCreateTestSourceFolderCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      myTestSourceFolderTextField.setEnabled(myCreateTestSourceFolderCheckBox.isSelected());
+    }
+  }
+);
+  myCreateTestSourceFolderCheckBox.setSelected(PropertiesComponent.getInstance(module.getProject()).getBoolean(CREATE_TEST_SOURCE_FOLDER_KEY,true));
+  myTestSourceFolderTextField.setEnabled(myCreateTestSourceFolderCheckBox.isSelected());
+  init();
+}

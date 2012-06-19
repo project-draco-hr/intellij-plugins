@@ -41,10 +41,6 @@ checkAdlAndAirRuntime(sdk);
 checkCustomDescriptor(bc.getAirDesktopPackagingOptions());
 break;
 case Mobile:
-if (bc.getOutputType() == OutputType.Application && myMobileRunTarget == AirMobileRunTarget.AndroidDevice) {
-final AndroidPackagingOptions packagingOptions=bc.getAndroidPackagingOptions();
-checkCustomDescriptor(packagingOptions);
-}
 if (myMobileRunTarget == AirMobileRunTarget.Emulator) {
 checkAdlAndAirRuntime(sdk);
 switch (myAppDescriptorForEmulator) {
@@ -56,6 +52,25 @@ break;
 case IOS:
 checkCustomDescriptor(bc.getIosPackagingOptions());
 break;
+}
+}
+ else if (myMobileRunTarget == AirMobileRunTarget.AndroidDevice) {
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getAndroidPackagingOptions());
+}
+}
+ else if (myMobileRunTarget == AirMobileRunTarget.iOSSimulator) {
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getIosPackagingOptions());
+}
+if (!SystemInfo.isMac) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.on.mac.only.warning"));
+}
+if (myIOSSimulatorSdkPath.isEmpty()) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.sdk.not.set"));
+}
+ else if (!new File(FileUtil.toSystemDependentName(myIOSSimulatorSdkPath)).isDirectory()) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.sdk.not.found",FileUtil.toSystemDependentName(myIOSSimulatorSdkPath)));
 }
 }
 break;

@@ -11,7 +11,7 @@
   params.setRunTrusted(myRunTrustedCheckBox.isSelected());
   params.setAdlOptions(myAdlOptionsEditor.getText().trim());
   params.setAirProgramParameters(myAirProgramParametersEditor.getText().trim());
-  final AirMobileRunTarget mobileRunTarget=myOnEmulatorRadioButton.isSelected() ? AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunTarget.AndroidDevice : AirMobileRunTarget.iOSDevice;
+  final AirMobileRunTarget mobileRunTarget=myOnEmulatorRadioButton.isSelected() ? AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunTarget.AndroidDevice : myOnIOSSimulatorRadioButton.isSelected() ? AirMobileRunTarget.iOSSimulator : AirMobileRunTarget.iOSDevice;
   params.setMobileRunTarget(mobileRunTarget);
   final Emulator emulator=(Emulator)myEmulatorCombo.getSelectedItem();
   params.setEmulator(emulator);
@@ -25,6 +25,14 @@
  catch (    NumberFormatException e) {
     }
   }
+  final FlexIdeBuildConfiguration bc=myBCCombo.getBC();
+  if (SystemInfo.isMac && bc != null && bc.getTargetPlatform() == TargetPlatform.Mobile && myOnIOSSimulatorRadioButton.isSelected()) {
+    final String path=FileUtil.toSystemIndependentName(myIOSSimulatorSdkTextWithBrowse.getText().trim());
+    if (!path.isEmpty()) {
+      PropertiesComponent.getInstance().setValue(LATEST_SELECTED_IOS_SIMULATOR_SDK_PATH_KEY,path);
+    }
+  }
+  params.setIOSSimulatorSdkPath(FileUtil.toSystemIndependentName(myIOSSimulatorSdkTextWithBrowse.getText().trim()));
   params.setDebugTransport(myDebugOverNetworkRadioButton.isSelected() ? AirMobileDebugTransport.Network : AirMobileDebugTransport.USB);
   try {
     final int port=Integer.parseInt(myUsbDebugPortTextField.getText().trim());

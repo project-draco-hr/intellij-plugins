@@ -11,10 +11,15 @@ switch (runnerParameters.getMobileRunTarget()) {
 case Emulator:
 return standardLaunch(module.getProject(),executor,state,contentToReuse,environment);
 case AndroidDevice:
-final String appId=getApplicationId(getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
-final Sdk sdk=bc.getSdk();
-if (packAndInstallToAndroidDevice(module,bc,runnerParameters,appId,false)) {
-launchOnAndroidDevice(module.getProject(),sdk,appId,false);
+final String androidAppId=getApplicationId(getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
+if (packAndInstallToAndroidDevice(module,bc,runnerParameters,androidAppId,false)) {
+launchOnAndroidDevice(module.getProject(),bc.getSdk(),androidAppId,false);
+}
+return null;
+case iOSSimulator:
+final String iosAppId=getApplicationId(getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+if (packAndInstallToIOSSimulator(module,bc,runnerParameters,iosAppId,false)) {
+launchOnIosSimulator(module.getProject(),bc.getSdk(),iosAppId,runnerParameters.getIOSSimulatorSdkPath(),false);
 }
 return null;
 }
