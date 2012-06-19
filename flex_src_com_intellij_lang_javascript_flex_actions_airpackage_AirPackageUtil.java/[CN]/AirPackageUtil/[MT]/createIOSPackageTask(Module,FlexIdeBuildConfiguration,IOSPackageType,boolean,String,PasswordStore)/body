@@ -1,8 +1,9 @@
 {
   final IosPackagingOptions packagingOptions=bc.getIosPackagingOptions();
   final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
-  final String keystorePassword=passwords.getKeystorePassword(signingOptions.getKeystorePath());
-  final String keyPassword=passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  final boolean simulator=packageType == IOSPackageType.TestOnSimulator || packageType == IOSPackageType.DebugOnSimulator;
+  final String keystorePassword=simulator ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=simulator ? null : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
   return new AdtTask(module.getProject(),bc.getSdk()){
     protected void appendAdtOptions(    List<String> command){
       command.add("-package");
@@ -28,8 +29,18 @@ case AppStore:
 command.add("ipa-app-store");
 break;
 }
+if (simulator) {
+command.add("-storetype");
+command.add("PKCS12");
+command.add("-keystore");
+command.add(getTempKeystorePath());
+command.add("-storepass");
+command.add(TEMP_KEYSTORE_PASSWORD);
+}
+ else {
 appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
-if (packageType != IOSPackageType.TestOnSimulator && packageType != IOSPackageType.DebugOnSimulator) {
+}
+if (!simulator) {
 command.add("-provisioning-profile");
 command.add(FileUtil.toSystemDependentName(signingOptions.getProvisioningProfilePath()));
 }
