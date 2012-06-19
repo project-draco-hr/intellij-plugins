@@ -15,6 +15,12 @@ case DebugOverNetwork:
 case Test:
   command.add(fastPackaging ? "ipa-test-interpreter" : "ipa-test");
 break;
+case TestOnSimulator:
+command.add("ipa-test-interpreter-simulator");
+break;
+case DebugOnSimulator:
+command.add("ipa-debug-interpreter-simulator");
+break;
 case AdHoc:
 command.add("ipa-ad-hoc");
 break;
@@ -23,8 +29,10 @@ command.add("ipa-app-store");
 break;
 }
 appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+if (packageType != IOSPackageType.TestOnSimulator && packageType != IOSPackageType.DebugOnSimulator) {
 command.add("-provisioning-profile");
 command.add(FileUtil.toSystemDependentName(signingOptions.getProvisioningProfilePath()));
+}
 appendPaths(command,module,bc,packagingOptions,iosSDKPath,".ipa");
 }
 }

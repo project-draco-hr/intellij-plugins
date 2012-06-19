@@ -1,0 +1,10 @@
+{
+  final IosPackagingOptions packagingOptions=bc.getIosPackagingOptions();
+  final boolean tempCertificate=false;
+  final PasswordStore passwords=tempCertificate ? null : AirPackageAction.getPasswords(module.getProject(),Collections.singletonList(packagingOptions));
+  if (!tempCertificate && passwords == null)   return false;
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final IOSPackageType packageType=isDebug ? IOSPackageType.DebugOnSimulator : IOSPackageType.TestOnSimulator;
+  final ExternalTask task=createIOSPackageTask(module,bc,packageType,true,runnerParameters.getIOSSimulatorSdkPath(),passwords);
+  return ExternalTask.runWithProgress(task,FlexBundle.message("creating.ios.package"),FlexBundle.message("create.ios.package.title"));
+}

@@ -1,15 +1,23 @@
 {
   final Project project=module.getProject();
-  if (bc.getTargetPlatform() == TargetPlatform.Mobile && runnerParameters.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
-    final Sdk flexSdk=bc.getSdk();
-    final String appId=getApplicationId(getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
-    if (!packAndInstallToAndroidDevice(module,bc,runnerParameters,appId,true)) {
-      return null;
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    if (runnerParameters.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
+      final Sdk flexSdk=bc.getSdk();
+      final String appId=getApplicationId(getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
+      if (!packAndInstallToAndroidDevice(module,bc,runnerParameters,appId,true)) {
+        return null;
+      }
+      if (runnerParameters.getDebugTransport() == AirMobileDebugTransport.USB) {
+        launchOnAndroidDevice(project,flexSdk,appId,true);
+        waitUntilCountdownStartsOnDevice(project,appId);
+        AirPackageUtil.forwardTcpPort(project,flexSdk,runnerParameters.getUsbDebugPort());
+      }
     }
-    if (runnerParameters.getDebugTransport() == AirMobileDebugTransport.USB) {
-      launchOnAndroidDevice(project,flexSdk,appId,true);
-      waitUntilCountdownStartsOnDevice(project,appId);
-      AirPackageUtil.forwardTcpPort(project,flexSdk,runnerParameters.getUsbDebugPort());
+ else     if (runnerParameters.getMobileRunTarget() == AirMobileRunTarget.iOSSimulator) {
+      final String appId=getApplicationId(getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+      if (!packAndInstallToIOSSimulator(module,bc,runnerParameters,appId,true)) {
+        return null;
+      }
     }
   }
   return launchDebugProcess(module,bc,runnerParameters,executor,contentToReuse,env);
