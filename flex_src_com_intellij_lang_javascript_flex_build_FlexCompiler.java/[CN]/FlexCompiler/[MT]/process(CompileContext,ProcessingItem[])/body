@@ -68,6 +68,19 @@
       LOG.error(activeCompilationsNumber + " Flex compilation(s) are not finished!");
     }
     FlexCompilerHandler.deleteTempFlexUnitFiles(context);
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      Function<CompilerMessage,String> toString=new Function<CompilerMessage,String>(){
+        @Override public String fun(        final CompilerMessage compilerMessage){
+          return compilerMessage.getMessage();
+        }
+      }
+;
+      StringBuilder s=new StringBuilder("Compiler errors:\n");
+      s.append(StringUtil.join(context.getMessages(CompilerMessageCategory.ERROR),toString,"\n"));
+      s.append("\nCompiler warnings:\n");
+      s.append(StringUtil.join(context.getMessages(CompilerMessageCategory.WARNING),toString,"\n"));
+      FlexCompilerHandler.getInstance(context.getProject()).setLastCompilationMessages(s.toString());
+    }
     return items;
   }
 }
