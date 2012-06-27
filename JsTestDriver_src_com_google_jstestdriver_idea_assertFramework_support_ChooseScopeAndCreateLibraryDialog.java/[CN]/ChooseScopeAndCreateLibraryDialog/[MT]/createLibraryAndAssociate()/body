@@ -1,0 +1,42 @@
+{
+  JsLibraryHelper jsLibraryHelper=new JsLibraryHelper(myProject);
+  String libraryName=myLibraryNameTextField.getText();
+  final ScriptingLibraryModel libraryModel=jsLibraryHelper.createJsLibrary(libraryName,myLibraryFiles);
+  String dialogTitle="Adding " + myLibraryName;
+  if (libraryModel == null) {
+    Messages.showErrorDialog("Unable to create '" + libraryName + "' JavaScript library",dialogTitle);
+    return;
+  }
+  boolean success=ApplicationManager.getApplication().runWriteAction(new Computable<Boolean>(){
+    @Override @NotNull public Boolean compute(){
+      try {
+        ScriptingLibraryMappings libraryMappings=ServiceManager.getService(myProject,JSLibraryMappings.class);
+        if (myModuleSelector.isProjectAssociationAllowed()) {
+          libraryMappings.associateWithProject(libraryModel.getName());
+          LOG.info("Library '" + libraryModel.getName() + "' has been successfully associated with the project");
+        }
+ else {
+          for (          Module module : myModuleSelector.getSelectedModules()) {
+            ModuleRootManager moduleRootManager=ModuleRootManager.getInstance(module);
+            VirtualFile[] roots=moduleRootManager.getContentRoots();
+            for (            VirtualFile root : roots) {
+              libraryMappings.associate(root,libraryModel.getName(),false);
+              LOG.info("Library '" + libraryModel.getName() + "' has been associated with "+ root);
+            }
+          }
+        }
+        JSLibraryManager libraryManager=ServiceManager.getService(myProject,JSLibraryManager.class);
+        libraryManager.commitChanges();
+        return true;
+      }
+ catch (      Exception ex) {
+        LOG.error(ex);
+        return false;
+      }
+    }
+  }
+);
+  if (!success) {
+    Messages.showErrorDialog("Unable to associate '" + libraryName + "' JavaScript library",dialogTitle);
+  }
+}

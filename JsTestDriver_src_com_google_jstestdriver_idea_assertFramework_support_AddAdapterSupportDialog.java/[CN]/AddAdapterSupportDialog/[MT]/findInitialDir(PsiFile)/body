@@ -1,0 +1,20 @@
+{
+  if (!psiFileRequestor.isValid()) {
+    return null;
+  }
+  return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
+    @Override @Nullable public VirtualFile compute(){
+      Project project=psiFileRequestor.getProject();
+      VirtualFile virtualFile=psiFileRequestor.getVirtualFile();
+      if (virtualFile != null) {
+        ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+        VirtualFile contentRoot=fileIndex.getContentRootForFile(virtualFile);
+        if (contentRoot != null) {
+          return contentRoot;
+        }
+      }
+      return project.getBaseDir();
+    }
+  }
+);
+}
