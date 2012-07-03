@@ -5,11 +5,15 @@
       JSArgumentList jsArgumentList=jsCallExpression.getArgumentList();
       if (methodExpression != null && jsArgumentList != null) {
         JSExpression[] arguments=ObjectUtils.notNull(jsArgumentList.getArguments(),JSExpression.EMPTY_ARRAY);
-        boolean suitableSymbol=isSuitableMethod(methodExpression.getReferencedName(),arguments);
+        String methodName=methodExpression.getReferencedName();
+        if (methodName == null) {
+          return;
+        }
+        boolean suitableSymbol=isSuitableMethod(methodName,arguments);
         if (suitableSymbol) {
           boolean resolved=isResolved(methodExpression);
           if (!resolved) {
-            holder.registerProblem(methodExpression,getDisplayName(),ProblemHighlightType.GENERIC_ERROR,TextRange.create(0,methodExpression.getTextLength()),getQuickFix());
+            holder.registerProblem(methodExpression,getProblemDescription(),ProblemHighlightType.GENERIC_ERROR,TextRange.create(0,methodExpression.getTextLength()),getQuickFix());
           }
         }
       }

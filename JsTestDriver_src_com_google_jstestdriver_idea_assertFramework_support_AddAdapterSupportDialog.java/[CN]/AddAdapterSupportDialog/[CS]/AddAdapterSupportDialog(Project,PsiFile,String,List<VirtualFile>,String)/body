@@ -1,0 +1,26 @@
+{
+  super(project);
+  myProject=project;
+  myAssertFrameworkName=assertionFrameworkName;
+  myAdapterSourceFiles=adapterSourceFiles;
+  myFileRequestor=psiFileRequestor.getVirtualFile();
+  setModal(true);
+  setTitle("Add " + getAssertFrameworkAdapterName());
+  myDirectoryTextField=new JTextField();
+  VirtualFile initialDir=findInitialDir(psiFileRequestor);
+  if (initialDir != null) {
+    myDirectoryTextField.setText(FileUtil.toSystemDependentName(initialDir.getPath()));
+  }
+  myDirectoryTextField.setPreferredSize(new Dimension(350,myDirectoryTextField.getPreferredSize().height));
+  List<Component> components=Lists.newArrayList();
+  components.add(createFilesViewPanel(adapterSourceFiles));
+  components.add(Box.createVerticalStrut(10));
+  components.add(createSelectDirectoryPanel(project,myDirectoryTextField));
+  if (adapterHomePageUrl != null) {
+    components.add(Box.createVerticalStrut(10));
+    components.add(createInformationPanel(adapterHomePageUrl));
+  }
+  myContent=SwingHelper.newLeftAlignedVerticalPanel(components);
+  setOKButtonText("Add");
+  super.init();
+}
