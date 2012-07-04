@@ -15,11 +15,13 @@
     final String jsClassName=jsClass.getName();
     if (jsClassName != null) {
       final XmlElementDescriptor descriptor=context.getElementDescriptor(jsClassName,jsClass.getQualifiedName());
-      ContainerUtil.addIfNotNull(descriptor,result);
+      if (descriptor instanceof ClassBackedElementDescriptor && CodeContext.checkDeclaration((ClassBackedElementDescriptor)descriptor)) {
+        result.add(descriptor);
+      }
     }
   }
  else {
-    for (    final XmlElementDescriptor descriptor : context.getAllDescriptors()) {
+    for (    final XmlElementDescriptor descriptor : context.getDescriptorsWithAllowedDeclaration()) {
       if (descriptor instanceof ClassBackedElementDescriptor && !((ClassBackedElementDescriptor)descriptor).predefined) {
         final PsiElement decl=descriptor.getDeclaration();
         if (decl instanceof JSClass && JSInheritanceUtil.isParentClass((JSClass)decl,jsClass,false)) {

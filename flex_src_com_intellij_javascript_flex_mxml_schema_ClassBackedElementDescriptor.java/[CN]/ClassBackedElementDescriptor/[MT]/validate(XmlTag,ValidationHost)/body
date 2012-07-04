@@ -31,9 +31,7 @@
     }
   }
   final PsiElement declaration=getDeclaration();
-  final JSFunction constructor=declaration instanceof JSClass ? ((JSClass)declaration).getConstructor() : null;
-  final JSParameter[] parameters=constructor == null ? null : constructor.getParameters();
-  if (parameters != null && parameters.length > 0 && !parameters[0].isOptional() && !parameters[0].isRest()) {
+  if ((declaration instanceof JSClass) && !CodeContext.hasDefaultConstructor((JSClass)declaration)) {
     host.addMessage(tag,JSBundle.message("class.0.does.not.have.default.constructor",((JSClass)declaration).getQualifiedName()),Validator.ValidationHost.ErrorType.ERROR);
   }
   if (tag.getParent() instanceof XmlDocument) {

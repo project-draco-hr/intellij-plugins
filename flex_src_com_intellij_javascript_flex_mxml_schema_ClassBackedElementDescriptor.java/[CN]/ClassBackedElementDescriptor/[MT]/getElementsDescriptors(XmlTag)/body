@@ -36,14 +36,14 @@
  else   if (parentDescriptor.getDefaultPropertyDescriptor() != null && parentDescriptor.defaultPropertyDescriptor.getType() != null) {
     final PsiElement contextParent=_context.getParent();
     if (contextParent instanceof XmlDocument && JavaScriptSupportLoader.isLanguageNamespace(_context.getNamespace())) {
-      for (      XmlElementDescriptor descriptor : context.getAllDescriptors()) {
+      for (      XmlElementDescriptor descriptor : context.getDescriptorsWithAllowedDeclaration()) {
         if (descriptor instanceof ClassBackedElementDescriptor && ((ClassBackedElementDescriptor)descriptor).predefined) {
           resultList.add(descriptor);
         }
       }
     }
     final String type=parentDescriptor.getDefaultPropertyType();
-    ContainerUtil.addAll(resultList,isAdequateType(type) ? getElementDescriptorsInheritedFromGivenType(type) : context.getAllDescriptors());
+    ContainerUtil.addAll(resultList,isAdequateType(type) ? getElementDescriptorsInheritedFromGivenType(type) : context.getDescriptorsWithAllowedDeclaration());
     if (JavaScriptSupportLoader.isLanguageNamespace(context.namespace)) {
       ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.SCRIPT,(XmlTag)null),resultList);
       ContainerUtil.addIfNotNull(context.getElementDescriptor(CodeContext.REPARENT_TAG_NAME,(XmlTag)null),resultList);
@@ -56,7 +56,7 @@
     }
   }
  else   if (parentDescriptor.predefined || isContainerClass(parentDescriptor)) {
-    context.appendAllDescriptors(resultList);
+    context.appendDescriptorsWithAllowedDeclaration(resultList);
   }
   if (includeProperties && myDescriptors != null) {
     resultList.addAll(myDescriptors.values());
