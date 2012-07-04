@@ -6,15 +6,25 @@
   final Module module=ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(file.getVirtualFile());
   final Collection<String> illegalNamespaces=getIllegalNamespaces(file);
   final Set<String> result=new THashSet<String>();
-  if (tagName == null) {
-    for (    final String namespace : CodeContextHolder.getInstance(project).getNamespaces(module)) {
-      if (!illegalNamespaces.contains(namespace)) {
+  final Set<String> componentsThatHaveNotPackageBackedNamespace=new THashSet<String>();
+  for (  final String namespace : CodeContextHolder.getInstance(project).getNamespaces(module)) {
+    if (tagName == null) {
+      if (CodeContext.isPackageBackedNamespace(namespace) || !illegalNamespaces.contains(namespace)) {
         result.add(namespace);
       }
     }
-    if (!illegalNamespaces.contains(JavaScriptSupportLoader.MXML_URI)) {
-      result.add(JavaScriptSupportLoader.MXML_URI);
+ else {
+      if (!CodeContext.isPackageBackedNamespace(namespace) && !illegalNamespaces.contains(namespace)) {
+        final XmlElementDescriptor descriptor=CodeContext.getContext(namespace,module).getElementDescriptor(tagName,(XmlTag)null);
+        if (descriptor != null) {
+          result.add(namespace);
+          componentsThatHaveNotPackageBackedNamespace.add(descriptor.getQualifiedName());
+        }
+      }
     }
+  }
+  if (tagName == null && !illegalNamespaces.contains(JavaScriptSupportLoader.MXML_URI)) {
+    result.add(JavaScriptSupportLoader.MXML_URI);
   }
   if (XmlBackedJSClassImpl.SCRIPT_TAG_NAME.equals(tagName) || "Style".equals(tagName))   return result;
   if (DumbService.isDumb(project))   return result;
@@ -25,7 +35,9 @@
         final JSNamedElementIndexItem proxy=((JSNamedElementProxy)namedElement).getIndexItem();
         if (proxy.getType() == JSNamedElementProxy.NamedItemType.Clazz && proxy.getAccessType() == JSAttributeList.AccessType.PUBLIC) {
           final @NonNls String packageName=proxy.getNamespace().getQualifiedName();
-          result.add(getNamespaceForClass(module,packageName,tagName,illegalNamespaces));
+          if (!componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
+            result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+          }
         }
       }
       return true;
@@ -44,8 +56,8 @@
     }
     public boolean processFile(    final VirtualFile file,    final VirtualFile root){
       final String packageName=VfsUtilCore.getRelativePath(file.getParent(),root,'.');
-      if (packageName != null) {
-        result.add(getNamespaceForClass(module,packageName,tagName,illegalNamespaces));
+      if (packageName != null && !componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
+        result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
       }
       return true;
     }
