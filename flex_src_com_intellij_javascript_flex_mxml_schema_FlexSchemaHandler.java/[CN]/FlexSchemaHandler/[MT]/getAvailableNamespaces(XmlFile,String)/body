@@ -8,13 +8,11 @@
   final Set<String> result=new THashSet<String>();
   final Set<String> componentsThatHaveNotPackageBackedNamespace=new THashSet<String>();
   for (  final String namespace : CodeContextHolder.getInstance(project).getNamespaces(module)) {
-    if (tagName == null) {
-      if (CodeContext.isPackageBackedNamespace(namespace) || !illegalNamespaces.contains(namespace)) {
+    if (!CodeContext.isPackageBackedNamespace(namespace) && !illegalNamespaces.contains(namespace)) {
+      if (tagName == null) {
         result.add(namespace);
       }
-    }
  else {
-      if (!CodeContext.isPackageBackedNamespace(namespace) && !illegalNamespaces.contains(namespace)) {
         final XmlElementDescriptor descriptor=CodeContext.getContext(namespace,module).getElementDescriptor(tagName,(XmlTag)null);
         if (descriptor != null) {
           result.add(namespace);
@@ -28,36 +26,36 @@
   }
   if (XmlBackedJSClassImpl.SCRIPT_TAG_NAME.equals(tagName) || "Style".equals(tagName))   return result;
   if (DumbService.isDumb(project))   return result;
-  final JavaScriptIndex index=JavaScriptIndex.getInstance(project);
-  index.processAllSymbols(new JavaScriptSymbolProcessor.DefaultSymbolProcessor(){
-    protected boolean process(    final PsiElement namedElement,    final JSNamespace namespace){
-      if (namedElement instanceof JSNamedElementProxy) {
-        final JSNamedElementIndexItem proxy=((JSNamedElementProxy)namedElement).getIndexItem();
-        if (proxy.getType() == JSNamedElementProxy.NamedItemType.Clazz && proxy.getAccessType() == JSAttributeList.AccessType.PUBLIC) {
-          final @NonNls String packageName=proxy.getNamespace().getQualifiedName();
-          if (!componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
-            result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
-          }
+  if (tagName == null) {
+    FileBasedIndex.getInstance().processAllKeys(JSPackageIndex.INDEX_ID,new Processor<String>(){
+      public boolean process(      final String packageName){
+        result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+        return true;
+      }
+    }
+,project);
+  }
+ else {
+    final GlobalSearchScope scopeWithLibs=module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.allScope(project);
+    for (    JSQualifiedNamedElement element : JSResolveUtil.findElementsByName(tagName,project,scopeWithLibs,false)) {
+      if (element instanceof JSClass && CodeContext.hasDefaultConstructor((JSClass)element)) {
+        final String packageName=StringUtil.getPackageName(element.getQualifiedName());
+        if (!componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
+          result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
         }
       }
-      return true;
-    }
-    public PsiFile getBaseFile(){
-      return file;
-    }
-    public int getRequiredNameId(){
-      return index.getIndexOf(tagName);
     }
   }
-);
-  final GlobalSearchScope scope=module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.projectScope(project);
-  FlexResolveHelper.processAllMxmlAndFxgFiles(scope,project,new FlexResolveHelper.MxmlAndFxgFilesProcessor(){
+  final GlobalSearchScope scopeWithoutLibs=module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.allScope(project);
+  FlexResolveHelper.processAllMxmlAndFxgFiles(scopeWithoutLibs,project,new FlexResolveHelper.MxmlAndFxgFilesProcessor(){
     public void addDependency(    final PsiDirectory directory){
     }
     public boolean processFile(    final VirtualFile file,    final VirtualFile root){
-      final String packageName=VfsUtilCore.getRelativePath(file.getParent(),root,'.');
-      if (packageName != null && !componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
-        result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+      if (tagName == null || tagName.equals(file.getNameWithoutExtension())) {
+        final String packageName=VfsUtilCore.getRelativePath(file.getParent(),root,'.');
+        if (packageName != null && (tagName == null || !componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName)))) {
+          result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+        }
       }
       return true;
     }
