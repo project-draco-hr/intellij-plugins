@@ -1,0 +1,37 @@
+{
+  TestNode testNode=getOrCreateTestNode(testPath);
+  testNode.detachFromParent();
+  String log=testResult.getLog();
+  if (log != null && !log.isEmpty()) {
+    TCMessage stdOutMessage=TC.newTestStdOutMessage(testNode);
+    stdOutMessage.addAttribute(TCAttribute.STDOUT,log + "\n");
+    printTCMessage(stdOutMessage);
+  }
+  int durationMillis=(int)testResult.getTime();
+  TestResult.Result status=testResult.getResult();
+  if (status == TestResult.Result.passed) {
+    TCMessage testFinishedMessage=TC.newTestFinishedMessage(testNode);
+    testFinishedMessage.addIntAttribute(TCAttribute.TEST_DURATION,durationMillis);
+    printTCMessage(testFinishedMessage);
+  }
+ else {
+    final String originalStack=testResult.getStack();
+    final String parsedMessage=testResult.getParsedMessage();
+    final String stackStr;
+    if (originalStack.startsWith(parsedMessage)) {
+      String s=originalStack.substring(parsedMessage.length());
+      stackStr=s.replaceFirst("^[\n\r]*","");
+    }
+ else {
+      stackStr=originalStack;
+    }
+    TCMessage testFailedMessage=TC.newTestFailedMessage(testNode);
+    testFailedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,parsedMessage);
+    testFailedMessage.addAttribute(TCAttribute.EXCEPTION_STACKTRACE,stackStr);
+    if (status == TestResult.Result.error) {
+      testFailedMessage.addAttribute(TCAttribute.IS_TEST_ERROR,"yes");
+    }
+    testFailedMessage.addIntAttribute(TCAttribute.TEST_DURATION,durationMillis);
+    printTCMessage(testFailedMessage);
+  }
+}
