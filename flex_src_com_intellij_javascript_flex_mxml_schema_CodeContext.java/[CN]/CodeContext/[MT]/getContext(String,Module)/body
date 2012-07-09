@@ -4,15 +4,18 @@
   }
   final FlexIdeBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration();
   if (bc == null)   return CodeContextHolder.EMPTY;
-  if (isStdNamespace(namespace)) {
-    return getStdCodeContext(namespace,module,bc);
-  }
-  final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
-  CodeContext codeContext=contextHolder.getCodeContext(namespace,module);
-  if (codeContext == null) {
-    codeContext=createCodeContext(namespace,module,bc);
-    if (codeContext.getAllDescriptorsSize() > 0) {
-      contextHolder.putCodeContext(namespace,module,codeContext);
+  CodeContext codeContext;
+synchronized (CodeContext.class) {
+    if (isStdNamespace(namespace)) {
+      return getStdCodeContext(namespace,module,bc);
+    }
+    final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
+    codeContext=contextHolder.getCodeContext(namespace,module);
+    if (codeContext == null) {
+      codeContext=createCodeContext(namespace,module,bc);
+      if (codeContext.getAllDescriptorsSize() > 0) {
+        contextHolder.putCodeContext(namespace,module,codeContext);
+      }
     }
   }
   return codeContext;
