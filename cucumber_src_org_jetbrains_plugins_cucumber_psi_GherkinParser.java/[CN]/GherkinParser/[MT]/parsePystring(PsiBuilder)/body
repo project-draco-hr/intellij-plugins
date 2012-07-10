@@ -1,0 +1,20 @@
+{
+  if (!builder.eof()) {
+    final PsiBuilder.Marker marker=builder.mark();
+    builder.advanceLexer();
+    while (!builder.eof() && builder.getTokenType() != GherkinTokenTypes.PYSTRING) {
+      if (builder.getTokenType() == GherkinTokenTypes.STEP_PARAMETER_TEXT) {
+        final PsiBuilder.Marker stepParameterMarker=builder.mark();
+        builder.advanceLexer();
+        stepParameterMarker.done(GherkinElementTypes.STEP_PARAMETER);
+      }
+ else {
+        builder.advanceLexer();
+      }
+    }
+    if (!builder.eof()) {
+      builder.advanceLexer();
+    }
+    marker.done(GherkinElementTypes.PYSTRING);
+  }
+}

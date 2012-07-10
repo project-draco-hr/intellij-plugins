@@ -1,0 +1,17 @@
+{
+  try {
+    final String elementText=getElementText();
+    if (elementText == null)     return null;
+    final StringBuilder patternText=new StringBuilder(elementText.replaceAll(ourEscapePattern,"(.*)"));
+    if (patternText.toString().startsWith(CUCUMBER_START_PREFIX)) {
+      patternText.replace(0,CUCUMBER_START_PREFIX.length(),"^");
+    }
+    if (patternText.toString().endsWith(CUCUMBER_END_SUFFIX)) {
+      patternText.replace(patternText.length() - CUCUMBER_END_SUFFIX.length(),patternText.length(),"$");
+    }
+    return new Perl5Compiler().compile(patternText.toString());
+  }
+ catch (  MalformedPatternException e) {
+    return null;
+  }
+}

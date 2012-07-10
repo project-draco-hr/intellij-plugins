@@ -1,0 +1,24 @@
+{
+synchronized (LOCK) {
+    if (mySubstitutions == null) {
+      final ArrayList<String> substitutions=new ArrayList<String>();
+      final String text=getStepName();
+      if (StringUtil.isEmpty(text)) {
+        return Collections.emptyList();
+      }
+      addSubstitutionFromText(text,substitutions);
+      final GherkinPystring pystring=getPystring();
+      String pystringText=pystring != null ? pystring.getText() : null;
+      if (!StringUtil.isEmpty(pystringText)) {
+        addSubstitutionFromText(pystringText,substitutions);
+      }
+      final GherkinTable table=getTable();
+      final String tableText=table == null ? null : table.getText();
+      if (tableText != null) {
+        addSubstitutionFromText(tableText,substitutions);
+      }
+      mySubstitutions=substitutions.isEmpty() ? Collections.<String>emptyList() : substitutions;
+    }
+    return mySubstitutions;
+  }
+}

@@ -1,0 +1,25 @@
+{
+  ASTBlock block1=(ASTBlock)child1;
+  ASTBlock block2=(ASTBlock)child2;
+  final IElementType elementType1=block1.getNode().getElementType();
+  final IElementType elementType2=block2.getNode().getElementType();
+  if (GherkinElementTypes.SCENARIOS.contains(elementType2)) {
+    return Spacing.createSpacing(0,0,2,true,2);
+  }
+  if (elementType1 == GherkinTokenTypes.PIPE && elementType2 == GherkinElementTypes.TABLE_CELL) {
+    return Spacing.createSpacing(1,1,0,false,0);
+  }
+  if ((elementType1 == GherkinElementTypes.TABLE_CELL || elementType1 == GherkinTokenTypes.PIPE) && elementType2 == GherkinTokenTypes.PIPE) {
+    final ASTNode tableNode=TreeUtil.findParent(block1.getNode(),GherkinElementTypes.TABLE);
+    if (tableNode != null) {
+      int columnIndex=getTableCellColumnIndex(block1.getNode());
+      int maxWidth=((GherkinTable)tableNode.getPsi()).getColumnWidth(columnIndex);
+      int spacingWidth=(maxWidth - block1.getNode().getText().trim().length()) + 1;
+      if (elementType1 == GherkinTokenTypes.PIPE) {
+        spacingWidth+=2;
+      }
+      return Spacing.createSpacing(spacingWidth,spacingWidth,0,false,0);
+    }
+  }
+  return null;
+}

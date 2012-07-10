@@ -1,0 +1,28 @@
+{
+  final PsiBuilder.Marker marker=builder.mark();
+  builder.advanceLexer();
+  int prevTokenEnd=-1;
+  while (builder.getTokenType() == GherkinTokenTypes.TEXT || builder.getTokenType() == GherkinTokenTypes.STEP_PARAMETER_BRACE || builder.getTokenType() == GherkinTokenTypes.STEP_PARAMETER_TEXT) {
+    String tokenText=builder.getTokenText();
+    if (hadLineBreakBefore(builder,prevTokenEnd)) {
+      break;
+    }
+    prevTokenEnd=builder.getCurrentOffset() + tokenText.length();
+    if (builder.getTokenType() == GherkinTokenTypes.STEP_PARAMETER_TEXT) {
+      final PsiBuilder.Marker stepParameterMarker=builder.mark();
+      builder.advanceLexer();
+      stepParameterMarker.done(GherkinElementTypes.STEP_PARAMETER);
+    }
+ else {
+      builder.advanceLexer();
+    }
+  }
+  final IElementType tokenTypeAfterName=builder.getTokenType();
+  if (tokenTypeAfterName == GherkinTokenTypes.PIPE) {
+    parseTable(builder,false);
+  }
+ else   if (tokenTypeAfterName == GherkinTokenTypes.PYSTRING) {
+    parsePystring(builder);
+  }
+  marker.done(GherkinElementTypes.STEP);
+}
