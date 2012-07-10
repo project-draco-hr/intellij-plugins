@@ -6,7 +6,9 @@
   params.setOverriddenMainClass(overrideMainClass ? myMainClassComponent.getText().trim() : "");
   params.setOverriddenOutputFileName(overrideMainClass ? myOutputFileNameTextField.getText().trim() : "");
   params.setLaunchUrl(myUrlOrFileRadioButton.isSelected());
-  params.setUrl(myUrlOrFileTextWithBrowse.getText().trim());
+  final String url=myUrlOrFileTextWithBrowse.getText().trim();
+  final boolean windowsLocalFile=SystemInfo.isWindows && url.length() >= 2 && Character.isLetter(url.charAt(0)) && ':' == url.charAt(1);
+  params.setUrl(windowsLocalFile ? FileUtil.toSystemIndependentName(url) : url);
   params.setLauncherParameters(myLauncherParameters);
   params.setRunTrusted(myRunTrustedCheckBox.isSelected());
   params.setAdlOptions(myAdlOptionsEditor.getText().trim());
