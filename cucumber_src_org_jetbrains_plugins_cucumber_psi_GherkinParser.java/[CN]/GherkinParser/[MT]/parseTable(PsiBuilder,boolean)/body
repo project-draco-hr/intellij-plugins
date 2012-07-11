@@ -1,0 +1,37 @@
+{
+  final PsiBuilder.Marker marker=builder.mark();
+  PsiBuilder.Marker rowMarker=builder.mark();
+  int prevCellEnd=-1;
+  boolean isHeaderRow=true;
+  PsiBuilder.Marker cellMarker=null;
+  IElementType prevToken=null;
+  while (builder.getTokenType() == GherkinTokenTypes.PIPE || builder.getTokenType() == GherkinTokenTypes.TABLE_CELL) {
+    final IElementType tokenType=builder.getTokenType();
+    final boolean hasLineBreakBefore=hadLineBreakBefore(builder,prevCellEnd);
+    if (prevToken == GherkinTokenTypes.PIPE) {
+      if (!hasLineBreakBefore) {
+        cellMarker=builder.mark();
+      }
+    }
+    if (tokenType == GherkinTokenTypes.PIPE) {
+      if (cellMarker != null) {
+        closeCell(cellMarker);
+        cellMarker=null;
+      }
+    }
+    if (hasLineBreakBefore) {
+      closeRowMarker(rowMarker,isHeaderRow);
+      isHeaderRow=false;
+      rowMarker=builder.mark();
+    }
+    prevCellEnd=builder.getCurrentOffset() + builder.getTokenText().length();
+    prevToken=tokenType;
+    builder.advanceLexer();
+  }
+  if (cellMarker != null) {
+    closeCell(cellMarker);
+  }
+  closeRowMarker(rowMarker,isHeaderRow);
+  isHeaderRow=false;
+  marker.done(GherkinElementTypes.TABLE);
+}

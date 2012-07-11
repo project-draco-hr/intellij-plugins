@@ -1,0 +1,27 @@
+{
+  final Set<String> result=new HashSet<String>();
+  final GherkinStepsHolder holder=getStepHolder();
+  final String stepName=getStepName();
+  if (stepName != null) {
+    if (holder instanceof GherkinScenarioOutline) {
+      final GherkinScenarioOutline outline=(GherkinScenarioOutline)holder;
+      final List<GherkinExamplesBlock> examplesBlocks=outline.getExamplesBlocks();
+      for (      GherkinExamplesBlock examplesBlock : examplesBlocks) {
+        final GherkinTable table=examplesBlock.getTable();
+        if (table != null) {
+          final List<GherkinTableRow> rows=table.getDataRows();
+          for (          GherkinTableRow row : rows) {
+            result.add(substituteText(stepName,table.getHeaderRow(),row));
+            if (result.size() == maxCount) {
+              return result;
+            }
+          }
+        }
+      }
+    }
+  }
+  if (result.size() == 0 && stepName != null) {
+    result.add(stepName);
+  }
+  return result;
+}

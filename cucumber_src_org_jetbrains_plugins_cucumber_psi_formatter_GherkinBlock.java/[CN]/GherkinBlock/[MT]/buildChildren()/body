@@ -1,0 +1,20 @@
+{
+  final ASTNode[] children=myNode.getChildren(null);
+  if (children.length == 0) {
+    return Collections.emptyList();
+  }
+  List<Block> result=new ArrayList<Block>();
+  for (  ASTNode child : children) {
+    if (child.getElementType() == TokenType.WHITE_SPACE) {
+      continue;
+    }
+    Indent indent=BLOCKS_TO_INDENT.contains(child.getElementType()) ? Indent.getNormalIndent() : Indent.getNoneIndent();
+    if (child.getElementType() == GherkinElementTypes.TABLE_CELL) {
+      if (child.getChildren(null).length == 0) {
+        continue;
+      }
+    }
+    result.add(new GherkinBlock(child,indent));
+  }
+  return result;
+}

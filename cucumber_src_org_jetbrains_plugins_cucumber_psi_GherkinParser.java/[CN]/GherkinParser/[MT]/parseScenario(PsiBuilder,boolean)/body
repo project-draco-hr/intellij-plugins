@@ -1,0 +1,24 @@
+{
+  while (!atScenarioEnd(builder)) {
+    if (builder.getTokenType() == GherkinTokenTypes.TAG) {
+      final PsiBuilder.Marker marker=builder.mark();
+      builder.advanceLexer();
+      if (atScenarioEnd(builder)) {
+        marker.rollbackTo();
+        break;
+      }
+ else {
+        marker.drop();
+      }
+    }
+    if (builder.getTokenType() == GherkinTokenTypes.STEP_KEYWORD) {
+      parseStep(builder);
+    }
+ else     if (builder.getTokenType() == GherkinTokenTypes.EXAMPLES_KEYWORD && outline) {
+      parseExamplesBlock(builder);
+    }
+ else {
+      builder.advanceLexer();
+    }
+  }
+}
