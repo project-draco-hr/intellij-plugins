@@ -2,14 +2,27 @@
   final Sdk sdk=mySdkCombo.getSelectedSdk();
   final boolean sdkSet=sdk != null;
   final boolean web=myTargetPlatformCombo.getSelectedItem() == TargetPlatform.Web;
+  final boolean mobile=myTargetPlatformCombo.getSelectedItem() == TargetPlatform.Mobile;
   final boolean app=myOutputTypeCombo.getSelectedItem() == OutputType.Application;
   final boolean createSampleAppWasEnabled=mySampleAppCheckBox.isEnabled();
   final boolean createHtmlWrapperWasEnabled=myHtmlWrapperCheckBox.isEnabled();
+  final boolean targetDeviceWasEnabled=myTargetDevicesLabel.isEnabled();
+  myTargetDevicesLabel.setEnabled(mobile && app);
+  myAndroidCheckBox.setEnabled(mobile && app);
+  myIOSCheckBox.setEnabled(mobile && app);
   myTargetPlayerLabel.setEnabled(web && sdkSet);
   myTargetPlayerCombo.setEnabled(web && sdkSet);
   mySampleAppCheckBox.setEnabled(app && sdkSet);
   mySampleAppTextField.setEnabled(app && sdkSet);
   myHtmlWrapperCheckBox.setEnabled(web && app && sdkSet);
+  if (myTargetDevicesLabel.isEnabled() && !targetDeviceWasEnabled) {
+    myAndroidCheckBox.setSelected(true);
+    myIOSCheckBox.setSelected(true);
+  }
+  if (!myTargetDevicesLabel.isEnabled()) {
+    myAndroidCheckBox.setSelected(mobile);
+    myIOSCheckBox.setSelected(mobile);
+  }
   if (!mySampleAppCheckBox.isEnabled() || !createSampleAppWasEnabled) {
     mySampleAppCheckBox.setSelected(mySampleAppCheckBox.isEnabled());
   }
