@@ -7,15 +7,35 @@
         if (isValidSourceBreakpoint(position)) {
           myDebugProcess.sendCommand(new InsertBreakpointCommand(breakpoint));
         }
- else {
-          updateBreakpointStatusToInvalid(breakpoint);
-        }
       }
     }
     private boolean isValidSourceBreakpoint(    XSourcePosition position){
-      ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(myDebugProcess.getSession().getProject()).getFileIndex();
-      VirtualFile rootForFile=projectFileIndex.getSourceRootForFile(position.getFile());
-      return rootForFile != null;
+      final Project project=myDebugProcess.getSession().getProject();
+      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+      final VirtualFile file=position.getFile();
+      final VirtualFile rootForFile=fileIndex.getSourceRootForFile(file);
+      if (rootForFile == null) {
+        return false;
+      }
+      final ModuleWithDependenciesScope scope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myDebugProcess.getModule(),myDebugProcess.getBC(),myDebugProcess.isFlexUnit());
+      if (scope.contains(file) || isInSourcesOfLibraryInScope(fileIndex,file,scope)) {
+        return true;
+      }
+      final String relPath=VfsUtilCore.getRelativePath(file.getParent(),rootForFile,'.');
+      final String fqn=StringUtil.getQualifiedName(relPath,file.getNameWithoutExtension());
+      return JSResolveUtil.findClassByQName(fqn,scope) == null;
+    }
+    private boolean isInSourcesOfLibraryInScope(    final ProjectFileIndex fileIndex,    final VirtualFile file,    final GlobalSearchScope scope){
+      if (!fileIndex.isInLibrarySource(file)) {
+        return false;
+      }
+      for (      OrderEntry entry : fileIndex.getOrderEntriesForFile(file)) {
+        final VirtualFile[] classesRoots=entry.getFiles(OrderRootType.CLASSES);
+        if (classesRoots.length > 0 && scope.contains(classesRoots[0])) {
+          return true;
+        }
+      }
+      return false;
     }
     public void unregisterBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint,    final boolean temporary){
       final XSourcePosition position=breakpoint.getSourcePosition();
