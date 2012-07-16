@@ -1,0 +1,34 @@
+{
+  final List<PsiDirectory> notLoadedAbstractStepDefinitionsRoots=new ArrayList<PsiDirectory>();
+  try {
+    findRelatedStepDefsRoots(featureFile,notLoadedAbstractStepDefinitionsRoots,true);
+  }
+ catch (  ProcessCanceledException e) {
+    return;
+  }
+synchronized (myAbstractStepDefinitions) {
+    final List<AbstractStepDefinition> stepDefinitions=new ArrayList<AbstractStepDefinition>();
+    for (    PsiDirectory root : notLoadedAbstractStepDefinitionsRoots) {
+      stepDefinitions.clear();
+      try {
+        myProcessedStepDirectories.add(root.getVirtualFile().getPath());
+        List<PsiFile> files=gatherAbstractStepDefinitionsFilesFromDirectory(root);
+        for (        final PsiFile file : files) {
+          removeAbstractStepDefinitionsRelatedTo(file);
+          stepDefinitions.addAll(getStepDefinitions(file));
+          createWatcher(file);
+        }
+        myAbstractStepDefinitions.addAll(stepDefinitions);
+      }
+ catch (      ProcessCanceledException e) {
+        myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
+        if (!stepDefinitions.isEmpty()) {
+synchronized (myAbstractStepDefinitions) {
+            myAbstractStepDefinitions.removeAll(stepDefinitions);
+          }
+        }
+        throw e;
+      }
+    }
+  }
+}
