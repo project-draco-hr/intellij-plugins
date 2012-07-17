@@ -1,19 +1,28 @@
 {
   if (id != null) {
     ensureFilePathToIdMapIsUpToDate();
-    List<String> value=myFilePathToIdMap.getKeysByValue(id);
+    final List<String> value=myFilePathToIdMap.getKeysByValue(id);
     if (value != null && value.size() > 0) {
       final String path=value.get(0);
-      final VirtualFile file=doFindFileByPath(path);
-      if (file != null)       return file;
-      log("Cannot find file " + fileName + " by id "+ id);
+      final VirtualFile fileById=LocalFileSystem.getInstance().findFileByPath(path);
       if (packageName == null) {
-        final int srcIndex=path.indexOf(SRC_PATH_ELEMENT);
+        final String mavenStyleSrc="/src/main/flex/";
+        int srcIndex=path.indexOf(mavenStyleSrc);
         if (srcIndex > 0) {
-          packageName=StringUtil.getPackageName(path.substring(srcIndex + SRC_PATH_ELEMENT.length()),'/').replace('/','.');
+          packageName=StringUtil.getPackageName(path.substring(srcIndex + mavenStyleSrc.length()),'/').replace('/','.');
         }
+ else {
+          srcIndex=path.indexOf(SRC_PATH_ELEMENT);
+          if (srcIndex > 0) {
+            packageName=StringUtil.getPackageName(path.substring(srcIndex + SRC_PATH_ELEMENT.length()),'/').replace('/','.');
+          }
+        }
+      }
+      if (fileById != null) {
+        return getThisOrSimilarFileInProject(fileById,packageName);
       }
     }
   }
-  return findFile(fileName,packageName);
+  if ("<null>".equals(fileName))   return null;
+  return packageName == null ? findFile(fileName) : findFile(fileName,packageName);
 }

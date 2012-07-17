@@ -1,23 +1,20 @@
 {
-  final Collection<String> paths=myFileNameToPathsMap.get(shortName);
-  if (paths != null && !paths.isEmpty()) {
-    final VirtualFile file=doFindFileByPath(paths.iterator().next());
-    if (file != null) {
-      addToMap(myFileNameToFilesMap,shortName,file);
-      return file;
-    }
+  final GlobalSearchScope bcScope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,myBC,myFlexUnit);
+  Collection<VirtualFile> files=getFilesByName(getSession().getProject(),bcScope,fileName);
+  if (files.isEmpty()) {
+    files=getFilesByName(getSession().getProject(),GlobalSearchScope.allScope(getSession().getProject()),fileName);
   }
-  final Collection<VirtualFile> files=ApplicationManager.getApplication().runReadAction(new NullableComputable<Collection<VirtualFile>>(){
-    public Collection<VirtualFile> compute(){
-      final Project project=getSession().getProject();
-      return FilenameIndex.getVirtualFilesByName(project,shortName,GlobalSearchScope.allScope(project));
-    }
+  if (!fileName.isEmpty()) {
+    return files.iterator().next();
   }
-);
-  if (files != null && !files.isEmpty()) {
-    final VirtualFile file=files.iterator().next();
-    addToMap(myFileNameToFilesMap,shortName,file);
-    return file;
+  final Collection<String> paths=myFileNameToPathsMap.get(fileName);
+  if (paths != null) {
+    for (    final String path : paths) {
+      final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(path);
+      if (file != null) {
+        return file;
+      }
+    }
   }
   return null;
 }

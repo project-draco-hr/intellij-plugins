@@ -1,56 +1,23 @@
 {
-  if ("<null>".equals(shortName))   return null;
-  if (packageName == null) {
-    return findFile(shortName);
-  }
-  final String packagePath=packageName.replace(".","/");
-  final Collection<VirtualFile> cachedFiles=myFileNameToFilesMap.get(shortName);
-  if (cachedFiles != null && !cachedFiles.isEmpty()) {
-    for (    final VirtualFile cachedFile : cachedFiles) {
-      if (cachedFile != null) {
-        final String path=cachedFile.getPath();
-        int lastSlashIndex=path.lastIndexOf("/");
-        final String folderPath=lastSlashIndex > 0 ? path.substring(0,lastSlashIndex) : "";
-        if (folderPath.endsWith(packagePath)) {
-          return cachedFile;
-        }
-      }
-    }
-  }
-  final Collection<String> paths=myFileNameToPathsMap.get(shortName);
-  if (paths != null && !paths.isEmpty()) {
+  final String packagePath=packageName.replace('.','/');
+  final Collection<String> paths=myFileNameToPathsMap.get(fileName);
+  if (paths != null) {
     for (    final String path : paths) {
-      int lastSlashIndex=path.lastIndexOf("/");
-      final String folderPath=lastSlashIndex > 0 ? path.substring(0,lastSlashIndex) : "";
+      final String folderPath=PathUtil.getParentPath(path);
       if (folderPath.endsWith(packagePath)) {
-        final VirtualFile file=doFindFileByPath(path);
+        final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(path);
         if (file != null) {
-          addToMap(myFileNameToFilesMap,shortName,file);
-          return file;
-        }
-        break;
-      }
-    }
-  }
-  final Collection<VirtualFile> files=ApplicationManager.getApplication().runReadAction(new NullableComputable<Collection<VirtualFile>>(){
-    public Collection<VirtualFile> compute(){
-      final Project project=getSession().getProject();
-      return FilenameIndex.getVirtualFilesByName(project,shortName,GlobalSearchScope.allScope(project));
-    }
-  }
-);
-  if (files != null && !files.isEmpty()) {
-    for (    final VirtualFile file : files) {
-      if (file != null) {
-        final String path=file.getPath();
-        int lastSlashIndex=path.lastIndexOf("/");
-        final String folderPath=lastSlashIndex > 0 ? path.substring(0,lastSlashIndex) : "";
-        if (folderPath.endsWith(packagePath)) {
-          addToMap(myFileNameToFilesMap,shortName,file);
-          return file;
+          return getThisOrSimilarFileInProject(file,packageName);
         }
       }
     }
   }
-  return findFile(shortName);
+  final GlobalSearchScope bcScope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,myBC,myFlexUnit);
+  Collection<VirtualFile> files=getFilesByName(getSession().getProject(),bcScope,fileName);
+  VirtualFile file=getFileMatchingPackageName(getSession().getProject(),files,packageName);
+  if (file == null) {
+    files=getFilesByName(getSession().getProject(),GlobalSearchScope.allScope(getSession().getProject()),fileName);
+    file=getFileMatchingPackageName(getSession().getProject(),files,packageName);
+  }
+  return file != null ? file : findFile(fileName);
 }

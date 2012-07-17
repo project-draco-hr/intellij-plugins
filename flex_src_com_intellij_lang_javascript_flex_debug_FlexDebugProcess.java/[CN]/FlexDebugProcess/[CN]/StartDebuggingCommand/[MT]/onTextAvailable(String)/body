@@ -3,8 +3,8 @@
   StringTokenizer tokenizer=new StringTokenizer(s,"\r\n");
   while (tokenizer.hasMoreTokens()) {
     String next=tokenizer.nextToken();
-    if (next.indexOf("type 'continue'") == -1) {
-      builder.append(next + "\n");
+    if (!next.contains("type 'continue'")) {
+      builder.append(next).append("\n");
     }
   }
   s=builder.toString();
@@ -20,17 +20,17 @@
       myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
     }
   }
-  if (s.indexOf("Another Flash debugger is probably running") != -1) {
+  if (s.contains("Another Flash debugger is probably running")) {
     reportProblem(s);
     getProcessHandler().detachProcess();
     return CommandOutputProcessingMode.DONE;
   }
-  if (s.indexOf("Failed to connect") != -1) {
+  if (s.contains("Failed to connect")) {
     reportProblem(s);
     handleProbablyUnexpectedStop(s);
     return CommandOutputProcessingMode.DONE;
   }
-  if (s.indexOf(WAITING_PLAYER_MARKER) != -1) {
+  if (s.contains(WAITING_PLAYER_MARKER)) {
     fdbWaitingForPlayerStateReached=true;
     getSession().rebuildViews();
     notifyFdbWaitingForPlayerStateReached();
@@ -44,7 +44,7 @@
     }
   }
  else {
-    startupDone=(s.indexOf("Player connected; session starting.") != -1);
+    startupDone=(s.contains("Player connected; session starting."));
     if (startupDone) {
       if (connectToRunningFlashPlayerMode) {
         final Balloon balloon=ToolWindowManager.getInstance(getSession().getProject()).getToolWindowBalloon(ToolWindowId.DEBUG);
