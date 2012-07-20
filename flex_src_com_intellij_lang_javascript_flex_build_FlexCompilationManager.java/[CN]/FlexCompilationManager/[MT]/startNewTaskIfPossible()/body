@@ -3,6 +3,10 @@
   if (!myNotStartedTasks.isEmpty() && myInProgressTasks.size() < myMaxParallelCompilations) {
     boolean allTasksHaveDependenciesOnlyInNotStarted=true;
     for (    FlexCompilationTask task : myNotStartedTasks) {
+      if (BCUtils.isRLMTemporaryBC(task.getBC()) && !isMainAppCompiledForRLM(task.getModule(),task.getBC())) {
+        allTasksHaveDependenciesOnlyInNotStarted=false;
+        continue;
+      }
       if (hasDependenciesIn(task,myInProgressTasks)) {
         allTasksHaveDependenciesOnlyInNotStarted=false;
         continue;
