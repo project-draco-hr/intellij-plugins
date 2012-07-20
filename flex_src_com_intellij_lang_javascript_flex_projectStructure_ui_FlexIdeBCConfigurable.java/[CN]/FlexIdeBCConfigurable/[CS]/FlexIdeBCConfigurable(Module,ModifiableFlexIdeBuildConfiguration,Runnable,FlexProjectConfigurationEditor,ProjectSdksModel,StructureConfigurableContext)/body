@@ -12,6 +12,7 @@
     }
   }
 ;
+  myRLMs=Collections.emptyList();
   myCssFilesToCompile=Collections.emptyList();
   myDisposable=Disposer.newDisposable();
   myUserActivityListener=new UserActivityListener(){
@@ -54,56 +55,9 @@
   }
 );
   myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
-  myUseHTMLWrapperCheckBox.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
-      updateControls();
-      IdeFocusManager.getInstance(module.getProject()).requestFocus(myWrapperTemplateTextWithBrowse.getTextField(),true);
-    }
-  }
-);
-  final String title="Select folder with HTML wrapper template";
-  final String description="Folder must contain 'index.template.html' file which must contain '${swf}' macro.";
-  myWrapperTemplateTextWithBrowse.addBrowseFolderListener(title,description,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
-  myCreateHtmlWrapperTemplateButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
-      final Sdk sdk=myDependenciesConfigurable.getCurrentSdk();
-      if (sdk == null || sdk.getSdkType() == FlexmojosSdkType.getInstance()) {
-        final SelectFlexSdkDialog dialog=new SelectFlexSdkDialog(module.getProject(),CreateHtmlWrapperTemplateDialog.TITLE,FlexBundle.message("take.wrapper.template.from.sdk"));
-        dialog.show();
-        if (dialog.isOK()) {
-          final Sdk dialogSdk=dialog.getSdk();
-          if (dialogSdk != null) {
-            showHtmlWrapperCreationDialog(dialogSdk);
-          }
-        }
-      }
- else {
-        showHtmlWrapperCreationDialog(sdk);
-      }
-    }
-  }
-);
-  myCssFilesTextWithBrowse.getTextField().setEditable(false);
-  myCssFilesTextWithBrowse.setButtonIcon(PlatformIcons.OPEN_EDIT_DIALOG_ICON);
-  myCssFilesTextWithBrowse.addActionListener(new ActionListener(){
-    public void actionPerformed(    final ActionEvent e){
-      final List<StringBuilder> value=new ArrayList<StringBuilder>();
-      for (      String cssFilePath : myCssFilesToCompile) {
-        value.add(new StringBuilder(cssFilePath));
-      }
-      final RepeatableValueDialog dialog=new RepeatableValueDialog(module.getProject(),FlexBundle.message("css.files.to.compile.dialog.title"),value,CompilerOptionInfo.CSS_FILES_INFO_FOR_UI);
-      dialog.show();
-      if (dialog.isOK()) {
-        final List<StringBuilder> newValue=dialog.getCurrentList();
-        myCssFilesToCompile=new ArrayList<String>(newValue.size());
-        for (        StringBuilder cssPath : newValue) {
-          myCssFilesToCompile.add(cssPath.toString());
-        }
-        updateCssFilesText();
-      }
-    }
-  }
-);
+  initHtmlWrapperControls();
+  initRLMControls();
+  initCSSControls();
   myOptimizeForCombo.setModel(new CollectionComboBoxModel(Arrays.asList(""),""));
   myOptimizeForCombo.setRenderer(new ListCellRendererWrapper(myOptimizeForCombo.getRenderer()){
     @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){

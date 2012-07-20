@@ -1,5 +1,4 @@
 {
-  final String moduleName=module.getName();
   final Sdk sdk=bc.getSdk();
   if (sdk == null) {
     errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.not.set"),DependenciesConfigurable.Location.SDK));
@@ -65,12 +64,12 @@
           boolean ok=true;
           for (          String url : ModuleRootManager.getInstance(module).getContentRootUrls()) {
             if (ok) {
-              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtil.urlToPath(url),"module content root",errorConsumer);
+              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtilCore.urlToPath(url),"module content root",errorConsumer);
             }
           }
           for (          String url : ModuleRootManager.getInstance(module).getSourceRootUrls()) {
             if (ok) {
-              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtil.urlToPath(url),"source folder",errorConsumer);
+              ok=checkWrapperFolderClash(bc,templateFolderPath,VfsUtilCore.urlToPath(url),"source folder",errorConsumer);
             }
           }
           final String outputFolderPath=StringUtil.notNullize(info.getOutputFolderPath(),bc.getOutputFolder());
@@ -81,7 +80,31 @@
       }
     }
   }
-  if (BCUtils.canHaveRuntimeStylesheets(bc)) {
+  if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
+    for (    FlexIdeBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
+      if (rlm.MAIN_CLASS.isEmpty()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.not.set"),FlexIdeBCConfigurable.Location.RLMs));
+      }
+ else {
+        if (FlexUtils.getPathToMainClassFile(rlm.MAIN_CLASS,module).isEmpty()) {
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.not.found",rlm.MAIN_CLASS),FlexIdeBCConfigurable.Location.RLMs));
+        }
+      }
+      if (bc.getMainClass().equals(rlm.MAIN_CLASS)) {
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.equal.to.bc.main.class",rlm.MAIN_CLASS),FlexIdeBCConfigurable.Location.RLMs));
+      }
+      if (bc.getOutputFileName().equals(rlm.OUTPUT_FILE)) {
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.equal.to.bc.output",rlm.OUTPUT_FILE),FlexIdeBCConfigurable.Location.RLMs));
+      }
+      if (rlm.OUTPUT_FILE.isEmpty()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.file.name.not.specified"),FlexIdeBCConfigurable.Location.RLMs));
+      }
+ else {
+        if (!rlm.OUTPUT_FILE.toLowerCase().endsWith(".swf")) {
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.file.must.have.swf.extension"),FlexIdeBCConfigurable.Location.RLMs));
+        }
+      }
+    }
     for (    String cssPath : bc.getCssFilesToCompile()) {
       if (!cssPath.toLowerCase().endsWith(".css")) {
         errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("not.a.css.runtime.stylesheet",FileUtil.toSystemDependentName(cssPath)),FlexIdeBCConfigurable.Location.RuntimeStyleSheets));
