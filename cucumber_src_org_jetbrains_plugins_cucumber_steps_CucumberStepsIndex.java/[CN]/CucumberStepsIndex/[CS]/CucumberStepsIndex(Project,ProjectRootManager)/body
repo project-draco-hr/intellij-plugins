@@ -15,32 +15,28 @@
       final PsiElement parent=event.getParent();
       PsiElement child=event.getChild();
       if (isStepLikeFile(child,parent)) {
-        if (isInStepDefinitionDirectory((PsiDirectory)parent)) {
-          final PsiFile file=(PsiFile)child;
-          myUpdateQueue.queue(new Update(parent){
-            public void run(){
-              if (file.isValid()) {
-                reloadAbstractStepDefinitions(file);
-                createWatcher(file);
-              }
+        final PsiFile file=(PsiFile)child;
+        myUpdateQueue.queue(new Update(parent){
+          public void run(){
+            if (file.isValid()) {
+              reloadAbstractStepDefinitions(file);
+              createWatcher(file);
             }
           }
-);
         }
+);
       }
     }
     @Override public void childRemoved(    @NotNull PsiTreeChangeEvent event){
       final PsiElement parent=event.getParent();
       final PsiElement child=event.getChild();
       if (isStepLikeFile(child,parent)) {
-        if (isInStepDefinitionDirectory((PsiDirectory)parent)) {
-          myUpdateQueue.queue(new Update(parent){
-            public void run(){
-              removeAbstractStepDefinitionsRelatedTo((PsiFile)child);
-            }
+        myUpdateQueue.queue(new Update(parent){
+          public void run(){
+            removeAbstractStepDefinitionsRelatedTo((PsiFile)child);
           }
-);
         }
+);
       }
     }
   }

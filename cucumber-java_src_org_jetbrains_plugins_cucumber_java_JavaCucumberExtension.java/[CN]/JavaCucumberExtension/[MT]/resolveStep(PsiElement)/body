@@ -1,4 +1,27 @@
 {
-  final CucumberStepsIndex index=CucumberStepsIndex.getInstance(step.getProject());
-  return new ResolveResult[0];
+  final CucumberStepsIndex index=CucumberStepsIndex.getInstance(element.getProject());
+  if (element instanceof GherkinStep) {
+    final GherkinStep step=(GherkinStep)element;
+    final List<ResolveResult> result=new ArrayList<ResolveResult>();
+    final Set<String> substitutedNameList=step.getSubstitutedNameList();
+    if (substitutedNameList.size() == 0) {
+      return ResolveResult.EMPTY_ARRAY;
+    }
+    for (    String s : substitutedNameList) {
+      final AbstractStepDefinition definition=index.findStepDefinition(element.getContainingFile(),s);
+      if (definition != null) {
+        result.add(new ResolveResult(){
+          @Override public PsiElement getElement(){
+            return definition.getElement();
+          }
+          @Override public boolean isValidResult(){
+            return true;
+          }
+        }
+);
+      }
+    }
+    return result.toArray(new ResolveResult[result.size()]);
+  }
+  return ResolveResult.EMPTY_ARRAY;
 }

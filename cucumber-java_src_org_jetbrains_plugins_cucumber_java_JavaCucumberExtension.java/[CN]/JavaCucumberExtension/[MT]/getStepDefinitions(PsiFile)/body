@@ -1,10 +1,16 @@
 {
-  final Project project=psiFile.getProject();
   final List<AbstractStepDefinition> newDefs=new ArrayList<AbstractStepDefinition>();
   psiFile.acceptChildren(new JavaRecursiveElementVisitor(){
     @Override public void visitMethod(    PsiMethod method){
       super.visitMethod(method);
-      newDefs.add(new JavaStepDefinition(method));
+      final PsiAnnotation[] annotations=method.getModifierList().getAnnotations();
+      for (      PsiAnnotation annotation : annotations) {
+        final String qualifiedName=annotation.getQualifiedName();
+        if (qualifiedName != null && qualifiedName.startsWith("cucumber.annotation.en")) {
+          newDefs.add(new JavaStepDefinition(method,annotation));
+          break;
+        }
+      }
     }
   }
 );
