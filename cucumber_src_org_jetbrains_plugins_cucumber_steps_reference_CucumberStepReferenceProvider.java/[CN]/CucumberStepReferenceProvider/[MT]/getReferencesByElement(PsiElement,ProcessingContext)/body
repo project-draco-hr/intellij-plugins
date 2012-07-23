@@ -1,0 +1,27 @@
+{
+  if (element instanceof GherkinStepImpl) {
+    TokenSet textAndParamSet=TokenSet.create(GherkinTokenTypes.TEXT,GherkinTokenTypes.STEP_PARAMETER_TEXT,GherkinTokenTypes.STEP_PARAMETER_BRACE,GherkinElementTypes.STEP_PARAMETER);
+    ASTNode textNode=element.getNode().findChildByType(textAndParamSet);
+    textAndParamSet=TokenSet.orSet(textAndParamSet,TokenSet.create(TokenType.WHITE_SPACE));
+    if (textNode != null) {
+      int start=textNode.getTextRange().getStartOffset();
+      int end=textNode.getTextRange().getEndOffset();
+      int endBeforeSpace=end;
+      textNode=textNode.getTreeNext();
+      while (textNode != null && textAndParamSet.contains(textNode.getElementType())) {
+        if (textNode.getElementType() == TokenType.WHITE_SPACE) {
+          endBeforeSpace=end;
+        }
+ else {
+          endBeforeSpace=textNode.getTextRange().getEndOffset();
+        }
+        end=textNode.getTextRange().getEndOffset();
+        textNode=textNode.getTreeNext();
+      }
+      TextRange tr=new TextRange(start,endBeforeSpace);
+      CucumberStepReference reference=new CucumberStepReference(element,tr.shiftRight(-element.getTextOffset()));
+      return new PsiReference[]{reference};
+    }
+  }
+  return PsiReference.EMPTY_ARRAY;
+}
