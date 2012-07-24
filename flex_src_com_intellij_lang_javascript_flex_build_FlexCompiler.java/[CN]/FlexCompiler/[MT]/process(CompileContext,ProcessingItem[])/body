@@ -36,6 +36,8 @@
       if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
         for (        FlexIdeBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
           final ModifiableFlexIdeBuildConfiguration rlmBC=Factory.getTemporaryCopyForCompilation(bc);
+          final ModifiableCompilerOptions compilerOptions=rlmBC.getCompilerOptions();
+          compilerOptions.setAdditionalOptions(FlexUtils.removeOptions(compilerOptions.getAdditionalOptions(),"link-report"));
           final String subdir=PathUtil.getParentPath(rlm.OUTPUT_FILE);
           final String outputFileName=PathUtil.getFileName(rlm.OUTPUT_FILE);
           rlmBC.setMainClass(BCUtils.RLM_MAIN_CLASS_PREFIX + rlm.MAIN_CLASS);
@@ -47,7 +49,7 @@
           rlmBC.setUseHtmlWrapper(false);
           rlmBC.setRLMs(Collections.<FlexIdeBuildConfiguration.RLMInfo>emptyList());
           rlmBC.setCssFilesToCompile(Collections.<String>emptyList());
-          rlmBC.getCompilerOptions().setResourceFilesMode(ResourceFilesMode.None);
+          compilerOptions.setResourceFilesMode(ResourceFilesMode.None);
           compilationTasks.add(builtIn ? new BuiltInCompilationTask(((MyProcessingItem)item).myModule,rlmBC,dependencies) : new MxmlcCompcCompilationTask(((MyProcessingItem)item).myModule,rlmBC,dependencies));
         }
         for (        String cssPath : bc.getCssFilesToCompile()) {

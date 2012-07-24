@@ -1,6 +1,6 @@
 {
-  final VirtualFile existingConfigFile=VfsUtil.findRelativeFile(name,FlexUtils.getFlexCompilerWorkDir(project,null));
-  if (existingConfigFile != null && Arrays.equals(text.getBytes(),existingConfigFile.contentsToByteArray())) {
+  final VirtualFile existingConfigFile=FlexCompilationManager.refreshAndFindFileInWriteAction(FlexUtils.getTempFlexConfigsDirPath() + "/" + fileName);
+  if (existingConfigFile != null && existingConfigFile.isValid() && Arrays.equals(text.getBytes(),existingConfigFile.contentsToByteArray())) {
     return existingConfigFile;
   }
   final Ref<VirtualFile> fileRef=new Ref<VirtualFile>();
@@ -12,9 +12,9 @@
           try {
             final String baseDirPath=FlexUtils.getTempFlexConfigsDirPath();
             final VirtualFile baseDir=VfsUtil.createDirectories(baseDirPath);
-            VirtualFile configFile=baseDir.findChild(name);
+            VirtualFile configFile=baseDir.findChild(fileName);
             if (configFile == null) {
-              configFile=baseDir.createChildData(this,name);
+              configFile=baseDir.createChildData(this,fileName);
             }
             VfsUtil.saveText(configFile,text);
             return configFile;
