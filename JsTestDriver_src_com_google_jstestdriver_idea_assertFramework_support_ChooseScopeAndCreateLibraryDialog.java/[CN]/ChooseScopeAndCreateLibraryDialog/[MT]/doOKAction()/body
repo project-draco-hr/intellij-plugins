@@ -1,4 +1,13 @@
 {
-  createLibraryAndAssociate();
+  ErrorMessage errorMessage=ApplicationManager.getApplication().runWriteAction(new Computable<ErrorMessage>(){
+    @Override @Nullable public ErrorMessage compute(){
+      return createLibraryAndAssociate();
+    }
+  }
+);
+  if (errorMessage != null) {
+    Messages.showErrorDialog(errorMessage.getDescription(),"Adding " + myLibraryName);
+    LOG.warn(errorMessage.getDescription(),errorMessage.getThrowable());
+  }
   super.doOKAction();
 }
