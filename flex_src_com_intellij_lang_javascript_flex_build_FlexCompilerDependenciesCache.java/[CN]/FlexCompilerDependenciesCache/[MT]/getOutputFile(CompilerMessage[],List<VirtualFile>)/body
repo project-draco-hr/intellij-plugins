@@ -1,8 +1,12 @@
 {
   try {
-    final LocalFileSystem localFileSystem=LocalFileSystem.getInstance();
-    final VirtualFile configFile=configFiles.get(configFiles.size() - 1);
-    final String outputFilePath=FlexUtils.findXMLElement(configFile.getInputStream(),OUTPUT_FILE_TAG);
+    VirtualFile configFile=null;
+    String outputFilePath=null;
+    for (int i=configFiles.size() - 1; i >= 0; i--) {
+      configFile=configFiles.get(i);
+      outputFilePath=FlexUtils.findXMLElement(configFile.getInputStream(),OUTPUT_FILE_TAG);
+      if (outputFilePath != null)       break;
+    }
     if (outputFilePath == null)     return null;
     final VirtualFile outputFile;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
@@ -19,7 +23,7 @@
         final String outputFilePath1=matcher1.group(2);
         final int size;
         size=Integer.parseInt(matcher1.group(3));
-        if (outputFile.equals(localFileSystem.findFileByPath(outputFilePath1)) && size == outputFile.getLength()) {
+        if (outputFile.equals(LocalFileSystem.getInstance().findFileByPath(outputFilePath1)) && size == outputFile.getLength()) {
           return outputFile;
         }
       }
@@ -27,7 +31,7 @@
         final Matcher matcher2=OUTPUT_FILE_IS_UP_TO_DATE.matcher(text);
         if (matcher2.matches()) {
           final String outputFilePath2=matcher2.group(2);
-          if (outputFile.equals(localFileSystem.findFileByPath(outputFilePath2))) {
+          if (outputFile.equals(LocalFileSystem.getInstance().findFileByPath(outputFilePath2))) {
             return outputFile;
           }
         }
