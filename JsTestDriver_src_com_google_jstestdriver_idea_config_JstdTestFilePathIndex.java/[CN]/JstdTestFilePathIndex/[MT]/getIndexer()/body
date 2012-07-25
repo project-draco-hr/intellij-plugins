@@ -1,0 +1,29 @@
+{
+  return new DataIndexer<String,Void,FileContent>(){
+    @Override @NotNull public Map<String,Void> map(    final FileContent inputData){
+      VirtualFile file=inputData.getFile();
+      if (file.isValid()) {
+        VirtualFile dir=file.getParent();
+        if (dir.isValid()) {
+          BasePaths basePaths=new BasePaths(new File(dir.getPath()));
+          Reader reader=new InputStreamReader(new ByteArrayInputStream(inputData.getContent()),Charset.defaultCharset());
+          try {
+            return doIndexConfigFile(reader,basePaths);
+          }
+ catch (          Exception e) {
+            LOG.info("Can't index JsTD config file",e);
+          }
+ finally {
+            try {
+              reader.close();
+            }
+ catch (            IOException ignored) {
+            }
+          }
+        }
+      }
+      return Collections.emptyMap();
+    }
+  }
+;
+}

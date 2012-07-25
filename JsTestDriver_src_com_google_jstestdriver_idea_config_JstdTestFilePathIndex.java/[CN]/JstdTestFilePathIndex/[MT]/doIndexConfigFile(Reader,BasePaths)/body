@@ -1,0 +1,12 @@
+{
+  YamlParser yamlParser=new YamlParser();
+  final Map<String,Void> map=new THashMap<String,Void>();
+  ParsedConfiguration parsedConfiguration=(ParsedConfiguration)yamlParser.parse(configFileReader,initialBasePaths);
+  PathResolver pathResolver=new PathResolver(parsedConfiguration.getBasePaths(),Collections.<FileParsePostProcessor>emptySet(),new DisplayPathSanitizer());
+  FlagsImpl flags=new FlagsImpl();
+  flags.setServer("test:1");
+  ResolvedConfiguration resolvedConfiguration=(ResolvedConfiguration)parsedConfiguration.resolvePaths(pathResolver,flags);
+  doPutAll(map,resolvedConfiguration.getTests());
+  doPutAll(map,resolvedConfiguration.getFilesList());
+  return map;
+}
