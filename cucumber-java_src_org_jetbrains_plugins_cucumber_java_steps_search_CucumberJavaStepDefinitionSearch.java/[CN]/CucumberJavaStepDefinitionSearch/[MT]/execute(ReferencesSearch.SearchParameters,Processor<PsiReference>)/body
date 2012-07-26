@@ -1,7 +1,37 @@
 {
-  final PsiElement element=queryParameters.getElementToSearch();
-  if (!(element instanceof PsiMethod)) {
+  final PsiElement myElement=queryParameters.getElementToSearch();
+  if (!(myElement instanceof PsiMethod)) {
     return true;
   }
-  return false;
+  if (!CucumberJavaUtil.isStepDefinition(myElement)) {
+    return false;
+  }
+  final PsiMethod method=(PsiMethod)myElement;
+  final PsiAnnotation stepAnnotation=CucumberJavaUtil.getCucumberAnnotation(method);
+  final String regexp=CucumberJavaUtil.getPatternFromStepDefinition(stepAnnotation);
+  final String word=org.jetbrains.plugins.cucumber.CucumberUtil.getTheBiggestWordToSearchByIndex(regexp);
+  if (StringUtil.isEmpty(word)) {
+    return true;
+  }
+  final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
+    public SearchScope compute(){
+      return queryParameters.getEffectiveSearchScope();
+    }
+  }
+);
+  final TextOccurenceProcessor processor=new TextOccurenceProcessor(){
+    @Override public boolean execute(    PsiElement element,    int offsetInElement){
+      for (      PsiReference ref : element.getReferences()) {
+        if (ref != null && ref.isReferenceTo(myElement)) {
+          if (!consumer.process(ref)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+  }
+;
+  short context=UsageSearchContext.IN_STRINGS | UsageSearchContext.IN_CODE;
+  return PsiSearchHelper.SERVICE.getInstance(myElement.getProject()).processElementsWithWord(processor,searchScope,word,context,true);
 }
