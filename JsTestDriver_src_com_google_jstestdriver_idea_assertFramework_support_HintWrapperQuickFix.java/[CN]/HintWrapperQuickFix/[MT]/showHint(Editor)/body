@@ -1,0 +1,21 @@
+{
+  if (HintManager.getInstance().hasShownHintsThatWillHideByOtherHint(true)) {
+    return false;
+  }
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    return false;
+  }
+  String message=getText() + "? " + KeymapUtil.getFirstKeyboardShortcutText(ActionManager.getInstance().getAction(IdeActions.ACTION_SHOW_INTENTION_ACTIONS));
+  if (!myPsiElement.isValid()) {
+    return false;
+  }
+  TextRange hintRange=calcRange();
+  HintManager.getInstance().showQuestionHint(editor,message,hintRange.getStartOffset(),hintRange.getEndOffset(),new QuestionAction(){
+    @Override public boolean execute(){
+      myDelegate.invoke(myPsiElement.getProject(),editor,myPsiElement.getContainingFile());
+      return true;
+    }
+  }
+);
+  return true;
+}
