@@ -1,7 +1,14 @@
 {
-  Provider provider=ServiceManager.getService(TestFileStructureProviderImpl.class);
+  final Provider provider=ServiceManager.getService(TestFileStructureProviderImpl.class);
   if (provider == null) {
-    provider=EMPTY_PROVIDER;
+    return null;
   }
-  return provider.fetchTestFileStructurePackByJsFile(jsFile);
+  CachedValuesManager cachedValuesManager=CachedValuesManager.getManager(jsFile.getProject());
+  return cachedValuesManager.getCachedValue(jsFile,TEST_FILE_STRUCTURE_REGISTRY_KEY,new CachedValueProvider<TestFileStructurePack>(){
+    @Override public Result<TestFileStructurePack> compute(){
+      TestFileStructurePack pack=provider.createTestFileStructurePack(jsFile);
+      return Result.create(pack,jsFile);
+    }
+  }
+,false);
 }

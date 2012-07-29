@@ -1,18 +1,44 @@
 {
-  PsiElement resolved=resolveUniquely(jsReferenceExpression);
-  if (resolved == null) {
+  JSElement scopeElement=getNearestContainingScopeElement(jsReferenceExpression);
+  if (scopeElement == null) {
     return null;
   }
-  JSVariable jsVariable=CastUtils.tryCast(resolved,JSVariable.class);
-  if (jsVariable != null) {
-    return jsVariable.getInitializer();
+  String refName=jsReferenceExpression.getReferencedName();
+  if (refName == null || refName.isEmpty()) {
+    return null;
   }
-  JSDefinitionExpression jsDefinitionExpression=CastUtils.tryCast(resolved,JSDefinitionExpression.class);
-  if (jsDefinitionExpression != null) {
-    JSAssignmentExpression jsAssignmentExpression=CastUtils.tryCast(resolved.getParent(),JSAssignmentExpression.class);
-    if (jsAssignmentExpression != null) {
-      return jsAssignmentExpression.getROperand();
+  List<JSStatement> statements=getTopLevelStatementsOf(scopeElement);
+  int maxOffset=jsReferenceExpression.getTextRange().getStartOffset();
+  JSExpression lastExpr=null;
+  for (  JSStatement statement : statements) {
+    if (statement.getTextRange().getEndOffset() > maxOffset) {
+      break;
+    }
+{
+      JSVarStatement varStmt=CastUtils.tryCast(statement,JSVarStatement.class);
+      if (varStmt != null) {
+        JSVariable[] vars=ObjectUtils.notNull(varStmt.getVariables(),JSVariable.EMPTY_ARRAY);
+        for (        JSVariable var : vars) {
+          if (refName.equals(var.getQualifiedName())) {
+            lastExpr=var.getInitializer();
+          }
+        }
+      }
+    }
+{
+      JSAssignmentExpression assignmentExpr=CastUtils.tryCast(statement,JSAssignmentExpression.class);
+      if (assignmentExpr != null) {
+        JSDefinitionExpression defExpr=CastUtils.tryCast(assignmentExpr.getLOperand(),JSDefinitionExpression.class);
+        if (defExpr != null) {
+          JSReferenceExpression refExpr=CastUtils.tryCast(defExpr.getExpression(),JSReferenceExpression.class);
+          if (refExpr != null && refExpr.getQualifier() == null) {
+            if (refName.equals(refExpr.getReferencedName())) {
+              lastExpr=assignmentExpr.getROperand();
+            }
+          }
+        }
+      }
     }
   }
-  return null;
+  return lastExpr;
 }
