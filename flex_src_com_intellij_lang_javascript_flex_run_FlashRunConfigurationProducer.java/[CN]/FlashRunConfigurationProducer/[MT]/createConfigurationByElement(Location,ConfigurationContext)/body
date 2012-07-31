@@ -19,6 +19,14 @@
       params.setOverriddenMainClass(jsClass.getQualifiedName());
       params.setOverriddenOutputFileName(jsClass.getName() + ".swf");
     }
+    if (bc.getTargetPlatform() == TargetPlatform.Mobile && bc.getOutputType() == OutputType.Application && params.getMobileRunTarget() == FlashRunnerParameters.AirMobileRunTarget.Emulator) {
+      if (params.getAppDescriptorForEmulator() == FlashRunnerParameters.AppDescriptorForEmulator.Android && !bc.getAndroidPackagingOptions().isEnabled() && bc.getIosPackagingOptions().isEnabled()) {
+        params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.IOS);
+      }
+      if (params.getAppDescriptorForEmulator() == FlashRunnerParameters.AppDescriptorForEmulator.IOS && bc.getAndroidPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isEnabled()) {
+        params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.Android);
+      }
+    }
     runConfig.setName(params.suggestUniqueName(context.getRunManager().getConfigurations(FlashRunConfigurationType.getInstance())));
     return settings;
   }

@@ -15,25 +15,17 @@
 ;
   myDebugOverNetworkRadioButton.addActionListener(debugTransportListener);
   myDebugOverUSBRadioButton.addActionListener(debugTransportListener);
-  myAppDescriptorForEmulatorCombo.setModel(new DefaultComboBoxModel(new AppDescriptorForEmulator[]{AppDescriptorForEmulator.Generated}));
+  myAppDescriptorForEmulatorCombo.setModel(new DefaultComboBoxModel(AppDescriptorForEmulator.values()));
   myAppDescriptorForEmulatorCombo.setRenderer(new ListCellRendererWrapper<AppDescriptorForEmulator>(myAppDescriptorForEmulatorCombo.getRenderer()){
     @Override public void customize(    JList list,    AppDescriptorForEmulator value,    int index,    boolean selected,    boolean hasFocus){
-      FlexIdeBuildConfiguration bc;
-      String descriptorPath;
+      final FlexIdeBuildConfiguration bc=myBCCombo.getBC();
 switch (value) {
-case Generated:
-        setText("Generated");
-      break;
 case Android:
-    bc=myBCCombo.getBC();
-  descriptorPath=bc == null ? null : bc.getAndroidPackagingOptions().getCustomDescriptorPath();
-setText("as set for Android: " + (StringUtil.isEmpty(descriptorPath) ? "<custom template is not set>" : PathUtil.getFileName(descriptorPath)));
-break;
+        setText(getDescriptorForEmulatorText("Android",bc == null ? null : bc.getAndroidPackagingOptions()));
+      break;
 case IOS:
-bc=myBCCombo.getBC();
-descriptorPath=bc == null ? null : bc.getIosPackagingOptions().getCustomDescriptorPath();
-setText("as set for iOS: " + (StringUtil.isEmpty(descriptorPath) ? "<custom template is not set>" : PathUtil.getFileName(descriptorPath)));
-break;
+    setText(getDescriptorForEmulatorText("iOS",bc == null ? null : bc.getIosPackagingOptions()));
+  break;
 }
 }
 }
