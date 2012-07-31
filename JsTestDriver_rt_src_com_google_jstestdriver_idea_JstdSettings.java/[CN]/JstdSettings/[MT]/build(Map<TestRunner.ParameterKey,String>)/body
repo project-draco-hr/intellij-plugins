@@ -1,0 +1,38 @@
+{
+  String serverUrl=parameters.get(TestRunner.ParameterKey.SERVER_URL);
+  if (serverUrl == null) {
+    throw new RuntimeException(TestRunner.ParameterKey.SERVER_URL + " parameter must be specified");
+  }
+  String configFilesStr=notNullize(parameters.get(TestRunner.ParameterKey.CONFIG_FILES));
+  List<String> paths=EscapeUtils.split(configFilesStr,',');
+  List<File> configFiles=Lists.newArrayList();
+  for (  String path : paths) {
+    File file=new File(path);
+    if (file.isFile()) {
+      configFiles.add(file);
+    }
+  }
+  if (configFiles.isEmpty()) {
+    throw new RuntimeException("No valid config files found");
+  }
+  String runAllConfigsInDirectoryPath=parameters.get(TestRunner.ParameterKey.ALL_CONFIGS_IN_DIRECTORY);
+  File runAllConfigsInDirectory=null;
+  if (runAllConfigsInDirectoryPath != null && !runAllConfigsInDirectoryPath.isEmpty()) {
+    runAllConfigsInDirectory=new File(runAllConfigsInDirectoryPath);
+    if (!runAllConfigsInDirectory.isDirectory()) {
+      runAllConfigsInDirectory=null;
+    }
+  }
+  String testCaseName=parameters.get(TestRunner.ParameterKey.TEST_CASE);
+  String testMethodName=parameters.get(TestRunner.ParameterKey.TEST_METHOD);
+  TestFileScope testFileScope=new TestFileScope(testCaseName,testMethodName);
+  String coverageFilePath=notNullize(parameters.get(TestRunner.ParameterKey.COVERAGE_OUTPUT_FILE));
+  File ideCoverageFile=null;
+  List<String> excludedPaths=Collections.emptyList();
+  if (!coverageFilePath.isEmpty()) {
+    ideCoverageFile=new File(coverageFilePath);
+    String joinedPaths=notNullize(parameters.get(TestRunner.ParameterKey.COVERAGE_EXCLUDED_PATHS));
+    excludedPaths=EscapeUtils.split(joinedPaths,',');
+  }
+  return new JstdSettings(serverUrl,configFiles,runAllConfigsInDirectory,testFileScope,ideCoverageFile,excludedPaths);
+}

@@ -7,25 +7,19 @@
   if (virtualFile == null || virtualFile.getFileType() != JavaScriptSupportLoader.JAVASCRIPT) {
     return null;
   }
-  VirtualFile entity=virtualFile;
-  VirtualFile projectDir=psiElement.getProject().getBaseDir();
-  boolean testFound=false;
-  while (entity != null) {
-    if (matchTestSource(entity.getName())) {
-      testFound=true;
-    }
-    if (entity.equals(projectDir)) {
-      break;
-    }
-    entity=entity.getParent();
+  Project project=psiFile.getProject();
+  JSIndexEntry entry=JavaScriptIndex.getInstance(project).getEntryForFile(psiFile);
+  if (entry == null || !entry.isTestFile()) {
+    return null;
   }
-  if (Comparing.equal(entity,projectDir) && testFound) {
-    JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
-    builder.setTestType(TestType.JS_FILE);
-    builder.setConfigType(JstdConfigType.GENERATED);
-    builder.setJSFilePath(virtualFile.getPath());
-    builder.setServerType(ServerType.INTERNAL);
-    return builder.build();
+  JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+  builder.setTestType(TestType.JS_FILE);
+  builder.setConfigType(JstdConfigType.FILE_PATH);
+  List<VirtualFile> jstdConfigFiles=JstdTestFilePathIndex.findConfigFilesInProject(virtualFile,project);
+  if (jstdConfigFiles.size() == 1) {
+    builder.setConfigFile(jstdConfigFiles.get(0).getPath());
   }
-  return null;
+  builder.setJSFilePath(virtualFile.getPath());
+  builder.setServerType(ServerType.INTERNAL);
+  return builder.build();
 }

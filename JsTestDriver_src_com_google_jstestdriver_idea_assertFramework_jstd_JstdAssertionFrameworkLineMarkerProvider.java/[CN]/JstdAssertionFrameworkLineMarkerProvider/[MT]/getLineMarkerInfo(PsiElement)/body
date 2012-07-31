@@ -1,0 +1,24 @@
+{
+  Project project=element.getProject();
+  JSFile jsFile=CastUtils.tryCast(element.getContainingFile(),JSFile.class);
+  if (jsFile == null) {
+    return null;
+  }
+  VirtualFile virtualFile=jsFile.getVirtualFile();
+  if (virtualFile == null) {
+    return null;
+  }
+  boolean inScope=JstdLibraryUtil.isFileInJstdLibScope(project,virtualFile);
+  if (!inScope) {
+    return null;
+  }
+  TestFileStructurePack pack=TestFileStructureManager.fetchTestFileStructurePackByJsFile(jsFile);
+  if (pack == null) {
+    return null;
+  }
+  String testElementName=element.getUserData(JstdTestFileStructure.TEST_ELEMENT_NAME_KEY);
+  if (testElementName != null) {
+    return createLineMarkerFromElement(element,testElementName);
+  }
+  return null;
+}

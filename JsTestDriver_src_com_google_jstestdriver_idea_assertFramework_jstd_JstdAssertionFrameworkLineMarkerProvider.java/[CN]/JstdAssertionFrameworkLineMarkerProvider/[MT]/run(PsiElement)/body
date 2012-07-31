@@ -1,0 +1,28 @@
+{
+  Project project=element.getProject();
+  Editor editor=FileEditorManager.getInstance(project).getSelectedTextEditor();
+  if (editor == null) {
+    return;
+  }
+  DataContext dataContext=DataManager.getInstance().getDataContext(editor.getComponent());
+  JstdRuntimeConfigurationProducer jstdOriginalProducer=getJstdRuntimeConfigurationProducer();
+  if (jstdOriginalProducer == null) {
+    return;
+  }
+  Location<PsiElement> location=PsiLocation.fromPsiElement(element);
+  ConfigurationContext context=ConfigurationContext.getFromContext(dataContext);
+  RuntimeConfigurationProducer producer=jstdOriginalProducer.createProducer(location,context);
+  boolean created=false;
+  RunnerAndConfigurationSettings configuration=producer.findExistingConfiguration(location,context);
+  if (configuration == null) {
+    created=true;
+    configuration=producer.getConfiguration();
+    if (configuration == null) {
+      return;
+    }
+  }
+  Executor runExecutor=DefaultRunExecutor.getRunExecutorInstance();
+  if (runExecutor != null) {
+    execute(project,runExecutor,configuration,created);
+  }
+}

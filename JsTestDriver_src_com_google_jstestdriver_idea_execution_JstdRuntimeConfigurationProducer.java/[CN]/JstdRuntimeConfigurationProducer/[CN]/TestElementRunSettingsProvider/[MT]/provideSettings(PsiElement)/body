@@ -1,21 +1,36 @@
 {
-  JSFile jsFile=CastUtils.tryCast(psiElement.getContainingFile(),JSFile.class);
-  VirtualFile virtualFile=jsFile != null ? jsFile.getVirtualFile() : null;
-  if (virtualFile == null) {
+  JSFile jsFile=ObjectUtils.tryCast(psiElement.getContainingFile(),JSFile.class);
+  if (jsFile == null) {
+    return null;
+  }
+  VirtualFile virtualFile=jsFile.getVirtualFile();
+  if (virtualFile == null || virtualFile.getFileType() != JavaScriptSupportLoader.JAVASCRIPT) {
     return null;
   }
   TestFileStructurePack pack=TestFileStructureManager.fetchTestFileStructurePackByJsFile(jsFile);
-  if (pack != null) {
-    JstdRunElement jstdRunElement=pack.getJstdRunElement(psiElement);
-    if (jstdRunElement != null) {
-      String testMethodName=jstdRunElement.getTestMethodName();
-      if (testMethodName != null) {
-        return new JstdRunSettings.Builder().setTestType(TestType.TEST_METHOD).setJSFilePath(virtualFile.getPath()).setTestCaseName(jstdRunElement.getTestCaseName()).setTestMethodName(testMethodName).build();
-      }
- else {
-        return new JstdRunSettings.Builder().setTestType(TestType.TEST_CASE).setJSFilePath(virtualFile.getPath()).setTestCaseName(jstdRunElement.getTestCaseName()).build();
-      }
+  if (pack == null) {
+    return null;
+  }
+  JstdRunElement jstdRunElement=pack.getJstdRunElement(psiElement);
+  if (jstdRunElement != null) {
+    Project project=jsFile.getProject();
+    JstdRunSettings.Builder builder=new JstdRunSettings.Builder();
+    builder.setJSFilePath(virtualFile.getPath());
+    builder.setTestCaseName(jstdRunElement.getTestCaseName());
+    builder.setConfigType(JstdConfigType.FILE_PATH);
+    List<VirtualFile> jstdConfigs=JstdTestFilePathIndex.findConfigFilesInProject(virtualFile,project);
+    if (jstdConfigs.size() == 1) {
+      builder.setConfigFile(jstdConfigs.get(0).getPath());
     }
+    String testMethodName=jstdRunElement.getTestMethodName();
+    if (testMethodName != null) {
+      builder.setTestType(TestType.TEST_METHOD);
+      builder.setTestMethodName(testMethodName);
+    }
+ else {
+      builder.setTestType(TestType.TEST_CASE);
+    }
+    return builder.build();
   }
   return null;
 }

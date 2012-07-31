@@ -1,0 +1,22 @@
+{
+  Exception exception=null;
+  PrintStream nullSystemOut=new PrintStream(new NullOutputStream());
+  try {
+    System.setOut(nullSystemOut);
+    myTreeManager.onJstdConfigRunningStarted(config);
+    String runScope=mySettings.getTestFileScope().toJstdScope();
+    runTests(config,new String[]{"--reset","--dryRunFor",runScope},true);
+    runTests(config,new String[]{"--tests",runScope},false);
+  }
+ catch (  ConfigurationException ce) {
+    exception=ce;
+  }
+catch (  Exception e) {
+    exception=new Exception("Can't run tests. Details:",e);
+  }
+ finally {
+    myTreeManager.onJstdConfigRunningFinished(exception);
+    nullSystemOut.close();
+    System.setOut(myTreeManager.getSystemOutStream());
+  }
+}
