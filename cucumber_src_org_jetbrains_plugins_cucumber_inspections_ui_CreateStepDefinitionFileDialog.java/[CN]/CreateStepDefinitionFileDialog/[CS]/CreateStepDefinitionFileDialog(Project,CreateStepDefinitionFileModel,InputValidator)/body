@@ -1,0 +1,32 @@
+{
+  super(project);
+  myModel=model;
+  myValidator=validator;
+  setTitle(CucumberBundle.message("cucumber.quick.fix.create.step.choose.new.file.dialog.title"));
+  init();
+  myFileTypeCombobox.setModel(model.getFileTypeModel());
+  myFileTypeCombobox.addItemListener(new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      FileTypeComboboxItem newItem=(FileTypeComboboxItem)myFileTypeCombobox.getSelectedItem();
+      FileTypeComboboxItem oldItem=(FileTypeComboboxItem)e.getItem();
+      if (oldItem.getDefaultFileName().equals(myFileNameTextField.getText())) {
+        myFileNameTextField.setText(newItem.getDefaultFileName());
+        myModel.setFileName(newItem.getDefaultFileName());
+      }
+    }
+  }
+);
+  myFileNameTextField.setText(model.getFileName());
+  myFileNameTextField.addKeyListener(new FileNameKeyListener());
+  String folderChooserTitle=CucumberBundle.message("cucumber.quick.fix.create.step.folder.chooser.title");
+  final FileChooserDescriptor folderChooserDescriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
+  folderChooserDescriptor.setTitle(folderChooserTitle);
+  folderChooserDescriptor.setRoots(model.getDirectory().getVirtualFile());
+  folderChooserDescriptor.setIsTreeRootVisible(true);
+  folderChooserDescriptor.setShowFileSystemRoots(false);
+  folderChooserDescriptor.setHideIgnored(true);
+  myDirectoryTextField.addBrowseFolderListener(folderChooserTitle,null,project,folderChooserDescriptor);
+  myDirectoryTextField.setText(FileUtil.toSystemDependentName(model.getDirectory().getVirtualFile().getPath()));
+  myDirectoryLabel.setLabelFor(myDirectoryTextField);
+  validateFileName();
+}

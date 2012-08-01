@@ -1,0 +1,20 @@
+{
+  final String fileName=myFileNameTextField.getText();
+  Project project=myModel.getDirectory().getProject();
+  boolean fileNameIsOk=fileName != null && CucumberStepsIndex.getInstance(project).validateNewStepDefinitionFileName(myModel.getDirectory(),fileName,myModel.getSelectedFileType());
+  if (!fileNameIsOk) {
+    setErrorText(CucumberBundle.message("cucumber.quick.fix.create.step.file.error.incorrect.file.name"));
+  }
+ else {
+    PsiFile file=myModel.getDirectory().findFile(myModel.getFileNameWithExtension());
+    VirtualFile vFile=file != null ? file.getVirtualFile() : null;
+    if (vFile != null) {
+      fileNameIsOk=false;
+      setErrorText(CucumberBundle.message("cucumber.quick.fix.create.step.file.error.file.exists",(myModel.getFileNameWithExtension())));
+    }
+ else {
+      setErrorText(null);
+    }
+  }
+  setOKActionEnabled(fileNameIsOk);
+}

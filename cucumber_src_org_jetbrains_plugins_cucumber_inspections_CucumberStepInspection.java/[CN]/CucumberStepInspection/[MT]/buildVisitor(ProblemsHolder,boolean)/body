@@ -1,0 +1,28 @@
+{
+  return new GherkinElementVisitor(){
+    @Override public void visitStep(    GherkinStep step){
+      super.visitStep(step);
+      final PsiElement parent=step.getParent();
+      if (parent instanceof GherkinStepsHolder) {
+        final PsiReference[] references=step.getReferences();
+        if (references.length != 1 || !(references[0] instanceof CucumberStepReference))         return;
+        CucumberStepReference reference=(CucumberStepReference)references[0];
+        final AbstractStepDefinition definition=reference.resolveToDefinition();
+        if (definition == null) {
+          holder.registerProblem(reference.getElement(),reference.getRangeInElement(),CucumberBundle.message("cucumber.inspection.undefined.step.msg.name") + " #loc #ref",new CucumberCreateStepFix());
+        }
+ else         if (isOnTheFly) {
+          final List<TextRange> parameterRanges=GherkinPsiUtil.buildParameterRanges(step,definition,reference.getRangeInElement().getStartOffset());
+          if (parameterRanges == null)           return;
+          for (          TextRange range : parameterRanges) {
+            registerHiglighting(GherkinHighlighter.REGEXP_PARAMETER,step,range,holder);
+          }
+        }
+        if (isOnTheFly) {
+          highlightOutlineParams(step,reference,holder);
+        }
+      }
+    }
+  }
+;
+}
