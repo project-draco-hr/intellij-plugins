@@ -1,0 +1,19 @@
+{
+  String directoryName=myConfigFileTextFieldWithBrowseButton.getText();
+  if (directoryName.length() == 0)   return null;
+  directoryName=directoryName.replace(File.separatorChar,'/');
+  VirtualFile path=LocalFileSystem.getInstance().findFileByPath(directoryName);
+  while (path == null && directoryName.length() > 0) {
+    int pos=directoryName.lastIndexOf('/');
+    if (pos <= 0)     break;
+    directoryName=directoryName.substring(0,pos);
+    path=LocalFileSystem.getInstance().findFileByPath(directoryName);
+  }
+  if (path != null) {
+    PsiManager psiManager=PsiManager.getInstance(project);
+    if (!path.isDirectory()) {
+      return psiManager.findFile(path);
+    }
+  }
+  return null;
+}
