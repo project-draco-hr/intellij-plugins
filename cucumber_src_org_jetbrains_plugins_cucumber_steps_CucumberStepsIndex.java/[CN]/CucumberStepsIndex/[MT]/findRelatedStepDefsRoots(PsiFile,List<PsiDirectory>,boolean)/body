@@ -1,26 +1,2 @@
 {
-  final Module module=ModuleUtil.findModuleForPsiElement(featureFile);
-  final VirtualFile contentRoot=findContentRoot(module,featureFile.getVirtualFile());
-  if (contentRoot == null) {
-    return;
-  }
-  myProjectRootManager.getFileIndex().iterateContentUnderDirectory(contentRoot,new ContentIterator(){
-    public boolean processFile(    final VirtualFile stepDefsRoot){
-      boolean isStepDefRoot=false;
-      for (      CucumberJvmExtensionPoint extension : myExtensionList) {
-        if (extension.isStepDefinitionsRoot(stepDefsRoot)) {
-          isStepDefRoot=true;
-          break;
-        }
-      }
-      if (isStepDefRoot) {
-        addStepDefsRootIfNecessary(stepDefsRoot,excludeAlreadyLoadedRoots,newAbstractStepDefinitionsRoots,myProcessedStepDirectories,myProject);
-      }
-      return true;
-    }
-  }
-);
-  for (  CucumberJvmExtensionPoint extension : myExtensionList) {
-    extension.loadStepDefinitionRootsFromLibraries(module,excludeAlreadyLoadedRoots,newAbstractStepDefinitionsRoots,myProcessedStepDirectories);
-  }
 }
