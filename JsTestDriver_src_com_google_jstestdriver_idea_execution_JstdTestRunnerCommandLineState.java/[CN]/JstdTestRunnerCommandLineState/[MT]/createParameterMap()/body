@@ -2,17 +2,18 @@
   Map<TestRunner.ParameterKey,String> parameters=Maps.newLinkedHashMap();
   String serverUrl=myRunSettings.getServerType() == ServerType.INTERNAL ? "http://localhost:" + JstdToolWindowPanel.serverPort : myRunSettings.getServerAddress();
   parameters.put(TestRunner.ParameterKey.SERVER_URL,serverUrl);
-  if (myRunSettings.getTestType() == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+  TestType testType=myRunSettings.getTestType();
+  if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
     parameters.put(TestRunner.ParameterKey.ALL_CONFIGS_IN_DIRECTORY,myRunSettings.getDirectory());
   }
   List<VirtualFile> jstdConfigs=JstdSettingsUtil.collectJstdConfigs(myProject,myRunSettings);
-  parameters.put(TestRunner.ParameterKey.CONFIG_FILES,joinJstdConfigs(jstdConfigs));
-  if (myRunSettings.getTestType() == TestType.TEST_CASE) {
-    parameters.put(TestRunner.ParameterKey.TEST_CASE,myRunSettings.getTestCaseName());
+  if (jstdConfigs.isEmpty()) {
+    throw new ExecutionException("Can't find JsTestDriver configuration file.");
   }
-  if (myRunSettings.getTestType() == TestType.TEST_METHOD) {
-    parameters.put(TestRunner.ParameterKey.TEST_CASE,myRunSettings.getTestCaseName());
-    parameters.put(TestRunner.ParameterKey.TEST_METHOD,myRunSettings.getTestMethodName());
+  parameters.put(TestRunner.ParameterKey.CONFIG_FILES,joinJstdConfigs(jstdConfigs));
+  TestFileScope testFileScope=buildTestFileScope(myProject,myRunSettings);
+  if (!testFileScope.isAll()) {
+    parameters.put(TestRunner.ParameterKey.TESTS,testFileScope.serialize());
   }
   if (myCoverageFilePath != null) {
     parameters.put(TestRunner.ParameterKey.COVERAGE_OUTPUT_FILE,myCoverageFilePath);

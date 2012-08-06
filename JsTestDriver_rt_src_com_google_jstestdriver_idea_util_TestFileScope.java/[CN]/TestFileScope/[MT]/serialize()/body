@@ -1,0 +1,19 @@
+{
+  if (myAll) {
+    throw new RuntimeException("Can't serialize for all tests");
+  }
+  List<String> testCaseStrings=new ArrayList<String>(myMethodsByCaseMap.size());
+  for (  Map.Entry<String,Set<String>> entry : myMethodsByCaseMap.entrySet()) {
+    Set<String> testMethods=entry.getValue();
+    if (testMethods == null) {
+      testMethods=Collections.emptySet();
+    }
+    String testMethodsStr=EscapeUtils.join(testMethods,TEST_METHOD_SEPARATOR);
+    String testCaseStr=EscapeUtils.join(Arrays.asList(entry.getKey(),testMethodsStr),CASE_AND_METHOD_SEPARATOR);
+    if (!testCaseStr.isEmpty() && testCaseStr.charAt(testCaseStr.length() - 1) == CASE_AND_METHOD_SEPARATOR) {
+      testCaseStr=testCaseStr.substring(0,testCaseStr.length() - 1);
+    }
+    testCaseStrings.add(testCaseStr);
+  }
+  return EscapeUtils.join(testCaseStrings,TEST_CASE_SEPARATOR);
+}

@@ -1,0 +1,40 @@
+{
+  TestType testType=settings.getTestType();
+  if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY || testType == TestType.CONFIG_FILE) {
+    return TestFileScope.allScope();
+  }
+  if (testType == TestType.JS_FILE) {
+    File jsFile=new File(settings.getJsFilePath());
+    if (jsFile.isAbsolute() && jsFile.isFile()) {
+      VirtualFile virtualFile=VfsUtil.findFileByIoFile(jsFile,true);
+      if (virtualFile != null) {
+        PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+        if (psiFile instanceof JSFile) {
+          JSFile jsPsiFile=(JSFile)psiFile;
+          TestFileStructurePack pack=TestFileStructureManager.fetchTestFileStructurePackByJsFile(jsPsiFile);
+          if (pack != null) {
+            List<String> testCases=pack.getTopLevelElements();
+            if (testCases.isEmpty()) {
+              throw new ExecutionException("No tests found in " + jsPsiFile.getName());
+            }
+            Map<String,Set<String>> scope=ContainerUtilRt.newHashMap();
+            for (            String testCase : testCases) {
+              scope.put(testCase,Collections.<String>emptySet());
+            }
+            return TestFileScope.customScope(scope);
+          }
+        }
+      }
+    }
+    throw new ExecutionException("Unable to extract tests from " + jsFile.getName());
+  }
+  if (testType == TestType.TEST_CASE) {
+    Map<String,Set<String>> scope=Collections.singletonMap(settings.getTestCaseName(),Collections.<String>emptySet());
+    return TestFileScope.customScope(scope);
+  }
+  if (testType == TestType.TEST_METHOD) {
+    Map<String,Set<String>> scope=Collections.singletonMap(settings.getTestCaseName(),Collections.singleton(settings.getTestMethodName()));
+    return TestFileScope.customScope(scope);
+  }
+  throw new RuntimeException("Unexpected test type: " + testType);
+}
