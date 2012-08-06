@@ -1,29 +1,24 @@
 {
-{
-    JSExpressionStatement jsExpressionStatement=ObjectUtils.tryCast(jsElement,JSExpressionStatement.class);
-    if (jsExpressionStatement != null) {
-{
-        JSCallExpression callExpression=ObjectUtils.tryCast(jsExpressionStatement.getExpression(),JSCallExpression.class);
-        if (callExpression != null) {
-          createTestCaseStructure(jsTestFileStructure,callExpression);
-        }
-      }
-{
-        JSAssignmentExpression jsAssignmentExpression=ObjectUtils.tryCast(jsExpressionStatement.getExpression(),JSAssignmentExpression.class);
-        if (jsAssignmentExpression != null) {
-          JSCallExpression jsCallExpression=ObjectUtils.tryCast(jsAssignmentExpression.getROperand(),JSCallExpression.class);
-          if (jsCallExpression != null) {
-            JstdTestCaseStructure testCaseStructure=createTestCaseStructure(jsTestFileStructure,jsCallExpression);
-            if (testCaseStructure != null) {
-              JSDefinitionExpression jsDefinitionExpression=ObjectUtils.tryCast(jsAssignmentExpression.getLOperand(),JSDefinitionExpression.class);
-              if (jsDefinitionExpression != null) {
-                JSReferenceExpression jsReferenceExpression=ObjectUtils.tryCast(jsDefinitionExpression.getExpression(),JSReferenceExpression.class);
-                if (jsReferenceExpression != null) {
-                  String refName=jsReferenceExpression.getReferencedName();
-                  if (refName != null) {
-                    addPrototypeTests(testCaseStructure,refName,jsExpressionStatement);
-                  }
-                }
+  if (statement instanceof JSExpressionStatement) {
+    JSExpressionStatement jsExpressionStatement=(JSExpressionStatement)statement;
+    JSExpression expressionOfStatement=jsExpressionStatement.getExpression();
+    if (expressionOfStatement instanceof JSCallExpression) {
+      JSCallExpression callExpression=(JSCallExpression)expressionOfStatement;
+      createTestCaseStructure(jsTestFileStructure,callExpression);
+    }
+ else     if (expressionOfStatement instanceof JSAssignmentExpression) {
+      JSAssignmentExpression jsAssignmentExpression=(JSAssignmentExpression)expressionOfStatement;
+      JSCallExpression rOperandCallExpression=ObjectUtils.tryCast(jsAssignmentExpression.getROperand(),JSCallExpression.class);
+      if (rOperandCallExpression != null) {
+        JstdTestCaseStructure testCaseStructure=createTestCaseStructure(jsTestFileStructure,rOperandCallExpression);
+        if (testCaseStructure != null) {
+          JSDefinitionExpression jsDefinitionExpression=ObjectUtils.tryCast(jsAssignmentExpression.getLOperand(),JSDefinitionExpression.class);
+          if (jsDefinitionExpression != null) {
+            JSReferenceExpression jsReferenceExpression=ObjectUtils.tryCast(jsDefinitionExpression.getExpression(),JSReferenceExpression.class);
+            if (jsReferenceExpression != null) {
+              String refName=jsReferenceExpression.getReferencedName();
+              if (refName != null) {
+                addPrototypeTests(testCaseStructure,refName,jsExpressionStatement);
               }
             }
           }
@@ -31,19 +26,17 @@
       }
     }
   }
-{
-    JSVarStatement jsVarStatement=ObjectUtils.tryCast(jsElement,JSVarStatement.class);
-    if (jsVarStatement != null) {
-      JSVariable[] jsVariables=ObjectUtils.notNull(jsVarStatement.getVariables(),JSVariable.EMPTY_ARRAY);
-      for (      JSVariable jsVariable : jsVariables) {
-        JSCallExpression jsCallExpression=ObjectUtils.tryCast(jsVariable.getInitializer(),JSCallExpression.class);
-        if (jsCallExpression != null) {
-          JstdTestCaseStructure testCaseStructure=createTestCaseStructure(jsTestFileStructure,jsCallExpression);
-          if (testCaseStructure != null) {
-            String refName=jsVariable.getQualifiedName();
-            if (refName != null) {
-              addPrototypeTests(testCaseStructure,refName,jsVarStatement);
-            }
+  if (statement instanceof JSVarStatement) {
+    JSVarStatement jsVarStatement=(JSVarStatement)statement;
+    JSVariable[] jsVariables=ObjectUtils.notNull(jsVarStatement.getVariables(),JSVariable.EMPTY_ARRAY);
+    for (    JSVariable jsVariable : jsVariables) {
+      JSCallExpression jsCallExpression=ObjectUtils.tryCast(jsVariable.getInitializer(),JSCallExpression.class);
+      if (jsCallExpression != null) {
+        JstdTestCaseStructure testCaseStructure=createTestCaseStructure(jsTestFileStructure,jsCallExpression);
+        if (testCaseStructure != null) {
+          String refName=jsVariable.getQualifiedName();
+          if (refName != null) {
+            addPrototypeTests(testCaseStructure,refName,jsVarStatement);
           }
         }
       }
