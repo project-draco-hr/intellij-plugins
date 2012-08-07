@@ -1,14 +1,14 @@
 {
-  final List<PsiDirectory> notLoadedAbstractStepDefinitionsRoots=new ArrayList<PsiDirectory>();
+  final List<PsiDirectory> notLoadedStepDefinitionsRoots=new ArrayList<PsiDirectory>();
   try {
-    findRelatedStepDefsRoots(featureFile,notLoadedAbstractStepDefinitionsRoots,myProcessedStepDirectories);
+    findRelatedStepDefsRoots(featureFile,module,notLoadedStepDefinitionsRoots,myProcessedStepDirectories);
   }
  catch (  ProcessCanceledException e) {
     return;
   }
-synchronized (myAbstractStepDefinitions) {
+synchronized (myStepDefinitions) {
     final List<AbstractStepDefinition> stepDefinitions=new ArrayList<AbstractStepDefinition>();
-    for (    PsiDirectory root : notLoadedAbstractStepDefinitionsRoots) {
+    for (    PsiDirectory root : notLoadedStepDefinitionsRoots) {
       stepDefinitions.clear();
       try {
         myProcessedStepDirectories.add(root.getVirtualFile().getPath());
@@ -18,13 +18,13 @@ synchronized (myAbstractStepDefinitions) {
           stepDefinitions.addAll(getStepDefinitions(file));
           createWatcher(file);
         }
-        myAbstractStepDefinitions.addAll(stepDefinitions);
+        myStepDefinitions.addAll(stepDefinitions);
       }
  catch (      ProcessCanceledException e) {
         myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
         if (!stepDefinitions.isEmpty()) {
-synchronized (myAbstractStepDefinitions) {
-            myAbstractStepDefinitions.removeAll(stepDefinitions);
+synchronized (myStepDefinitions) {
+            myStepDefinitions.removeAll(stepDefinitions);
           }
         }
         throw e;
