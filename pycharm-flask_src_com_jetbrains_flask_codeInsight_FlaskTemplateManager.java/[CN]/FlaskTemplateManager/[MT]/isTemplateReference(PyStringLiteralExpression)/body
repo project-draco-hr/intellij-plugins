@@ -1,0 +1,13 @@
+{
+  PyCallExpression call=PsiTreeUtil.getParentOfType(expr,PyCallExpression.class);
+  if (call != null) {
+    int index=PyPsiUtils.findArgumentIndex(call,expr);
+    if (index == 0 && call.isCalleeText(FlaskNames.RENDER_TEMPLATE)) {
+      PyCallExpression.PyMarkedCallee callee=call.resolveCallee(PyResolveContext.noImplicits());
+      if (callee != null && callee.getCallable().getContainingFile().getName().equals("templating.py")) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
