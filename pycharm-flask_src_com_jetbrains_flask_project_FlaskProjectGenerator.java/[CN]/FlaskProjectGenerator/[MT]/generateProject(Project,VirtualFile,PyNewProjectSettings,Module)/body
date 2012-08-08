@@ -1,4 +1,24 @@
 {
+  if (settings.installFramework()) {
+    ProgressManager.getInstance().run(new Task.Backgroundable(project,"Installing Flask",false){
+      @Override public void run(      @NotNull ProgressIndicator indicator){
+        indicator.setText("Installing Flask...");
+        final PyPackageManager packageManager=PyPackageManager.getInstance(settings.getSdk());
+        try {
+          packageManager.install("Flask");
+        }
+ catch (        final PyExternalProcessException e) {
+          SwingUtilities.invokeLater(new Runnable(){
+            @Override public void run(){
+              packageManager.showInstallationError(project,"Install Flask failed",e.toString());
+            }
+          }
+);
+        }
+      }
+    }
+);
+  }
   final PsiDirectory projectDir=PsiManager.getInstance(project).findDirectory(baseDir);
   new WriteCommandAction.Simple(project){
     @Override protected void run() throws Throwable {
