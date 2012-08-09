@@ -1,0 +1,15 @@
+{
+  final PsiClass psiClass=getStepDefClass();
+  final PsiFile psiFile=psiClass.getContainingFile();
+  final Ref<String> createdMethodName=new Ref<String>();
+  new WriteCommandAction(getProject(),psiFile){
+    @Override protected void run(    final Result result) throws Throwable {
+      final PsiElementFactory factory=JavaPsiFacade.getInstance(getProject()).getElementFactory();
+      final PsiMethod method=factory.createMethodFromText(stepDef,psiClass);
+      psiClass.add(method);
+      createdMethodName.set(method.getName());
+    }
+  }
+.execute();
+  return createdMethodName.get();
+}
