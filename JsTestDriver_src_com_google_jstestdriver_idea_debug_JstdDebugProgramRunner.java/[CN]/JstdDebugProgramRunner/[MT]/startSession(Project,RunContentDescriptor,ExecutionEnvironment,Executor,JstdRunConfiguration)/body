@@ -1,11 +1,15 @@
 {
+  JstdDebugBrowserInfo<Connection> debugBrowserInfo=JstdDebugBrowserInfo.build(runConfiguration.getRunSettings());
+  if (debugBrowserInfo == null) {
+    throw new ExecutionException("Can not find a browser that supports debugging.");
+  }
   FileDocumentManager.getInstance().saveAllDocuments();
   final JSDebugEngine<Connection> debugEngine=debugBrowserInfo.getDebugEngine();
   if (!debugEngine.prepareDebugger(project))   return null;
   final String url;
   final Connection connection;
   if (debugEngine instanceof ChromeDebuggerEngine) {
-    ChromeConnectionManagerImpl chromeConnectionManager=(ChromeConnectionManagerImpl)ChromeConnectionManager.getInstance();
+    ChromeConnectionManager chromeConnectionManager=ChromeConnectionManager.getInstance();
     ExistentTabProviderFactory tabProviderFactory=ExistentTabProviderFactory.getInstance();
     connection=(Connection)chromeConnectionManager.createConnection(tabProviderFactory);
     url="http://localhost:" + JstdToolWindowPanel.serverPort + debugBrowserInfo.getCapturedBrowserUrl();
