@@ -1,0 +1,14 @@
+{
+  JstdRunConfiguration runConfiguration=(JstdRunConfiguration)env.getRunProfile();
+  JstdRunConfigurationVerifier.isJstdLocalServerReady(project,runConfiguration.getRunSettings(),true);
+  JstdServerState jstdServerState=JstdServerState.getInstance();
+  if (!jstdServerState.isServerRunning()) {
+    throw new ExecutionException("JsTestDriver server isn't running");
+  }
+  Context<?> context=getContext(jstdServerState);
+  if (context == null) {
+    throw new ExecutionException("Debug is available in Firefox and Chrome.\n" + "Please capture one of these browsers and try again.");
+  }
+  RunContentDescriptor descriptor=startSession(project,contentToReuse,env,context,executor,runConfiguration);
+  return descriptor;
+}
