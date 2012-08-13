@@ -1,13 +1,12 @@
 {
   JstdRunConfiguration runConfiguration=(JstdRunConfiguration)env.getRunProfile();
-  JstdRunConfigurationVerifier.isJstdLocalServerReady(project,runConfiguration.getRunSettings(),true);
-  JstdServerState jstdServerState=JstdServerState.getInstance();
-  if (!jstdServerState.isServerRunning()) {
-    throw new ExecutionException("JsTestDriver server isn't running");
+  if (runConfiguration.getRunSettings().isExternalServerType()) {
+    throw new ExecutionException("Debug is available only for local browsers captured by a local JsTestDriver server.");
   }
-  Context<?> context=getContext(jstdServerState);
+  JstdRunConfigurationVerifier.checkJstdServerAndBrowserEnvironment(project,runConfiguration.getRunSettings(),true);
+  JstdDebugBrowserInfo<?> context=JstdDebugBrowserInfo.build();
   if (context == null) {
-    throw new ExecutionException("Debug is available in Firefox and Chrome.\n" + "Please capture one of these browsers and try again.");
+    throw new ExecutionException("Can not find a browser that supports debugging.");
   }
   RunContentDescriptor descriptor=startSession(project,contentToReuse,env,context,executor,runConfiguration);
   return descriptor;

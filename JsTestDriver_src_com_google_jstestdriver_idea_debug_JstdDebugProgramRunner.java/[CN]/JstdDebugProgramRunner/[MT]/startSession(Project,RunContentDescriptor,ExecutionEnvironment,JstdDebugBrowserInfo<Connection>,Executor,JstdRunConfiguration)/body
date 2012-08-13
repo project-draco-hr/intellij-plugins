@@ -1,0 +1,34 @@
+{
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final JSDebugEngine<Connection> debugEngine=debugBrowserInfo.getDebugEngine();
+  if (!debugEngine.prepareDebugger(project))   return null;
+  final String url;
+  final Connection connection;
+  if (debugEngine instanceof ChromeDebuggerEngine) {
+    ChromeConnectionManagerImpl chromeConnectionManager=(ChromeConnectionManagerImpl)ChromeConnectionManager.getInstance();
+    ExistentTabProviderFactory tabProviderFactory=ExistentTabProviderFactory.getInstance();
+    connection=(Connection)chromeConnectionManager.createConnection(tabProviderFactory);
+    url="http://localhost:" + JstdToolWindowPanel.serverPort + debugBrowserInfo.getCapturedBrowserUrl();
+  }
+ else {
+    connection=debugEngine.openConnection();
+    url=null;
+  }
+  JstdTestRunnerCommandLineState runState=runConfiguration.getState(env,null,true);
+  final ExecutionResult executionResult=runState.execute(executor,JstdDebugProgramRunner.this);
+  File configFile=new File(runConfiguration.getRunSettings().getConfigFile());
+  List<RemoteJavaScriptDebugConfiguration.RemoteUrlMappingBean> mapping=extractMappings(configFile);
+  final DebuggableFileFinder fileFinder=new RemoteDebuggingFileFinder(project,mapping);
+  XDebuggerManager xDebuggerManager=XDebuggerManager.getInstance(project);
+  XDebugSession xDebugSession=xDebuggerManager.startSession(this,env,contentToReuse,new XDebugProcessStarter(){
+    @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
+      JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+      return debugProcess;
+    }
+  }
+);
+  PrintWriter writer=new PrintWriter(executionResult.getProcessHandler().getProcessInput());
+  writer.println(TestRunner.DEBUG_SESSION_STARTED + "\n");
+  writer.flush();
+  return xDebugSession.getRunContentDescriptor();
+}
