@@ -1,0 +1,29 @@
+{
+  JstdServerState jstdServerState=JstdServerState.getInstance();
+  CapturedBrowsers browsers=jstdServerState.getCaptured();
+  if (browsers == null) {
+    return null;
+  }
+  JSDebugEngine<Connection>[] engines=listDebugEngines();
+  List<JstdDebugBrowserInfo<Connection>> debugBrowserInfos=Lists.newArrayList();
+  for (  SlaveBrowser slaveBrowser : browsers.getSlaveBrowsers()) {
+    String browserName=slaveBrowser.getBrowserInfo().getName();
+    for (    JSDebugEngine<Connection> engine : engines) {
+      if (engine.getId().equalsIgnoreCase(browserName)) {
+        debugBrowserInfos.add(new JstdDebugBrowserInfo<Connection>(engine,slaveBrowser.getCaptureUrl()));
+      }
+    }
+  }
+  if (debugBrowserInfos.size() == 1) {
+    return debugBrowserInfos.get(0);
+  }
+  if (debugBrowserInfos.size() > 1) {
+    BrowsersConfiguration.BrowserFamily preferredBrowser=settings.getPreferredDebugBrowser();
+    for (    JstdDebugBrowserInfo<Connection> info : debugBrowserInfos) {
+      if (info.getDebugEngine().getBrowserFamily() == preferredBrowser) {
+        return info;
+      }
+    }
+  }
+  return null;
+}

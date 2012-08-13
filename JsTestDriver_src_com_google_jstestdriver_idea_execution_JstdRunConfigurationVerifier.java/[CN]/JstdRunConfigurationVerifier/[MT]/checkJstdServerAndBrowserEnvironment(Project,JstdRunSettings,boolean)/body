@@ -1,0 +1,34 @@
+{
+  if (settings.isExternalServerType()) {
+    return;
+  }
+  JstdServerState jstdServerState=JstdServerState.getInstance();
+  if (!jstdServerState.isServerRunning()) {
+    String browserMessage=debug ? "Firefox or Chrome" : "a browser";
+    throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is not running.<br>" + "<a href=\"\">Start a local server</a>, capture " + browserMessage + " and try again.");
+  }
+  if (debug) {
+    JSDebugEngine<?>[] engines=JSDebugEngine.getEngines();
+    Collection<BrowserInfo> capturedBrowsers=jstdServerState.getCapturedBrowsers();
+    boolean ok=false;
+    for (    BrowserInfo browser : capturedBrowsers) {
+      String browserName=browser.getName();
+      for (      JSDebugEngine<?> engine : engines) {
+        if (engine.getId().equalsIgnoreCase(browserName)) {
+          ok=true;
+          break;
+        }
+      }
+      if (ok)       break;
+    }
+    if (!ok) {
+      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"Debug is available in Firefox or Chrome only.\n" + "Please <a href=\"\">capture</a> one of these browsers and try again.");
+    }
+  }
+ else {
+    if (jstdServerState.getCapturedBrowsers().isEmpty()) {
+      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is running without captured browsers.\n" + "Please <a href=\"\">capture</a> a browser and try again.");
+    }
+  }
+  ensureJstdToolWindowRegistered(project);
+}

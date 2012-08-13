@@ -1,27 +1,3 @@
 {
-  int serverPort=JstdToolWindowPanel.serverPort;
-  FileLoader fileLoader=new ProcessingFileLoader(new SimpleFileReader(),Collections.<FileLoadPostProcessor>singleton(new InlineHtmlProcessor(new HtmlDocParser(),new HtmlDocLexer())),new NullStopWatch());
-  CapturedBrowsers browsers=new CapturedBrowsers(new BrowserIdStrategy(new TimeImpl()));
-  JsTestDriverServer.Factory factory=new DefaultServerFactory(browsers,SlaveBrowser.TIMEOUT,new NullPathPrefix(),Sets.<ServerListener>newHashSet(JstdToolWindowPanel.SHARED_STATE));
-  ServerStartupAction serverStartupAction=new ServerStartupAction(serverPort,-1,new JstdTestCaseStore(),false,fileLoader,factory);
-  try {
-    serverStartupAction.run(null);
-    JstdToolWindowPanel.myServerStartupAction=serverStartupAction;
-  }
- catch (  Exception ex) {
-    ServerStopAction.runStopAction(serverStartupAction);
-    String title="JsTestDriver Server Launching";
-    int sslPort=serverPort + 1;
-    if (!isLocalPortAvailable(serverPort)) {
-      Messages.showErrorDialog("Can't start JsTestDriver server on port " + serverPort + ".\nMake sure the port is free.",title);
-    }
- else     if (!isLocalPortAvailable(sslPort)) {
-      Messages.showErrorDialog("Can't start JsTestDriver server.\nMake sure the ssl port " + sslPort + " is free.",title);
-    }
- else {
-      String message="Can't start JsTestDriver server due to unknown reasons.";
-      Messages.showErrorDialog(message + "\n" + "See idea.log (Help->Reveal Log in ...).",title);
-      LOG.warn(message,ex);
-    }
-  }
+  asyncStartServer(null);
 }
