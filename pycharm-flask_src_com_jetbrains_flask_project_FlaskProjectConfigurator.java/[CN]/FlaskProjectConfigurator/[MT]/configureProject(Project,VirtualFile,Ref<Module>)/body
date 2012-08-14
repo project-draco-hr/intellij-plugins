@@ -1,0 +1,16 @@
+{
+  Module module=moduleRef.get();
+  if (module == null)   return;
+  VirtualFile appFile=findFlaskAppFile(baseDir);
+  if (projectRequiresFlask(module) || appFile != null) {
+    TemplatesService templatesService=TemplatesService.getInstance(module);
+    templatesService.setTemplateLanguage(TemplatesService.JINJA2);
+    VirtualFile templatesDir=baseDir.findChild(FlaskNames.TEMPLATES);
+    if (templatesDir != null) {
+      templatesService.setTemplateFolders(templatesDir);
+    }
+    if (appFile != null) {
+      PyRunConfigurationFactory.getInstance().createPythonScriptRunConfiguration(module,appFile.getPath());
+    }
+  }
+}
