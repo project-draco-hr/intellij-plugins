@@ -5,10 +5,21 @@
   }
   String jsTestFilePath=path.get(0);
   String testCaseName=path.get(1);
-  String testName=path.size() > 2 ? path.get(2) : null;
-  PsiElement element=NavUtils.findPsiElement(project,new File(jsTestFilePath),testCaseName,testName);
-  if (element != null) {
-    return PsiLocation.fromPsiElement(element);
+  String testMethodName=path.size() > 2 ? path.get(2) : null;
+  File jsTestFile=new File(jsTestFilePath);
+  final PsiElement psiElement;
+  if (jsTestFile.isFile() && jsTestFile.isAbsolute()) {
+    VirtualFile jsTestVirtualFile=VfsUtil.findFileByIoFile(jsTestFile,false);
+    if (jsTestVirtualFile == null || !jsTestVirtualFile.isValid()) {
+      return null;
+    }
+    psiElement=NavUtils.findPsiLocation(project,jsTestVirtualFile,testCaseName,testMethodName);
+  }
+ else {
+    psiElement=findJasmineTestLocation(project,testCaseName,testMethodName);
+  }
+  if (psiElement != null && psiElement.isValid()) {
+    return PsiLocation.fromPsiElement(psiElement);
   }
   return null;
 }

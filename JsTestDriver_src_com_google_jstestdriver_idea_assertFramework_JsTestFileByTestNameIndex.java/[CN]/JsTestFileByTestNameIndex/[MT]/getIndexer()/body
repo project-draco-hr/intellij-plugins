@@ -1,0 +1,21 @@
+{
+  return new DataIndexer<String,Void,FileContent>(){
+    @NotNull @Override public Map<String,Void> map(    FileContent inputData){
+      JSFile jsFile=ObjectUtils.tryCast(inputData.getPsiFile(),JSFile.class);
+      if (jsFile == null) {
+        return Collections.emptyMap();
+      }
+      JasmineFileStructureBuilder jasmineFileStructureBuilder=JasmineFileStructureBuilder.getInstance();
+      JasmineFileStructure jasmineFileStructure=jasmineFileStructureBuilder.fetchCachedTestFileStructure(jsFile);
+      if (!jasmineFileStructure.hasJasmineSymbols()) {
+        return Collections.emptyMap();
+      }
+      Map<String,Void> testNames=new HashMap<String,Void>();
+      for (      JasmineSuiteStructure suiteStructure : jasmineFileStructure.getSuites()) {
+        addAllDescendantSuites(testNames,suiteStructure,"");
+      }
+      return testNames;
+    }
+  }
+;
+}
