@@ -11,6 +11,19 @@
           if (references.size() > 0) {
             return references.get(0).getContainingFile();
           }
+          VirtualFile vFile=templateFile.getVirtualFile();
+          if (vFile != null) {
+            VirtualFile root=ProjectFileIndex.SERVICE.getInstance(getElement().getProject()).getContentRootForFile(vFile);
+            if (root != null) {
+              VirtualFile appFile=FlaskProjectConfigurator.findFlaskAppFile(root);
+              if (appFile != null) {
+                PsiFile appPsiFile=getElement().getManager().findFile(appFile);
+                if (appPsiFile instanceof PyFile) {
+                  return appPsiFile;
+                }
+              }
+            }
+          }
           return super.getViewFunctionsFile();
         }
       }
