@@ -1,0 +1,22 @@
+{
+  TemplateStringLiteral literal=(TemplateStringLiteral)element;
+  TemplateFunctionCall call=PsiTreeUtil.getParentOfType(literal,TemplateFunctionCall.class);
+  if (call != null) {
+    PsiElement callee=call.getCallee();
+    if (callee != null && callee.getText().equals(FlaskNames.URL_FOR)) {
+      FlaskViewMethodReference viewMethodReference=new FlaskViewMethodReference(literal){
+        @Override protected PsiFile getViewFunctionsFile(){
+          PsiFile templateFile=getElement().getContainingFile().getOriginalFile();
+          List<PyStringLiteralExpression> references=FlaskTemplateManager.findTemplateReferences(templateFile);
+          if (references.size() > 0) {
+            return references.get(0).getContainingFile();
+          }
+          return super.getViewFunctionsFile();
+        }
+      }
+;
+      return new PsiReference[]{viewMethodReference};
+    }
+  }
+  return PsiReference.EMPTY_ARRAY;
+}
