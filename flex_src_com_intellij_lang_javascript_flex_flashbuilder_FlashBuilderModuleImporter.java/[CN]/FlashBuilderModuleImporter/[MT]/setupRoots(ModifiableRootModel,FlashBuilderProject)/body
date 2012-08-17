@@ -12,6 +12,7 @@
   }
  else {
     final List<String> locales=FlexUtils.getOptionValues(fbProject.getAdditionalCompilerOptions(),"locale","compiler.locale");
+    final List<String> moreSourcePaths=FlexUtils.getOptionValues(fbProject.getAdditionalCompilerOptions(),"source-path","compiler.source-path");
     for (    final String rawSourcePath : sourcePaths) {
       if (rawSourcePath.contains(LOCALE_TOKEN)) {
         for (        String locale : locales) {
@@ -20,6 +21,22 @@
       }
  else {
         handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,rawSourcePath);
+      }
+    }
+    for (    String sourcePath : moreSourcePaths) {
+      if (sourcePath.contains(LOCALE_TOKEN)) {
+        for (        String locale : locales) {
+          final String path=getPathToSourceRootSetInAdditionalOptions(sourcePath.replace(LOCALE_TOKEN,locale),mainContentEntryUrl,mainContentEntry);
+          if (path != null) {
+            handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,path);
+          }
+        }
+      }
+ else {
+        final String path=getPathToSourceRootSetInAdditionalOptions(sourcePath,mainContentEntryUrl,mainContentEntry);
+        if (path != null) {
+          handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,path);
+        }
       }
     }
   }
