@@ -1,0 +1,25 @@
+{
+  if (element == null) {
+    return null;
+  }
+  VirtualFile fileAtElement=toVirtualFile(element);
+  if (fileAtElement == null) {
+    return null;
+  }
+  JstdRunSettings settings=configuration.getRunSettings();
+  String path=fileAtElement.getPath();
+  if (settings.getTestType() == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    if (settings.getDirectory().equals(path)) {
+      return new FilePathRefactoringElementListener(configuration,false,false,true);
+    }
+  }
+ else {
+    if (settings.getJsFilePath().equals(path)) {
+      return new FilePathRefactoringElementListener(configuration,false,true,false);
+    }
+    if (settings.getConfigFile().equals(path)) {
+      return new FilePathRefactoringElementListener(configuration,true,false,false);
+    }
+  }
+  return null;
+}
