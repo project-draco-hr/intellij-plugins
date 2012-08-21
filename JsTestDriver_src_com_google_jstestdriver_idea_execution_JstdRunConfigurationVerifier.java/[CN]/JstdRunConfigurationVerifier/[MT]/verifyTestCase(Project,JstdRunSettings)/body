@@ -1,0 +1,23 @@
+{
+  verifyJSFileType(runSettings);
+  if (runSettings.getTestCaseName().isEmpty()) {
+    throw new RuntimeConfigurationError("Test case name is empty.");
+  }
+  VirtualFile jsTestVirtualFile=VfsUtil.findFileByIoFile(new File(runSettings.getJsFilePath()),false);
+  if (jsTestVirtualFile == null) {
+    throw new RuntimeConfigurationWarning("Can't find JavaScript test file.");
+  }
+  JSFile jsFile=ObjectUtils.tryCast(PsiManager.getInstance(project).findFile(jsTestVirtualFile),JSFile.class);
+  if (jsFile == null) {
+    throw new RuntimeConfigurationWarning("Wrong JavaScript test file.");
+  }
+  TestFileStructurePack pack=TestFileStructureManager.fetchTestFileStructurePackByJsFile(jsFile);
+  if (pack != null) {
+    PsiElement element=pack.findPsiElement(runSettings.getTestCaseName(),null);
+    if (element == null) {
+      throw new RuntimeConfigurationWarning("Can't find test case with name '" + runSettings.getTestCaseName() + "'.");
+    }
+    return pack;
+  }
+  return null;
+}

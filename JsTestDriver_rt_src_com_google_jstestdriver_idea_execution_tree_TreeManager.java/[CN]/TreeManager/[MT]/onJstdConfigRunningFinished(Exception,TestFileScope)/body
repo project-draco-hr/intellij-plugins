@@ -24,6 +24,23 @@
     finishedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,fullMessage);
     printTCMessage(finishedMessage);
   }
+ else   if (configNode.getChildren().isEmpty()) {
+    final String message;
+    Map.Entry<String,Set<String>> testCaseEntry=testFileScope.getSingleTestCaseEntry();
+    if (testCaseEntry != null) {
+      Set<String> testMethodNames=testCaseEntry.getValue();
+      if (testMethodNames.isEmpty()) {
+        message="No '" + testCaseEntry.getKey() + "' test case found.";
+      }
+ else {
+        message="No '" + testFileScope.humanize() + "' test method found.";
+      }
+    }
+ else {
+      message="No tests found. Please check 'test:' section of the configuration file.";
+    }
+    myErrStream.println(message);
+  }
   TCMessage configFinishedMessage=TC.newTestSuiteFinishedMessage(configNode);
   printTCMessage(configFinishedMessage);
 }
