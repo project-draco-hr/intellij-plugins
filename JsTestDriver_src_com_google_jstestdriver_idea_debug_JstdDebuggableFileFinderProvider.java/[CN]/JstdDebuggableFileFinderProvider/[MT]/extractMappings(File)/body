@@ -1,12 +1,12 @@
 {
-  VirtualFile virtualFile=VfsUtil.findFileByIoFile(configFile,false);
-  if (virtualFile == null) {
+  VirtualFile configVirtualFile=VfsUtil.findFileByIoFile(configFile,false);
+  if (configVirtualFile == null) {
     throw new ExecutionException("Can not find config file " + configFile.getAbsolutePath());
   }
   BasePaths dirBasePaths=new BasePaths(configFile.getParentFile());
   byte[] content;
   try {
-    content=virtualFile.contentsToByteArray();
+    content=configVirtualFile.contentsToByteArray();
   }
  catch (  IOException e) {
     throw new ExecutionException("Can not read " + configFile.getAbsolutePath());
@@ -14,12 +14,14 @@
   Reader reader=new InputStreamReader(new ByteArrayInputStream(content),Charset.defaultCharset());
   try {
     BasePaths allBasePaths=readBasePath(reader,dirBasePaths);
-    List<RemoteJavaScriptDebugConfiguration.RemoteUrlMappingBean> mapping=ContainerUtilRt.newArrayList();
+    List<RemoteJavaScriptDebugConfiguration.RemoteUrlMappingBean> mappings=ContainerUtilRt.newArrayList();
     for (    File basePath : allBasePaths) {
-      String normalizedPath=basePath.toURI().normalize().getPath();
-      mapping.add(new RemoteJavaScriptDebugConfiguration.RemoteUrlMappingBean(normalizedPath,"http://localhost:9876/test"));
+      RemoteJavaScriptDebugConfiguration.RemoteUrlMappingBean mappingBean=createMappingBean(basePath,configVirtualFile);
+      if (mappingBean != null) {
+        mappings.add(mappingBean);
+      }
     }
-    return mapping;
+    return mappings;
   }
  catch (  Exception ignored) {
   }
