@@ -1,10 +1,16 @@
 {
   VirtualFile[] children=dir.getChildren();
   for (  VirtualFile child : children) {
-    if (!child.isDirectory() && child.getFileType() instanceof PythonFileType) {
-      CharSequence text=LoadTextUtil.loadText(child);
-      if (text.toString().contains("Flask(__name__)")) {
-        return child;
+    if (isFlaskAppFile(child)) {
+      return child;
+    }
+  }
+  for (  VirtualFile child : children) {
+    if (child.isDirectory() && child.findChild(PyNames.INIT_DOT_PY) != null && child.findChild(FlaskNames.TEMPLATES) != null) {
+      for (      VirtualFile file : child.getChildren()) {
+        if (isFlaskAppFile(file)) {
+          return file;
+        }
       }
     }
   }
