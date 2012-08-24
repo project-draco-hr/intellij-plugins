@@ -13,7 +13,13 @@
     if (jsTestVirtualFile == null || !jsTestVirtualFile.isValid()) {
       return null;
     }
-    psiElement=NavUtils.findPsiLocation(project,jsTestVirtualFile,testCaseName,testMethodName);
+    String name=jsTestVirtualFile.getName().toLowerCase();
+    if (testMethodName != null && testCaseName.equals(DefaultQUnitModuleStructure.NAME) && StringUtil.startsWithIgnoreCase(name,"QUnitAdapter")) {
+      psiElement=findTestFromQUnitDefaultModule(project,testMethodName);
+    }
+ else {
+      psiElement=NavUtils.findPsiLocation(project,jsTestVirtualFile,testCaseName,testMethodName);
+    }
   }
  else {
     psiElement=findJasmineTestLocation(project,testCaseName,testMethodName);

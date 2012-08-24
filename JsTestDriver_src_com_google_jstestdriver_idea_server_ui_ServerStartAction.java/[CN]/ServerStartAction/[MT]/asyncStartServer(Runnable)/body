@@ -1,11 +1,20 @@
 {
-  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-    @Override public void run(){
-      syncStartServer();
-      if (callback != null) {
-        callback.run();
+  if (!myLocalServerStarting) {
+    myLocalServerStarting=true;
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        syncStartServer();
+        if (callback != null) {
+          callback.run();
+        }
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            localServerStarted();
+          }
+        }
+);
       }
     }
-  }
 );
+  }
 }
