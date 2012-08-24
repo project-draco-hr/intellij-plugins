@@ -1,0 +1,17 @@
+{
+  try {
+    for (    String targetPath : targetPaths) {
+      FileUtil.copyContent(file,new File(targetPath));
+      context.processMessage(new CompilerMessage("Copied",BuildMessage.Kind.INFO,file.getPath() + " to " + targetPath));
+    }
+    try {
+      sourceToOutputMapping.update(file.getPath(),targetPaths);
+    }
+ catch (    Exception e) {
+      context.processMessage(new CompilerMessage(BUILDER_NAME,e));
+    }
+  }
+ catch (  IOException e) {
+    context.processMessage(new CompilerMessage("Flex Resource Compiler",BuildMessage.Kind.ERROR,e.getMessage(),FileUtil.toSystemIndependentName(file.getPath())));
+  }
+}

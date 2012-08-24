@@ -10,11 +10,11 @@
         final String relativePath=VfsUtilCore.getRelativePath(file,srcRoot,'/');
         final Set<String> targetPaths=new THashSet<String>();
         if (isTestRoot) {
-          if (!FlexCompiler.isSourceFile(file)) {
+          if (!FlexCommonUtils.isSourceFile(file.getName())) {
             final CompilerModuleExtension compilerModuleExtension=CompilerModuleExtension.getInstance(module);
             final String outputUrl=compilerModuleExtension == null ? null : compilerModuleExtension.getCompilerOutputUrlForTests();
             if (outputUrl != null) {
-              targetPaths.add(VfsUtil.urlToPath(outputUrl) + "/" + relativePath);
+              targetPaths.add(VfsUtilCore.urlToPath(outputUrl) + "/" + relativePath);
             }
           }
         }
@@ -24,7 +24,7 @@
               continue;
             }
             final CompilerOptions.ResourceFilesMode mode=bc.getCompilerOptions().getResourceFilesMode();
-            if (mode == CompilerOptions.ResourceFilesMode.All && !FlexCompiler.isSourceFile(file) || mode == CompilerOptions.ResourceFilesMode.ResourcePatterns && compilerConfiguration.isResourceFile(file)) {
+            if (mode == CompilerOptions.ResourceFilesMode.All && !FlexCommonUtils.isSourceFile(file.getName()) || mode == CompilerOptions.ResourceFilesMode.ResourcePatterns && compilerConfiguration.isResourceFile(file)) {
               final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
               targetPaths.add(outputFolder + "/" + relativePath);
             }
