@@ -1,12 +1,12 @@
 {
-  for (  final VirtualFile child : dir.getChildren()) {
-    if (child.isDirectory()) {
-      if (child.getName().equals("src")) {
+  VfsUtilCore.visitChildrenRecursively(dir,new VirtualFileVisitor(VirtualFileVisitor.SKIP_ROOT){
+    @Override public boolean visitFile(    @NotNull VirtualFile child){
+      if (child.isDirectory() && child.getName().equals("src")) {
         sdkModificator.addRoot(child,OrderRootType.SOURCES);
+        return false;
       }
- else {
-        findSourceRoots(child,sdkModificator);
-      }
+      return true;
     }
   }
+);
 }
