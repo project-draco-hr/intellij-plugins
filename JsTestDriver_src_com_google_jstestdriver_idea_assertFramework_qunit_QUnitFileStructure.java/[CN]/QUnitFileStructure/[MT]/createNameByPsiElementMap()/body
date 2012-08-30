@@ -1,0 +1,17 @@
+{
+  int count=myDefaultModuleStructure.getTestCount();
+  for (  QUnitModuleStructure nonDefaultModuleStructure : myNonDefaultModuleStructures) {
+    count+=nonDefaultModuleStructure.getTestCount() + 1;
+  }
+  if (count == 0) {
+    return Collections.emptyMap();
+  }
+  Map<PsiElement,String> nameMap=new IdentityHashMap<PsiElement,String>(count);
+  for (  QUnitModuleStructure moduleStructure : myNonDefaultModuleStructures) {
+    PsiElement moduleElement=moduleStructure.getEnclosingCallExpression();
+    nameMap.put(moduleElement,moduleStructure.getName());
+    handleModuleStructure(moduleStructure,nameMap);
+  }
+  handleModuleStructure(myDefaultModuleStructure,nameMap);
+  return nameMap;
+}

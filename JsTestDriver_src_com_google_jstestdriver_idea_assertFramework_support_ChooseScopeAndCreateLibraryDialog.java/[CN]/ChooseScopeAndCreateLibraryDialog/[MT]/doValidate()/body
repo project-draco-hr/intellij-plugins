@@ -1,7 +1,13 @@
 {
-  JsLibraryHelper jsLibraryHelper=new JsLibraryHelper(myProject);
-  ScriptingLibraryModel libraryModel=jsLibraryHelper.getScriptingLibraryModel(myLibraryNameTextField.getText());
-  if (libraryModel != null) {
+  if (myLibraryHelper.hasReusableLibraryModel()) {
+    return null;
+  }
+  String text=myLibraryNameTextField.getText();
+  if (StringUtil.isEmpty(text)) {
+    return new ValidationInfo("Library name is empty",myLibraryNameTextField);
+  }
+  boolean exists=myLibraryHelper.doesJavaScriptLibraryModelExist(myLibraryNameTextField.getText());
+  if (exists) {
     return new ValidationInfo("Library with such name already exists",myLibraryNameTextField);
   }
   return null;
