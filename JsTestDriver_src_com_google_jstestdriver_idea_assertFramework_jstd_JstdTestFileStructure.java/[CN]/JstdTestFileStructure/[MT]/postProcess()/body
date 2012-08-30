@@ -1,0 +1,35 @@
+{
+  myNameByPsiElementMap=Collections.emptyMap();
+  myPrototypeBasedTestElements=Collections.emptyMap();
+  if (myTestCaseStructures.isEmpty()) {
+    return;
+  }
+  int totalCount=0;
+  int prototypeBasedTestCount=0;
+  for (  JstdTestCaseStructure testCaseStructure : myTestCaseStructures) {
+    totalCount+=testCaseStructure.getTestCount() + 1;
+    for (    JstdTestStructure testStructure : testCaseStructure.getTestStructures()) {
+      if (testStructure.getWholeLeftDefExpr() != null) {
+        prototypeBasedTestCount++;
+      }
+    }
+  }
+  myNameByPsiElementMap=new IdentityHashMap<PsiElement,String>(totalCount);
+  if (prototypeBasedTestCount > 0) {
+    myPrototypeBasedTestElements=new IdentityHashMap<PsiElement,Void>(prototypeBasedTestCount);
+  }
+  for (  JstdTestCaseStructure testCaseStructure : myTestCaseStructures) {
+    JSExpression testCaseMethodExpr=testCaseStructure.getEnclosingCallExpression().getMethodExpression();
+    if (testCaseMethodExpr != null) {
+      myNameByPsiElementMap.put(testCaseMethodExpr,testCaseStructure.getName());
+    }
+    for (    JstdTestStructure testStructure : testCaseStructure.getTestStructures()) {
+      PsiElement anchor=testStructure.getTestMethodNameDeclaration();
+      myNameByPsiElementMap.put(anchor,testStructure.getName());
+      JSDefinitionExpression wholeLeftDefExpr=testStructure.getWholeLeftDefExpr();
+      if (wholeLeftDefExpr != null) {
+        myPrototypeBasedTestElements.put(wholeLeftDefExpr,null);
+      }
+    }
+  }
+}

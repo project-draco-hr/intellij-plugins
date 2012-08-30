@@ -1,12 +1,16 @@
 {
   String libraryName=myLibraryNameTextField.getText();
-  JSLibraryManager jsLibraryManager=ServiceManager.getService(myProject,JSLibraryManager.class);
-  ScriptingLibraryModel libraryModel=jsLibraryManager.createLibrary(JstdLibraryUtil.LIBRARY_NAME,VfsUtilCore.toVirtualFileArray(myLibraryFiles),VirtualFile.EMPTY_ARRAY,ArrayUtil.EMPTY_STRING_ARRAY,ScriptingLibraryModel.LibraryLevel.GLOBAL,false);
+  ScriptingLibraryModel libraryModel=myLibraryHelper.getOrCreateJsLibraryModel(libraryName);
   try {
     ScriptingLibraryMappings libraryMappings=ServiceManager.getService(myProject,JSLibraryMappings.class);
     if (myModuleSelector.isProjectAssociationAllowed()) {
-      libraryMappings.associateWithProject(libraryModel.getName());
-      LOG.info("Library '" + libraryModel.getName() + "' has been successfully associated with the project");
+      if (myModuleSelector.isProjectAssociationRequested()) {
+        libraryMappings.associateWithProject(libraryModel.getName());
+        LOG.info("Library '" + libraryModel.getName() + "' has been successfully associated with the project");
+      }
+ else {
+        libraryMappings.disassociateWithProject(libraryModel.getName());
+      }
     }
  else {
       for (      Module module : myModuleSelector.getSelectedModules()) {
@@ -18,7 +22,7 @@
         }
       }
     }
-    jsLibraryManager.commitChanges();
+    myLibraryHelper.commit();
     return null;
   }
  catch (  Exception ex) {
