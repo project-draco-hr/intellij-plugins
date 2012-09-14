@@ -1,0 +1,9 @@
+{
+  final IosPackagingOptions packagingOptions=bc.getIosPackagingOptions();
+  final PasswordStore passwords=AirPackageAction.getPasswords(module.getProject(),Collections.singletonList(packagingOptions));
+  if (passwords == null)   return false;
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final IOSPackageType packageType=isDebug ? runnerParameters.getDebugTransport() == AirMobileDebugTransport.Network ? IOSPackageType.DebugOverNetwork : IOSPackageType.DebugOverUSB : IOSPackageType.Test;
+  final ExternalTask task=createIOSPackageTask(module,bc,packageType,runnerParameters.isFastPackaging(),bc.getIosPackagingOptions().getIOSSdkPath(),runnerParameters.getUsbDebugPort(),passwords);
+  return ExternalTask.runWithProgress(task,FlexBundle.message("creating.ios.package"),FlexBundle.message("create.ios.package.title"));
+}

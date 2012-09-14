@@ -12,7 +12,7 @@
   myDebuggerVersion=sdkForDebugger.getVersionString();
   myBreakpointsHandler=new FlexBreakpointsHandler(this);
   final List<String> fdbLaunchCommand=FlexSdkUtils.getCommandLineForSdkTool(session.getProject(),sdkForDebugger,getFdbClasspath(),"flex.tools.debugger.cli.DebugCLI",null);
-  if (params instanceof FlashRunnerParameters && bc.getTargetPlatform() == TargetPlatform.Mobile && ((FlashRunnerParameters)params).getMobileRunTarget() == AirMobileRunTarget.AndroidDevice && ((FlashRunnerParameters)params).getDebugTransport() == AirMobileDebugTransport.USB) {
+  if (params instanceof FlashRunnerParameters && bc.getTargetPlatform() == TargetPlatform.Mobile && (((FlashRunnerParameters)params).getMobileRunTarget() == AirMobileRunTarget.AndroidDevice || ((FlashRunnerParameters)params).getMobileRunTarget() == AirMobileRunTarget.iOSDevice) && ((FlashRunnerParameters)params).getDebugTransport() == AirMobileDebugTransport.USB) {
     fdbLaunchCommand.add("-p");
     fdbLaunchCommand.add(String.valueOf(((FlashRunnerParameters)params).getUsbDebugPort()));
   }
@@ -38,8 +38,13 @@ final String androidAppId=FlexBaseRunner.getApplicationId(FlexBaseRunner.getAirD
 sendCommand(appParams.getDebugTransport() == AirMobileDebugTransport.Network ? new StartAppOnAndroidDeviceCommand(bc.getSdk(),androidAppId) : new StartDebuggingCommand());
 break;
 case iOSSimulator:
-final String iosAppId=FlexBaseRunner.getApplicationId(FlexBaseRunner.getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
-sendCommand(new StartAppOnIosSimulatorCommand(bc.getSdk(),iosAppId,((FlashRunnerParameters)params).getIOSSimulatorSdkPath()));
+final String iosSimulatorAppId=FlexBaseRunner.getApplicationId(FlexBaseRunner.getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+sendCommand(new StartAppOnIosSimulatorCommand(bc.getSdk(),iosSimulatorAppId,((FlashRunnerParameters)params).getIOSSimulatorSdkPath()));
+break;
+case iOSDevice:
+final String iosAppName=FlexBaseRunner.getApplicationName(FlexBaseRunner.getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+sendCommand(appParams.getDebugTransport() == AirMobileDebugTransport.Network ? new StartAppOnIosDeviceCommand(iosAppName) : new StartDebuggingCommand());
+break;
 }
 }
 }
