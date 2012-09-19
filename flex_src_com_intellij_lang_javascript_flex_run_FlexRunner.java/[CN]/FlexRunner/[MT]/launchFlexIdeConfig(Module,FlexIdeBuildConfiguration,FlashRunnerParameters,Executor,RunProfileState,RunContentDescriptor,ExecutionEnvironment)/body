@@ -17,15 +17,32 @@ launchOnAndroidDevice(module.getProject(),bc.getSdk(),androidAppId,false);
 }
 return null;
 case iOSSimulator:
+final String adtVersionSimulator=AirPackageUtil.getAdtVersion(module.getProject(),bc.getSdk());
 final String iosAppId=getApplicationId(getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
-if (packAndInstallToIOSSimulator(module,bc,runnerParameters,iosAppId,false)) {
+if (packAndInstallToIOSSimulator(module,bc,runnerParameters,adtVersionSimulator,iosAppId,false)) {
 launchOnIosSimulator(module.getProject(),bc.getSdk(),iosAppId,runnerParameters.getIOSSimulatorSdkPath(),false);
 }
 return null;
 case iOSDevice:
-if (packAndInstallToIOSDevice(module,bc,runnerParameters,false)) {
+final String adtVersion=AirPackageUtil.getAdtVersion(module.getProject(),bc.getSdk());
+if (StringUtil.compareVersionNumbers(adtVersion,"3.4") >= 0) {
+if (packAndInstallToIOSDevice(module,bc,runnerParameters,adtVersion,false)) {
 final String appName=getApplicationName(getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
-ToolWindowManager.getInstance(module.getProject()).notifyByBalloon(ToolWindowId.RUN,MessageType.INFO,FlexBundle.message("ios.application.installed",appName));
+ToolWindowManager.getInstance(module.getProject()).notifyByBalloon(ToolWindowId.RUN,MessageType.INFO,FlexBundle.message("ios.application.installed.to.run",appName));
+}
+}
+ else {
+if (AirPackageUtil.packageIpaForDevice(module,bc,runnerParameters,adtVersion,false)) {
+final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+final String ipaName=bc.getIosPackagingOptions().getPackageFileName() + ".ipa";
+final String message=FlexBundle.message("ios.application.packaged.to.run",ipaName);
+ToolWindowManager.getInstance(module.getProject()).notifyByBalloon(ToolWindowId.RUN,MessageType.INFO,message,null,new HyperlinkAdapter(){
+protected void hyperlinkActivated(final HyperlinkEvent e){
+ShowFilePathAction.openFile(new File(outputFolder + "/" + ipaName));
+}
+}
+);
+}
 }
 break;
 }

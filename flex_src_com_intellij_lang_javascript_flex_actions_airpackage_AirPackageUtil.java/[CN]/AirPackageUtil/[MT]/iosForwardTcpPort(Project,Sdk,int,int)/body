@@ -1,16 +1,10 @@
 {
   stopAdbServer(project,sdk,FlexBundle.message("idb.forward"),FlexBundle.message("idb.forward.title"));
-  final String idbPath=sdk.getHomePath() + IDB_RELATIVE_PATH;
-  final VirtualFile idbExecutable=LocalFileSystem.getInstance().findFileByPath(idbPath);
-  if (idbExecutable == null) {
-    Messages.showWarningDialog(project,FlexBundle.message("idb.not.found",FileUtil.toSystemDependentName(idbPath)),FlexBundle.message("idb.forward.title"));
-    return false;
-  }
   try {
-    Runtime.getRuntime().exec(new String[]{idbExecutable.getPath(),"-forward",String.valueOf(usbDebugPort),String.valueOf(usbDebugPort),String.valueOf(deviceHandle)});
+    Runtime.getRuntime().exec(new String[]{sdk.getHomePath() + IDB_RELATIVE_PATH,"-forward",String.valueOf(usbDebugPort),String.valueOf(usbDebugPort),String.valueOf(deviceHandle)});
   }
  catch (  IOException e) {
-    Messages.showErrorDialog(project,e.getMessage(),"idb forward " + usbDebugPort + " "+ usbDebugPort+ " "+ deviceHandle);
+    Messages.showErrorDialog(project,e.getMessage(),"idb -forward " + usbDebugPort + " "+ usbDebugPort+ " "+ deviceHandle);
     return false;
   }
   return true;

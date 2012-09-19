@@ -11,19 +11,23 @@
       if (!myMessages.get(0).trim().contains("List of attached devices"))       return false;
       if (!myMessages.get(1).trim().startsWith("Handle"))       return false;
       final String deviceLine=myMessages.get(2).trim();
-      int spaceIndex=Math.min(deviceLine.indexOf(" "),deviceLine.indexOf("\t"));
-      if (spaceIndex <= 0)       return false;
+      int spaceIndex=deviceLine.indexOf(" ");
+      int tabIndex=deviceLine.indexOf("\t");
+      int index=spaceIndex > 0 && (spaceIndex < tabIndex || tabIndex < 0) ? spaceIndex : tabIndex;
+      if (index <= 0)       return false;
       try {
-        deviceHandleRef.set(Integer.parseInt(deviceLine.substring(0,spaceIndex)));
+        deviceHandleRef.set(Integer.parseInt(deviceLine.substring(0,index)));
       }
  catch (      NumberFormatException e) {
         return false;
       }
       if (myMessages.size() >= 4) {
         final String secondDeviceLine=myMessages.get(3).trim();
-        spaceIndex=Math.min(secondDeviceLine.indexOf(" "),secondDeviceLine.indexOf("\t"));
+        spaceIndex=secondDeviceLine.indexOf(" ");
+        tabIndex=secondDeviceLine.indexOf("\t");
+        index=spaceIndex > 0 && (spaceIndex < tabIndex || tabIndex < 0) ? spaceIndex : tabIndex;
         try {
-          if (spaceIndex > 0 && Integer.parseInt(deviceLine.substring(0,spaceIndex)) >= 0) {
+          if (index > 0 && Integer.parseInt(secondDeviceLine.substring(0,index)) >= 0) {
             myMessages.clear();
             myMessages.add(FlexBundle.message("more.than.one.ios.device"));
             return false;

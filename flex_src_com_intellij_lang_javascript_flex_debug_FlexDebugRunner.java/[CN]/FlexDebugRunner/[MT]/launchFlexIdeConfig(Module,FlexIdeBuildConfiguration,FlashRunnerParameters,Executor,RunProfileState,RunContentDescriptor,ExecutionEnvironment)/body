@@ -17,13 +17,16 @@ if (runnerParameters.getDebugTransport() == AirMobileDebugTransport.USB) {
 }
 break;
 case iOSSimulator:
+final String adtVersionSimulator=AirPackageUtil.getAdtVersion(module.getProject(),bc.getSdk());
 final String iosSimulatorAppId=getApplicationId(getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
-if (!packAndInstallToIOSSimulator(module,bc,runnerParameters,iosSimulatorAppId,true)) {
+if (!packAndInstallToIOSSimulator(module,bc,runnerParameters,adtVersionSimulator,iosSimulatorAppId,true)) {
 return null;
 }
 break;
 case iOSDevice:
-if (!packAndInstallToIOSDevice(module,bc,runnerParameters,true)) {
+final String adtVersion=AirPackageUtil.getAdtVersion(module.getProject(),bc.getSdk());
+if (StringUtil.compareVersionNumbers(adtVersion,"3.4") >= 0) {
+if (!packAndInstallToIOSDevice(module,bc,runnerParameters,adtVersion,true)) {
 return null;
 }
 if (runnerParameters.getDebugTransport() == AirMobileDebugTransport.USB) {
@@ -32,6 +35,12 @@ if (deviceHandle < 0) {
 return null;
 }
 if (!AirPackageUtil.iosForwardTcpPort(project,sdk,runnerParameters.getUsbDebugPort(),deviceHandle)) {
+return null;
+}
+}
+}
+ else {
+if (!AirPackageUtil.packageIpaForDevice(module,bc,runnerParameters,adtVersion,true)) {
 return null;
 }
 }
