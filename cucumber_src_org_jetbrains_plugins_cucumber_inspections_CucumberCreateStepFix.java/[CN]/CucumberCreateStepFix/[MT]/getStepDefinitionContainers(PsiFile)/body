@@ -2,9 +2,9 @@
   final List<PsiDirectory> stepDefsRoots=new ArrayList<PsiDirectory>();
   final Module module=ObjectUtils.assertNotNull(ModuleUtil.findModuleForPsiElement(featureFile));
   CucumberStepsIndex.getInstance(featureFile.getProject()).findRelatedStepDefsRoots(featureFile,module,stepDefsRoots,new HashSet<String>());
-  final List<PsiFile> stepDefs=new ArrayList<PsiFile>();
+  final Set<PsiFile> stepDefs=ContainerUtil.newHashSet();
   for (  PsiDirectory root : stepDefsRoots) {
     stepDefs.addAll(CucumberStepsIndex.getInstance(featureFile.getProject()).gatherStepDefinitionsFilesFromDirectory(root));
   }
-  return !stepDefs.isEmpty() ? stepDefs : Collections.<PsiFile>emptyList();
+  return stepDefs.isEmpty() ? Collections.<PsiFile>emptySet() : stepDefs;
 }
