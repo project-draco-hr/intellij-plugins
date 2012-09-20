@@ -1,0 +1,39 @@
+{
+  int offset=editor.getCaretModel().getOffset();
+  PsiElement cursorElement=file.findElementAt(offset - 1);
+  if (cursorElement == null) {
+    return null;
+  }
+  PsiElement element=getTable(cursorElement);
+  if (element == null) {
+    cursorElement=file.findElementAt(offset - cursorElement.getTextLength());
+    if (cursorElement == null) {
+      return null;
+    }
+    element=getTable(cursorElement);
+    if (element == null) {
+      return null;
+    }
+  }
+  final GherkinTable table=(GherkinTable)element;
+  final int tableOffset=table.getTextOffset();
+  final int caretOffsetInParent=editor.getCaretModel().getOffset() - tableOffset;
+  final List<GherkinTableRow> rowList=new ArrayList<GherkinTableRow>();
+  if (table.getHeaderRow() != null) {
+    rowList.add(table.getHeaderRow());
+  }
+  rowList.addAll(table.getDataRows());
+  for (int i=0; i < rowList.size() - 1; i++) {
+    final GherkinTableRow row=rowList.get(i);
+    final GherkinTableRow nextRow=rowList.get(i + 1);
+    final int start=row.getStartOffsetInParent();
+    final int end=start + row.getTextLength();
+    if (start <= caretOffsetInParent && caretOffsetInParent <= end) {
+      return row;
+    }
+    if (end < caretOffsetInParent && caretOffsetInParent <= nextRow.getStartOffsetInParent()) {
+      return row;
+    }
+  }
+  return rowList.get(rowList.size() - 1);
+}

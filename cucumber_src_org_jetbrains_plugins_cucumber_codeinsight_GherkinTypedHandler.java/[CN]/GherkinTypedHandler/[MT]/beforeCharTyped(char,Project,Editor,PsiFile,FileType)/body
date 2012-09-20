@@ -1,0 +1,19 @@
+{
+  if (fileType.equals(GherkinFileType.INSTANCE)) {
+    if (c == PIPE) {
+      final GherkinTableRow currentRow=findCurrentRow(editor,file);
+      if (currentRow != null) {
+        final GherkinTableRow previousRow=getPreviousRow(currentRow);
+        if (previousRow != null) {
+          final int offsetInParent=editor.getCaretModel().getOffset() - currentRow.getTextOffset();
+          final int cellNumber=getColumnNumber(currentRow,offsetInParent);
+          int rightPosition=getPreferredPipeOffset(previousRow,cellNumber);
+          if (offsetInParent < rightPosition - 1) {
+            EditorModificationUtil.insertStringAtCaret(editor,getSpaceLine(rightPosition - offsetInParent - 1));
+          }
+        }
+      }
+    }
+  }
+  return super.beforeCharTyped(c,project,editor,file,fileType);
+}
