@@ -1,0 +1,32 @@
+{
+  final PsiElementPattern.Capture<PsiElement> inScenario=psiElement().inside(psiElement().withElementType(GherkinElementTypes.SCENARIOS));
+  final PsiElementPattern.Capture<PsiElement> inStep=psiElement().inside(psiElement().withElementType(GherkinElementTypes.STEP));
+  extend(CompletionType.BASIC,psiElement().inFile(psiElement(GherkinFile.class)),new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      final PsiFile psiFile=parameters.getOriginalFile();
+      if (psiFile instanceof GherkinFile) {
+        final PsiElement position=parameters.getPosition();
+        final PsiElement coveringElement=PsiTreeUtil.getParentOfType(position,GherkinStep.class,GherkinFeature.class,PsiFileSystemItem.class);
+        if (coveringElement instanceof PsiFileSystemItem) {
+          addFeatureKeywords(result,psiFile,position);
+        }
+ else         if (coveringElement instanceof GherkinFeature) {
+          addScenarioKeywords(result,psiFile,position);
+        }
+      }
+    }
+  }
+);
+  extend(CompletionType.BASIC,inScenario.andNot(inStep),new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      addStepKeywords(result,parameters.getOriginalFile());
+    }
+  }
+);
+  extend(CompletionType.BASIC,inStep,new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      addStepDefinitions(result,parameters.getOriginalFile());
+    }
+  }
+);
+}
