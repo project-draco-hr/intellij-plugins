@@ -1,0 +1,16 @@
+{
+  final List<TextRange> result=new ArrayList<TextRange>();
+  if (editor.getSettings().isCamelWords()) {
+    result.addAll(super.select(e,editorText,cursorOffset,editor));
+  }
+  final GherkinStep step=(GherkinStep)e.getParent();
+  final CucumberStepReference reference=(CucumberStepReference)step.getReference();
+  final AbstractStepDefinition definition=reference != null ? reference.resolveToDefinition() : null;
+  if (definition != null) {
+    final List<TextRange> ranges=GherkinPsiUtil.buildParameterRanges(step,definition,step.getTextOffset() + reference.getRangeInElement().getStartOffset());
+    result.addAll(ranges);
+    result.addAll(buildAdditionalRanges(ranges,editorText));
+  }
+  buildAdditionalRanges(result,editorText);
+  return result;
+}
