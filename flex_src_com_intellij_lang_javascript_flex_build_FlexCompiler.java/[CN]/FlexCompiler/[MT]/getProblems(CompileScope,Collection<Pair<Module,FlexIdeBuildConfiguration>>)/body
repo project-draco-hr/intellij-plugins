@@ -1,0 +1,33 @@
+{
+  final Collection<Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem>> problems=new ArrayList<Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem>>();
+  for (  final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
+    final Consumer<FlashProjectStructureProblem> errorConsumer=new Consumer<FlashProjectStructureProblem>(){
+      public void consume(      final FlashProjectStructureProblem problem){
+        problems.add(Trinity.create(moduleAndBC.first,moduleAndBC.second,problem));
+      }
+    }
+;
+    checkConfiguration(moduleAndBC.first,moduleAndBC.second,false,errorConsumer);
+    if (moduleAndBC.second.getNature().isMobilePlatform() && moduleAndBC.second.getNature().isApp()) {
+      final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(scope);
+      if (runConfig instanceof FlashRunConfiguration) {
+        final FlashRunnerParameters params=((FlashRunConfiguration)runConfig).getRunnerParameters();
+        if (moduleAndBC.first.getName().equals(params.getModuleName()) && moduleAndBC.second.getName().equals(params.getBCName())) {
+          if (params.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
+            checkPackagingOptions(moduleAndBC.second.getAndroidPackagingOptions(),errorConsumer);
+          }
+ else           if (params.getMobileRunTarget() == AirMobileRunTarget.iOSDevice) {
+            checkPackagingOptions(moduleAndBC.second.getIosPackagingOptions(),errorConsumer);
+          }
+        }
+      }
+    }
+  }
+  checkSimilarOutputFiles(modulesAndBCsToCompile,new Consumer<Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem>>(){
+    public void consume(    final Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem> trinity){
+      problems.add(trinity);
+    }
+  }
+);
+  return problems;
+}

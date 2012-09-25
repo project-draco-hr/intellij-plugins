@@ -1,0 +1,15 @@
+{
+  try {
+    final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCsToCompile=FlexCompiler.getModulesAndBCsToCompile(context.getCompileScope());
+    final Collection<Trinity<Module,FlexIdeBuildConfiguration,FlashProjectStructureProblem>> problems=FlexCompiler.getProblems(context.getCompileScope(),modulesAndBCsToCompile);
+    if (!problems.isEmpty()) {
+      reportProblems(context,problems);
+      return false;
+    }
+  }
+ catch (  ConfigurationException e) {
+    context.addMessage(CompilerMessageCategory.ERROR,FlexBundle.message("project.setup.problem",e.getMessage()),null,-1,-1);
+    return false;
+  }
+  return true;
+}
