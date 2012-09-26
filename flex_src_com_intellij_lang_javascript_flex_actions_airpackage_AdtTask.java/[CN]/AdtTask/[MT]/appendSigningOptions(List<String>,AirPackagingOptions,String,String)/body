@@ -11,7 +11,13 @@
   command.add(FileUtil.toSystemDependentName(tempCertificate ? AirPackageUtil.getTempKeystorePath() : signingOptions.getKeystorePath()));
   command.add("-storepass");
   command.add(tempCertificate ? AirPackageUtil.TEMP_KEYSTORE_PASSWORD : keystorePassword);
-  if (!tempCertificate) {
+  if (tempCertificate) {
+    if (packagingOptions instanceof AirDesktopPackagingOptions) {
+      command.add("-tsa");
+      command.add("none");
+    }
+  }
+ else {
     if (!signingOptions.getKeyAlias().isEmpty() && !keyPassword.isEmpty()) {
       command.add("-keypass");
       command.add(keyPassword);
