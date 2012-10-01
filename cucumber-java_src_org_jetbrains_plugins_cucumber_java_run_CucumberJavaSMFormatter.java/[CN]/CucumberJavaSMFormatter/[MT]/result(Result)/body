@@ -1,2 +1,23 @@
 {
+  String stepFullName=getName(currentStep);
+  if (result.getStatus().equals(Result.FAILED)) {
+    String fullMessage=result.getErrorMessage().replace("\r","").replace("\t","  ");
+    String[] messageInfo=fullMessage.split("\n",2);
+    final String message;
+    final String details;
+    if (messageInfo.length == 2) {
+      message=messageInfo[0].trim();
+      details=messageInfo[1].trim();
+    }
+ else {
+      message=fullMessage;
+      details="";
+    }
+    outCommand(String.format(TEMPLATE_TEST_FAILED,getCurrentTime(),escape(details),escape(message),stepFullName),true);
+  }
+ else   if (result.getStatus().equals(RESULT_STATUS_PENDING)) {
+    outCommand(String.format(TEMPLATE_TEST_PENDING,stepFullName,getCurrentTime()),true);
+  }
+  String currentTime=getCurrentTime();
+  outCommand(String.format(TEMPLATE_TEST_FINISHED,currentTime,currentTime,stepFullName),true);
 }
