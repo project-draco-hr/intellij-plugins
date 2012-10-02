@@ -15,20 +15,21 @@
     return;
   }
   final String compilationCommand=command.substring(colonPos + 1);
-  final boolean mxmlc=compilationCommand.startsWith("mxmlc ");
-  if (!mxmlc && !compilationCommand.startsWith("compc")) {
+  final boolean isSwf=compilationCommand.startsWith("mxmlc ");
+  if (!isSwf && !compilationCommand.startsWith("compc")) {
     sendMessage("Error: Incorrect compilation command: [" + compilationCommand + "]");
     sendMessage(COMPILATION_FINISHED);
     return;
   }
-  final OutputLogger logger=new OutputLogger(this,commandNumberStr + ":");
-  final SdkSpecificHandler sdkSpecificHandler=getSdkSpecificHandler(mxmlc);
+  final String logMessagePrefix=commandNumberStr + ":";
+  final OutputLogger logger=new OutputLogger(this,logMessagePrefix);
+  final SdkSpecificHandler sdkSpecificHandler=getSdkSpecificHandler();
   if (sdkSpecificHandler == null) {
     logger.log("Error: Flex SDK " + SDK_MAJOR_VERSION + '.'+ SDK_MINOR_VERSION+ '.'+ SDK_REVISION_VERSION+ " is not supported by built-in compiler shell. Please change compiler at File | Settings | Compiler | Flex Compiler.");
     logger.log(COMPILATION_FINISHED);
     return;
   }
-  final CompilationThread compilationThread=new CompilationThread(sdkSpecificHandler,getParams(compilationCommand),logger);
+  final CompilationThread compilationThread=new CompilationThread(isSwf,sdkSpecificHandler,getParams(compilationCommand),logger);
   compilationThread.setPriority(Thread.MAX_PRIORITY);
   compilationThread.setDaemon(true);
   compilationThread.start();
