@@ -1,0 +1,23 @@
+{
+  PsiFile file=element.getContainingFile();
+  if (file instanceof GherkinFile) {
+    GherkinFeature feature=getChildOfType(file,GherkinFeature.class);
+    if (feature != null) {
+      List<GherkinScenario> scenarioList=getChildrenOfTypeAsList(feature,GherkinScenario.class);
+      for (      GherkinScenario scenario : scenarioList) {
+        String result=getGlue(scenario.getSteps());
+        if (result != null) {
+          return result;
+        }
+      }
+      List<GherkinScenarioOutline> scenarioOutlineList=getChildrenOfTypeAsList(feature,GherkinScenarioOutline.class);
+      for (      GherkinScenarioOutline scenario : scenarioOutlineList) {
+        String result=getGlue(scenario.getSteps());
+        if (result != null) {
+          return result;
+        }
+      }
+    }
+  }
+  return "";
+}
