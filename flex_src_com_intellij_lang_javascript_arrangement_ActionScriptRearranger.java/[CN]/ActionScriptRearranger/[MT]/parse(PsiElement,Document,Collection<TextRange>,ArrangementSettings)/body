@@ -1,0 +1,37 @@
+{
+  final PsiFile file=root.getContainingFile();
+  if (!(file instanceof JSFile))   return Collections.emptyList();
+  final JSClass jsClass=JSPsiImplUtils.findClass((JSFile)file);
+  if (jsClass == null)   return Collections.emptyList();
+  final List<ActionScriptArrangementEntry> result=new SortedList<ActionScriptArrangementEntry>(ActionScriptArrangementEntry.COMPARATOR);
+  final JSBlockStatement[] blockStatements=PsiTreeUtil.getChildrenOfType(jsClass,JSBlockStatement.class);
+  if (blockStatements != null) {
+    for (    JSBlockStatement blockStatement : blockStatements) {
+      ContainerUtil.addIfNotNull(result,ActionScriptArrangementEntry.create(blockStatement,ranges,document));
+    }
+  }
+  for (  final JSVariable field : jsClass.getFields()) {
+    ContainerUtil.addIfNotNull(result,ActionScriptArrangementEntry.create(field,ranges,document));
+  }
+  final Map<JSFunction,ActionScriptArrangementEntry> functionToEntry=new THashMap<JSFunction,ActionScriptArrangementEntry>();
+  for (  final JSFunction function : jsClass.getFunctions()) {
+    final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(function,ranges,document);
+    if (entry != null) {
+      functionToEntry.put(function,entry);
+      result.add(entry);
+    }
+  }
+  for (  Map.Entry<JSFunction,ActionScriptArrangementEntry> entry : functionToEntry.entrySet()) {
+    final JSFunction function=entry.getKey();
+    final String name=function.getName();
+    if (function.isSetProperty() && name != null) {
+      final ActionScriptArrangementEntry setterEntry=entry.getValue();
+      final JSFunction getter=jsClass.findFunctionByNameAndKind(name,JSFunction.FunctionKind.GETTER);
+      final ActionScriptArrangementEntry getterEntry=functionToEntry.get(getter);
+      if (getterEntry != null) {
+        setterEntry.addDependency(getterEntry);
+      }
+    }
+  }
+  return result;
+}
