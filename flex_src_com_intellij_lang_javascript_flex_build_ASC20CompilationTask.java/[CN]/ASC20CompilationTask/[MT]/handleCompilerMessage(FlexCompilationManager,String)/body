@@ -1,0 +1,33 @@
+{
+  if ("^".equals(message.trim())) {
+    myPreviousUnreportedMessage=null;
+    return true;
+  }
+  if ("command line".equals(message)) {
+    printPreviousLine(compilationManager);
+    return true;
+  }
+  if (message.startsWith("Exception in thread \"")) {
+    printPreviousLine(compilationManager);
+    compilationManager.addMessage(this,CompilerMessageCategory.ERROR,message,null,-1,-1);
+    return false;
+  }
+  if (message.startsWith("Warning: ") || message.startsWith("Error: ") || message.startsWith("Syntax error: ")|| message.startsWith("Internal error: ")) {
+    final CompilerMessageCategory category=message.startsWith("Warning: ") ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR;
+    final int index=message.indexOf(": ");
+    final String usefulMessage=message.substring(index);
+    final Pair<String,Integer> urlAndLine=getUrlAndLine(myPreviousUnreportedMessage);
+    if (urlAndLine == null) {
+      printPreviousLine(compilationManager);
+      compilationManager.addMessage(this,category,usefulMessage,null,-1,-1);
+    }
+ else {
+      compilationManager.addMessage(this,category,usefulMessage,urlAndLine.first,urlAndLine.second,-1);
+    }
+    myPreviousUnreportedMessage=null;
+    return category == CompilerMessageCategory.WARNING;
+  }
+  printPreviousLine(compilationManager);
+  myPreviousUnreportedMessage=message;
+  return true;
+}

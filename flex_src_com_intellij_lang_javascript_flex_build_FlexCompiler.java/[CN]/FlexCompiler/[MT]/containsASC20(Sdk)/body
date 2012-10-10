@@ -1,0 +1,15 @@
+{
+  if (sdk.getSdkType() == FlexmojosSdkType.getInstance()) {
+    final SdkAdditionalData data=sdk.getSdkAdditionalData();
+    if (data instanceof FlexmojosSdkAdditionalData) {
+      for (      String path : ((FlexmojosSdkAdditionalData)data).getFlexCompilerClasspath()) {
+        final String fileName=PathUtil.getFileName(path);
+        if (fileName.startsWith("compiler-") && fileName.endsWith(".jar") && new File(path).isFile()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  return new File(sdk.getHomePath() + "/lib/compiler.jar").isFile();
+}
