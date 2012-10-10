@@ -22,10 +22,16 @@
   XDebuggerManager xDebuggerManager=XDebuggerManager.getInstance(project);
   XDebugSession xDebugSession=xDebuggerManager.startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      return debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+      JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+      ((V8Connection)debugProcess.getBrowserConnection()).queueRequest(new Consumer<JavascriptVm>(){
+        @Override public void consume(        JavascriptVm javascriptVm){
+          resumeJstdClientRunning(executionResult.getProcessHandler());
+        }
+      }
+);
+      return debugProcess;
     }
   }
 );
-  resumeJstdClientRunning(executionResult.getProcessHandler());
   return xDebugSession.getRunContentDescriptor();
 }
