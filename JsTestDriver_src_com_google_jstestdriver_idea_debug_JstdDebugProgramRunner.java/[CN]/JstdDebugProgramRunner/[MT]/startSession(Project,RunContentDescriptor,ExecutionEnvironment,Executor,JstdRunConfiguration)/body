@@ -7,7 +7,7 @@
   final JSDebugEngine<Connection> debugEngine=debugBrowserInfo.getDebugEngine();
   if (!debugEngine.prepareDebugger(project))   return null;
   final String url;
-  final Connection connection=debugEngine.openConnection();
+  final Connection connection=debugEngine.openConnection(false);
   if (debugEngine instanceof ChromeDebuggerEngine) {
     url="http://localhost:" + JstdToolWindowPanel.serverPort + debugBrowserInfo.getCapturedBrowserUrl();
   }
@@ -22,10 +22,16 @@
   XDebuggerManager xDebuggerManager=XDebuggerManager.getInstance(project);
   XDebugSession xDebugSession=xDebuggerManager.startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      return debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+      JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+      ((V8Connection)debugProcess.getBrowserConnection()).queueRequest(new Consumer<JavascriptVm>(){
+        @Override public void consume(        JavascriptVm javascriptVm){
+          resumeJstdClientRunning(executionResult.getProcessHandler());
+        }
+      }
+);
+      return debugProcess;
     }
   }
 );
-  resumeJstdClientRunning(executionResult.getProcessHandler());
   return xDebugSession.getRunContentDescriptor();
 }

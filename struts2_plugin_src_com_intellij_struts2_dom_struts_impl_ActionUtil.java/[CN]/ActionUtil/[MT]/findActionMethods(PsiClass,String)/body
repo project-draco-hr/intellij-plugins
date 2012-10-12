@@ -4,16 +4,13 @@
     return Collections.emptyList();
   }
   final GlobalSearchScope scope=GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module,false);
+  final PsiClassType stringType=PsiType.getJavaLangString(actionClass.getManager(),scope);
   final PsiElementFactory psiElementFactory=JavaPsiFacade.getInstance(actionClass.getProject()).getElementFactory();
-  final PsiClassType stringType=psiElementFactory.createTypeByFQClassName(CommonClassNames.JAVA_LANG_STRING,scope);
   final PsiClassType resultType=psiElementFactory.createTypeByFQClassName("com.opensymphony.xwork2.Result",scope);
   final boolean searchForMethod=methodName != null;
   final List<PsiMethod> actionMethods=new SmartList<PsiMethod>();
-  for (  final PsiMethod psiMethod : actionClass.getAllMethods()) {
-    final String psiMethodName=psiMethod.getName();
-    if (searchForMethod && !Comparing.equal(psiMethodName,methodName)) {
-      continue;
-    }
+  final PsiMethod[] methods=searchForMethod ? actionClass.findMethodsByName(methodName,true) : actionClass.getAllMethods();
+  for (  final PsiMethod psiMethod : methods) {
     if (psiMethod.isConstructor()) {
       continue;
     }
@@ -24,6 +21,7 @@
     if (psiMethod.getParameterList().getParametersCount() != 0) {
       continue;
     }
+    final String psiMethodName=psiMethod.getName();
     if (Comparing.equal(psiMethodName,"toString")) {
       continue;
     }
@@ -32,9 +30,17 @@
     }
     final PsiType type=psiMethod.getReturnType();
     if (type != null && type instanceof PsiClassType && (type.equals(stringType) || type.equals(resultType))) {
-      actionMethods.add(psiMethod);
       if (searchForMethod) {
-        return actionMethods;
+        return Collections.singletonList(psiMethod);
+      }
+      final Condition<PsiMethod> nameCondition=new Condition<PsiMethod>(){
+        @Override public boolean value(        PsiMethod method){
+          return psiMethodName.equals(method.getName());
+        }
+      }
+;
+      if (!ContainerUtil.exists(actionMethods,nameCondition)) {
+        actionMethods.add(psiMethod);
       }
     }
   }
