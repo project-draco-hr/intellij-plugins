@@ -1,0 +1,25 @@
+{
+  Set<JSClass> classes=new HashSet<JSClass>();
+  for (  SmartPsiElementPointer<JSClass> pointer : classesAddedByUser.values()) {
+    classes.add(pointer.getElement());
+  }
+  final GlobalSearchScope searchScope=GlobalSearchScope.allScope(getProject());
+  if (initialPackage != null && FlashUmlElementManager.packageExists(getProject(),initialPackage,searchScope)) {
+    classes.addAll(getClasses(initialPackage,searchScope));
+  }
+  for (  String psiPackage : packages) {
+    if (FlashUmlElementManager.packageExists(getProject(),psiPackage,searchScope)) {
+      classes.addAll(getClasses(psiPackage,searchScope));
+    }
+  }
+  classes.remove(null);
+  Set<JSClass> temp=new HashSet<JSClass>();
+  for (  JSClass aClass : classes) {
+    if (!aClass.isValid())     temp.add(aClass);
+  }
+  for (  SmartPsiElementPointer<JSClass> cls : classesRemovedByUser.values()) {
+    classes.remove(cls.getElement());
+  }
+  classes.removeAll(temp);
+  return classes;
+}
