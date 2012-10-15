@@ -14,19 +14,10 @@
 ;
   myDebugOverNetworkRadioButton.addActionListener(debugTransportListener);
   myDebugOverUSBRadioButton.addActionListener(debugTransportListener);
-  myAppDescriptorForEmulatorCombo.setModel(new DefaultComboBoxModel(AppDescriptorForEmulator.values()));
-  myAppDescriptorForEmulatorCombo.setRenderer(new ListCellRendererWrapper<AppDescriptorForEmulator>(){
-    @Override public void customize(    JList list,    AppDescriptorForEmulator value,    int index,    boolean selected,    boolean hasFocus){
-      final FlexIdeBuildConfiguration bc=myBCCombo.getBC();
-switch (value) {
-case Android:
-        setText(getDescriptorForEmulatorText("Android",bc == null ? null : bc.getAndroidPackagingOptions()));
-      break;
-case IOS:
-    setText(getDescriptorForEmulatorText("iOS",bc == null ? null : bc.getIosPackagingOptions()));
-  break;
-}
-}
-}
+  initAppDescriptorForEmulatorCombo(myAppDescriptorForEmulatorCombo,new NullableComputable<FlexIdeBuildConfiguration>(){
+    @Nullable public FlexIdeBuildConfiguration compute(){
+      return myBCCombo.getBC();
+    }
+  }
 );
 }
