@@ -10,8 +10,15 @@
       ContainerUtil.addIfNotNull(result,ActionScriptArrangementEntry.create(blockStatement,ranges,document));
     }
   }
+  final Map<JSVariable,ActionScriptArrangementEntry> varToEntry=new THashMap<JSVariable,ActionScriptArrangementEntry>();
   for (  final JSVariable field : jsClass.getFields()) {
-    ContainerUtil.addIfNotNull(result,ActionScriptArrangementEntry.create(field,ranges,document));
+    final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(field,ranges,document);
+    if (entry != null) {
+      if (entry.getType() == VAR) {
+        varToEntry.put(field,entry);
+      }
+      result.add(entry);
+    }
   }
   final Map<JSFunction,ActionScriptArrangementEntry> functionToEntry=new THashMap<JSFunction,ActionScriptArrangementEntry>();
   for (  final JSFunction function : jsClass.getFunctions()) {
@@ -21,15 +28,33 @@
       result.add(entry);
     }
   }
-  for (  Map.Entry<JSFunction,ActionScriptArrangementEntry> entry : functionToEntry.entrySet()) {
-    final JSFunction function=entry.getKey();
+  for (  Map.Entry<JSFunction,ActionScriptArrangementEntry> mapEntry : functionToEntry.entrySet()) {
+    final JSFunction function=mapEntry.getKey();
     final String name=function.getName();
     if (function.isSetProperty() && name != null) {
-      final ActionScriptArrangementEntry setterEntry=entry.getValue();
+      final ActionScriptArrangementEntry setterEntry=mapEntry.getValue();
       final JSFunction getter=jsClass.findFunctionByNameAndKind(name,JSFunction.FunctionKind.GETTER);
       final ActionScriptArrangementEntry getterEntry=functionToEntry.get(getter);
       if (getterEntry != null) {
         setterEntry.addDependency(getterEntry);
+      }
+    }
+  }
+  if (settings != null && groupPropertyFieldWithGetterSetter(settings)) {
+    final JSCodeStyleSettings codeStyleSettings=CodeStyleSettingsManager.getSettings(jsClass.getProject()).getCustomSettings(JSCodeStyleSettings.class);
+    for (    Map.Entry<JSVariable,ActionScriptArrangementEntry> mapEntry : varToEntry.entrySet()) {
+      final JSVariable jsVar=mapEntry.getKey();
+      final ActionScriptArrangementEntry varEntry=mapEntry.getValue();
+      if (StringUtil.startsWith(jsVar.getName(),codeStyleSettings.FIELD_PREFIX)) {
+        final String propertyName=JSResolveUtil.transformVarNameToAccessorName(jsVar.getName(),jsClass.getProject());
+        JSFunction getterOrSetter=jsClass.findFunctionByNameAndKind(propertyName,JSFunction.FunctionKind.GETTER);
+        if (getterOrSetter == null)         getterOrSetter=jsClass.findFunctionByNameAndKind(propertyName,JSFunction.FunctionKind.SETTER);
+        final ActionScriptArrangementEntry propertyEntry=getterOrSetter == null ? null : functionToEntry.get(getterOrSetter);
+        if (propertyEntry != null) {
+          varEntry.setType(propertyEntry.getType());
+          varEntry.setModifiers(propertyEntry.getModifiers());
+          propertyEntry.addDependency(varEntry);
+        }
       }
     }
   }
