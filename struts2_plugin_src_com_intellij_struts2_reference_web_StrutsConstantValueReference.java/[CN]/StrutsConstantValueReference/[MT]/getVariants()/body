@@ -21,6 +21,20 @@
   if (resolvingConverter instanceof CustomReferenceConverter) {
     final PsiReference[] references=((CustomReferenceConverter)resolvingConverter).createReferences((GenericDomValue)paramValueElement,myElement,convertContext);
     for (    final PsiReference customReference : references) {
+      if (customReference instanceof JavaClassReference) {
+        JavaClassReference javaClassReference=(JavaClassReference)customReference;
+        String[] names=javaClassReference.getExtendClassNames();
+        PsiElement context=javaClassReference.getCompletionContext();
+        if (names != null && context instanceof PsiPackage) {
+          javaClassReference.processSubclassVariants((PsiPackage)context,names,new Consumer<LookupElement>(){
+            @Override public void consume(            LookupElement element){
+              variants.add(element);
+            }
+          }
+);
+          continue;
+        }
+      }
       Collections.addAll(variants,customReference.getVariants());
     }
   }
