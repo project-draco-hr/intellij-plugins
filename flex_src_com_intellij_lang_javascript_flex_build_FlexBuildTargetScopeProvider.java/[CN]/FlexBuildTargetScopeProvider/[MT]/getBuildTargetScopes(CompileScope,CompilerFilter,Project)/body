@@ -1,0 +1,31 @@
+{
+  final FlexCompiler flexCompiler=FlexCompiler.getInstance(project);
+  if (!filter.acceptCompiler(flexCompiler))   return Collections.emptyList();
+  final TargetTypeBuildScope.Builder builder=TargetTypeBuildScope.newBuilder().setTypeId(FlexBuildTargetType.INSTANCE.getTypeId());
+  final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(baseScope);
+  final Collection<Pair<Module,FlexIdeBuildConfiguration>> bcsToCompileForPackaging=FlexCompiler.getBCsToCompileForPackaging(baseScope);
+  try {
+    for (    Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : FlexCompiler.getModulesAndBCsToCompile(baseScope)) {
+      final Module module=moduleAndBC.first;
+      final FlexIdeBuildConfiguration bc=moduleAndBC.second;
+      if (bcsToCompileForPackaging != null && contains(bcsToCompileForPackaging,module,bc)) {
+        final boolean forcedDebugStatus=FlexCompiler.getForcedDebugStatus(project,bc);
+        builder.addTargetId(FlexCommonUtils.getBuildTargetId(module.getName(),bc.getName(),forcedDebugStatus));
+      }
+ else       if (bc.isTempBCForCompilation()) {
+        LOG.assertTrue(runConfiguration instanceof FlashRunConfiguration || runConfiguration instanceof FlexUnitRunConfiguration,bc.getName());
+        final BCBasedRunnerParameters params=runConfiguration instanceof FlashRunConfiguration ? ((FlashRunConfiguration)runConfiguration).getRunnerParameters() : ((FlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
+        LOG.assertTrue(params.getModuleName().equals(module.getName()),"Module name in run config: " + params.getModuleName() + ", expected: "+ module.getName());
+        LOG.assertTrue(params.getBCName().equals(bc.getName()),"BC name in run config: " + params.getBCName() + ", expected: "+ bc.getName());
+        builder.addTargetId(FlexCommonUtils.getBuildTargetIdForRunConfig(runConfiguration.getType().getId(),runConfiguration.getName()));
+      }
+ else {
+        builder.addTargetId(FlexCommonUtils.getBuildTargetId(module.getName(),bc.getName(),null));
+      }
+    }
+  }
+ catch (  ConfigurationException e) {
+    LOG.error(e);
+  }
+  return Collections.singletonList(builder.build());
+}
