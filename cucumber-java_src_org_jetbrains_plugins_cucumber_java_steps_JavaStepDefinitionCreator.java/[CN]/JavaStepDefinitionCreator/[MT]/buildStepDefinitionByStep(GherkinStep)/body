@@ -1,7 +1,6 @@
 {
   final PsiElementFactory factory=JavaPsiFacade.getInstance(step.getProject()).getElementFactory();
   final Step cucumberStep=new Step(new ArrayList<Comment>(),step.getKeyword().getText(),step.getStepName(),0,null,null);
-  final StringBuilder snippet=new StringBuilder(new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException"));
-  snippet.insert(1,"cucumber.annotation.en.");
-  return factory.createMethodFromText(snippet.toString(),step);
+  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException").replaceFirst("@","@cucumber.annotation.en.").replaceAll("\\\\\\\\","\\\\");
+  return factory.createMethodFromText(snippet,step);
 }
