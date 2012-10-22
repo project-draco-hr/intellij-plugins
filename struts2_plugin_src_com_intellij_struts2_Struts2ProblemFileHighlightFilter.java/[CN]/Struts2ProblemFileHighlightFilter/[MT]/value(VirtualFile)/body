@@ -9,18 +9,22 @@
   if (StrutsFacet.getInstance(module) == null) {
     return false;
   }
-  final PsiFile file=ApplicationManager.getApplication().runReadAction(new NullableComputable<PsiFile>(){
-    @Override public PsiFile compute(){
-      return PsiManager.getInstance(project).findFile(virtualFile);
+  final boolean isStrutsXml=ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+    @Override public Boolean compute(){
+      final StrutsManager strutsManager=StrutsManager.getInstance(project);
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      return psiFile instanceof XmlFile && strutsManager.isStruts2ConfigFile((XmlFile)psiFile) && strutsManager.getModelByFile((XmlFile)psiFile) != null;
     }
   }
 );
-  if (file == null) {
-    return false;
-  }
-  final StrutsManager strutsManager=StrutsManager.getInstance(project);
-  if (strutsManager.isStruts2ConfigFile((XmlFile)file) && strutsManager.getModelByFile((XmlFile)file) != null) {
+  if (isStrutsXml) {
     return true;
   }
-  return ValidatorManager.getInstance(project).isValidatorsFile((XmlFile)file);
+  return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+    @Override public Boolean compute(){
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      return psiFile instanceof XmlFile && ValidatorManager.getInstance(project).isValidatorsFile((XmlFile)psiFile);
+    }
+  }
+);
 }
