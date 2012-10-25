@@ -1,0 +1,25 @@
+{
+  Map<Module,List<FlexBCConfigurable>> treeItems=new HashMap<Module,List<FlexBCConfigurable>>();
+  FlexBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
+  for (  Module module : ModuleStructureConfigurable.getInstance(project).getModules()) {
+    if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+      continue;
+    }
+    for (    CompositeConfigurable configurable : configurator.getBCConfigurables(module)) {
+      FlexBCConfigurable flexBCConfigurable=FlexBCConfigurable.unwrap(configurable);
+      if (!filter.value(flexBCConfigurable)) {
+        continue;
+      }
+      List<FlexBCConfigurable> list=treeItems.get(module);
+      if (list == null) {
+        list=new ArrayList<FlexBCConfigurable>();
+        treeItems.put(module,list);
+      }
+      list.add(flexBCConfigurable);
+    }
+  }
+  if (treeItems.isEmpty()) {
+    return null;
+  }
+  return new ChooseBuildConfigurationDialog(title,labelText,project,allowEmptySelection,treeItems);
+}

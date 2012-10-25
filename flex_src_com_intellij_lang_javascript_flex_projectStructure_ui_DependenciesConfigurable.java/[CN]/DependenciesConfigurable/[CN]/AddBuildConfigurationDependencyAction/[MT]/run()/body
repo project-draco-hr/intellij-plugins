@@ -1,16 +1,16 @@
 {
-  final Collection<FlexIdeBCConfigurable> dependencies=new ArrayList<FlexIdeBCConfigurable>();
+  final Collection<FlexBCConfigurable> dependencies=new ArrayList<FlexBCConfigurable>();
   List<MyTableItem> items=myTable.getItems();
   for (  MyTableItem item : items) {
     if (item instanceof BCItem) {
-      FlexIdeBCConfigurable configurable=((BCItem)item).configurable;
+      FlexBCConfigurable configurable=((BCItem)item).configurable;
       if (configurable != null) {
         dependencies.add(configurable);
       }
     }
   }
-  ChooseBuildConfigurationDialog d=ChooseBuildConfigurationDialog.createForApplicableBCs(FlexBundle.message("add.bc.dependency.dialog.title"),FlexBundle.message("add.dependency.bc.dialog.label"),myProject,false,new Condition<FlexIdeBCConfigurable>(){
-    @Override public boolean value(    final FlexIdeBCConfigurable configurable){
+  ChooseBuildConfigurationDialog d=ChooseBuildConfigurationDialog.createForApplicableBCs(FlexBundle.message("add.bc.dependency.dialog.title"),FlexBundle.message("add.dependency.bc.dialog.label"),myProject,false,new Condition<FlexBCConfigurable>(){
+    @Override public boolean value(    final FlexBCConfigurable configurable){
       if (dependencies.contains(configurable) || configurable.isParentFor(DependenciesConfigurable.this)) {
         return false;
       }
@@ -29,9 +29,9 @@
   if (!d.isOK()) {
     return;
   }
-  FlexIdeBCConfigurable[] configurables=d.getSelectedConfigurables();
+  FlexBCConfigurable[] configurables=d.getSelectedConfigurables();
   DefaultMutableTreeNode root=myTable.getRoot();
-  for (  FlexIdeBCConfigurable configurable : configurables) {
+  for (  FlexBCConfigurable configurable : configurables) {
     root.add(new DefaultMutableTreeNode(new BCItem(configurable),false));
   }
   myTable.refresh();

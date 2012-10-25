@@ -1,0 +1,38 @@
+{
+  if (configurations.isEmpty()) {
+    LOG.warn("No Flash build configurations found");
+    return new FlexBuildConfigurationImpl[]{new FlexBuildConfigurationImpl()};
+  }
+  List<FlexBuildConfigurationImpl> configList=new ArrayList<FlexBuildConfigurationImpl>(configurations);
+  for (  FlexBuildConfigurationImpl configuration : configList) {
+    if (StringUtil.isEmpty(configuration.getName())) {
+      LOG.warn("Empty build configuration name");
+      configuration.setName(myModule.getName());
+    }
+  }
+  Set<String> names=new HashSet<String>();
+  String duplicateName=null;
+  for (  FlexBuildConfiguration c : configList) {
+    if (StringUtil.isEmpty(c.getName())) {
+      LOG.warn("Empty build configuration name");
+      continue;
+    }
+    if (!names.add(c.getName())) {
+      duplicateName=c.getName();
+      break;
+    }
+  }
+  if (duplicateName != null) {
+    LOG.warn("Duplicate build configuration name: " + duplicateName);
+    List<String> uniqueNames=generateUniqueNames(ContainerUtil.map2List(configList,new Function<FlexBuildConfigurationImpl,String>(){
+      @Override public String fun(      FlexBuildConfigurationImpl bc){
+        return bc.getName();
+      }
+    }
+));
+    for (int i=0; i < configList.size(); i++) {
+      configList.get(i).setName(uniqueNames.get(i));
+    }
+  }
+  return configList.toArray(new FlexBuildConfigurationImpl[configList.size()]);
+}

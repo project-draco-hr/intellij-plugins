@@ -27,11 +27,11 @@
     context.addMessage(CompilerMessageCategory.INFORMATION,buf.toString(),null,-1,-1);
     final Collection<FlexCompilationTask> compilationTasks=new ArrayList<FlexCompilationTask>();
     for (    final ProcessingItem item : items) {
-      final Collection<FlexIdeBuildConfiguration> dependencies=new HashSet<FlexIdeBuildConfiguration>();
-      final FlexIdeBuildConfiguration bc=((MyProcessingItem)item).myBC;
+      final Collection<FlexBuildConfiguration> dependencies=new HashSet<FlexBuildConfiguration>();
+      final FlexBuildConfiguration bc=((MyProcessingItem)item).myBC;
       for (      final DependencyEntry entry : bc.getDependencies().getEntries()) {
         if (entry instanceof BuildConfigurationEntry) {
-          final FlexIdeBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
+          final FlexBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
           if (dependencyBC != null && !dependencyBC.isSkipCompile() && entry.getDependencyType().getLinkageType() != LinkageType.LoadInRuntime) {
             dependencies.add(dependencyBC);
           }
@@ -39,8 +39,8 @@
       }
       compilationTasks.add(createCompilationTask(((MyProcessingItem)item).myModule,bc,dependencies,builtInCompilerShell));
       if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
-        for (        FlexIdeBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
-          final ModifiableFlexIdeBuildConfiguration rlmBC=Factory.getTemporaryCopyForCompilation(bc);
+        for (        FlexBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
+          final ModifiableFlexBuildConfiguration rlmBC=Factory.getTemporaryCopyForCompilation(bc);
           rlmBC.setOutputType(OutputType.RuntimeLoadedModule);
           rlmBC.setOptimizeFor(rlm.OPTIMIZE ? bc.getName() : "");
           final String subdir=PathUtil.getParentPath(rlm.OUTPUT_FILE);
@@ -52,7 +52,7 @@
             rlmBC.setOutputFolder(outputFolder + "/" + subdir);
           }
           rlmBC.setUseHtmlWrapper(false);
-          rlmBC.setRLMs(Collections.<FlexIdeBuildConfiguration.RLMInfo>emptyList());
+          rlmBC.setRLMs(Collections.<FlexBuildConfiguration.RLMInfo>emptyList());
           rlmBC.setCssFilesToCompile(Collections.<String>emptyList());
           final ModifiableCompilerOptions compilerOptions=rlmBC.getCompilerOptions();
           compilerOptions.setResourceFilesMode(ResourceFilesMode.None);
@@ -62,7 +62,7 @@
         for (        String cssPath : bc.getCssFilesToCompile()) {
           final VirtualFile cssFile=LocalFileSystem.getInstance().findFileByPath(cssPath);
           if (cssFile == null)           continue;
-          final ModifiableFlexIdeBuildConfiguration cssBC=Factory.getTemporaryCopyForCompilation(bc);
+          final ModifiableFlexBuildConfiguration cssBC=Factory.getTemporaryCopyForCompilation(bc);
           cssBC.setOutputType(OutputType.Application);
           cssBC.setMainClass(cssPath);
           cssBC.setOutputFileName(FileUtil.getNameWithoutExtension(PathUtil.getFileName(cssPath)) + ".swf");
@@ -74,7 +74,7 @@
             cssBC.setOutputFolder(outputFolder + "/" + relativePath);
           }
           cssBC.setUseHtmlWrapper(false);
-          cssBC.setRLMs(Collections.<FlexIdeBuildConfiguration.RLMInfo>emptyList());
+          cssBC.setRLMs(Collections.<FlexBuildConfiguration.RLMInfo>emptyList());
           cssBC.setCssFilesToCompile(Collections.<String>emptyList());
           cssBC.getCompilerOptions().setResourceFilesMode(ResourceFilesMode.None);
           compilationTasks.add(createCompilationTask(((MyProcessingItem)item).myModule,cssBC,dependencies,builtInCompilerShell));

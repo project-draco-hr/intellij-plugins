@@ -1,0 +1,39 @@
+{
+  final Map<String,CodeContext> contextsOfModule=new THashMap<String,CodeContext>();
+  final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+  for (  DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry.getDependencyType().getLinkageType() == LinkageType.LoadInRuntime)     continue;
+    if (entry instanceof BuildConfigurationEntry) {
+      final FlexBuildConfiguration bcDependency=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (bcDependency != null && bcDependency.getOutputType() == OutputType.Library) {
+        addComponentsFromManifests(module,contextsOfModule,bcDependency,true);
+      }
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,rootManager);
+      if (orderEntry != null) {
+        for (        VirtualFile file : orderEntry.getRootFiles(OrderRootType.CLASSES)) {
+          handleFileDependency(module,contextsOfModule,file);
+        }
+      }
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      final Library library=FlexProjectRootsUtil.findOrderEntry(module.getProject(),(SharedLibraryEntry)entry);
+      if (library != null) {
+        for (        VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
+          handleFileDependency(module,contextsOfModule,file);
+        }
+      }
+    }
+  }
+  addComponentsFromManifests(module,contextsOfModule,bc,false);
+  final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
+  for (  Map.Entry<String,CodeContext> entry : contextsOfModule.entrySet()) {
+    contextHolder.putCodeContext(entry.getKey(),module,entry.getValue());
+  }
+  CodeContext codeContext=contextsOfModule.get(namespace);
+  if (codeContext == null) {
+    codeContext=CodeContextHolder.EMPTY;
+  }
+  return codeContext;
+}

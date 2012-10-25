@@ -1,0 +1,20 @@
+{
+  if (myActiveConfiguration == buildConfiguration) {
+    return;
+  }
+  if (!ArrayUtil.contains(buildConfiguration,myConfigurations)) {
+    throw new IllegalArgumentException("Build configuration " + buildConfiguration.getName() + " does not belong to module "+ (myModule != null ? myModule.getName() : "(dummy)"));
+  }
+  if (myModule != null) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        myActiveConfiguration=(FlexBuildConfigurationImpl)buildConfiguration;
+        resetHighlighting(myModule.getProject());
+      }
+    }
+);
+  }
+ else {
+    myActiveConfiguration=(FlexBuildConfigurationImpl)buildConfiguration;
+  }
+}

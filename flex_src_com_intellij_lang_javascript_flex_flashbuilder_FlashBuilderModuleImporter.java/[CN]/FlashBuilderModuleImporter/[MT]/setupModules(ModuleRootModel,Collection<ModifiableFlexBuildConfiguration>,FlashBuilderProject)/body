@@ -1,0 +1,18 @@
+{
+  for (  final FlashBuilderProject.FBRLMInfo rlm : fbProject.getModules()) {
+    ModifiableFlexBuildConfiguration hostApp=apps.iterator().next();
+    if (rlm.OPTIMIZE) {
+      final String hostAppMainClass=getMainClassFqn(fbProject,rlm.OPTIMIZE_FOR,rootModel.getSourceRootUrls());
+      for (      ModifiableFlexBuildConfiguration appBC : apps) {
+        if (hostAppMainClass.equals(appBC.getMainClass())) {
+          hostApp=appBC;
+          break;
+        }
+      }
+    }
+    final Collection<FlexBuildConfiguration.RLMInfo> rlms=new ArrayList<FlexBuildConfiguration.RLMInfo>(hostApp.getRLMs());
+    final String rlmMainClass=getMainClassFqn(fbProject,rlm.MAIN_CLASS_PATH,rootModel.getSourceRootUrls());
+    rlms.add(new FlexBuildConfiguration.RLMInfo(rlmMainClass,rlm.OUTPUT_PATH,rlm.OPTIMIZE));
+    hostApp.setRLMs(rlms);
+  }
+}

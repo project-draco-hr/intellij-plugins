@@ -1,0 +1,18 @@
+{
+  final Collection<FlexBuildConfiguration> bcsWithDisabledCompilation=new ArrayList<FlexBuildConfiguration>();
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : selectedBCs) {
+    if (moduleAndBC.second.isSkipCompile()) {
+      bcsWithDisabledCompilation.add(moduleAndBC.second);
+    }
+  }
+  if (!bcsWithDisabledCompilation.isEmpty()) {
+    final StringBuilder bcs=new StringBuilder();
+    for (    FlexBuildConfiguration bc : bcsWithDisabledCompilation) {
+      bcs.append("<b>").append(StringUtil.escapeXml(bc.getName())).append("</b><br>");
+    }
+    final String message=FlexBundle.message("package.bc.with.disabled.compilation",bcsWithDisabledCompilation.size(),bcs.toString());
+    final int answer=Messages.showYesNoDialog(project,message,FlexBundle.message("package.air.application.title"),Messages.getWarningIcon());
+    return answer == Messages.YES;
+  }
+  return true;
+}

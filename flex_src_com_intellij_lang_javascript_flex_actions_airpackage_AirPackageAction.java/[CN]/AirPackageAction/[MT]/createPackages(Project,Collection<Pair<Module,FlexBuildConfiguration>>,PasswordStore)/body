@@ -1,0 +1,29 @@
+{
+  final Collection<Pair<ExternalTask,String>> tasksAndPackagePaths=new ArrayList<Pair<ExternalTask,String>>();
+  final AirPackageProjectParameters params=AirPackageProjectParameters.getInstance(project);
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : modulesAndBCs) {
+    final FlexBuildConfiguration bc=moduleAndBC.second;
+    final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+    if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+      final DesktopPackageType packageType=params.desktopPackageType;
+      final ExternalTask task=AirPackageUtil.createAirDesktopTask(moduleAndBC.first,bc,packageType,passwords);
+      final String packagePath=outputFolder + "/" + bc.getAirDesktopPackagingOptions().getPackageFileName()+ packageType.getFileExtension();
+      tasksAndPackagePaths.add(Pair.create(task,packagePath));
+    }
+ else {
+      if (bc.getAndroidPackagingOptions().isEnabled()) {
+        final AndroidPackagingOptions packagingOptions=bc.getAndroidPackagingOptions();
+        final ExternalTask task=AirPackageUtil.createAndroidPackageTask(moduleAndBC.first,bc,params.androidPackageType,params.apkCaptiveRuntime,params.apkDebugListenPort,passwords);
+        final String packagePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ ".apk";
+        tasksAndPackagePaths.add(Pair.create(task,packagePath));
+      }
+      if (bc.getIosPackagingOptions().isEnabled()) {
+        final IosPackagingOptions packagingOptions=bc.getIosPackagingOptions();
+        final ExternalTask task=AirPackageUtil.createIOSPackageTask(moduleAndBC.first,bc,params.iosPackageType,params.iosFastPackaging,bc.getIosPackagingOptions().getSigningOptions().getIOSSdkPath(),0,passwords);
+        final String packagePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ ".ipa";
+        tasksAndPackagePaths.add(Pair.create(task,packagePath));
+      }
+    }
+  }
+  createPackages(project,tasksAndPackagePaths);
+}

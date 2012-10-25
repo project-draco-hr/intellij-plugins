@@ -1,0 +1,25 @@
+{
+  final Collection<ModifiableFlexBuildConfiguration> allApps=new ArrayList<ModifiableFlexBuildConfiguration>();
+  allApps.add(mainBC);
+  for (  String mainClass : fbProject.getApplicationClassNames()) {
+    final ModifiableFlexBuildConfiguration bc=myFlexConfigEditor.copyConfiguration(mainBC,mainBC.getNature());
+    final String shortClassName=StringUtil.getShortName(mainClass);
+    bc.setName(shortClassName);
+    bc.setMainClass(mainClass);
+    bc.setOutputFileName(shortClassName + ".swf");
+    if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+      setupAirDescriptor(bc,rootModel);
+      bc.getAirDesktopPackagingOptions().setPackageFileName(shortClassName);
+    }
+    if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+      setupAirDescriptor(bc,rootModel);
+      bc.getAndroidPackagingOptions().setPackageFileName(shortClassName);
+      bc.getIosPackagingOptions().setPackageFileName(shortClassName);
+    }
+    FlexModuleBuilder.createRunConfiguration(rootModel.getModule(),bc);
+    allApps.add(bc);
+  }
+  if (BCUtils.canHaveRLMsAndRuntimeStylesheets(mainBC)) {
+    setupModules(rootModel,allApps,fbProject);
+  }
+}

@@ -1,0 +1,17 @@
+{
+  if (node.isLeaf()) {
+    if (node.isChecked() == iterateChecked && node.getParent() instanceof CheckedTreeNode) {
+      final Object userObject=node.getUserObject();
+      final Object parentUserObject=((CheckedTreeNode)node.getParent()).getUserObject();
+      if (userObject instanceof FlexBuildConfiguration && parentUserObject instanceof Module) {
+        consumer.consume(Pair.create((Module)parentUserObject,(FlexBuildConfiguration)userObject));
+      }
+    }
+  }
+ else {
+    final Enumeration children=node.children();
+    while (children.hasMoreElements()) {
+      iterateRecursively((CheckedTreeNode)children.nextElement(),iterateChecked,consumer);
+    }
+  }
+}

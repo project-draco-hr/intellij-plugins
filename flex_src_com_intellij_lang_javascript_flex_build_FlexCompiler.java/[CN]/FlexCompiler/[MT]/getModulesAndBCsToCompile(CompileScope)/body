@@ -1,11 +1,11 @@
 {
-  final Collection<Pair<Module,FlexIdeBuildConfiguration>> result=new HashSet<Pair<Module,FlexIdeBuildConfiguration>>();
-  final Collection<Pair<Module,FlexIdeBuildConfiguration>> modulesAndBCsToCompile=getBCsToCompileForPackaging(scope);
+  final Collection<Pair<Module,FlexBuildConfiguration>> result=new HashSet<Pair<Module,FlexBuildConfiguration>>();
+  final Collection<Pair<Module,FlexBuildConfiguration>> modulesAndBCsToCompile=getBCsToCompileForPackaging(scope);
   final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(scope);
   if (modulesAndBCsToCompile != null) {
-    for (    Pair<Module,FlexIdeBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
+    for (    Pair<Module,FlexBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
       if (!moduleAndBC.second.isSkipCompile()) {
-        final FlexIdeBuildConfiguration bcWithForcedDebugStatus=forceDebugStatus(moduleAndBC.first.getProject(),moduleAndBC.second);
+        final FlexBuildConfiguration bcWithForcedDebugStatus=forceDebugStatus(moduleAndBC.first.getProject(),moduleAndBC.second);
         result.add(Pair.create(moduleAndBC.first,bcWithForcedDebugStatus));
         appendBCDependencies(result,moduleAndBC.first,moduleAndBC.second);
       }
@@ -13,10 +13,10 @@
   }
  else   if (runConfiguration instanceof FlashRunConfiguration || runConfiguration instanceof FlexUnitRunConfiguration) {
     final BCBasedRunnerParameters params=runConfiguration instanceof FlashRunConfiguration ? ((FlashRunConfiguration)runConfiguration).getRunnerParameters() : ((FlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
-    final Pair<Module,FlexIdeBuildConfiguration> moduleAndBC;
+    final Pair<Module,FlexBuildConfiguration> moduleAndBC;
     final Ref<RuntimeConfigurationError> exceptionRef=new Ref<RuntimeConfigurationError>();
-    moduleAndBC=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexIdeBuildConfiguration>>(){
-      public Pair<Module,FlexIdeBuildConfiguration> compute(){
+    moduleAndBC=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<Module,FlexBuildConfiguration>>(){
+      public Pair<Module,FlexBuildConfiguration> compute(){
         try {
           return params.checkAndGetModuleAndBC(runConfiguration.getProject());
         }
@@ -38,7 +38,7 @@
  else {
     for (    final Module module : scope.getAffectedModules()) {
       if (ModuleType.get(module) != FlexModuleType.getInstance())       continue;
-      for (      final FlexIdeBuildConfiguration bc : FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
+      for (      final FlexBuildConfiguration bc : FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
         if (!bc.isSkipCompile()) {
           result.add(Pair.create(module,bc));
         }
