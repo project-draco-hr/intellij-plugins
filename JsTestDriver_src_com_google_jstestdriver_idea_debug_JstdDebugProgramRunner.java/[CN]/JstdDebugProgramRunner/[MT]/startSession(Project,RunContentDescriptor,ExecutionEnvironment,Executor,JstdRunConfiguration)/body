@@ -18,12 +18,14 @@
   final ExecutionResult executionResult=runState.execute(executor,this);
   debugBrowserInfo.fixIfChrome(executionResult.getProcessHandler());
   File configFile=new File(runConfiguration.getRunSettings().getConfigFile());
-  final DebuggableFileFinder fileFinder=JstdDebuggableFileFinderProvider.createFileFinder(project,configFile);
+  JstdDebuggableFileFinderProvider fileFinderProvider=new JstdDebuggableFileFinderProvider(project,configFile);
+  final RemoteDebuggingFileFinder fileFinder=fileFinderProvider.provideFileFinder();
   XDebuggerManager xDebuggerManager=XDebuggerManager.getInstance(project);
   XDebugSession xDebugSession=xDebuggerManager.startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
       JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
-      debugProcess.getBrowserConnection().queueRequest(new Consumer(){
+      @SuppressWarnings("unchecked") BrowserConnection<Object> browserConnection=debugProcess.getBrowserConnection();
+      browserConnection.queueRequest(new Consumer<Object>(){
         @Override public void consume(        Object javascriptVm){
           resumeJstdClientRunning(executionResult.getProcessHandler());
         }

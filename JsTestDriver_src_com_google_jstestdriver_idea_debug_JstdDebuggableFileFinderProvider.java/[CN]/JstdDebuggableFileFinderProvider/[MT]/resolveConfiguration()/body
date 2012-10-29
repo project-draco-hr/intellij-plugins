@@ -1,0 +1,32 @@
+{
+  VirtualFile configVirtualFile=VfsUtil.findFileByIoFile(myConfigFile,false);
+  if (configVirtualFile == null) {
+    throw new ExecutionException("Can not find JsTestDriver configuration file " + myConfigFile.getAbsolutePath());
+  }
+  BasePaths dirBasePaths=new BasePaths(myConfigFile.getParentFile());
+  final byte[] content;
+  try {
+    content=configVirtualFile.contentsToByteArray();
+  }
+ catch (  IOException e) {
+    throw new ExecutionException("Can not read JsTestDriver configuration file " + configVirtualFile.getPath());
+  }
+  Reader reader=new InputStreamReader(new ByteArrayInputStream(content),Charset.defaultCharset());
+  try {
+    YamlParser yamlParser=new YamlParser();
+    ParsedConfiguration parsedConfiguration=(ParsedConfiguration)yamlParser.parse(reader,dirBasePaths);
+    return JstdConfigParsingUtils.resolveConfiguration(parsedConfiguration);
+  }
+ catch (  Exception e) {
+    String message="Malformed JsTestDriver configuration file " + configVirtualFile.getPath();
+    LOG.warn(message,e);
+    throw new ExecutionException(message);
+  }
+ finally {
+    try {
+      reader.close();
+    }
+ catch (    IOException ignored) {
+    }
+  }
+}
