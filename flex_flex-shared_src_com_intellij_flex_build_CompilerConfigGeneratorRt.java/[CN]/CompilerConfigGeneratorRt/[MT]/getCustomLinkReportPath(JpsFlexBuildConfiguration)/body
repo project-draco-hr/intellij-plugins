@@ -1,0 +1,29 @@
+{
+  final JpsFlexBuildConfiguration appBC=rlmBC.getModule().getProperties().findConfigurationByName(rlmBC.getName());
+  if (appBC != null) {
+    final List<String> linkReports=FlexCommonUtils.getOptionValues(appBC.getCompilerOptions().getAdditionalOptions(),"link-report");
+    if (!linkReports.isEmpty()) {
+      final String path=linkReports.get(0);
+      if (new File(path).isFile())       return path;
+      final String absPath=FlexCommonUtils.getFlexCompilerWorkDirPath(appBC.getModule().getProject()) + "/" + path;
+      if (new File(absPath).isFile())       return absPath;
+    }
+ else {
+      final String configFilePath=appBC.getCompilerOptions().getAdditionalConfigFilePath();
+      if (!configFilePath.isEmpty()) {
+        final File configFile=new File(configFilePath);
+        if (configFile.isFile()) {
+          final String path=FlexCommonUtils.findXMLElement(configFile,"<flex-config><link-report>");
+          if (path != null) {
+            if (new File(path).isFile())             return path;
+            for (            JpsModuleSourceRoot srcRoot : appBC.getModule().getSourceRoots(JavaSourceRootType.SOURCE)) {
+              final String absPath=srcRoot.getFile().getPath() + "/" + path;
+              if (new File(absPath).isFile())               return absPath;
+            }
+          }
+        }
+      }
+    }
+  }
+  return null;
+}

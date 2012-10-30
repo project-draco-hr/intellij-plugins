@@ -1,0 +1,30 @@
+{
+  final JpsCompilerExcludes excludes=JpsJavaExtensionService.getInstance().getOrCreateCompilerConfiguration(myModule.getProject()).getCompilerExcludes();
+  final Map<String,String> filePathToPathInSwc=new THashMap<String,String>();
+  for (  String path : myBC.getCompilerOptions().getFilesToIncludeInSWC()) {
+    final File fileOrDir=new File(path);
+    if (excludes.isExcluded(fileOrDir))     continue;
+    if (fileOrDir.isDirectory()) {
+      final String baseRelativePath=StringUtil.notNullize(getPathRelativeToSourceRoot(myModule,fileOrDir.getPath()),fileOrDir.getName());
+      FileUtil.processFilesRecursively(fileOrDir,new Processor<File>(){
+        public boolean process(        final File file){
+          if (!file.isDirectory() && !FlexCommonUtils.isSourceFile(file.getName()) && !excludes.isExcluded(file)) {
+            final String relativePath=FileUtil.getRelativePath(fileOrDir,file);
+            final String pathInSwc=baseRelativePath.isEmpty() ? relativePath : baseRelativePath + "/" + relativePath;
+            filePathToPathInSwc.put(file.getPath(),pathInSwc);
+          }
+          return true;
+        }
+      }
+);
+    }
+ else     if (fileOrDir.isFile()) {
+      final String pathInSwc=StringUtil.notNullize(getPathRelativeToSourceRoot(myModule,fileOrDir.getPath()),fileOrDir.getName());
+      filePathToPathInSwc.put(fileOrDir.getPath(),pathInSwc);
+    }
+  }
+  for (  Map.Entry<String,String> entry : filePathToPathInSwc.entrySet()) {
+    final String value=entry.getValue() + CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR + entry.getKey();
+    addOption(rootElement,CompilerOptionInfo.INCLUDE_FILE_INFO,value);
+  }
+}

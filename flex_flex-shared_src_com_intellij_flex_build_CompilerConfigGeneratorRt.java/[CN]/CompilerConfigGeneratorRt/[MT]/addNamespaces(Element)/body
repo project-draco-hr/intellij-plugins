@@ -1,0 +1,15 @@
+{
+  final StringBuilder namespaceBuilder=new StringBuilder();
+  FlexCommonUtils.processStandardNamespaces(myBC,new PairConsumer<String,String>(){
+    @Override public void consume(    final String namespace,    final String relativePath){
+      if (namespaceBuilder.length() > 0) {
+        namespaceBuilder.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+      }
+      namespaceBuilder.append(namespace).append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR).append(CompilerOptionInfo.FLEX_SDK_MACRO + "/").append(relativePath);
+    }
+  }
+);
+  if (namespaceBuilder.length() == 0)   return;
+  final CompilerOptionInfo info=CompilerOptionInfo.getOptionInfo("compiler.namespaces.namespace");
+  addOption(rootElement,info,namespaceBuilder.toString());
+}
