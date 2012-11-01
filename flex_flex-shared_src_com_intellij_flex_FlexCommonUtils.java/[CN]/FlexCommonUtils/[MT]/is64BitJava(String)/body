@@ -1,14 +1,11 @@
 {
-  final GeneralCommandLine commandLine=new GeneralCommandLine();
-  commandLine.setExePath(javaExecutable);
-  commandLine.addParameter("-version");
   try {
     final Ref<Boolean> is64Bit=new Ref<Boolean>(false);
-    final OSProcessHandler handler=JavaCommandLineStateUtil.startProcess(commandLine);
+    final Process process=Runtime.getRuntime().exec(new String[]{javaExecutablePath,"-version"});
+    final BaseOSProcessHandler handler=new BaseOSProcessHandler(process,"doesn't matter",Charset.defaultCharset());
     handler.addProcessListener(new ProcessAdapter(){
       public void onTextAvailable(      ProcessEvent event,      Key outputType){
-        final String text=event.getText();
-        if (!text.contains(javaExecutable) && text.contains("64-Bit")) {
+        if (outputType != ProcessOutputTypes.SYSTEM && event.getText().contains("64-Bit")) {
           is64Bit.set(true);
         }
       }
@@ -21,7 +18,7 @@
     }
     return is64Bit.get();
   }
- catch (  ExecutionException e) {
+ catch (  IOException e) {
   }
   return false;
 }
