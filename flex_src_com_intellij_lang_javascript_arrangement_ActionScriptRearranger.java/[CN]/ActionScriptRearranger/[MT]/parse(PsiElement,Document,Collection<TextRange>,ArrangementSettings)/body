@@ -11,21 +11,25 @@
     }
   }
   final Map<JSVariable,ActionScriptArrangementEntry> varToEntry=new THashMap<JSVariable,ActionScriptArrangementEntry>();
-  for (  final JSVariable field : jsClass.getFields()) {
-    final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(field,ranges,document);
-    if (entry != null) {
-      if (entry.getType() == VAR) {
-        varToEntry.put(field,entry);
+  final JSVarStatement[] varStatements=PsiTreeUtil.getChildrenOfType(jsClass,JSVarStatement.class);
+  if (varStatements != null) {
+    for (    final JSVarStatement varStatement : varStatements) {
+      final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(varStatement,ranges,document);
+      if (entry != null) {
+        result.add(entry);
+        final JSVariable[] variables=varStatement.getVariables();
+        if (entry.getType() == VAR && variables.length == 1) {
+          varToEntry.put(variables[0],entry);
+        }
       }
-      result.add(entry);
     }
   }
   final Map<JSFunction,ActionScriptArrangementEntry> functionToEntry=new THashMap<JSFunction,ActionScriptArrangementEntry>();
   for (  final JSFunction function : jsClass.getFunctions()) {
     final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(function,ranges,document);
     if (entry != null) {
-      functionToEntry.put(function,entry);
       result.add(entry);
+      functionToEntry.put(function,entry);
     }
   }
   for (  Map.Entry<JSFunction,ActionScriptArrangementEntry> mapEntry : functionToEntry.entrySet()) {
