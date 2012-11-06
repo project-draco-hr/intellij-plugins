@@ -1,22 +1,22 @@
 {
-  final List<BuildRootDescriptor> roots=new ArrayList<BuildRootDescriptor>();
+  final List<BuildRootDescriptor> result=new ArrayList<BuildRootDescriptor>();
   for (  JpsTypedModuleSourceRoot<JpsSimpleElement<JavaSourceRootProperties>> sourceRoot : myBC.getModule().getSourceRoots(JavaSourceRootType.SOURCE)) {
     final File root=JpsPathUtil.urlToFile(sourceRoot.getUrl());
-    roots.add(new FlexSourceRootDescriptor(root));
+    result.add(new FlexSourceRootDescriptor(this,root));
   }
   if (FlexCommonUtils.isFlexUnitBC(myBC)) {
     for (    JpsTypedModuleSourceRoot<JpsSimpleElement<JavaSourceRootProperties>> sourceRoot : myBC.getModule().getSourceRoots(JavaSourceRootType.TEST_SOURCE)) {
       final File root=JpsPathUtil.urlToFile(sourceRoot.getUrl());
-      roots.add(new FlexSourceRootDescriptor(root));
+      result.add(new FlexSourceRootDescriptor(this,root));
     }
   }
   for (  final JpsFlexDependencyEntry entry : myBC.getDependencies().getEntries()) {
     if (entry instanceof JpsFlexBCDependencyEntry) {
       final JpsFlexBuildConfiguration dependencyBC=((JpsFlexBCDependencyEntry)entry).getBC();
       if (dependencyBC != null) {
-        roots.add(new FlexSourceRootDescriptor(new File(dependencyBC.getActualOutputFilePath())));
+        result.add(new FlexSourceRootDescriptor(this,new File(dependencyBC.getActualOutputFilePath())));
       }
     }
   }
-  return roots;
+  return result;
 }

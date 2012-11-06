@@ -1,0 +1,16 @@
+{
+  final FlexCompiler flexCompiler=FlexCompiler.getInstance(project);
+  if (!filter.acceptCompiler(flexCompiler))   return Collections.emptyList();
+  final TargetTypeBuildScope.Builder productionBuilder=TargetTypeBuildScope.newBuilder().setTypeId(FlexResourceBuildTargetType.PRODUCTION.getTypeId());
+  final TargetTypeBuildScope.Builder testBuilder=TargetTypeBuildScope.newBuilder().setTypeId(FlexResourceBuildTargetType.TEST.getTypeId());
+  try {
+    for (    Pair<Module,FlexBuildConfiguration> moduleAndBC : FlexCompiler.getModulesAndBCsToCompile(baseScope)) {
+      final Module module=moduleAndBC.first;
+      productionBuilder.addTargetId(module.getName());
+      testBuilder.addTargetId(module.getName());
+    }
+  }
+ catch (  ConfigurationException e) {
+  }
+  return Arrays.asList(productionBuilder.build(),testBuilder.build());
+}
