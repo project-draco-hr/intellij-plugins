@@ -5,18 +5,10 @@
     final String runConfigTypeId=runConfigTypeIdAndName.first;
     final String runConfigName=runConfigTypeIdAndName.second;
     if (JpsFlashRunConfigurationType.ID.equals(runConfigTypeId)) {
-      final JpsTypedRunConfiguration<JpsFlashRunnerParameters> runConfig=FlexCommonUtils.findRunConfiguration(project,JpsFlashRunConfigurationType.INSTANCE,runConfigName);
-      if (runConfig != null) {
-        final JpsFlexBuildConfiguration bc=runConfig.getProperties().getBC(project);
-        return bc != null ? new FlexBuildTarget(bc,runConfig.getType(),runConfig.getName()) : null;
-      }
+      return FlexBuildTarget.create(project,JpsFlashRunConfigurationType.INSTANCE,runConfigName);
     }
  else     if (JpsFlexUnitRunConfigurationType.ID.equals(runConfigTypeId)) {
-      final JpsTypedRunConfiguration<JpsFlashRunnerParameters> runConfig=FlexCommonUtils.findRunConfiguration(project,JpsFlashRunConfigurationType.INSTANCE,runConfigName);
-      if (runConfig != null) {
-        final JpsFlexBuildConfiguration bc=runConfig.getProperties().getBC(project);
-        return bc != null ? new FlexBuildTarget(bc,runConfig.getType(),runConfig.getName()) : null;
-      }
+      return FlexBuildTarget.create(project,JpsFlexUnitRunConfigurationType.INSTANCE,runConfigName);
     }
   }
  else {
@@ -28,7 +20,7 @@
       for (      JpsTypedModule<JpsFlexBuildConfigurationManager> module : project.getModules(JpsFlexModuleType.INSTANCE)) {
         if (module.getName().equals(moduleName)) {
           final JpsFlexBuildConfiguration bc=module.getProperties().findConfigurationByName(bcName);
-          return bc != null ? new FlexBuildTarget(bc,forcedDebugStatus) : null;
+          return bc != null ? FlexBuildTarget.create(bc,forcedDebugStatus) : null;
         }
       }
     }
