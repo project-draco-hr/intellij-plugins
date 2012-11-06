@@ -16,12 +16,14 @@
       if (!StringUtil.isEmpty(GLUE)) {
         final String[] glues=GLUE.split(" ");
         for (        String glue : glues) {
-          params.getProgramParametersList().addParametersString(" --glue " + glue);
+          if (!StringUtil.isEmpty(glue)) {
+            params.getProgramParametersList().addParametersString(" --glue " + glue);
+          }
         }
       }
       return params;
     }
-    @Nullable protected ConsoleView createConsole(    @NotNull final Executor executor,    ProcessHandler processHandler) throws ExecutionException {
+    @Nullable private ConsoleView createConsole(    @NotNull final Executor executor,    ProcessHandler processHandler) throws ExecutionException {
       final ConsoleView testRunnerConsole;
       final String testFrameworkName="cucumber";
       final CucumberJavaRunConfiguration runConfiguration=CucumberJavaRunConfiguration.this;
@@ -29,7 +31,7 @@
       testRunnerConsole=SMTestRunnerConnectionUtil.createAndAttachConsole(testFrameworkName,processHandler,consoleProperties,getRunnerSettings(),getConfigurationSettings());
       return testRunnerConsole;
     }
-    @Override public ExecutionResult execute(    @NotNull Executor executor,    @NotNull ProgramRunner runner) throws ExecutionException {
+    @NotNull @Override public ExecutionResult execute(    @NotNull Executor executor,    @NotNull ProgramRunner runner) throws ExecutionException {
       final ProcessHandler processHandler=startProcess();
       final ConsoleView console=createConsole(executor,processHandler);
       return new DefaultExecutionResult(console,processHandler,createActions(console,processHandler,executor));
