@@ -1,3 +1,27 @@
 {
-  return CucumberJavaUtil.getGlue(mySourceElement);
+  PsiFile file=mySourceElement.getContainingFile();
+  if (file instanceof GherkinFile) {
+    final CucumberJvmExtensionPoint[] extensions=Extensions.getExtensions(CucumberJvmExtensionPoint.EP_NAME);
+    final Ref<String> glue=new Ref<String>(null);
+    file.accept(new GherkinRecursiveElementVisitor(){
+      @Override public void visitStep(      GherkinStep step){
+        for (        CucumberJvmExtensionPoint e : extensions) {
+          String curGlue=e.getGlue(step);
+          if (curGlue != null) {
+            glue.set(curGlue);
+            break;
+          }
+        }
+      }
+      @Override public void visitElement(      PsiElement element){
+        if (glue.get() != null)         return;
+        super.visitElement(element);
+      }
+    }
+);
+    if (glue.get() != null) {
+      return " --glue " + glue.get();
+    }
+  }
+  return null;
 }
