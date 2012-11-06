@@ -2,25 +2,25 @@
   PsiFile file=mySourceElement.getContainingFile();
   if (file instanceof GherkinFile) {
     final CucumberJvmExtensionPoint[] extensions=Extensions.getExtensions(CucumberJvmExtensionPoint.EP_NAME);
-    final Ref<String> glue=new Ref<String>(null);
+    final LinkedHashSet<String> glues=new LinkedHashSet<String>();
     file.accept(new GherkinRecursiveElementVisitor(){
       @Override public void visitStep(      GherkinStep step){
         for (        CucumberJvmExtensionPoint e : extensions) {
-          String curGlue=e.getGlue(step);
-          if (curGlue != null) {
-            glue.set(curGlue);
+          String glue=e.getGlue(step);
+          if (glue != null) {
+            glues.add(glue);
             break;
           }
         }
       }
-      @Override public void visitElement(      PsiElement element){
-        if (glue.get() != null)         return;
-        super.visitElement(element);
-      }
     }
 );
-    if (glue.get() != null) {
-      return " --glue " + glue.get();
+    if (!glues.isEmpty()) {
+      StringBuilder buffer=new StringBuilder();
+      for (      String glue : glues) {
+        buffer.append(" --glue ").append(glue);
+      }
+      return buffer.toString();
     }
   }
   return null;
