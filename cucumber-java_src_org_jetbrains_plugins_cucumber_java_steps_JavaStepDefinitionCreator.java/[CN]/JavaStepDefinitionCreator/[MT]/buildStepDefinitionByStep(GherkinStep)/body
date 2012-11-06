@@ -1,6 +1,17 @@
 {
+  String annotationPackage=CUCUMBER_1_1_ANNOTATION_PACKAGE;
+  final LibraryTable libraryTable=ProjectLibraryTable.getInstance(step.getProject());
+  for (  Library library : libraryTable.getLibraries()) {
+    final String libraryName=library.getName();
+    if (libraryName != null && libraryName.contains(CUCUMBER_JAVA_JAR_NAME)) {
+      String version=libraryName.substring(libraryName.indexOf(CUCUMBER_JAVA_JAR_NAME) + CUCUMBER_JAVA_JAR_NAME.length() + 1);
+      if (version.startsWith("1.0")) {
+        annotationPackage=CUCUMBER_1_0_ANNOTATION_PACKAGE;
+      }
+    }
+  }
   final PsiElementFactory factory=JavaPsiFacade.getInstance(step.getProject()).getElementFactory();
   final Step cucumberStep=new Step(new ArrayList<Comment>(),step.getKeyword().getText(),step.getStepName(),0,null,null);
-  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException").replaceFirst("@","@cucumber.annotation.en.").replaceAll("\\\\\\\\","\\\\");
+  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException").replaceFirst("@",annotationPackage).replaceAll("\\\\\\\\","\\\\");
   return factory.createMethodFromText(snippet,step);
 }
