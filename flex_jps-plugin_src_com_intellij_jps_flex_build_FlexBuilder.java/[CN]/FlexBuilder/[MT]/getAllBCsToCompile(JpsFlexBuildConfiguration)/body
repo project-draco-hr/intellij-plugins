@@ -1,0 +1,15 @@
+{
+  final List<JpsFlexBuildConfiguration> result=new ArrayList<JpsFlexBuildConfiguration>(1 + bc.getRLMs().size() + bc.getCssFilesToCompile().size());
+  result.add(bc);
+  if (FlexCommonUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
+    for (    JpsFlexBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
+      result.add(createRlmBC(bc,rlm));
+    }
+    for (    String cssPath : bc.getCssFilesToCompile()) {
+      if (new File(cssPath).isFile()) {
+        result.add(createCssBC(bc,cssPath));
+      }
+    }
+  }
+  return result;
+}

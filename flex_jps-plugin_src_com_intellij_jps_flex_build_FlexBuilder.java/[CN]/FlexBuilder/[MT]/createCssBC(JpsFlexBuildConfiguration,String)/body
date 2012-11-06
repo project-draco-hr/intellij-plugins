@@ -1,0 +1,20 @@
+{
+  final JpsFlexBuildConfiguration cssBC=mainBC.getModule().getProperties().createTemporaryCopyForCompilation(mainBC);
+  cssBC.setOutputType(OutputType.Application);
+  cssBC.setMainClass(cssPath);
+  cssBC.setOutputFileName(FileUtil.getNameWithoutExtension(PathUtilRt.getFileName(cssPath)) + ".swf");
+  final String cssDirPath=PathUtilRt.getParentPath(cssPath);
+  String relativeToRoot=FlexCommonUtils.getPathRelativeToSourceRoot(mainBC.getModule(),cssDirPath);
+  if (relativeToRoot == null) {
+    relativeToRoot=FlexCommonUtils.getPathRelativeToContentRoot(mainBC.getModule(),cssDirPath);
+  }
+  if (!StringUtil.isEmpty(relativeToRoot)) {
+    final String outputFolder=PathUtilRt.getParentPath(mainBC.getActualOutputFilePath());
+    cssBC.setOutputFolder(outputFolder + "/" + relativeToRoot);
+  }
+  cssBC.setUseHtmlWrapper(false);
+  cssBC.setRLMs(Collections.<JpsFlexBuildConfiguration.RLMInfo>emptyList());
+  cssBC.setCssFilesToCompile(Collections.<String>emptyList());
+  cssBC.getCompilerOptions().setResourceFilesMode(JpsFlexCompilerOptions.ResourceFilesMode.None);
+  return cssBC;
+}
