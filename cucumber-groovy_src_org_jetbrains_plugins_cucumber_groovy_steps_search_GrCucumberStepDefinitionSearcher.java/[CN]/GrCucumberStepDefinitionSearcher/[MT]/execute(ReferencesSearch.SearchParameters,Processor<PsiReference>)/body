@@ -1,14 +1,15 @@
 {
   final PsiElement element=queryParameters.getElementToSearch();
   if (!GrCucumberUtil.isStepDefinition(element))   return true;
-  final String regexp=ApplicationManager.getApplication().runReadAction(new Computable<String>(){
+  @Nullable final String regexp=ApplicationManager.getApplication().runReadAction(new NullableComputable<String>(){
     @Nullable @Override public String compute(){
       return GrCucumberUtil.getStepDefinitionPatternText((GrMethodCall)element);
     }
   }
 );
+  if (StringUtil.isEmptyOrSpaces(regexp))   return true;
   final String word=CucumberUtil.getTheBiggestWordToSearchByIndex(regexp);
-  if (StringUtil.isEmpty(word))   return true;
+  if (StringUtil.isEmptyOrSpaces(word))   return true;
   final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
     public SearchScope compute(){
       return queryParameters.getEffectiveSearchScope();
@@ -18,15 +19,11 @@
   final TextOccurenceProcessor processor=new TextOccurenceProcessor(){
     @Override public boolean execute(    final PsiElement occurrence,    int offsetInElement){
       return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
-        @Nullable @Override public Boolean compute(){
+        @NotNull @Override public Boolean compute(){
+          if (!processRefs(occurrence,element,consumer))           return false;
           PsiElement parent=occurrence.getParent();
-          if (parent == null)           return true;
-          for (          PsiReference ref : parent.getReferences()) {
-            if (ref != null && ref.isReferenceTo(element)) {
-              if (!consumer.process(ref)) {
-                return false;
-              }
-            }
+          if (parent != null) {
+            if (!processRefs(parent,element,consumer))             return false;
           }
           return true;
         }
