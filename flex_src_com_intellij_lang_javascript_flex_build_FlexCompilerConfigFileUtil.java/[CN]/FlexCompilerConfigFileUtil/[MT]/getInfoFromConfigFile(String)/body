@@ -26,7 +26,12 @@
       if (!outputList.isEmpty()) {
         outputPath=outputList.get(0);
         if (!FileUtil.isAbsolute(outputPath)) {
-          outputPath=configFile.getParent().getPath() + "/" + outputPath;
+          try {
+            outputPath=new File(configFile.getParent().getPath() + "/" + outputPath).getCanonicalPath();
+          }
+ catch (          IOException e) {
+            outputPath=new File(configFile.getParent().getPath() + "/" + outputPath).getAbsolutePath();
+          }
         }
       }
       final List<String> targetPlayerList=map.get(TARGET_PLAYER_ELEMENT);
