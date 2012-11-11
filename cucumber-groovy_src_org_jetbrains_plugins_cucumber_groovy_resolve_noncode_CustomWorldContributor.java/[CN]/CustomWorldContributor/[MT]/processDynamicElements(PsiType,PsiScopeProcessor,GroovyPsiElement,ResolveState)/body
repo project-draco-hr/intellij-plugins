@@ -1,0 +1,14 @@
+{
+  if (place instanceof GrReferenceExpression && ((GrReferenceExpression)place).getQualifier() == null && qualifierType.equalsToText(GroovyCommonClassNames.GROOVY_LANG_CLOSURE)) {
+    final GrClosableBlock closureContainer=PsiTreeUtil.getParentOfType(place,GrClosableBlock.class,true,GrMember.class);
+    if (closureContainer != null) {
+      PsiElement parent=closureContainer.getParent();
+      if (parent instanceof GrArgumentList && isLastArg((GrArgumentList)parent,closureContainer)) {
+        parent=parent.getParent();
+      }
+      if (parent instanceof GrMethodCall && (GrCucumberUtil.isStepDefinition(parent) || GrCucumberUtil.isHook((GrMethodCall)parent))) {
+        doProcessDynamicMethods(processor,(GrMethodCall)parent,place,state);
+      }
+    }
+  }
+}
