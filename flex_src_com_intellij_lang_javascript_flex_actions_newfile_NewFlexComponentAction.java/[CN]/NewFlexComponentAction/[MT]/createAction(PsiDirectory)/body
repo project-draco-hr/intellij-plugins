@@ -1,0 +1,74 @@
+{
+  final Ref<String> parentComponentToSet=new Ref<String>();
+  return new CreateClassOrInterfaceAction(dir){
+    @Override protected CreateClassDialog createDialog(    final String templateName){
+      CreateClassDialog d=new CreateClassDialog(dir.getProject(),null,true,DirectoryIndex.getInstance(dir.getProject()).getPackageName(dir.getVirtualFile()),false,null,true,templateName,dir,true,JSBundle.message("choose.base.component.title")){
+        @Override protected List<FileTemplate> getApplicableTemplates(){
+          Module module=ModuleUtilCore.findModuleForPsiElement(dir);
+          final String[] allowedBuiltin=getAllowedBuiltInTemplates(module);
+          return ContainerUtil.filter(CreateClassOrInterfaceAction.getApplicableTemplates(FLEX_TEMPLATES_EXTENSIONS),new Condition<FileTemplate>(){
+            @Override public boolean value(            final FileTemplate fileTemplate){
+              String name=fileTemplate.getName();
+              return ArrayUtil.contains(name,allowedBuiltin) || !isClassifierTemplate(name);
+            }
+          }
+);
+        }
+        @Override protected boolean canFinish(){
+          if (!super.canFinish()) {
+            return false;
+          }
+          if (isSuperclassFieldEnabled()) {
+            if (!JSUtils.isValidClassName(getSuperClassFqn(),true)) {
+              return false;
+            }
+            if (!(JSResolveUtil.findClassByQName(getSuperClassFqn(),getSuperclassScope()) instanceof JSClass)) {
+              return false;
+            }
+          }
+          return true;
+        }
+        @Override protected boolean canBeSuperClass(        final JSClass jsClass){
+          return super.canBeSuperClass(jsClass);
+        }
+        @Override protected void doOKAction(){
+          final FileTemplate template;
+          try {
+            template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceAction.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
+              @Override public FileTemplate compute() throws IOException {
+                return FileTemplateManager.getInstance().getInternalTemplate(getTemplateName());
+              }
+            }
+);
+            String[] attributes=FileTemplateUtil.calculateAttributes(template.getText(),new Properties(),true);
+            if (ArrayUtil.contains(CreateClassOrInterfaceAction.SUPERCLASS,attributes)) {
+              parentComponentToSet.set(getSuperClassFqn());
+            }
+          }
+ catch (          IOException e) {
+          }
+catch (          ParseException e) {
+          }
+          super.doOKAction();
+        }
+      }
+;
+      d.setSuperclassLabelText(JSBundle.message("parent.component.label.text"));
+      d.setTitle(JSBundle.message("new.flex.component.dialog.title"));
+      return d;
+    }
+    @Override protected void postProcess(    @NotNull final JSClass jsClass){
+      final XmlTag tag=(XmlTag)jsClass.getParent();
+      if (!parentComponentToSet.isNull() && parentComponentToSet.get().equals(tag.getName())) {
+        ApplicationManager.getApplication().runWriteAction(new Runnable(){
+          @Override public void run(){
+            setParentComponent((XmlBackedJSClassImpl)jsClass,parentComponentToSet.get());
+          }
+        }
+);
+      }
+      jsClass.navigate(true);
+    }
+  }
+;
+}
