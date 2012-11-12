@@ -9,8 +9,18 @@
         }
         JSLibraryManager libraryManager=JSLibraryManager.getInstance(project);
         for (        ScriptingLibraryModel libraryModel : libraryManager.getAllLibraries()) {
-          String libraryName=libraryModel != null ? libraryModel.getName() : null;
+          if (libraryModel == null) {
+            continue;
+          }
+          String libraryName=libraryModel.getName();
           if (libraryName != null && libraryName.startsWith(LIBRARY_NAME)) {
+            Library library=libraryModel.getOriginalLibrary();
+            if (library instanceof LibraryEx) {
+              LibraryEx libraryEx=(LibraryEx)library;
+              if (libraryEx.isDisposed()) {
+                continue;
+              }
+            }
             if (libraryModel.containsFile(libVirtualFile)) {
               return true;
             }
