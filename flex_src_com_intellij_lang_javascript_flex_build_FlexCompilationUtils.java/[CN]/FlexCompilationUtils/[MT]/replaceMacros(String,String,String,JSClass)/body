@@ -1,8 +1,15 @@
 {
+  final Map<String,String> replacementMap=new THashMap<String,String>();
+  replacementMap.put(FlexCommonUtils.SWF_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.TITLE_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.APPLICATION_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.BG_COLOR_MACRO,"#ffffff");
+  replacementMap.put(FlexCommonUtils.WIDTH_MACRO,"100%");
+  replacementMap.put(FlexCommonUtils.HEIGHT_MACRO,"100%");
   final List<String> versionParts=StringUtil.split(targetPlayer,".");
-  final String major=versionParts.size() >= 1 ? versionParts.get(0) : "0";
-  final String minor=versionParts.size() >= 2 ? versionParts.get(1) : "0";
-  final String revision=versionParts.size() >= 3 ? versionParts.get(2) : "0";
+  replacementMap.put(FlexCommonUtils.VERSION_MAJOR_MACRO,versionParts.size() >= 1 ? versionParts.get(0) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_MINOR_MACRO,versionParts.size() >= 2 ? versionParts.get(1) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_REVISION_MACRO,versionParts.size() >= 3 ? versionParts.get(2) : "0");
   final Ref<JSAttribute> swfMetadataRef=new Ref<JSAttribute>();
   final PsiFile psiFile=mainClass == null ? null : mainClass.getContainingFile();
   if (psiFile instanceof XmlFile) {
@@ -31,15 +38,16 @@
     final JSAttributeList attributeList=mainClass == null ? null : mainClass.getAttributeList();
     swfMetadataRef.set(attributeList == null ? null : attributeList.findAttributeByName("SWF"));
   }
-  final JSAttribute swfMetadata=swfMetadataRef.isNull() ? null : swfMetadataRef.get();
-  final JSAttributeNameValuePair titleAttr=swfMetadata == null ? null : swfMetadata.getValueByName("pageTitle");
-  final String title=titleAttr != null ? StringUtil.notNullize(titleAttr.getSimpleValue(),outputFileName) : outputFileName;
-  final JSAttributeNameValuePair bgColorAttr=swfMetadata == null ? null : swfMetadata.getValueByName("backgroundColor");
-  final String bgColor=bgColorAttr != null ? StringUtil.notNullize(bgColorAttr.getSimpleValue(),"#ffffff") : "#ffffff";
-  final JSAttributeNameValuePair widthAttr=swfMetadata == null ? null : swfMetadata.getValueByName("width");
-  final String width=widthAttr != null ? StringUtil.notNullize(widthAttr.getSimpleValue(),"100%") : "100%";
-  final JSAttributeNameValuePair heightAttr=swfMetadata == null ? null : swfMetadata.getValueByName("height");
-  final String height=heightAttr != null ? StringUtil.notNullize(heightAttr.getSimpleValue(),"100%") : "100%";
-  final String[] replacement={outputFileName,title,outputFileName,bgColor,width,height,major,minor,revision};
-  return StringUtil.replace(wrapperText,MACROS_TO_REPLACE,replacement);
+  if (!swfMetadataRef.isNull()) {
+    final JSAttribute swfMetadata=swfMetadataRef.get();
+    final JSAttributeNameValuePair titleAttr=swfMetadata.getValueByName(FlexCommonUtils.TITLE_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.TITLE_MACRO,titleAttr == null ? null : titleAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair bgColorAttr=swfMetadata.getValueByName(FlexCommonUtils.BG_COLOR_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.BG_COLOR_MACRO,bgColorAttr == null ? null : bgColorAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair widthAttr=swfMetadata.getValueByName(FlexCommonUtils.WIDTH_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.WIDTH_MACRO,widthAttr == null ? null : widthAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair heightAttr=swfMetadata.getValueByName(FlexCommonUtils.HEIGHT_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.HEIGHT_MACRO,heightAttr == null ? null : heightAttr.getSimpleValue(),replacementMap);
+  }
+  return FlexCommonUtils.replace(wrapperText,replacementMap);
 }
