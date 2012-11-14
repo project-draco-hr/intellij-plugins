@@ -1,13 +1,13 @@
 {
   final Ref<String> parentComponentToSet=new Ref<String>();
-  return new CreateClassOrInterfaceAction(dir){
+  return new CreateClassOrInterfaceFix(dir){
     @Override protected CreateClassParameters createDialog(    final String templateName){
       final WizardModel model=new WizardModel(dir,true);
       MainStep mainStep=new MainStep(model,dir.getProject(),null,true,DirectoryIndex.getInstance(dir.getProject()).getPackageName(dir.getVirtualFile()),null,true,templateName,dir,JSBundle.message("choose.base.component.title")){
         @Override protected List<FileTemplate> getApplicableTemplates(){
           Module module=ModuleUtilCore.findModuleForPsiElement(dir);
           final String[] allowedBuiltin=getAllowedBuiltInTemplates(module);
-          return ContainerUtil.filter(CreateClassOrInterfaceAction.getApplicableTemplates(FLEX_TEMPLATES_EXTENSIONS),new Condition<FileTemplate>(){
+          return ContainerUtil.filter(CreateClassOrInterfaceFix.getApplicableTemplates(FLEX_TEMPLATES_EXTENSIONS),new Condition<FileTemplate>(){
             @Override public boolean value(            final FileTemplate fileTemplate){
               String name=fileTemplate.getName();
               return ArrayUtil.contains(name,allowedBuiltin) || !isClassifierTemplate(name);
@@ -36,14 +36,14 @@
           super.commit(commitType);
           final FileTemplate template;
           try {
-            template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceAction.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
+            template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceFix.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
               @Override public FileTemplate compute() throws IOException {
                 return FileTemplateManager.getInstance().getInternalTemplate(model.getTemplateName());
               }
             }
 );
             String[] attributes=FileTemplateUtil.calculateAttributes(template.getText(),new Properties(),true);
-            if (ArrayUtil.contains(CreateClassOrInterfaceAction.SUPERCLASS,attributes)) {
+            if (ArrayUtil.contains(CreateClassOrInterfaceFix.SUPERCLASS,attributes)) {
               parentComponentToSet.set(getSuperclassFqn());
             }
           }
