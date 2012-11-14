@@ -10,6 +10,7 @@
   final String templateName;
   final PsiDirectory targetDirectory;
   final Collection<String> interfaces;
+  final Map<String,String> templateAttributes;
   if (ApplicationManager.getApplication().isUnitTestMode()) {
     className=suggestSubclassName(jsClass.getName());
     packageName="foo";
@@ -21,20 +22,25 @@
     }
 );
     interfaces=jsClass.isInterface() ? Collections.singletonList(jsClass.getQualifiedName()) : Collections.<String>emptyList();
+    templateAttributes=Collections.emptyMap();
   }
  else {
-    final CreateClassDialog dialog=new CreateClassDialog(project,suggestSubclassName(jsClass.getName()),true,jsPackageStatement.getQualifiedName(),false,jsClass,false,defaultTemplateName,jsClass,false,JSBundle.message("choose.super.class.title"));
-    dialog.show();
-    if (!dialog.isOK()) {
+    final WizardModel model=new WizardModel(jsClass,true);
+    MainStep mainStep=new MainStep(model,project,suggestSubclassName(jsClass.getName()),true,jsPackageStatement.getQualifiedName(),jsClass,false,defaultTemplateName,jsClass,JSBundle.message("choose.super.class.title"));
+    CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
+    CreateFlashClassWizard w=new CreateFlashClassWizard(JSBundle.message("new.actionscript.class.dialog.title"),project,model,mainStep,customVariablesStep);
+    w.show();
+    if (w.getExitCode() != DialogWrapper.OK_EXIT_CODE) {
       return;
     }
-    className=dialog.getClassName();
-    packageName=dialog.getPackageName();
-    templateName=dialog.getTemplateName();
-    targetDirectory=dialog.getTargetDirectory();
-    interfaces=dialog.getInterfacesFqns();
+    className=model.getClassName();
+    packageName=model.getPackageName();
+    templateName=model.getTemplateName();
+    targetDirectory=model.getTargetDirectory();
+    interfaces=model.getInterfacesFqns();
+    templateAttributes=model.getTemplateAttributes();
   }
-  JSClass createdClass=CreateClassOrInterfaceAction.createClass(templateName,className,packageName,jsClass.isInterface() ? null : jsClass,interfaces,targetDirectory,getTitle(jsClass),true,new Consumer<JSClass>(){
+  JSClass createdClass=CreateClassOrInterfaceAction.createClass(templateName,className,packageName,jsClass.isInterface() ? null : jsClass,interfaces,targetDirectory,getTitle(jsClass),true,templateAttributes,new Consumer<JSClass>(){
     @Override public void consume(    final JSClass aClass){
       if (aClass != null && !aClass.isInterface() && (jsClass.isInterface() || !interfaces.isEmpty())) {
         new MyImplementMethodsHandler(aClass).execute();

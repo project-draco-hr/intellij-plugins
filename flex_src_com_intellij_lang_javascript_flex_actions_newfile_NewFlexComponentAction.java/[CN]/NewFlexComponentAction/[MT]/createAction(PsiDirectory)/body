@@ -1,8 +1,9 @@
 {
   final Ref<String> parentComponentToSet=new Ref<String>();
   return new CreateClassOrInterfaceAction(dir){
-    @Override protected CreateClassDialog createDialog(    final String templateName){
-      CreateClassDialog d=new CreateClassDialog(dir.getProject(),null,true,DirectoryIndex.getInstance(dir.getProject()).getPackageName(dir.getVirtualFile()),false,null,true,templateName,dir,true,JSBundle.message("choose.base.component.title")){
+    @Override protected CreateClassParameters createDialog(    final String templateName){
+      final WizardModel model=new WizardModel(dir,true);
+      MainStep mainStep=new MainStep(model,dir.getProject(),null,true,DirectoryIndex.getInstance(dir.getProject()).getPackageName(dir.getVirtualFile()),null,true,templateName,dir,JSBundle.message("choose.base.component.title")){
         @Override protected List<FileTemplate> getApplicableTemplates(){
           Module module=ModuleUtilCore.findModuleForPsiElement(dir);
           final String[] allowedBuiltin=getAllowedBuiltInTemplates(module);
@@ -19,10 +20,10 @@
             return false;
           }
           if (isSuperclassFieldEnabled()) {
-            if (!JSUtils.isValidClassName(getSuperClassFqn(),true)) {
+            if (!JSUtils.isValidClassName(getSuperclassFqn(),true)) {
               return false;
             }
-            if (!(JSResolveUtil.findClassByQName(getSuperClassFqn(),getSuperclassScope()) instanceof JSClass)) {
+            if (!(JSResolveUtil.findClassByQName(getSuperclassFqn(),getSuperclassScope()) instanceof JSClass)) {
               return false;
             }
           }
@@ -31,31 +32,34 @@
         @Override protected boolean canBeSuperClass(        final JSClass jsClass){
           return super.canBeSuperClass(jsClass);
         }
-        @Override protected void doOKAction(){
+        @Override public void commit(        final CommitType commitType) throws CommitStepException {
+          super.commit(commitType);
           final FileTemplate template;
           try {
             template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceAction.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
               @Override public FileTemplate compute() throws IOException {
-                return FileTemplateManager.getInstance().getInternalTemplate(getTemplateName());
+                return FileTemplateManager.getInstance().getInternalTemplate(model.getTemplateName());
               }
             }
 );
             String[] attributes=FileTemplateUtil.calculateAttributes(template.getText(),new Properties(),true);
             if (ArrayUtil.contains(CreateClassOrInterfaceAction.SUPERCLASS,attributes)) {
-              parentComponentToSet.set(getSuperClassFqn());
+              parentComponentToSet.set(getSuperclassFqn());
             }
           }
  catch (          IOException e) {
           }
 catch (          ParseException e) {
           }
-          super.doOKAction();
         }
       }
 ;
-      d.setSuperclassLabelText(JSBundle.message("parent.component.label.text"));
-      d.setTitle(JSBundle.message("new.flex.component.dialog.title"));
-      return d;
+      mainStep.setSuperclassLabelText(JSBundle.message("parent.component.label.text"));
+      CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
+      CreateFlashClassWizard w=new CreateFlashClassWizard(JSBundle.message("new.flex.component.dialog.title"),dir.getProject(),model,mainStep,customVariablesStep);
+      w.show();
+      if (w.getExitCode() != DialogWrapper.OK_EXIT_CODE)       return null;
+      return model;
     }
     @Override protected void postProcess(    @NotNull final JSClass jsClass){
       final XmlTag tag=(XmlTag)jsClass.getParent();
