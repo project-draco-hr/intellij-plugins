@@ -1,13 +1,13 @@
 {
   final VirtualFile descriptorTemplateFile=LocalFileSystem.getInstance().findFileByPath(customDescriptorPath);
   if (descriptorTemplateFile == null) {
-    throw new FlexCompilerException("Custom AIR descriptor file not found: " + customDescriptorPath);
+    throw new FlexCompilerException(FlexCommonBundle.message("air.descriptor.not.found",customDescriptorPath));
   }
   final String outputFilePath=bc.getActualOutputFilePath();
   final String outputFolderPath=PathUtil.getParentPath(outputFilePath);
   final VirtualFile outputFolder=LocalFileSystem.getInstance().findFileByPath(outputFolderPath);
   if (outputFolder == null) {
-    throw new FlexCompilerException("Failed to copy AIR descriptor. Folder does not exist: " + outputFolderPath);
+    throw new FlexCompilerException(FlexCommonBundle.message("output.folder.does.not.exist",outputFolderPath));
   }
   final Ref<FlexCompilerException> exceptionRef=new Ref<FlexCompilerException>();
   ApplicationManager.getApplication().invokeAndWait(new Runnable(){
@@ -22,7 +22,7 @@
             exceptionRef.set(e);
           }
 catch (          IOException e) {
-            exceptionRef.set(new FlexCompilerException("Failed to copy AIR descriptor to output folder",null,-1,-1));
+            exceptionRef.set(new FlexCompilerException(FlexCommonBundle.message("failed.to.copy.air.descriptor",e.getMessage())));
           }
         }
       }
