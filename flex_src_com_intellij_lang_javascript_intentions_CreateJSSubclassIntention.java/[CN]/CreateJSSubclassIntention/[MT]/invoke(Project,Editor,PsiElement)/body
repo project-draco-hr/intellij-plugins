@@ -10,7 +10,7 @@
   final String templateName;
   final PsiDirectory targetDirectory;
   final Collection<String> interfaces;
-  final Map<String,String> templateAttributes;
+  final Map<String,Object> templateAttributes;
   if (ApplicationManager.getApplication().isUnitTestMode()) {
     className=suggestSubclassName(jsClass.getName());
     packageName="foo";
@@ -26,7 +26,12 @@
   }
  else {
     final WizardModel model=new WizardModel(jsClass,true);
-    MainStep mainStep=new MainStep(model,project,suggestSubclassName(jsClass.getName()),true,jsPackageStatement.getQualifiedName(),jsClass,false,defaultTemplateName,jsClass,JSBundle.message("choose.super.class.title"));
+    MainStep mainStep=new MainStep(model,project,suggestSubclassName(jsClass.getName()),true,jsPackageStatement.getQualifiedName(),jsClass,false,defaultTemplateName,jsClass,JSBundle.message("choose.super.class.title"),new Computable<List<FileTemplate>>(){
+      @Override public List<FileTemplate> compute(){
+        return CreateClassOrInterfaceFix.getApplicableTemplates(CreateClassOrInterfaceFix.ACTIONSCRIPT_TEMPLATES_EXTENSIONS);
+      }
+    }
+);
     CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
     CreateFlashClassWizard w=new CreateFlashClassWizard(JSBundle.message("new.actionscript.class.dialog.title"),project,model,mainStep,customVariablesStep);
     w.show();
@@ -38,7 +43,7 @@
     templateName=model.getTemplateName();
     targetDirectory=model.getTargetDirectory();
     interfaces=model.getInterfacesFqns();
-    templateAttributes=model.getTemplateAttributes();
+    templateAttributes=new HashMap<String,Object>(model.getTemplateAttributes());
   }
   JSClass createdClass=CreateClassOrInterfaceFix.createClass(templateName,className,packageName,jsClass.isInterface() ? null : jsClass,interfaces,targetDirectory,getTitle(jsClass),true,templateAttributes,new Consumer<JSClass>(){
     @Override public void consume(    final JSClass aClass){
