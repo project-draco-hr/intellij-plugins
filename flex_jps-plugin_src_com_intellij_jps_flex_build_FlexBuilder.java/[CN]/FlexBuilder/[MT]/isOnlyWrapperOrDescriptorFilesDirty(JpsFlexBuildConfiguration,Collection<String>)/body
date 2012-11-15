@@ -1,0 +1,34 @@
+{
+  for (  String dirtyFilePath : dirtyFilePaths) {
+switch (bc.getTargetPlatform()) {
+case Web:
+      if (bc.isUseHtmlWrapper() && !bc.getWrapperTemplatePath().isEmpty()) {
+        if (FileUtil.isAncestor(bc.getWrapperTemplatePath(),dirtyFilePath,true)) {
+          continue;
+        }
+      }
+    break;
+case Desktop:
+  if (!bc.getAirDesktopPackagingOptions().isUseGeneratedDescriptor() && !bc.getAirDesktopPackagingOptions().getCustomDescriptorPath().isEmpty()) {
+    if (FileUtil.pathsEqual(dirtyFilePath,bc.getAirDesktopPackagingOptions().getCustomDescriptorPath())) {
+      continue;
+    }
+  }
+break;
+case Mobile:
+if (bc.getAndroidPackagingOptions().isEnabled() && !bc.getAndroidPackagingOptions().isUseGeneratedDescriptor() && !bc.getAndroidPackagingOptions().getCustomDescriptorPath().isEmpty()) {
+if (FileUtil.pathsEqual(dirtyFilePath,bc.getAndroidPackagingOptions().getCustomDescriptorPath())) {
+  continue;
+}
+}
+if (bc.getIosPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isUseGeneratedDescriptor() && !bc.getIosPackagingOptions().getCustomDescriptorPath().isEmpty()) {
+if (FileUtil.pathsEqual(dirtyFilePath,bc.getIosPackagingOptions().getCustomDescriptorPath())) {
+continue;
+}
+}
+break;
+}
+return false;
+}
+return true;
+}
