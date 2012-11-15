@@ -1,7 +1,9 @@
 {
-  MyDialog dialog=new MyDialog(project,dirAndPackage.first,dirAndPackage.second);
-  dialog.setTitle(FlexBundle.message("new.flex.component.dialog.title"));
-  dialog.show();
-  if (!dialog.isOK())   return null;
-  return new PreparationData(dialog.getQualifiedName(),dialog.getSelectedTemplate(),dialog.getCustomProperties(),dialog.myDirectory);
+  final WizardModel model=new WizardModel(dirAndPackage.first,true);
+  MainStep mainStep=new FlexMainStep(model,dirAndPackage.first,null,dirAndPackage.second,null);
+  CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
+  CreateFlashClassWizard w=new CreateFlashClassWizard(FlexBundle.message("new.flex.component.dialog.title"),project,model,mainStep,customVariablesStep);
+  w.show();
+  if (w.getExitCode() != DialogWrapper.OK_EXIT_CODE)   return null;
+  return model;
 }

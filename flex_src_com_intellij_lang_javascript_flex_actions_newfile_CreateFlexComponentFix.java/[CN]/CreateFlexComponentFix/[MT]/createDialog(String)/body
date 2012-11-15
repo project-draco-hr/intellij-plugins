@@ -1,51 +1,6 @@
 {
   final WizardModel model=new WizardModel(myContext,true);
-  MainStep mainStep=new MainStep(model,myContext.getProject(),myClassNameToCreate,true,myPackageName,null,true,templateName,myContext,JSBundle.message("choose.base.component.title"),new Computable<List<FileTemplate>>(){
-    @Override public List<FileTemplate> compute(){
-      return computeApplicableTemplates();
-    }
-  }
-){
-    @Override protected boolean canFinish(){
-      if (!super.canFinish()) {
-        return false;
-      }
-      if (isSuperclassFieldEnabled()) {
-        if (!JSUtils.isValidClassName(getSuperclassFqn(),true)) {
-          return false;
-        }
-        if (!(JSResolveUtil.findClassByQName(getSuperclassFqn(),getSuperclassScope()) instanceof JSClass)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    @Override protected boolean canBeSuperClass(    final JSClass jsClass){
-      return super.canBeSuperClass(jsClass);
-    }
-    @Override public void commit(    final CommitType commitType) throws CommitStepException {
-      super.commit(commitType);
-      final FileTemplate template;
-      try {
-        template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceFix.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
-          @Override public FileTemplate compute() throws IOException {
-            return FileTemplateManager.getInstance().getInternalTemplate(model.getTemplateName());
-          }
-        }
-);
-        String[] attributes=FileTemplateUtil.calculateAttributes(template.getText(),new Properties(),true);
-        if (ArrayUtil.contains(CreateClassOrInterfaceFix.SUPERCLASS,attributes)) {
-          myParentComponentToSet=getSuperclassFqn();
-        }
-      }
- catch (      IOException e) {
-      }
-catch (      ParseException e) {
-      }
-    }
-  }
-;
-  mainStep.setSuperclassLabelText(JSBundle.message("parent.component.label.text"));
+  MainStep mainStep=new FlexMainStep(model,myContext,myClassNameToCreate,myPackageName,templateName);
   CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
   CreateFlashClassWizard w=new CreateFlashClassWizard(FlexBundle.message("new.flex.component.dialog.title"),myContext.getProject(),model,mainStep,customVariablesStep);
   w.show();
