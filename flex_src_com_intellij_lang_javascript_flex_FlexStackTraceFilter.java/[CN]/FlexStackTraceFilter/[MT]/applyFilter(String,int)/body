@@ -1,46 +1,43 @@
 {
-  if (line.indexOf('[') < 0) {
-    return null;
-  }
-  Pattern p=SystemInfo.isWindows ? WIN_CPATTERN : UNIX_CPATTERN;
-  Matcher m=p.matcher(line);
-  if (!m.find()) {
-    p=SystemInfo.isWindows ? UNIX_CPATTERN : WIN_CPATTERN;
-    m=p.matcher(line);
-    if (!m.find()) {
-      return null;
+  final String trimmed=line.trim();
+  final int bracketOpenIndex=line.lastIndexOf('[');
+  if (!trimmed.startsWith(AT) || bracketOpenIndex < 0 || !trimmed.endsWith("]"))   return null;
+  final int bracketCloseIndex=line.lastIndexOf(']');
+  final String pathAndLineNumber=FileUtil.toSystemIndependentName(line.substring(bracketOpenIndex + 1,bracketCloseIndex));
+  String filePath=pathAndLineNumber;
+  int lineNumber=-1;
+  final int colonIndex=pathAndLineNumber.lastIndexOf(':');
+  if (colonIndex > 0) {
+    try {
+      lineNumber=Integer.parseInt(pathAndLineNumber.substring(colonIndex + 1)) - 1;
+      filePath=pathAndLineNumber.substring(0,colonIndex);
+    }
+ catch (    NumberFormatException ignore) {
     }
   }
-  final int textStartOffset=entireLength - line.length();
-  final int highlightStartOffset=textStartOffset + m.start(1);
-  final int highlightEndOffset=textStartOffset + m.end(1);
-  int lineNumber=0;
-  try {
-    lineNumber=StringUtil.isEmpty(m.group(3)) ? 0 : Integer.parseInt(m.group(3)) - 1;
-  }
- catch (  NumberFormatException ignore) {
-  }
-  final String filePath=m.group(2);
-  final File file=new File(filePath);
-  if (!file.isFile()) {
-    return applyFlexStackTraceFilter(line,filePath,highlightEndOffset,lineNumber);
-  }
-  final Ref<VirtualFile> vFile=new Ref<VirtualFile>();
-  try {
-    GuiUtils.runOrInvokeAndWait(new Runnable(){
-      public void run(){
-        vFile.set(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file));
+  if (filePath.startsWith("//"))   return null;
+  final String fileName=PathUtil.getFileName(filePath);
+  if (!FlexCommonUtils.isSourceFile(fileName))   return null;
+  final int atIndex=line.indexOf(AT);
+  String fqnInfo=line.substring(atIndex + AT.length(),bracketOpenIndex).trim();
+  fqnInfo=StringUtil.trimStart(fqnInfo,GLOBAL_PREFIX);
+  final int slashOrParenIndex=StringUtil.indexOfAny(fqnInfo,"/(");
+  if (slashOrParenIndex > 0) {
+    String somethingLikeFqn=fqnInfo.substring(0,slashOrParenIndex);
+    if (somethingLikeFqn.endsWith("$")) {
+      somethingLikeFqn=somethingLikeFqn.substring(0,somethingLikeFqn.length() - 1);
+    }
+    final int dotIndex=fileName.lastIndexOf('.');
+    final String dotExtension=dotIndex < 0 ? "" : fileName.substring(dotIndex);
+    final String fileNameWithoutExtension=FileUtil.getNameWithoutExtension(fileName);
+    if (somethingLikeFqn.equals(fileNameWithoutExtension) || somethingLikeFqn.endsWith("::" + fileNameWithoutExtension)) {
+      final String relativePath=StringUtil.replace(somethingLikeFqn,"::","/").replace('.','/') + dotExtension;
+      if (filePath.endsWith(relativePath)) {
+        final int textStartOffset=entireLength - line.length();
+        final int highlightEndOffset=textStartOffset + bracketCloseIndex;
+        return applyFlexStackTraceFilter(filePath,relativePath,lineNumber,highlightEndOffset);
       }
     }
-);
   }
- catch (  InvocationTargetException e) {
-  }
-catch (  InterruptedException e) {
-  }
-  if (vFile.isNull()) {
-    return null;
-  }
-  final OpenFileHyperlinkInfo info=new OpenFileHyperlinkInfo(myProject,vFile.get(),lineNumber);
-  return new Result(highlightStartOffset,highlightEndOffset,info);
+  return null;
 }
