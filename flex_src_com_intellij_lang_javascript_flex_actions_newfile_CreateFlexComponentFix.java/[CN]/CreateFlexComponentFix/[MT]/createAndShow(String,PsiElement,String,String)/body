@@ -1,9 +1,17 @@
 {
   final WizardModel model=new WizardModel(context,true);
-  MainStep mainStep=new FlexMainStep(model,context,classNameToCreate,packageName,templateName);
+  final Ref<CreateFlashClassWizard> w=new Ref<CreateFlashClassWizard>();
+  MainStep mainStep=new FlexMainStep(model,context,classNameToCreate,packageName,templateName){
+    @Override protected void adjustDialogHeight(    final Integer integer){
+      Dimension dialogSize=w.get().getSize();
+      w.get().setSize(dialogSize.width,dialogSize.height + integer);
+      w.get().repaint();
+    }
+  }
+;
   CustomVariablesStep customVariablesStep=new CustomVariablesStep(model);
-  CreateFlashClassWizard w=new CreateFlashClassWizard(FlexBundle.message("new.flex.component.dialog.title"),context.getProject(),model,mainStep,customVariablesStep);
-  w.show();
-  if (w.getExitCode() != DialogWrapper.OK_EXIT_CODE)   return null;
+  w.set(new CreateFlashClassWizard(FlexBundle.message("new.flex.component.dialog.title"),context.getProject(),model,mainStep,customVariablesStep));
+  w.get().show();
+  if (w.get().getExitCode() != DialogWrapper.OK_EXIT_CODE)   return null;
   return model;
 }
