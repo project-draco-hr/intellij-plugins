@@ -4,7 +4,9 @@
   final boolean tempCertificate=signingOptions.isUseTempCertificate();
   final String keystorePassword=tempCertificate ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
   final String keyPassword=tempCertificate || signingOptions.getKeyAlias().isEmpty() ? "" : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
-  return new AdtTask(module.getProject(),bc.getSdk()){
+  final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+  final String packageFilePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ ".apk";
+  return new AdtPackageTask(module.getProject(),bc.getSdk(),packageFilePath){
     protected void appendAdtOptions(    List<String> command){
       command.add("-package");
       command.add("-target");
