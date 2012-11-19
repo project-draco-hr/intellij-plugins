@@ -1,0 +1,29 @@
+{
+  CoverageReport coverageReport=new CoverageReport();
+  for (  CoverageSuite suite : currentSuiteBundle.getSuites()) {
+    ProjectData projectData=suite.getCoverageData(CoverageDataManager.getInstance(project));
+    if (projectData != null) {
+      @SuppressWarnings("unchecked") Map<String,ClassData> classDataMap=projectData.getClasses();
+      for (      Map.Entry<String,ClassData> classDataEntry : classDataMap.entrySet()) {
+        String fileName=classDataEntry.getKey();
+        ClassData classData=classDataEntry.getValue();
+        List<CoverageReport.LineHits> lineHitsList=convertClassDataToLineHits(classData);
+        coverageReport.mergeFileReport(fileName,lineHitsList);
+      }
+    }
+  }
+  final ExportToHTMLSettings settings=ExportToHTMLSettings.getInstance(project);
+  final File outputDir=new File(settings.OUTPUT_DIRECTORY);
+  FileUtil.createDirectory(outputDir);
+  String outputFileName=getOutputFileName(currentSuiteBundle);
+  String title="Coverage Report Generation";
+  try {
+    CoverageSerializationUtils.writeLCOV(coverageReport,new File(outputDir,outputFileName));
+    String url="http://ltp.sourceforge.net/coverage/lcov.php";
+    Messages.showInfoMessage("<html>Coverage report has been successfully saved as '" + outputFileName + "' file.<br>Use <a href='"+ url+ "'>"+ url+ "</a>"+ " to generate HTML output."+ "</html>",title);
+  }
+ catch (  IOException e) {
+    Log.warn("Can not export coverage data",e);
+    Messages.showErrorDialog("Can not generate coverage report: " + e.getMessage(),title);
+  }
+}
