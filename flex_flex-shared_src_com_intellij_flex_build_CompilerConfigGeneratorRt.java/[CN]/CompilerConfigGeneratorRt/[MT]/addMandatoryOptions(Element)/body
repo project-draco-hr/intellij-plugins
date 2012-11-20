@@ -13,7 +13,14 @@
   final String targetPlayer=nature.isWebPlatform() ? myBC.getDependencies().getTargetPlayer() : FlexCommonUtils.getMaximumTargetPlayer(mySdk.getHomePath());
   addOption(rootElement,CompilerOptionInfo.TARGET_PLAYER_INFO,targetPlayer);
   if (StringUtil.compareVersionNumbers(mySdk.getVersionString(),"4.5") >= 0) {
-    final String swfVersion=nature.isWebPlatform() ? getSwfVersionForTargetPlayer(targetPlayer) : getSwfVersionForSdk(mySdk.getVersionString());
+    final String swfVersion;
+    if (nature.isWebPlatform()) {
+      swfVersion=FlexCommonUtils.getSwfVersionForTargetPlayer(targetPlayer);
+    }
+ else {
+      final String airVersion=getAirVersionIfCustomDescriptor(myBC);
+      swfVersion=airVersion != null ? FlexCommonUtils.getSwfVersionForAirVersion(airVersion) : FlexCommonUtils.getSwfVersionForSdk(mySdk.getVersionString());
+    }
     addOption(rootElement,CompilerOptionInfo.SWF_VERSION_INFO,swfVersion);
   }
   if (nature.isMobilePlatform()) {
