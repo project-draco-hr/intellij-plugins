@@ -28,11 +28,16 @@
       if (file == null) {
         errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(packagingOptions,FlexBundle.message("packaging.options.file.not.found",device,FileUtil.toSystemDependentName(fullPath)),AirPackagingConfigurableBase.Location.FilesToPackage));
       }
-      if (relPathInPackage.length() == 0) {
+      if (relPathInPackage.isEmpty()) {
         errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(packagingOptions,FlexBundle.message("packaging.options.empty.relative.path",device),AirPackagingConfigurableBase.Location.FilesToPackage));
       }
-      if (file != null && file.isDirectory() && !fullPath.endsWith("/" + relPathInPackage)) {
-        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(packagingOptions,FlexBundle.message("packaging.options.relative.path.not.matches",device,FileUtil.toSystemDependentName(relPathInPackage)),AirPackagingConfigurableBase.Location.FilesToPackage));
+      if (file != null && file.isDirectory()) {
+        if (FileUtil.isAncestor(file.getPath(),outputFolderPath,false)) {
+          errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(packagingOptions,FlexBundle.message("folder.to.package.includes.output",device,file.getPresentableUrl()),AirPackagingConfigurableBase.Location.FilesToPackage));
+        }
+ else         if (!relPathInPackage.isEmpty() && !fullPath.endsWith("/" + relPathInPackage)) {
+          errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(packagingOptions,FlexBundle.message("packaging.options.relative.path.not.matches",device,FileUtil.toSystemDependentName(relPathInPackage)),AirPackagingConfigurableBase.Location.FilesToPackage));
+        }
       }
     }
   }
