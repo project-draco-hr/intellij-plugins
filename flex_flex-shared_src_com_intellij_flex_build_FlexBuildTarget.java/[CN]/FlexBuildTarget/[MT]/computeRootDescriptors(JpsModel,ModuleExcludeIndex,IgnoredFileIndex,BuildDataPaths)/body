@@ -20,6 +20,14 @@
         result.add(new FlexSourceRootDescriptor(this,new File(dependencyBC.getActualOutputFilePath())));
       }
     }
+ else     if (entry instanceof JpsLibraryDependencyEntry) {
+      final JpsLibrary library=((JpsLibraryDependencyEntry)entry).getLibrary();
+      if (library != null) {
+        for (        String rootUrl : library.getRootUrls(JpsOrderRootType.COMPILED)) {
+          result.add(new FlexSourceRootDescriptor(this,JpsPathUtil.urlToFile(rootUrl)));
+        }
+      }
+    }
   }
   final BuildConfigurationNature nature=myBC.getNature();
   if (nature.isWebPlatform() && nature.isApp() && myBC.isUseHtmlWrapper()&& !myBC.getWrapperTemplatePath().isEmpty()) {
@@ -37,14 +45,14 @@
   }
   if (nature.isApp()) {
     if (nature.isDesktopPlatform()) {
-      addIfAirDescriptorPathIfCustom(result,myBC.getAirDesktopPackagingOptions(),srcRoots);
+      addAirDescriptorPathIfCustom(result,myBC.getAirDesktopPackagingOptions(),srcRoots);
     }
  else     if (nature.isMobilePlatform()) {
       if (myBC.getAndroidPackagingOptions().isEnabled()) {
-        addIfAirDescriptorPathIfCustom(result,myBC.getAndroidPackagingOptions(),srcRoots);
+        addAirDescriptorPathIfCustom(result,myBC.getAndroidPackagingOptions(),srcRoots);
       }
       if (myBC.getIosPackagingOptions().isEnabled()) {
-        addIfAirDescriptorPathIfCustom(result,myBC.getIosPackagingOptions(),srcRoots);
+        addAirDescriptorPathIfCustom(result,myBC.getIosPackagingOptions(),srcRoots);
       }
     }
   }
