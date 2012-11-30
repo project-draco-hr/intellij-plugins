@@ -1,6 +1,11 @@
 {
-  final PsiElement element=queryParameters.getElementToSearch();
-  if (!GrCucumberUtil.isStepDefinition(element))   return true;
+  final PsiElement element=ApplicationManager.getApplication().runReadAction(new NullableComputable<PsiElement>(){
+    @Override public PsiElement compute(){
+      return getStepDefinition(queryParameters.getElementToSearch());
+    }
+  }
+);
+  if (element == null)   return true;
   @Nullable final String regexp=ApplicationManager.getApplication().runReadAction(new NullableComputable<String>(){
     @Nullable @Override public String compute(){
       return GrCucumberUtil.getStepDefinitionPatternText((GrMethodCall)element);

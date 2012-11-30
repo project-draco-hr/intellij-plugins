@@ -1,0 +1,16 @@
+{
+  if (element.getParent() instanceof GrLiteral) {
+    final PsiElement literal=element.getParent();
+    final PsiElement parent=literal.getParent();
+    if (parent != null) {
+      final PsiElement pparent=parent.getParent();
+      if (pparent != null) {
+        final PsiElement ppparent=pparent.getParent();
+        if (ppparent instanceof GrMethodCall && GrCucumberUtil.isStepDefinition(ppparent)) {
+          final GrMethodCall methodCall=(GrMethodCall)ppparent;
+          consumer.consume(GrStepDefinition.getStepDefinition(methodCall));
+        }
+      }
+    }
+  }
+}
