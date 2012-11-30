@@ -1,5 +1,10 @@
 {
   PsiMethod method=methodCall.resolveMethod();
+  if (method instanceof PsiMirrorElement) {
+    final PsiElement prototype=((PsiMirrorElement)method).getPrototype();
+    if (!(prototype instanceof PsiMethod))     return false;
+    method=(PsiMethod)prototype;
+  }
   if (method == null)   return false;
   if (!ArrayUtil.contains(method.getName(),HOOKS))   return false;
   PsiClass containingClass=method.getContainingClass();
