@@ -1,0 +1,16 @@
+{
+  for (  OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+    if (orderEntry instanceof LibraryOrderEntry) {
+      final String libraryName=((LibraryOrderEntry)orderEntry).getLibraryName();
+      final Library library=((LibraryOrderEntry)orderEntry).getLibrary();
+      if ((libraryName == null || libraryName.toLowerCase().contains("cucumber")) && library != null) {
+        final VirtualFile[] files=library.getFiles(OrderRootType.CLASSES);
+        for (        VirtualFile file : files) {
+          final String version=getVersionByFile(file);
+          if (version != null)           return version;
+        }
+      }
+    }
+  }
+  return getSimpleVersionFromMainClass(module);
+}
