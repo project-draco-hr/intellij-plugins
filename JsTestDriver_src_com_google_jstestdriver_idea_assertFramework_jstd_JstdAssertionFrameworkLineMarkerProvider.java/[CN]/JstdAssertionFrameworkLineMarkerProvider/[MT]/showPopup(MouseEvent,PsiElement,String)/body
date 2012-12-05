@@ -1,15 +1,9 @@
 {
-  final JBList list=new JBList(Type.values());
-  list.setCellRenderer(new ListCellRendererWrapper(){
-    @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
-      if (value == Type.RUN) {
-        setIcon(AllIcons.Toolwindows.ToolWindowRun);
-        setText("Run '" + displayName + "'");
-      }
- else       if (value == Type.DEBUG) {
-        setIcon(AllIcons.Toolwindows.ToolWindowDebugger);
-        setText("Debug '" + displayName + "'");
-      }
+  final JBList list=new JBList(getAvailableTypes());
+  list.setCellRenderer(new ListCellRendererWrapper<Type>(){
+    @Override public void customize(    JList list,    Type value,    int index,    boolean selected,    boolean hasFocus){
+      setIcon(value.getIcon());
+      setText(value.getTitle(displayName));
     }
   }
 );
@@ -18,15 +12,10 @@
     @Override public void run(){
       int[] ids=list.getSelectedIndices();
       if (ids == null || ids.length == 0)       return;
-      Object[] selectedElements=list.getSelectedValues();
-      for (      Object element : selectedElements) {
+      Type type=ObjectUtils.tryCast(list.getSelectedValue(),Type.class);
+      if (type != null) {
         if (psiElement.isValid()) {
-          if (element == Type.RUN) {
-            execute(DefaultRunExecutor.getRunExecutorInstance(),psiElement);
-          }
- else           if (element == Type.DEBUG) {
-            execute(DefaultDebugExecutor.getDebugExecutorInstance(),psiElement);
-          }
+          execute(type.getExecutor(),psiElement);
         }
       }
     }
