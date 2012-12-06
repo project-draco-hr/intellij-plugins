@@ -1,0 +1,64 @@
+{
+  final PsiElement[] children=context.getChildren();
+  final Set<DartComponentName> result=DartControlFlowUtil.getSimpleDeclarations(children,lastParent,context instanceof DartStatements);
+  for (  PsiElement child : children) {
+    if (child instanceof DartFormalParameterList) {
+      final DartFormalParameterList formalParameterList=(DartFormalParameterList)child;
+      final List<DartNormalFormalParameter> normalFormalParameterList=formalParameterList.getNormalFormalParameterList();
+      final DartNamedFormalParameters namedFormalParameters=formalParameterList.getNamedFormalParameters();
+      if (namedFormalParameters != null) {
+        normalFormalParameterList.addAll(ContainerUtil.map(namedFormalParameters.getDefaultFormalNamedParameterList(),new Function<DartDefaultFormalNamedParameter,DartNormalFormalParameter>(){
+          @Override public DartNormalFormalParameter fun(          DartDefaultFormalNamedParameter parameter){
+            return parameter.getNormalFormalParameter();
+          }
+        }
+));
+      }
+      for (      DartNormalFormalParameter parameter : normalFormalParameterList) {
+        if (parameter.getComponentName() != null) {
+          result.add(parameter.getComponentName());
+        }
+        final DartVarDeclaration declaration=parameter.getVarDeclaration();
+        if (declaration != null) {
+          result.add(declaration.getVarAccessDeclaration().getComponentName());
+        }
+        final DartFunctionDeclaration functionDeclaration=parameter.getFunctionDeclaration();
+        if (functionDeclaration != null) {
+          result.add(functionDeclaration.getComponentName());
+        }
+      }
+    }
+  }
+  if (context instanceof DartForStatement) {
+    final DartForLoopParts loopParts=((DartForStatement)context).getForLoopParts();
+    final DartForInPart forInPart=loopParts == null ? null : loopParts.getForInPart();
+    final DartComponentName componentName=forInPart == null ? null : forInPart.getComponentName();
+    if (componentName != null) {
+      result.add(componentName);
+    }
+    final DartVarAccessDeclaration varDeclaration=forInPart == null ? null : forInPart.getVarAccessDeclaration();
+    if (varDeclaration != null) {
+      result.add(varDeclaration.getComponentName());
+    }
+    final DartVarDeclarationList varDeclarationList=loopParts == null ? null : loopParts.getVarDeclarationList();
+    if (varDeclarationList != null) {
+      DartControlFlowUtil.addFromVarDeclarationList(result,varDeclarationList);
+    }
+  }
+  final DartTypeParameters typeParameters=PsiTreeUtil.getChildOfType(context,DartTypeParameters.class);
+  if (typeParameters != null) {
+    for (    DartTypeParameter typeParameter : typeParameters.getTypeParameterList()) {
+      result.add(typeParameter.getComponentName());
+    }
+  }
+  final DartImportStatement[] importStatements=PsiTreeUtil.getChildrenOfType(context,DartImportStatement.class);
+  if (importStatements != null) {
+    for (    DartImportStatement importStatement : importStatements) {
+      final DartComponentName componentName=importStatement.getComponentName();
+      if (componentName != null) {
+        result.add(componentName);
+      }
+    }
+  }
+  return result;
+}

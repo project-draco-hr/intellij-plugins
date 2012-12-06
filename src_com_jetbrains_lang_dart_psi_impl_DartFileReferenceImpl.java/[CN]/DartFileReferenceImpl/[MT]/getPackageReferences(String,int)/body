@@ -1,0 +1,17 @@
+{
+  VirtualFile packagesFolder=DartResolveUtil.findPackagesFolder(this);
+  VirtualFile file=DartResolveUtil.getRealVirtualFile(getContainingFile());
+  if (packagesFolder == null || file == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  String prefix=FileUtil.getRelativePath(file.getParent().getPath(),packagesFolder.getPath(),'/');
+  if (prefix == null) {
+    return null;
+  }
+  prefix+="/";
+  int index=startIndex - prefix.length();
+  final FileReferenceSet referenceSet=new FileReferenceSet(prefix + path,this,index,null,false,true);
+  FileReference[] references=referenceSet.getAllReferences();
+  int nestedLevel=StringUtil.countChars(prefix,'/');
+  return references.length < nestedLevel ? PsiReference.EMPTY_ARRAY : Arrays.copyOfRange(references,nestedLevel,references.length);
+}

@@ -1,0 +1,20 @@
+{
+  final Project project=context.getProject();
+  final SearchScope searchScope=context.getRefManager().getScope().toSearchScope();
+  final GlobalSearchScope globalSearchScope=(GlobalSearchScope)searchScope.union(GlobalSearchScope.EMPTY_SCOPE);
+  final Set<String> allLibraryNames=ApplicationManager.getApplication().runReadAction(new Computable<Set<String>>(){
+    @Override public Set<String> compute(){
+      return DartLibraryIndex.getAllLibraryNames(project);
+    }
+  }
+);
+  List<VirtualFile> libraryRoots=new ArrayList<VirtualFile>();
+  setIndicatorText("Finding Dart libraries");
+  for (  String libraryName : allLibraryNames) {
+    libraryRoots.addAll(DartLibraryIndex.findSingleLibraryClass(libraryName,globalSearchScope));
+  }
+  setIndicatorText("Running Dart Analyzer");
+  for (  VirtualFile libraryRoot : libraryRoots) {
+    analyzeLibrary(libraryRoot,project);
+  }
+}

@@ -1,0 +1,55 @@
+{
+  final PsiFile file=operation.getFile();
+  if (!CommonRefactoringUtil.checkReadOnlyStatus(file)) {
+    return;
+  }
+  final Editor editor=operation.getEditor();
+  if (editor.getSettings().isVariableInplaceRenameEnabled()) {
+    final TemplateState templateState=TemplateManagerImpl.getTemplateState(operation.getEditor());
+    if (templateState != null && !templateState.isFinished()) {
+      return;
+    }
+  }
+  PsiElement element1=null;
+  PsiElement element2=null;
+  final SelectionModel selectionModel=editor.getSelectionModel();
+  if (selectionModel.hasSelection()) {
+    element1=file.findElementAt(selectionModel.getSelectionStart());
+    element2=file.findElementAt(selectionModel.getSelectionEnd() - 1);
+    if (element1 instanceof PsiWhiteSpace) {
+      int startOffset=element1.getTextRange().getEndOffset();
+      element1=file.findElementAt(startOffset);
+    }
+    if (element2 instanceof PsiWhiteSpace) {
+      int endOffset=element2.getTextRange().getStartOffset();
+      element2=file.findElementAt(endOffset - 1);
+    }
+  }
+ else {
+    if (smartIntroduce(operation)) {
+      return;
+    }
+    final CaretModel caretModel=editor.getCaretModel();
+    final Document document=editor.getDocument();
+    int lineNumber=document.getLineNumber(caretModel.getOffset());
+    if ((lineNumber >= 0) && (lineNumber < document.getLineCount())) {
+      element1=file.findElementAt(document.getLineStartOffset(lineNumber));
+      element2=file.findElementAt(document.getLineEndOffset(lineNumber) - 1);
+    }
+  }
+  final Project project=operation.getProject();
+  if (element1 == null || element2 == null) {
+    showCannotPerformError(project,editor);
+    return;
+  }
+  element1=DartRefactoringUtil.getSelectedExpression(project,file,element1,element2);
+  if (element1 == null) {
+    showCannotPerformError(project,editor);
+    return;
+  }
+  if (!checkIntroduceContext(file,editor,element1)) {
+    return;
+  }
+  operation.setElement(element1);
+  performActionOnElement(operation);
+}

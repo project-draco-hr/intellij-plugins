@@ -1,0 +1,21 @@
+{
+  doTest(new PerformAction(){
+    @Override public void performAction(    VirtualFile rootDir,    VirtualFile rootAfter) throws Exception {
+      Collection<PsiElement> files=new ArrayList<PsiElement>();
+      for (      String s : toMove) {
+        final VirtualFile child=VfsUtil.findRelativeFile(s,rootDir);
+        assertNotNull("Neither class nor file " + s + " not found",child);
+        PsiElement file=myPsiManager.findFile(child);
+        if (file == null)         file=JavaPsiFacade.getInstance(myProject).findPackage(s);
+        files.add(file);
+      }
+      final VirtualFile child1=VfsUtil.findRelativeFile(targetDirName,rootDir);
+      assertNotNull("Target dir " + targetDirName + " not found",child1);
+      final PsiDirectory targetDirectory=myPsiManager.findDirectory(child1);
+      assertNotNull(targetDirectory);
+      new MoveFilesOrDirectoriesProcessor(myProject,PsiUtilCore.toPsiElementArray(files),targetDirectory,false,true,null,null).run();
+      FileDocumentManager.getInstance().saveAllDocuments();
+    }
+  }
+);
+}

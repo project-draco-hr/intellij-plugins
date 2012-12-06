@@ -1,0 +1,15 @@
+{
+  myDebugProcess.sendCommand(getGetPropertiesCommand(),new AbstractResponseToRequestHandler<JsonResponse>(){
+    @Override public boolean processResponse(    JsonResponse response){
+      JsonObject result=response.getJsonObject().getAsJsonObject("result");
+      if (result != null) {
+        myFields.clear();
+        myFields.addAll(DartVMValue.fromJson(myDebugProcess,result.getAsJsonArray("fields")));
+      }
+      final String value=myValue == null ? "null" : myValue;
+      node.setPresentation(getIcon(),myKind,isString() ? "\"" + value + "\"" : value,!myFields.isEmpty());
+      return true;
+    }
+  }
+);
+}

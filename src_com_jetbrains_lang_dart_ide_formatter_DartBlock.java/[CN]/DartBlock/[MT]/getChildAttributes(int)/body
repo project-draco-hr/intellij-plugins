@@ -1,0 +1,24 @@
+{
+  int index=newIndex;
+  ASTBlock prev=null;
+  do {
+    if (index == 0) {
+      break;
+    }
+    prev=(ASTBlock)getSubBlocks().get(index - 1);
+    index--;
+  }
+ while (prev.getNode().getElementType() == DartTokenTypes.SEMICOLON || prev.getNode() instanceof PsiWhiteSpace);
+  final IElementType elementType=myNode.getElementType();
+  final IElementType prevType=prev == null ? null : prev.getNode().getElementType();
+  if (prevType == DartTokenTypes.LBRACE) {
+    return new ChildAttributes(Indent.getNormalIndent(),null);
+  }
+  if (isEndsWithRPAREN(elementType,prevType)) {
+    return new ChildAttributes(Indent.getNormalIndent(),null);
+  }
+  if (index == 0) {
+    return new ChildAttributes(Indent.getNoneIndent(),null);
+  }
+  return new ChildAttributes(prev.getIndent(),prev.getAlignment());
+}

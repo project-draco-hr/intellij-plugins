@@ -1,0 +1,16 @@
+{
+  DartSettings dartSettings=DartSettings.getSettingsForModule(module);
+  String dartExecutablePath=DartSdkUtil.getCompilerPathByFolderPath(dartSettings != null ? dartSettings.getSdkPath() : null);
+  if (dartSettings == null || dartExecutablePath == null) {
+    throw new ExecutionException(DartBundle.message("bad.home.for.sdk",module.getName()));
+  }
+  final GeneralCommandLine commandLine=new GeneralCommandLine();
+  commandLine.setExePath(dartExecutablePath);
+  commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+  commandLine.setPassParentEnvs(true);
+  setupUserProperties(module,commandLine,dartSettings);
+  final TextConsoleBuilder consoleBuilder=TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
+  consoleBuilder.addFilter(new DartStackTraceMessageFiler(module.getProject(),filePath));
+  setConsoleBuilder(consoleBuilder);
+  return commandLine;
+}

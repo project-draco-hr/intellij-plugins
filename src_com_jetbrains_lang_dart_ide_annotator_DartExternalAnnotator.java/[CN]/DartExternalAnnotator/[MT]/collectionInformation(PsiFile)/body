@@ -1,0 +1,21 @@
+{
+  final List<VirtualFile> library=DartResolveUtil.findLibrary(file,GlobalSearchScope.projectScope(file.getProject()));
+  final VirtualFile libraryRoot=library.isEmpty() ? DartResolveUtil.getRealVirtualFile(file) : library.iterator().next();
+  if (libraryRoot == null) {
+    LOG.debug("No library root for " + file.getName());
+    return null;
+  }
+  final Module module=ModuleUtilCore.findModuleForFile(libraryRoot,file.getProject());
+  if (module == null) {
+    LOG.debug("No module for " + file.getName());
+    return null;
+  }
+  DartSettings settings=DartSettings.getSettingsForModule(module);
+  if (settings == null) {
+    LOG.debug("No settings for module " + module.getName());
+    ModuleType moduleType=ModuleType.get(module);
+    LOG.debug("Type " + (moduleType == null ? null : moduleType.getId()));
+  }
+  final VirtualFile analyzer=settings == null ? null : settings.getAnalyzer();
+  return analyzer == null ? null : new AnalyzerDriver(module.getProject(),analyzer,settings.getSdkPath(),libraryRoot);
+}

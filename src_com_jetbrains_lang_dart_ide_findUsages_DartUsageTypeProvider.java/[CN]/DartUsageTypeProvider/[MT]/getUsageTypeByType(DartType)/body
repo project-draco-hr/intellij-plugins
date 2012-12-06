@@ -1,0 +1,32 @@
+{
+  final PsiElement typeParent=type.getParent();
+  final DartComponentType typeParentType=DartComponentType.typeOf(typeParent);
+  if (typeParent instanceof DartSuperclass) {
+    return UsageType.CLASS_EXTENDS_IMPLEMENTS_LIST;
+  }
+  if (typeParent instanceof DartNewExpression) {
+    return UsageType.CLASS_NEW_OPERATOR;
+  }
+  if (typeParent instanceof DartTypeList && typeParent.getParent() instanceof DartInterfaces) {
+    return UsageType.CLASS_EXTENDS_IMPLEMENTS_LIST;
+  }
+  if (typeParent instanceof DartTypeList && typeParent.getParent() instanceof DartTypeArguments) {
+    return UsageType.TYPE_PARAMETER;
+  }
+  if (typeParent instanceof DartReturnType) {
+    return UsageType.CLASS_METHOD_RETURN_TYPE;
+  }
+  if (typeParent instanceof DartVarAccessDeclaration && typeParentType != null) {
+switch (typeParentType) {
+case PARAMETER:
+      return UsageType.CLASS_METHOD_PARAMETER_DECLARATION;
+case FIELD:
+    return UsageType.CLASS_FIELD_DECLARATION;
+case METHOD:
+  return UsageType.CLASS_METHOD_RETURN_TYPE;
+default :
+return null;
+}
+}
+return null;
+}

@@ -1,0 +1,21 @@
+{
+  final Editor editor=operation.getEditor();
+  if (editor.getSettings().isVariableInplaceRenameEnabled()) {
+    ensureName(operation);
+    if (operation.isReplaceAll() != null) {
+      performInplaceIntroduce(operation);
+    }
+ else {
+      OccurrencesChooser.simpleChooser(editor).showChooser(operation.getElement(),operation.getOccurrences(),new Pass<OccurrencesChooser.ReplaceChoice>(){
+        @Override public void pass(        OccurrencesChooser.ReplaceChoice replaceChoice){
+          operation.setReplaceAll(replaceChoice == OccurrencesChooser.ReplaceChoice.ALL);
+          performInplaceIntroduce(operation);
+        }
+      }
+);
+    }
+  }
+ else {
+    performIntroduceWithDialog(operation);
+  }
+}

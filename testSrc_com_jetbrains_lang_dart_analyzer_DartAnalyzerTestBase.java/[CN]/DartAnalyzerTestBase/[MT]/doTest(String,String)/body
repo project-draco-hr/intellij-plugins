@@ -1,0 +1,29 @@
+{
+  final String fullTestName=getTestName(true);
+  final int dollarIndex=fullTestName.lastIndexOf('$');
+  final String fixSimpleClassName=dollarIndex > 0 ? fullTestName.substring(dollarIndex + 1) : null;
+  final String testName=dollarIndex > 0 ? fullTestName.substring(0,dollarIndex) : fullTestName;
+  String[] files=ArrayUtil.append(additionalFiles,testName + ".dart");
+  files=ArrayUtil.reverseArray(files);
+  myFixture.configureByFiles(files);
+  final Annotation annotation=doHighlightingAndFindIntention(message);
+  assertNotNull("Can't find intention",annotation);
+  final List<Annotation.QuickFixInfo> quickFixes=annotation.getQuickFixes();
+  assertNotNull("Can't find fixes",quickFixes);
+  assertFalse(quickFixes.isEmpty());
+  final Annotation.QuickFixInfo quickFixInfo=ContainerUtil.find(quickFixes,new Condition<Annotation.QuickFixInfo>(){
+    @Override public boolean value(    Annotation.QuickFixInfo info){
+      return fixSimpleClassName == null || info.quickFix.getClass().getSimpleName().equals(fixSimpleClassName);
+    }
+  }
+);
+  assertNotNull("Can't find fixes",quickFixInfo);
+  assertTrue("Fix not available",quickFixInfo.quickFix.isAvailable(myFixture.getProject(),myFixture.getEditor(),myFixture.getFile()));
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      quickFixInfo.quickFix.invoke(myFixture.getProject(),myFixture.getEditor(),myFixture.getFile());
+    }
+  }
+);
+  myFixture.checkResultByFile(fullTestName + ".after.dart");
+}

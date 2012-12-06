@@ -1,0 +1,13 @@
+{
+  final PsiElement statement=performRefactoring(operation);
+  final DartComponent target=PsiTreeUtil.findChildOfType(statement,DartComponent.class);
+  if (target == null) {
+    return;
+  }
+  final List<PsiElement> occurrences=operation.getOccurrences();
+  final PsiElement occurrence=DartRefactoringUtil.findOccurrenceUnderCaret(occurrences,operation.getEditor());
+  final PsiElement elementForCaret=occurrence != null ? occurrence : target;
+  operation.getEditor().getCaretModel().moveToOffset(elementForCaret.getTextRange().getStartOffset());
+  final InplaceVariableIntroducer<PsiElement> introducer=new DartInplaceVariableIntroducer(target.getComponentName(),operation,occurrences);
+  introducer.performInplaceRefactoring(new LinkedHashSet<String>(operation.getSuggestedNames()));
+}

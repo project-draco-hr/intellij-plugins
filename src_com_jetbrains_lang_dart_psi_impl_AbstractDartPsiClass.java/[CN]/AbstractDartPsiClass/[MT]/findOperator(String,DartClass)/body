@@ -1,0 +1,14 @@
+{
+  return ContainerUtil.find(getOperators(),new Condition<PsiElement>(){
+    @Override public boolean value(    PsiElement element){
+      final DartUserDefinableOperator userDefinableOperator=PsiTreeUtil.getChildOfType(element,DartUserDefinableOperator.class);
+      final boolean isGoodOperator=userDefinableOperator != null && operator.equals(DartResolveUtil.getOperatorString(userDefinableOperator));
+      if (rightDartClass == null) {
+        return isGoodOperator;
+      }
+      final DartFormalParameterList formalParameterList=PsiTreeUtil.getChildOfType(element,DartFormalParameterList.class);
+      return isGoodOperator && DartResolveUtil.checkParametersType(formalParameterList,rightDartClass);
+    }
+  }
+);
+}

@@ -1,0 +1,57 @@
+{
+  if (element == null) {
+    return DartClassResolveResult.create(null);
+  }
+  if (element instanceof DartComponentName) {
+    return getDartClassResolveResult(element.getParent(),specialization);
+  }
+  if (element instanceof DartClass) {
+    final DartClass dartClass=(DartClass)element;
+    return DartClassResolveResult.create(dartClass,specialization);
+  }
+  DartClassResolveResult result=tryFindTypeAndResolveClass(element,specialization);
+  if (result.getDartClass() != null) {
+    return result;
+  }
+  PsiElement functionBody=PsiTreeUtil.getChildOfType(element,DartFunctionBody.class);
+  if (functionBody == null) {
+    functionBody=PsiTreeUtil.getChildOfType(element,DartFunctionExpressionBody.class);
+  }
+  DartReference functionBodyExpression=PsiTreeUtil.getChildOfType(functionBody,DartReference.class);
+  if (functionBodyExpression != null) {
+    return functionBodyExpression.resolveDartClass();
+  }
+  if (specialization.containsKey(null,element.getText())) {
+    return specialization.get(null,element.getText());
+  }
+  if (element instanceof DartVarAccessDeclaration && element.getParent() instanceof DartForInPart) {
+    final DartForInPart forInPart=(DartForInPart)element.getParent();
+    return resolveForInPartClass(forInPart);
+  }
+  if (element instanceof DartForInPart) {
+    final DartForInPart forInPart=(DartForInPart)element;
+    return resolveForInPartClass(forInPart);
+  }
+  if (element instanceof DartNormalFormalParameter && element.getParent() instanceof DartFormalParameterList && element.getParent().getParent() instanceof DartFunctionExpression&& element.getParent().getParent().getParent() instanceof DartArgumentList) {
+    final int parameterIndex=getParameterIndex(element,((DartFormalParameterList)element.getParent()));
+    final int argumentIndex=getArgumentIndex(element.getParent().getParent());
+    final DartCallExpression callExpression=PsiTreeUtil.getParentOfType(element,DartCallExpression.class);
+    final DartReference callReference=callExpression == null ? null : (DartReference)callExpression.getExpression();
+    final PsiElement target=callReference == null ? null : callReference.resolve();
+    final PsiElement argument=target == null ? null : findParameter(target.getParent(),argumentIndex);
+    if (argument instanceof DartNormalFormalParameter) {
+      final DartType dartType=findParameterType(((DartNormalFormalParameter)argument).getFunctionDeclaration(),parameterIndex);
+      final DartClassResolveResult callClassResolveResult=getLeftClassResolveResult(callReference);
+      return getDartClassResolveResult(dartType,callClassResolveResult.getSpecialization());
+    }
+    return DartClassResolveResult.EMPTY;
+  }
+  final DartVarInit varInit=PsiTreeUtil.getChildOfType(element instanceof DartVarDeclarationListPart ? element : element.getParent(),DartVarInit.class);
+  final DartExpression initExpression=varInit == null ? null : varInit.getExpression();
+  if (initExpression instanceof DartReference) {
+    result=((DartReference)initExpression).resolveDartClass();
+    result.specialize(initExpression);
+    return result;
+  }
+  return getDartClassResolveResult(initExpression);
+}

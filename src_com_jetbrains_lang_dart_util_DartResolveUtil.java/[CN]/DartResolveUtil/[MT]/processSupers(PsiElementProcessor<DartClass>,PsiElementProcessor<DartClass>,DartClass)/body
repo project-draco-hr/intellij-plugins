@@ -1,0 +1,28 @@
+{
+  final Set<DartClass> processedClasses=new THashSet<DartClass>();
+  DartClass currentClass=rootDartClass;
+  while (currentClass != null) {
+    processedClasses.add(currentClass);
+    for (    DartType type : currentClass.getImplementsList()) {
+      final DartClass result=resolveClassByType(type).getDartClass();
+      if (superInterfaceProcessor == null || result == null || processedClasses.contains(result)) {
+        continue;
+      }
+      if (!superInterfaceProcessor.execute(result)) {
+        return;
+      }
+      if (!processSuperClasses(superInterfaceProcessor,result)) {
+        return;
+      }
+    }
+    currentClass=resolveClassByType(currentClass.getSuperClass()).getDartClass();
+    if (currentClass == null || processedClasses.contains(currentClass)) {
+      break;
+    }
+    if (superClassProcessor != null) {
+      if (!superClassProcessor.execute(currentClass)) {
+        return;
+      }
+    }
+  }
+}

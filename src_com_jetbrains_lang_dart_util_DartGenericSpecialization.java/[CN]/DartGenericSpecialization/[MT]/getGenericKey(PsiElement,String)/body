@@ -1,0 +1,22 @@
+{
+  final StringBuilder result=new StringBuilder();
+  final DartComponent dartComponent=PsiTreeUtil.getParentOfType(element,DartComponent.class,false);
+  if (dartComponent instanceof DartClass) {
+    result.append(dartComponent.getName());
+  }
+ else   if (dartComponent != null) {
+    DartClass dartClass=PsiTreeUtil.getParentOfType(dartComponent,DartClass.class);
+    if (dartClass != null) {
+      result.append(dartClass.getName());
+    }
+    if (PsiTreeUtil.getChildOfType(dartComponent,DartTypeArguments.class) != null) {
+      result.append(":");
+      result.append(dartComponent.getName());
+    }
+  }
+  if (result.length() > 0) {
+    result.append("-");
+  }
+  result.append(genericName);
+  return result.toString();
+}

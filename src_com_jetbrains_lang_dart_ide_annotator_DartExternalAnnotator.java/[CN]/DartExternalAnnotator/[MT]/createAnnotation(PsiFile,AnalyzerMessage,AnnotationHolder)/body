@@ -1,0 +1,35 @@
+{
+  final Document document=file.getViewProvider().getDocument();
+  if (document == null) {
+    return;
+  }
+  final int startOffset=document.getLineStartOffset(message.getLine()) + message.getOffset();
+  final TextRange textRange=new TextRange(startOffset,startOffset + message.getLength());
+  PsiElement element=file.findElementAt(startOffset + message.getLength() / 2);
+  while (element != null && textRange.getStartOffset() < element.getTextOffset()) {
+    element=element.getParent();
+  }
+  boolean annotateByElement=element != null && textRange.equals(element.getTextRange());
+  Annotation annotation=annotateByElement ? annotateElement(message,holder,element) : annotateTextRange(message,holder,textRange);
+  if (annotation == null) {
+    return;
+  }
+  List<? extends IntentionAction> fixes=null;
+  if ("RESOLVER".equals(message.getSubSystem())) {
+    DartResolverErrorCode code=DartResolverErrorCode.findError(message.getErrorCode());
+    fixes=code == null ? Collections.<IntentionAction>emptyList() : code.getFixes(file,startOffset,message);
+  }
+ else   if ("STATIC_TYPE".equals(message.getSubSystem())) {
+    DartTypeErrorCode code=DartTypeErrorCode.findError(message.getErrorCode());
+    fixes=code == null ? Collections.<IntentionAction>emptyList() : code.getFixes(file,startOffset,message);
+  }
+ else {
+    fixes=Collections.emptyList();
+  }
+  for (  IntentionAction intentionAction : fixes) {
+    if (intentionAction instanceof FixAndIntentionAction) {
+      ((FixAndIntentionAction)intentionAction).setElement(element);
+    }
+    annotation.registerFix(intentionAction);
+  }
+}

@@ -1,0 +1,27 @@
+{
+  final Matcher matcher=tracePattern.matcher(line.trim());
+  if (!matcher.matches()) {
+    return null;
+  }
+  final String prefix=matcher.group(1);
+  final String name=matcher.group(2);
+  final String fileUrl=matcher.group(3);
+  final int lineNumber=Integer.parseInt(matcher.group(4)) - 1;
+  final int offset=Integer.parseInt(matcher.group(5)) - 1;
+  VirtualFile file=VirtualFileManager.getInstance().findFileByUrl(fileUrl);
+  if (fileUrl.startsWith(DartResolveUtil.PACKAGE_PREFIX) && libraryRootPath != null) {
+    String libUrl=VfsUtilCore.pathToUrl(libraryRootPath);
+    final VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(libUrl);
+    final VirtualFile packages=DartResolveUtil.findPackagesFolder(libraryRoot,project);
+    if (packages != null) {
+      String relativePath=fileUrl.substring(DartResolveUtil.PACKAGE_PREFIX.length());
+      relativePath=FileUtil.toSystemIndependentName(relativePath);
+      file=VfsUtil.findRelativeFile(packages,relativePath.split("/"));
+    }
+  }
+  if (file == null) {
+    return null;
+  }
+  OpenFileHyperlinkInfo hyperlinkInfo=new OpenFileHyperlinkInfo(project,file,lineNumber,offset);
+  return new Result(prefix.length(),prefix.length() + name.length(),hyperlinkInfo);
+}

@@ -1,0 +1,32 @@
+{
+  final PsiBuilder.Marker marker_=builder_.mark();
+  final boolean result_=consumeToken(builder_,IDENTIFIER);
+  if (result_) {
+    marker_.done(ID);
+    return true;
+  }
+ else   if ("get".equals(builder_.getTokenText()) || "set".equals(builder_.getTokenText())) {
+    builder_.advanceLexer();
+    final boolean nextIsID=builder_.getTokenType() == IDENTIFIER || pseudoKeywords.contains(builder_.getTokenText());
+    if (!nextIsID) {
+      marker_.done(ID);
+      return true;
+    }
+  }
+ else   if ("operator".equals(builder_.getTokenText())) {
+    builder_.advanceLexer();
+    if (!operators.contains(builder_.getTokenText())) {
+      marker_.done(ID);
+      return true;
+    }
+  }
+ else   if (pseudoKeywords.contains(builder_.getTokenText())) {
+    builder_.advanceLexer();
+    marker_.done(ID);
+    return true;
+  }
+ else {
+    marker_.rollbackTo();
+  }
+  return false;
+}

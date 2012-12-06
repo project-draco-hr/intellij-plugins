@@ -1,0 +1,21 @@
+{
+  sendPriorityCommand(getCommandObject("getLibraries"),new AbstractResponseToRequestHandler<JsonResponse>(){
+    @Override public boolean processResponse(    JsonResponse response){
+      if (response.getJsonObject().get("error") != null) {
+        runnable.run();
+        return true;
+      }
+      JsonArray libraries=response.getJsonObject().getAsJsonObject("result").getAsJsonArray("libraries");
+      for (      JsonElement library : libraries) {
+        int id=library.getAsJsonObject().get("id").getAsInt();
+        String url=library.getAsJsonObject().get("url").getAsString();
+        if (url != null && !CORE_LIBS.contains(url)) {
+          sendEnableLibrary(id,null);
+        }
+      }
+      runnable.run();
+      return true;
+    }
+  }
+);
+}

@@ -1,0 +1,18 @@
+{
+  if (!myStackFrames.isEmpty()) {
+    addStackFrames(container,firstFrameIndex);
+    return;
+  }
+  myDebugProcess.sendSimpleCommand("getStackTrace",new AbstractResponseToRequestHandler<JsonResponse>(){
+    @Override public boolean processResponse(    JsonResponse response){
+      if (response.getJsonObject().get("error") == null) {
+        final JsonObject result=response.getJsonObject().getAsJsonObject("result");
+        myStackFrames.clear();
+        myStackFrames.addAll(DartStackFrame.fromJson(myDebugProcess,result.getAsJsonArray("callFrames")));
+      }
+      addStackFrames(container,firstFrameIndex);
+      return true;
+    }
+  }
+);
+}

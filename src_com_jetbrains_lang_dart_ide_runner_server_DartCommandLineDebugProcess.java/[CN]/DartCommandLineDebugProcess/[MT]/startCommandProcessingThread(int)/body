@@ -1,0 +1,38 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      myConnection.connect(debuggingPort);
+      myConnection.registerHandler(new AbstractResponseHandler<JsonResponse>(){
+        @Override public void processResponse(        JsonResponse response){
+          DartCommandLineDebugProcess.this.processResponse(response);
+        }
+      }
+);
+      boolean connected=false;
+      int attempts=10;
+      do {
+        --attempts;
+        try {
+          myConnection.open();
+          connected=true;
+        }
+ catch (        ConnectException ex) {
+synchronized (this) {
+            try {
+              wait(200);
+            }
+ catch (            InterruptedException ignored) {
+            }
+          }
+        }
+catch (        IOException ignored) {
+        }
+      }
+ while (!connected && attempts > 0);
+      while (true) {
+        processOneCommandLoop();
+      }
+    }
+  }
+);
+}

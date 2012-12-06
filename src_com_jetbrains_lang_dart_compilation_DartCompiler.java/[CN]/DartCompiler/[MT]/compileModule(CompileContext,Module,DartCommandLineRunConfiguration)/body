@@ -1,0 +1,44 @@
+{
+  final String filePath=configuration.getFilePath();
+  if (filePath == null) {
+    context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("no.file.specified",configuration.getName()),null,-1,-1);
+    return false;
+  }
+  VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(filePath));
+  if (libraryRoot == null) {
+    context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("cannot.find.file",filePath),null,-1,-1);
+    return false;
+  }
+  final ModuleRootManager moduleRootManager=ModuleRootManager.getInstance(module);
+  final Sdk sdk=moduleRootManager.getSdk();
+  if (sdk == null) {
+    context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("no.sdk.for.module",module.getName()),null,-1,-1);
+    return false;
+  }
+  if (sdk.getSdkType() != DartSdkType.getInstance()) {
+    context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("not.dart.sdk.for.module",module.getName()),null,-1,-1);
+    return false;
+  }
+  final String sdkExePath=DartSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath());
+  if (sdkExePath == null || sdkExePath.isEmpty()) {
+    context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("invalid.dart.sdk.for.module",module.getName()),null,-1,-1);
+    return false;
+  }
+  final String analyzerUrl=VfsUtil.pathToUrl(sdk.getHomePath()) + "/bin/" + (SystemInfo.isWindows ? "dart_analyzer.bat" : "dart_analyzer");
+  final VirtualFile analyzerExecutable=VirtualFileManager.getInstance().findFileByUrl(analyzerUrl);
+  if (analyzerExecutable == null) {
+    return true;
+  }
+  final String outputUrl=CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
+  final AnalyzerDriver analyzerDriver=new AnalyzerDriver(module.getProject(),analyzerExecutable,sdk.getHomePath(),libraryRoot);
+  List<AnalyzerMessage> messages=analyzerDriver.analyze(VfsUtil.urlToPath(outputUrl),false);
+  if (messages != null && messages.isEmpty()) {
+    return true;
+  }
+  if (messages != null && !messages.isEmpty()) {
+    for (    AnalyzerMessage message : messages) {
+      context.addMessage(toCompilerCategory(message.getType()),message.getMessage(),message.getVirtualFile().getUrl(),message.getLine() + 1,message.getOffset() + 1);
+    }
+  }
+  return false;
+}

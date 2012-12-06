@@ -1,0 +1,16 @@
+{
+  Module module=ModuleUtilCore.findModuleForFile(libraryRoot,project);
+  if (module == null) {
+    LOG.info("Cannot find module for: " + libraryRoot.getPath());
+    return;
+  }
+  DartSettings settings=DartSettings.getSettingsForModule(module);
+  final VirtualFile analyzer=settings == null ? null : settings.getAnalyzer();
+  final AnalyzerDriver analyzerDriver=analyzer == null ? null : new AnalyzerDriver(module.getProject(),analyzer,settings.getSdkPath(),libraryRoot);
+  setIndicatorText("Analyzing library root: " + libraryRoot.getName());
+  if (analyzer == null) {
+    LOG.info("Cannot run analyzer for: " + libraryRoot.getPath());
+    return;
+  }
+  libraryRoot2Errors.put(libraryRoot,analyzerDriver.analyze(false));
+}

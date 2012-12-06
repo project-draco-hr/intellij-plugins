@@ -1,0 +1,19 @@
+{
+  if (psiFile == null) {
+    return null;
+  }
+  final Document document=psiFile.getViewProvider().getDocument();
+  if (document == null) {
+    return null;
+  }
+  final int startOffset=document.getLineStartOffset(message.getLine()) + message.getOffset();
+  final TextRange textRange=new TextRange(startOffset,startOffset + message.getLength());
+  PsiElement element=psiFile.findElementAt(startOffset + message.getLength() / 2);
+  while (element != null && textRange.getStartOffset() < element.getTextOffset()) {
+    element=element.getParent();
+  }
+  if (element != null && textRange.equals(element.getTextRange())) {
+    return computeProblemDescriptor(manager,message,element);
+  }
+  return computeProblemDescriptor(manager,message,psiFile,textRange);
+}

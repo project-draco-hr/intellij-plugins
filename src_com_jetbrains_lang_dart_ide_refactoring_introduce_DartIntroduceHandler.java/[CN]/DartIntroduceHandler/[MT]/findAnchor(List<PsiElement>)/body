@@ -1,0 +1,27 @@
+{
+  PsiElement anchor=occurrences.get(0);
+  next:   do {
+    final DartStatements statements=PsiTreeUtil.getParentOfType(anchor,DartStatements.class);
+    int minOffset=Integer.MAX_VALUE;
+    for (    PsiElement element : occurrences) {
+      minOffset=Math.min(minOffset,element.getTextOffset());
+      if (!PsiTreeUtil.isAncestor(statements,element,true)) {
+        anchor=statements;
+        continue next;
+      }
+    }
+    if (statements == null) {
+      return null;
+    }
+    PsiElement child=null;
+    PsiElement[] children=statements.getChildren();
+    for (    PsiElement aChildren : children) {
+      child=aChildren;
+      if (child.getTextRange().contains(minOffset)) {
+        break;
+      }
+    }
+    return child;
+  }
+ while (true);
+}

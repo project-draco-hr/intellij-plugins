@@ -1,0 +1,21 @@
+{
+  final Map<String,String> envParams=new THashMap<String,String>();
+  envParams.put("com.google.dart.sdk",sdk.getSdkPath());
+  commandLine.setEnvParams(envParams);
+  commandLine.addParameter("--ignore-unrecognized-flags");
+  StringTokenizer argumentsTokenizer=new StringTokenizer(vmOptions);
+  while (argumentsTokenizer.hasMoreTokens()) {
+    commandLine.addParameter(argumentsTokenizer.nextToken());
+  }
+  String libUrl=VfsUtilCore.pathToUrl(filePath);
+  final VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(libUrl);
+  final VirtualFile packages=DartResolveUtil.findPackagesFolder(module);
+  if (packages != null && packages.isDirectory()) {
+    commandLine.addParameter("--package-root=" + packages.getPath() + "/");
+  }
+  commandLine.addParameter(filePath);
+  argumentsTokenizer=new StringTokenizer(arguments);
+  while (argumentsTokenizer.hasMoreTokens()) {
+    commandLine.addParameter(argumentsTokenizer.nextToken());
+  }
+}

@@ -1,0 +1,18 @@
+{
+  if (!(location instanceof PsiLocation))   return null;
+  PsiElement element=location.getPsiElement();
+  PsiFile containingFile=element.getContainingFile();
+  if (!DartResolveUtil.isLibraryRoot(containingFile))   return null;
+  final RunnerAndConfigurationSettings settings=cloneTemplateConfiguration(location.getProject(),context);
+  final LocatableConfiguration runConfig=(LocatableConfiguration)settings.getConfiguration();
+  if (!(runConfig instanceof DartCommandLineRunConfiguration)) {
+    return null;
+  }
+  final DartCommandLineRunConfiguration commandLineRunConfiguration=((DartCommandLineRunConfiguration)runConfig);
+  if (!setupRunConfiguration(commandLineRunConfiguration,containingFile)) {
+    return null;
+  }
+  mySourceElement=location.getPsiElement();
+  settings.setName(containingFile.getName());
+  return settings;
+}

@@ -1,0 +1,17 @@
+{
+  final List<DartClass> subClasses=DartInheritanceIndex.getItemsByName(dartClass);
+  if (!subClasses.isEmpty()) {
+    result.add(createImplementationMarker(dartClass,subClasses));
+  }
+  final List<DartComponent> subItems=new ArrayList<DartComponent>();
+  for (  DartClass subClass : subClasses) {
+    subItems.addAll(DartResolveUtil.getNamedSubComponents(subClass));
+  }
+  final boolean isInterface=DartComponentType.typeOf(dartClass) == DartComponentType.INTERFACE;
+  for (  DartComponent dartComponent : DartResolveUtil.getNamedSubComponents(dartClass)) {
+    final LineMarkerInfo markerInfo=tryCreateImplementationMarker(dartComponent,subItems,isInterface || dartComponent.isAbstract());
+    if (markerInfo != null) {
+      result.add(markerInfo);
+    }
+  }
+}

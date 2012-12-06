@@ -1,0 +1,18 @@
+{
+  if (!recursion_guard_(builder_,level_,"qualifiedReferenceExpression"))   return false;
+  if (!nextTokenIs(builder_,DOT))   return false;
+  boolean result_=false;
+  Marker left_marker_=(Marker)builder_.getLatestDoneMarker();
+  if (!invalid_left_marker_guard_(builder_,left_marker_,"qualifiedReferenceExpression"))   return false;
+  Marker marker_=builder_.mark();
+  result_=consumeToken(builder_,DOT);
+  result_=result_ && referenceExpression(builder_,level_ + 1);
+  if (result_) {
+    marker_.drop();
+    left_marker_.precede().done(REFERENCE_EXPRESSION);
+  }
+ else {
+    marker_.rollbackTo();
+  }
+  return result_;
+}

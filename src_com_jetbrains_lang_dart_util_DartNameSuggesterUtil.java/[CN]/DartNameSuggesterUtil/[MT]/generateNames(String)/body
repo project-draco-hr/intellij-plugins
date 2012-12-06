@@ -1,0 +1,37 @@
+{
+  name=StringUtil.decapitalize(deleteNonLetterFromString(StringUtil.unquoteString(name.replace('.','_'))));
+  if (name.startsWith("get")) {
+    name=name.substring(3);
+  }
+ else   if (name.startsWith("is")) {
+    name=name.substring(2);
+  }
+  while (name.startsWith("_")) {
+    name=name.substring(1);
+  }
+  while (name.endsWith("_")) {
+    name=name.substring(0,name.length() - 1);
+  }
+  final int length=name.length();
+  final Collection<String> possibleNames=new LinkedHashSet<String>();
+  for (int i=0; i < length; i++) {
+    if (Character.isLetter(name.charAt(i)) && (i == 0 || name.charAt(i - 1) == '_' || (Character.isLowerCase(name.charAt(i - 1)) && Character.isUpperCase(name.charAt(i))))) {
+      final String candidate=StringUtil.decapitalize(name.substring(i));
+      if (candidate.length() < 25) {
+        possibleNames.add(candidate);
+      }
+    }
+  }
+  ArrayList<String> reversed=new ArrayList<String>(possibleNames);
+  Collections.reverse(reversed);
+  return ContainerUtil.map(reversed,new Function<String,String>(){
+    @Override public String fun(    String name){
+      if (name.indexOf('_') == -1) {
+        return name;
+      }
+      name=StringUtil.capitalizeWords(name,"_",true,true);
+      return StringUtil.decapitalize(name.replaceAll("_",""));
+    }
+  }
+);
+}

@@ -1,0 +1,17 @@
+{
+  final PsiElement parent=myComponentName.getParent();
+  final DartComponentType componentType=DartComponentType.typeOf(parent);
+  final boolean isGetterSetter=parent instanceof DartGetterDeclaration || parent instanceof DartSetterDeclaration;
+  if (!isGetterSetter && parent instanceof DartComponent && (componentType == DartComponentType.FUNCTION || componentType == DartComponentType.METHOD || componentType == DartComponentType.CONSTRUCTOR)) {
+    final String parameterList=DartPresentableUtil.getPresentableParameterList((DartComponent)parent);
+    final ParenthesesInsertHandler<LookupElement> insertHandler=parameterList.isEmpty() ? ParenthesesInsertHandler.NO_PARAMETERS : ParenthesesInsertHandler.WITH_PARAMETERS;
+    insertHandler.handleInsert(context,this);
+  }
+  if (myConstructorCompletion && parent instanceof DartClass) {
+    final String name=((DartClass)parent).getName();
+    final DartComponent dartComponent=name != null ? ((DartClass)parent).findNamedConstructor(name) : null;
+    final String parameterList=DartPresentableUtil.getPresentableParameterList(dartComponent);
+    final ParenthesesInsertHandler<LookupElement> insertHandler=dartComponent == null || parameterList.isEmpty() ? ParenthesesInsertHandler.NO_PARAMETERS : ParenthesesInsertHandler.WITH_PARAMETERS;
+    insertHandler.handleInsert(context,this);
+  }
+}

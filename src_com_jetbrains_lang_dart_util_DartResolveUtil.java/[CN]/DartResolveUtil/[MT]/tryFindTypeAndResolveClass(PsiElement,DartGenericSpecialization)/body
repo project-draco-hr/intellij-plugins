@@ -1,0 +1,26 @@
+{
+  DartType type=PsiTreeUtil.getChildOfType(element,DartType.class);
+  if (type == null && element instanceof DartType) {
+    type=(DartType)element;
+  }
+ else   if (type == null) {
+    final DartReturnType returnType=PsiTreeUtil.getChildOfType(element,DartReturnType.class);
+    type=returnType == null ? null : returnType.getType();
+  }
+  if (type == null && element instanceof DartVarDeclarationListPart) {
+    final PsiElement parent=element.getParent();
+    if (parent instanceof DartVarDeclarationList) {
+      type=((DartVarDeclarationList)parent).getVarAccessDeclaration().getType();
+    }
+  }
+  DartClass dartClass=type == null ? null : resolveClassByType(type).getDartClass();
+  if (dartClass == null && type != null && specialization.containsKey(element,type.getText())) {
+    return specialization.get(element,type.getText());
+  }
+  DartClassResolveResult result=getDartClassResolveResult(dartClass,specialization.getInnerSpecialization(element));
+  if (result.getDartClass() != null) {
+    result.specializeByParameters(type == null ? null : type.getTypeArguments());
+    return result;
+  }
+  return DartClassResolveResult.EMPTY;
+}
