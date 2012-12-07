@@ -1,13 +1,8 @@
 {
   String annotationPackage=CUCUMBER_1_1_ANNOTATION_PACKAGE;
-  final LibraryTable libraryTable=ProjectLibraryTable.getInstance(step.getProject());
-  for (  Library library : libraryTable.getLibraries()) {
-    final String libraryName=library.getName();
-    if (libraryName != null) {
-      if (libraryName.matches(CUCUMBER_JAVA_0_REGEXP) || libraryName.matches(CUCUMBER_JAVA_1_REGEXP)) {
-        annotationPackage=CUCUMBER_1_0_ANNOTATION_PACKAGE;
-      }
-    }
+  final String version=CucumberConfigUtil.getCucumberCoreVersion(step);
+  if (version != null && version.compareTo(CucumberConfigUtil.CUCUMBER_VERSION_1_1) < 0) {
+    annotationPackage=CUCUMBER_1_0_ANNOTATION_PACKAGE;
   }
   final PsiElementFactory factory=JavaPsiFacade.getInstance(step.getProject()).getElementFactory();
   final Step cucumberStep=new Step(new ArrayList<Comment>(),step.getKeyword().getText(),step.getStepName(),0,null,null);
