@@ -1,25 +1,25 @@
 {
   final AtomicBoolean result=new AtomicBoolean();
-  final Semaphore debuggerRunSemaphor=new Semaphore();
-  debuggerRunSemaphor.down();
+  final Semaphore debuggerRunSemaphore=new Semaphore();
+  debuggerRunSemaphore.down();
   ApplicationManager.getApplication().invokeLater(new Runnable(){
     @Override public void run(){
       try {
         runDebugger(module,new Runnable(){
           @Override public void run(){
             result.set(true);
-            debuggerRunSemaphor.up();
+            debuggerRunSemaphore.up();
           }
         }
 );
       }
  catch (      ExecutionException e) {
         LOG.error(e);
-        debuggerRunSemaphor.up();
+        debuggerRunSemaphore.up();
       }
     }
   }
 );
-  debuggerRunSemaphor.waitFor();
+  debuggerRunSemaphore.waitFor();
   return result.get();
 }
