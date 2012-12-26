@@ -40,8 +40,13 @@
   }
   if (handlerCallerAnchorInArgumentList != null) {
     final JSExpression qualifier=((JSReferenceExpression)callExpression.getMethodExpression()).getQualifier();
-    if (qualifier != null && LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage()).isIdentifier(qualifier.getText(),null)) {
-      eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,qualifier.getText(),eventName);
+    final NamesValidator validator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+    if (qualifier != null && validator.isIdentifier(qualifier.getText(),null)) {
+      String qualifierText=qualifier.getText();
+      if (qualifierText.length() > 1 && qualifierText.charAt(0) == '_' && validator.isIdentifier(qualifierText.substring(1),null)) {
+        qualifierText=qualifierText.substring(1);
+      }
+      eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,qualifierText,eventName);
     }
  else {
       eventHandlerName=eventName + "Handler";
