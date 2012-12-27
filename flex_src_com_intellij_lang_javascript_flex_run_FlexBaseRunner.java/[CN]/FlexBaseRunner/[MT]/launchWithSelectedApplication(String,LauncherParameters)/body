@@ -1,48 +1,13 @@
 {
 switch (launcherParams.getLauncherType()) {
 case OSDefault:
-    if (SystemInfo.isWindows) {
-      try {
-        Runtime.getRuntime().exec(new String[]{"cmd.exe","/c","start","\"\"",BrowserUtil.escapeUrl(urlOrPath)});
-        break;
-      }
- catch (      IOException ignored) {
-      }
-    }
-  if (Desktop.isDesktopSupported()) {
-    final Desktop desktop=Desktop.getDesktop();
-    if (BrowserUtil.isAbsoluteURL(urlOrPath)) {
-      if (desktop.isSupported(Desktop.Action.BROWSE)) {
-        try {
-          desktop.browse(BrowserUtil.getURL(urlOrPath).toURI());
-          break;
-        }
- catch (        IOException ignored) {
-        }
-catch (        URISyntaxException ignored) {
-        }
-      }
-    }
- else {
-      if (desktop.isSupported(Desktop.Action.OPEN)) {
-        try {
-          desktop.open(new File(urlOrPath));
-          break;
-        }
- catch (        IOException ignored) {
-        }
-catch (        IllegalArgumentException ignored) {
-        }
-      }
-    }
-  }
-BrowserUtil.launchBrowser(urlOrPath);
-break;
+    BrowserUtil.open(urlOrPath);
+  break;
 case Browser:
 final Runnable runnable1=new Runnable(){
-public void run(){
-BrowsersConfiguration.launchBrowser(launcherParams.getBrowserFamily(),BrowserUtil.isAbsoluteURL(urlOrPath) ? urlOrPath : VfsUtil.pathToUrl(urlOrPath));
-}
+  public void run(){
+    BrowsersConfiguration.launchBrowser(launcherParams.getBrowserFamily(),BrowserUtil.isAbsoluteURL(urlOrPath) ? urlOrPath : VfsUtil.pathToUrl(urlOrPath));
+  }
 }
 ;
 final Application application1=ApplicationManager.getApplication();
