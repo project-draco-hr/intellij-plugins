@@ -2,8 +2,7 @@
   final PsiElementPattern.Capture<PsiElement> idInExpression=psiElement().withSuperParent(1,DartId.class).withSuperParent(2,DartReference.class);
   extend(CompletionType.BASIC,idInExpression.withSuperParent(3,DartArgumentList.class),new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
-      DartCallExpression callExpression=PsiTreeUtil.getParentOfType(parameters.getPosition(),DartCallExpression.class);
-      DartExpression reference=callExpression != null ? callExpression.getExpression() : null;
+      DartExpression reference=findExpressionFromCallOrNew(parameters);
       PsiElement target=reference instanceof DartReference ? ((DartReference)reference).resolve() : null;
       PsiElement targetComponent=target != null ? target.getParent() : null;
       DartFormalParameterList parameterList=PsiTreeUtil.getChildOfType(targetComponent,DartFormalParameterList.class);
