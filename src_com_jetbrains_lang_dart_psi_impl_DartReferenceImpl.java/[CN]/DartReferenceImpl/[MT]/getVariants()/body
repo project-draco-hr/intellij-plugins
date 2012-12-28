@@ -2,11 +2,9 @@
   final Set<DartComponentName> suggestedVariants=new THashSet<DartComponentName>();
   DartClass dartClass=null;
   if (DartResolveUtil.aloneOrFirstInChain(this)) {
-    PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants),this,null,new ResolveState());
-    final List<VirtualFile> libraryFiles=new ArrayList<VirtualFile>();
-    libraryFiles.addAll(DartResolveUtil.findLibrary(getContainingFile()));
-    libraryFiles.addAll(DartLibraryIndex.findLibraryClass(this,"dart:core"));
-    DartResolveUtil.processTopLevelDeclarations(this,new ComponentNameScopeProcessor(suggestedVariants),libraryFiles,null);
+    final PsiElement context=this;
+    final PsiScopeProcessor processor=new ComponentNameScopeProcessor(suggestedVariants);
+    DartResolveUtil.treeWalkUpAndTopLevelDeclarations(context,processor);
     dartClass=PsiTreeUtil.getParentOfType(this,DartClass.class);
   }
   final DartReference leftReference=DartResolveUtil.getLeftReference(this);
