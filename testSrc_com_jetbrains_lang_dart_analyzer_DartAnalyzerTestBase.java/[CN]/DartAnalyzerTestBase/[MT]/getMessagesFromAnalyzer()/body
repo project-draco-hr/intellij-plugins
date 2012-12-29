@@ -14,7 +14,17 @@
     }
   }
 ;
-  DefaultCompilerConfiguration config=new DefaultCompilerConfiguration();
+  DefaultCompilerConfiguration config=new DefaultCompilerConfiguration(){
+    @Override public CommandLineOptions.CompilerOptions getCompilerOptions(){
+      return new CompilerOptionsWrapper(super.getCompilerOptions()){
+        @Override public boolean typeChecksForInferredTypes(){
+          return true;
+        }
+      }
+;
+    }
+  }
+;
   File libFile=new File(DartResolveUtil.getRealVirtualFile(myFixture.getFile()).getPath());
   final LibrarySource lib=new UrlLibrarySource(libFile);
   DartCompiler.compileLib(lib,config,provider,new DartCompilerListener(){
