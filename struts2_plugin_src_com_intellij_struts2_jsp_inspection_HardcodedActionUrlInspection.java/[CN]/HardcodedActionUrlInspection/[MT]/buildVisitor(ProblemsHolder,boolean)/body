@@ -1,0 +1,25 @@
+{
+  final boolean isJspFileWithStrutsSupport=JspPsiUtil.getJspFile(holder.getFile()) != null && StrutsFacet.getInstance(holder.getFile()) != null;
+  @Nullable final String actionExtension;
+  if (isJspFileWithStrutsSupport) {
+    actionExtension=ContainerUtil.getFirstItem(StrutsConstantHelper.getActionExtensions(holder.getFile()));
+  }
+ else {
+    actionExtension=null;
+  }
+  return new XmlElementVisitor(){
+    @Override public void visitXmlAttributeValue(    XmlAttributeValue value){
+      if (!isJspFileWithStrutsSupport || actionExtension == null) {
+        return;
+      }
+      XmlTag tag=PsiTreeUtil.getParentOfType(value,XmlTag.class);
+      if (tag == null)       return;
+      URL parsedURL=parseURL(value,actionExtension);
+      if (parsedURL == null)       return;
+      if (buildTag("",parsedURL,"",false,actionExtension) == null)       return;
+      TextRange range=ElementManipulators.getValueTextRange(value);
+      holder.registerProblem(value,range,"Use Struts <url> tag instead of hardcoded URL",new WrapWithSUrl(actionExtension));
+    }
+  }
+;
+}

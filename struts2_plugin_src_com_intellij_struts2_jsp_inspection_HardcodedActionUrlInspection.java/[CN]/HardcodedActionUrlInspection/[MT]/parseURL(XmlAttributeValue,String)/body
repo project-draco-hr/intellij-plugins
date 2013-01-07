@@ -1,0 +1,25 @@
+{
+  String rawUrl=value.getValue();
+  if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+    return null;
+  }
+  URL parsedURL;
+  try {
+    parsedURL=new URL("http://" + rawUrl);
+  }
+ catch (  Exception e) {
+    return null;
+  }
+  String host=parsedURL.getHost();
+  if (!StringUtil.isEmpty(host) && !(host.startsWith("${") && host.endsWith("}"))) {
+    return null;
+  }
+  String path=parsedURL.getPath();
+  if (!path.endsWith(actionExtension)) {
+    return null;
+  }
+  if (path.contains("${")) {
+    return null;
+  }
+  return parsedURL;
+}

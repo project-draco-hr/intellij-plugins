@@ -1,0 +1,51 @@
+{
+  String path=url.getPath();
+  int slash=path.lastIndexOf('/');
+  String namespace=slash > 0 ? path.substring(0,slash) : null;
+  String action=slash != -1 ? path.substring(slash + 1) : path;
+  if (action.endsWith(actionExtension)) {
+    action=action.substring(0,action.length() - actionExtension.length());
+  }
+  int exclamationIdx=action.indexOf('!');
+  String method=null;
+  if (exclamationIdx > 0) {
+    method=action.substring(exclamationIdx + 1);
+    action=action.substring(0,exclamationIdx);
+  }
+  StringBuilder sb=new StringBuilder();
+  sb.append('<').append(prefix).append(":url");
+  String var;
+  if (inline) {
+    var=null;
+  }
+ else {
+    var=action + "_url";
+    sb.append(" var=\"").append(var).append("\"");
+  }
+  if (namespace != null) {
+    sb.append(" namespace=\"").append(namespace).append("\"");
+  }
+  sb.append(" action=\"").append(action).append("\"");
+  if (method != null) {
+    sb.append(" method=\"").append(method).append("\"");
+  }
+  String query=url.getQuery();
+  if (StringUtil.isEmpty(query)) {
+    sb.append("/>");
+  }
+ else {
+    sb.append(">");
+    for (    String escapedArg : StringUtil.split(query,"&amp;")) {
+      for (      String arg : StringUtil.split(escapedArg,"&")) {
+        int eq=arg.indexOf('=');
+        String name=eq > 0 ? arg.substring(0,eq) : arg;
+        String value=eq > 0 ? arg.substring(eq + 1) : "";
+        if (name.contains("[") || name.contains("$"))         return null;
+        sb.append("\n").append(indent).append("  <").append(prefix).append(":param name=\"").append(name).append("\">").append(value).append("</").append(prefix).append(":param>");
+      }
+    }
+    sb.append('\n').append(indent);
+    sb.append("</").append(prefix).append(":url>");
+  }
+  return Pair.create(sb.toString(),var);
+}
