@@ -1,0 +1,28 @@
+{
+  return ApplicationManager.getApplication().runWriteAction(new Computable<ScriptingLibraryModel>(){
+    @Override public ScriptingLibraryModel compute(){
+      JSLibraryManager libraryManager=ServiceManager.getService(myProject,JSLibraryManager.class);
+      final File rootDir=new File(FileUtil.toSystemDependentName(sdkPath));
+      final List<File> dartFiles=findDartFiles(rootDir);
+      final List<VirtualFile> vFiles=new ArrayList<VirtualFile>();
+      for (      File file : dartFiles) {
+        VirtualFile vf=LocalFileSystem.getInstance().findFileByIoFile(file);
+        if (vf == null) {
+          vf=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+        }
+        if (vf != null) {
+          vFiles.add(vf);
+        }
+      }
+      ScriptingLibraryModel libraryModel=libraryManager.getLibraryByName(DartBundle.message("dart.sdk.name"));
+      if (libraryModel != null) {
+        libraryManager.removeLibrary(libraryModel);
+      }
+      libraryModel=libraryManager.createLibrary(DartBundle.message("dart.sdk.name"),VfsUtilCore.toVirtualFileArray(vFiles),VirtualFile.EMPTY_ARRAY,ArrayUtil.EMPTY_STRING_ARRAY,ScriptingLibraryModel.LibraryLevel.GLOBAL,false);
+      libraryModel.setFrameworkDescriptor(new ScriptingFrameworkDescriptor(DartBundle.message("dart.sdk.name"),DartSdkUtil.getSdkVersion(FileUtil.toSystemDependentName(sdkPath))));
+      libraryManager.commitChanges();
+      return libraryModel;
+    }
+  }
+);
+}
