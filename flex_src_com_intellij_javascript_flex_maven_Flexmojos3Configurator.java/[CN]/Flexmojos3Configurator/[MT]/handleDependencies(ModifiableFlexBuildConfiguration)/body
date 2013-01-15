@@ -14,6 +14,18 @@
       if (dependencyMavenProject == null || !ArrayUtil.contains(dependencyMavenProject.getPackaging(),FlexmojosImporter.SUPPORTED_PACKAGINGS)) {
         continue;
       }
+      final ModifiableDependencyEntry existingEntry=ContainerUtil.find(bc.getDependencies().getModifiableEntries(),new Condition<ModifiableDependencyEntry>(){
+        public boolean value(        final ModifiableDependencyEntry entry){
+          return (entry instanceof BuildConfigurationEntry) && ((BuildConfigurationEntry)entry).getModuleName().equals(dependencyModuleName) && ((BuildConfigurationEntry)entry).getBcName().equals(dependencyModuleName);
+        }
+      }
+);
+      if (existingEntry != null) {
+        if (existingEntry.getDependencyType().getLinkageType() == LinkageType.Test) {
+          existingEntry.getDependencyType().setLinkageType(FlexUtils.convertLinkageType(scope,isExported));
+        }
+        continue;
+      }
       final ModifiableBuildConfigurationEntry bcEntry=myFlexEditor.createBcEntry(bc.getDependencies(),dependencyModuleName,dependencyModuleName);
       bcEntry.getDependencyType().setLinkageType(FlexUtils.convertLinkageType(scope,isExported));
       bc.getDependencies().getModifiableEntries().add(0,bcEntry);
