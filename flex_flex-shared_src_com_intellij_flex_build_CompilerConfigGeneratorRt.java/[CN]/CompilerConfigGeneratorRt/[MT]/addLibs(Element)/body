@@ -25,8 +25,11 @@
     }
   }
   if (myFlexUnit) {
-    final String unitTestingSupportSwc=FlexCommonUtils.getPathToBundledJar(FlexCommonUtils.getFlexUnitSupportLibName(myBC.getNature(),myBC.getDependencies().getComponentSet()));
-    final String flexUnitSwcUrl=JpsPathUtil.pathToUrl(FileUtil.toSystemIndependentName(unitTestingSupportSwc));
-    addLibraryRoots(rootElement,Collections.singletonList(flexUnitSwcUrl),LinkageType.Merged);
+    final Collection<String> flexUnitLibNames=FlexCommonUtils.getFlexUnitSupportLibNames(myBC.getNature(),myBC.getDependencies().getComponentSet(),FlexCommonUtils.getPathToFlexUnitMainClass(myModule.getProject().getName(),myBC.getNature(),myBC.getMainClass()));
+    for (    String libName : flexUnitLibNames) {
+      final String libPath=FlexCommonUtils.getPathToBundledJar(libName);
+      final String flexUnitSwcUrl=JpsPathUtil.pathToUrl(FileUtil.toSystemIndependentName(libPath));
+      addLibraryRoots(rootElement,Collections.singletonList(flexUnitSwcUrl),LinkageType.Merged);
+    }
   }
 }
