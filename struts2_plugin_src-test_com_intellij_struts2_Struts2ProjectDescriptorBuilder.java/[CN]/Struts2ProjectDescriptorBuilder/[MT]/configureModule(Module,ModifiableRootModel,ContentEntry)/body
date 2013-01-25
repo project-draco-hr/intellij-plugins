@@ -1,0 +1,28 @@
+{
+  super.configureModule(module,model,contentEntry);
+  if (addStrutsLibrary) {
+    BasicLightHighlightingTestCase.addStrutsJars(module,model);
+  }
+  if (addJ2eeLibrary) {
+    PsiTestUtil.addLibrary(module,model,"JavaEE",PathManager.getHomePath() + "/lib/","javaee.jar","javase-javax.jar");
+  }
+  for (  LibraryDefinition library : libraries) {
+    BasicLightHighlightingTestCase.addLibrary(module,model,library.groupId,library.artifactIds);
+  }
+  final WebFacet webFacet=FacetUtil.addFacet(module,WebFacetType.getInstance());
+  if (addStrutsFacet) {
+    FacetManager.getInstance(module).addFacet(StrutsFacetType.getInstance(),"struts2",webFacet);
+  }
+  if (webXmlUrl != null) {
+    final VirtualFile root=model.getSourceRoots()[0];
+    webFacet.addWebRoot(root,"/");
+    final ConfigFileInfoSet descriptors=webFacet.getDescriptorsContainer().getConfiguration();
+    descriptors.addConfigFile(DeploymentDescriptorsConstants.WEB_XML_META_DATA,webXmlUrl);
+    for (    String url : ModuleRootManager.getInstance(module).getSourceRootUrls()) {
+      webFacet.addWebSourceRoot(url);
+    }
+  }
+  for (  Callback callback : callbacks) {
+    callback.configureModule(module,model,contentEntry);
+  }
+}
