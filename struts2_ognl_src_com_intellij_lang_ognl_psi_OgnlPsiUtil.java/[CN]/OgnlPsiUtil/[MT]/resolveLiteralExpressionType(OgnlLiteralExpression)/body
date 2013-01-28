@@ -1,0 +1,29 @@
+{
+  final ASTNode node=expression.getNode();
+  final IElementType type=node.getFirstChildNode().getElementType();
+  if (type == OgnlTypes.STRING_LITERAL) {
+    return PsiType.getJavaLangString(expression.getManager(),expression.getResolveScope());
+  }
+  if (type == OgnlTypes.CHARACTER_LITERAL) {
+    return PsiType.CHAR;
+  }
+  if (type == OgnlTypes.INTEGER_LITERAL) {
+    return PsiType.INT;
+  }
+  if (type == OgnlTypes.BIG_INTEGER_LITERAL) {
+    return JavaPsiFacade.getInstance(expression.getProject()).getElementFactory().createTypeByFQClassName("java.math.BigInteger",expression.getResolveScope());
+  }
+  if (type == OgnlTypes.DOUBLE_LITERAL) {
+    return PsiType.DOUBLE;
+  }
+  if (type == OgnlTypes.BIG_DECIMAL_LITERAL) {
+    return JavaPsiFacade.getInstance(expression.getProject()).getElementFactory().createTypeByFQClassName("java.math.BigDecimal",expression.getResolveScope());
+  }
+  if (type == OgnlTypes.TRUE_KEYWORD || type == OgnlTypes.FALSE_KEYWORD) {
+    return PsiType.BOOLEAN;
+  }
+  if (type == OgnlTypes.NULL_KEYWORD) {
+    return PsiType.NULL;
+  }
+  throw new IllegalArgumentException("could not resolve type for literal " + type + " / "+ expression.getText());
+}

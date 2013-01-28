@@ -1,13 +1,22 @@
 {
-  final OgnlConditionalExpression expression=parse("true ? 0:1");
+  final OgnlConditionalExpression expression=parse("true ? 0 : 1");
+  assertEquals(PsiType.INT,expression.getType());
   final OgnlExpression condition=expression.getCondition();
   assertEquals("true",condition.getText());
-  assertElementType(OgnlElementTypes.BOOLEAN_LITERAL,condition);
-  assertEquals(PsiType.INT,expression.getType());
+  assertElementType(OgnlTypes.LITERAL_EXPRESSION,condition);
+  assertEquals(PsiType.BOOLEAN,condition.getType());
   final OgnlExpression thenExpression=expression.getThen();
-  assertEquals(0,thenExpression.getConstantValue());
-  assertElementType(OgnlElementTypes.INTEGER_LITERAL,thenExpression);
+  assertNotNull(thenExpression);
+  assertEquals("0",thenExpression.getText());
+  assertElementType(OgnlTypes.LITERAL_EXPRESSION,thenExpression);
+  final OgnlLiteralExpression thenLiteral=assertInstanceOf(thenExpression,OgnlLiteralExpression.class);
+  assertEquals(PsiType.INT,thenLiteral.getType());
+  assertEquals(0,thenLiteral.getConstantValue());
   final OgnlExpression elseExpression=expression.getElse();
-  assertEquals(1,elseExpression.getConstantValue());
-  assertElementType(OgnlElementTypes.INTEGER_LITERAL,elseExpression);
+  assertNotNull(elseExpression);
+  assertEquals("1",elseExpression.getText());
+  assertElementType(OgnlTypes.LITERAL_EXPRESSION,elseExpression);
+  final OgnlLiteralExpression elseLiteral=assertInstanceOf(elseExpression,OgnlLiteralExpression.class);
+  assertEquals(PsiType.INT,elseLiteral.getType());
+  assertEquals(1,elseLiteral.getConstantValue());
 }

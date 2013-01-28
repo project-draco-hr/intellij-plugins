@@ -1,0 +1,19 @@
+{
+  if (!recursion_guard_(builder_,level_,"root"))   return false;
+  boolean result_=false;
+  boolean pinned_=false;
+  Marker marker_=builder_.mark();
+  enterErrorRecordingSection(builder_,level_,_SECTION_RECOVER_,null);
+  result_=consumeToken(builder_,EXPRESSION_START);
+  pinned_=result_;
+  result_=result_ && report_error_(builder_,rootElement(builder_,level_ + 1));
+  result_=pinned_ && consumeToken(builder_,EXPRESSION_END) && result_;
+  if (!result_ && !pinned_) {
+    marker_.rollbackTo();
+  }
+ else {
+    marker_.drop();
+  }
+  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_RECOVER_,rootRecover_parser_);
+  return result_ || pinned_;
+}

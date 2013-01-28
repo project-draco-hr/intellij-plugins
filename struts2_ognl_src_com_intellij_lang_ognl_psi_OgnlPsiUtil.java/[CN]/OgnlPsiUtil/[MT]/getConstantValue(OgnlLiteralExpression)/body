@@ -1,0 +1,30 @@
+{
+  final ASTNode node=expression.getNode();
+  final IElementType type=node.getFirstChildNode().getElementType();
+  final String text=expression.getText();
+  if (type == OgnlTypes.STRING_LITERAL) {
+    return StringUtil.unquoteString(text);
+  }
+  if (type == OgnlTypes.CHARACTER_LITERAL) {
+    return StringUtil.unquoteString(text);
+  }
+  if (type == OgnlTypes.INTEGER_LITERAL) {
+    return Integer.parseInt(text);
+  }
+  if (type == OgnlTypes.BIG_INTEGER_LITERAL) {
+    return new BigInteger(text.substring(0,expression.getTextLength() - 1));
+  }
+  if (type == OgnlTypes.DOUBLE_LITERAL) {
+    return Double.parseDouble(text);
+  }
+  if (type == OgnlTypes.BIG_DECIMAL_LITERAL) {
+    return new BigDecimal(text.substring(0,expression.getTextLength() - 1));
+  }
+  if (type == OgnlTypes.TRUE_KEYWORD || type == OgnlTypes.FALSE_KEYWORD) {
+    return Boolean.valueOf(text);
+  }
+  if (type == OgnlTypes.NULL_KEYWORD) {
+    return null;
+  }
+  throw new IllegalArgumentException("could not resolve constant value for literal " + type + " / "+ text);
+}

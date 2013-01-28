@@ -1,0 +1,26 @@
+{
+  if (!recursion_guard_(builder_,level_,"expression"))   return false;
+  Marker marker_=builder_.mark();
+  boolean result_=false;
+  boolean pinned_=false;
+  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<expression>");
+  result_=sequenceExpression(builder_,level_ + 1);
+  if (!result_)   result_=parenthesizedExpression(builder_,level_ + 1);
+  if (!result_)   result_=newExpression(builder_,level_ + 1);
+  if (!result_)   result_=methodCallExpression(builder_,level_ + 1);
+  if (!result_)   result_=indexedExpression(builder_,level_ + 1);
+  if (!result_)   result_=variableExpression(builder_,level_ + 1);
+  if (!result_)   result_=referenceExpression(builder_,level_ + 1);
+  if (!result_)   result_=unaryExpression(builder_,level_ + 1);
+  if (!result_)   result_=literalExpression(builder_,level_ + 1);
+  pinned_=result_;
+  result_=result_ && expression_0(builder_,level_ + 1,priority_);
+  if (!result_ && !pinned_) {
+    marker_.rollbackTo();
+  }
+ else {
+    marker_.drop();
+  }
+  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  return result_ || pinned_;
+}
