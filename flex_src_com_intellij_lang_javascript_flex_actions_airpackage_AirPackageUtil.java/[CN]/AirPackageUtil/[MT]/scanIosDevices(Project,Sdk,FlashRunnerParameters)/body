@@ -1,0 +1,39 @@
+{
+  final List<DeviceInfo> devices=DeviceInfo.getIosDevices(project,flexSdk);
+  if (devices.isEmpty()) {
+    final int choice=Messages.showYesNoDialog(project,"No iOS devices connected to the computer","Error","Scan Again","Cancel",Messages.getErrorIcon());
+    return choice == Messages.YES && scanIosDevices(project,flexSdk,runnerParameters);
+  }
+ else   if (devices.size() == 1) {
+    runnerParameters.setDeviceInfo(devices.get(0));
+    return true;
+  }
+ else {
+    final String preferredId=PropertiesComponent.getInstance(project).getValue(PREFERRED_IOS_DEVICE_ID_PROPERTY);
+    String preferredPresentableName=null;
+    final Collection<String> presentableNames=new ArrayList<String>();
+    for (    DeviceInfo device : devices) {
+      final StringBuilder presentableName=new StringBuilder();
+      if (device.DEVICE_NAME != null && device.IOS_DEVICE_CLASS != null && !device.DEVICE_NAME.contains(device.IOS_DEVICE_CLASS)) {
+        presentableName.append(device.IOS_DEVICE_CLASS).append(' ');
+      }
+      if (device.DEVICE_NAME != null) {
+        presentableName.append('\'').append(device.DEVICE_NAME).append("' ");
+      }
+      presentableName.append('(').append(device.DEVICE_ID.substring(0,6)).append("...").append(device.DEVICE_ID.substring(36)).append(')');
+      if (device.DEVICE_ID.equals(preferredId)) {
+        preferredPresentableName=presentableName.toString();
+      }
+      presentableNames.add(presentableName.toString());
+    }
+    if (preferredPresentableName == null) {
+      preferredPresentableName=presentableNames.iterator().next();
+    }
+    final int choice=Messages.showChooseDialog(project,"Select iOS device","iOS Device",null,presentableNames.toArray(new String[presentableNames.size()]),preferredPresentableName);
+    if (choice == -1)     return false;
+    final DeviceInfo selectedDevice=devices.get(choice);
+    runnerParameters.setDeviceInfo(selectedDevice);
+    PropertiesComponent.getInstance(project).setValue(PREFERRED_IOS_DEVICE_ID_PROPERTY,selectedDevice.DEVICE_ID);
+    return true;
+  }
+}

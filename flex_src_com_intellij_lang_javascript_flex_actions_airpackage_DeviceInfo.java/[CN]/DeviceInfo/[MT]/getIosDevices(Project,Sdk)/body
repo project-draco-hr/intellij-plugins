@@ -1,0 +1,59 @@
+{
+  final List<DeviceInfo> result=new ArrayList<DeviceInfo>();
+  ExternalTask.runWithProgress(new AdtTask(project,sdk){
+    protected void appendAdtOptions(    final List<String> command){
+      command.add("-devices");
+      command.add("-platform");
+      command.add("ios");
+    }
+    protected boolean checkMessages(){
+      if (myMessages.size() < 3)       return true;
+      if (!myMessages.get(0).trim().startsWith("List of attached devices"))       return true;
+      if (!myMessages.get(1).trim().startsWith("Handle"))       return true;
+      for (int i=2; i < myMessages.size(); i++) {
+        final String line=myMessages.get(i).trim();
+        int handle=-1;
+        String deviceClass="";
+        String deviceId="";
+        String deviceName="";
+        final StringTokenizer tokenizer=new StringTokenizer(line," \t");
+        if (tokenizer.hasMoreTokens()) {
+          try {
+            handle=Integer.parseInt(tokenizer.nextToken());
+          }
+ catch (          NumberFormatException e) {
+            return true;
+          }
+        }
+        if (tokenizer.hasMoreTokens()) {
+          deviceClass=tokenizer.nextToken();
+        }
+        while (tokenizer.hasMoreTokens()) {
+          final String token=tokenizer.nextToken();
+          if (token.length() == 40) {
+            deviceId=token;
+            break;
+          }
+ else {
+            deviceClass+=" " + token;
+          }
+        }
+        while (tokenizer.hasMoreTokens()) {
+          if (!deviceName.isEmpty()) {
+            deviceName+=" ";
+          }
+          deviceName+=tokenizer.nextToken();
+        }
+        if (handle >= 0 && deviceId.length() > 0) {
+          result.add(new DeviceInfo(handle,deviceClass,deviceId,deviceName));
+        }
+ else {
+          return true;
+        }
+      }
+      return true;
+    }
+  }
+,"Looking for iOS devices","Looking for iOS devices");
+  return result;
+}
