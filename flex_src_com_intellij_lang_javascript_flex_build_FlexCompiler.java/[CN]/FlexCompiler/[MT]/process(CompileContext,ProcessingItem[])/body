@@ -25,6 +25,7 @@
     if (flexCompilerConfiguration.PREFER_ASC_20)     buf.append(FlexBundle.message("or.asc.2.0"));
     buf.append("\n").append(FlexBundle.message("see.flex.compiler.page"));
     context.addMessage(CompilerMessageCategory.INFORMATION,buf.toString(),null,-1,-1);
+    boolean startBuiltInCompiler=false;
     final Collection<FlexCompilationTask> compilationTasks=new ArrayList<FlexCompilationTask>();
     for (    final ProcessingItem item : items) {
       final Collection<FlexBuildConfiguration> dependencies=new HashSet<FlexBuildConfiguration>();
@@ -37,7 +38,11 @@
           }
         }
       }
-      compilationTasks.add(createCompilationTask(((MyProcessingItem)item).myModule,bc,dependencies,builtInCompilerShell));
+      final FlexCompilationTask task=createCompilationTask(((MyProcessingItem)item).myModule,bc,dependencies,builtInCompilerShell);
+      if (task instanceof BuiltInCompilationTask) {
+        startBuiltInCompiler=true;
+      }
+      compilationTasks.add(task);
       if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
         for (        FlexBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
           final ModifiableFlexBuildConfiguration rlmBC=Factory.getTemporaryCopyForCompilation(bc);
@@ -89,7 +94,7 @@
         }
       }
     }
-    if (builtInCompilerShell) {
+    if (startBuiltInCompiler) {
       try {
         flexCompilerHandler.getBuiltInFlexCompilerHandler().startCompilerIfNeeded(commonSdk,context);
       }

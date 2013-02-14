@@ -3,8 +3,17 @@
   if (sdk == null) {
     errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.not.set"),DependenciesConfigurable.Location.SDK));
   }
-  if (sdk != null && (StringUtil.compareVersionNumbers(sdk.getVersionString(),"0") < 0 || StringUtil.compareVersionNumbers(sdk.getVersionString(),"100") > 0)) {
-    errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.version.unknown",sdk.getName()),DependenciesConfigurable.Location.SDK));
+  if (sdk != null) {
+    String version=sdk.getVersionString();
+    if (FlexSdkUtils.isAirSdkWithoutFlex(sdk)) {
+      version=version.substring(FlexCommonUtils.AIR_SDK_VERSION_PREFIX.length());
+    }
+    if (StringUtil.compareVersionNumbers(version,"0") < 0 || StringUtil.compareVersionNumbers(version,"100") > 0) {
+      errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.version.unknown",sdk.getName()),DependenciesConfigurable.Location.SDK));
+    }
+    if (FlexSdkUtils.isAirSdkWithoutFlex(sdk) && !bc.isPureAs()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("air.sdk.requires.pure.as",sdk.getName()),FlexBCConfigurable.Location.Nature));
+    }
   }
   InfoFromConfigFile info=InfoFromConfigFile.DEFAULT;
   final String additionalConfigFilePath=bc.getCompilerOptions().getAdditionalConfigFilePath();
