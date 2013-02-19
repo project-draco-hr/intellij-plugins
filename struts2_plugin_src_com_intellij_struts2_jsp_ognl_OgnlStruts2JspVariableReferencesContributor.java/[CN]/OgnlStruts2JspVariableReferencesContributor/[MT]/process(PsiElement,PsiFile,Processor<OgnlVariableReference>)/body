@@ -1,0 +1,16 @@
+{
+  final PsiFile topLevelFile=InjectedLanguageUtil.getTopLevelFile(element);
+  if (!(topLevelFile instanceof JspFile)) {
+    return true;
+  }
+  if (StrutsFacet.getInstance(element) == null) {
+    return true;
+  }
+  final PsiElement selfNavigation=element.getOriginalElement();
+  for (  String name : VAR_NAMES) {
+    if (!processor.process(new OgnlVariableReference(name,"java.util.Map<String,Object>",ORIGIN_INFO,selfNavigation))) {
+      return false;
+    }
+  }
+  return true;
+}
