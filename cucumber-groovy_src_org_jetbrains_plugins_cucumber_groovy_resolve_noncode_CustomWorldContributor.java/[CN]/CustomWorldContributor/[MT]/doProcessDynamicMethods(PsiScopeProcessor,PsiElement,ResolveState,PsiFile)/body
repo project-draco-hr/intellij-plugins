@@ -1,0 +1,22 @@
+{
+  if (stepFile instanceof GroovyFile) {
+    final PsiType worldType=getWorldType((GroovyFile)stepFile);
+    if (worldType != null) {
+      ResolveUtil.processAllDeclarations(worldType,processor,state,place);
+    }
+ else {
+      final PsiDirectory directory=stepFile.getContainingDirectory();
+      if (directory != null) {
+        final List<PsiFile> otherStepFiles=CucumberStepsIndex.getInstance(place.getProject()).gatherStepDefinitionsFilesFromDirectory(directory,false);
+        for (        PsiFile otherFile : otherStepFiles) {
+          if (otherFile instanceof GroovyFile) {
+            final PsiType type=getWorldType((GroovyFile)otherFile);
+            if (type != null) {
+              ResolveUtil.processAllDeclarations(type,processor,state,place);
+            }
+          }
+        }
+      }
+    }
+  }
+}
