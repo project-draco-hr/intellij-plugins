@@ -3,23 +3,33 @@
   setTitle(StrutsBundle.message("facet.fileset.editor.title"));
   myOriginalSet=fileSet;
   myFileSet=new StrutsFileSet(fileSet);
+  ConfigFilesTreeBuilder builder=new ConfigFilesTreeBuilder(myFilesTree){
+    @Override protected DefaultMutableTreeNode createFileNode(    Object file){
+      CheckedTreeNode node=new CheckedTreeNode(file);
+      if (file instanceof PsiFile && myFileSet.hasFile(((PsiFile)file).getVirtualFile()) || file instanceof VirtualFile && myFileSet.hasFile((VirtualFile)file)) {
+        node.setChecked(true);
+      }
+ else {
+        node.setChecked(false);
+      }
+      return node;
+    }
+  }
+;
   final CheckedTreeNode myRoot=new CheckedTreeNode(null);
   myFilesTree.setModel(new DefaultTreeModel(myRoot));
   searcher.search();
-  final MultiMap<Module,PsiFile> files=searcher.getFilesByModules();
-  final MultiMap<VirtualFile,PsiFile> jars=searcher.getJars();
-  final Set<PsiFile> psiFiles=myFilesTree.buildModuleNodes(files,jars,fileSet);
-  final Project project=context.getProject();
-  final PsiManager psiManager=PsiManager.getInstance(project);
+  Set<PsiFile> psiFiles=builder.buildTree(myRoot,searcher);
+  final PsiManager psiManager=PsiManager.getInstance(context.getProject());
   final List<VirtualFilePointer> list=fileSet.getFiles();
-  for (  final VirtualFilePointer pointer : list) {
+  for (  VirtualFilePointer pointer : list) {
     final VirtualFile file=pointer.getFile();
     if (file != null) {
       final PsiFile psiFile=psiManager.findFile(file);
       if (psiFile != null && psiFiles.contains(psiFile)) {
         continue;
       }
-      myFilesTree.addFile(file);
+      builder.addFile(file);
     }
   }
   TreeUtil.expandAll(myFilesTree);
@@ -30,8 +40,8 @@
   }
 );
   mySetName.setText(fileSet.getName());
-  mySetName.addDocumentListener(new DocumentAdapter(){
-    public void documentChanged(    final DocumentEvent e){
+  mySetName.getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    DocumentEvent e){
       updateFileSet();
     }
   }
