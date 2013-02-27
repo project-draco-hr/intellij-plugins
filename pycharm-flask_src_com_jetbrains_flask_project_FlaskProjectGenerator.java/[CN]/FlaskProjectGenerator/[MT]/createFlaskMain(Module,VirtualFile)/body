@@ -1,0 +1,25 @@
+{
+  final Project project=module.getProject();
+  final PsiDirectory projectDir=PsiManager.getInstance(project).findDirectory(baseDir);
+  new WriteCommandAction.Simple(project){
+    @Override protected void run() throws Throwable {
+      FileTemplate template=FileTemplateManager.getInstance().getInternalTemplate("Flask Main");
+      PsiFile appFile;
+      try {
+        appFile=(PsiFile)FileTemplateUtil.createFromTemplate(template,baseDir.getName() + ".py",null,projectDir);
+      }
+ catch (      Exception e) {
+        Messages.showErrorDialog(project,"Error creating Flask application: " + e.getMessage(),"Create Flask Project");
+        return;
+      }
+      projectDir.createSubdirectory("static");
+      PsiDirectory templates=projectDir.createSubdirectory(FlaskNames.TEMPLATES);
+      FlaskProjectConfigurator.createFlaskRunConfiguration(module,appFile.getVirtualFile());
+      TemplatesService templatesService=TemplatesService.getInstance(module);
+      templatesService.setTemplateLanguage(TemplatesService.JINJA2);
+      templatesService.setTemplateFolders(templates.getVirtualFile());
+      appFile.navigate(true);
+    }
+  }
+.execute();
+}
