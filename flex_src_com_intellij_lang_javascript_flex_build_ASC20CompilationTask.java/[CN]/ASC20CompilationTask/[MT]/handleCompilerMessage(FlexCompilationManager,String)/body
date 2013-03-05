@@ -1,5 +1,5 @@
 {
-  if ("^".equals(message.trim())) {
+  if ("^".equals(message)) {
     myPreviousUnreportedMessage=null;
     return true;
   }
@@ -15,14 +15,16 @@
   if (message.startsWith("Warning: ") || message.startsWith("Error: ") || message.startsWith("Syntax error: ")|| message.startsWith("Internal error: ")) {
     final CompilerMessageCategory category=message.startsWith("Warning: ") ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR;
     final int index=message.indexOf(": ");
-    final String usefulMessage=message.substring(index);
+    final String usefulMessage=message.substring(index + ": ".length());
     final Pair<String,Integer> sourcePathAndLine=FlexCommonUtils.getSourcePathAndLineFromASC20Message(myPreviousUnreportedMessage);
     if (sourcePathAndLine == null) {
       printPreviousLine(compilationManager);
       compilationManager.addMessage(this,category,usefulMessage,null,-1,-1);
     }
  else {
-      compilationManager.addMessage(this,category,usefulMessage,VfsUtilCore.pathToUrl(sourcePathAndLine.first),sourcePathAndLine.second,-1);
+      if (!isNotSupportedOptionFromGeneratedConfig(usefulMessage,sourcePathAndLine.first)) {
+        compilationManager.addMessage(this,category,usefulMessage,VfsUtilCore.pathToUrl(sourcePathAndLine.first),sourcePathAndLine.second,-1);
+      }
     }
     myPreviousUnreportedMessage=null;
     return category == CompilerMessageCategory.WARNING;

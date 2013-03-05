@@ -21,7 +21,7 @@
     if (text.startsWith("Warning: ") || text.startsWith("Error: ") || text.startsWith("Syntax error: ")|| text.startsWith("Internal error: ")) {
       final BuildMessage.Kind kind=text.startsWith("Warning: ") ? BuildMessage.Kind.WARNING : BuildMessage.Kind.ERROR;
       final int index=text.indexOf(": ");
-      final String usefulMessage=text.substring(index);
+      final String usefulMessage=text.substring(index + ": ".length());
       final Pair<String,Integer> sourcePathAndLine=FlexCommonUtils.getSourcePathAndLineFromASC20Message(myPreviousUnreportedInfoMessage);
       if (sourcePathAndLine == null) {
         reportPreviousInfoMessage();
@@ -29,7 +29,9 @@
       }
  else {
         myPreviousUnreportedInfoMessage=null;
-        myContext.processMessage(new CompilerMessage(myCompilerName,kind,usefulMessage,sourcePathAndLine.first,-1,-1,-1,sourcePathAndLine.second,0));
+        if (!isNotSupportedOptionFromGeneratedConfig(usefulMessage,sourcePathAndLine.first)) {
+          myContext.processMessage(new CompilerMessage(myCompilerName,kind,usefulMessage,sourcePathAndLine.first,-1,-1,-1,sourcePathAndLine.second,0));
+        }
       }
       myCompilationFailed|=kind == BuildMessage.Kind.ERROR;
       return;
