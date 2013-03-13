@@ -1,0 +1,28 @@
+{
+  String prefix;
+  String predefinedName=predefined.get(ns);
+  if (predefinedName != null)   prefix=predefinedName;
+ else {
+    int i=ns.lastIndexOf('/');
+    if (i != -1) {
+      int i2=ns.lastIndexOf('/',i - 1);
+      if (i2 != -1)       i=i2;
+    }
+ else {
+      i=ns.lastIndexOf('.');
+      if (i != -1) {
+        int i2=ns.lastIndexOf('.',i - 1);
+        if (i2 != -1)         i=i2;
+      }
+    }
+    prefix=i != -1 ? makeIdentifier(ns.substring(i + 1)) : "ns";
+  }
+  int nsCount=1;
+  while (true) {
+    String s=prefix + (nsCount++ == 1 ? "" : nsCount);
+    if (!parentTraits.names.containsKey(s)) {
+      parentTraits.names.put(ns,null);
+      return s;
+    }
+  }
+}

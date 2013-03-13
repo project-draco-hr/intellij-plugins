@@ -1,0 +1,52 @@
+{
+  append("\n");
+  @NonNls String def;
+  final boolean isInterface=slotInfo.isInterfaceClass();
+  if (isInterface)   def="interface";
+ else {
+    def="class";
+  }
+  if (!doStarTypeDumpInExtends()) {
+    final String ns=slotInfo.name.hasNamespace() ? slotInfo.name.getNsName(slotInfo) : null;
+    if (ns != null && ns.length() > 0)     attr+=ns;
+ else     attr+="public";
+    attr+=" ";
+  }
+  Traits ct=(Traits)slotInfo.value;
+  Traits it=ct.itraits;
+  if (!isInterface) {
+    if ((it.flags & Abc.CLASS_FLAG_final) != 0)     attr+="final ";
+    if ((it.flags & Abc.CLASS_FLAG_sealed) == 0)     attr+="dynamic ";
+  }
+  processModifierList(slotInfo,attr,indent);
+  append(indent + attr + def+ " ");
+  if (slotInfo.name.hasNotEmptyNs()) {
+    classNameTable.add(slotInfo.name.nsset[0] + ":" + slotInfo.name.name);
+  }
+  processMultinameAsPackageName(slotInfo.name,null);
+  dumpExtendsList(it);
+  append("\n");
+  String oldindent=indent;
+  indent+=Abc.TAB;
+  dumpInterfacesList(indent,it,isInterface);
+  append(oldindent + "{\n");
+  setProcessingInterface(isInterface);
+  if (doDumpMember(it.init))   it.init.dump(abc,indent,"",this);
+  it.dump(abc,indent,"",this);
+  ct.dump(abc,indent,"static ",this);
+  ct.init.dump(abc,indent,"static ",this);
+  if (ct.usedNamespacesToNamesMap != null) {
+    String[] strings=new String[ct.usedNamespacesToNamesMap.size()];
+    ct.usedNamespacesToNamesMap.keySet().toArray(strings);
+    Arrays.sort(strings);
+    for (    String e : strings) {
+      SlotInfo info=new SlotInfo(new Multiname(Abc.PRIVATE_NS_SET,ct.usedNamespacesToNamesMap.get(e)),Abc.TraitType.Const);
+      info.type=NsType;
+      info.value=e;
+      info.parentTraits=it;
+      info.dump(abc,indent,"static ",this);
+    }
+  }
+  append(oldindent + "}\n");
+  setProcessingInterface(false);
+}

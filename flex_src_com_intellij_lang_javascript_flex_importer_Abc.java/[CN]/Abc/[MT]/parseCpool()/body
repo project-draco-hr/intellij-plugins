@@ -1,0 +1,164 @@
+{
+  int i, j;
+  int n;
+  int start=data.getPosition();
+  n=readU32();
+  ints=new Integer[n > 0 ? n : 1];
+  ints[0]=0;
+  for (i=1; i < n; i++) {
+    ints[i]=readU32();
+  }
+  n=readU32();
+  uints=new Integer[n > 0 ? n : 1];
+  uints[0]=0;
+  for (i=1; i < n; i++) {
+    uints[i]=readU32();
+  }
+  n=readU32();
+  doubles=new Double[n > 0 ? n : 1];
+  doubles[0]=Double.NaN;
+  for (i=1; i < n; i++) {
+    doubles[i]=data.readDouble();
+  }
+  reportAboutPercentage("Cpool numbers size ",data,start,processor);
+  start=data.getPosition();
+  n=readU32();
+  strings=new String[n];
+  strings[0]="";
+  for (i=1; i < n; i++) {
+    strings[i]=data.readUTFBytes(readU32());
+  }
+  reportAboutPercentage("Cpool strings count " + n + " size ",data,start,processor);
+  start=data.getPosition();
+  n=readU32();
+  namespaces=new String[n];
+  namespaces[0]=PUBLIC_NS;
+  for (i=1; i < n; i++) {
+switch (data.readByte()) {
+case CONSTANT_Namespace:
+case CONSTANT_PackageNs:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNs:
+case CONSTANT_StaticProtectedNs:
+case CONSTANT_StaticProtectedNs2:
+{
+        namespaces[i]=strings[readU32()];
+        break;
+      }
+case CONSTANT_PrivateNs:
+    readU32();
+  namespaces[i]="private";
+break;
+}
+}
+reportAboutPercentage("Cpool namespaces count " + n + " size ",data,start,processor);
+start=data.getPosition();
+n=readU32();
+nssets=new String[n][];
+for (i=1; i < n; i++) {
+int count=readU32();
+String[] nsset=nssets[i]=new String[count];
+for (j=0; j < count; j++) {
+nsset[j]=namespaces[readU32()];
+}
+}
+reportAboutPercentage("Cpool nssets count " + n + " size ",data,start,processor);
+start=data.getPosition();
+n=readU32();
+names=new Multiname[n];
+namespaces[0]=anyNs;
+strings[0]="*";
+class TypeNameInfo {
+int index;
+int base;
+TIntArrayList genericIndices;
+}
+final List<TypeNameInfo> typeNameInfos=new ArrayList<TypeNameInfo>();
+for (i=1; i < n; i++) {
+switch (data.readByte()) {
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+names[i]=new Multiname(new String[]{namespaces[readU32()]},strings[readU32()]);
+break;
+case CONSTANT_RTQname:
+case CONSTANT_RTQnameA:
+names[i]=new Multiname(new String[]{strings[readU32()]},null);
+break;
+case CONSTANT_RTQnameL:
+case CONSTANT_RTQnameLA:
+names[i]=null;
+break;
+case CONSTANT_NameL:
+case CONSTANT_NameLA:
+names[i]=new Multiname(PUBLIC_NS_SET,null);
+break;
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+String name=strings[readU32()];
+names[i]=new Multiname(nssets[readU32()],name);
+break;
+case CONSTANT_MultinameL:
+case CONSTANT_MultinameLA:
+names[i]=new Multiname(nssets[readU32()],null);
+break;
+case CONSTANT_TypeName:
+int nameId=readU32();
+final TypeNameInfo e=new TypeNameInfo();
+typeNameInfos.add(e);
+e.index=i;
+e.base=nameId;
+int count=readU32();
+if (count > 0) e.genericIndices=new TIntArrayList();
+if (count > 0) {
+for (int k=0; k < count; k++) {
+nameId=readU32();
+e.genericIndices.add(nameId);
+}
+}
+break;
+default :
+throw new Error("invalid kind " + data.getByte(data.getPosition() - 1));
+}
+}
+boolean hasSomething=false;
+boolean doneSomething=false;
+do {
+NextType: for (TypeNameInfo tni : typeNameInfos) {
+if (names[tni.index] != null) continue;
+if (names[tni.base] == null) {
+hasSomething=true;
+continue;
+}
+String nsName=names[tni.base].toString();
+if (tni.genericIndices != null) {
+nsName+=".<";
+for (int k=0; k < tni.genericIndices.size(); k++) {
+if (k != 0) nsName+=",";
+final Multiname typeArgName=names[tni.genericIndices.get(k)];
+if (typeArgName == null) continue NextType;
+String typeArgNameString;
+if (processor instanceof AS3InterfaceDumper) {
+boolean hasNotEmptyNs=typeArgName.hasNotEmptyNs();
+final boolean vector=hasNotEmptyNs && typeArgName.nsset[0].equals("__AS3__.vec");
+final boolean isPrivate=hasNotEmptyNs && typeArgName.nsset[0].equals("private");
+typeArgNameString=vector || isPrivate ? typeArgName.name : typeArgName.toString();
+typeArgNameString=StringUtil.replace(typeArgNameString,"::",".") + (vector ? " " : "");
+}
+ else {
+typeArgNameString=typeArgName.toString();
+}
+nsName+=typeArgNameString;
+}
+nsName+=">";
+}
+final int index=nsName.indexOf("::");
+names[tni.index]=new Multiname(index != -1 ? new String[]{nsName.substring(0,index)} : PUBLIC_NS_SET,index != -1 ? nsName.substring(index + 2) : nsName);
+doneSomething=true;
+}
+}
+ while (hasSomething && doneSomething);
+reportAboutPercentage("Cpool names count " + n + " size ",data,start,processor);
+start=data.getPosition();
+namespaces[0]=PUBLIC_NS;
+strings[0]="*";
+}

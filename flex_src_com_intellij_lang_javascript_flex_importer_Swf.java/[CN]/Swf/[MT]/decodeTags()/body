@@ -1,0 +1,27 @@
+{
+  int type, h, length;
+  while (data.getPosition() < data.bytesSize()) {
+    type=(h=data.readUnsignedShort()) >> 6;
+    if (((length=h & 0x3F) == 0x3F))     length=data.readInt();
+    processor.dumpStat((type < tagNames.length ? tagNames[type] : "undefined") + " " + length+ "b "+ ((int)100f * length / data.bytesSize())+ "%\n");
+switch (type) {
+case 0:
+      return;
+case stagDoABC2:
+    int pos1=data.getPosition();
+  data.readInt();
+final String abcName=readString();
+processor.dumpStat("\nabc name " + abcName + "\n");
+length-=(data.getPosition() - pos1);
+case stagDoABC:
+ByteBuffer data2=new ByteBuffer();
+data2.setLittleEndian();
+data.readBytes(data2,length);
+new Abc(data2,processor).dump(processor.getAbcInSwfIndent());
+processor.append("\n");
+break;
+default :
+data.incPosition(length);
+}
+}
+}

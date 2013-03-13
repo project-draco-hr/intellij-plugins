@@ -1,0 +1,81 @@
+{
+  int start=data.getPosition();
+  names[0]=new Multiname(PUBLIC_NS_SET,"*");
+  int method_count=readU32();
+  methods=new MethodInfo[method_count];
+  for (int i=0; i < method_count; i++) {
+    MethodInfo m=methods[i]=new MethodInfo();
+    int param_count=readU32();
+    m.returnType=names[readU32()];
+    if (m.returnType == null)     m.returnType=OpaqueAssetsType;
+    m.paramTypes=new Multiname[param_count];
+    for (int j=0; j < param_count; j++) {
+      m.paramTypes[j]=names[readU32()];
+      if (m.paramTypes[j] == null)       m.paramTypes[j]=OpaqueAssetsType;
+    }
+    m.debugName=strings[readU32()];
+    m.flags=data.readByte();
+    if ((m.flags & HAS_OPTIONAL) != 0) {
+      int optional_count=readU32();
+      m.optionalValues=new Multiname[param_count];
+      for (int k=param_count - optional_count; k < param_count; ++k) {
+        int index=readU32();
+        int kind=data.readByte();
+        if (index == 0) {
+          @NonNls String value;
+          final @NonNls String type=m.paramTypes[k].toString();
+          if ("Number".equals(type) || "decimal".equals(type)) {
+            value="0";
+          }
+ else           if ("*".equals(type)) {
+            value="null";
+          }
+ else           if ("String".equals(type)) {
+            value="";
+          }
+ else {
+            value="null";
+          }
+          m.optionalValues[k]=new Multiname(null,value);
+        }
+ else {
+          if (defaults[kind] == null) {
+            processor.hasError("ERROR kind=" + kind + " method_id "+ i+ "\n");
+          }
+ else {
+            m.optionalValues[k]=new Multiname(null,defaults[kind][index].toString());
+          }
+        }
+      }
+    }
+    if ((m.flags & HAS_ParamNames) != 0) {
+      if (param_count > 0) {
+        m.paramNames=new String[param_count];
+        Set<String> usedNames=new THashSet<String>(m.paramNames.length);
+        for (int k=0; k < param_count; ++k) {
+          final int index=readU32();
+          final String name=strings[index];
+          m.paramNames[k]=StringUtil.isJavaIdentifier(name) && usedNames.add(name) ? name : "_" + k;
+        }
+      }
+ else {
+        m.paramNames=ArrayUtil.EMPTY_STRING_ARRAY;
+      }
+    }
+    if ((m.flags & NEED_REST) != 0) {
+      m.paramTypes=ArrayUtil.append(m.paramTypes,new Multiname(null,"..."));
+      if (m.paramNames != null) {
+        boolean hasRestName=false;
+        for (        String s : m.paramNames) {
+          if ("rest".equals(s)) {
+            hasRestName=true;
+            break;
+          }
+        }
+        String element=hasRestName ? "__rest" : "rest";
+        m.paramNames=ArrayUtil.append(m.paramNames,element);
+      }
+    }
+  }
+  reportAboutPercentage("MethodInfo count " + method_count + " size ",data,start,processor);
+}
