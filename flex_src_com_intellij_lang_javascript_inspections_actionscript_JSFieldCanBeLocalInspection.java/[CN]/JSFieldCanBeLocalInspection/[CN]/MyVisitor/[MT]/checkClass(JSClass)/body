@@ -1,0 +1,20 @@
+{
+  final Set<JSVariable> candidates=new LinkedHashSet<JSVariable>();
+  for (  JSVariable field : aClass.getFields()) {
+    myFields.add(field);
+    final JSAttributeList attributeList=field.getAttributeList();
+    if (attributeList != null && attributeList.getAccessType() == JSAttributeList.AccessType.PRIVATE && !(attributeList.hasModifier(JSAttributeList.ModifierType.STATIC) && field.isConst()) && attributeList.findAttributeByName("Embed") == null && attributeList.findAttributeByName("Inject") == null) {
+      final PsiFile containingFile=field.getContainingFile();
+      final PsiElement context=containingFile.getContext();
+      if (containingFile == myFile || (context != null && context.getContainingFile() == myFile)) {
+        candidates.add(field);
+      }
+    }
+  }
+  removeReferencesFromInitializers(aClass,candidates);
+  if (candidates.isEmpty())   return;
+  final Set<JSVariable> usedFields=new HashSet<JSVariable>();
+  removeReadFields(aClass,candidates,usedFields);
+  if (candidates.isEmpty())   return;
+  highlight(candidates,usedFields);
+}

@@ -1,0 +1,39 @@
+{
+  final Set<JSVariable> variables=new HashSet<JSVariable>();
+  final Set<JSVariable> written=new HashSet<JSVariable>();
+  element.acceptChildren(new JSRecursiveElementVisitor(){
+    @Override public void visitJSReferenceExpression(    JSReferenceExpression node){
+      super.visitJSReferenceExpression(node);
+      if (JSResolveUtil.isSelfReference(node)) {
+        return;
+      }
+      ReadWriteAccessDetector.Access access=JSReadWriteAccessDetector.ourInstance.getExpressionAccess(node);
+      final PsiElement resolved=node.resolve();
+      if (resolved instanceof JSVariable) {
+        final JSVariable variable=(JSVariable)resolved;
+        if (access == ReadWriteAccessDetector.Access.Write) {
+          written.add(variable);
+        }
+ else {
+          if (!written.contains(variable)) {
+            variables.add(variable);
+          }
+          if (access == ReadWriteAccessDetector.Access.ReadWrite) {
+            written.add(variable);
+          }
+        }
+      }
+    }
+    @Override public void visitJSAssignmentExpression(    JSAssignmentExpression node){
+      final JSExpression rOperand=node.getROperand();
+      if (rOperand != null) {
+        rOperand.accept(this);
+      }
+      final JSExpression lOperand=node.getLOperand();
+      if (lOperand != null)       lOperand.accept(this);
+    }
+  }
+);
+  variables.retainAll(written);
+  return variables;
+}

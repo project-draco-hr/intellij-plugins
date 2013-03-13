@@ -1,0 +1,21 @@
+{
+  for (  JSVariable field : candidates) {
+    if (usedFields.contains(field) && !hasImplicitReadOrWriteUsage(field)) {
+      PsiElement element=field.getNameIdentifier();
+      if (element == null) {
+        element=field;
+      }
+      final PsiFile containingFile=field.getContainingFile();
+      final Collection<PsiReference> references=findReferences(field);
+      if (references.isEmpty())       return;
+      LocalQuickFix[] fixes=JSUtils.isActionScript(containingFile) ? new LocalQuickFix[]{new ConvertToLocalFix(field,references)} : LocalQuickFix.EMPTY_ARRAY;
+      if (myFile == containingFile) {
+        myHolder.registerProblem(element,JSBundle.message("js.field.can.be.converted.to.local"),fixes);
+      }
+ else {
+        final TextRange textRange=InjectedLanguageManager.getInstance(myHolder.getProject()).injectedToHost(containingFile,element.getTextRange());
+        myHolder.registerProblem(myFile,textRange,JSBundle.message("js.field.can.be.converted.to.local"),fixes);
+      }
+    }
+  }
+}

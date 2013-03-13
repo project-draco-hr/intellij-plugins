@@ -1,0 +1,20 @@
+{
+  for (  JSVariable field : aClass.getFields()) {
+    final JSExpression initializer=field.getInitializer();
+    if (initializer != null) {
+      initializer.accept(new JSRecursiveElementVisitor(){
+        @Override public void visitJSReferenceExpression(        JSReferenceExpression node){
+          final PsiElement element=node.resolve();
+          if (element instanceof JSVariable) {
+            final JSVariable jsVariable=(JSVariable)element;
+            if (isField(jsVariable)) {
+              candidates.remove(jsVariable);
+            }
+          }
+        }
+      }
+);
+      if (field.isConst())       candidates.remove(field);
+    }
+  }
+}

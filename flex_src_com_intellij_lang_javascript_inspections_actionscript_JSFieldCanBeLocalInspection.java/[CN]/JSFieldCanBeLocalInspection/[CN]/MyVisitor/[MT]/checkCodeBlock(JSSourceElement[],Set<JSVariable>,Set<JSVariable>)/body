@@ -1,0 +1,18 @@
+{
+  for (  JSSourceElement element : body) {
+    if (element instanceof JSBlockStatement) {
+      final JSBlockStatement blockStatement=(JSBlockStatement)element;
+      final Set<JSVariable> usedVars=getUsedVars(blockStatement);
+      for (      JSVariable usedVar : usedVars) {
+        if (isField(usedVar)) {
+          if (!usedFields.add(usedVar)) {
+            candidates.remove(usedVar);
+          }
+        }
+      }
+      final Collection<JSVariable> readBeforeWriteVars=getReadBeforeWriteVars(blockStatement);
+      candidates.removeAll(readBeforeWriteVars);
+      candidates.removeAll(computeStopList(blockStatement));
+    }
+  }
+}
