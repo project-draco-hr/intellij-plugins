@@ -1,0 +1,59 @@
+{
+  final JSFunction function=PsiTreeUtil.getNonStrictParentOfType(element,JSFunction.class);
+  final Collection<JSReferenceExpression> usages=Collections.synchronizedCollection(new HashSet<JSReferenceExpression>());
+  ReferencesSearch.search(function,function.getUseScope()).forEach(new Processor<PsiReference>(){
+    @Override public boolean process(    PsiReference psiReference){
+      PsiElement element=psiReference.getElement();
+      if (!(element instanceof JSReferenceExpression)) {
+        return true;
+      }
+      JSReferenceExpression refExpr=(JSReferenceExpression)element;
+      if (refExpr.getQualifier() == null) {
+        return true;
+      }
+      usages.add(refExpr);
+      return true;
+    }
+  }
+);
+  Collection<PsiElement> elementsToWrite=new ArrayList<PsiElement>();
+  elementsToWrite.add(element);
+  elementsToWrite.addAll(usages);
+  if (!CodeInsightUtilBase.preparePsiElementsForWrite(elementsToWrite)) {
+    return;
+  }
+  final JSClass clazz=JSUtils.getMemberContainingClass(function);
+  AccessToken l=WriteAction.start();
+  try {
+    JSAttributeListWrapper wrapper=new JSAttributeListWrapper(function.getAttributeList());
+    wrapper.overrideModifier(JSAttributeList.ModifierType.STATIC,true);
+    wrapper.overrideModifier(JSAttributeList.ModifierType.FINAL,false);
+    wrapper.applyTo(function);
+    List<FormatFixer> formatters=new ArrayList<FormatFixer>();
+    Collection<PsiFile> filesToOptimizeImports=new HashSet<PsiFile>();
+    final boolean actionScript=JSUtils.isActionScript(element);
+    for (    JSReferenceExpression refExpr : usages) {
+      JSClass currentClass=JSResolveUtil.getClassOfContext(refExpr);
+      if (currentClass != null && currentClass.isEquivalentTo(clazz)) {
+        JSRefactoringUtil.makeQualified(refExpr,null,false);
+      }
+ else {
+        if (actionScript) {
+          if (ImportUtils.needsImport(JSResolveUtil.getPackageNameFromPlace(refExpr),clazz)) {
+            FormatFixer formatter=ImportUtils.insertImportStatements(refExpr,Collections.singletonList(clazz.getQualifiedName()));
+            ContainerUtil.addIfNotNull(formatter,formatters);
+          }
+          filesToOptimizeImports.add(refExpr.getContainingFile());
+        }
+        JSRefactoringUtil.makeQualified(refExpr,clazz,true);
+      }
+    }
+    for (    PsiFile file : filesToOptimizeImports) {
+      formatters.addAll(ECMAScriptImportOptimizer.executeNoFormat(file));
+    }
+    FormatFixer.fixAll(formatters);
+  }
+  finally {
+    l.finish();
+  }
+}
