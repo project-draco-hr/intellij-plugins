@@ -1,31 +1,27 @@
 {
-  final Language rx=Language.findLanguageByID("RegExp");
-  if (rx != null) {
-    final PsiFile rxFile=PsiFileFactory.getInstance(context.getProject()).createFileFromText("a",rx,item.getLookupString());
-    final List<TextRange> groupRanges=new ArrayList<TextRange>();
-    rxFile.acceptChildren(new PsiRecursiveElementVisitor(){
-      @Override public void visitElement(      PsiElement element){
-        super.visitElement(element);
-        if (element.toString().startsWith("RegExpGroup")) {
-          groupRanges.add(element.getTextRange());
-        }
-      }
+  String stepText2=item.getLookupString();
+  Pattern pattern=Pattern.compile("(<string>|<number>)");
+  Matcher m=pattern.matcher(stepText2);
+  List<TextRange> ranges=new ArrayList<TextRange>();
+  while (m.find()) {
+    String group=m.group(1);
+    if (group != null) {
+      ranges.add(new TextRange(m.start(),m.end()));
     }
-);
-    if (!groupRanges.isEmpty()) {
-      final PsiElement element=context.getFile().findElementAt(context.getStartOffset());
-      final GherkinStep step=PsiTreeUtil.getParentOfType(element,GherkinStep.class);
-      if (step != null) {
-        final TemplateBuilder builder=TemplateBuilderFactory.getInstance().createTemplateBuilder(step);
-        int off=context.getStartOffset() - step.getTextRange().getStartOffset();
-        final String stepText=step.getText();
-        for (        TextRange groupRange : groupRanges) {
-          final TextRange shiftedRange=groupRange.shiftRight(off);
-          final String matchedText=shiftedRange.substring(stepText);
-          builder.replaceRange(shiftedRange,INGORED_MATCHER_TEXT_SET.contains(matchedText) ? "" : matchedText);
-        }
-        builder.run();
+  }
+  if (!ranges.isEmpty()) {
+    final PsiElement element=context.getFile().findElementAt(context.getStartOffset());
+    final GherkinStep step=PsiTreeUtil.getParentOfType(element,GherkinStep.class);
+    if (step != null) {
+      final TemplateBuilder builder=TemplateBuilderFactory.getInstance().createTemplateBuilder(step);
+      int off=context.getStartOffset() - step.getTextRange().getStartOffset();
+      final String stepText=step.getText();
+      for (      TextRange groupRange : ranges) {
+        final TextRange shiftedRange=groupRange.shiftRight(off);
+        final String matchedText=shiftedRange.substring(stepText);
+        builder.replaceRange(shiftedRange,matchedText);
       }
+      builder.run();
     }
   }
 }
