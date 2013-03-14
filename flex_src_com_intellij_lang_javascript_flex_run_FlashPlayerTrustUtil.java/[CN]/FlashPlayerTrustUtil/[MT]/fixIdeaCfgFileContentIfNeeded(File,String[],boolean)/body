@@ -1,9 +1,10 @@
 {
+  final String[] trustedPathsFiltered=removeNestedPaths(trustedPaths);
   final StringBuilder buf=new StringBuilder();
   final List<String> lines=StringUtil.split(FileUtil.loadFile(ideaCfgFile,"UTF-8"),"\n");
   for (  String line : lines) {
     boolean appendLine=true;
-    for (    String path : trustedPaths) {
+    for (    String path : trustedPathsFiltered) {
       appendLine&=!line.equals(path) && !line.startsWith(path + File.separatorChar) && !path.startsWith(line + File.separatorChar);
     }
     if (appendLine) {
@@ -11,7 +12,7 @@
     }
   }
   if (runTrusted) {
-    for (    String path : trustedPaths) {
+    for (    String path : trustedPathsFiltered) {
       buf.append(path).append('\n');
     }
   }

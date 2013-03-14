@@ -17,14 +17,8 @@
       final Module module=moduleAndConfig.first;
       final FlexBuildConfiguration bc=moduleAndConfig.second;
       if (bc.getTargetPlatform() == TargetPlatform.Web) {
-        final String outputFilePath=bc.getActualOutputFilePath();
-        try {
-          final String canonicalPath=new File(PathUtil.getParentPath(outputFilePath)).getCanonicalPath();
-          FlashPlayerTrustUtil.updateTrustedStatus(module.getProject(),params.isTrusted(),false,canonicalPath);
-        }
- catch (        IOException e) {
-        }
-        return launchWebFlexUnit(project,executor,contentToReuse,env,params,outputFilePath);
+        FlashPlayerTrustUtil.updateTrustedStatus(module,bc,isDebug,params.isTrusted());
+        return launchWebFlexUnit(project,executor,contentToReuse,env,params,bc.getActualOutputFilePath());
       }
  else {
         return launchAirFlexUnit(project,executor,state,contentToReuse,env,params);
@@ -43,12 +37,7 @@
         checkDebuggerFromSdk4(project,runProfile,params,bc);
       }
       if (bc.getTargetPlatform() == TargetPlatform.Web && !params.isLaunchUrl()) {
-        try {
-          final String canonicalPath=new File(PathUtil.getParentPath(bc.getActualOutputFilePath())).getCanonicalPath();
-          FlashPlayerTrustUtil.updateTrustedStatus(module.getProject(),params.isRunTrusted(),isDebug,canonicalPath);
-        }
- catch (        IOException e) {
-        }
+        FlashPlayerTrustUtil.updateTrustedStatus(module,bc,isDebug,params.isRunTrusted());
       }
       return launchFlexConfig(module,bc,params,executor,state,contentToReuse,env);
     }
