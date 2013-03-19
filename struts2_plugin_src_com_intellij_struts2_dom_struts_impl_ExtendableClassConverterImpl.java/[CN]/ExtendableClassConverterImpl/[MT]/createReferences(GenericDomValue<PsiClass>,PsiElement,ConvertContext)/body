@@ -7,21 +7,9 @@
     }
   }
 ;
-  if (extendClass.instantiatable()) {
-    classReferenceProvider.setOption(JavaClassReferenceProvider.INSTANTIATABLE,Boolean.TRUE);
-  }
-  if (!extendClass.allowAbstract()) {
-    classReferenceProvider.setOption(JavaClassReferenceProvider.CONCRETE,Boolean.TRUE);
-  }
-  final boolean allowInterface=extendClass.allowInterface();
-  if (!allowInterface) {
-    classReferenceProvider.setOption(JavaClassReferenceProvider.NOT_INTERFACE,Boolean.TRUE);
-  }
-  if (StringUtil.isNotEmpty(extendClass.value())) {
-    classReferenceProvider.setOption(JavaClassReferenceProvider.EXTEND_CLASS_NAMES,new String[]{extendClass.value()});
-  }
-  classReferenceProvider.setSoft(true);
+  PsiClassConverter.createJavaClassReferenceProvider(psiClassGenericDomValue,extendClass,classReferenceProvider);
   PsiReference[] javaClassReferences=classReferenceProvider.getReferencesByElement(element);
+  final boolean allowInterface=extendClass.allowInterface();
   @NonNls String[] referenceTypes=allowInterface ? new String[]{"class","interface"} : new String[]{"class"};
   for (  final ExtendableClassConverterContributor contributor : Extensions.getExtensions(EP_NAME)) {
     if (contributor.isSuitable(context)) {
