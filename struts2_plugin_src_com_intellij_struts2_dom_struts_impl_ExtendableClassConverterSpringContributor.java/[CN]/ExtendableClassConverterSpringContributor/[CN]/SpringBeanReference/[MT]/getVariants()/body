@@ -8,16 +8,12 @@
  else {
     list=springModel.getAllCommonBeans();
   }
-  final List variants=new ArrayList(list.size());
+  final List<LookupElement> variants=new ArrayList<LookupElement>(list.size());
   for (  final SpringBeanPointer bean : list) {
     if (bean.isAbstract()) {
       continue;
     }
-    final String beanName=bean.getName();
-    final PsiFile psiFile=bean.getContainingFile();
-    if (psiFile != null && StringUtil.isNotEmpty(beanName)) {
-      variants.add(LookupElementBuilder.create(beanName).withIcon(bean.getBeanIcon()).withTailText(" (" + psiFile.getName() + ")",true));
-    }
+    ContainerUtil.addIfNotNull(variants,SpringBeanConverterUtil.createCompletionVariant(bean));
   }
-  return ArrayUtil.toObjectArray(variants,LookupElementBuilder.class);
+  return ArrayUtil.toObjectArray(variants,LookupElement.class);
 }
