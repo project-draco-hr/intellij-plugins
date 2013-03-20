@@ -1,0 +1,23 @@
+{
+  try {
+    final Socket socket=new Socket("127.0.0.1",myPythonCommandPort);
+    final SocketProcessHandler processHandler=new SocketProcessHandler(socket);
+    try {
+      PrintWriter writer=new PrintWriter(new BufferedOutputStream(socket.getOutputStream()));
+      String[] lines=getScriptLines();
+      writeLines(writer,lines);
+      processHandler.setCommandLine("Sent " + lines.length + " line"+ (lines.length != 1 ? "s" : "")+ " to command port "+ myPythonCommandPort+ "\n");
+      writer.flush();
+    }
+ catch (    Exception e) {
+      if (!socket.isClosed()) {
+        socket.close();
+      }
+      throw new ExecutionException(e.getMessage());
+    }
+    return processHandler;
+  }
+ catch (  Exception e) {
+    throw new ExecutionException(e.getMessage());
+  }
+}
