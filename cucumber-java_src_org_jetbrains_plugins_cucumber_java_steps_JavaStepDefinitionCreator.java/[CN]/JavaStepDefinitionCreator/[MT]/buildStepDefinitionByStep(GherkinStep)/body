@@ -1,11 +1,7 @@
 {
-  String annotationPackage=CUCUMBER_1_1_ANNOTATION_PACKAGE;
-  final String version=CucumberConfigUtil.getCucumberCoreVersion(step);
-  if (version != null && version.compareTo(CucumberConfigUtil.CUCUMBER_VERSION_1_1) < 0) {
-    annotationPackage=CUCUMBER_1_0_ANNOTATION_PACKAGE;
-  }
-  final PsiElementFactory factory=JavaPsiFacade.getInstance(step.getProject()).getElementFactory();
+  String annotationPackage=new AnnotationPackageProvider().getAnnotationPackageFor(step);
+  String methodAnnotation=String.format("@%s.",annotationPackage);
   final Step cucumberStep=new Step(new ArrayList<Comment>(),step.getKeyword().getText(),step.getStepName(),0,null,null);
-  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException").replaceFirst("@",annotationPackage).replaceAll("\\\\\\\\","\\\\").replaceAll("\\\\d","\\\\\\\\d");
-  return factory.createMethodFromText(snippet,step);
+  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException").replaceFirst("@",methodAnnotation).replaceAll("\\\\\\\\","\\\\").replaceAll("\\\\d","\\\\\\\\d");
+  return JavaPsiFacade.getInstance(step.getProject()).getElementFactory().createMethodFromText(snippet,step);
 }
