@@ -1,0 +1,50 @@
+{
+  final Project project=e.getData(PlatformDataKeys.PROJECT);
+  if (project == null)   return;
+  PsiDocumentManager.getInstance(project).commitAllDocuments();
+  final DataContext dataContext=e.getDataContext();
+  final PsiElement psiElement=LangDataKeys.PSI_ELEMENT.getData(dataContext);
+  final PsiFile psiFile=LangDataKeys.PSI_FILE.getData(dataContext);
+  final VirtualFile virtualFile=PlatformDataKeys.VIRTUAL_FILE.getData(dataContext);
+  FindManager findManager=FindManager.getInstance(project);
+  FindModel findModel=(FindModel)findManager.getFindInFileModel().clone();
+  findModel.setRegularExpressions(true);
+  findModel.setStringToFind("\\.controller\\((.*),");
+  FindInProjectUtil.setDirectoryName(findModel,dataContext);
+  final PsiDirectory psiDirectory=FindInProjectUtil.getPsiDirectory(findModel,project);
+  CommonProcessors.CollectProcessor<Usage> collectProcessor=new CommonProcessors.CollectProcessor<Usage>(){
+    @Override protected boolean accept(    Usage usage){
+      return super.accept(usage);
+    }
+    @Override public Collection<Usage> getResults(){
+      return super.getResults();
+    }
+  }
+;
+  FindInProjectUtil.findUsages(findModel,psiDirectory,project,true,new AdapterProcessor<UsageInfo,Usage>(collectProcessor,UsageInfo2UsageAdapter.CONVERTER));
+  Collection<Usage> results=collectProcessor.getResults();
+  for (  Usage result : results) {
+    TextChunk[] chunks=((UsageInfo2UsageAdapter)result).getText();
+    for (int i=0; i < chunks.length; i++) {
+      TextChunk chunk=chunks[i];
+      if (chunk.getText().equals("controller")) {
+        System.out.println(chunks[i + 2]);
+      }
+    }
+  }
+  final GotoAngularModel model=new GotoAngularModel(project);
+  showNavigationPopup(e,model,new GotoActionBase.GotoActionCallback<Object>(){
+    @Override protected ChooseByNameFilter<Object> createFilter(    @NotNull ChooseByNamePopup popup){
+      popup.setSearchInAnyPlace(true);
+      return super.createFilter(popup);
+    }
+    @Override public void elementChosen(    ChooseByNamePopup popup,    final Object element){
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        public void run(){
+        }
+      }
+);
+    }
+  }
+);
+}
