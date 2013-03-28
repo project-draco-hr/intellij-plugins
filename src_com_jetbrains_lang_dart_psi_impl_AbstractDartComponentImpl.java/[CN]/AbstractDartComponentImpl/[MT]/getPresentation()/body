@@ -19,11 +19,15 @@
       return result.toString();
     }
     @Nullable private String getComponentName(){
-      if (AbstractDartComponentImpl.this instanceof DartFactoryConstructorDeclaration) {
+      String name=getName();
+      if (DartComponentType.typeOf(AbstractDartComponentImpl.this) == DartComponentType.CONSTRUCTOR) {
         DartClass dartClass=PsiTreeUtil.getParentOfType(AbstractDartComponentImpl.this,DartClass.class);
-        return dartClass != null ? dartClass.getName() : null;
+        if (dartClass == null) {
+          return name;
+        }
+        return StringUtil.isEmpty(name) ? dartClass.getName() : dartClass.getName() + "." + name;
       }
-      return getName();
+      return name;
     }
     @Override public String getLocationString(){
       if (!isValid()) {
