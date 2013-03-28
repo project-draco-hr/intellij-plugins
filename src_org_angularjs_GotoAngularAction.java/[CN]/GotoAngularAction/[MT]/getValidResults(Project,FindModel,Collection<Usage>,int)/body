@@ -1,5 +1,5 @@
 {
-  final Map<String,AngularItem> validResults=new HashMap<String,AngularItem>();
+  final List<AngularItem> validResults=new ArrayList<AngularItem>();
   Runnable runnable=new Runnable(){
     public void run(){
       for (      final Usage result : usages) {
@@ -13,27 +13,30 @@
               Document document=usage.getDocument();
               CharSequence charsSequence=document.getCharsSequence();
               final CharSequence foundString=charsSequence.subSequence(textOffset,textEndOffset);
-              String regExMatch=FindManager.getInstance(project).getStringToReplace(foundString.toString(),findModel,textOffset,document.getText());
+              String s=foundString.toString();
+              String regExMatch=FindManager.getInstance(project).getStringToReplace(s,findModel,textOffset,document.getText());
               System.out.println(regExMatch);
               PsiElement element=PsiUtil.getElementAtOffset(((UsageInfo2UsageAdapter)result).getUsageInfo().getFile(),textOffset + 1);
               String elementText=element.getText();
-              System.out.println(elementText + ": " + regExMatch+ " - "+ foundString.toString());
-              if (regExMatch.length() > 20)               return true;
+              System.out.println(elementText + ": " + regExMatch+ " - "+ s);
 switch (type) {
 case CTRL_CONVENTIONS:
-                validResults.put(elementText,new AngularItem(elementText,result,element,"controller"));
+                validResults.add(new AngularItem(s,elementText,result,element,"controller"));
               break;
 case MODULE_METHODS:
-            validResults.put(regExMatch,new AngularItem(regExMatch,result,element,element.getText()));
+            validResults.add(new AngularItem(s,regExMatch,result,element,element.getText()));
           break;
-      }
-      return true;
-    }
- catch (    FindManager.MalformedReplacementStringException e1) {
-      e1.printStackTrace();
-    }
-    return false;
+case NG_CONTROLLER:
+        validResults.add(new AngularItem(s,regExMatch,result,element,"ng-controller"));
+      break;
   }
+  return true;
+}
+ catch (FindManager.MalformedReplacementStringException e1) {
+  e1.printStackTrace();
+}
+return false;
+}
 }
 );
 }
