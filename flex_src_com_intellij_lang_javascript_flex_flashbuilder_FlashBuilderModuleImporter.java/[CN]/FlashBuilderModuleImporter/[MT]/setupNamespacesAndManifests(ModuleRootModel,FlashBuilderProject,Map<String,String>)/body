@@ -1,0 +1,21 @@
+{
+  if (!fbProject.getNamespacesAndManifestPaths().isEmpty()) {
+    final StringBuilder nsBuf=new StringBuilder();
+    for (    Pair<String,String> nsAndManifestPath : fbProject.getNamespacesAndManifestPaths()) {
+      final String manifestPath=nsAndManifestPath.second;
+      VirtualFile manifestFile=null;
+      for (      final VirtualFile sourceRoot : rootModel.getSourceRoots()) {
+        if ((manifestFile=sourceRoot.findFileByRelativePath(manifestPath)) != null) {
+          break;
+        }
+      }
+      final String resolvedManifestPath=manifestFile != null ? manifestFile.getPath() : getAbsolutePathWithLinksHandled(fbProject,manifestPath);
+      if (nsBuf.length() > 0) {
+        nsBuf.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+      }
+      nsBuf.append(nsAndManifestPath.first).append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR);
+      nsBuf.append(resolvedManifestPath);
+    }
+    compilerOptions.put("compiler.namespaces.namespace",nsBuf.toString());
+  }
+}
