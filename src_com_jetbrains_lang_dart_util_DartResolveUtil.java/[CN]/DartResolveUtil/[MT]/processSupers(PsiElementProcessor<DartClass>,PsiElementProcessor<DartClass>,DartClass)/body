@@ -15,6 +15,15 @@
         return;
       }
     }
+    for (    DartType type : currentClass.getMixinsList()) {
+      final DartClass result=resolveClassByType(type).getDartClass();
+      if (superClassProcessor == null || result == null || processedClasses.contains(result)) {
+        continue;
+      }
+      if (!superClassProcessor.execute(result)) {
+        return;
+      }
+    }
     currentClass=resolveClassByType(currentClass.getSuperClass()).getDartClass();
     if (currentClass == null || processedClasses.contains(currentClass)) {
       break;

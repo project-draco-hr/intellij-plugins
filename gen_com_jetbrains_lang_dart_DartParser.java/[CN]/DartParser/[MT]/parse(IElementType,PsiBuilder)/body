@@ -230,6 +230,9 @@
  else   if (root_ == METHOD_PROTOTYPE_DECLARATION) {
     result_=methodPrototypeDeclaration(builder_,level_ + 1);
   }
+ else   if (root_ == MIXINS) {
+    result_=mixins(builder_,level_ + 1);
+  }
  else   if (root_ == MULTIPLICATIVE_EXPRESSION) {
     result_=multiplicativeExpression(builder_,level_ + 1);
   }
@@ -400,10 +403,9 @@
   }
  else {
     Marker marker_=builder_.mark();
+    enterErrorRecordingSection(builder_,level_,_SECTION_RECOVER_,null);
     result_=parse_root_(root_,builder_,level_);
-    while (builder_.getTokenType() != null) {
-      builder_.advanceLexer();
-    }
+    exitErrorRecordingSection(builder_,level_,result_,true,_SECTION_RECOVER_,TOKEN_ADVANCER);
     marker_.done(root_);
   }
   return builder_.getTreeBuilt();
