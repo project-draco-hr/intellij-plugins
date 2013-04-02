@@ -1,47 +1,11 @@
 {
-  final List<AnalyzerMessage> result=new ArrayList<AnalyzerMessage>();
-  DefaultDartArtifactProvider provider=new DefaultDartArtifactProvider(){
-    @Override public Writer getArtifactWriter(    Source source,    String part,    String extension) throws IOException {
-      return new Writer(){
-        @Override public void write(        char[] cbuf,        int off,        int len) throws IOException {
-        }
-        @Override public void flush() throws IOException {
-        }
-        @Override public void close() throws IOException {
-        }
-      }
-;
-    }
-  }
-;
-  DefaultCompilerConfiguration config=new DefaultCompilerConfiguration(){
-    @Override public CommandLineOptions.CompilerOptions getCompilerOptions(){
-      return new CompilerOptionsWrapper(super.getCompilerOptions()){
-        @Override public boolean typeChecksForInferredTypes(){
-          return true;
-        }
-      }
-;
-    }
-  }
-;
-  File libFile=new File(DartResolveUtil.getRealVirtualFile(myFixture.getFile()).getPath());
-  final LibrarySource lib=new UrlLibrarySource(libFile);
-  DartCompiler.compileLib(lib,config,provider,new DartCompilerListener(){
-    @Override public void onError(    DartCompilationError event){
-      String url=VfsUtilCore.pathToUrl(event.getSource().getUri().getPath());
-      VirtualFile fileByUrl=VirtualFileManager.getInstance().findFileByUrl(url);
-      if (fileByUrl == null) {
-        return;
-      }
-      AnalyzerMessage message=new AnalyzerMessage(fileByUrl,event.getLineNumber() - 1,event.getColumnNumber() - 1,event.getLength(),AnalyzerMessage.Type.WARNING,event.getErrorCode().getSubSystem().toString(),event.getErrorCode().toString(),event.getMessage());
-      result.add(message);
-    }
-    @Override public void unitAboutToCompile(    DartSource source,    boolean diet){
-    }
-    @Override public void unitCompiled(    DartUnit unit){
-    }
-  }
-);
-  return result;
+  PsiFile file=myFixture.getFile();
+  assertNotNull(file);
+  VirtualFile virtualFile=file.getVirtualFile();
+  assertNotNull(virtualFile);
+  DartSettings settings=getDartSettings();
+  VirtualFile analyzer=settings.getAnalyzer();
+  assertNotNull(analyzer);
+  DartAnalyzerDriver analyzerDriver=new DartAnalyzerDriver(myFixture.getProject(),analyzer,settings.getSdkPath(),virtualFile);
+  return analyzerDriver.analyze(false);
 }

@@ -4,7 +4,7 @@
     context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("no.file.specified",configuration.getName()),null,-1,-1);
     return false;
   }
-  VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(VfsUtil.pathToUrl(filePath));
+  VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(filePath));
   if (libraryRoot == null) {
     context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("cannot.find.file",filePath),null,-1,-1);
     return false;
@@ -19,19 +19,18 @@
     context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("not.dart.sdk.for.module",module.getName()),null,-1,-1);
     return false;
   }
-  final String sdkExePath=DartSdkUtil.getCompilerPathByFolderPath(sdk.getHomePath());
-  if (sdkExePath == null || sdkExePath.isEmpty()) {
+  DartSettings dartSettings=new DartSettings(sdk.getHomePath());
+  if (dartSettings.getCompiler() == null) {
     context.addMessage(CompilerMessageCategory.ERROR,DartBundle.message("invalid.dart.sdk.for.module",module.getName()),null,-1,-1);
     return false;
   }
-  final String analyzerUrl=VfsUtil.pathToUrl(sdk.getHomePath()) + "/bin/" + (SystemInfo.isWindows ? "dart_analyzer.bat" : "dart_analyzer");
-  final VirtualFile analyzerExecutable=VirtualFileManager.getInstance().findFileByUrl(analyzerUrl);
+  VirtualFile analyzerExecutable=dartSettings.getAnalyzer();
   if (analyzerExecutable == null) {
     return true;
   }
   final String outputUrl=CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-  final AnalyzerDriver analyzerDriver=new AnalyzerDriver(module.getProject(),analyzerExecutable,sdk.getHomePath(),libraryRoot);
-  List<AnalyzerMessage> messages=analyzerDriver.analyze(VfsUtil.urlToPath(outputUrl),false);
+  final DartAnalyzerDriver analyzerDriver=new DartAnalyzerDriver(module.getProject(),analyzerExecutable,sdk.getHomePath(),libraryRoot);
+  List<AnalyzerMessage> messages=analyzerDriver.analyze(VfsUtilCore.urlToPath(outputUrl),false);
   if (messages != null && messages.isEmpty()) {
     return true;
   }
