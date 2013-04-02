@@ -19,18 +19,18 @@ application1.invokeLater(runnable1);
 }
 break;
 case Player:
-final String playerPath=launcherParams.getPlayerPath();
-final String executablePath=SystemInfo.isMac && playerPath.endsWith(".app") ? FlexUtils.getMacExecutable(playerPath) : playerPath;
 try {
-if (executablePath == null) {
-throw new IOException("failed to find application to launch with");
+if (SystemInfo.isMac) {
+Runtime.getRuntime().exec(new String[]{ExecUtil.getOpenCommandPath(),"-a",launcherParams.getPlayerPath(),urlOrPath});
 }
-Runtime.getRuntime().exec(new String[]{executablePath,urlOrPath});
+ else {
+Runtime.getRuntime().exec(new String[]{launcherParams.getPlayerPath(),urlOrPath});
+}
 }
  catch (final IOException e) {
 final Runnable runnable2=new Runnable(){
 public void run(){
-Messages.showErrorDialog(FlexBundle.message("cant.launch",urlOrPath,playerPath,e.getMessage()),CommonBundle.getErrorTitle());
+Messages.showErrorDialog(FlexBundle.message("cant.launch",urlOrPath,launcherParams.getPlayerPath(),e.getMessage()),CommonBundle.getErrorTitle());
 }
 }
 ;
