@@ -9,10 +9,25 @@
     enableAllStepping(new Runnable(){
       @Override public void run(){
         myInitialized=InitializingState.INITIALIZED;
-        for (        Pair<JsonObject,AbstractResponseToRequestHandler<JsonResponse>> command : postponedCommands) {
-          commandsToWrite.addLast(command);
+        Iterator<Pair<JsonObject,AbstractResponseToRequestHandler<JsonResponse>>> iterator=postponedCommands.iterator();
+        if (!iterator.hasNext()) {
+          handleBreakpointResolved(paramsElement);
         }
-        handleBreakpointResolved(paramsElement);
+        while (iterator.hasNext()) {
+          final Pair<JsonObject,AbstractResponseToRequestHandler<JsonResponse>> command=iterator.next();
+          if (iterator.hasNext()) {
+            commandsToWrite.addLast(command);
+          }
+ else {
+            commandsToWrite.addLast(Pair.<JsonObject,AbstractResponseToRequestHandler<JsonResponse>>create(command.getFirst(),new AbstractResponseToRequestHandler<JsonResponse>(){
+              @Override public boolean processResponse(              JsonResponse response){
+                handleBreakpointResolved(paramsElement);
+                return command.getSecond().processResponse(response);
+              }
+            }
+));
+          }
+        }
       }
     }
 );

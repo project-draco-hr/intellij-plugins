@@ -6,14 +6,25 @@
         return true;
       }
       JsonArray libraries=response.getJsonObject().getAsJsonObject("result").getAsJsonArray("libraries");
-      for (      JsonElement library : libraries) {
+      Iterator<JsonElement> iterator=libraries.iterator();
+      if (!iterator.hasNext()) {
+        runnable.run();
+        return true;
+      }
+      while (iterator.hasNext()) {
+        JsonElement library=iterator.next();
         int id=library.getAsJsonObject().get("id").getAsInt();
         String url=library.getAsJsonObject().get("url").getAsString();
         if (url != null && !CORE_LIBS.contains(url)) {
-          sendEnableLibrary(id,null);
+          sendEnableLibrary(id,iterator.hasNext() ? null : new AbstractResponseToRequestHandler<JsonResponse>(){
+            @Override public boolean processResponse(            JsonResponse response){
+              runnable.run();
+              return true;
+            }
+          }
+);
         }
       }
-      runnable.run();
       return true;
     }
   }
