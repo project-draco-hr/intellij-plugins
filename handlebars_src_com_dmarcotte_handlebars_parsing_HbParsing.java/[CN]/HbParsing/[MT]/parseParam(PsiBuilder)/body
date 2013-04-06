@@ -1,0 +1,50 @@
+{
+  PsiBuilder.Marker paramMarker=builder.mark();
+  PsiBuilder.Marker pathMarker=builder.mark();
+  if (parsePath(builder)) {
+    pathMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    pathMarker.rollbackTo();
+  }
+  PsiBuilder.Marker stringMarker=builder.mark();
+  if (parseLeafToken(builder,STRING)) {
+    stringMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    stringMarker.rollbackTo();
+  }
+  PsiBuilder.Marker integerMarker=builder.mark();
+  if (parseLeafToken(builder,INTEGER)) {
+    integerMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    integerMarker.rollbackTo();
+  }
+  PsiBuilder.Marker booleanMarker=builder.mark();
+  if (parseLeafToken(builder,BOOLEAN)) {
+    booleanMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    booleanMarker.rollbackTo();
+  }
+  PsiBuilder.Marker dataMarker=builder.mark();
+  if (parseLeafToken(builder,DATA_PREFIX) && parseLeafToken(builder,DATA)) {
+    dataMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    dataMarker.rollbackTo();
+  }
+  paramMarker.error(HbBundle.message("hb.parsing.expected.parameter"));
+  return false;
+}

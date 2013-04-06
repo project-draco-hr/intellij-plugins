@@ -1,0 +1,30 @@
+{
+  PsiBuilder.Marker simpleInverseMarker=builder.mark();
+  boolean isSimpleInverse;
+  PsiBuilder.Marker regularInverseMarker=builder.mark();
+  if (!parseLeafToken(builder,OPEN_INVERSE) || !parseLeafToken(builder,CLOSE)) {
+    regularInverseMarker.rollbackTo();
+    isSimpleInverse=false;
+  }
+ else {
+    regularInverseMarker.drop();
+    isSimpleInverse=true;
+  }
+  PsiBuilder.Marker elseInverseMarker=builder.mark();
+  if (!isSimpleInverse && (!parseLeafToken(builder,OPEN) || !parseLeafToken(builder,ELSE) || !parseLeafToken(builder,CLOSE))) {
+    elseInverseMarker.rollbackTo();
+    isSimpleInverse=false;
+  }
+ else {
+    elseInverseMarker.drop();
+    isSimpleInverse=true;
+  }
+  if (isSimpleInverse) {
+    simpleInverseMarker.done(SIMPLE_INVERSE);
+    return true;
+  }
+ else {
+    simpleInverseMarker.drop();
+    return false;
+  }
+}

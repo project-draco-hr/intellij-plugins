@@ -1,0 +1,19 @@
+{
+  if (offset == 0)   return false;
+  CharSequence chars=editor.getDocument().getCharsSequence();
+  if (chars.charAt(offset - 1) != '}')   return false;
+  EditorHighlighter highlighter=((EditorEx)editor).getHighlighter();
+  HighlighterIterator iterator=highlighter.createIterator(offset - 1);
+  final PsiElement openerElement=file.findElementAt(iterator.getStart());
+  PsiElement openTag=HbPsiUtil.findParentOpenTagElement(openerElement);
+  if (openTag == null) {
+    return false;
+  }
+  iterator.advance();
+  if (iterator.atEnd()) {
+    return false;
+  }
+  final PsiElement closerElement=file.findElementAt(iterator.getStart());
+  PsiElement closeTag=HbPsiUtil.findParentCloseTagElement(closerElement);
+  return closeTag != null;
+}

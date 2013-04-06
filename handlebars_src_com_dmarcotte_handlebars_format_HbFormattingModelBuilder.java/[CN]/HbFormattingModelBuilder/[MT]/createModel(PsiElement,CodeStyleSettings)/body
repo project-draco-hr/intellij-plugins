@@ -1,0 +1,15 @@
+{
+  if (!HbConfig.isFormattingEnabled()) {
+    return new SimpleTemplateLanguageFormattingModelBuilder().createModel(element,settings);
+  }
+  final PsiFile file=element.getContainingFile();
+  Block rootBlock;
+  ASTNode node=element.getNode();
+  if (node.getElementType() == HbTokenTypes.OUTER_ELEMENT_TYPE) {
+    return new SimpleTemplateLanguageFormattingModelBuilder().createModel(element,settings);
+  }
+ else {
+    rootBlock=getRootBlock(file,file.getViewProvider(),settings);
+  }
+  return new DocumentBasedFormattingModel(rootBlock,element.getProject(),settings,file.getFileType(),file);
+}

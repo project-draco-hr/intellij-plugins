@@ -1,0 +1,14 @@
+{
+  super(new HbHighlighter(),colors);
+  FileType type=null;
+  if (project == null || virtualFile == null) {
+    type=StdFileTypes.PLAIN_TEXT;
+  }
+ else {
+    Language language=TemplateDataLanguageMappings.getInstance(project).getMapping(virtualFile);
+    if (language != null)     type=language.getAssociatedFileType();
+    if (type == null)     type=HbLanguage.getDefaultTemplateLang();
+  }
+  @SuppressWarnings("deprecation") SyntaxHighlighter outerHighlighter=SyntaxHighlighter.PROVIDER.create(type,project,virtualFile);
+  registerLayer(HbTokenTypes.CONTENT,new LayerDescriptor(outerHighlighter,""));
+}

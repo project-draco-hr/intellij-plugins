@@ -1,0 +1,27 @@
+{
+  PsiBuilder.Marker hashSegmentsMarker=builder.mark();
+  if (!parseHashSegment(builder)) {
+    hashSegmentsMarker.error(HbBundle.message("hb.parsing.expected.hash"));
+    return false;
+  }
+  while (true) {
+    PsiBuilder.Marker optionalHashMarker=builder.mark();
+    int hashStartPos=builder.getCurrentOffset();
+    if (parseHashSegment(builder)) {
+      optionalHashMarker.drop();
+    }
+ else {
+      if (hashStartPos < builder.getCurrentOffset()) {
+        optionalHashMarker.drop();
+        hashSegmentsMarker.drop();
+        return false;
+      }
+ else {
+        optionalHashMarker.rollbackTo();
+      }
+      break;
+    }
+  }
+  hashSegmentsMarker.drop();
+  return true;
+}

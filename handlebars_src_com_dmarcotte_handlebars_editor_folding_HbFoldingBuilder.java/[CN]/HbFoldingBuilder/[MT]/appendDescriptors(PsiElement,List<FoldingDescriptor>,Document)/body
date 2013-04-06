@@ -1,0 +1,29 @@
+{
+  if (isSingleLine(psi,document)) {
+    return;
+  }
+  if (HbTokenTypes.COMMENT == psi.getNode().getElementType()) {
+    ASTNode commentNode=psi.getNode();
+    String commentText=commentNode.getText();
+    if (commentText.length() > 5 && commentText.substring(0,3).equals("{{!") && commentText.substring(commentText.length() - 2,commentText.length()).equals("}}")) {
+      TextRange range=new TextRange(commentNode.getTextRange().getStartOffset() + 3,commentNode.getTextRange().getEndOffset() - 2);
+      descriptors.add(new FoldingDescriptor(commentNode,range));
+    }
+  }
+  if (psi instanceof HbBlockWrapper) {
+    PsiElement endOpenBlockStache=getOpenBlockCloseStacheElement(psi.getFirstChild());
+    PsiElement endCloseBlockStache=getCloseBlockCloseStacheElement(psi.getLastChild());
+    if (endOpenBlockStache != null && endCloseBlockStache != null) {
+      int endOfFirstOpenStacheLine=document.getLineEndOffset(document.getLineNumber(psi.getTextRange().getStartOffset()));
+      int foldingRangeStartOffset=Math.min(endOpenBlockStache.getTextRange().getStartOffset(),endOfFirstOpenStacheLine);
+      int foldingRangeEndOffset=endCloseBlockStache.getTextRange().getStartOffset();
+      TextRange range=new TextRange(foldingRangeStartOffset,foldingRangeEndOffset);
+      descriptors.add(new FoldingDescriptor(psi,range));
+    }
+  }
+  PsiElement child=psi.getFirstChild();
+  while (child != null) {
+    appendDescriptors(child,descriptors,document);
+    child=child.getNextSibling();
+  }
+}

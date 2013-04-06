@@ -1,0 +1,16 @@
+{
+  int offset=editor.getCaretModel().getOffset();
+  if (offset == 0 || offset > editor.getDocument().getTextLength()) {
+    return Result.CONTINUE;
+  }
+  String previousChar=editor.getDocument().getText(new TextRange(offset - 1,offset));
+  if (file.getViewProvider() instanceof HbFileViewProvider) {
+    PsiDocumentManager.getInstance(project).commitAllDocuments();
+    if (c == '{' && previousChar.equals("{")) {
+      editor.getDocument().insertString(offset,Character.toString(c));
+      editor.getCaretModel().moveToOffset(offset + 1);
+      return Result.STOP;
+    }
+  }
+  return Result.CONTINUE;
+}

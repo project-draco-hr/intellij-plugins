@@ -1,0 +1,19 @@
+{
+  if (myNode.getText().trim().length() == 0) {
+    return Indent.getNoneIndent();
+  }
+  if (HbPsiUtil.isNonRootStatementsElement(myNode.getPsi())) {
+    if (hasOnlyHbLanguageParents()) {
+      return Indent.getNormalIndent();
+    }
+  }
+  if (myNode.getTreeParent() != null && HbPsiUtil.isNonRootStatementsElement(myNode.getTreeParent().getPsi())) {
+    if (getParent() instanceof HandlebarsBlock && ((HandlebarsBlock)getParent()).getIndent() == Indent.getNoneIndent()) {
+      return Indent.getNormalIndent();
+    }
+  }
+  if (getRealBlockParent() instanceof DataLanguageBlockWrapper) {
+    return Indent.getNormalIndent();
+  }
+  return Indent.getNoneIndent();
+}

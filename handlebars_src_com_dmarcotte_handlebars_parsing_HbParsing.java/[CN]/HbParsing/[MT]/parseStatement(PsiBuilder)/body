@@ -1,0 +1,63 @@
+{
+  IElementType tokenType=builder.getTokenType();
+  if (atOpenInverseExpression(builder)) {
+    PsiBuilder.Marker inverseBlockStartMarker=builder.mark();
+    PsiBuilder.Marker lookAheadMarker=builder.mark();
+    boolean isSimpleInverse=parseSimpleInverse(builder);
+    lookAheadMarker.rollbackTo();
+    if (isSimpleInverse) {
+      inverseBlockStartMarker.rollbackTo();
+      return false;
+    }
+ else {
+      inverseBlockStartMarker.drop();
+    }
+    PsiBuilder.Marker blockMarker=builder.mark();
+    PsiBuilder.Marker openInverseMarker=builder.mark();
+    if (parseOpenInverse(builder)) {
+      openBlockMarker(builder,openInverseMarker,blockMarker);
+    }
+ else {
+      return false;
+    }
+    return true;
+  }
+  if (tokenType == OPEN_BLOCK) {
+    PsiBuilder.Marker blockMarker=builder.mark();
+    PsiBuilder.Marker openBlockMarker=builder.mark();
+    if (parseOpenBlock(builder)) {
+      openBlockMarker(builder,openBlockMarker,blockMarker);
+    }
+ else {
+      return false;
+    }
+    return true;
+  }
+  if (tokenType == OPEN || tokenType == OPEN_UNESCAPED) {
+    parseMustache(builder);
+    return true;
+  }
+  if (tokenType == OPEN_PARTIAL) {
+    parsePartial(builder);
+    return true;
+  }
+  if (tokenType == ESCAPE_CHAR) {
+    builder.advanceLexer();
+    return true;
+  }
+  if (tokenType == CONTENT) {
+    builder.advanceLexer();
+    return true;
+  }
+  if (tokenType == COMMENT) {
+    parseLeafToken(builder,COMMENT);
+    return true;
+  }
+  if (tokenType == UNCLOSED_COMMENT) {
+    PsiBuilder.Marker unclosedCommentMarker=builder.mark();
+    parseLeafToken(builder,UNCLOSED_COMMENT);
+    unclosedCommentMarker.error(HbBundle.message("hb.parsing.comment.unclosed"));
+    return true;
+  }
+  return false;
+}

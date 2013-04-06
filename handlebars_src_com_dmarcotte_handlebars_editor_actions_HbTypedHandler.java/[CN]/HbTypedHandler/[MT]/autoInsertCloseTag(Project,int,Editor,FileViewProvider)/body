@@ -1,0 +1,14 @@
+{
+  if (!HbConfig.isAutoGenerateCloseTagEnabled()) {
+    return;
+  }
+  PsiDocumentManager.getInstance(project).commitAllDocuments();
+  PsiElement elementAtCaret=provider.findElementAt(offset - 1,HbLanguage.class);
+  PsiElement openTag=HbPsiUtil.findParentOpenTagElement(elementAtCaret);
+  if (openTag != null && openTag.getChildren().length > 1) {
+    HbPsiElement idElem=(HbPsiElement)openTag.getChildren()[1];
+    if (idElem != null && idElem.getNode().getElementType() == HbTokenTypes.ID) {
+      editor.getDocument().insertString(offset,"{{/" + idElem.getText() + "}}");
+    }
+  }
+}

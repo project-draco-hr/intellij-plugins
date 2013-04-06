@@ -1,0 +1,21 @@
+{
+  TokenizerResult result=tokenize("{{ foo bar=baz }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,ID,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=bat }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,ID,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=1 }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,INTEGER,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=true }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,BOOLEAN,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=false }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,BOOLEAN,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar\n baz=bat }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,ID,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=\"bat\" }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,STRING,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo bar baz=\"bat\" bam=wot }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,STRING,WHITE_SPACE,ID,EQUALS,ID,WHITE_SPACE,CLOSE);
+  result=tokenize("{{ foo omg bar=\"baz\" bat=\"bam\" }}");
+  result.shouldMatchTokenTypes(OPEN,WHITE_SPACE,ID,WHITE_SPACE,ID,WHITE_SPACE,ID,EQUALS,STRING,WHITE_SPACE,ID,EQUALS,STRING,WHITE_SPACE,CLOSE);
+  result.shouldBeToken(4,ID,"omg");
+}

@@ -1,0 +1,15 @@
+{
+  int offset=editor.getCaretModel().getOffset();
+  FileViewProvider provider=file.getViewProvider();
+  if (offset < 2 || offset > editor.getDocument().getTextLength()) {
+    return Result.CONTINUE;
+  }
+  String previousChar=editor.getDocument().getText(new TextRange(offset - 2,offset - 1));
+  if (file.getViewProvider() instanceof HbFileViewProvider) {
+    if (c == '}' && previousChar.equals("}")) {
+      autoInsertCloseTag(project,offset,editor,provider);
+      adjustMustacheFormatting(project,offset,editor,file,provider);
+    }
+  }
+  return Result.CONTINUE;
+}

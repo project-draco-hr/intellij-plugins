@@ -1,0 +1,19 @@
+{
+  PsiBuilder.Marker paramsMarker=builder.mark();
+  if (!parseParam(builder)) {
+    paramsMarker.error(HbBundle.message("hb.parsing.expected.parameter"));
+    return false;
+  }
+  while (true) {
+    PsiBuilder.Marker optionalParamMarker=builder.mark();
+    if (parseParam(builder)) {
+      optionalParamMarker.drop();
+    }
+ else {
+      optionalParamMarker.rollbackTo();
+      break;
+    }
+  }
+  paramsMarker.drop();
+  return true;
+}

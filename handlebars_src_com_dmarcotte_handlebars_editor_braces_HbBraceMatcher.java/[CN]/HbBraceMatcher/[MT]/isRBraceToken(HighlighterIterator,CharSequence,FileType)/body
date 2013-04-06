@@ -1,0 +1,37 @@
+{
+  if (!RIGHT_BRACES.contains(iterator.getTokenType())) {
+    return false;
+  }
+  boolean isRBraceToken=false;
+  int iteratorRetreatCount=0;
+  while (true) {
+    iterator.retreat();
+    iteratorRetreatCount++;
+    if (iterator.atEnd()) {
+      break;
+    }
+    if (iterator.getTokenType() == HbTokenTypes.OPEN_BLOCK) {
+      break;
+    }
+    if (iterator.getTokenType() == HbTokenTypes.OPEN_INVERSE) {
+      while (iteratorRetreatCount-- > 0) {
+        iterator.advance();
+        if (iterator.getTokenType() == HbTokenTypes.ID) {
+          break;
+        }
+        if (iterator.getTokenType() == HbTokenTypes.CLOSE) {
+          isRBraceToken=true;
+          break;
+        }
+      }
+      break;
+    }
+    if (iterator.getTokenType() == HbTokenTypes.OPEN || iterator.getTokenType() == HbTokenTypes.OPEN_PARTIAL || iterator.getTokenType() == HbTokenTypes.OPEN_UNESCAPED || iterator.getTokenType() == HbTokenTypes.OPEN_ENDBLOCK) {
+      isRBraceToken=true;
+    }
+  }
+  while (iteratorRetreatCount-- > 0) {
+    iterator.advance();
+  }
+  return isRBraceToken;
+}

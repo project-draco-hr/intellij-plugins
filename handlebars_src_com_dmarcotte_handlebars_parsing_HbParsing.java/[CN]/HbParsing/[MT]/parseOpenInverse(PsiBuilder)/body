@@ -1,0 +1,19 @@
+{
+  PsiBuilder.Marker openInverseBlockStacheMarker=builder.mark();
+  PsiBuilder.Marker regularInverseMarker=builder.mark();
+  if (!parseLeafToken(builder,OPEN_INVERSE)) {
+    regularInverseMarker.rollbackTo();
+    if (!parseLeafToken(builder,OPEN) || !parseLeafToken(builder,ELSE)) {
+      openInverseBlockStacheMarker.drop();
+      return false;
+    }
+  }
+ else {
+    regularInverseMarker.drop();
+  }
+  if (parseInMustache(builder,true)) {
+    parseLeafTokenGreedy(builder,CLOSE);
+  }
+  openInverseBlockStacheMarker.done(OPEN_INVERSE_BLOCK_STACHE);
+  return true;
+}
