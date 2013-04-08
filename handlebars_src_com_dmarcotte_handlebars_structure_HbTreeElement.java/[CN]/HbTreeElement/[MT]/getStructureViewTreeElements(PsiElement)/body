@@ -1,0 +1,18 @@
+{
+  List<StructureViewTreeElement> children=new ArrayList<StructureViewTreeElement>();
+  for (  PsiElement childElement : psiElement.getChildren()) {
+    if (!(childElement instanceof HbPsiElement)) {
+      continue;
+    }
+    if (childElement instanceof HbStatements) {
+      children.addAll(new HbTreeElement((HbPsiElement)childElement).getChildrenBase());
+    }
+    for (    Class suitableClass : HbStructureViewModel.ourSuitableClasses) {
+      if (ReflectionCache.isAssignable(suitableClass,childElement.getClass())) {
+        children.add(new HbTreeElement((HbPsiElement)childElement));
+        break;
+      }
+    }
+  }
+  return children;
+}

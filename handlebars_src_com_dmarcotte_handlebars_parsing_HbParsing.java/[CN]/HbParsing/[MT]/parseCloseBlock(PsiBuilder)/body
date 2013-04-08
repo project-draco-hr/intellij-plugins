@@ -4,20 +4,6 @@
     closeBlockMarker.drop();
     return false;
   }
-  if (builder.getTokenType() == HbTokenTypes.ID && !openTagNamesStack.empty()) {
-    String expectedCloseTag=openTagNamesStack.pop();
-    String actualCloseTag=builder.getTokenText();
-    if (!expectedCloseTag.equals(actualCloseTag)) {
-      while (builder.getTokenType() != CLOSE && !RECOVERY_SET.contains(builder.getTokenType()) && !builder.eof()) {
-        builder.advanceLexer();
-      }
-      if (builder.getTokenType() == CLOSE) {
-        builder.advanceLexer();
-      }
-      closeBlockMarker.error(HbBundle.message("hb.parsing.end.tag.bad.match",actualCloseTag,expectedCloseTag));
-      return true;
-    }
-  }
   if (parsePath(builder)) {
     parseLeafToken(builder,CLOSE);
   }

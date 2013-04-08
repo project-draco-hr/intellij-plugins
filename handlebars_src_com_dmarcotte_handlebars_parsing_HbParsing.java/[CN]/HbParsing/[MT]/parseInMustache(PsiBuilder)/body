@@ -1,0 +1,42 @@
+{
+  PsiBuilder.Marker inMustacheMarker=builder.mark();
+  if (!parsePath(builder)) {
+    if (builder.getTokenType() == DATA_PREFIX && parseLeafToken(builder,DATA_PREFIX) && parseLeafToken(builder,HbTokenTypes.DATA)) {
+      inMustacheMarker.drop();
+      return true;
+    }
+ else {
+      inMustacheMarker.error(HbBundle.message("hb.parsing.expected.path.or.data"));
+      return false;
+    }
+  }
+  PsiBuilder.Marker hashMarker=builder.mark();
+  if (parseHash(builder)) {
+    hashMarker.drop();
+  }
+ else {
+    hashMarker.rollbackTo();
+    PsiBuilder.Marker paramsMarker=builder.mark();
+    if (parseParams(builder)) {
+      PsiBuilder.Marker paramsHashMarker=builder.mark();
+      int hashStartPos=builder.getCurrentOffset();
+      if (parseHash(builder)) {
+        paramsHashMarker.drop();
+      }
+ else {
+        if (hashStartPos < builder.getCurrentOffset()) {
+          paramsHashMarker.drop();
+        }
+ else {
+          paramsHashMarker.rollbackTo();
+        }
+      }
+      paramsMarker.drop();
+    }
+ else {
+      paramsMarker.rollbackTo();
+    }
+  }
+  inMustacheMarker.drop();
+  return true;
+}
