@@ -19,8 +19,11 @@
       executorService.submit(new Runnable(){
         @Override public void run(){
           try {
-            final MavenProject project=maven.readProject(new File(pathname));
-            final String configFilePath=generate(project,generators,generatorJarPath);
+            MavenProject project=maven.readProject(new File(pathname),logger);
+            if (project == null) {
+              return;
+            }
+            String configFilePath=generate(project,generators,generatorJarPath);
 synchronized (System.out) {
               System.out.append("\n[fcg] generated: ").append(projectId).append(':').append(configFilePath);
               for (              String sourceRoot : project.getCompileSourceRoots()) {
