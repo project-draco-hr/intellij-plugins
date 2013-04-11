@@ -1,0 +1,19 @@
+{
+  if ("Embed".equals(jsAttribute.getName())) {
+    JSVarStatement varStatement=PsiTreeUtil.getParentOfType(jsAttribute,JSVarStatement.class);
+    if (varStatement != null) {
+      JSVariable var=ArrayUtil.getFirstElement(varStatement.getVariables());
+      if (var != null) {
+        String type=var.getTypeString();
+        if (!"Class".equals(type) && !"String".equals(type)) {
+          myHolder.createErrorAnnotation(jsAttribute,JSBundle.message("javascript.validation.message.embed.annotation.used.with.var.of.wrong.type"));
+        }
+      }
+    }
+  }
+  JSSemanticHighlightingUtil.highlight(jsAttribute,myHolder);
+  PsiReference psiReference=jsAttribute.getReference();
+  if (psiReference != null && psiReference.resolve() == null) {
+    myHolder.createWeakWarningAnnotation(jsAttribute.getNameIdentifier(),JSBundle.message("javascript.validation.message.unknown.metadata.annotation.used"));
+  }
+}

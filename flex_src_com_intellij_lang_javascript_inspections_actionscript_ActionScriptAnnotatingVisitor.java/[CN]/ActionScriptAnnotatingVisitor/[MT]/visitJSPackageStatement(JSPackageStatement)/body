@@ -1,0 +1,17 @@
+{
+  final JSFile jsFile=PsiTreeUtil.getParentOfType(packageStatement,JSFile.class);
+  final PsiElement context=jsFile == null ? null : jsFile.getContext();
+  boolean injected=context instanceof XmlAttributeValue || context instanceof XmlText;
+  if (injected) {
+    myHolder.createErrorAnnotation(packageStatement.getFirstChild().getNode(),JSBundle.message("javascript.validation.message.nested.packages.are.not.allowed"));
+    return;
+  }
+  for (PsiElement el=packageStatement.getPrevSibling(); el != null; el=el.getPrevSibling()) {
+    if (!(el instanceof PsiWhiteSpace) && !(el instanceof PsiComment)) {
+      myHolder.createErrorAnnotation(packageStatement.getFirstChild().getNode(),JSBundle.message("javascript.validation.message.package.shouldbe.first.statement"));
+      break;
+    }
+  }
+  final ASTNode node=packageStatement.findNameIdentifier();
+  if (node == null)   checkPackageStatement(packageStatement);
+}

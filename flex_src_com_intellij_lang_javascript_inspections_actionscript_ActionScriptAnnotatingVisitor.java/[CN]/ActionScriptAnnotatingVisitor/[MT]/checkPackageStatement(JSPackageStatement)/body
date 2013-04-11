@@ -1,0 +1,46 @@
+{
+  final String s=packageStatement.getQualifiedName();
+  final PsiFile containingFile=packageStatement.getContainingFile();
+  final String expected=JSResolveUtil.getExpectedPackageNameFromFile(containingFile.getVirtualFile(),containingFile.getProject());
+  if (expected != null && (s == null && expected.length() != 0 || s != null && !expected.equals(s))) {
+    final ASTNode nameIdentifier=packageStatement.findNameIdentifier();
+    final Annotation annotation=myHolder.createErrorAnnotation(nameIdentifier != null ? nameIdentifier : packageStatement.getFirstChild().getNode(),JSBundle.message("javascript.validation.message.incorrect.package.name",s,expected));
+    annotation.registerFix(new IntentionAction(){
+      @NotNull public String getText(){
+        return JSBundle.message("javascript.fix.package.name",expected);
+      }
+      @NotNull public String getFamilyName(){
+        return getText();
+      }
+      public boolean isAvailable(      @NotNull final Project project,      final Editor editor,      final PsiFile file){
+        return packageStatement.isValid();
+      }
+      public void invoke(      @NotNull final Project project,      final Editor editor,      final PsiFile file) throws IncorrectOperationException {
+        JSPackageStatementImpl.doChangeName(project,packageStatement,expected);
+      }
+      public boolean startInWriteAction(){
+        return true;
+      }
+    }
+);
+  }
+  final Set<JSNamedElement> elements=new THashSet<JSNamedElement>();
+  for (  JSSourceElement statement : packageStatement.getStatements()) {
+    if (statement instanceof JSNamedElement && !(statement instanceof JSImportStatement)) {
+      elements.add((JSNamedElement)statement);
+    }
+ else     if (statement instanceof JSVarStatement) {
+      ContainerUtil.addAll(elements,((JSVarStatement)statement).getVariables());
+    }
+  }
+  if (elements.size() > 1) {
+    for (    JSNamedElement el : elements) {
+      if (!(el instanceof JSAttributeListOwner))       continue;
+      JSAttributeList attributeList=((JSAttributeListOwner)el).getAttributeList();
+      if (attributeList != null && attributeList.getConditionalCompileVariableReference() != null)       continue;
+      final ASTNode nameIdentifier=el.findNameIdentifier();
+      myHolder.createErrorAnnotation(nameIdentifier != null ? nameIdentifier : el.getFirstChild().getNode(),JSBundle.message("javascript.validation.message.more.than.one.externally.visible.symbol")).registerFix(new RemoveASTNodeFix("javascript.fix.remove.externally.visible.symbol",el.getNode()));
+    }
+  }
+  checkFileUnderSourceRoot(packageStatement,new SimpleErrorReportingClient());
+}

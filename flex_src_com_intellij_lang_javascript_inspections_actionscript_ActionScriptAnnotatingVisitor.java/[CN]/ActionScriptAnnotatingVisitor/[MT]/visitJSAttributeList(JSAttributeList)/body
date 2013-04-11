@@ -1,0 +1,104 @@
+{
+  PsiElement namespaceElement=attributeList.getNamespaceElement();
+  PsiElement accessTypeElement=attributeList.findAccessTypeElement();
+  PsiElement namespaceOrAccessModifierElement=namespaceElement;
+  ASTNode[] children=attributeList.getNode().getChildren(JSAttributeListImpl.ourModifiersTypeSet);
+  if (namespaceOrAccessModifierElement == null) {
+    namespaceOrAccessModifierElement=accessTypeElement;
+  }
+ else   if (accessTypeElement != null) {
+    myHolder.createErrorAnnotation(namespaceOrAccessModifierElement,JSBundle.message("javascript.validation.message.use.namespace.reference.or.access.modifier")).registerFix(new RemoveASTNodeFix("javascript.fix.remove.namespace.reference",namespaceOrAccessModifierElement.getNode()));
+    myHolder.createErrorAnnotation(accessTypeElement,JSBundle.message("javascript.validation.message.use.namespace.reference.or.access.modifier")).registerFix(new RemoveASTNodeFix("javascript.fix.remove.visibility.modifier",accessTypeElement.getNode()));
+  }
+  if (children.length > 1 && namespaceElement == null) {
+    for (    ASTNode astNode : children) {
+      myHolder.createErrorAnnotation(astNode,JSBundle.message("javascript.validation.message.one.visibility.modifier.allowed")).registerFix(new RemoveASTNodeFix("javascript.fix.remove.visibility.modifier",astNode));
+    }
+  }
+  PsiElement element=attributeList.getParent();
+  PsiElement parentForCheckingNsOrAccessModifier=JSResolveUtil.findParent(element);
+  if (namespaceOrAccessModifierElement != null) {
+    if (!(parentForCheckingNsOrAccessModifier instanceof JSClass)) {
+      String typeElementText;
+      boolean nodeUnderPackage;
+      if (!(nodeUnderPackage=parentForCheckingNsOrAccessModifier instanceof JSPackageStatement) && !hasQualifiedName(element) && (!(parentForCheckingNsOrAccessModifier instanceof JSFile) || attributeList.getAccessType() != JSAttributeList.AccessType.PACKAGE_LOCAL) || !"public".equals(typeElementText=namespaceOrAccessModifierElement.getText()) && !"internal".equals(typeElementText)) {
+        boolean nsRef=namespaceOrAccessModifierElement instanceof JSReferenceExpression;
+        Annotation annotation;
+        String message=JSBundle.message(nodeUnderPackage ? "javascript.validation.message.access.modifier.allowed.only.for.package.members" : nsRef ? "javascript.validation.message.namespace.allowed.only.for.class.members" : "javascript.validation.message.access.modifier.allowed.only.for.class.members");
+        if (parentForCheckingNsOrAccessModifier instanceof JSFile && !(element instanceof JSClass)) {
+          annotation=myHolder.createWarningAnnotation(namespaceOrAccessModifierElement,message);
+        }
+ else {
+          annotation=myHolder.createErrorAnnotation(namespaceOrAccessModifierElement,message);
+        }
+        annotation.registerFix(new RemoveASTNodeFix(nsRef ? "javascript.fix.remove.namespace.reference" : "javascript.fix.remove.access.modifier",namespaceOrAccessModifierElement.getNode()));
+      }
+    }
+ else     if (((JSClass)parentForCheckingNsOrAccessModifier).isInterface()) {
+      if (attributeList.getAccessType() != JSAttributeList.AccessType.PACKAGE_LOCAL || attributeList.getNode().findChildByType(JSTokenTypes.INTERNAL_KEYWORD) != null) {
+        ASTNode astNode=attributeList.getNode().findChildByType(JSTokenTypes.ACCESS_MODIFIERS);
+        String message=JSBundle.message("javascript.validation.message.interface.members.cannot.have.access.modifiers");
+        String fixMessageKey="javascript.fix.remove.access.modifier";
+        if (astNode == null) {
+          astNode=attributeList.getNode().findChildByType(JSElementTypes.REFERENCE_EXPRESSION);
+          message=JSBundle.message("javascript.validation.message.interface.members.cannot.have.namespace.attributes");
+          fixMessageKey="javascript.fix.remove.namespace.reference";
+        }
+        final Annotation annotation=myHolder.createErrorAnnotation(astNode,message);
+        annotation.registerFix(new RemoveASTNodeFix(fixMessageKey,astNode));
+      }
+    }
+ else     if (element instanceof JSFunction && ((JSFunction)element).isConstructor()) {
+      JSAttributeList.AccessType accessType=attributeList.getAccessType();
+      if (accessType != JSAttributeList.AccessType.PUBLIC) {
+        myHolder.createErrorAnnotation(namespaceOrAccessModifierElement.getNode(),JSBundle.message("javascript.validation.message.constructor.cannot.have.custom.visibility"));
+      }
+    }
+  }
+  if (attributeList.hasModifier(JSAttributeList.ModifierType.FINAL)) {
+    PsiElement parent;
+    if (element instanceof JSClass) {
+      if (((JSClass)element).isInterface()) {
+        finalModifierProblem(attributeList,"javascript.validation.message.interface.cannot.be.final.modifiers");
+      }
+    }
+ else     if (parentForCheckingNsOrAccessModifier instanceof JSClass && ((JSClass)parentForCheckingNsOrAccessModifier).isInterface()) {
+      finalModifierProblem(attributeList,"javascript.validation.message.interface.members.cannot.be.final.modifiers");
+    }
+ else     if (!(element instanceof JSFunction) || (parent=element.getParent()) instanceof JSPackageStatement || parent instanceof JSFile && parent.getContext() == null) {
+      finalModifierProblem(attributeList,"javascript.validation.message.final.modifier.allowed.only.for.methods");
+    }
+  }
+  if (attributeList.hasExplicitModifier(JSAttributeList.ModifierType.STATIC)) {
+    if (element instanceof JSFunction || element instanceof JSVarStatement) {
+      if (!(parentForCheckingNsOrAccessModifier instanceof JSClass)) {
+        PsiElement modifierElement=attributeList.findModifierElement(JSAttributeList.ModifierType.STATIC);
+        String message=JSBundle.message("javascript.validation.message.static.modifier.is.allowed.only.for.class.members");
+        Annotation annotation;
+        if (parentForCheckingNsOrAccessModifier instanceof JSFile) {
+          annotation=myHolder.createWarningAnnotation(modifierElement,message);
+        }
+ else {
+          annotation=myHolder.createErrorAnnotation(modifierElement,message);
+        }
+        annotation.registerFix(new RemoveASTNodeFix("javascript.fix.remove.static.modifier",modifierElement.getNode()));
+      }
+ else       if (element instanceof JSFunction && ((JSFunction)element).isConstructor()) {
+        modifierProblem(attributeList,JSAttributeList.ModifierType.STATIC,"javascript.validation.message.constructor.cannot.be.static","javascript.fix.remove.static.modifier");
+      }
+    }
+ else     if (element instanceof JSNamespaceDeclaration || element instanceof JSClass) {
+      modifierProblem(attributeList,JSAttributeList.ModifierType.STATIC,"javascript.validation.message.static.modifier.is.allowed.only.for.class.members","javascript.fix.remove.static.modifier");
+    }
+    if (attributeList.hasModifier(JSAttributeList.ModifierType.FINAL) && element instanceof JSFunction) {
+      finalModifierProblem(attributeList,"javascript.validation.message.static.method.cannot.be.final");
+    }
+  }
+  if (attributeList.hasModifier(JSAttributeList.ModifierType.OVERRIDE) && !(element instanceof JSFunction)) {
+    modifierProblem(attributeList,JSAttributeList.ModifierType.OVERRIDE,"javascript.validation.message.override.can.be.applied.to.method","javascript.fix.remove.override.modifier");
+  }
+  if (attributeList.hasModifier(JSAttributeList.ModifierType.DYNAMIC) && (!(element instanceof JSClass) || ((JSClass)element).isInterface())) {
+    modifierProblem(attributeList,JSAttributeList.ModifierType.DYNAMIC,"javascript.validation.message.dynamic.can.be.applied.to.class","javascript.fix.remove.dynamic.modifier");
+  }
+  checkMultipleModifiersProblem(attributeList);
+}

@@ -1,0 +1,30 @@
+{
+  PsiElement nameIdentifier=aClass.getNameIdentifier();
+  if (nameIdentifier == null) {
+    nameIdentifier=aClass.getFirstChild();
+  }
+  final PsiFile containingFile=aClass.getContainingFile();
+  final VirtualFile file=containingFile.getVirtualFile();
+  if (file == null)   return;
+  final VirtualFile rootForFile=ProjectRootManager.getInstance(containingFile.getProject()).getFileIndex().getSourceRootForFile(file);
+  if (rootForFile == null) {
+    client.reportError(nameIdentifier.getNode(),JSBundle.message("javascript.validation.message.file.should.be.under.source.root"),ErrorReportingClient.ProblemKind.WARNING);
+  }
+  if (!(aClass instanceof JSPackageStatement)) {
+    VirtualFile parent=file.getParent();
+    boolean found=false;
+    for (    String ext : EXTENSIONS_TO_CHECK) {
+      String name=file.getNameWithoutExtension() + "." + ext;
+      VirtualFile child=parent.findChild(name);
+      if (child != null && name.equals(child.getName())) {
+        if (found) {
+          client.reportError(nameIdentifier.getNode(),JSBundle.message("javascript.validation.message.more.than.one.named.object.in.package"),ErrorReportingClient.ProblemKind.ERROR);
+          break;
+        }
+ else {
+          found=true;
+        }
+      }
+    }
+  }
+}
