@@ -1,18 +1,8 @@
 {
-  VirtualFile file=null;
   final Trinity<String,String,Integer> fileNameAndIndexAndLine=getFileNameAndIndexAndLine(frameText);
   final String fileName=fileNameAndIndexAndLine.first;
   final String fileId=fileNameAndIndexAndLine.second;
   int line=fileNameAndIndexAndLine.third;
-  if (fileName != null) {
-    file=flexDebugProcess.findFileByNameOrId(fileName,null,fileId);
-    if (file == null) {
-      final boolean noname=StringUtil.isEmpty(fileName) || fileName.equals("<null>");
-      final String text=noname ? "// File name is not available" : "// No source code for " + fileName + ":"+ line;
-      file=new LightVirtualFile(noname ? "noname.as" : fileName,text);
-      ((LightVirtualFile)file).setWritable(false);
-      line=1;
-    }
-  }
+  final VirtualFile file=fileName == null ? null : flexDebugProcess.findFileByNameOrId(fileName,null,fileId);
   return new FlexStackFrame(flexDebugProcess,file != null ? XDebuggerUtil.getInstance().createPosition(file,line > 0 ? line - 1 : line) : null);
 }
