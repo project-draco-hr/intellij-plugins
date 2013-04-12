@@ -4,5 +4,8 @@
   final String fileId=fileNameAndIndexAndLine.second;
   int line=fileNameAndIndexAndLine.third;
   final VirtualFile file=fileName == null ? null : flexDebugProcess.findFileByNameOrId(fileName,null,fileId);
-  return new FlexStackFrame(flexDebugProcess,file != null ? XDebuggerUtil.getInstance().createPosition(file,line > 0 ? line - 1 : line) : null);
+  if (file == null) {
+  }
+  final XSourcePosition sourcePosition=file != null ? XDebuggerUtil.getInstance().createPosition(file,line > 0 ? line - 1 : line) : null;
+  return sourcePosition != null ? new FlexStackFrame(flexDebugProcess,sourcePosition) : new FlexStackFrame(flexDebugProcess,fileName,line);
 }
