@@ -1,0 +1,18 @@
+{
+  if (psiClass == null || psiClass.isInterface() || psiClass.isEnum() || psiClass.isAnnotationType() || !psiClass.hasModifierProperty(PsiModifier.PUBLIC) || psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+    return false;
+  }
+  if (isAnnotatedWithAction(psiClass)) {
+    return true;
+  }
+  if (AnnotationUtil.isAnnotated(psiClass,StrutsConventionConstants.ACTIONS,false)) {
+    return true;
+  }
+  if (!isConventionPluginPresent(psiClass)) {
+    return false;
+  }
+  if (StringUtil.endsWith(psiClass.getName(),"Action")) {
+    return true;
+  }
+  return InheritanceUtil.isInheritor(psiClass,StrutsConstants.XWORK_ACTION_CLASS);
+}
