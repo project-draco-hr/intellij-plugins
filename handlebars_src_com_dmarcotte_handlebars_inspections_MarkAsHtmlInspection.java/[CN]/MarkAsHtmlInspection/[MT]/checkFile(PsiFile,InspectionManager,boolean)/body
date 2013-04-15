@@ -1,0 +1,14 @@
+{
+  if (!isOnTheFly) {
+    return super.checkFile(file,manager,isOnTheFly);
+  }
+  if (HbFileType.hasHbAttribute(file.getVirtualFile()) && file instanceof HbPsiFile && !ContainerUtil.exists(file.getViewProvider().getAllFiles(),new Condition<PsiFile>(){
+    @Override public boolean value(    PsiFile psiFile){
+      return psiFile instanceof XmlFile && HbUtils.hasHbScriptTag((XmlFile)psiFile);
+    }
+  }
+)) {
+    return new ProblemDescriptor[]{manager.createProblemDescriptor(file,HbBundle.message("inspection.html.file.has.no.template"),new LocalQuickFix[]{new UnmarkFix()},HighlightInfo.convertSeverityToProblemHighlight(getDefaultLevel().getSeverity()),isOnTheFly,false)};
+  }
+  return super.checkFile(file,manager,isOnTheFly);
+}
