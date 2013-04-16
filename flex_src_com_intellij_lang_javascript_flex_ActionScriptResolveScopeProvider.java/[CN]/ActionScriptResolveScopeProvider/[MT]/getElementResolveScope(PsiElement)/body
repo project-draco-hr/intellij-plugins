@@ -1,0 +1,18 @@
+{
+  final GlobalSearchScope tempScope=JSInheritanceUtil.getEnforcedScope();
+  if (tempScope != null) {
+    return tempScope;
+  }
+  PsiElement explicitContext=JSResolveUtil.getContext(element);
+  if (explicitContext != null)   element=explicitContext;
+  if (element instanceof PsiCodeFragment) {
+    final GlobalSearchScope forced=((PsiCodeFragment)element).getForcedResolveScope();
+    if (forced != null)     return forced;
+  }
+  final PsiFile psiFile=element.getContainingFile().getOriginalFile();
+  VirtualFile file=psiFile.getVirtualFile();
+  final Project project=psiFile.getProject();
+  if (file == null)   return JSResolveUtil.getJavaScriptSymbolsResolveScope(project);
+  final GlobalSearchScope scope=ResolveScopeManager.getInstance(project).getDefaultResolveScope(file);
+  return scope != null ? scope : JSResolveUtil.getJavaScriptSymbolsResolveScope(project);
+}
