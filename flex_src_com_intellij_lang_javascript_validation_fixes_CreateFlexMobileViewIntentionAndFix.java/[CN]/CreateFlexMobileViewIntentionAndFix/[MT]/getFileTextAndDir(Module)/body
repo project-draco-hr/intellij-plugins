@@ -1,0 +1,19 @@
+{
+  if (!myAskForPackage)   return super.getFileTextAndDir(module);
+  final PsiDirectory targetDirectory;
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    targetDirectory=ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>(){
+      public PsiDirectory compute(){
+        return CreateClassOrInterfaceFix.findOrCreateDirectory("foo",myElement);
+      }
+    }
+);
+  }
+ else {
+    final ChoosePackageDialog dialog=new ChoosePackageDialog(module,getText(),myPackageName,myElement.getContainingFile());
+    dialog.show();
+    if (!dialog.isOK())     return Pair.empty();
+    targetDirectory=dialog.getTargetDirectory();
+  }
+  return Pair.create(getFileText(),targetDirectory);
+}
