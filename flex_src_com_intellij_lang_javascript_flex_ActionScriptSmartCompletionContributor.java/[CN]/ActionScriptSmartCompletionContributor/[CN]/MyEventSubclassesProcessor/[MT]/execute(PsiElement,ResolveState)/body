@@ -1,0 +1,21 @@
+{
+  if (element instanceof JSVariable) {
+    final JSVariable variable=(JSVariable)element;
+    final JSAttributeList attributeList=variable.getAttributeList();
+    if (attributeList != null && attributeList.getAccessType() == JSAttributeList.AccessType.PUBLIC && attributeList.hasModifier(JSAttributeList.ModifierType.STATIC) && "String".equals(variable.getTypeString())) {
+      final String s=variable.getInitializerText();
+      if (s != null && StringUtil.startsWith(s,"\"") && StringUtil.endsWith(s,"\"")) {
+        String key=StringUtil.stripQuotesAroundValue(s);
+        String event=myEventsMap.get(key);
+        if (event == null)         return true;
+        PsiElement parent=JSResolveUtil.findParent(element);
+        if (!(parent instanceof JSClass) || !event.equals(((JSClass)parent).getQualifiedName()))         return true;
+        String name=variable.getName();
+        LookupElement lookupItem=JSLookupUtilImpl.createPrioritizedLookupItem(variable,((JSClass)parent).getName() + "." + name,VariantsProcessor.LookupPriority.SMART_PROPRITY,false,true);
+        ((LookupItem)lookupItem).addLookupStrings(name);
+        myVariants.add(lookupItem);
+      }
+    }
+  }
+  return true;
+}

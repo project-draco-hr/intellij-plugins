@@ -1,0 +1,17 @@
+{
+  final PsiElement parent=location.getParent();
+  if (parent instanceof JSArgumentList && ((JSArgumentList)parent).getArguments()[0] == location && ((JSReferenceExpression)location).getQualifier() == null) {
+    final JSExpression calledExpr=((JSCallExpression)parent.getParent()).getMethodExpression();
+    if (calledExpr instanceof JSReferenceExpression) {
+      final JSReferenceExpression expression=(JSReferenceExpression)calledExpr;
+      final @NonNls String s=expression.getReferencedName();
+      if ("addEventListener".equals(s) || "removeEventListener".equals(s) || "willTrigger".equals(s)|| "hasEventListener".equals(s)) {
+        final List<Object> variants=new ArrayList<Object>();
+        final MyEventSubclassesProcessor subclassesProcessor=new MyEventSubclassesProcessor(location,variants);
+        subclassesProcessor.findAcceptableVariants(expression);
+        return variants;
+      }
+    }
+  }
+  return null;
+}

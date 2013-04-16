@@ -1,0 +1,59 @@
+{
+  if (clazzToProcess == null)   return Collections.emptyMap();
+  final Map<String,String> eventsMap=new THashMap<String,String>();
+class EventsDataCollector extends ResolveProcessor implements JSResolveUtil.MetaDataProcessor {
+    public EventsDataCollector(){
+      super(null);
+      setToProcessHierarchy(true);
+      setToProcessMembers(false);
+      setTypeContext(true);
+      setLocalResolve(true);
+    }
+    public boolean process(    final @NotNull JSAttribute jsAttribute){
+      if ("Event".equals(jsAttribute.getName())) {
+        final JSAttributeNameValuePair eventAttr=jsAttribute.getValueByName("name");
+        JSAttributeNameValuePair typeAttr=jsAttribute.getValueByName("type");
+        if (eventAttr != null && typeAttr != null) {
+          final String simpleValue=eventAttr.getSimpleValue();
+          if (simpleValue != null) {
+            eventsMap.put(simpleValue,typeAttr.getSimpleValue());
+          }
+        }
+      }
+      return true;
+    }
+    public boolean handleOtherElement(    final PsiElement el,    final PsiElement context,    final Ref<PsiElement> continuePassElement){
+      return true;
+    }
+    @Override public boolean execute(    @NotNull PsiElement element,    ResolveState state){
+      if (element instanceof JSClass) {
+        JSResolveUtil.processMetaAttributesForClass(element,this,true);
+      }
+      return true;
+    }
+  }
+  final EventsDataCollector eventsDataCollector=new EventsDataCollector();
+  if (clazzToProcess instanceof XmlBackedJSClassImpl) {
+    XmlFile file=(XmlFile)clazzToProcess.getParent().getContainingFile();
+    if (file != null && JavaScriptSupportLoader.isFlexMxmFile(file)) {
+      final XmlDocument xmlDocument=file.getDocument();
+      final XmlTag rootTag=xmlDocument == null ? null : xmlDocument.getRootTag();
+      final XmlTag[] tags=rootTag == null ? XmlTag.EMPTY : MxmlJSClass.findLanguageSubTags(rootTag,FlexPredefinedTagNames.METADATA);
+      JSResolveUtil.JSInjectedFilesVisitor injectedFilesVisitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+        @Override protected void process(        JSFile file){
+          for (          PsiElement element : file.getChildren()) {
+            if (element instanceof JSAttributeList) {
+              JSResolveUtil.processAttributeList(eventsDataCollector,null,(JSAttributeList)element,true,true);
+            }
+          }
+        }
+      }
+;
+      for (      XmlTag tag : tags) {
+        JSResolveUtil.processInjectedFileForTag(tag,injectedFilesVisitor);
+      }
+    }
+  }
+  clazzToProcess.processDeclarations(eventsDataCollector,ResolveState.initial(),clazzToProcess,clazzToProcess);
+  return eventsMap;
+}
