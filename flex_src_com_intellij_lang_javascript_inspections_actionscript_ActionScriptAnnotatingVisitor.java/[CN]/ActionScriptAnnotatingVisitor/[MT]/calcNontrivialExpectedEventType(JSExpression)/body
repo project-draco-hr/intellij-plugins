@@ -1,0 +1,42 @@
+{
+  JSExpression prevExpr=PsiTreeUtil.findChildOfAnyType(expr.getParent(),JSExpression.class);
+  String type=null;
+  JSExpression adHocQualifierExpr=null;
+  if (prevExpr instanceof JSReferenceExpression && prevExpr != expr) {
+    PsiElement constantRef=((JSReferenceExpression)prevExpr).resolve();
+    if (constantRef instanceof JSVariable) {
+      final String initializerText=((JSVariable)constantRef).getInitializerText();
+      if (initializerText != null && (StringUtil.startsWith(initializerText,"\'") || StringUtil.startsWith(initializerText,"\""))) {
+        type=StringUtil.stripQuotesAroundValue(initializerText);
+      }
+    }
+    adHocQualifierExpr=((JSReferenceExpression)prevExpr).getQualifier();
+  }
+ else   if (prevExpr instanceof JSLiteralExpression) {
+    type=StringUtil.stripQuotesAroundValue(prevExpr.getText());
+  }
+  if (type != null) {
+    JSExpression methodExpression=((JSCallExpression)expr.getParent().getParent()).getMethodExpression();
+    if (methodExpression instanceof JSReferenceExpression) {
+      JSClass clazz=JSSmartCompletionVariantsHandler.findClassOfQualifier((JSReferenceExpression)methodExpression);
+      if (clazz != null) {
+        Map<String,String> eventsMap=JSSmartCompletionVariantsHandler.getEventsMap(clazz);
+        String qName=eventsMap.get(type);
+        if (qName != null) {
+          PsiElement classFromNamespace=JSClassBase.findClassFromNamespace(qName,clazz);
+          if (classFromNamespace instanceof JSClass)           return (JSClass)classFromNamespace;
+        }
+      }
+    }
+  }
+  if (adHocQualifierExpr instanceof JSReferenceExpression) {
+    PsiElement resolve=((JSReferenceExpression)adHocQualifierExpr).resolve();
+    if (resolve instanceof JSClass) {
+      JSClass clazz=(JSClass)resolve;
+      if (JSInheritanceUtil.isParentClass((JSClass)resolve,JSAnnotatingVisitor.FLASH_EVENT_FQN,false) || JSInheritanceUtil.isParentClass((JSClass)resolve,JSAnnotatingVisitor.STARLING_EVENT_FQN,false)) {
+        return clazz;
+      }
+    }
+  }
+  return null;
+}
