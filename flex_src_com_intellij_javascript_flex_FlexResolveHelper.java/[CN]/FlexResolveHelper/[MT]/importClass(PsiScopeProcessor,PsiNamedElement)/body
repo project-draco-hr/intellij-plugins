@@ -1,5 +1,16 @@
 {
   if (file instanceof JSFunction)   return true;
+  if (file instanceof XmlBackedJSClassImpl) {
+    if (!processInlineComponentsInScope((XmlBackedJSClassImpl)file,new Processor<XmlBackedJSClass>(){
+      public boolean process(      XmlBackedJSClass inlineComponent){
+        return processor.execute(inlineComponent,ResolveState.initial());
+      }
+    }
+)) {
+      return false;
+    }
+  }
+  final String packageQualifierText=JSResolveUtil.findPackageStatementQualifier(file);
   final Project project=file.getProject();
   GlobalSearchScope scope=JSResolveUtil.getResolveScope(file);
   final MxmlAndFxgFilesProcessor filesProcessor=new MxmlAndFxgFilesProcessor(){
