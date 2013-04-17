@@ -1,0 +1,16 @@
+{
+  final XmlTag rootTag=getParent();
+  if (rootTag != null) {
+    String ns=getLanguageNamespace(rootTag);
+    final String emptyText="\n";
+    for (    XmlTag tag : rootTag.getSubTags()) {
+      if (FlexPredefinedTagNames.SCRIPT.equals(tag.getLocalName()) && ns.equals(tag.getNamespace())) {
+        tag.getValue().setText(emptyText);
+        return findFirstScriptTag();
+      }
+    }
+    rootTag.add(rootTag.createChildTag(FlexPredefinedTagNames.SCRIPT,ns,CDATA_START + emptyText + CDATA_END,false));
+    return findFirstScriptTag();
+  }
+  return null;
+}
