@@ -1,0 +1,14 @@
+{
+  extend(CompletionType.BASIC,psiElement(HbTokenTypes.ID).withSuperParent(2,psiElement(HbTokenTypes.PATH)),new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      PsiElement position=PsiTreeUtil.getParentOfType(parameters.getPosition(),HbPath.class);
+      PsiElement prevSibling=position != null ? position.getPrevSibling() : null;
+      ASTNode prevSiblingNode=prevSibling != null ? prevSibling.getNode() : null;
+      if (prevSiblingNode != null && prevSiblingNode.getElementType() == HbTokenTypes.OPEN_BLOCK) {
+        result.addElement(LookupElementBuilder.create("if"));
+        result.addElement(LookupElementBuilder.create("each"));
+      }
+    }
+  }
+);
+}
