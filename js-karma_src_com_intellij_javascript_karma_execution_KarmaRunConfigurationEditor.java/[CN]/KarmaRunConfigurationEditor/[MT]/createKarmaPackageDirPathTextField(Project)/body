@@ -1,0 +1,31 @@
+{
+  TextFieldWithHistoryWithBrowseButton karmaPackageDirPathComponent=new TextFieldWithHistoryWithBrowseButton();
+  final TextFieldWithHistory textFieldWithHistory=karmaPackageDirPathComponent.getChildComponent();
+  textFieldWithHistory.addPopupMenuListener(new PopupMenuListener(){
+    @Override public void popupMenuWillBecomeVisible(    PopupMenuEvent e){
+      List<File> newFiles=listPossibleKarmaPackageDirs(null,null);
+      List<String> newFilePaths=ContainerUtil.map(newFiles,new Function<File,String>(){
+        @Override public String fun(        File file){
+          return file.getAbsolutePath();
+        }
+      }
+);
+      Collections.sort(newFilePaths);
+      Set<String> allPaths=ContainerUtil.newLinkedHashSet();
+      allPaths.addAll(textFieldWithHistory.getHistory());
+      allPaths.addAll(newFilePaths);
+      textFieldWithHistory.setHistory(ContainerUtil.newArrayList(allPaths));
+      textFieldWithHistory.removePopupMenuListener(this);
+    }
+    @Override public void popupMenuWillBecomeInvisible(    PopupMenuEvent e){
+    }
+    @Override public void popupMenuCanceled(    PopupMenuEvent e){
+    }
+  }
+);
+  FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+  fileChooserDescriptor.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES,Boolean.TRUE);
+  karmaPackageDirPathComponent.addBrowseFolderListener(project,new ComponentWithBrowseButton.BrowseFolderActionListener<TextFieldWithHistory>(KarmaBundle.message("runConfiguration.config_file.browse_dialog.title"),null,karmaPackageDirPathComponent,project,fileChooserDescriptor,TextComponentAccessor.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT),true);
+  FileChooserFactory.getInstance().installFileCompletion(textFieldWithHistory.getTextEditor(),fileChooserDescriptor,true,project);
+  return karmaPackageDirPathComponent;
+}
