@@ -1,31 +1,21 @@
 {
   TextFieldWithHistoryWithBrowseButton karmaPackageDirPathComponent=new TextFieldWithHistoryWithBrowseButton();
   final TextFieldWithHistory textFieldWithHistory=karmaPackageDirPathComponent.getChildComponent();
-  textFieldWithHistory.addPopupMenuListener(new PopupMenuListener(){
-    @Override public void popupMenuWillBecomeVisible(    PopupMenuEvent e){
-      List<File> newFiles=listPossibleKarmaPackageDirs(null,null);
-      List<String> newFilePaths=ContainerUtil.map(newFiles,new Function<File,String>(){
-        @Override public String fun(        File file){
-          return file.getAbsolutePath();
+  SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new Producer<List<String>>(){
+    @Nullable @Override public List<String> produce(){
+      Collection<CompletionModuleInfo> modules=NodeModuleManager.getInstance(project).collectVisibleNodeModules(project.getBaseDir());
+      List<String> moduleDirs=ContainerUtil.newArrayListWithExpectedSize(modules.size());
+      for (      CompletionModuleInfo module : modules) {
+        VirtualFile dir=module.getVirtualFile();
+        if (dir != null && dir.isDirectory()) {
+          moduleDirs.add(FileUtil.toSystemDependentName(dir.getPath()));
         }
       }
-);
-      Collections.sort(newFilePaths);
-      Set<String> allPaths=ContainerUtil.newLinkedHashSet();
-      allPaths.addAll(textFieldWithHistory.getHistory());
-      allPaths.addAll(newFilePaths);
-      textFieldWithHistory.setHistory(ContainerUtil.newArrayList(allPaths));
-      textFieldWithHistory.removePopupMenuListener(this);
-    }
-    @Override public void popupMenuWillBecomeInvisible(    PopupMenuEvent e){
-    }
-    @Override public void popupMenuCanceled(    PopupMenuEvent e){
+      Collections.sort(moduleDirs);
+      return moduleDirs;
     }
   }
 );
-  FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
-  fileChooserDescriptor.putUserData(PathChooserDialog.NATIVE_MAC_CHOOSER_SHOW_HIDDEN_FILES,Boolean.TRUE);
-  karmaPackageDirPathComponent.addBrowseFolderListener(project,new ComponentWithBrowseButton.BrowseFolderActionListener<TextFieldWithHistory>(KarmaBundle.message("runConfiguration.config_file.browse_dialog.title"),null,karmaPackageDirPathComponent,project,fileChooserDescriptor,TextComponentAccessor.TEXT_FIELD_WITH_HISTORY_WHOLE_TEXT),true);
-  FileChooserFactory.getInstance().installFileCompletion(textFieldWithHistory.getTextEditor(),fileChooserDescriptor,true,project);
+  SwingHelper.installFileCompletionAndBrowseDialog(project,karmaPackageDirPathComponent,KarmaBundle.message("runConfiguration.karma_package_dir.browse_dialog.title"));
   return karmaPackageDirPathComponent;
 }

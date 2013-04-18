@@ -1,4 +1,24 @@
 {
+  String nodeInterpreterPath=KarmaGlobalSettingsUtil.loadNodeInterpreterPath();
+  if (StringUtil.isEmpty(nodeInterpreterPath)) {
+    File nodeInterpreterFile=PathEnvironmentVariableUtil.findInPath(NodeDetectionUtil.NODE_INTERPRETER_BASE_NAME);
+    if (nodeInterpreterFile != null) {
+      nodeInterpreterPath=nodeInterpreterFile.getAbsolutePath();
+    }
+  }
+  setTextAndAddToHistory(myNodeInterpreterPathTextFieldWithBrowseButton.getChildComponent(),nodeInterpreterPath);
+  String karmaNodePackageDir=KarmaGlobalSettingsUtil.loadKarmaNodePackageDir();
+  if (StringUtil.isEmpty(karmaNodePackageDir)) {
+    NodeModuleManager manager=NodeModuleManager.getInstance(myProject);
+    ResolvedModuleInfo moduleInfo=manager.resolveModule("karma",myProject.getBaseDir());
+    if (moduleInfo != null) {
+      VirtualFile dir=moduleInfo.getModuleSourceRoot();
+      if (dir.isDirectory()) {
+        karmaNodePackageDir=FileUtil.toSystemDependentName(dir.getPath());
+      }
+    }
+  }
+  setTextAndAddToHistory(myKarmaPackageDirPathTextFieldWithBrowseButton.getChildComponent(),karmaNodePackageDir);
   KarmaRunSettings runSettings=runConfiguration.getRunSetting();
   myConfigPathTextFieldWithBrowseButton.getChildComponent().setText(runSettings.getConfigPath());
 }
