@@ -1,0 +1,34 @@
+{
+  final Collection<JSQualifiedNamedElement> candidates;
+  if (myReference instanceof JSReferenceExpression && ((JSReferenceExpression)myReference).getQualifier() == null) {
+    Collection<JSQualifiedNamedElement> c=getCandidates(editor,file,myReference.getCanonicalText());
+    filterCandidates(c);
+    candidates=new THashSet<JSQualifiedNamedElement>(c,JSPsiImplUtils.QUALIFIED_NAME_HASHING_STRATEGY);
+  }
+ else {
+    JSQualifiedNamedElement invalidResult=null;
+    for (    ResolveResult r : myReference.multiResolve(false)) {
+      PsiElement element=r.getElement();
+      if (element instanceof JSQualifiedNamedElement) {
+        invalidResult=(JSQualifiedNamedElement)element;
+        if (invalidResult instanceof JSNamedElementProxy) {
+          JSNamedElementProxy.NamedItemType type=((JSNamedElementProxy)invalidResult).getType();
+          if (type == JSNamedElementIndexItemBase.NamedItemType.MemberFunction || type == JSNamedElementIndexItemBase.NamedItemType.MemberVariable) {
+            invalidResult=null;
+          }
+        }
+      }
+    }
+    if (invalidResult != null) {
+      if (myReference.getElement().getParent() instanceof JSNewExpression && invalidResult instanceof JSFunction && ((JSFunction)invalidResult).isConstructor()) {
+        invalidResult=(JSClass)invalidResult.getParent();
+      }
+      candidates=new SmartList<JSQualifiedNamedElement>();
+      candidates.add(invalidResult);
+    }
+ else {
+      candidates=Collections.emptyList();
+    }
+  }
+  return candidates;
+}

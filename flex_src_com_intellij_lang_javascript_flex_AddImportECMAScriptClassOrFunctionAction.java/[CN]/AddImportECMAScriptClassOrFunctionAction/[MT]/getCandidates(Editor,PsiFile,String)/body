@@ -1,0 +1,18 @@
+{
+  final Module module=ModuleUtil.findModuleForPsiElement(file);
+  if (module != null) {
+    GlobalSearchScope searchScope;
+    VirtualFile virtualFile=file.getVirtualFile();
+    if (virtualFile instanceof VirtualFileWindow)     virtualFile=((VirtualFileWindow)virtualFile).getDelegate();
+    if (GlobalSearchScopes.projectProductionScope(file.getProject()).contains(virtualFile)) {
+      searchScope=GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module,false);
+    }
+ else {
+      searchScope=JSResolveUtil.getResolveScope(file);
+    }
+    return JSResolveUtil.findElementsByName(name,editor.getProject(),searchScope);
+  }
+ else {
+    return Collections.emptyList();
+  }
+}

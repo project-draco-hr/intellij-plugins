@@ -1,0 +1,39 @@
+{
+  if (!myReference.getElement().isValid())   return false;
+  final long modL=myReference.getElement().getManager().getModificationTracker().getModificationCount();
+  if (!isAvailableCalculated || modL != modificationCount) {
+    final ResolveResult[] results=myReference.multiResolve(false);
+    boolean hasValidResult=false;
+    for (    ResolveResult r : results) {
+      if (r.isValidResult()) {
+        hasValidResult=true;
+        break;
+      }
+    }
+    if (!hasValidResult) {
+      final Collection<JSQualifiedNamedElement> candidates=getCandidates(editor,file);
+      isAvailableCalculated=true;
+      isAvailable=candidates.size() > 0;
+      String text;
+      if (isAvailable) {
+        final JSQualifiedNamedElement element=candidates.iterator().next();
+        text=element.getQualifiedName() + "?";
+        if (candidates.size() > 1)         text+=" (multiple choices...)";
+        if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
+          text+=" Alt+Enter";
+        }
+      }
+ else {
+        text="";
+      }
+      myText=text;
+    }
+ else {
+      isAvailableCalculated=true;
+      isAvailable=false;
+      myText="";
+    }
+    modificationCount=modL;
+  }
+  return isAvailable;
+}
