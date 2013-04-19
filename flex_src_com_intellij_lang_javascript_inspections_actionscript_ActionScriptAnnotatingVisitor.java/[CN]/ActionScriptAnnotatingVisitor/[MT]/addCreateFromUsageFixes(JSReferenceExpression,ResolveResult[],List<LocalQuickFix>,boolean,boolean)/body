@@ -1,8 +1,12 @@
 {
+  final PsiElement nodeParent=node.getParent();
   final JSExpression qualifier=node.getQualifier();
   PsiElement nameIdentifier=node.getReferenceNameElement();
   final String referencedName=nameIdentifier.getText();
   inTypeContext=super.addCreateFromUsageFixes(node,resolveResults,fixes,inTypeContext,ecma);
+  if (!(nodeParent instanceof JSArgumentList) && nodeParent.getParent() instanceof JSCallExpression) {
+    inTypeContext=true;
+  }
   if (!inTypeContext) {
     boolean getter=!(node.getParent() instanceof JSDefinitionExpression);
     String invokedName=nameIdentifier.getText();
@@ -11,7 +15,6 @@
   if (qualifier == null) {
     boolean canHaveTypeFix=false;
     JSClass contextClass=JSResolveUtil.getClassOfContext(node);
-    PsiElement nodeParent=node.getParent();
     if (nodeParent instanceof JSReferenceList) {
       canHaveTypeFix=true;
       fixes.add(new CreateClassOrInterfaceFix(node,contextClass.isInterface() || node.getParent().getNode().getElementType() == JSStubElementTypes.IMPLEMENTS_LIST,null,null));
