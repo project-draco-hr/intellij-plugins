@@ -1,6 +1,15 @@
 {
   super.visitJSReferenceExpression(node);
   final PsiElement parent=node.getParent();
+  if (node.getQualifier() == null) {
+    String nodeText=node.getText();
+    if (!(parent instanceof JSCallExpression) && JSResolveUtil.isExprInStrictTypeContext(node) && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(nodeText)) {
+      myHolder.createWarningAnnotation(node,JSBundle.message("javascript.validation.message.vector.without.parameters"));
+    }
+ else     if (parent instanceof JSNewExpression && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(nodeText)) {
+      myHolder.createWarningAnnotation(node,JSBundle.message("javascript.validation.message.vector.without.parameters2"));
+    }
+  }
   if (parent instanceof JSNamedElement) {
     JSNamedElement namedElement=(JSNamedElement)parent;
     final ASTNode nameIdentifier=namedElement.findNameIdentifier();
