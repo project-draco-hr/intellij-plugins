@@ -25,7 +25,7 @@
       Computable.NotNullCachedComputable<JSParameterList> expectedParameterListForEventListener=new Computable.NotNullCachedComputable<JSParameterList>(){
         @NotNull @Override protected JSParameterList internalCompute(){
           JSClass jsClass=calcNontrivialExpectedEventType(expr);
-          ASTNode treeFromText=JSChangeUtil.createJSTreeFromText(expr.getProject(),"function f(event:" + (jsClass != null ? jsClass.getQualifiedName() : JSAnnotatingVisitor.FLASH_EVENT_FQN) + ") {}",JavaScriptSupportLoader.ECMA_SCRIPT_L4);
+          ASTNode treeFromText=JSChangeUtil.createJSTreeFromText(expr.getProject(),"function f(event:" + (jsClass != null ? jsClass.getQualifiedName() : FlexCommonTypeNames.FLASH_EVENT_FQN) + ") {}",JavaScriptSupportLoader.ECMA_SCRIPT_L4);
           return ((JSFunction)treeFromText.getPsi()).getParameterList();
         }
       }
@@ -44,7 +44,7 @@
         final JSClass expectedEventClass=calcNontrivialExpectedEventType(expr);
         final String actualParameterType=parameters[0].getType().getResolvedTypeText();
         if (expectedEventClass == null) {
-          if (!JSResolveUtil.isAssignableType(JSAnnotatingVisitor.FLASH_EVENT_FQN,actualParameterType,parameters[0]) && !JSResolveUtil.isAssignableType(JSAnnotatingVisitor.STARLING_EVENT_FQN,actualParameterType,parameters[0])) {
+          if (!JSResolveUtil.isAssignableType(FlexCommonTypeNames.FLASH_EVENT_FQN,actualParameterType,parameters[0]) && !JSResolveUtil.isAssignableType(FlexCommonTypeNames.STARLING_EVENT_FQN,actualParameterType,parameters[0])) {
             JSAnnotatingVisitor.registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,myHolder,JSValidateTypesInspection.SHORT_NAME,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
           }
         }

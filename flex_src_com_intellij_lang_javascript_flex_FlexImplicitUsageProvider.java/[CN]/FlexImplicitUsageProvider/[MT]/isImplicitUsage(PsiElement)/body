@@ -17,6 +17,34 @@
   }
  else   if (element instanceof JSVariable) {
     if (isAnnotatedByUnknownAttribute((JSAttributeListOwner)element))     return true;
+    if (JSResolveUtil.findParent(element) instanceof JSClass) {
+      final JSAttributeList varAttrList=((JSVariable)element).getAttributeList();
+      if (varAttrList != null && varAttrList.findAttributeByName(FlexAnnotationNames.EMBED) != null) {
+        return true;
+      }
+    }
+  }
+  if (element instanceof JSParameter) {
+    JSFunction function=PsiTreeUtil.getParentOfType(element,JSFunction.class);
+    if (function != null) {
+      final JSParameter[] params=function.getParameters();
+      if (params.length == 1 && element == params[0]) {
+        @NonNls String type=((JSParameter)element).getTypeString();
+        if (type != null)         type=JSImportHandlingUtil.resolveTypeName(type,element);
+        if (type != null) {
+          if (FlexCommonTypeNames.FLASH_EVENT_FQN.equals(type) || FlexCommonTypeNames.STARLING_EVENT_FQN.equals(type)) {
+            return true;
+          }
+          boolean b=JSResolveUtil.processHierarchy(type,element.getContainingFile(),new Processor<JSClass>(){
+            public boolean process(            JSClass jsClass){
+              return !FlexCommonTypeNames.FLASH_EVENT_FQN.equals(jsClass.getQualifiedName()) && !FlexCommonTypeNames.STARLING_EVENT_FQN.equals(jsClass.getQualifiedName());
+            }
+          }
+,false);
+          if (!b)           return true;
+        }
+      }
+    }
   }
   return false;
 }
