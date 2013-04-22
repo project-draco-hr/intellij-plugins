@@ -8,7 +8,6 @@
     PsiElement qualifier;
     if ((ourMethodsWithPropertyReferences.contains(invokedMethodName=(invokedMethod.getReferencedName())) || (justResourceBundleRef="getResourceBundle".equals(invokedMethodName))) && ((qualifier=invokedMethod.getQualifier()) instanceof JSReferenceExpression || (qualifier instanceof JSCallExpression && ((JSCallExpression)qualifier).getMethodExpression() instanceof JSReferenceExpression))) {
       final JSExpression[] args=((JSArgumentList)parent).getArguments();
-      JSPropertiesSupport propertiesSupport=JSPropertiesSupport.getInstance();
       boolean propertyRef=false;
       boolean bundleRef=false;
       if (justResourceBundleRef) {
@@ -34,10 +33,10 @@
         }
       }
       if (propertyRef) {
-        JSPropertiesSupport.PropertyReferenceInfoProvider<JSLiteralExpressionImpl> provider=isSoft ? ourSoftPropertyInfoProvider : ourPropertyInfoProvider;
+        FlexPropertiesSupport.PropertyReferenceInfoProvider<JSLiteralExpressionImpl> provider=isSoft ? ourSoftPropertyInfoProvider : ourPropertyInfoProvider;
         if (args.length > 1 && !isSoft && args[0] instanceof JSLiteralExpression) {
           final String myText=args[0].getText();
-          provider=new JSPropertiesSupport.PropertyReferenceInfoProvider<com.intellij.lang.javascript.psi.impl.JSLiteralExpressionImpl>(){
+          provider=new FlexPropertiesSupport.PropertyReferenceInfoProvider<JSLiteralExpressionImpl>(){
             public TextRange getReferenceRange(            JSLiteralExpressionImpl element){
               return getValueRange(element);
             }
@@ -50,10 +49,10 @@
           }
 ;
         }
-        Collections.addAll(result,propertiesSupport.getPropertyReferences((JSLiteralExpressionImpl)element,provider));
+        Collections.addAll(result,FlexPropertiesSupport.getPropertyReferences((JSLiteralExpressionImpl)element,provider));
       }
  else       if (bundleRef) {
-        PsiReference[] reference=propertiesSupport.getResourceBundleReference((JSLiteralExpressionImpl)element,isSoft ? ourSoftBundleInfoProvider : ourBundleInfoProvider);
+        PsiReference[] reference=FlexPropertiesSupport.getResourceBundleReference((JSLiteralExpressionImpl)element,isSoft ? ourSoftBundleInfoProvider : ourBundleInfoProvider);
         Collections.addAll(result,reference);
       }
     }
