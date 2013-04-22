@@ -1,0 +1,19 @@
+{
+  final ASTNode valueNode=element.findValueNode();
+  if (valueNode != null) {
+    final int offsetInParent=valueNode.getPsi().getStartOffsetInParent();
+    final String text=valueNode.getText();
+    JSReferenceSet referenceSet=element.getUserData(METADATA_REFERENCE_KEY);
+    if (referenceSet == null) {
+      referenceSet=new JSReferenceSet(element,"",offsetInParent,false,false,true);
+      element.putUserData(METADATA_REFERENCE_KEY,referenceSet);
+      referenceSet.setLocalQuickFixProvider(new ClassRefQuickFixProvider(element,referenceSet));
+    }
+    if (!"Object".equals(baseClassFqns)) {
+      referenceSet.setBaseClassFqns(StringUtil.split(baseClassFqns,","));
+    }
+    referenceSet.update(text,offsetInParent);
+    return referenceSet.getReferences();
+  }
+  return PsiReference.EMPTY_ARRAY;
+}
