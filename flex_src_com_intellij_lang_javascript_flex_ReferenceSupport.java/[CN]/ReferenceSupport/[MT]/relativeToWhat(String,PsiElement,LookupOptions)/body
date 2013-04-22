@@ -1,0 +1,35 @@
+{
+  if (lookupOptions.ABSOLUTE && (ALLOW_ABSOLUTE_REFERENCES_IN_TESTS || !ApplicationManager.getApplication().isUnitTestMode())) {
+    if (SystemInfo.isWindows) {
+      if (path.length() > 2 && path.charAt(1) == ':' && Character.isLetter(path.charAt(0))) {
+        return RelativeToWhat.Absolute;
+      }
+    }
+ else     if (path.startsWith("/") && LocalFileSystem.getInstance().findFileByPath(path) != null) {
+      return RelativeToWhat.Absolute;
+    }
+  }
+  if (lookupOptions.RELATIVE_TO_FILE) {
+    PsiFile psiFile=psiElement.getContainingFile();
+    final PsiElement context=psiFile.getContext();
+    if (context != null)     psiFile=context.getContainingFile();
+    final VirtualFile vFile=psiFile.getVirtualFile();
+    if (vFile != null && VfsUtil.findRelativeFile(path,vFile) != null) {
+      return RelativeToWhat.CurrentFile;
+    }
+  }
+  if (lookupOptions.RELATIVE_TO_PROJECT_BASE_DIR && VfsUtil.findRelativeFile(path,psiElement.getProject().getBaseDir()) != null) {
+    return RelativeToWhat.ProjectRoot;
+  }
+  if ((lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITH_SLASH && path.startsWith("/")) || lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITHOUT_SLASH && !path.startsWith("/")) {
+    final Module module=ModuleUtil.findModuleForPsiElement(psiElement);
+    if (module != null) {
+      for (      final VirtualFile sourceRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
+        if (VfsUtil.findRelativeFile(path,sourceRoot) != null) {
+          return RelativeToWhat.SourceRoot;
+        }
+      }
+    }
+  }
+  return lookupOptions.RELATIVE_TO_FILE ? RelativeToWhat.CurrentFile : RelativeToWhat.Other;
+}

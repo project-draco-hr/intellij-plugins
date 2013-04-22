@@ -1,0 +1,52 @@
+{
+  if (!(element instanceof PsiFileSystemItem)) {
+    throw new IncorrectOperationException("Cannot bind to element, should be instanceof PsiFileSystemItem: " + element);
+  }
+  final PsiFileSystemItem fileSystemItem=(PsiFileSystemItem)element;
+  final VirtualFile destVFile=fileSystemItem.getVirtualFile();
+  if (destVFile == null)   throw new IncorrectOperationException("Cannot bind to non-physical element:" + element);
+  PsiFile currentPsiFile=getElement().getContainingFile();
+  final PsiElement contextPsiFile=currentPsiFile.getContext();
+  if (contextPsiFile != null)   currentPsiFile=contextPsiFile.getContainingFile();
+  final VirtualFile currentVFile=currentPsiFile.getVirtualFile();
+  if (currentVFile == null)   throw new IncorrectOperationException("Cannot bind from non-physical element:" + currentPsiFile);
+  final Project project=element.getProject();
+  String newName=null;
+switch (myRelativeToWhat) {
+case Absolute:
+    newName=destVFile.getPath();
+  break;
+case CurrentFile:
+newName=getRelativePath(currentVFile,destVFile,'/');
+break;
+case ProjectRoot:
+final VirtualFile projectRoot=project.getBaseDir();
+newName=projectRoot == null ? null : getRelativePath(projectRoot,destVFile,'/');
+break;
+case SourceRoot:
+final VirtualFile sourceRootForFile=ProjectRootManager.getInstance(project).getFileIndex().getSourceRootForFile(destVFile);
+if (sourceRootForFile != null) {
+newName=getRelativePath(sourceRootForFile,destVFile,'/');
+}
+ else {
+final Module module=ModuleUtil.findModuleForFile(currentVFile,project);
+if (module != null) {
+final VirtualFile[] sourceRoots=ModuleRootManager.getInstance(module).getSourceRoots();
+for (final VirtualFile sourceRoot : sourceRoots) {
+final String relativePath=getRelativePath(sourceRoot,destVFile,'/');
+if (relativePath != null) {
+newName=relativePath;
+break;
+}
+}
+}
+}
+break;
+case Other:
+break;
+}
+if (newName != null && getFileReferenceSet().getPathString().startsWith("/") && !newName.startsWith("/")) {
+newName="/" + newName;
+}
+return newName == null ? element : rename(newName);
+}

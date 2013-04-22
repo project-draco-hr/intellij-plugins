@@ -1,0 +1,61 @@
+{
+  if (lookupOptions.IGNORE_TEXT_AFTER_HASH) {
+    int hashIndex=str.indexOf('#');
+    if (hashIndex != -1)     str=str.substring(0,hashIndex);
+  }
+  final RelativeToWhat relativeToWhat=relativeToWhat(str,elt,lookupOptions);
+  final boolean startsWithSlash=str.startsWith("/");
+  final FileReferenceSet base=new FileReferenceSet(str,elt,offset,null,SystemInfo.isFileSystemCaseSensitive){
+    public boolean isAbsolutePathReference(){
+      return relativeToWhat == RelativeToWhat.Absolute;
+    }
+    public boolean couldBeConvertedTo(    final boolean relative){
+      if ((relative && lookupOptions.RELATIVE_TO_FILE) || (!relative && lookupOptions.ABSOLUTE)) {
+        return super.couldBeConvertedTo(relative);
+      }
+      return false;
+    }
+    public FileReference createFileReference(    final TextRange range,    final int index,    final String text){
+      return new JSFileReference(this,range,index,text,relativeToWhat);
+    }
+  }
+;
+  base.addCustomization(FileReferenceSet.DEFAULT_PATH_EVALUATOR_OPTION,new Function<PsiFile,Collection<PsiFileSystemItem>>(){
+    public Collection<PsiFileSystemItem> fun(    PsiFile psiFile){
+      final PsiElement context=psiFile.getContext();
+      if (context instanceof PsiLanguageInjectionHost) {
+        psiFile=context.getContainingFile();
+      }
+      psiFile=psiFile.getOriginalFile();
+      final List<VirtualFile> dirs=new ArrayList<VirtualFile>();
+      if (lookupOptions.RELATIVE_TO_FILE && !startsWithSlash) {
+        appendFileLocation(dirs,psiFile);
+      }
+      if ((lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITH_SLASH && startsWithSlash) || (lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITHOUT_SLASH && !startsWithSlash)) {
+        appendSourceRoots(dirs,psiFile);
+      }
+      if (lookupOptions.ABSOLUTE) {
+        appendFileSystemRoot(dirs);
+      }
+      if (lookupOptions.RELATIVE_TO_PROJECT_BASE_DIR) {
+        dirs.add(psiFile.getProject().getBaseDir());
+      }
+      if (lookupOptions.IN_ROOTS_OF_MODULE_DEPENDENCIES) {
+        appendRootsOfModuleDependencies(dirs,ModuleUtil.findModuleForPsiElement(psiFile));
+      }
+      final Collection<PsiFileSystemItem> result=new ArrayList<PsiFileSystemItem>();
+      final PsiManager psiManager=psiFile.getManager();
+      for (      final VirtualFile dir : dirs) {
+        if (dir != null) {
+          final PsiDirectory psiDir=psiManager.findDirectory(dir);
+          if (psiDir != null) {
+            result.add(psiDir);
+          }
+        }
+      }
+      return result;
+    }
+  }
+);
+  return base.getAllReferences();
+}
