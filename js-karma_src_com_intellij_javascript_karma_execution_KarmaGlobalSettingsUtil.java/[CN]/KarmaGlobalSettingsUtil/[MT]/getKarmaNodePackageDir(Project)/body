@@ -2,11 +2,13 @@
   PropertiesComponent propertiesComponent=PropertiesComponent.getInstance();
   String karmaNodePackageDir=propertiesComponent.getValue(KARMA_NODE_PACKAGE_DIR);
   if (StringUtil.isEmpty(karmaNodePackageDir)) {
-    ResolvedModuleInfo moduleInfo=NodeModuleSearchUtil.resolveModule(NODE_NODE_PACKAGE_NAME,project.getBaseDir(),getNodeSettings());
-    if (moduleInfo != null) {
-      VirtualFile dir=moduleInfo.getModuleSourceRoot();
-      if (dir.isDirectory()) {
-        karmaNodePackageDir=FileUtil.toSystemDependentName(dir.getPath());
+    List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
+    NodeModuleSearchUtil.findModulesWithName(modules,NODE_PACKAGE_NAME,project.getBaseDir(),getNodeSettings(),true);
+    for (    CompletionModuleInfo module : modules) {
+      VirtualFile moduleRoot=module.getVirtualFile();
+      if (moduleRoot != null && moduleRoot.isValid() && moduleRoot.isDirectory()) {
+        karmaNodePackageDir=FileUtil.toSystemDependentName(moduleRoot.getPath());
+        break;
       }
     }
   }

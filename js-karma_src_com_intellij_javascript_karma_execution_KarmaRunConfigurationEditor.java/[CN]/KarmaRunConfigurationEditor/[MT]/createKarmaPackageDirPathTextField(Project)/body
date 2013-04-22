@@ -1,10 +1,14 @@
 {
   TextFieldWithHistoryWithBrowseButton karmaPackageDirPathComponent=new TextFieldWithHistoryWithBrowseButton();
   final TextFieldWithHistory textFieldWithHistory=karmaPackageDirPathComponent.getChildComponent();
-  SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new Producer<List<String>>(){
-    @Nullable @Override public List<String> produce(){
+  SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new NotNullProducer<List<String>>(){
+    @NotNull @Override public List<String> produce(){
+      NodeSettings nodeSettings=KarmaGlobalSettingsUtil.getNodeSettings();
+      if (nodeSettings != null) {
+        nodeSettings.initGlobalNodeModulesDir();
+      }
       List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
-      NodeModuleSearchUtil.findModulesWithName(modules,KarmaGlobalSettingsUtil.NODE_NODE_PACKAGE_NAME,project.getBaseDir(),KarmaGlobalSettingsUtil.getNodeSettings());
+      NodeModuleSearchUtil.findModulesWithName(modules,KarmaGlobalSettingsUtil.NODE_PACKAGE_NAME,project.getBaseDir(),nodeSettings,true);
       List<String> moduleDirs=ContainerUtil.newArrayListWithExpectedSize(modules.size());
       for (      CompletionModuleInfo module : modules) {
         VirtualFile dir=module.getVirtualFile();
