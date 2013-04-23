@@ -1,8 +1,15 @@
 {
-  NodeSettings nodeSettings=KarmaGlobalSettingsUtil.getNodeSettings();
   GeneralCommandLine commandLine=new GeneralCommandLine();
-  commandLine.setExePath(nodeSettings.getInterpreterPath());
   File configFile=new File(runSettings.getConfigPath());
   commandLine.setWorkDirectory(configFile.getParentFile());
+  commandLine.setExePath(myNodeInterpreterPath);
+  try {
+    File clientAppFile=KarmaJavaScriptSourcesUtil.getClientAppFile();
+    commandLine.addParameter(clientAppFile.getAbsolutePath());
+  }
+ catch (  IOException e) {
+    throw new ExecutionException("Can't find karma client runner",e);
+  }
+  commandLine.addParameter(myKarmaPackageDir);
   return commandLine;
 }

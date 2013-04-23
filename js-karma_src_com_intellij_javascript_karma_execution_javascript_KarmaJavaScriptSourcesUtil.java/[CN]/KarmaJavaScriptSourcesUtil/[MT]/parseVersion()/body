@@ -1,0 +1,24 @@
+{
+  PluginId pluginId=PluginId.getId(PLUGIN_NAME);
+  IdeaPluginDescriptor descriptor=PluginManager.getPlugin(pluginId);
+  if (descriptor == null) {
+    return null;
+  }
+  String vendor=descriptor.getVendor();
+  if (vendor == null || !vendor.contains("JetBrains")) {
+    return null;
+  }
+  String version=StringUtil.notNullize(descriptor.getVersion());
+  String[] tokens=version.split(Pattern.quote("."));
+  int[] versions=new int[tokens.length];
+  for (int i=0; i < tokens.length; i++) {
+    try {
+      int x=Integer.parseInt(tokens[i]);
+      versions[i]=x;
+    }
+ catch (    NumberFormatException e) {
+      return null;
+    }
+  }
+  return versions;
+}
