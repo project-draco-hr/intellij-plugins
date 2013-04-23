@@ -1,0 +1,27 @@
+{
+  String text=node.getName();
+  if (node instanceof JSFunction) {
+    final JSFunction function=(JSFunction)node;
+    text+="(";
+    final JSParameterList parameterList=function.getParameterList();
+    if (parameterList != null) {
+      boolean first=true;
+      for (      JSParameter p : parameterList.getParameters()) {
+        if (!first)         text+=", ";
+        first=false;
+        text+=JSParameterInfoHandler.getSignatureForParameter(p);
+      }
+    }
+    text+=")";
+    final String typeString=function.getReturnTypeString();
+    if (typeString != null) {
+      text+=":" + typeString;
+    }
+  }
+ else   if (node instanceof JSVariable) {
+    final JSVariable var=(JSVariable)node;
+    final String typeString=var.getTypeString();
+    if (typeString != null)     text+=":" + typeString;
+  }
+  return text;
+}
