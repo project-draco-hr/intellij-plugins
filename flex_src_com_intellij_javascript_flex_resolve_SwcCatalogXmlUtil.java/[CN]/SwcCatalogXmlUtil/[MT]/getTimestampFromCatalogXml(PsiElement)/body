@@ -1,0 +1,30 @@
+{
+  final Long cachedTimestamp=psiElement.getUserData(TIMESTAMP_IN_CATALOG_XML);
+  if (cachedTimestamp != null) {
+    return cachedTimestamp;
+  }
+  if (!(psiElement instanceof JSQualifiedNamedElement)) {
+    return -1;
+  }
+  final String qName=((JSQualifiedNamedElement)psiElement).getQualifiedName();
+  if (StringUtil.isEmpty(qName)) {
+    return -1;
+  }
+  final PsiFile psiFile=psiElement.getContainingFile();
+  final VirtualFile swfFile=psiFile == null ? null : psiFile.getVirtualFile();
+  final VirtualFile dir=swfFile != null && "swf".equalsIgnoreCase(swfFile.getExtension()) ? swfFile.getParent() : null;
+  final VirtualFile catalogFile=dir == null ? null : dir.findChild("catalog.xml");
+  if (catalogFile == null) {
+    return -1;
+  }
+  Pair<Long,THashMap<String,TObjectLongHashMap<String>>> modStampAndSwfNameToQnameWithTimestampMap=catalogFile.getUserData(MOD_STAMP_AND_SWF_NAME_TO_QNAME_WITH_TIMESTAMP_MAP);
+  if (modStampAndSwfNameToQnameWithTimestampMap == null || modStampAndSwfNameToQnameWithTimestampMap.first != catalogFile.getModificationStamp()) {
+    final THashMap<String,TObjectLongHashMap<String>> swfNameToQnameWithTimestampMap=parseTimestampsFromCatalogXml(catalogFile);
+    modStampAndSwfNameToQnameWithTimestampMap=Pair.create(catalogFile.getModificationStamp(),swfNameToQnameWithTimestampMap);
+    catalogFile.putUserData(MOD_STAMP_AND_SWF_NAME_TO_QNAME_WITH_TIMESTAMP_MAP,modStampAndSwfNameToQnameWithTimestampMap);
+  }
+  final TObjectLongHashMap<String> qnameWithTimestampMap=modStampAndSwfNameToQnameWithTimestampMap.second.get(swfFile.getName());
+  final long timestamp=qnameWithTimestampMap == null ? -1 : qnameWithTimestampMap.get(qName);
+  psiElement.putUserData(TIMESTAMP_IN_CATALOG_XML,timestamp);
+  return timestamp;
+}

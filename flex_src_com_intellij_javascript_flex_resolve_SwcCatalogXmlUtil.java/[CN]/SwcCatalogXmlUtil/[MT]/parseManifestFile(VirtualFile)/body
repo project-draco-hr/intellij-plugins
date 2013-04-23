@@ -1,0 +1,37 @@
+{
+  final Collection<ComponentFromManifest> result=new ArrayList<ComponentFromManifest>();
+  final XmlBuilder builder=new XmlBuilderAdapter(){
+    private static final String COMPONENT="component";
+    private static final String ID="id";
+    private static final String CLASS="class";
+    private String idAttr=null;
+    private String classAttr=null;
+    public void attribute(    final CharSequence name,    final CharSequence value,    final int start,    final int end){
+      if (ID.equals(name.toString())) {
+        idAttr=value.toString().trim();
+      }
+ else       if (CLASS.equals(name.toString())) {
+        classAttr=value.toString().trim();
+      }
+    }
+    public void endTag(    final CharSequence localName,    final String namespace,    final int start,    final int end){
+      if (COMPONENT.equals(localName)) {
+        if (StringUtil.isNotEmpty(classAttr)) {
+          final String classFqn=classAttr.replace(":",".");
+          final String componentName=idAttr != null ? idAttr : classAttr.substring(classFqn.lastIndexOf('.') + 1);
+          result.add(new ComponentFromManifest(new String(componentName),new String(classFqn)));
+        }
+      }
+      idAttr=null;
+      classAttr=null;
+      super.endTag(localName,namespace,start,end);
+    }
+  }
+;
+  try {
+    new XmlBuilderDriver(VfsUtil.loadText(manifestFile)).build(builder);
+  }
+ catch (  IOException e) {
+  }
+  return result.toArray(new ComponentFromManifest[result.size()]);
+}

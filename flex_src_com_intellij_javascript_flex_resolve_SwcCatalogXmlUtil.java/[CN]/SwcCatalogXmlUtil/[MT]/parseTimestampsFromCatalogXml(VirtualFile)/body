@@ -1,0 +1,42 @@
+{
+  final THashMap<String,TObjectLongHashMap<String>> swfNameToQnameWithTimestampMap=new THashMap<String,TObjectLongHashMap<String>>(1);
+  try {
+    final Document document=JDOMUtil.loadDocument(catalogFile.getInputStream());
+    final Element rootElement=document.getRootElement();
+    if (rootElement != null && "swc".equals(rootElement.getName())) {
+      for (      final Element librariesElement : (Iterable<Element>)rootElement.getChildren("libraries",rootElement.getNamespace())) {
+        for (        final Element libraryElement : (Iterable<Element>)librariesElement.getChildren("library",librariesElement.getNamespace())) {
+          final String swfName=libraryElement.getAttributeValue("path");
+          if (StringUtil.isEmpty(swfName)) {
+            continue;
+          }
+          final TObjectLongHashMap<String> qNameWithTimestampMap=new TObjectLongHashMap<String>();
+          swfNameToQnameWithTimestampMap.put(swfName,qNameWithTimestampMap);
+          for (          final Element scriptElement : (Iterable<Element>)libraryElement.getChildren("script",libraryElement.getNamespace())) {
+            final String mod=scriptElement.getAttributeValue("mod");
+            if (StringUtil.isEmpty(mod)) {
+              continue;
+            }
+            try {
+              final long timestamp=Long.parseLong(mod);
+              for (              final Element defElement : (Iterable<Element>)scriptElement.getChildren("def",scriptElement.getNamespace())) {
+                final String id=defElement.getAttributeValue("id");
+                if (!StringUtil.isEmpty(id)) {
+                  final String fqn=id.replace(':','.');
+                  qNameWithTimestampMap.put(fqn,timestamp);
+                }
+              }
+            }
+ catch (            NumberFormatException e) {
+            }
+          }
+        }
+      }
+    }
+  }
+ catch (  JDOMException e) {
+  }
+catch (  IOException e) {
+  }
+  return swfNameToQnameWithTimestampMap;
+}

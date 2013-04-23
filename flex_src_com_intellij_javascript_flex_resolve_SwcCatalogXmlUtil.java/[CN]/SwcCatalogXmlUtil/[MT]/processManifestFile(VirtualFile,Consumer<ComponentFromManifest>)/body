@@ -1,0 +1,11 @@
+{
+  Pair<Long,ComponentFromManifest[]> modStampAndComponents=manifestFile.getUserData(MOD_STAMP_AND_COMPONENTS_FROM_MANIFEST);
+  if (modStampAndComponents == null || modStampAndComponents.first != manifestFile.getModificationStamp()) {
+    final ComponentFromManifest[] componentsFromManifests=parseManifestFile(manifestFile);
+    modStampAndComponents=Pair.create(manifestFile.getModificationStamp(),componentsFromManifests);
+    manifestFile.putUserData(MOD_STAMP_AND_COMPONENTS_FROM_MANIFEST,modStampAndComponents);
+  }
+  for (  final ComponentFromManifest componentFromManifest : modStampAndComponents.second) {
+    consumer.consume(componentFromManifest);
+  }
+}

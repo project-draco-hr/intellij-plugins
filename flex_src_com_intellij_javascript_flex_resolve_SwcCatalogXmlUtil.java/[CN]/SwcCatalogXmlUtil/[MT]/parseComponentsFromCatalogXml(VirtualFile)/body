@@ -1,0 +1,50 @@
+{
+  final Collection<ComponentFromCatalogXml> result=new ArrayList<ComponentFromCatalogXml>();
+  final XmlBuilder xmlBuilder=new XmlBuilderAdapter(){
+    private static final String COMPONENT_LOCATION=".swc.components.component";
+    private static final String NAME="name";
+    private static final String CLASS_NAME="className";
+    private static final String URI="uri";
+    private static final String ICON="icon";
+    private String myNameAttr=null;
+    private String myClassNameAttr=null;
+    private String myUriAttr=null;
+    private String myIconAttr=null;
+    public void attribute(    CharSequence name,    CharSequence value,    int start,    int end){
+      if (COMPONENT_LOCATION.equals(getLocation())) {
+        if (NAME.equals(name)) {
+          myNameAttr=value.toString().trim();
+        }
+ else         if (CLASS_NAME.equals(name)) {
+          myClassNameAttr=value.toString().trim();
+        }
+ else         if (URI.equals(name)) {
+          myUriAttr=value.toString().trim();
+        }
+ else         if (ICON.equals(name)) {
+          myIconAttr=value.toString().trim();
+        }
+      }
+    }
+    private final StringInterner myStringInterner=new StringInterner();
+    public void endTag(    CharSequence localName,    String namespace,    int start,    int end){
+      if (COMPONENT_LOCATION.equals(getLocation())) {
+        if (StringUtil.isNotEmpty(myNameAttr) && StringUtil.isNotEmpty(myClassNameAttr) && StringUtil.isNotEmpty(myUriAttr)) {
+          result.add(new ComponentFromCatalogXml(new String(myNameAttr),new String(myClassNameAttr.replace(":",".")),myStringInterner.intern(new String(myUriAttr)),myIconAttr != null ? new String(myIconAttr) : null));
+        }
+        myNameAttr=null;
+        myClassNameAttr=null;
+        myUriAttr=null;
+        myIconAttr=null;
+      }
+      super.endTag(localName,namespace,start,end);
+    }
+  }
+;
+  try {
+    new XmlBuilderDriver(VfsUtil.loadText(catalogFile)).build(xmlBuilder);
+  }
+ catch (  IOException e) {
+  }
+  return result.toArray(new ComponentFromCatalogXml[result.size()]);
+}
