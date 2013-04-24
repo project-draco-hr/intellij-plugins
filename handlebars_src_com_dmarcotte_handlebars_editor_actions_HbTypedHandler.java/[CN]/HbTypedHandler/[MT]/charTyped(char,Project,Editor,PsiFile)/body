@@ -5,14 +5,20 @@
     return Result.CONTINUE;
   }
   String previousChar=editor.getDocument().getText(new TextRange(offset - 2,offset - 1));
-  if (file.getViewProvider() instanceof HbFileViewProvider) {
+  if (provider instanceof HbFileViewProvider) {
+    if (c == '}' && !previousChar.equals("}")) {
+      PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
+      PsiElement elementAt=provider.findElementAt(offset - 1,HbLanguage.class);
+      ASTNode node=elementAt != null ? elementAt.getNode() : null;
+      if (node != null && node.getElementType() == HbTokenTypes.INVALID) {
+        previousChar="}";
+        editor.getDocument().insertString(offset,previousChar);
+        editor.getCaretModel().moveToOffset(++offset);
+      }
+    }
     if (c == '}' && previousChar.equals("}")) {
       autoInsertCloseTag(project,offset,editor,provider);
       adjustMustacheFormatting(project,offset,editor,file,provider);
-    }
-    if (c == '{' && previousChar.equals("{")) {
-      editor.getDocument().insertString(offset,"}}");
-      editor.getCaretModel().moveToOffset(offset);
     }
   }
   return Result.CONTINUE;
