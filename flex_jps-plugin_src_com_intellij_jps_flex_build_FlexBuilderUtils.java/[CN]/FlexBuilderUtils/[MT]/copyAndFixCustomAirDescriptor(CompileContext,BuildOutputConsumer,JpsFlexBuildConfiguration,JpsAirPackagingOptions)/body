@@ -1,4 +1,5 @@
 {
+  final String customDescriptorPath=packagingOptions.getCustomDescriptorPath();
   final File descriptorTemplateFile=new File(customDescriptorPath);
   if (!descriptorTemplateFile.isFile()) {
     context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("air.descriptor.not.found",customDescriptorPath)));
@@ -24,7 +25,8 @@ catch (  JDOMException e) {
     return;
   }
   try {
-    final File outputFile=new File(outputFolder,descriptorTemplateFile.getName());
+    final String descriptorFileName=bc.isTempBCForCompilation() ? FlexCommonUtils.getGeneratedAirDescriptorName(bc,packagingOptions) : descriptorTemplateFile.getName();
+    final File outputFile=new File(outputFolder,descriptorFileName);
     FileUtil.writeToFile(outputFile,content.getBytes("UTF-8"));
     outputConsumer.registerOutputFile(outputFile,Collections.singletonList(descriptorTemplateFile.getPath()));
   }
