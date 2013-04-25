@@ -1,0 +1,79 @@
+{
+  if (!nodeInterpreterPath.isFile() || !nodeInterpreterPath.canExecute()) {
+    throw new IOException("node interpreter isn't executable file");
+  }
+  if (!karmaPackageDir.isDirectory()) {
+    throw new IOException("Karma directory is illegal");
+  }
+  if (!configurationFile.isFile()) {
+    throw new IOException("Configuration file is illegal");
+  }
+  GeneralCommandLine commandLine=new GeneralCommandLine();
+  commandLine.setPassParentEnvironment(true);
+  commandLine.setWorkDirectory(configurationFile.getParentFile());
+  commandLine.setExePath(nodeInterpreterPath.getAbsolutePath());
+  File serverFile=KarmaJavaScriptSourcesLocator.getServerAppFile();
+  commandLine.addParameter(serverFile.getAbsolutePath());
+  commandLine.addParameter(karmaPackageDir.getAbsolutePath());
+  commandLine.addParameter(configurationFile.getAbsolutePath());
+  try {
+    Process process=commandLine.createProcess();
+    ProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
+    processHandler.addProcessListener(new ProcessAdapter(){
+      @Override public void onTextAvailable(      ProcessEvent event,      Key outputType){
+        String text=event.getText().trim();
+        if (text != null && outputType == ProcessOutputTypes.STDOUT) {
+          if (myWebServerPort == -1) {
+            String webServerPrefix="INFO [karma]: Karma server started at ";
+            if (text.startsWith(webServerPrefix)) {
+              Matcher m=WEB_SERVER_URL_PATTERN.matcher(text.substring(webServerPrefix.length()));
+              if (m.find()) {
+                String portStr=m.group(2);
+                try {
+                  myWebServerPort=Integer.parseInt(portStr);
+                  checkReadyStatus();
+                }
+ catch (                NumberFormatException e) {
+                  LOG.info("Can't parse web server port from '" + text + "'");
+                }
+              }
+            }
+          }
+          if (myRunnerPort == -1) {
+            String prefix="INFO [karma]: To run via this server, use \"karma run --runner-port ";
+            String suffix="\"";
+            if (text.startsWith(prefix) && text.endsWith(suffix)) {
+              String str=text.substring(prefix.length(),text.length() - suffix.length());
+              try {
+                myRunnerPort=Integer.parseInt(str);
+                checkReadyStatus();
+              }
+ catch (              NumberFormatException e) {
+                LOG.info("Can't parse runner port from '" + text + "'");
+              }
+            }
+          }
+        }
+      }
+      @Override public void processTerminated(      ProcessEvent event){
+        myTerminated=true;
+        KarmaServerRegistry.serverTerminated(KarmaServer.this);
+      }
+    }
+);
+    final Timer t=new Timer("Runner port",false);
+    t.schedule(new TimerTask(){
+      @Override public void run(){
+        if (myRunnerPort == -1) {
+          myRunnerPort=9100;
+          checkReadyStatus();
+        }
+        t.cancel();
+      }
+    }
+,500);
+  }
+ catch (  ExecutionException e) {
+    throw new IOException("Can not create karma server process",e);
+  }
+}

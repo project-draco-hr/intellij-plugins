@@ -1,7 +1,25 @@
 {
-  ProcessHandler processHandler=startProcess();
+  final ProcessHandler processHandler=startProcess();
   ConsoleView consoleView=createConsole(myProject,myExecutionEnvironment,executor);
   consoleView.attachToProcess(processHandler);
+  File configurationFile=new File(myRunSettings.getConfigPath());
+  KarmaServer server=KarmaServerRegistry.getServerByConfigurationFile(configurationFile);
+  if (server == null) {
+    try {
+      server=new KarmaServer(new File(myNodeInterpreterPath),new File(myKarmaPackageDir),configurationFile);
+      server.addListener(new KarmaServerListener(){
+        @Override public void onReady(        int webServerPort,        int runnerPort){
+          @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") PrintStream printStream=new PrintStream(processHandler.getProcessInput(),false);
+          printStream.println("Runner port:" + runnerPort);
+          printStream.flush();
+        }
+      }
+);
+    }
+ catch (    IOException e) {
+      throw new ExecutionException(e);
+    }
+  }
   DefaultExecutionResult executionResult=new DefaultExecutionResult(consoleView,processHandler);
   executionResult.setRestartActions(new ToggleAutoTestAction());
   return executionResult;

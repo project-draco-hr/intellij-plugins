@@ -1,6 +1,14 @@
 {
   GeneralCommandLine commandLine=createCommandLine(myRunSettings);
-  OSProcessHandler osProcessHandler=new OSProcessHandler(commandLine.createProcess(),commandLine.getCommandLineString());
+  Process process=commandLine.createProcess();
+  KarmaTestRunnerProcess karmaProcess=new KarmaTestRunnerProcess(process);
+  karmaProcess.getInputStream().addListener(new StreamCommandListener(){
+    @Override public void onCommand(    @NotNull String commandName){
+      System.out.println("Command '" + commandName + "'");
+    }
+  }
+);
+  OSProcessHandler osProcessHandler=new OSProcessHandler(process,commandLine.getCommandLineString());
   ProcessTerminatedListener.attach(osProcessHandler);
   return osProcessHandler;
 }

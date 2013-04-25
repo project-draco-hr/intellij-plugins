@@ -1,0 +1,22 @@
+{
+  if (skipLF && chCode != NL) {
+    myCurrentLine.append('\r');
+  }
+  if (chCode == '\r') {
+    skipLF=true;
+  }
+ else {
+    skipLF=false;
+    if (chCode != -1) {
+      myCurrentLine.append(chCode);
+    }
+  }
+  if (chCode == NL || chCode == -1) {
+    String line=myCurrentLine.toString();
+    if (!handleLineAsCommand(line)) {
+      byte[] buf=line.getBytes(myCharset);
+      myByteQueue.addAll(buf);
+    }
+    myCurrentLine.setLength(0);
+  }
+}
