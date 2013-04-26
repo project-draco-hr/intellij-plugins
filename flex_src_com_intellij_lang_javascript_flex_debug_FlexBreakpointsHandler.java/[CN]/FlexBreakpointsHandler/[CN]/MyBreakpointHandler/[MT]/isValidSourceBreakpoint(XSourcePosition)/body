@@ -1,0 +1,17 @@
+{
+  final Project project=myDebugProcess.getSession().getProject();
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final VirtualFile file=position.getFile();
+  final VirtualFile rootForFile=fileIndex.getSourceRootForFile(file);
+  if (rootForFile == null) {
+    return false;
+  }
+  final ModuleWithDependenciesScope scope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myDebugProcess.getModule(),myDebugProcess.getBC(),myDebugProcess.isFlexUnit());
+  if (scope.contains(file) || isInSourcesOfLibraryInScope(fileIndex,file,scope)) {
+    return true;
+  }
+  final String relPath=VfsUtilCore.getRelativePath(file.getParent(),rootForFile,'.');
+  final String fqn=StringUtil.getQualifiedName(relPath,file.getNameWithoutExtension());
+  final PsiElement clazz=JSResolveUtil.findClassByQName(fqn,scope);
+  return clazz == null || clazz.getContainingFile() instanceof PsiCompiledFile;
+}

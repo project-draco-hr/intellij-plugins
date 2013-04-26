@@ -1,50 +1,8 @@
 {
   myDebugProcess=debugProcess;
-  myBreakpointHandlers=new XBreakpointHandler<?>[]{new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(FlexBreakpointType.class){
-    public void registerBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint){
-      final XSourcePosition position=breakpoint.getSourcePosition();
-      if (position != null) {
-        if (isValidSourceBreakpoint(position)) {
-          myDebugProcess.sendCommand(new InsertBreakpointCommand(breakpoint));
-        }
-      }
-    }
-    private boolean isValidSourceBreakpoint(    XSourcePosition position){
-      final Project project=myDebugProcess.getSession().getProject();
-      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-      final VirtualFile file=position.getFile();
-      final VirtualFile rootForFile=fileIndex.getSourceRootForFile(file);
-      if (rootForFile == null) {
-        return false;
-      }
-      final ModuleWithDependenciesScope scope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myDebugProcess.getModule(),myDebugProcess.getBC(),myDebugProcess.isFlexUnit());
-      if (scope.contains(file) || isInSourcesOfLibraryInScope(fileIndex,file,scope)) {
-        return true;
-      }
-      final String relPath=VfsUtilCore.getRelativePath(file.getParent(),rootForFile,'.');
-      final String fqn=StringUtil.getQualifiedName(relPath,file.getNameWithoutExtension());
-      return JSResolveUtil.findClassByQName(fqn,scope) == null;
-    }
-    private boolean isInSourcesOfLibraryInScope(    final ProjectFileIndex fileIndex,    final VirtualFile file,    final GlobalSearchScope scope){
-      if (!fileIndex.isInLibrarySource(file)) {
-        return false;
-      }
-      for (      OrderEntry entry : fileIndex.getOrderEntriesForFile(file)) {
-        final VirtualFile[] classesRoots=entry.getFiles(OrderRootType.CLASSES);
-        for (        VirtualFile root : classesRoots) {
-          if (scope.contains(root)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-    public void unregisterBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint,    final boolean temporary){
-      final XSourcePosition position=breakpoint.getSourcePosition();
-      if (position != null && isValidSourceBreakpoint(position)) {
-        myDebugProcess.sendCommand(new RemoveBreakpointCommand(breakpoint));
-      }
-    }
+  myBreakpointHandlers=new ArrayList<XBreakpointHandler<?>>();
+  myBreakpointHandlers.add(new MyBreakpointHandler(FlexBreakpointType.class));
+  for (  BreakpointTypeProvider provider : BREAKPOINT_TYPE_PROVIDER_EP.getExtensions()) {
+    myBreakpointHandlers.add(new MyBreakpointHandler(provider.getBreakpointTypeClass()));
   }
-};
 }
