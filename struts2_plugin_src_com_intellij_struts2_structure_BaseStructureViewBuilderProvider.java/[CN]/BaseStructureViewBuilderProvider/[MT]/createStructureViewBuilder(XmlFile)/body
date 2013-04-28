@@ -3,20 +3,9 @@
   if (fileElement == null) {
     return null;
   }
-  return new TreeBasedStructureViewBuilder(){
-    @NotNull public StructureView createStructureView(    final FileEditor fileEditor,    final Project project){
-      final StructureViewModel model=createStructureViewModel();
-      StructureViewComponent view=new StructureViewComponent(fileEditor,model,project);
-      Disposer.register(view,new Disposable(){
-        @Override public void dispose(){
-          model.dispose();
-        }
-      }
-);
-      return view;
-    }
-    @NotNull public StructureViewModel createStructureViewModel(){
-      return new StructureViewTreeModel(xmlFile,fileElement.getRootElement(),getAlwaysPlus(),getAlwaysLeaf());
+  return new DomStructureViewBuilder(xmlFile,ALWAYS_SHOW){
+    @NotNull @Override public StructureViewModel createStructureViewModel(){
+      return new StructureViewTreeModel(xmlFile,getAlwaysPlus(),getAlwaysLeaf(),ALWAYS_SHOW);
     }
   }
 ;
