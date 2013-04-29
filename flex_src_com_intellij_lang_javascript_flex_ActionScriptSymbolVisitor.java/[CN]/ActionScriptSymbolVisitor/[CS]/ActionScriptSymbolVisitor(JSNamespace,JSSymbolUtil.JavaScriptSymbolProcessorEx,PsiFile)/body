@@ -1,0 +1,15 @@
+{
+  super(namespace,symbolVisitor,file);
+  boolean processAllTags=false;
+  if (file instanceof XmlFile) {
+    XmlBackedJSClassProvider provider=XmlBackedJSClassProvider.forFile((XmlFile)file);
+    if (provider != null && provider.processAllTags()) {
+      processAllTags=true;
+      String fileName=file.getOriginalFile().getVirtualFile().getNameWithoutExtension();
+      myThisNamespace=myFileNamespace=myNamespace=namespace.getChildNamespace(fileName);
+    }
+  }
+  if (JavaScriptSupportLoader.isFlexMxmFile(myFile) || processAllTags) {
+    myNamedTagsAreMembersOfDocument=false;
+  }
+}
