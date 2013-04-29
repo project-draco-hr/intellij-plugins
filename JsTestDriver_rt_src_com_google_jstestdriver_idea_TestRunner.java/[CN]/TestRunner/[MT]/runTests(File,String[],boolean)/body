@@ -27,7 +27,8 @@
   builder.setRunnerMode(RunnerMode.QUIET);
   builder.setServer(mySettings.getServerUrl());
   List<String> flagArgs=Lists.newArrayList("--captureConsole","--server",mySettings.getServerUrl());
-  if (dryRun && JstdUtils.isJasmineTests(parsedConfiguration)) {
+  ResolvedConfiguration resolvedConfiguration=JstdConfigParsingUtils.resolveConfiguration(parsedConfiguration);
+  if (dryRun && JstdUtils.isJasmineTests(resolvedConfiguration)) {
     flagArgs.add("--reset");
   }
   flagArgs.addAll(Arrays.asList(extraArgs));
@@ -39,7 +40,7 @@
     if (emptyOutputDir != null) {
       flagArgs.add("--testOutput");
       flagArgs.add(emptyOutputDir.getAbsolutePath());
-      List<String> testPaths=getTestFilePaths(parsedConfiguration);
+      List<String> testPaths=getTestFilePaths(resolvedConfiguration);
       coverageExcludedFiles=Lists.newArrayList(testPaths);
       coverageExcludedFiles.addAll(mySettings.getFilesExcludedFromCoverageRec());
       PluginInitializer coverageInitializer=getCoverageInitializer(coverageExcludedFiles);
