@@ -1,0 +1,11 @@
+{
+  final PsiFile containingFile=context.getContainingFile();
+  if (!(containingFile instanceof XmlFile) || containingFile instanceof JspFile || containingFile instanceof JspXmlFile) {
+    return;
+  }
+  if (EXPRESSION_PATTERN.accepts(context) || TEMPLATE_EXPRESSION_PATTERN.accepts(context)) {
+    final TextRange attributeTextRange=ElementManipulators.getValueTextRange(context);
+    final TextRange ognlTextRange=TextRange.from(attributeTextRange.getStartOffset() + OGNL_PREFIX.length(),attributeTextRange.getLength() - OGNL_PREFIX.length());
+    registrar.startInjecting(OgnlLanguage.INSTANCE).addPlace(OgnlLanguage.EXPRESSION_PREFIX,OgnlLanguage.EXPRESSION_SUFFIX,(PsiLanguageInjectionHost)context,ognlTextRange).doneInjecting();
+  }
+}
