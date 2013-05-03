@@ -1,20 +1,10 @@
 {
-  if (!nodeInterpreter.isFile() || !nodeInterpreter.canExecute()) {
-    throw new IOException("Node interpreter isn't executable file");
-  }
-  if (!karmaPackageDir.isDirectory()) {
-    throw new IOException("Karma directory is illegal");
-  }
-  if (!configurationFile.isFile()) {
-    throw new IOException("Configuration file is illegal");
-  }
   GeneralCommandLine commandLine=new GeneralCommandLine();
   commandLine.setPassParentEnvironment(true);
   commandLine.setWorkDirectory(configurationFile.getParentFile());
   commandLine.setExePath(nodeInterpreter.getAbsolutePath());
-  File serverFile=KarmaJavaScriptSourcesLocator.getServerAppFile();
+  File serverFile=getServerAppFile();
   commandLine.addParameter(serverFile.getAbsolutePath());
-  commandLine.addParameter("--karmaPackageDir=" + karmaPackageDir.getAbsolutePath());
   commandLine.addParameter("--configFile=" + configurationFile.getAbsolutePath());
   try {
     Process process=commandLine.createProcess();
