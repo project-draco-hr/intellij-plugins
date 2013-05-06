@@ -2,6 +2,15 @@
   FileDocumentManager.getInstance().saveAllDocuments();
   ExecutionResult executionResult=state.execute(executor,this);
   if (executionResult == null)   return null;
+  KarmaServer karmaServer=null;
+  if (state instanceof KarmaTestRunnerState) {
+    karmaServer=((KarmaTestRunnerState)state).getKarmaServer();
+  }
   final RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
-  return contentBuilder.showRunContent(contentToReuse);
+  RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  if (karmaServer != null) {
+    KarmaServerLogComponent logComponent=new KarmaServerLogComponent(project,karmaServer);
+    contentBuilder.addAdditionalTabComponent(logComponent,karmaServer.getConfigurationFile().getAbsolutePath());
+  }
+  return descriptor;
 }

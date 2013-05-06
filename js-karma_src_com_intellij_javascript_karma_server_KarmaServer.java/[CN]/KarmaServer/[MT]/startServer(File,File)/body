@@ -7,8 +7,10 @@
   commandLine.addParameter(serverFile.getAbsolutePath());
   commandLine.addParameter("--configFile=" + configurationFile.getAbsolutePath());
   try {
-    Process process=commandLine.createProcess();
-    KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
+    LOG.info("Starting karma server: " + commandLine.getCommandLineString());
+    Process originalProcess=commandLine.createProcess();
+    Process eventEmitterProcess=new EventEmitterProcess(originalProcess);
+    KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(eventEmitterProcess,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
     processHandler.addProcessListener(new ProcessAdapter(){
       @Override public void onTextAvailable(      ProcessEvent event,      Key outputType){
         String text=event.getText().trim();
@@ -17,13 +19,13 @@
         }
       }
       @Override public void processTerminated(      ProcessEvent event){
-        myTerminated=true;
         KarmaServerRegistry.serverTerminated(KarmaServer.this);
       }
     }
 );
     processHandler.startNotify();
     processHandler.setShouldDestroyProcessRecursively(true);
+    ProcessTerminatedListener.attach(processHandler);
     return processHandler;
   }
  catch (  ExecutionException e) {
