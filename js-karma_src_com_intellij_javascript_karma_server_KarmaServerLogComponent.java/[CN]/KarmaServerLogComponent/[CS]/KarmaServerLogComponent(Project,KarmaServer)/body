@@ -1,12 +1,19 @@
 {
   super(new BorderLayout());
+  myProcessEventStore=karmaServer.getProcessEventStore();
   GlobalSearchScope scope=GlobalSearchScope.allScope(project);
   TextConsoleBuilder builder=TextConsoleBuilderFactory.getInstance().createBuilder(project,scope);
   myConsole=builder.getConsole();
   if (myConsole == null) {
     throw new RuntimeException("Console shouldn't be null!");
   }
-  myConsole.attachToProcess(karmaServer.getProcessHandler());
+  myProcessListener=new ProcessAdapter(){
+    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      myConsole.print(event.getText(),ConsoleViewContentType.getConsoleViewType(outputType));
+    }
+  }
+;
+  myProcessEventStore.addProcessListener(myProcessListener);
   add(myConsole.getComponent(),BorderLayout.CENTER);
   Disposer.register(this,myConsole);
 }

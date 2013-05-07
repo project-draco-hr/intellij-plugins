@@ -1,0 +1,19 @@
+{
+  myProcessHandler.addProcessListener(new ProcessAdapter(){
+    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      if (outputType == ProcessOutputTypes.STDOUT) {
+        if (handleLineAsEvent(event.getText())) {
+          return;
+        }
+      }
+synchronized (myTexts) {
+        myTexts.add(Pair.create(event,outputType));
+        for (        ProcessListener listener : myProcessListeners) {
+          listener.onTextAvailable(event,outputType);
+        }
+      }
+    }
+  }
+);
+  myProcessHandler.startNotify();
+}

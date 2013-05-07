@@ -6,34 +6,22 @@
   File serverFile=getServerAppFile();
   commandLine.addParameter(serverFile.getAbsolutePath());
   commandLine.addParameter("--configFile=" + configurationFile.getAbsolutePath());
-  try {
-    LOG.info("Starting karma server: " + commandLine.getCommandLineString());
-    final Process process=commandLine.createProcess();
-    KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET){
-      @Override protected Reader createProcessOutReader(){
-        Reader reader=new InputStreamReader(process.getInputStream(),CharsetToolkit.UTF8_CHARSET);
-        return new EventEmitterReader(reader);
+  LOG.info("Starting karma server: " + commandLine.getCommandLineString());
+  final Process process=commandLine.createProcess();
+  KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
+  processHandler.addProcessListener(new ProcessAdapter(){
+    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      String text=event.getText().trim();
+      if (text != null && outputType == ProcessOutputTypes.STDOUT) {
+        handleStdout(text);
       }
     }
-;
-    processHandler.addProcessListener(new ProcessAdapter(){
-      @Override public void onTextAvailable(      ProcessEvent event,      Key outputType){
-        String text=event.getText().trim();
-        if (text != null && outputType == ProcessOutputTypes.STDOUT) {
-          handleStdout(text);
-        }
-      }
-      @Override public void processTerminated(      ProcessEvent event){
-        KarmaServerRegistry.serverTerminated(KarmaServer.this);
-      }
+    @Override public void processTerminated(    ProcessEvent event){
+      KarmaServerRegistry.serverTerminated(KarmaServer.this);
     }
+  }
 );
-    ProcessTerminatedListener.attach(processHandler);
-    processHandler.setShouldDestroyProcessRecursively(true);
-    processHandler.startNotify();
-    return processHandler;
-  }
- catch (  ExecutionException e) {
-    throw new IOException("Can not create karma server process",e);
-  }
+  ProcessTerminatedListener.attach(processHandler);
+  processHandler.setShouldDestroyProcessRecursively(true);
+  return processHandler;
 }
