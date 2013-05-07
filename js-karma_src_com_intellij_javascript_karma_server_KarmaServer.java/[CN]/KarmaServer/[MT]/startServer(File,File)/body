@@ -8,9 +8,14 @@
   commandLine.addParameter("--configFile=" + configurationFile.getAbsolutePath());
   try {
     LOG.info("Starting karma server: " + commandLine.getCommandLineString());
-    Process originalProcess=commandLine.createProcess();
-    Process eventEmitterProcess=new EventEmitterProcess(originalProcess);
-    KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(eventEmitterProcess,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
+    final Process process=commandLine.createProcess();
+    KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET){
+      @Override protected Reader createProcessOutReader(){
+        Reader reader=new InputStreamReader(process.getInputStream(),CharsetToolkit.UTF8_CHARSET);
+        return new EventEmitterReader(reader);
+      }
+    }
+;
     processHandler.addProcessListener(new ProcessAdapter(){
       @Override public void onTextAvailable(      ProcessEvent event,      Key outputType){
         String text=event.getText().trim();
@@ -23,9 +28,9 @@
       }
     }
 );
-    processHandler.startNotify();
-    processHandler.setShouldDestroyProcessRecursively(true);
     ProcessTerminatedListener.attach(processHandler);
+    processHandler.setShouldDestroyProcessRecursively(true);
+    processHandler.startNotify();
     return processHandler;
   }
  catch (  ExecutionException e) {
