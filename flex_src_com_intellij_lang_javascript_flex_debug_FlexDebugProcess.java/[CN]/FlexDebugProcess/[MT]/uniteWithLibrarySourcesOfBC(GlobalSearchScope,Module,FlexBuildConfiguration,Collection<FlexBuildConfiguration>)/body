@@ -1,0 +1,30 @@
+{
+  if (!processedConfigurations.add(bc))   return scope;
+  final Collection<VirtualFile> libSourceRoots=new THashSet<VirtualFile>();
+  final Sdk sdk=bc.getSdk();
+  if (sdk != null) {
+    Collections.addAll(libSourceRoots,sdk.getRootProvider().getFiles(OrderRootType.SOURCES));
+  }
+  for (  final DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      final Module otherModule=((BuildConfigurationEntry)entry).findModule();
+      final FlexBuildConfiguration otherBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (otherModule != null && otherBC != null) {
+        scope=uniteWithLibrarySourcesOfBC(scope,otherModule,otherBC,processedConfigurations);
+      }
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,ModuleRootManager.getInstance(module));
+      if (orderEntry != null) {
+        Collections.addAll(libSourceRoots,orderEntry.getFiles(OrderRootType.SOURCES));
+      }
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      final Library library=FlexProjectRootsUtil.findOrderEntry(module.getProject(),(SharedLibraryEntry)entry);
+      if (library != null) {
+        Collections.addAll(libSourceRoots,library.getFiles(OrderRootType.SOURCES));
+      }
+    }
+  }
+  return libSourceRoots.isEmpty() ? scope : scope.uniteWith(new LibrarySourcesSearchScope(module.getProject(),libSourceRoots));
+}
