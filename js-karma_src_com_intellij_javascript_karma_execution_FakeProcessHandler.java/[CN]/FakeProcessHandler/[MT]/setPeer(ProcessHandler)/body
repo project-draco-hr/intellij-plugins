@@ -1,0 +1,23 @@
+{
+  if (myPeerRef.compareAndSet(null,peer)) {
+    if (myDestroyed) {
+      peer.detachProcess();
+    }
+    peer.addProcessListener(new ProcessListener(){
+      @Override public void startNotified(      ProcessEvent event){
+      }
+      @Override public void processTerminated(      ProcessEvent event){
+        notifyProcessTerminated(event.getExitCode());
+      }
+      @Override public void processWillTerminate(      ProcessEvent event,      boolean willBeDestroyed){
+      }
+      @Override public void onTextAvailable(      ProcessEvent event,      Key outputType){
+        notifyTextAvailable(event.getText(),outputType);
+      }
+    }
+);
+  }
+ else {
+    LOG.error("Can't set peer twice");
+  }
+}

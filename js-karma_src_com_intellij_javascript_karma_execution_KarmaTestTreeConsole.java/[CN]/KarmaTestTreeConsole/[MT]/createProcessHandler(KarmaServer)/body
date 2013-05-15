@@ -1,0 +1,27 @@
+{
+  final File clientAppFile;
+  try {
+    clientAppFile=server.getClientAppFile();
+  }
+ catch (  IOException e) {
+    throw new ExecutionException("Can't find karma-intellij test runner",e);
+  }
+  if (server.isReady()) {
+    int runnerPort=server.getRunnerPort();
+    return createOSProcessHandler(runnerPort,clientAppFile);
+  }
+  final FakeProcessHandler fakeProcessHandler=new FakeProcessHandler();
+  server.addListener(new KarmaServerListener(){
+    @Override public void onReady(    int webServerPort,    int runnerPort){
+      try {
+        OSProcessHandler osProcessHandler=createOSProcessHandler(runnerPort,clientAppFile);
+        fakeProcessHandler.setPeer(osProcessHandler);
+      }
+ catch (      ExecutionException e) {
+        LOG.warn(e);
+      }
+    }
+  }
+);
+  return fakeProcessHandler;
+}
