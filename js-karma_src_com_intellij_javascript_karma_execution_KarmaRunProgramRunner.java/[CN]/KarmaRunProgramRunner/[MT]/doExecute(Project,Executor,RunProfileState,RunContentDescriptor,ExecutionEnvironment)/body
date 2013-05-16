@@ -6,11 +6,14 @@
   if (state instanceof KarmaTestRunnerState) {
     karmaServer=((KarmaTestRunnerState)state).getKarmaServer();
   }
-  final RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
+  final MyRunContentBuilder contentBuilder=new MyRunContentBuilder(project,this,executor,executionResult,env);
   RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  if (contentToReuse != null) {
+    System.out.println("content to reuse");
+  }
   if (karmaServer != null) {
-    KarmaServerLogComponent logComponent=new KarmaServerLogComponent(project,karmaServer);
-    contentBuilder.addAdditionalTabComponent(logComponent,karmaServer.getConfigurationFile().getAbsolutePath());
+    KarmaServerLogComponent logComponent=new KarmaServerLogComponent(project,descriptor,karmaServer);
+    logComponent.installOn(contentBuilder.getUi());
   }
   return descriptor;
 }

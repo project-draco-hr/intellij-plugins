@@ -1,0 +1,17 @@
+{
+  myProcessEventStore=karmaServer.getProcessEventStore();
+  GlobalSearchScope scope=GlobalSearchScope.allScope(project);
+  TextConsoleBuilder builder=TextConsoleBuilderFactory.getInstance().createBuilder(project,scope);
+  myConsole=builder.getConsole();
+  if (myConsole == null) {
+    throw new RuntimeException("Console shouldn't be null!");
+  }
+  ProcessAdapter processListener=new ProcessAdapter(){
+    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      myConsole.print(event.getText(),ConsoleViewContentType.getConsoleViewType(outputType));
+    }
+  }
+;
+  myProcessEventStore.addProcessListener(processListener);
+  Disposer.register(descriptor,myConsole);
+}

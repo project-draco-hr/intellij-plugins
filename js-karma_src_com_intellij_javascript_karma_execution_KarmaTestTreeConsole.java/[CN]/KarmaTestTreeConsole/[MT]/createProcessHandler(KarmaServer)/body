@@ -8,20 +8,26 @@
   }
   if (server.isReady()) {
     int runnerPort=server.getRunnerPort();
-    return createOSProcessHandler(runnerPort,clientAppFile);
+    OSProcessHandler processHandler=createOSProcessHandler(runnerPort,clientAppFile);
+    return new ProcessHandlerInfo(processHandler,new AsyncResult.Done<OSProcessHandler>(processHandler));
   }
-  final FakeProcessHandler fakeProcessHandler=new FakeProcessHandler();
+  final AsyncResult<OSProcessHandler> asyncResult=new AsyncResult<OSProcessHandler>();
+  final DelegatingProcessHandler delegatingProcessHandler=new DelegatingProcessHandler();
   server.addListener(new KarmaServerListener(){
     @Override public void onReady(    int webServerPort,    int runnerPort){
       try {
         OSProcessHandler osProcessHandler=createOSProcessHandler(runnerPort,clientAppFile);
-        fakeProcessHandler.setPeer(osProcessHandler);
+        delegatingProcessHandler.setDelegate(osProcessHandler);
+        asyncResult.setDone(osProcessHandler);
       }
  catch (      ExecutionException e) {
         LOG.warn(e);
       }
     }
+    @Override public void onTerminated(    int exitCode){
+      delegatingProcessHandler.onDelegateTerminated(exitCode);
+    }
   }
 );
-  return fakeProcessHandler;
+  return new ProcessHandlerInfo(delegatingProcessHandler,asyncResult);
 }

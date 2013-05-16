@@ -1,5 +1,4 @@
 {
-  ApplicationManager.getApplication().assertIsDispatchThread();
   File configurationFile=new File(myRunSettings.getConfigPath());
   KarmaServer server=KarmaServerRegistry.getServerByConfigurationFile(configurationFile);
   if (server == null) {
@@ -12,7 +11,8 @@
     }
   }
   myKarmaServer=server;
-  KarmaTestTreeConsole testTreeConsole=new KarmaTestTreeConsole(myProject,myExecutionEnvironment,executor,myKarmaServer,myNodeInterpreterPath,myRunSettings);
+  KarmaTestTreeConsole testTreeConsole=new KarmaTestTreeConsole(myExecutionEnvironment,executor,myKarmaServer,myNodeInterpreterPath,myRunSettings);
+  Disposer.register(myProject,testTreeConsole);
   ProcessHandler processHandler=testTreeConsole.getProcessHandler();
   DefaultExecutionResult executionResult=new DefaultExecutionResult(testTreeConsole,processHandler);
   executionResult.setRestartActions(new ToggleAutoTestAction());
