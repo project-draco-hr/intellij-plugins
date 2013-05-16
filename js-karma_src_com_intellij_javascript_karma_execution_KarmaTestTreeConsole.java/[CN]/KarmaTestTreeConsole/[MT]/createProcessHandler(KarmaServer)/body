@@ -8,17 +8,14 @@
   }
   if (server.isReady()) {
     int runnerPort=server.getRunnerPort();
-    OSProcessHandler processHandler=createOSProcessHandler(runnerPort,clientAppFile);
-    return new ProcessHandlerInfo(processHandler,new AsyncResult.Done<OSProcessHandler>(processHandler));
+    return createOSProcessHandler(runnerPort,clientAppFile);
   }
-  final AsyncResult<OSProcessHandler> asyncResult=new AsyncResult<OSProcessHandler>();
   final DelegatingProcessHandler delegatingProcessHandler=new DelegatingProcessHandler();
   server.addListener(new KarmaServerListener(){
     @Override public void onReady(    int webServerPort,    int runnerPort){
       try {
         OSProcessHandler osProcessHandler=createOSProcessHandler(runnerPort,clientAppFile);
         delegatingProcessHandler.setDelegate(osProcessHandler);
-        asyncResult.setDone(osProcessHandler);
       }
  catch (      ExecutionException e) {
         LOG.warn(e);
@@ -29,5 +26,5 @@
     }
   }
 );
-  return new ProcessHandlerInfo(delegatingProcessHandler,asyncResult);
+  return delegatingProcessHandler;
 }
