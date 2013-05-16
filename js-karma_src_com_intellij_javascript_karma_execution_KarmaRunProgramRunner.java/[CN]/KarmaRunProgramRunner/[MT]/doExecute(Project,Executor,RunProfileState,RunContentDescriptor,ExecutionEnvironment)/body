@@ -2,18 +2,14 @@
   FileDocumentManager.getInstance().saveAllDocuments();
   ExecutionResult executionResult=state.execute(executor,this);
   if (executionResult == null)   return null;
-  KarmaServer karmaServer=null;
-  if (state instanceof KarmaTestRunState) {
-    karmaServer=((KarmaTestRunState)state).getKarmaServer();
-  }
-  final MyRunContentBuilder contentBuilder=new MyRunContentBuilder(project,this,executor,executionResult,env);
+  RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
   RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
   if (contentToReuse != null) {
     System.out.println("content to reuse");
   }
-  if (karmaServer != null) {
-    KarmaServerLogComponent logComponent=new KarmaServerLogComponent(project,descriptor,karmaServer);
-    logComponent.installOn(contentBuilder.getUi());
+  KarmaTestRunConsole testRunConsole=ObjectUtils.tryCast(executionResult.getExecutionConsole(),KarmaTestRunConsole.class);
+  if (testRunConsole != null) {
+    testRunConsole.setRunContentDescriptor(descriptor);
   }
   return descriptor;
 }

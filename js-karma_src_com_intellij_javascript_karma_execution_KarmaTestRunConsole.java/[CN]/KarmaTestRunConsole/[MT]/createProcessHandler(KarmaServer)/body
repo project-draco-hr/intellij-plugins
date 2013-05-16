@@ -10,21 +10,24 @@
     int runnerPort=server.getRunnerPort();
     return createOSProcessHandler(runnerPort,clientAppFile);
   }
-  final DelegatingProcessHandler delegatingProcessHandler=new DelegatingProcessHandler();
+  final NopProcessHandler nopProcessHandler=new NopProcessHandler();
   server.addListener(new KarmaServerListener(){
     @Override public void onReady(    int webServerPort,    int runnerPort){
       try {
         OSProcessHandler osProcessHandler=createOSProcessHandler(runnerPort,clientAppFile);
-        delegatingProcessHandler.setDelegate(osProcessHandler);
+        if (myRunContentDescriptor != null) {
+          myRunContentDescriptor.setProcessHandler(osProcessHandler);
+        }
+        osProcessHandler.startNotify();
       }
  catch (      ExecutionException e) {
         LOG.warn(e);
       }
     }
     @Override public void onTerminated(    int exitCode){
-      delegatingProcessHandler.onDelegateTerminated(exitCode);
+      nopProcessHandler.destroyProcess();
     }
   }
 );
-  return delegatingProcessHandler;
+  return nopProcessHandler;
 }
