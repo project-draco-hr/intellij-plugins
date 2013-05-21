@@ -1,0 +1,26 @@
+{
+  BaseTestsOutputConsoleView consoleView=myConsoleView;
+  if (consoleView == null) {
+    return null;
+  }
+  if ("browser".equals(nodeType) && arguments != null) {
+    final File basePath=new File(arguments);
+    if (basePath.isAbsolute() && basePath.isDirectory()) {
+      LineWithHyperlinkProvider hyperlinkProvider=new BrowserStacktraceLineWithHyperlinkProvider(nodeName,new Function<String,File>(){
+        @Override public File fun(        String path){
+          return findFileByPath(basePath,path);
+        }
+      }
+);
+      return new HyperlinkPrinter(myConsoleView,HyperlinkPrinter.ERROR_CONTENT_TYPE,hyperlinkProvider);
+    }
+  }
+  if ("browserError".equals(nodeType) && arguments != null) {
+    File basePath=new File(arguments);
+    if (basePath.isDirectory() && basePath.isAbsolute()) {
+      JsErrorLineWithHyperlinkProvider hyperlinkProvider=new JsErrorLineWithHyperlinkProvider(basePath);
+      return new HyperlinkPrinter(myConsoleView,HyperlinkPrinter.ERROR_CONTENT_TYPE,hyperlinkProvider);
+    }
+  }
+  return null;
+}

@@ -1,0 +1,17 @@
+{
+  Matcher m=LINE_PATTERN.matcher(line);
+  if (m.find()) {
+    int hyperlinkStartInd=m.start(1);
+    int hyperlinkEndInd=m.end(1);
+    File file=findFile(m.group(2));
+    if (file != null) {
+      VirtualFile virtualFile=VfsUtil.findFileByIoFile(file,false);
+      if (virtualFile != null) {
+        int lineNumber=getLineFrom(m.group(1));
+        HyperlinkInfo link=new OpenFileHyperlinkInfo(project,virtualFile,lineNumber == -1 ? -1 : lineNumber - 1);
+        return new LineWithHyperlink(hyperlinkStartInd,hyperlinkEndInd,link);
+      }
+    }
+  }
+  return null;
+}
