@@ -3,8 +3,6 @@
   TestConsoleProperties testConsoleProperties=new SMTRunnerConsoleProperties(new RuntimeConfigurationProducer.DelegatingRuntimeConfiguration<KarmaRunConfiguration>(runConfiguration),FRAMEWORK_NAME,myExecutor);
   testConsoleProperties.setUsePredefinedMessageFilter(false);
   testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS,false);
-  KarmaProxyPrinterProvider printerProvider=new KarmaProxyPrinterProvider(myKarmaServer);
-  SMTRunnerConsoleView consoleView=SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(FRAMEWORK_NAME,testConsoleProperties,myEnvironment.getRunnerSettings(),myEnvironment.getConfigurationSettings(),new KarmaTestLocationProvider(),true,printerProvider);
-  printerProvider.setConsoleView(consoleView);
-  return consoleView;
+  Project project=testConsoleProperties.getProject();
+  return SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(FRAMEWORK_NAME,testConsoleProperties,myEnvironment.getRunnerSettings(),myEnvironment.getConfigurationSettings(),new KarmaTestLocationProvider(),true,new KarmaTestProxyFilterProvider(project,myKarmaServer));
 }

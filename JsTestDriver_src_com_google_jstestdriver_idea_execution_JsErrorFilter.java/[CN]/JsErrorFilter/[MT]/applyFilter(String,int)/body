@@ -1,0 +1,13 @@
+{
+  JsErrorMessage message=JsErrorMessage.parseFromText(line,myBasePath);
+  if (message == null) {
+    return null;
+  }
+  VirtualFile virtualFile=VfsUtil.findFileByIoFile(message.getFileWithError(),false);
+  if (virtualFile == null || !virtualFile.isValid()) {
+    return null;
+  }
+  int column=ObjectUtils.notNull(message.getColumnNumber(),0);
+  HyperlinkInfo hyperlinkInfo=new OpenFileHyperlinkInfo(myProject,virtualFile,message.getLineNumber() - 1,column);
+  return new Filter.Result(message.getHyperlinkStartInclusiveInd(),message.getHyperlinkEndExclusiveInd(),hyperlinkInfo);
+}
