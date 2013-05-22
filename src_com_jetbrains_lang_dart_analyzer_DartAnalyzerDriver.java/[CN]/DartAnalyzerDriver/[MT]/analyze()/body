@@ -1,3 +1,29 @@
 {
-  return analyze(false);
+  final GeneralCommandLine command=new GeneralCommandLine();
+  command.setExePath(analyzerExecutable.getPath());
+  command.getEnvironment().put("com.google.dart.sdk",sdkPath);
+  try {
+    command.addParameter("--machine");
+    final VirtualFile packages=DartResolveUtil.findPackagesFolder(libraryRoot,myProject);
+    if (packages != null && packages.isDirectory()) {
+      command.addParameter("--package-root");
+      command.addParameter(packages.getPath() + "/");
+    }
+    command.addParameter(libraryRoot.getPath());
+    LOG.debug("executing:\n" + command.getCommandLineString());
+    final ProcessOutput output=new CapturingProcessHandler(command.createProcess(),Charset.defaultCharset(),command.getCommandLineString()).runProcess();
+    LOG.debug("analyzer exited with exit code: " + output.getExitCode());
+    LOG.debug(output.getStdout());
+    LOG.debug(output.getStderr());
+    final List<AnalyzerMessage> messages=AnalyzerMessage.parseMessages(output.getStderrLines(),libraryRoot.getPath());
+    LOG.debug("messages");
+    for (    AnalyzerMessage message : messages) {
+      LOG.debug(message.toString());
+    }
+    return messages;
+  }
+ catch (  ExecutionException e) {
+    LOG.debug("Exception while executing the analyzer process:",e);
+    return null;
+  }
 }
