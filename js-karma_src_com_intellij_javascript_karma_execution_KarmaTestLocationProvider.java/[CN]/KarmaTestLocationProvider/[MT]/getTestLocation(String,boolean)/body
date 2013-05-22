@@ -1,0 +1,24 @@
+{
+  List<String> path=EscapeUtils.split(locationData,'.');
+  if (path.isEmpty()) {
+    return null;
+  }
+  final List<String> suiteNames;
+  final String testName;
+  if (isSuite) {
+    suiteNames=path;
+    testName=null;
+  }
+ else {
+    suiteNames=path.subList(0,path.size() - 1);
+    testName=path.get(path.size() - 1);
+  }
+  PsiElement psiElement=findJasmineElement(suiteNames,testName);
+  if (psiElement == null && !suiteNames.isEmpty()) {
+    psiElement=findQUnitElement(suiteNames.get(0),testName);
+  }
+  if (psiElement != null) {
+    return PsiLocation.fromPsiElement(psiElement);
+  }
+  return null;
+}
