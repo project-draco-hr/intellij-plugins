@@ -1,0 +1,32 @@
+{
+  boolean serverReady=myKarmaServer.isReady();
+  final JComponent component, preferredFocusableComponent;
+  if (serverReady) {
+    component=getComponent();
+    preferredFocusableComponent=getPreferredFocusableComponent();
+  }
+ else {
+    component=createStubComponent();
+    preferredFocusableComponent=null;
+  }
+  final Content consoleContent=ui.createContent(ExecutionConsole.CONSOLE_CONTENT_ID,component,"Test Run",AllIcons.Debugger.Console,preferredFocusableComponent);
+  consoleContent.setCloseable(false);
+  ui.addContent(consoleContent,0,PlaceInGrid.bottom,false);
+  if (serverReady) {
+    ui.selectAndFocus(consoleContent,false,false);
+  }
+  if (!serverReady) {
+    myKarmaServer.addListener(new KarmaServerAdapter(){
+      @Override public void onReady(      int webServerPort,      int runnerPort){
+        ui.removeContent(consoleContent,false);
+        consoleContent.setComponent(getComponent());
+        consoleContent.setPreferredFocusableComponent(getPreferredFocusableComponent());
+        ui.addContent(consoleContent,0,PlaceInGrid.bottom,false);
+        ui.selectAndFocus(consoleContent,false,false);
+      }
+    }
+);
+  }
+  KarmaServerLogComponent logComponent=new KarmaServerLogComponent(getProperties().getProject(),myKarmaServer);
+  logComponent.installOn(ui);
+}

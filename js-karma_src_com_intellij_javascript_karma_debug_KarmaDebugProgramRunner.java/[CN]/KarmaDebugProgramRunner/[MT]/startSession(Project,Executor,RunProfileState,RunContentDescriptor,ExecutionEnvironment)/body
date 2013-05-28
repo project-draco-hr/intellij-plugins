@@ -1,0 +1,34 @@
+{
+  final JSDebugEngine<Connection> debugEngine=getChromeDebugEngine();
+  if (debugEngine == null) {
+    throw new ExecutionException("No debuggable browser found");
+  }
+  if (!debugEngine.prepareDebugger(project)) {
+    return null;
+  }
+  final ExecutionResult executionResult=state.execute(executor,this);
+  if (executionResult == null) {
+    return null;
+  }
+  KarmaConsoleView testRunConsole=KarmaConsoleView.get(executionResult);
+  if (testRunConsole == null) {
+    throw new RuntimeException("KarmaRunSession was expected!");
+  }
+  KarmaServer karmaServer=testRunConsole.getKarmaRunSession().getKarmaServer();
+  final Connection connection=debugEngine.openConnection(false);
+  final String url="http://localhost:" + karmaServer.getWebServerPort();
+  final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
+  XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
+    @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
+      return debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+    }
+  }
+);
+  ((JSDebugProcess)session.getDebugProcess()).getConnection().queueRequest(new Runnable(){
+    @Override public void run(){
+      resumeJstdClientRunning(executionResult.getProcessHandler());
+    }
+  }
+);
+  return session.getRunContentDescriptor();
+}

@@ -3,13 +3,16 @@
     return Collections.emptySet();
   }
   JsonArray filesArray=filesElement.getAsJsonArray();
-  Set<VirtualFile> files=Sets.newHashSetWithExpectedSize(filesArray.size());
-  for (  JsonElement element : filesArray) {
-    if (element.isJsonPrimitive()) {
-      JsonPrimitive primitive=element.getAsJsonPrimitive();
+  Set<String> files=Sets.newHashSetWithExpectedSize(filesArray.size());
+  for (  JsonElement fileElement : filesArray) {
+    if (fileElement.isJsonObject()) {
+      JsonObject object=fileElement.getAsJsonObject();
+      JsonElement patternElement=object.get("pattern");
+    }
+    if (fileElement.isJsonPrimitive()) {
+      JsonPrimitive primitive=fileElement.getAsJsonPrimitive();
       if (primitive.isString()) {
-        File file=new File(primitive.getAsString());
-        files.add(VfsUtil.findFileByIoFile(file,false));
+        files.add(primitive.getAsString());
       }
     }
   }
