@@ -1,0 +1,17 @@
+{
+  if (resolveResults.length == 0)   return true;
+  for (  ResolveResult r : resolveResults) {
+    if (!r.isValidResult()) {
+      if (r instanceof JSResolveResult && ((JSResolveResult)r).getResolveProblemKey() == JSResolveResult.QUALIFIED_NAME_IS_NOT_IMPORTED) {
+        return true;
+      }
+      continue;
+    }
+    PsiElement element=r.getElement();
+    if (element instanceof JSClass)     return true;
+    if (element instanceof JSFunction) {
+      if (((JSFunction)element).isConstructor())       return true;
+    }
+  }
+  return false;
+}
