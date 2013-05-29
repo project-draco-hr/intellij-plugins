@@ -1,2 +1,23 @@
 {
+  element.setAttribute("type",JavascriptDebugConfigurationType.getTypeInstance().getId());
+  element.setAttribute("singleton","true");
+  element.removeAttribute("factoryName");
+  JavaScriptDebuggerConfigurationSettings settings=new JavaScriptDebuggerConfigurationSettings();
+  Element mappings=null;
+  for (  Object obj : element.getChildren("option")) {
+    if ("fileUrl".equals(((Element)obj).getAttributeValue("name"))) {
+      settings.uri=((Element)obj).getAttributeValue("value");
+    }
+ else     if ("mappings".equals(((Element)obj).getAttributeValue("name"))) {
+      mappings=(Element)obj;
+    }
+  }
+  element.removeContent();
+  JavaScriptDebugConfiguration.serialize(settings,element);
+  if (mappings != null) {
+    Element list=mappings.getChild("list");
+    if (list != null) {
+      element.addContent(list.removeContent());
+    }
+  }
 }
