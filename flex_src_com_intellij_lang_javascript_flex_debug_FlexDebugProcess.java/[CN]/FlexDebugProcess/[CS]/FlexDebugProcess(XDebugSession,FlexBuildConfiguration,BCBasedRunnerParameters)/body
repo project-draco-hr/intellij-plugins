@@ -1,9 +1,9 @@
 {
   super(session);
   myModule=ModuleManager.getInstance(session.getProject()).findModuleByName(params.getModuleName());
-  LOG.assertTrue(myModule != null);
   myBC=bc;
-  myFlexUnit=params instanceof FlexUnitRunnerParameters;
+  myRunnerParameters=params;
+  LOG.assertTrue(myModule != null);
   final Sdk sdk=bc.getSdk();
   LOG.assertTrue(sdk != null);
   myAppSdkHome=FileUtil.toSystemIndependentName(sdk.getHomePath());
@@ -16,9 +16,12 @@
     fdbLaunchCommand.add("-p");
     fdbLaunchCommand.add(String.valueOf(((FlashRunnerParameters)params).getUsbDebugPort()));
   }
+  if (params instanceof RemoteFlashRunnerParameters && (((RemoteFlashRunnerParameters)params).getRemoteDebugTarget() == RemoteDebugTarget.AndroidDevice || ((RemoteFlashRunnerParameters)params).getRemoteDebugTarget() == RemoteDebugTarget.iOSDevice) && ((RemoteFlashRunnerParameters)params).getDebugTransport() == AirMobileDebugTransport.USB) {
+    fdbLaunchCommand.add("-p");
+    fdbLaunchCommand.add(String.valueOf(((RemoteFlashRunnerParameters)params).getUsbDebugPort()));
+  }
   fdbProcess=launchFdb(fdbLaunchCommand);
   if (params instanceof FlashRunnerParameters) {
-    connectToRunningFlashPlayerMode=false;
     final FlashRunnerParameters appParams=(FlashRunnerParameters)params;
 switch (bc.getTargetPlatform()) {
 case Web:
@@ -49,7 +52,6 @@ break;
 }
 }
  else if (params instanceof FlexUnitRunnerParameters) {
-connectToRunningFlashPlayerMode=false;
 final FlexUnitRunnerParameters flexUnitParams=(FlexUnitRunnerParameters)params;
 openFlexUnitConnections(flexUnitParams.getSocketPolicyPort(),flexUnitParams.getPort());
 if (bc.getTargetPlatform() == TargetPlatform.Web) {
@@ -60,7 +62,6 @@ sendAdlStartingCommand(bc,params);
 }
 }
  else {
-connectToRunningFlashPlayerMode=true;
 sendCommand(new StartDebuggingCommand());
 }
 reader=new MyFdbOutputReader(fdbProcess.getInputStream());

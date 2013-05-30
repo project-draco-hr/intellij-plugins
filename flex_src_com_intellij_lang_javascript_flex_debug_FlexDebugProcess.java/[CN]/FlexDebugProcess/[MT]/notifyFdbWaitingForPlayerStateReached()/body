@@ -1,15 +1,19 @@
 {
-  if (connectToRunningFlashPlayerMode) {
+  if (myRunnerParameters instanceof RemoteFlashRunnerParameters) {
+    final RemoteDebugTarget remoteDebugTarget=((RemoteFlashRunnerParameters)myRunnerParameters).getRemoteDebugTarget();
+    final AirMobileDebugTransport mobileDebugTransport=((RemoteFlashRunnerParameters)myRunnerParameters).getDebugTransport();
+    final int usbDebugPort=((RemoteFlashRunnerParameters)myRunnerParameters).getUsbDebugPort();
+    final String message;
+    if (remoteDebugTarget == RemoteDebugTarget.Computer) {
+      message=FlexBundle.message("remote.flash.debug.computer",FlexUtils.getOwnIpAddress());
+    }
+ else {
+      final String device=remoteDebugTarget == RemoteDebugTarget.AndroidDevice ? "Android" : "iOS";
+      message=mobileDebugTransport == AirMobileDebugTransport.Network ? FlexBundle.message("remote.flash.debug.mobile.network",device,FlexUtils.getOwnIpAddress()) : FlexBundle.message("remote.flash.debug.mobile.usb",device,String.valueOf(usbDebugPort));
+    }
     ApplicationManager.getApplication().invokeLater(new Runnable(){
       public void run(){
-        final ToolWindowManager manager=ToolWindowManager.getInstance(getSession().getProject());
-        final HyperlinkAdapter h=new HyperlinkAdapter(){
-          protected void hyperlinkActivated(          final HyperlinkEvent e){
-            manager.notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,FlexBundle.message("remote.flash.debug.details",FlexUtils.getOwnIpAddress()));
-          }
-        }
-;
-        manager.notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,FlexBundle.message("remote.flash.debugger.waiting"),null,h);
+        ToolWindowManager.getInstance(getSession().getProject()).notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,message);
       }
     }
 );

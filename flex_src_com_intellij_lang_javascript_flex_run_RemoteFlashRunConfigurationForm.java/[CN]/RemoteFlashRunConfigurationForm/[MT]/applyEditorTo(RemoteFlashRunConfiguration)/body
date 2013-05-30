@@ -1,3 +1,15 @@
 {
-  myBCCombo.applyTo(configuration.getRunnerParameters());
+  final RemoteFlashRunnerParameters params=configuration.getRunnerParameters();
+  myBCCombo.applyTo(params);
+  final RemoteDebugTarget remoteDebugTarget=myOnComputerRadioButton.isSelected() ? RemoteDebugTarget.Computer : myOnAndroidDeviceRadioButton.isSelected() ? RemoteDebugTarget.AndroidDevice : RemoteDebugTarget.iOSDevice;
+  params.setRemoteDebugTarget(remoteDebugTarget);
+  params.setDebugTransport(myDebugOverNetworkRadioButton.isSelected() ? AirMobileDebugTransport.Network : AirMobileDebugTransport.USB);
+  try {
+    final int port=Integer.parseInt(myUsbDebugPortTextField.getText().trim());
+    if (port > 0 && port < 65535) {
+      params.setUsbDebugPort(port);
+    }
+  }
+ catch (  NumberFormatException ignore) {
+  }
 }
