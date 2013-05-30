@@ -1,0 +1,19 @@
+{
+  registrar.registerReferenceProvider(BASE_NAME_PLACE,new PsiReferenceProvider(){
+    @NotNull @Override public PsiReference[] getReferencesByElement(    @NotNull final PsiElement psiElement,    @NotNull ProcessingContext processingContext){
+      JSLiteralExpression literalExpression=ObjectUtils.tryCast(psiElement,JSLiteralExpression.class);
+      if (literalExpression == null) {
+        return PsiReference.EMPTY_ARRAY;
+      }
+      JSAssignmentExpression assignmentExpression=ObjectUtils.tryCast(psiElement.getParent(),JSAssignmentExpression.class);
+      if (assignmentExpression != null) {
+        JSDefinitionExpression lOperand=ObjectUtils.tryCast(assignmentExpression.getLOperand(),JSDefinitionExpression.class);
+        if (lOperand != null && BASE_PATH_NAME.equals(lOperand.getName())) {
+          return new BasePathFileReferenceSet(literalExpression,this).getAllReferences();
+        }
+      }
+      return PsiReference.EMPTY_ARRAY;
+    }
+  }
+);
+}
