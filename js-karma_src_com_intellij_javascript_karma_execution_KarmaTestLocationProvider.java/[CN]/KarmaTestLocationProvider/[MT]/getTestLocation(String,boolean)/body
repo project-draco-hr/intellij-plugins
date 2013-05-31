@@ -14,8 +14,17 @@
     testName=path.get(path.size() - 1);
   }
   PsiElement psiElement=findJasmineElement(suiteNames,testName);
-  if (psiElement == null && !suiteNames.isEmpty()) {
-    psiElement=findQUnitElement(suiteNames.get(0),testName);
+  if (psiElement == null) {
+    String moduleName=null;
+    if (suiteNames.size() == 0) {
+      moduleName=DefaultQUnitModuleStructure.NAME;
+    }
+ else     if (suiteNames.size() == 1) {
+      moduleName=suiteNames.get(0);
+    }
+    if (moduleName != null) {
+      psiElement=findQUnitElement(moduleName,testName);
+    }
   }
   if (psiElement != null) {
     return PsiLocation.fromPsiElement(psiElement);
