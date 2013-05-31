@@ -2,7 +2,8 @@
   final String functionName=object.get("functionName").getAsString();
   JsonObject location=object.get("location").getAsJsonObject();
   final String url=location.get("url").getAsString();
-  final int line=location.get("lineNumber").getAsInt() - 1;
-  final int libraryId=object.get("libraryId").getAsInt();
-  return new DartStackFrame(debugProcess,functionName,url,line,libraryId,DartVMValue.fromJson(debugProcess,object.getAsJsonArray("locals")));
+  JsonElement tokenOffset=location.get("tokenOffset");
+  final int offset=(tokenOffset == null ? -1 : tokenOffset.getAsInt());
+  final int libraryId=location.get("libraryId").getAsInt();
+  return new DartStackFrame(debugProcess,functionName,url,offset,libraryId,DartVMValue.fromJson(debugProcess,object.getAsJsonArray("locals")));
 }
