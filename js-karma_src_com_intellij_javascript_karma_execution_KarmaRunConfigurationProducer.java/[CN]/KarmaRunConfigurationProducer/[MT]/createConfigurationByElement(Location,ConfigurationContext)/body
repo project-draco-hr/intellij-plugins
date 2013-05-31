@@ -1,0 +1,27 @@
+{
+  RuntimeConfiguration original=context.getOriginalConfiguration(null);
+  if (original != null && !ConfigurationTypeUtil.equals(original.getType(),KarmaConfigurationType.getInstance())) {
+    return null;
+  }
+  JSFile jsFile=getConfigJsFile(location);
+  if (jsFile == null) {
+    return null;
+  }
+  mySourceElement=jsFile;
+  final RunnerAndConfigurationSettings runnerSettings=cloneTemplateConfiguration(location.getProject(),context);
+  KarmaRunConfiguration runConfiguration=ObjectUtils.tryCast(runnerSettings.getConfiguration(),KarmaRunConfiguration.class);
+  if (runConfiguration == null) {
+    return null;
+  }
+  VirtualFile vFile=jsFile.getVirtualFile();
+  if (vFile == null) {
+    return null;
+  }
+  String path=FileUtil.toSystemDependentName(vFile.getPath());
+  KarmaRunSettings settings=new KarmaRunSettings.Builder().setConfigPath(path).build();
+  runConfiguration.setRunSettings(settings);
+  String name=vFile.getName();
+  runConfiguration.setName(name);
+  runnerSettings.setName(name);
+  return runnerSettings;
+}
