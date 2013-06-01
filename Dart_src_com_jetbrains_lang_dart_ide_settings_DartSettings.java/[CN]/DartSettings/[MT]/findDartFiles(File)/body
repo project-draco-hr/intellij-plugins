@@ -1,0 +1,29 @@
+{
+  final File libRoot=new File(rootDir,"lib");
+  if (!libRoot.exists()) {
+    return Collections.emptyList();
+  }
+  final List<File> result=new ArrayList<File>();
+  final Processor<File> fileProcessor=new Processor<File>(){
+    @Override public boolean process(    File file){
+      if (file.isFile() && file.getName().endsWith("" + DartFileType.DEFAULT_EXTENSION)) {
+        result.add(file);
+      }
+      return true;
+    }
+  }
+;
+  for (  File child : libRoot.listFiles(new FileFilter(){
+    @Override public boolean accept(    File file){
+      return !"html".equals(file.getName()) && !"_internal".equals(file.getName());
+    }
+  }
+)) {
+    FileUtil.processFilesRecursively(child,fileProcessor);
+  }
+  File htmlDartium=new File(new File(libRoot,"html"),"dartium");
+  if (htmlDartium.exists()) {
+    FileUtil.processFilesRecursively(htmlDartium,fileProcessor);
+  }
+  return result;
+}

@@ -1,0 +1,18 @@
+{
+  if (node == null)   return null;
+  for (PsiElement sibling=UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node,true); sibling != null; sibling=UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(sibling,true)) {
+    if ("".equals(sibling.getText()))     continue;
+    PsiElement candidate=sibling;
+    if (candidate instanceof DartType) {
+      candidate=((DartType)sibling).getReferenceExpression();
+    }
+    return candidate instanceof DartReference && candidate != node ? (DartReference)candidate : null;
+  }
+  PsiElement parent=PsiTreeUtil.getParentOfType(node,DartCascadeReferenceExpression.class,DartVarInit.class);
+  if (parent instanceof DartCascadeReferenceExpression) {
+    DartReference[] references=PsiTreeUtil.getChildrenOfType(parent,DartReference.class);
+    DartReference result=references != null && references.length == 2 ? references[0] : null;
+    return !PsiTreeUtil.isAncestor(result,node,false) ? result : null;
+  }
+  return null;
+}
