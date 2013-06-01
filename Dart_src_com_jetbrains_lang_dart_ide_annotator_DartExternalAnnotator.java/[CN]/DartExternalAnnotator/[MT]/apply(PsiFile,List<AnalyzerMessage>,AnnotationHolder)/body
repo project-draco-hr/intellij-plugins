@@ -1,0 +1,16 @@
+{
+  if (messages == null || !file.isValid()) {
+    return;
+  }
+  final VirtualFile realVirtualFile=DartResolveUtil.getRealVirtualFile(file);
+  messages=ContainerUtil.filter(messages,new Condition<AnalyzerMessage>(){
+    @Override public boolean value(    AnalyzerMessage message){
+      return Comparing.equal(message.getVirtualFile(),realVirtualFile);
+    }
+  }
+);
+  for (  AnalyzerMessage message : messages) {
+    createAnnotation(file,message,holder);
+  }
+  super.apply(file,messages,holder);
+}

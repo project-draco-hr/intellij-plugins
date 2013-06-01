@@ -1,0 +1,40 @@
+{
+  return new DataExternalizer<List<DartPathInfo>>(){
+    @Override public void save(    DataOutput out,    List<DartPathInfo> value) throws IOException {
+      out.writeInt(value.size());
+      for (      DartPathInfo pathInfo : value) {
+        out.writeUTF(pathInfo.getPath());
+        out.writeUTF(StringUtil.notNullize(pathInfo.getPrefix()));
+        out.writeInt(pathInfo.getShowComponents().size());
+        for (        String showComponentName : pathInfo.getShowComponents()) {
+          out.writeUTF(showComponentName);
+        }
+        out.writeInt(pathInfo.getHideComponents().size());
+        for (        String hideComponentName : pathInfo.getHideComponents()) {
+          out.writeUTF(hideComponentName);
+        }
+      }
+    }
+    @Override public List<DartPathInfo> read(    DataInput in) throws IOException {
+      final int size=in.readInt();
+      final List<DartPathInfo> result=new ArrayList<DartPathInfo>(size);
+      for (int i=0; i < size; ++i) {
+        final String path=in.readUTF();
+        final String prefix=in.readUTF();
+        final int showSize=in.readInt();
+        final Set<String> showComponentNames=showSize == 0 ? Collections.<String>emptySet() : new THashSet<String>(showSize);
+        for (int j=0; j < showSize; j++) {
+          showComponentNames.add(in.readUTF());
+        }
+        final int hideSize=in.readInt();
+        final Set<String> hideComponentNames=hideSize == 0 ? Collections.<String>emptySet() : new THashSet<String>(hideSize);
+        for (int j=0; j < hideSize; j++) {
+          hideComponentNames.add(in.readUTF());
+        }
+        result.add(new DartPathInfo(path,StringUtil.nullize(prefix),showComponentNames,hideComponentNames));
+      }
+      return result;
+    }
+  }
+;
+}

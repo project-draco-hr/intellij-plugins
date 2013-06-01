@@ -1,0 +1,28 @@
+{
+  if (type == null) {
+    return "";
+  }
+  final StringBuilder result=new StringBuilder();
+  final String typeText=type.getReferenceExpression().getText();
+  if (specializations.containsKey(element,typeText)) {
+    final DartClass haxeClass=specializations.get(element,typeText).getDartClass();
+    result.append(haxeClass == null ? typeText : haxeClass.getName());
+  }
+ else {
+    result.append(typeText);
+  }
+  final DartTypeArguments typeArguments=type.getTypeArguments();
+  if (typeArguments != null) {
+    result.append("<");
+    List<DartType> list=typeArguments.getTypeList().getTypeList();
+    for (int i=0; i < list.size(); i++) {
+      if (i > 0) {
+        result.append(", ");
+      }
+      DartType typeListPart=list.get(i);
+      result.append(buildTypeText(element,typeListPart,specializations));
+    }
+    result.append(">");
+  }
+  return result.toString();
+}

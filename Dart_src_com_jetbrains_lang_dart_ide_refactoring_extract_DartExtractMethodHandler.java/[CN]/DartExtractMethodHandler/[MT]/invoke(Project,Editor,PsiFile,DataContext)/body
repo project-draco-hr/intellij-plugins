@@ -1,0 +1,23 @@
+{
+  final SelectionModel selectionModel=editor.getSelectionModel();
+  if (!selectionModel.hasSelection())   selectionModel.selectLineAtCaret();
+  final PsiElement[] elements=DartRefactoringUtil.findStatementsInRange(file,selectionModel.getSelectionStart(),selectionModel.getSelectionEnd());
+  if (elements.length == 0 || (elements.length == 1 && elements[0] instanceof DartExpression)) {
+    CommonRefactoringUtil.showErrorHint(project,editor,RefactoringBundle.getCannotRefactorMessage(DartBundle.message("dart.refactoring.extract.method.from.expression.error")),DartBundle.message("dart.refactoring.extract.method.error"),null);
+    return;
+  }
+  final DartControlFlow controlFlow=DartControlFlow.analyze(elements);
+  selectionModel.isBlockSelectionGuarded();
+  if (controlFlow.getReturnValues().size() > 1) {
+    CommonRefactoringUtil.showErrorHint(project,editor,RefactoringBundle.getCannotRefactorMessage(DartBundle.message("dart.refactoring.multiple.output.values")),DartBundle.message("dart.refactoring.extract.method.error"),null);
+    return;
+  }
+  final Scope scope=findScope(elements);
+  controlFlow.filterParams(new Condition<DartComponentName>(){
+    @Override public boolean value(    DartComponentName name){
+      return !scope.containsDeclaration(name);
+    }
+  }
+);
+  doRefactoringInWriteAction(project,editor,elements,controlFlow,scope);
+}

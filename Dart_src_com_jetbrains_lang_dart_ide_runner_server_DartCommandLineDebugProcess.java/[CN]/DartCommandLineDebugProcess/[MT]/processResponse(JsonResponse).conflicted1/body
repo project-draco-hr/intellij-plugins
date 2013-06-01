@@ -1,0 +1,12 @@
+{
+  JsonObject result=response.getJsonObject().getAsJsonObject().getAsJsonObject("result");
+  final JsonArray callFrames=result == null ? null : result.getAsJsonArray("callFrames");
+  final List<DartStackFrame> frames=callFrames == null ? new ArrayList<DartStackFrame>() : DartStackFrame.fromJson(DartCommandLineDebugProcess.this,callFrames);
+  DartStackFrame.requestLines(DartCommandLineDebugProcess.this,frames,new Runnable(){
+    @Override public void run(){
+      getSession().positionReached(new DartSuspendContext(DartCommandLineDebugProcess.this,frames));
+    }
+  }
+);
+  return true;
+}

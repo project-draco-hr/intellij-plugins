@@ -1,0 +1,38 @@
+{
+  final Editor editor=operation.getEditor();
+  final PsiFile file=operation.getFile();
+  int offset=editor.getCaretModel().getOffset();
+  PsiElement elementAtCaret=file.findElementAt(offset);
+  if (!checkIntroduceContext(file,editor,elementAtCaret))   return true;
+  final List<DartExpression> expressions=new ArrayList<DartExpression>();
+  while (elementAtCaret != null) {
+    if (elementAtCaret instanceof DartFile) {
+      break;
+    }
+    if (elementAtCaret instanceof DartExpression) {
+      expressions.add((DartExpression)elementAtCaret);
+    }
+    elementAtCaret=elementAtCaret.getParent();
+  }
+  if (expressions.size() == 1 || ApplicationManager.getApplication().isUnitTestMode()) {
+    operation.setElement(expressions.get(0));
+    performActionOnElement(operation);
+    return true;
+  }
+ else   if (expressions.size() > 1) {
+    IntroduceTargetChooser.showChooser(editor,expressions,new Pass<DartExpression>(){
+      @Override public void pass(      DartExpression expression){
+        operation.setElement(expression);
+        performActionOnElement(operation);
+      }
+    }
+,new Function<DartExpression,String>(){
+      public String fun(      DartExpression expression){
+        return expression.getText();
+      }
+    }
+);
+    return true;
+  }
+  return false;
+}

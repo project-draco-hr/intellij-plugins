@@ -1,0 +1,20 @@
+{
+  if (this instanceof DartSuffixExpression) {
+    return DartResolveUtil.findCoreClass(this,"num");
+  }
+  final DartReference[] references=PsiTreeUtil.getChildrenOfType(this,DartReference.class);
+  if (references == null || references.length == 0) {
+    return DartClassResolveResult.EMPTY;
+  }
+  final DartClassResolveResult leftClassResolveResult=references[0].resolveDartClass();
+  final DartClass dartClass=leftClassResolveResult.getDartClass();
+  if (dartClass == null) {
+    return DartClassResolveResult.EMPTY;
+  }
+  String sign=getOperatorSign();
+  if ("-".equals(sign) && this instanceof DartPrefixExpression) {
+    sign="negate";
+  }
+  final DartOperator operator=dartClass.findOperator(sign,null);
+  return DartResolveUtil.getDartClassResolveResult(operator,leftClassResolveResult.getSpecialization());
+}

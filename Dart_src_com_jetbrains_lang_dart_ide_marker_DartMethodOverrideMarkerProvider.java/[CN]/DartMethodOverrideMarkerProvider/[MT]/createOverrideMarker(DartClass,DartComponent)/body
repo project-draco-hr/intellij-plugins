@@ -1,0 +1,16 @@
+{
+  final List<DartClass> supers=new ArrayList<DartClass>();
+  final DartClassResolveResult dartClassResolveResult=DartResolveUtil.resolveClassByType(dartClass.getSuperClass());
+  if (dartClassResolveResult.getDartClass() != null) {
+    supers.add(dartClassResolveResult.getDartClass());
+  }
+  List<DartClassResolveResult> implementsAndMixinsList=DartResolveUtil.resolveClassesByTypes(DartResolveUtil.getImplementsAndMixinsList(dartClass));
+  for (  DartClassResolveResult resolveResult : implementsAndMixinsList) {
+    final DartClass resolveResultDartClass=resolveResult.getDartClass();
+    if (resolveResultDartClass != null) {
+      supers.add(resolveResultDartClass);
+    }
+  }
+  final List<DartComponent> superItems=DartResolveUtil.findNamedSubComponents(supers.toArray(new DartClass[supers.size()]));
+  return tryCreateOverrideMarker(dartComponent,superItems);
+}

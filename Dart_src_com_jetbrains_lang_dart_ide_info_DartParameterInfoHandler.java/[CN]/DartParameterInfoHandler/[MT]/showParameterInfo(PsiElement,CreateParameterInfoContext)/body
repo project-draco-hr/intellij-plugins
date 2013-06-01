@@ -1,0 +1,21 @@
+{
+  DartFunctionDescription functionDescription=null;
+  if (element instanceof DartCallExpression) {
+    functionDescription=DartFunctionDescription.tryGetDescription((DartCallExpression)element);
+  }
+ else   if (element instanceof DartNewExpression) {
+    final DartNewExpression newExpression=(DartNewExpression)element;
+    final DartType type=newExpression.getType();
+    final DartClassResolveResult classResolveResult=DartResolveUtil.resolveClassByType(type);
+    PsiElement psiElement=((DartNewExpression)element).getReferenceExpression();
+    psiElement=psiElement == null && type != null ? type.getReferenceExpression() : psiElement;
+    final PsiElement target=psiElement != null ? ((DartReference)psiElement).resolve() : null;
+    if (target instanceof DartComponentName) {
+      functionDescription=DartFunctionDescription.createDescription((DartComponent)target.getParent(),classResolveResult);
+    }
+  }
+  if (functionDescription != null && functionDescription.getParameters().length > 0) {
+    context.setItemsToShow(new Object[]{functionDescription});
+    context.showHint(element,element.getTextRange().getStartOffset(),this);
+  }
+}

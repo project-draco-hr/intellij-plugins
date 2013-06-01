@@ -1,0 +1,10 @@
+{
+  final PsiElement target=((DartReference)callExpression.getExpression()).resolve();
+  final PsiElement targetParent=target == null ? null : target.getParent();
+  if (target instanceof DartComponentName && targetParent instanceof DartComponent) {
+    final DartReference[] references=PsiTreeUtil.getChildrenOfType(callExpression.getExpression(),DartReference.class);
+    final DartClassResolveResult resolveResult=(references != null && references.length == 2) ? references[0].resolveDartClass() : DartClassResolveResult.create(PsiTreeUtil.getParentOfType(callExpression,DartClass.class));
+    return createDescription((DartComponent)targetParent,resolveResult);
+  }
+  return null;
+}

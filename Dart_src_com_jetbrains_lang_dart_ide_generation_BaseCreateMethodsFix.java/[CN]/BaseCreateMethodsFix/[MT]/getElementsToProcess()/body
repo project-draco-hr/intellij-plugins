@@ -1,0 +1,31 @@
+{
+  final T[] objects=(T[])elementsToProcess.toArray(new DartComponent[elementsToProcess.size()]);
+  final Comparator<T> tComparator=new Comparator<T>(){
+    public int compare(    final T o1,    final T o2){
+      return o1.getTextOffset() - o2.getTextOffset();
+    }
+  }
+;
+  final int size=elementsToProcess.size();
+  final LinkedHashSet<T> result=new LinkedHashSet<T>(size);
+  final List<T> objectsFromSameFile=new ArrayList<T>();
+  PsiFile containingFile=null;
+  for (int i=0; i < size; ++i) {
+    final T object=objects[i];
+    final PsiFile currentContainingFile=object.getContainingFile();
+    if (currentContainingFile != containingFile) {
+      if (containingFile != null) {
+        Collections.sort(objectsFromSameFile,tComparator);
+        result.addAll(objectsFromSameFile);
+        objectsFromSameFile.clear();
+      }
+      containingFile=currentContainingFile;
+    }
+    objectsFromSameFile.add(object);
+  }
+  Collections.sort(objectsFromSameFile,tComparator);
+  result.addAll(objectsFromSameFile);
+  elementsToProcess.clear();
+  elementsToProcess.addAll(result);
+  return elementsToProcess;
+}

@@ -1,0 +1,18 @@
+{
+  final StringBuilder result=new StringBuilder();
+  final DartReturnType returnType=PsiTreeUtil.getChildOfType(element,DartReturnType.class);
+  final DartType dartType=returnType == null ? PsiTreeUtil.getChildOfType(element,DartType.class) : returnType.getType();
+  if (dartType != null) {
+    result.append(DartPresentableUtil.buildTypeText(element,dartType,specializations));
+    result.append(" ");
+  }
+  if (element.isGetter() || element.isSetter()) {
+    result.append(element.isGetter() ? "get " : "set ");
+  }
+  result.append(element.getName());
+  result.append("(");
+  result.append(DartPresentableUtil.getPresentableParameterList(element,specializations));
+  result.append(")");
+  result.append("{\n}\n");
+  return result.toString();
+}

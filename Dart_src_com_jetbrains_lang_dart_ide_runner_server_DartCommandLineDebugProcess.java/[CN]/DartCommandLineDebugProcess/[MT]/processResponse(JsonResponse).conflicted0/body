@@ -1,0 +1,44 @@
+{
+  LOG.debug("processResponse:" + response.getJsonObject().toString());
+  JsonElement jsonEventElement=response.getJsonObject().get("event");
+  final String event=jsonEventElement == null ? null : jsonEventElement.getAsString();
+  final JsonElement paramsElement=response.getJsonObject().get("params");
+  if ("isolate".equals(event) && myInitialized == InitializingState.NOT_INITIALIZED) {
+    myInitialized=InitializingState.INITIALIZING;
+    myMainIsolateId=paramsElement.getAsJsonObject().get("id").getAsInt();
+    enableAllStepping(new Runnable(){
+      @Override public void run(){
+        myInitialized=InitializingState.INITIALIZED;
+        Iterator<Pair<JsonObject,AbstractResponseToRequestHandler<JsonResponse>>> iterator=postponedCommands.iterator();
+        if (!iterator.hasNext()) {
+          handleBreakpointResolved(paramsElement);
+        }
+        while (iterator.hasNext()) {
+          final Pair<JsonObject,AbstractResponseToRequestHandler<JsonResponse>> command=iterator.next();
+          if (iterator.hasNext()) {
+            commandsToWrite.addLast(command);
+          }
+ else {
+            commandsToWrite.addLast(Pair.<JsonObject,AbstractResponseToRequestHandler<JsonResponse>>create(command.getFirst(),new AbstractResponseToRequestHandler<JsonResponse>(){
+              @Override public boolean processResponse(              JsonResponse response){
+                handleBreakpointResolved(paramsElement);
+                return command.getSecond().processResponse(response);
+              }
+            }
+));
+          }
+        }
+      }
+    }
+);
+  }
+ else   if ("breakpointResolved".equals(event) && myInitialized == InitializingState.INITIALIZED) {
+    handleBreakpointResolved(paramsElement);
+  }
+ else   if ("paused".equals(event) && myInitialized == InitializingState.INITIALIZED) {
+    handlePaused(paramsElement);
+  }
+ else {
+    LOG.debug("unhandled response: " + response.getJsonObject().toString());
+  }
+}

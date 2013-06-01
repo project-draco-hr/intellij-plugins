@@ -1,0 +1,14 @@
+{
+  final PsiElementPattern.Capture<PsiElement> idInComponentName=psiElement().withSuperParent(1,DartId.class).withSuperParent(2,DartComponentName.class);
+  extend(CompletionType.BASIC,idInComponentName.withSuperParent(3,DartNormalFormalParameter.class),new CompletionProvider<CompletionParameters>(){
+    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+      final Set<DartComponentName> suggestedVariants=new THashSet<DartComponentName>();
+      final ClassNameScopeProcessor processor=new ClassNameScopeProcessor(suggestedVariants);
+      DartResolveUtil.treeWalkUpAndTopLevelDeclarations(parameters.getPosition(),processor);
+      for (      DartComponentName variant : suggestedVariants) {
+        result.addElement(LookupElementBuilder.create(variant));
+      }
+    }
+  }
+);
+}

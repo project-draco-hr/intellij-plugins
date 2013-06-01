@@ -1,0 +1,19 @@
+{
+  if (!recursion_guard_(builder_,level_,"arrowBody"))   return false;
+  if (!nextTokenIs(builder_,EXPRESSION_BODY_DEF))   return false;
+  boolean result_=false;
+  boolean pinned_=false;
+  Marker marker_=builder_.mark();
+  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,null);
+  result_=consumeToken(builder_,EXPRESSION_BODY_DEF);
+  pinned_=result_;
+  result_=result_ && expression(builder_,level_ + 1);
+  if (!result_ && !pinned_) {
+    marker_.rollbackTo();
+  }
+ else {
+    marker_.drop();
+  }
+  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  return result_ || pinned_;
+}

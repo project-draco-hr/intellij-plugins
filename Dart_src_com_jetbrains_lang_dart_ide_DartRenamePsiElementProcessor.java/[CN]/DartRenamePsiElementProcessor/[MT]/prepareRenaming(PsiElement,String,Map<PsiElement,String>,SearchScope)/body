@@ -1,0 +1,20 @@
+{
+  super.prepareRenaming(element,newName,allRenames,scope);
+  for (  PsiElement elementToRename : allRenames.keySet()) {
+    final PsiElement parent=elementToRename.getParent();
+    if (parent instanceof DartClass) {
+      for (      DartComponent constructor : ((DartClass)parent).getConstructors()) {
+        if (!(constructor instanceof DartNamedConstructorDeclaration)) {
+          allRenames.put(constructor.getComponentName(),newName);
+        }
+      }
+    }
+ else     if (parent instanceof DartComponent) {
+      final DartClass dartClass=PsiTreeUtil.getParentOfType(parent,DartClass.class,true);
+      final String componentName=((DartComponent)parent).getName();
+      if (componentName != null && dartClass != null && componentName.equals(dartClass.getName())) {
+        allRenames.put(dartClass.getComponentName(),newName);
+      }
+    }
+  }
+}

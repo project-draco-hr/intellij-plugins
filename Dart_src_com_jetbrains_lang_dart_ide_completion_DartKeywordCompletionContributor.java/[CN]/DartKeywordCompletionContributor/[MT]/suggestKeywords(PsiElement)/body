@@ -1,0 +1,35 @@
+{
+  final TextRange posRange=position.getTextRange();
+  final PsiElement posFile=position.getContainingFile();
+  final List<PsiElement> pathToBlockStatement=UsefulPsiTreeUtil.getPathToParentOfType(position,DartBlock.class);
+  final DartPsiCompositeElement classInterface=PsiTreeUtil.getParentOfType(position,DartClassBody.class,DartInterfaceBody.class);
+  final String text;
+  final int offset;
+  if (pathToBlockStatement != null) {
+    final Pair<String,Integer> pair=DartCodeGenerateUtil.wrapStatement(posRange.substring(posFile.getText()));
+    text=pair.getFirst();
+    offset=pair.getSecond();
+  }
+ else   if (classInterface != null) {
+    final Pair<String,Integer> pair=DartCodeGenerateUtil.wrapFunction(posRange.substring(posFile.getText()));
+    text=pair.getFirst();
+    offset=pair.getSecond();
+  }
+ else {
+    DartEmbeddedContent embeddedContent=PsiTreeUtil.getParentOfType(position,DartEmbeddedContent.class);
+    int startOffset=embeddedContent != null ? embeddedContent.getTextOffset() : 0;
+    text=posRange.getStartOffset() == 0 ? "" : posFile.getText().substring(startOffset,posRange.getStartOffset());
+    offset=0;
+  }
+  final List<String> result=new ArrayList<String>();
+  if (pathToBlockStatement != null && pathToBlockStatement.size() > 2) {
+    final PsiElement blockChild=pathToBlockStatement.get(pathToBlockStatement.size() - 3);
+    result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(blockChild,true)));
+  }
+  final PsiFile file=PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.dart",DartLanguage.INSTANCE,text,true,false);
+  GeneratedParserUtilBase.CompletionState state=new GeneratedParserUtilBase.CompletionState(text.length() - offset);
+  file.putUserData(GeneratedParserUtilBase.COMPLETION_STATE_KEY,state);
+  TreeUtil.ensureParsed(file.getNode());
+  result.addAll(state.items);
+  return result;
+}

@@ -1,0 +1,17 @@
+{
+  InetAddress host=null;
+  try {
+    host=InetAddress.getByName("127.0.0.1");
+  }
+ catch (  UnknownHostException ignored) {
+  }
+  myConnection=SocketConnectionFactory.createConnection(host,debuggingPort,1,new RequestResponseExternalizerFactory<JSONCommand,JsonResponse>(){
+    @NotNull @Override public RequestWriter<JSONCommand> createRequestWriter(    @NotNull OutputStream output) throws IOException {
+      return new JSONRequestWriter(new OutputStreamWriter(output,"UTF-8"));
+    }
+    @NotNull @Override public ResponseReader<JsonResponse> createResponseReader(    @NotNull InputStream input) throws IOException {
+      return new JSONResponseReader(new BufferedReader(new InputStreamReader(input,"UTF-8")));
+    }
+  }
+);
+}

@@ -1,0 +1,14 @@
+{
+  myDebugProcess.sendCommand(getGetPropertiesCommand(),new AbstractResponseToRequestHandler<JsonResponse>(){
+    @Override public boolean processResponse(    JsonResponse response){
+      JsonObject result=response.getJsonObject().getAsJsonObject("result");
+      if (result != null) {
+        myGlobals.clear();
+        myGlobals.addAll(DartVMValue.fromJson(myDebugProcess,result.getAsJsonArray("globals")));
+      }
+      node.setPresentation(icons.DartIcons.Dart_16,"library",Integer.toString(myLibraryId),!myGlobals.isEmpty());
+      return true;
+    }
+  }
+);
+}

@@ -1,0 +1,19 @@
+{
+  if (!(settings instanceof DartSdkData))   return;
+  final String homePath=((DartSdkData)settings).getHomePath();
+  DartSettingsUtil.setSettings(new DartSettings(homePath));
+  DartSettings.setUpDartLibrary(project,homePath);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      try {
+        baseDir.createChildDirectory(this,"web");
+        baseDir.createChildDirectory(this,"lib");
+        VirtualFile pubspec=baseDir.createChildData(this,"pubspec.yaml");
+        pubspec.setBinaryContent(("name: " + module.getName() + "\n"+ "dependencies:\n"+ "  browser: any").getBytes());
+      }
+ catch (      IOException e) {
+      }
+    }
+  }
+);
+}

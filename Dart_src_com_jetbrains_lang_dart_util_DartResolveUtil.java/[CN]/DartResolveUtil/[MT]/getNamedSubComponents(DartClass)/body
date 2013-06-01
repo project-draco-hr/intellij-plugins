@@ -1,0 +1,20 @@
+{
+  PsiElement body=getBody(dartClass);
+  final List<DartComponent> result=new ArrayList<DartComponent>();
+  if (body == null) {
+    return result;
+  }
+  final DartComponent[] namedComponents=PsiTreeUtil.getChildrenOfType(body,DartComponent.class);
+  final DartVarDeclarationList[] variables=PsiTreeUtil.getChildrenOfType(body,DartVarDeclarationList.class);
+  if (namedComponents != null) {
+    ContainerUtil.addAll(result,namedComponents);
+  }
+  if (variables == null) {
+    return result;
+  }
+  for (  DartVarDeclarationList varDeclarationList : variables) {
+    result.add(varDeclarationList.getVarAccessDeclaration());
+    result.addAll(varDeclarationList.getVarDeclarationListPartList());
+  }
+  return result;
+}

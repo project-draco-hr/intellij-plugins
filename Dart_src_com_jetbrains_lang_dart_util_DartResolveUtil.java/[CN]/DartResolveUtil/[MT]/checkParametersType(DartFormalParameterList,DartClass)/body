@@ -1,0 +1,24 @@
+{
+  final List<DartNormalFormalParameter> normalFormalParameterList=list.getNormalFormalParameterList();
+  int i=0;
+  for (int size=normalFormalParameterList.size(); i < size; i++) {
+    if (i >= classes.length)     return false;
+    final DartNormalFormalParameter normalFormalParameter=normalFormalParameterList.get(i);
+    final DartType dartType=findType(normalFormalParameter);
+    if (dartType != null && !canAssign(resolveClassByType(dartType).getDartClass(),classes[i])) {
+      return false;
+    }
+  }
+  final DartNamedFormalParameters namedFormalParameters=list.getNamedFormalParameters();
+  if (namedFormalParameters == null) {
+    return true;
+  }
+  for (int size=namedFormalParameters.getDefaultFormalNamedParameterList().size(); i - normalFormalParameterList.size() < size; ++i) {
+    final DartDefaultFormalNamedParameter defaultFormalParameter=namedFormalParameters.getDefaultFormalNamedParameterList().get(i - normalFormalParameterList.size());
+    final DartType dartType=findType(defaultFormalParameter);
+    if (dartType != null && !canAssign(resolveClassByType(dartType).getDartClass(),classes[i])) {
+      return false;
+    }
+  }
+  return true;
+}

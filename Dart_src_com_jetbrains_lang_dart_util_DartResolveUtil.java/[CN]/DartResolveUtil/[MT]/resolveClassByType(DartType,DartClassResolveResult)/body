@@ -1,0 +1,19 @@
+{
+  if (dartType == null) {
+    return DartClassResolveResult.EMPTY;
+  }
+  final PsiElement target=dartType.resolveReference();
+  if (target instanceof DartComponentName) {
+    final PsiElement targetParent=target.getParent();
+    if (targetParent == initializer.getDartClass()) {
+      return initializer;
+    }
+    if (targetParent instanceof DartClass) {
+      return DartClassResolveResult.create((DartClass)targetParent);
+    }
+    if (DartComponentType.typeOf(targetParent) == DartComponentType.CONSTRUCTOR) {
+      return DartClassResolveResult.create(PsiTreeUtil.getParentOfType(target,DartClass.class));
+    }
+  }
+  return DartClassResolveResult.EMPTY;
+}

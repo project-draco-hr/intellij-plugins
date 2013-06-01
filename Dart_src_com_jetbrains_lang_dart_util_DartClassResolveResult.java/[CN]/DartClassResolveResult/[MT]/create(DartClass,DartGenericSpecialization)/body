@@ -1,0 +1,24 @@
+{
+  if (dartClass == null) {
+    return new DartClassResolveResult(null);
+  }
+  DartClassResolveResult resolveResult=DartClassResolveCache.getInstance(dartClass.getProject()).get(dartClass);
+  if (resolveResult == null) {
+    resolveResult=new DartClassResolveResult(dartClass);
+    DartClassResolveCache.getInstance(dartClass.getProject()).put(dartClass,resolveResult);
+    final DartType superClass=dartClass.getSuperClass();
+    if (superClass != null) {
+      final DartClassResolveResult result=DartResolveUtil.resolveClassByType(superClass);
+      result.specializeByParameters(superClass.getTypeArguments());
+      resolveResult.merge(result.getSpecialization());
+    }
+    for (    DartType dartType : DartResolveUtil.getImplementsAndMixinsList(dartClass)) {
+      final DartClassResolveResult result=DartResolveUtil.resolveClassByType(dartType);
+      result.specializeByParameters(dartType.getTypeArguments());
+      resolveResult.merge(result.getSpecialization());
+    }
+  }
+  final DartClassResolveResult clone=resolveResult.clone();
+  clone.softMerge(specialization);
+  return clone;
+}

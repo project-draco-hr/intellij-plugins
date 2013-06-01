@@ -1,0 +1,19 @@
+{
+  if (!recursion_guard_(builder_,level_,"arrayAccessExpression"))   return false;
+  if (!nextTokenIs(builder_,LBRACKET))   return false;
+  boolean result_=false;
+  Marker left_marker_=(Marker)builder_.getLatestDoneMarker();
+  if (!invalid_left_marker_guard_(builder_,left_marker_,"arrayAccessExpression"))   return false;
+  Marker marker_=builder_.mark();
+  result_=consumeToken(builder_,LBRACKET);
+  result_=result_ && arrayAccessExpression_1(builder_,level_ + 1);
+  result_=result_ && consumeToken(builder_,RBRACKET);
+  if (result_) {
+    marker_.drop();
+    left_marker_.precede().done(ARRAY_ACCESS_EXPRESSION);
+  }
+ else {
+    marker_.rollbackTo();
+  }
+  return result_;
+}
