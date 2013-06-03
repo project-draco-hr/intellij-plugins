@@ -3,10 +3,11 @@
   KarmaConfig karmaConfig=karmaServer.getKarmaConfig();
   if (karmaConfig != null) {
     File basePath=new File(karmaConfig.getBasePath());
-    for (    String path : karmaConfig.getFiles()) {
-      addMapping(mappings,karmaServer.getWebServerPort(),path,basePath);
+    VirtualFile vBasePath=VfsUtil.findFileByIoFile(basePath,false);
+    if (vBasePath != null && vBasePath.isValid()) {
+      mappings.put("http://localhost:" + karmaServer.getWebServerPort() + "/base",vBasePath);
     }
   }
-  System.out.println("Mappings: " + mappings);
+  mappings.put("http://localhost:" + karmaServer.getWebServerPort() + "/absolute",LocalFileSystem.getInstance().getRoot());
   return new RemoteDebuggingFileFinder(mappings,false);
 }
