@@ -10,11 +10,11 @@
   if (executionResult == null) {
     return null;
   }
-  KarmaConsoleView testRunConsole=KarmaConsoleView.get(executionResult);
-  if (testRunConsole == null) {
-    throw new RuntimeException("KarmaRunSession was expected!");
+  KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult);
+  if (consoleView == null) {
+    throw new RuntimeException("KarmaConsoleView was expected!");
   }
-  KarmaServer karmaServer=testRunConsole.getKarmaRunSession().getKarmaServer();
+  KarmaServer karmaServer=consoleView.getKarmaRunSession().getKarmaServer();
   final Connection connection=debugEngine.openConnection(false);
   final String url="http://localhost:" + karmaServer.getWebServerPort();
   final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
@@ -26,7 +26,7 @@
 );
   ((JSDebugProcess)session.getDebugProcess()).getConnection().queueRequest(new Runnable(){
     @Override public void run(){
-      resumeJstdClientRunning(executionResult.getProcessHandler());
+      resumeTestRunning(executionResult.getProcessHandler());
     }
   }
 );
