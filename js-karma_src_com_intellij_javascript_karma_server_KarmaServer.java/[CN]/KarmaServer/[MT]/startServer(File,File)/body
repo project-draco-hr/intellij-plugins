@@ -11,18 +11,13 @@
   final Process process=commandLine.createProcess();
   KillableColoredProcessHandler processHandler=new KillableColoredProcessHandler(process,commandLine.getCommandLineString(),CharsetToolkit.UTF8_CHARSET);
   processHandler.addProcessListener(new ProcessAdapter(){
-    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
-      String text=event.getText().trim();
-      if (text != null && outputType == ProcessOutputTypes.STDOUT) {
-        handleStdout(text);
-      }
-    }
     @Override public void processTerminated(    ProcessEvent event){
       KarmaServerRegistry.serverTerminated(KarmaServer.this);
       fireOnTerminated(event.getExitCode());
     }
   }
 );
+  processHandler.addProcessListener(myState);
   ProcessTerminatedListener.attach(processHandler);
   processHandler.setShouldDestroyProcessRecursively(true);
   return processHandler;

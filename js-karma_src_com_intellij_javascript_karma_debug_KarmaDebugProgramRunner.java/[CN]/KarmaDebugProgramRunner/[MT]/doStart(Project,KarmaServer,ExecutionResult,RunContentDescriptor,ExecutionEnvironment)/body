@@ -1,0 +1,25 @@
+{
+  final JSDebugEngine<Connection> debugEngine=getDebugEngine(karmaServer.getCapturedBrowsers());
+  if (debugEngine == null) {
+    throw new ExecutionException("No debuggable browser found");
+  }
+  if (!debugEngine.prepareDebugger(project)) {
+    return null;
+  }
+  final Connection connection=debugEngine.openConnection(false);
+  final String url="http://localhost:" + karmaServer.getWebServerPort();
+  final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
+  XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
+    @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
+      return debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
+    }
+  }
+);
+  ((JSDebugProcess)session.getDebugProcess()).getConnection().queueRequest(new Runnable(){
+    @Override public void run(){
+      resumeTestRunning(executionResult.getProcessHandler());
+    }
+  }
+);
+  return session.getRunContentDescriptor();
+}

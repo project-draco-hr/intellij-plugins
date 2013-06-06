@@ -1,11 +1,12 @@
 {
-  if (myIsReady.compareAndSet(false,true)) {
+  if (myOnReadyFired.compareAndSet(false,true)) {
     UIUtil.invokeLaterIfNeeded(new Runnable(){
       @Override public void run(){
         for (        KarmaServerListener listener : myListeners) {
           listener.onReady(webServerPort,runnerPort);
         }
-        myOnReadyFired=true;
+        myOnReadyExecuted=true;
+        processWhenReadyWithCapturedBrowserQueue();
       }
     }
 );
