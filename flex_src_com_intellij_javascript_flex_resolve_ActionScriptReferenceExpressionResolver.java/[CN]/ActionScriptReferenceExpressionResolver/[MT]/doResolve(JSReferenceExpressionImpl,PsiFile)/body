@@ -1,0 +1,95 @@
+{
+  String referencedName=ref.getReferencedName();
+  if (referencedName == null)   return ResolveResult.EMPTY_ARRAY;
+  final PsiElement parent=ref.getParent();
+  final JSExpression qualifier=ref.getResolveQualifier();
+  final boolean localResolve=JSReferenceExpressionImpl.isLocalResolveQualifier(qualifier);
+  PsiElement currentParent=JSResolveUtil.getTopReferenceParent(parent);
+  if (JSResolveUtil.isSelfReference(currentParent,ref)) {
+    if (!(currentParent instanceof JSPackageStatement) || parent == currentParent) {
+      return new ResolveResult[]{new JSResolveResult(currentParent)};
+    }
+  }
+  if (isConditionalVariableReference(currentParent,ref)) {
+    if (ModuleUtilCore.findModuleForPsiElement(ref) == null) {
+      return new ResolveResult[]{new JSResolveResult(ref)};
+    }
+ else {
+      return resolveConditionalCompilationVariable(ref);
+    }
+  }
+  if (ref.isAttributeReference()) {
+    return dummyResult(ref);
+  }
+  if (JSCommonTypeNames.ANY_TYPE.equals(referencedName)) {
+    if (currentParent instanceof JSImportStatement && qualifier instanceof JSReferenceExpression)     return ((JSReferenceExpression)qualifier).multiResolve(false);
+    if (parent instanceof JSE4XNamespaceReference)     return dummyResult(ref);
+  }
+  if (parent instanceof JSReferenceList && parent.getNode().getElementType() == JSElementTypes.IMPLEMENTS_LIST && ref.getQualifier() == null && containingFile instanceof JSFile && XmlBackedJSClassImpl.isImplementsAttribute((JSFile)containingFile)) {
+    PsiElement byQName=JSResolveUtil.findClassByQName(ref.getText(),ref);
+    if (byQName != null)     return new ResolveResult[]{new JSResolveResult(byQName)};
+    return ResolveResult.EMPTY_ARRAY;
+  }
+  ResolveProcessor localProcessor;
+  final Ref<JSType> qualifierType=Ref.create(null);
+  if (localResolve) {
+    final PsiElement topParent=JSResolveUtil.getTopReferenceParent(parent);
+    localProcessor=new ResolveProcessor(referencedName,ref){
+      @Override public boolean needPackages(){
+        if (parent instanceof JSReferenceExpression && topParent instanceof JSImportStatement) {
+          return true;
+        }
+        return super.needPackages();
+      }
+    }
+;
+    localProcessor.setToProcessHierarchy(true);
+    JSReferenceExpressionImpl.doProcessLocalDeclarations(ref,qualifier,localProcessor,true,false,null);
+    PsiElement jsElement=localProcessor.getResult();
+    if (qualifier instanceof JSThisExpression && localProcessor.processingEncounteredAnyTypeAccess() && jsElement != null) {
+      localProcessor.getResults().clear();
+      jsElement=null;
+    }
+    if (qualifier == null) {
+      final JSReferenceExpression namespaceReference=JSReferenceExpressionImpl.getNamespaceReference(ref);
+      ResolveResult[] resolveResultsAsConditionalCompilationVariable=null;
+      if (namespaceReference != null && (namespaceReference == ref || namespaceReference.resolve() == namespaceReference)) {
+        if (jsElement == null && ModuleUtilCore.findModuleForPsiElement(ref) == null) {
+          return new ResolveResult[]{new JSResolveResult(ref)};
+        }
+        resolveResultsAsConditionalCompilationVariable=resolveConditionalCompilationVariable(ref);
+      }
+      if (resolveResultsAsConditionalCompilationVariable != null && resolveResultsAsConditionalCompilationVariable.length > 0 && (jsElement == null || resolveResultsAsConditionalCompilationVariable[0].isValidResult())) {
+        return resolveResultsAsConditionalCompilationVariable;
+      }
+    }
+    if (jsElement != null || localProcessor.isEncounteredDynamicClasses() && qualifier == null || !localProcessor.processingEncounteredAnyTypeAccess() && !localProcessor.isEncounteredDynamicClasses()) {
+      return localProcessor.getResultsAsResolveResults();
+    }
+  }
+ else {
+    final JSReferenceExpressionImpl.QualifiedItemProcessor processor=new JSReferenceExpressionImpl.QualifiedItemProcessor(referencedName,containingFile,ref){
+      @Override public void process(      @NotNull JSType type,      @NotNull BaseJSSymbolProcessor.EvaluateContext evaluateContext,      PsiElement source){
+        qualifierType.set(JSTypeParser.addUnionOption(qualifierType.get(),type));
+        super.process(type,evaluateContext,source);
+      }
+    }
+;
+    processor.setTypeContext(JSResolveUtil.isExprInTypeContext(ref));
+    JSTypeEvaluator.evaluateTypes(qualifier,containingFile,processor);
+    if (processor.resolved == JSReferenceExpressionImpl.QualifiedItemProcessor.TypeResolveState.PrefixUnknown) {
+      return dummyResult(ref);
+    }
+    if (processor.resolved == JSReferenceExpressionImpl.QualifiedItemProcessor.TypeResolveState.Resolved || processor.resolved == JSReferenceExpressionImpl.QualifiedItemProcessor.TypeResolveState.Undefined || processor.getResult() != null) {
+      return processor.getResultsAsResolveResults();
+    }
+ else {
+      localProcessor=processor;
+    }
+  }
+  ResolveResult[] results=doOldResolve(ref,containingFile,referencedName,parent,qualifier,localResolve,localProcessor,qualifierType.get());
+  if (results.length == 0 && localProcessor.isEncounteredXmlLiteral()) {
+    return dummyResult(ref);
+  }
+  return results;
+}

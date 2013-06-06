@@ -1,0 +1,41 @@
+{
+  final String namespace;
+  final String constantName;
+  final PsiElement parent=jsReferenceExpression.getParent();
+  if (parent instanceof JSE4XNamespaceReference) {
+    final PsiElement namespaceReference=((JSE4XNamespaceReference)parent).getNamespaceReference();
+    final PsiElement parentParent=parent.getParent();
+    PsiElement sibling=parent.getNextSibling();
+    while (sibling instanceof PsiWhiteSpace) {
+      sibling=sibling.getNextSibling();
+    }
+    if (namespaceReference != null && parentParent instanceof JSReferenceExpression && sibling != null && sibling.getNextSibling() == null && sibling.getNode() != null && sibling.getNode().getElementType() == JSTokenTypes.IDENTIFIER) {
+      namespace=namespaceReference.getText();
+      constantName=sibling.getText();
+    }
+ else {
+      return new ResolveResult[]{new JSResolveResult(jsReferenceExpression,false)};
+    }
+  }
+ else {
+    final JSE4XNamespaceReference namespaceElement=PsiTreeUtil.getChildOfType(jsReferenceExpression,JSE4XNamespaceReference.class);
+    final PsiElement namespaceReference=namespaceElement == null ? null : namespaceElement.getNamespaceReference();
+    PsiElement sibling=namespaceElement == null ? null : namespaceElement.getNextSibling();
+    while (sibling instanceof PsiWhiteSpace) {
+      sibling=sibling.getNextSibling();
+    }
+    if (namespaceElement != null && sibling != null && sibling.getNextSibling() == null && sibling.getNode() != null && sibling.getNode().getElementType() == JSTokenTypes.IDENTIFIER) {
+      namespace=namespaceReference.getText();
+      constantName=sibling.getText();
+    }
+ else {
+      return new ResolveResult[]{new JSResolveResult(jsReferenceExpression,false)};
+    }
+  }
+  for (  JSConditionalCompilationDefinitionsProvider provider : JSConditionalCompilationDefinitionsProvider.EP_NAME.getExtensions()) {
+    if (provider.containsConstant(ModuleUtilCore.findModuleForPsiElement(jsReferenceExpression),namespace,constantName)) {
+      return new ResolveResult[]{new JSResolveResult(jsReferenceExpression)};
+    }
+  }
+  return new ResolveResult[]{new JSResolveResult(jsReferenceExpression,false)};
+}
