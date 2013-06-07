@@ -20,8 +20,20 @@
       }
 );
     }
+    final Alarm alarm=new Alarm(Alarm.ThreadToUse.SWING_THREAD,consoleContent);
+    alarm.addRequest(new Runnable(){
+      @Override public void run(){
+        if (myKarmaServer.isReady() && !myKarmaServer.hasCapturedBrowsers()) {
+          print("To capture a browser open ",ConsoleViewContentType.SYSTEM_OUTPUT);
+          String url="http://localhost:" + myKarmaServer.getWebServerPort();
+          printHyperlink(url + "\n",new OpenUrlHyperlinkInfo(url));
+        }
+      }
+    }
+,2000,ModalityState.any());
     myKarmaServer.doWhenReadyWithCapturedBrowser(new Runnable(){
       @Override public void run(){
+        alarm.cancelAllRequests();
         ui.selectAndFocus(consoleContent,false,false);
         if (testTreeRenderer != null) {
           testTreeRenderer.removeAdditionalRootFormatter();
