@@ -1,15 +1,16 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
   ExecutionResult executionResult=state.execute(executor,this);
-  if (executionResult == null)   return null;
-  RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
-  RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
-  if (contentToReuse != null) {
-    System.out.println("content to reuse");
+  if (executionResult == null) {
+    return null;
   }
   KarmaConsoleView console=KarmaConsoleView.get(executionResult);
-  if (console != null) {
-    console.getKarmaRunSession().setRunContentDescriptor(descriptor);
+  if (console == null) {
+    LOG.error("Can't get KarmaConsoleView from executionResult!");
+    return null;
   }
+  RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
+  RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  console.getKarmaExecutionSession().setRunContentDescriptor(descriptor);
   return descriptor;
 }
