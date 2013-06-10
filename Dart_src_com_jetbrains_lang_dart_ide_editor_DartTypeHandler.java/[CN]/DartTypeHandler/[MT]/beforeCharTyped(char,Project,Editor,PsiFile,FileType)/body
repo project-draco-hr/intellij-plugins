@@ -1,12 +1,13 @@
 {
+  int offset=editor.getCaretModel().getOffset();
   if (c == '<') {
-    myAfterTypeOrComponentName=checkAfterTypeOrComponentName(file,editor.getCaretModel().getOffset());
+    myAfterTypeOrComponentName=checkAfterTypeOrComponentName(file,offset);
   }
  else   if (c == '{') {
-    myAfterDollar=checkAfterDollarInString(file,editor.getCaretModel().getOffset());
+    myAfterDollar=checkAfterDollarInString(file,offset);
   }
- else   if (c == '\'' || c == '"') {
-    myCompleteStringLiteral=!checkInStringLiteral(file,editor.getCaretModel().getOffset());
+ else   if ((c == '\'' || c == '"') && isDartContext(file.findElementAt(offset - 1))) {
+    myCompleteStringLiteral=!checkInStringLiteral(file,offset);
   }
   return super.beforeCharTyped(c,project,editor,file,fileType);
 }
