@@ -1,17 +1,11 @@
 {
-  PropertiesComponent propertiesComponent=PropertiesComponent.getInstance();
-  String karmaNodePackageDir=propertiesComponent.getValue(KARMA_NODE_PACKAGE_DIR);
-  if (StringUtil.isEmpty(karmaNodePackageDir)) {
-    List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
-    VirtualFile requester=getRequester(project,configFilePath);
-    NodeModuleSearchUtil.findModulesWithName(modules,NODE_PACKAGE_NAME,requester,getNodeSettings(),true);
-    for (    CompletionModuleInfo module : modules) {
-      VirtualFile moduleRoot=module.getVirtualFile();
-      if (moduleRoot != null && moduleRoot.isValid() && moduleRoot.isDirectory()) {
-        karmaNodePackageDir=FileUtil.toSystemDependentName(moduleRoot.getPath());
-        break;
-      }
-    }
+  KarmaPackageDirSetting karmaPackageDirSetting=KarmaPackageDirSetting.getInstance(project);
+  String karmaPackageDir=karmaPackageDirSetting.getPackageDir();
+  if (StringUtil.isEmpty(karmaPackageDir)) {
+    karmaPackageDir=findKarmaPackageDir(project,configFilePath);
   }
-  return karmaNodePackageDir;
+  if (StringUtil.isEmpty(karmaPackageDir)) {
+    karmaPackageDir=getApplicationSetting(KARMA_PACKAGE_DIR__KEY);
+  }
+  return karmaPackageDir;
 }
