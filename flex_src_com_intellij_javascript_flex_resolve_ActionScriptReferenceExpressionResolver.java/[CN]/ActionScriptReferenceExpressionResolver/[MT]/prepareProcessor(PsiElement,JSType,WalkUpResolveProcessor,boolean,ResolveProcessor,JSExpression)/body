@@ -1,5 +1,4 @@
 {
-  final WalkUpResolveProcessor processor=new WalkUpResolveProcessor(referencedName,null,containingFile,ref,BaseJSSymbolProcessor.MatchMode.Strict);
   boolean inDefinition=false;
   boolean allowOnlyCompleteMatches=localResolve && localProcessor.isEncounteredDynamicClasses();
   if (parent instanceof JSDefinitionExpression) {
@@ -15,20 +14,4 @@
   }
   processor.setSkipDefinitions(inDefinition);
   if (localProcessor != null)   processor.addLocalResults(localProcessor.getResultsAsResolveResults());
-  JavaScriptIndex instance=JavaScriptIndex.getInstance(containingFile.getProject());
-  instance.processAllSymbols(processor);
-  ResolveResult[] results=processor.getResults();
-  if (results.length == 0) {
-    if (inDefinition) {
-      return new ResolveResult[]{new JSResolveResult(parent)};
-    }
- else {
-      if (processor.getLimitingScope() != null) {
-        processor.resetLimitingScope();
-        instance.processAllSymbols(processor);
-        results=processor.getResults();
-      }
-    }
-  }
-  return results;
 }
