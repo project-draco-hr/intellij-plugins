@@ -3,16 +3,28 @@
     return Indent.getNoneIndent();
   }
   if (HbPsiUtil.isNonRootStatementsElement(myNode.getPsi())) {
-    if (hasOnlyHbLanguageParents()) {
+    DataLanguageBlockWrapper foreignBlockParent=getForeignBlockParent(false);
+    if (foreignBlockParent == null) {
       return Indent.getNormalIndent();
     }
+    if (foreignBlockParent.getNode() instanceof XmlTag) {
+      XmlTag xmlTag=(XmlTag)foreignBlockParent.getNode();
+      if (!myHtmlPolicy.indentChildrenOf(xmlTag)) {
+        return Indent.getNormalIndent();
+      }
+    }
+    return Indent.getNoneIndent();
   }
   if (myNode.getTreeParent() != null && HbPsiUtil.isNonRootStatementsElement(myNode.getTreeParent().getPsi())) {
     if (getParent() instanceof HandlebarsBlock && ((HandlebarsBlock)getParent()).getIndent() == Indent.getNoneIndent()) {
       return Indent.getNormalIndent();
     }
   }
-  if (getRealBlockParent() instanceof DataLanguageBlockWrapper) {
+  DataLanguageBlockWrapper foreignParent=getForeignBlockParent(true);
+  if (foreignParent != null) {
+    if (foreignParent.getNode() instanceof XmlTag && !myHtmlPolicy.indentChildrenOf((XmlTag)foreignParent.getNode())) {
+      return Indent.getNoneIndent();
+    }
     return Indent.getNormalIndent();
   }
   return Indent.getNoneIndent();
