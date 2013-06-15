@@ -2,22 +2,10 @@
   if (!recursion_guard_(builder_,level_,"unaryExpression"))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  int start_=builder_.getCurrentOffset();
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<unary expression>");
+  Marker marker_=enter_section_(builder_,level_,_COLLAPSE_,"<unary expression>");
   result_=unaryOperator(builder_,level_ + 1);
   pinned_=result_;
   result_=result_ && expression(builder_,level_ + 1,-1);
-  LighterASTNode last_=result_ ? builder_.getLatestDoneMarker() : null;
-  if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(),UNARY_EXPRESSION)) {
-    marker_.drop();
-  }
- else   if (result_ || pinned_) {
-    marker_.done(UNARY_EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,UNARY_EXPRESSION,result_,pinned_,null);
   return result_ || pinned_;
 }

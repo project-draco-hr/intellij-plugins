@@ -2,19 +2,12 @@
   if (!recursion_guard_(builder_,level_,"indexedExpression"))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<indexed expression>");
+  Marker marker_=enter_section_(builder_,level_,_NONE_,"<indexed expression>");
   result_=indexedExpression_0(builder_,level_ + 1);
   result_=result_ && consumeToken(builder_,LBRACKET);
   pinned_=result_;
   result_=result_ && report_error_(builder_,expression(builder_,level_ + 1,-1));
   result_=pinned_ && consumeToken(builder_,RBRACKET) && result_;
-  if (result_ || pinned_) {
-    marker_.done(INDEXED_EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,INDEXED_EXPRESSION,result_,pinned_,null);
   return result_ || pinned_;
 }

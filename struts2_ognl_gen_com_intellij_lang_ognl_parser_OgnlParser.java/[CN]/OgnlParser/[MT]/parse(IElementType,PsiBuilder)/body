@@ -1,7 +1,7 @@
 {
   int level_=0;
   boolean result_;
-  builder_=adapt_builder_(root_,builder_,this);
+  builder_=adapt_builder_(root_,builder_,this,EXTENDS_SETS_);
   if (root_ == BINARY_EXPRESSION) {
     result_=expression(builder_,level_ + 1,3);
   }
@@ -42,11 +42,9 @@
     result_=variableExpression(builder_,level_ + 1);
   }
  else {
-    Marker marker_=builder_.mark();
-    enterErrorRecordingSection(builder_,level_,_SECTION_RECOVER_,null);
+    Marker marker_=enter_section_(builder_,level_,_NONE_,null);
     result_=parse_root_(root_,builder_,level_);
-    exitErrorRecordingSection(builder_,level_,result_,true,_SECTION_RECOVER_,TOKEN_ADVANCER);
-    marker_.done(root_);
+    exit_section_(builder_,level_,marker_,root_,result_,true,TOKEN_ADVANCER);
   }
   return builder_.getTreeBuilt();
 }

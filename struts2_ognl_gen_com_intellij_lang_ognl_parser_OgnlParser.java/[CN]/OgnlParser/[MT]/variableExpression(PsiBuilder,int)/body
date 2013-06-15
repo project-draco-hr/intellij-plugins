@@ -3,17 +3,10 @@
   if (!nextTokenIs(builder_,HASH))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,null);
+  Marker marker_=enter_section_(builder_,level_,_NONE_,null);
   result_=consumeToken(builder_,HASH);
   pinned_=result_;
   result_=result_ && consumeToken(builder_,IDENTIFIER);
-  if (result_ || pinned_) {
-    marker_.done(VARIABLE_EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,VARIABLE_EXPRESSION,result_,pinned_,null);
   return result_ || pinned_;
 }

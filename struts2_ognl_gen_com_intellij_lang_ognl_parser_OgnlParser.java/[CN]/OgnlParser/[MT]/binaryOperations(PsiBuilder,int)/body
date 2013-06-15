@@ -1,8 +1,7 @@
 {
   if (!recursion_guard_(builder_,level_,"binaryOperations"))   return false;
   boolean result_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<operator>");
+  Marker marker_=enter_section_(builder_,level_,_NONE_,"<operator>");
   result_=plusMinusOperations(builder_,level_ + 1);
   if (!result_)   result_=divideMultiplyOperations(builder_,level_ + 1);
   if (!result_)   result_=bitwiseBooleanOperations(builder_,level_ + 1);
@@ -12,12 +11,6 @@
   if (!result_)   result_=equalityOperations(builder_,level_ + 1);
   if (!result_)   result_=relationalOperations(builder_,level_ + 1);
   if (!result_)   result_=setOperations(builder_,level_ + 1);
-  if (!result_) {
-    marker_.rollbackTo();
-  }
- else {
-    marker_.drop();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,false,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,null,result_,false,null);
   return result_;
 }
