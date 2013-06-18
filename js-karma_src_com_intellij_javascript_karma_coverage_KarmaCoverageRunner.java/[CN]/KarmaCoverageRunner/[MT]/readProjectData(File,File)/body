@@ -1,0 +1,22 @@
+{
+  ProjectData projectData=new ProjectData();
+  LcovCoverageReport report=CoverageSerializationUtils.readLCOV(basePath,dataFile);
+  for (  Map.Entry<String,List<LcovCoverageReport.LineHits>> entry : report.getInfo().entrySet()) {
+    String filePath=SimpleCoverageAnnotator.getFilePath(entry.getKey());
+    ClassData classData=projectData.getOrCreateClassData(filePath);
+    int max=0;
+    List<LcovCoverageReport.LineHits> lineHitsList=entry.getValue();
+    if (lineHitsList.size() > 0) {
+      LcovCoverageReport.LineHits lastLineHits=lineHitsList.get(lineHitsList.size() - 1);
+      max=lastLineHits.getLineNumber();
+    }
+    LineData[] lines=new LineData[max + 1];
+    for (    LcovCoverageReport.LineHits lineHits : lineHitsList) {
+      LineData lineData=new LineData(lineHits.getLineNumber(),null);
+      lineData.setHits(lineHits.getHits());
+      lines[lineHits.getLineNumber()]=lineData;
+    }
+    classData.setLines(lines);
+  }
+  return projectData;
+}

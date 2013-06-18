@@ -10,24 +10,26 @@
     return createOSProcessHandler(server.getRunnerPort(),clientAppFile);
   }
   final NopProcessHandler nopProcessHandler=new NopProcessHandler();
-  server.doWhenReadyWithCapturedBrowser(new Runnable(){
-    @Override public void run(){
-      if (nopProcessHandler.isProcessTerminated()) {
-        return;
-      }
-      try {
-        OSProcessHandler osProcessHandler=createOSProcessHandler(server.getRunnerPort(),clientAppFile);
-        if (myRunContentDescriptor != null) {
-          myRunContentDescriptor.setProcessHandler(osProcessHandler);
+  if (myExecutionType == KarmaExecutionType.RUN) {
+    server.doWhenReadyWithCapturedBrowser(new Runnable(){
+      @Override public void run(){
+        if (nopProcessHandler.isProcessTerminated()) {
+          return;
         }
-        osProcessHandler.startNotify();
-      }
- catch (      ExecutionException e) {
-        LOG.warn(e);
+        try {
+          OSProcessHandler osProcessHandler=createOSProcessHandler(server.getRunnerPort(),clientAppFile);
+          if (myRunContentDescriptor != null) {
+            myRunContentDescriptor.setProcessHandler(osProcessHandler);
+          }
+          osProcessHandler.startNotify();
+        }
+ catch (        ExecutionException e) {
+          LOG.warn(e);
+        }
       }
     }
-  }
 );
+  }
   server.addListener(new KarmaServerAdapter(){
     @Override public void onTerminated(    int exitCode){
       nopProcessHandler.destroyProcess();

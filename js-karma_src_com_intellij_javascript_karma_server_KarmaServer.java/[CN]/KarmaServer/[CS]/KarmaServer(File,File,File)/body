@@ -1,4 +1,5 @@
 {
+  myCoverageTempDir=FileUtil.createTempDirectory("karma-intellij-coverage-",null);
   myConfigurationFile=configurationFile;
   myKarmaJsSourcesLocator=new KarmaJsSourcesLocator(karmaPackageDir);
   myState=new KarmaServerState(this);
@@ -14,9 +15,11 @@
       if ("config".equals(eventType)) {
         myKarmaConfig=KarmaConfig.parseFromJson(eventBody);
       }
- else       if ("coverage".equals(eventType)) {
-        if ("done".equals(eventBody)) {
-          System.out.println("Coverage done");
+ else       if ("coverage-finished".equals(eventType)) {
+        KarmaCoverageSession coverageSession=myActiveCoverageSession;
+        myActiveCoverageSession=null;
+        if (coverageSession != null && coverageSession.getCoverageFilePath().equals(eventBody)) {
+          coverageSession.onCoverageSessionFinished();
         }
       }
     }

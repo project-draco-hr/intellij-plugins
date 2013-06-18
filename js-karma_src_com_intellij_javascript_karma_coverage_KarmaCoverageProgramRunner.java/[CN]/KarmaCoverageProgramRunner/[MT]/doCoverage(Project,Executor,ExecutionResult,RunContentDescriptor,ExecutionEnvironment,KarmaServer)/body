@@ -1,0 +1,26 @@
+{
+  final KarmaRunConfiguration runConfiguration=(KarmaRunConfiguration)env.getRunProfile();
+  CoverageEnabledConfiguration coverageEnabledConfiguration=CoverageEnabledConfiguration.getOrCreate(runConfiguration);
+  CoverageHelper.resetCoverageSuit(runConfiguration);
+  String coverageFilePath=coverageEnabledConfiguration.getCoverageFilePath();
+  if (coverageFilePath != null) {
+    karmaServer.startCoverageSession(new KarmaCoverageSession(coverageFilePath){
+      @Override public void onCoverageSessionFinished(){
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            RunnerSettings runnerSettings=env.getRunnerSettings();
+            if (runnerSettings != null) {
+              KarmaCoverageRunner coverageRunner=CoverageRunner.getInstance(KarmaCoverageRunner.class);
+              coverageRunner.setKarmaServer(karmaServer);
+              CoverageDataManager.getInstance(project).processGatheredCoverage(runConfiguration,runnerSettings);
+            }
+          }
+        }
+);
+      }
+    }
+);
+  }
+  final RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
+  return contentBuilder.showRunContent(contentToReuse);
+}
