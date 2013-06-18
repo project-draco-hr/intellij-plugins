@@ -1,5 +1,14 @@
 {
-  List<PsiFile> result=new ArrayList<PsiFile>();
-  addAllStepsFiles(dir,result,writableOnly);
+  final List<PsiFile> result=new ArrayList<PsiFile>();
+  for (  PsiFile file : dir.getFiles()) {
+    final VirtualFile virtualFile=file.getVirtualFile();
+    boolean isStepFile=writableOnly ? isWritableStepLikeFile(file,file.getParent()) : isStepLikeFile(file,file.getParent());
+    if (isStepFile && virtualFile != null) {
+      result.add(file);
+    }
+  }
+  for (  PsiDirectory subDir : dir.getSubdirectories()) {
+    result.addAll(gatherStepDefinitionsFilesFromDirectory(subDir,writableOnly));
+  }
   return result;
 }
