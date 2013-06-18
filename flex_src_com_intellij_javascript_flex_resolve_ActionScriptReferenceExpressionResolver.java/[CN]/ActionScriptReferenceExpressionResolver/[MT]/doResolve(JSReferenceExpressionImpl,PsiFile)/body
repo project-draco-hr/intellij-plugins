@@ -68,13 +68,7 @@
     }
   }
  else {
-    final JSReferenceExpressionImpl.QualifiedItemProcessor processor=new JSReferenceExpressionImpl.QualifiedItemProcessor(referencedName,containingFile,ref){
-      @Override public void process(      @NotNull JSType type,      @NotNull BaseJSSymbolProcessor.EvaluateContext evaluateContext,      PsiElement source){
-        qualifierType.set(JSTypeParser.addUnionOption(qualifierType.get(),type));
-        super.process(type,evaluateContext,source);
-      }
-    }
-;
+    final JSReferenceExpressionImpl.QualifiedItemProcessor processor=new JSReferenceExpressionImpl.QualifiedItemProcessor(referencedName,containingFile,ref);
     processor.setTypeContext(JSResolveUtil.isExprInTypeContext(ref));
     JSTypeEvaluator.evaluateTypes(qualifier,containingFile,processor);
     if (processor.resolved == JSReferenceExpressionImpl.QualifiedItemProcessor.TypeResolveState.PrefixUnknown) {
@@ -87,7 +81,7 @@
       localProcessor=processor;
     }
   }
-  ResolveResult[] results=doOldResolve(ref,containingFile,referencedName,parent,qualifier,localResolve,localProcessor,qualifierType.get());
+  ResolveResult[] results=resolveFromIndices(ref,containingFile,referencedName,parent,qualifier,localResolve,localProcessor,qualifierType.get());
   if (results.length == 0 && localProcessor.isEncounteredXmlLiteral()) {
     return dummyResult(ref);
   }
