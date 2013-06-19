@@ -4,13 +4,21 @@
   if (executionResult == null) {
     return null;
   }
-  KarmaConsoleView console=KarmaConsoleView.get(executionResult);
-  if (console == null) {
+  KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult);
+  if (consoleView == null) {
     LOG.error("Can't get KarmaConsoleView from executionResult!");
     return null;
   }
   RunContentBuilder contentBuilder=new RunContentBuilder(project,this,executor,executionResult,env);
-  RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
-  console.getKarmaExecutionSession().setRunContentDescriptor(descriptor);
+  final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
+  if (!karmaServer.isReady() || !karmaServer.hasCapturedBrowsers()) {
+    karmaServer.doWhenReadyWithCapturedBrowser(new Runnable(){
+      @Override public void run(){
+        descriptor.getRestarter().run();
+      }
+    }
+);
+  }
   return descriptor;
 }
