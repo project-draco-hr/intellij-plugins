@@ -1,6 +1,11 @@
 {
-  final CompilerModuleExtension model=(CompilerModuleExtension)CompilerModuleExtension.getInstance(module).getModifiableModel(true);
-  model.setCompilerOutputPath(model.getCompilerOutputUrl());
-  model.inheritCompilerOutputPath(false);
-  model.commit();
+  ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+  try {
+    CompilerModuleExtension extension=modifiableModel.getModuleExtension(CompilerModuleExtension.class);
+    extension.setCompilerOutputPath(extension.getCompilerOutputUrl());
+    extension.inheritCompilerOutputPath(false);
+  }
+  finally {
+    modifiableModel.commit();
+  }
 }
