@@ -1,15 +1,15 @@
 {
   ui.getOptions().setMinimizeActionEnabled(false);
-  boolean readyToRun=myKarmaServer.isReady() && myKarmaServer.hasCapturedBrowsers();
+  boolean readyToRun=myServer.isReady() && myServer.hasCapturedBrowsers();
   final Content consoleContent=ui.createContent(ExecutionConsole.CONSOLE_CONTENT_ID,getComponent(),"Test Run",AllIcons.Debugger.Console,getPreferredFocusableComponent());
   ui.addContent(consoleContent,1,PlaceInGrid.bottom,false);
   consoleContent.setCloseable(false);
-  final KarmaRootTestProxyFormatter rootFormatter=new KarmaRootTestProxyFormatter(this);
+  final KarmaRootTestProxyFormatter rootFormatter=new KarmaRootTestProxyFormatter(this,myServer);
   if (readyToRun) {
     ui.selectAndFocus(consoleContent,false,false);
   }
  else {
-    myKarmaServer.addListener(new KarmaServerAdapter(){
+    myServer.addListener(new KarmaServerAdapter(){
       @Override public void onReady(      int webServerPort,      int runnerPort){
         ui.selectAndFocus(consoleContent,false,false);
       }
@@ -18,21 +18,21 @@
     final Alarm alarm=new Alarm(Alarm.ThreadToUse.SWING_THREAD,consoleContent);
     alarm.addRequest(new Runnable(){
       @Override public void run(){
-        if (myKarmaServer.isReady() && !myKarmaServer.hasCapturedBrowsers()) {
+        if (myServer.isReady() && !myServer.hasCapturedBrowsers()) {
           print("To capture a browser open ",ConsoleViewContentType.SYSTEM_OUTPUT);
-          String url="http://localhost:" + myKarmaServer.getWebServerPort();
+          String url="http://localhost:" + myServer.getWebServerPort();
           printHyperlink(url + "\n",new OpenUrlHyperlinkInfo(url));
         }
       }
     }
 ,1000,ModalityState.any());
-    myKarmaServer.doWhenReadyWithCapturedBrowser(new Runnable(){
+    myServer.doWhenReadyWithCapturedBrowser(new Runnable(){
       @Override public void run(){
         alarm.cancelAllRequests();
       }
     }
 );
-    myKarmaServer.addListener(new KarmaServerAdapter(){
+    myServer.addListener(new KarmaServerAdapter(){
       @Override public void onTerminated(      int exitCode){
         alarm.cancelAllRequests();
         rootFormatter.uninstall();
