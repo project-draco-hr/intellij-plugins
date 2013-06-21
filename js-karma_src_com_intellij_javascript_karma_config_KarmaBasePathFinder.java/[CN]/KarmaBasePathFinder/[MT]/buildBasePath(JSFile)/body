@@ -1,10 +1,23 @@
 {
-  List<JSStatement> jsStatements=JsPsiUtils.listStatementsInExecutionOrder(jsFile);
-  for (  JSStatement jsStatement : jsStatements) {
-    String basePath=extractBasePath(jsStatement);
-    if (basePath != null) {
-      return basePath;
+  final Ref<String> basePathRef=Ref.create(null);
+  JSElementVisitor visitor=new JSElementVisitor(){
+    @Override public void visitJSProperty(    JSProperty property){
+      String name=JsPsiUtils.getPropertyName(property);
+      if (BASE_PATH_VAR_NAME.equals(name)) {
+        JSLiteralExpression value=ObjectUtils.tryCast(property.getValue(),JSLiteralExpression.class);
+        if (value != null && value.isQuotedLiteral()) {
+          basePathRef.set(StringUtil.stripQuotesAroundValue(value.getText()));
+        }
+      }
+    }
+    @Override public void visitElement(    PsiElement element){
+      ProgressIndicatorProvider.checkCanceled();
+      if (basePathRef.isNull()) {
+        element.acceptChildren(this);
+      }
     }
   }
-  return null;
+;
+  visitor.visitJSFile(jsFile);
+  return basePathRef.get();
 }
