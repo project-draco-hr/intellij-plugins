@@ -12,7 +12,7 @@
   findModel.setStringToReplace("$1");
   CommonProcessors.CollectProcessor<Usage> collectProcessor=new CommonProcessors.CollectProcessor<Usage>();
   PsiDirectory directory=PsiManager.getInstance(project).findDirectory(project.getBaseDir());
-  FindInProjectUtil.findUsages(findModel,directory,project,true,new AdapterProcessor<UsageInfo,Usage>(collectProcessor,UsageInfo2UsageAdapter.CONVERTER));
+  FindInProjectUtil.findUsages(findModel,directory,project,true,new AdapterProcessor<UsageInfo,Usage>(collectProcessor,UsageInfo2UsageAdapter.CONVERTER),FindInProjectUtil.setupProcessPresentation(project,true,FindInProjectUtil.setupViewPresentation(true,findModel)));
   final Collection<Usage> usages=collectProcessor.getResults();
   Runnable runnable=new Runnable(){
     public void run(){
@@ -30,8 +30,8 @@
               String s=foundString.toString();
               String regExMatch=FindManager.getInstance(project).getStringToReplace(s,findModel,textOffset,document.getText());
               System.out.println(regExMatch);
-              PsiElement element=PsiUtil.getElementAtOffset(((UsageInfo2UsageAdapter)r).getUsageInfo().getFile(),textOffset + 1);
-              PsiElement propElement=PsiUtil.getElementAtOffset(((UsageInfo2UsageAdapter)r).getUsageInfo().getFile(),textOffset + 1 + "$scope".length());
+              PsiElement element=PsiUtilBase.getElementAtOffset(((UsageInfo2UsageAdapter)r).getUsageInfo().getFile(),textOffset + 1);
+              PsiElement propElement=PsiUtilBase.getElementAtOffset(((UsageInfo2UsageAdapter)r).getUsageInfo().getFile(),textOffset + 1 + "$scope".length());
               String elementText=element.getText();
               System.out.println(elementText + ": " + regExMatch+ " - "+ s);
               result.addElement(LookupElementBuilder.create(propElement,propElement.getText()));
