@@ -1,18 +1,39 @@
 {
-  final CucumberStepsIndex index=CucumberStepsIndex.getInstance(element.getProject());
-  if (element instanceof GherkinStep) {
-    final GherkinStep step=(GherkinStep)element;
-    final List<PsiElement> result=new ArrayList<PsiElement>();
-    final Set<String> substitutedNameList=step.getSubstitutedNameList();
-    if (substitutedNameList.size() > 0) {
-      for (      String s : substitutedNameList) {
-        final AbstractStepDefinition definition=index.findStepDefinition(element.getContainingFile(),s);
-        if (definition != null) {
-          result.add(definition.getElement());
-        }
-      }
-      return result;
+  final Module module=ModuleUtilCore.findModuleForPsiElement(element);
+  if (module == null) {
+    return Collections.emptyList();
+  }
+  if (!(element instanceof GherkinStep)) {
+    return Collections.emptyList();
+  }
+  final GherkinStep step=(GherkinStep)element;
+  final GlobalSearchScope dependenciesScope=module.getModuleWithDependenciesAndLibrariesScope(true);
+  Collection<PsiClass> stepDefAnnotationCandidates=JavaFullClassNameIndex.getInstance().get(CUCUMBER_RUNTIME_JAVA_STEP_DEF_ANNOTATION.hashCode(),module.getProject(),dependenciesScope);
+  PsiClass stepDefAnnotationClass=null;
+  for (  PsiClass candidate : stepDefAnnotationCandidates) {
+    if (CUCUMBER_RUNTIME_JAVA_STEP_DEF_ANNOTATION.equals(candidate.getQualifiedName())) {
+      stepDefAnnotationClass=candidate;
+      break;
     }
   }
-  return new ArrayList<PsiElement>();
+  if (stepDefAnnotationClass == null) {
+    return Collections.emptyList();
+  }
+  final List<PsiElement> result=new ArrayList<PsiElement>();
+  final Query<PsiClass> stepDefAnnotations=AnnotatedElementsSearch.searchPsiClasses(stepDefAnnotationClass,dependenciesScope);
+  for (  PsiClass annotationClass : stepDefAnnotations) {
+    final Query<PsiMethod> javaStepDefinitions=AnnotatedElementsSearch.searchPsiMethods(annotationClass,dependenciesScope);
+    for (    PsiMethod stepDefMethod : javaStepDefinitions) {
+      final JavaStepDefinition stepDef=new JavaStepDefinition(stepDefMethod);
+      final Set<String> substitutedNameList=step.getSubstitutedNameList();
+      if (substitutedNameList.size() > 0) {
+        for (        String s : substitutedNameList) {
+          if (stepDef.matches(s)) {
+            result.add(stepDef.getElement());
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
