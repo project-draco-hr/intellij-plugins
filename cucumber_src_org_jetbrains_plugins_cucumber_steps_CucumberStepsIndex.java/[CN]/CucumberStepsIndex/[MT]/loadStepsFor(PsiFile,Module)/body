@@ -1,32 +1,7 @@
 {
-  final List<PsiDirectory> notLoadedStepDefinitionsRoots=new ArrayList<PsiDirectory>();
-  try {
-    findRelatedStepDefsRoots(featureFile,module,notLoadedStepDefinitionsRoots,myProcessedStepDirectories);
+  ArrayList<AbstractStepDefinition> result=new ArrayList<AbstractStepDefinition>();
+  for (  CucumberJvmExtensionPoint extension : myExtensionList) {
+    result.addAll(extension.loadStepsFor(featureFile,module));
   }
- catch (  ProcessCanceledException e) {
-    return;
-  }
-synchronized (myStepDefinitions) {
-    final List<AbstractStepDefinition> stepDefinitions=new ArrayList<AbstractStepDefinition>();
-    for (    PsiDirectory root : notLoadedStepDefinitionsRoots) {
-      stepDefinitions.clear();
-      try {
-        myProcessedStepDirectories.add(root.getVirtualFile().getPath());
-        final List<PsiFile> files=gatherStepDefinitionsFilesFromDirectory(root,false);
-        for (        final PsiFile file : files) {
-          removeAbstractStepDefinitionsRelatedTo(file);
-          stepDefinitions.addAll(getStepDefinitions(file));
-          createWatcher(file);
-        }
-        myStepDefinitions.addAll(stepDefinitions);
-      }
- catch (      ProcessCanceledException e) {
-        myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
-        if (!stepDefinitions.isEmpty()) {
-          myStepDefinitions.removeAll(stepDefinitions);
-        }
-        throw e;
-      }
-    }
-  }
+  return result;
 }

@@ -1,0 +1,64 @@
+{
+  myProject=project;
+  myUpdateQueue.setPassThrough(false);
+  PsiManager.getInstance(project).addPsiTreeChangeListener(myCucumberPsiTreeListener);
+  PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter(){
+    @Override public void childAdded(    @NotNull PsiTreeChangeEvent event){
+      final PsiElement parent=event.getParent();
+      PsiElement child=event.getChild();
+      if (isStepLikeFile(child,parent)) {
+        final PsiFile file=(PsiFile)child;
+        myUpdateQueue.queue(new Update(parent){
+          public void run(){
+            if (file.isValid()) {
+              reloadAbstractStepDefinitions(file);
+              createWatcher(file);
+            }
+          }
+        }
+);
+      }
+    }
+    @Override public void childRemoved(    @NotNull PsiTreeChangeEvent event){
+      final PsiElement parent=event.getParent();
+      final PsiElement child=event.getChild();
+      if (isStepLikeFile(child,parent)) {
+        myUpdateQueue.queue(new Update(parent){
+          public void run(){
+            removeAbstractStepDefinitionsRelatedTo((PsiFile)child);
+          }
+        }
+);
+      }
+    }
+  }
+);
+  final MessageBusConnection connection=project.getMessageBus().connect();
+  connection.subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootListener(){
+    final List<VirtualFile> myPreviousStepDefsProviders=new ArrayList<VirtualFile>();
+    public void beforeRootsChange(    ModuleRootEvent event){
+      myPreviousStepDefsProviders.clear();
+      collectAllStepDefsProviders(myPreviousStepDefsProviders,myProject);
+    }
+    public void rootsChanged(    ModuleRootEvent event){
+      final List<VirtualFile> newStepDefsProviders=new ArrayList<VirtualFile>();
+      collectAllStepDefsProviders(newStepDefsProviders,myProject);
+      if (!compareRoots(newStepDefsProviders)) {
+        reset();
+      }
+    }
+    private boolean compareRoots(    final List<VirtualFile> newStepDefsProviders){
+      if (myPreviousStepDefsProviders.size() != newStepDefsProviders.size()) {
+        return false;
+      }
+      for (      VirtualFile root : myPreviousStepDefsProviders) {
+        if (!newStepDefsProviders.contains(root)) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+);
+  Disposer.register(project,connection);
+}
