@@ -2,9 +2,12 @@
   final List<PsiFile> result=new ArrayList<PsiFile>();
   for (  PsiFile file : dir.getFiles()) {
     final VirtualFile virtualFile=file.getVirtualFile();
-    boolean isStepFile=writableOnly ? isWritableStepLikeFile(file,file.getParent()) : isStepLikeFile(file,file.getParent());
-    if (isStepFile && virtualFile != null) {
-      result.add(file);
+    final PsiDirectory parent=file.getParent();
+    if (parent != null) {
+      boolean isStepFile=writableOnly ? isWritableStepLikeFile(file,parent) : isStepLikeFile(file,parent);
+      if (isStepFile && virtualFile != null) {
+        result.add(file);
+      }
     }
   }
   for (  PsiDirectory subDir : dir.getSubdirectories()) {

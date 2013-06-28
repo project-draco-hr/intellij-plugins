@@ -3,19 +3,13 @@
   if (module == null) {
     return Collections.emptyList();
   }
-  if (!(element instanceof GherkinStep)) {
-    return Collections.emptyList();
-  }
-  final GherkinStep step=(GherkinStep)element;
+  Set<String> stepVariants=getAllPossibleStepVariants(element);
   final List<AbstractStepDefinition> stepDefinitions=loadStepsFor(element.getContainingFile(),module);
   final List<PsiElement> result=new ArrayList<PsiElement>();
   for (  AbstractStepDefinition stepDefinition : stepDefinitions) {
-    final Set<String> substitutedNameList=step.getSubstitutedNameList();
-    if (substitutedNameList.size() > 0) {
-      for (      String s : substitutedNameList) {
-        if (stepDefinition.matches(s)) {
-          result.add(stepDefinition.getElement());
-        }
+    for (    String s : stepVariants) {
+      if (stepDefinition.matches(s)) {
+        result.add(stepDefinition.getElement());
       }
     }
   }
