@@ -10,17 +10,51 @@
     throw new IOException("Can not create karma server process",e);
   }
   myProcessEventStore=new ProcessEventStore(myProcessHandler);
+  registerStreamEventHandler(new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "coverageFinished";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      KarmaCoverageSession coverageSession=myActiveCoverageSession;
+      myActiveCoverageSession=null;
+      if (coverageSession != null && eventBody.isJsonPrimitive()) {
+        JsonPrimitive primitive=eventBody.getAsJsonPrimitive();
+        if (primitive.isString()) {
+          String path=primitive.getAsString();
+          if (coverageSession.getCoverageFilePath().equals(path)) {
+            coverageSession.onCoverageSessionFinished();
+          }
+        }
+      }
+    }
+  }
+);
+  registerStreamEventHandler(new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "configFile";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      myKarmaConfig=KarmaConfig.parseFromJson(eventBody);
+    }
+  }
+);
   myProcessEventStore.addStreamEventListener(new StreamEventListener(){
     @Override public void on(    @NotNull String eventType,    @NotNull String eventBody){
-      if ("basePath".equals(eventType)) {
-        myKarmaConfig=new KarmaConfig(eventBody,Collections.<String>emptySet());
+      JsonElement jsonElement;
+      try {
+        JsonParser jsonParser=new JsonParser();
+        jsonElement=jsonParser.parse(eventBody);
       }
- else       if ("coverage-finished".equals(eventType)) {
-        KarmaCoverageSession coverageSession=myActiveCoverageSession;
-        myActiveCoverageSession=null;
-        if (coverageSession != null && coverageSession.getCoverageFilePath().equals(eventBody)) {
-          coverageSession.onCoverageSessionFinished();
-        }
+ catch (      Exception e) {
+        LOG.warn("Cannot parse message from karma server:" + " (eventType: " + eventType + ", eventBody: "+ eventBody+ ")");
+        return;
+      }
+      StreamEventHandler handler=myHandlers.get(eventType);
+      if (handler != null) {
+        handler.handle(jsonElement);
+      }
+ else {
+        LOG.warn("Cannot find handler for " + eventType);
       }
     }
   }
