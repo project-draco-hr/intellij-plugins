@@ -17,14 +17,9 @@
     @Override public void handle(    @NotNull JsonElement eventBody){
       KarmaCoverageSession coverageSession=myActiveCoverageSession;
       myActiveCoverageSession=null;
-      if (coverageSession != null && eventBody.isJsonPrimitive()) {
-        JsonPrimitive primitive=eventBody.getAsJsonPrimitive();
-        if (primitive.isString()) {
-          String path=primitive.getAsString();
-          if (coverageSession.getCoverageFilePath().equals(path)) {
-            coverageSession.onCoverageSessionFinished();
-          }
-        }
+      if (coverageSession != null) {
+        String path=GsonUtil.asString(eventBody);
+        coverageSession.onCoverageSessionFinished(new File(path));
       }
     }
   }
