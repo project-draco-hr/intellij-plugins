@@ -1,15 +1,19 @@
 {
   PsiBuilder.Marker inMustacheMarker=builder.mark();
+  PsiBuilder.Marker mustacheNameMarker=builder.mark();
   if (!parsePath(builder)) {
     if (parseDataName(builder)) {
+      mustacheNameMarker.done(HbTokenTypes.MUSTACHE_NAME);
       inMustacheMarker.drop();
       return true;
     }
  else {
+      mustacheNameMarker.drop();
       inMustacheMarker.error(HbBundle.message("hb.parsing.expected.path.or.data"));
       return false;
     }
   }
+  mustacheNameMarker.done(HbTokenTypes.MUSTACHE_NAME);
   PsiBuilder.Marker hashMarker=builder.mark();
   if (parseHash(builder)) {
     hashMarker.drop();
