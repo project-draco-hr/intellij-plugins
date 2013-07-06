@@ -4,8 +4,11 @@
   }
   PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
   PsiElement elementAtCaret=provider.findElementAt(offset - 1,HbLanguage.class);
-  PsiElement openTag=HbPsiUtil.findParentOpenTagElement(elementAtCaret);
-  if (openTag != null && openTag.getChildren().length > 1) {
+  if (elementAtCaret == null || elementAtCaret.getNode().getElementType() != HbTokenTypes.CLOSE) {
+    return;
+  }
+  HbOpenBlockMustache openTag=HbPsiUtil.findParentOpenTagElement(elementAtCaret);
+  if (openTag != null && openTag.getPairedElement() == null && openTag.getChildren().length > 1) {
     HbMustacheName mustacheName=PsiTreeUtil.findChildOfType(openTag,HbMustacheName.class);
     if (mustacheName != null) {
       editor.getDocument().insertString(offset,"{{/" + mustacheName.getText() + "}}");
