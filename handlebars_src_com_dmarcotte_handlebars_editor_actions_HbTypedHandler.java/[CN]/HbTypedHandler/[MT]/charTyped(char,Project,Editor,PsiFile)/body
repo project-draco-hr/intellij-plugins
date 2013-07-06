@@ -5,21 +5,38 @@
     return Result.CONTINUE;
   }
   String previousChar=editor.getDocument().getText(new TextRange(offset - 2,offset - 1));
+  boolean closeBraceCompleted=false;
   if (provider instanceof HbFileViewProvider) {
     if (c == '}' && !previousChar.equals("}")) {
       PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
       PsiElement elementAt=provider.findElementAt(offset - 1,HbLanguage.class);
       ASTNode node=elementAt != null ? elementAt.getNode() : null;
       if (node != null && node.getElementType() == HbTokenTypes.INVALID) {
-        previousChar="}";
-        editor.getDocument().insertString(offset,previousChar);
-        editor.getCaretModel().moveToOffset(++offset);
+        PsiElement mustache=PsiTreeUtil.findFirstParent(elementAt,new Condition<PsiElement>(){
+          @Override public boolean value(          PsiElement psiElement){
+            return psiElement instanceof HbMustache;
+          }
+        }
+);
+        if (mustache != null) {
+          String braceCompleter;
+          if (mustache.getFirstChild().getNode().getElementType() == HbTokenTypes.OPEN_UNESCAPED) {
+            braceCompleter="}}";
+          }
+ else {
+            braceCompleter="}";
+          }
+          editor.getDocument().insertString(offset,braceCompleter);
+          offset=offset + braceCompleter.length();
+          editor.getCaretModel().moveToOffset(offset);
+          closeBraceCompleted=true;
+        }
       }
     }
-    if (c == '}' && previousChar.equals("}")) {
-      autoInsertCloseTag(project,offset,editor,provider);
-      adjustMustacheFormatting(project,offset,editor,file,provider);
-    }
+  }
+  if (closeBraceCompleted || (c == '}' && previousChar.equals("}"))) {
+    autoInsertCloseTag(project,offset,editor,provider);
+    adjustMustacheFormatting(project,offset,editor,file,provider);
   }
   return Result.CONTINUE;
 }
