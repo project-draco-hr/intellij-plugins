@@ -6,25 +6,14 @@
   if (!debugEngine.prepareDebugger(project)) {
     return null;
   }
-  final Connection connection=debugEngine.openConnection(false);
-  final String url="http://localhost:" + karmaServer.getWebServerPort();
+  final Connection connection=debugEngine.openConnection(true);
+  final String url="http://localhost:" + karmaServer.getWebServerPort() + "/debug.html";
   final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
   XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
       XDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
       debugProcess.setLayoutCustomizer(consoleView);
       return debugProcess;
-    }
-  }
-);
-  ((JSDebugProcess)session.getDebugProcess()).getConnection().queueRequest(new Runnable(){
-    @Override public void run(){
-      try {
-        Thread.sleep(200);
-      }
- catch (      InterruptedException ignored) {
-      }
-      resumeTestRunning(executionResult.getProcessHandler());
     }
   }
 );

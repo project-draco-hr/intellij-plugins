@@ -4,7 +4,7 @@
   final Content consoleContent=ui.createContent(ExecutionConsole.CONSOLE_CONTENT_ID,getComponent(),"Test Run",AllIcons.Debugger.Console,getPreferredFocusableComponent());
   ui.addContent(consoleContent,1,PlaceInGrid.bottom,false);
   consoleContent.setCloseable(false);
-  final KarmaRootTestProxyFormatter rootFormatter=new KarmaRootTestProxyFormatter(this,myServer);
+  final KarmaRootTestProxyFormatter rootFormatter=new KarmaRootTestProxyFormatter(this,myServer,myExecutionSession.isDebug());
   if (readyToRun) {
     ui.selectAndFocus(consoleContent,false,false);
   }
@@ -35,7 +35,7 @@
     myServer.doWhenTerminated(new KarmaServerTerminatedListener(){
       @Override public void onTerminated(      int exitCode){
         alarm.cancelAllRequests();
-        rootFormatter.uninstall();
+        rootFormatter.onServerProcessTerminated();
         print("Karma server finished with exited code " + exitCode + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
       }
     }
@@ -43,7 +43,7 @@
   }
   myExecutionSession.getProcessHandler().addProcessListener(new ProcessAdapter(){
     @Override public void processTerminated(    ProcessEvent event){
-      rootFormatter.uninstall();
+      rootFormatter.onTestRunProcessTerminated();
     }
   }
 );

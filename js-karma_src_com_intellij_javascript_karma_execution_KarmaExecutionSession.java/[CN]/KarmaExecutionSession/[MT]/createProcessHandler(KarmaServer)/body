@@ -1,13 +1,15 @@
 {
-  final File clientAppFile;
-  try {
-    clientAppFile=server.getKarmaJsSourcesLocator().getClientAppFile();
-  }
- catch (  IOException e) {
-    throw new ExecutionException("Can't find karma-intellij test runner",e);
-  }
-  if (server.isReady() && server.hasCapturedBrowsers()) {
-    return createOSProcessHandler(server.getRunnerPort(),clientAppFile);
+  if (!isDebug()) {
+    final File clientAppFile;
+    try {
+      clientAppFile=server.getKarmaJsSourcesLocator().getClientAppFile();
+    }
+ catch (    IOException e) {
+      throw new ExecutionException("Can't find karma-intellij test runner",e);
+    }
+    if (server.isReady() && server.hasCapturedBrowsers()) {
+      return createOSProcessHandler(server.getRunnerPort(),clientAppFile);
+    }
   }
   final NopProcessHandler nopProcessHandler=new NopProcessHandler();
   server.doWhenTerminated(new KarmaServerTerminatedListener(){
