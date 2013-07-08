@@ -1,0 +1,26 @@
+{
+  super.visitJSBinaryExpression(node);
+  IElementType sign=node.getOperationSign();
+  JSExpression lOperand=node.getLOperand();
+  if (lOperand == null)   return;
+  final JSExpression rOperand=node.getROperand();
+  if (rOperand == null)   return;
+  if (sign == JSTokenTypes.AS_KEYWORD || sign == JSTokenTypes.IS_KEYWORD) {
+    if (rOperand instanceof JSReferenceExpression) {
+      ResolveResult[] results=((JSReferenceExpression)rOperand).multiResolve(false);
+      PsiElement resolve;
+      if (results.length > 0 && ((resolve=results[0].getElement()) instanceof JSVariable || resolve instanceof JSFunction)) {
+        checkIfProperTypeReference(myHolder,rOperand);
+      }
+    }
+ else {
+      checkIfProperTypeReference(myHolder,rOperand);
+    }
+  }
+ else   if (JSTokenTypes.MULTIPLICATIVE_OPERATIONS.contains(sign) || JSTokenTypes.SHIFT_OPERATIONS.contains(sign) || sign == JSTokenTypes.MINUS) {
+    final PsiFile containingFile=node.getContainingFile();
+    final JSType numberType=JSTypeImpl.createType(NUMBER_CLASS_NAME,JSTypeSourceFactory.createTypeSource(lOperand,true));
+    ValidateTypesUtil.checkExpressionIsAssignableToType(lOperand,numberType,myHolder,containingFile,"javascript.expression.type.implicitly.coerced.to.unrelated.type",null);
+    ValidateTypesUtil.checkExpressionIsAssignableToType(rOperand,numberType,myHolder,containingFile,"javascript.expression.type.implicitly.coerced.to.unrelated.type",null);
+  }
+}
