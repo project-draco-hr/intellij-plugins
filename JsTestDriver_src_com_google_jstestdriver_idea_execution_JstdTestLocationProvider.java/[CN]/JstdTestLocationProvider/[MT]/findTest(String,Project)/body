@@ -13,12 +13,19 @@
     if (jsTestVirtualFile == null || !jsTestVirtualFile.isValid()) {
       return null;
     }
-    String name=jsTestVirtualFile.getName().toLowerCase();
-    if (testMethodName != null && testCaseName.equals(DefaultQUnitModuleStructure.NAME) && StringUtil.startsWithIgnoreCase(name,"QUnitAdapter")) {
+    if (testMethodName != null && testCaseName.equals(DefaultQUnitModuleStructure.NAME) && StringUtil.startsWithIgnoreCase(jsTestVirtualFile.getName(),"QUnitAdapter")) {
       psiElement=findTestFromQUnitDefaultModule(project,testMethodName);
     }
  else {
-      psiElement=NavUtils.findPsiLocation(project,jsTestVirtualFile,testCaseName,testMethodName);
+      psiElement=NavUtils.findPsiLocation(project,jsTestVirtualFile,testCaseName,testMethodName,new TestMethodNameRefiner(){
+        @NotNull @Override public String refine(        @NotNull AbstractTestFileStructure structure,        @NotNull String testMethodName){
+          if (structure instanceof QUnitFileStructure) {
+            return refineQUnitTestMethodName(testMethodName);
+          }
+          return testMethodName;
+        }
+      }
+);
     }
   }
  else {
