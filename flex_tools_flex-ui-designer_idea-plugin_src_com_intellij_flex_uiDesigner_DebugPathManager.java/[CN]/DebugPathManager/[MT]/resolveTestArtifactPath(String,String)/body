@@ -1,0 +1,28 @@
+{
+  boolean isTestArtifact=mavenPath == null;
+  if (isTestArtifact) {
+    String mavenSubFolder;
+    if (path.equals("test-data-helper.swc")) {
+      mavenSubFolder="test-data-helper";
+    }
+ else {
+      mavenSubFolder="test-plugin";
+    }
+    mavenPath=mavenSubFolder + "/target/" + path;
+  }
+  File file=new File(getFudHome(),mavenPath);
+  if (!file.exists()) {
+    String parent;
+    if (isTestArtifact) {
+      parent=getIdeaHome() + "/out/flex-ui-designer";
+    }
+ else {
+      parent=PathManager.getResourceRoot(DebugPathManager.class,"/" + DebugPathManager.class.getName().replace('.','/') + ".class");
+    }
+    file=new File(parent,path);
+    if (!file.exists()) {
+      throw new IllegalStateException("Cannot find " + file.getPath());
+    }
+  }
+  return file.getPath();
+}

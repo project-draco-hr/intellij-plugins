@@ -1,14 +1,12 @@
 {
-  @SuppressWarnings("unchecked") final Pair<String,String>[] files=new Pair[]{new Pair("designer-air2.6.swf","main-loader/target/main-loader-1.0-SNAPSHOT-air2.6.swf"),new Pair("designer-air3.0.swf","main-loader/target/main-loader-1.0-SNAPSHOT.swf"),new Pair("descriptor-air2.6.xml","main/resources/descriptor-air2.6.xml"),new Pair("descriptor-air3.0.xml","main/resources/descriptor-air3.0.xml")};
+  @SuppressWarnings("unchecked") Pair<String,String>[] files=new Pair[]{new Pair("designer-air2.6.swf","main-loader/target/main-loader-1.0-SNAPSHOT-air2.6.swf"),new Pair("designer-air3.0.swf","main-loader/target/main-loader-1.0-SNAPSHOT.swf"),new Pair("descriptor-air2.6.xml","main/resources/descriptor-air2.6.xml"),new Pair("descriptor-air3.0.xml","main/resources/descriptor-air3.0.xml")};
   if (DebugPathManager.IS_DEV) {
-    final String homePath=DebugPathManager.getFudHome();
-    final File home=new File(homePath);
     for (    Pair<String,String> file : files) {
-      IOUtil.saveStream(new URL("file://" + home + "/"+ file.second),new File(DesignerApplicationManager.APP_DIR,file.first));
+      IOUtil.saveStream(new URL("file://" + DebugPathManager.resolveTestArtifactPath(file.first,file.second)),new File(DesignerApplicationManager.APP_DIR,file.first));
     }
   }
  else {
-    final ClassLoader classLoader=DesignerApplicationLauncher.class.getClassLoader();
+    ClassLoader classLoader=DesignerApplicationLauncher.class.getClassLoader();
     for (    Pair<String,String> file : files) {
       IOUtil.saveStream(classLoader.getResource(file.first),new File(DesignerApplicationManager.APP_DIR,file.first));
     }

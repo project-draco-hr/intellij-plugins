@@ -1,9 +1,8 @@
 {
-  final List<AdlRunConfiguration> adlRunConfigurations;
   indicator.setText(FlashUIDesignerBundle.message("copying.app.files"));
   copyAppFiles();
   indicator.setText(FlashUIDesignerBundle.message("finding.suitable.air.runtime"));
-  adlRunConfigurations=getSuitableAdlRunConfigurations();
+  List<AdlRunConfiguration> adlRunConfigurations=getSuitableAdlRunConfigurations();
   if (adlRunConfigurations.isEmpty()) {
     notifyNoSuitableSdkToLaunch();
     return false;
@@ -21,11 +20,11 @@
   arguments.add(Integer.toString(messageSocketManager.listen()));
   if (ApplicationManager.getApplication().isUnitTestMode()) {
     arguments.add("-p");
-    arguments.add(DebugPathManager.getFudHome() + "/test-plugin/target/test-1.0-SNAPSHOT.swf");
+    arguments.add(DebugPathManager.resolveTestArtifactPath("test-1.0-SNAPSHOT.swf"));
   }
   AdlProcessHandler adlProcessHandler=null;
   final Ref<Boolean> found=new Ref<Boolean>(true);
-  for (  final AdlRunConfiguration adlRunConfiguration : adlRunConfigurations) {
+  for (  AdlRunConfiguration adlRunConfiguration : adlRunConfigurations) {
     found.set(true);
     adlRunConfiguration.arguments=arguments;
     try {
