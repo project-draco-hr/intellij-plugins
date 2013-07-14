@@ -2,17 +2,10 @@
   LOG.assertTrue(application != null);
   final DesignerApplication disposedApp=application;
   application=null;
-  final Application ideaApp=ApplicationManager.getApplication();
-  Runnable runnable=new Runnable(){
+  AppUIUtil.invokeOnEdt(new Runnable(){
     @Override public void run(){
       Disposer.dispose(disposedApp);
     }
   }
-;
-  if (ideaApp.isDispatchThread()) {
-    runnable.run();
-  }
- else {
-    ideaApp.invokeLater(runnable,ideaApp.getDisposed());
-  }
+);
 }
