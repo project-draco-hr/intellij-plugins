@@ -1,0 +1,19 @@
+{
+  if (writeBounds) {
+    bounds=new Rectangle(0,0,200,200);
+    writeMovieBounds();
+  }
+  fileLength=SYMBOL_CLASS_TAG_FULL_LENGTH + SwfUtil.getWrapLength();
+  FXG2SWFTranscoder transcoder=new FXG2SWFTranscoder();
+  DefineSprite spriteDefinition=(DefineSprite)transcoder.transcode(node);
+  MyTagEncoder tagEncoder=new MyTagEncoder();
+  define(spriteDefinition,new THashSet<Tag>(),tagEncoder);
+  fileLength+=tagEncoder.getWriter().getPos();
+  final byte[] symbolOwnClassAbc=getSymbolOwnClassAbc((short)1);
+  fileLength+=symbolOwnClassAbc.length;
+  SwfUtil.header(fileLength,out);
+  tagEncoder.getWriter().writeTo(out,CompressionLevel.BestSpeed);
+  out.write(symbolOwnClassAbc);
+  writeSymbolClass(tagEncoder.getDictionary().getId(spriteDefinition));
+  SwfUtil.footer(out);
+}

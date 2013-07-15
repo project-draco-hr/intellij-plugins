@@ -1,2 +1,19 @@
 {
+  Application application=ApplicationManager.getApplication();
+  LOG.assertTrue(application.isUnitTestMode() || !application.isReadAccessAllowed());
+  PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(psiFile.getProject());
+  Document document=psiDocumentManager.getDocument(psiFile);
+  LOG.assertTrue(document != null);
+  if (!psiDocumentManager.isCommitted(document)) {
+    final Semaphore semaphore=new Semaphore();
+    semaphore.down();
+    psiDocumentManager.performForCommittedDocument(document,new Runnable(){
+      @Override public void run(){
+        semaphore.up();
+      }
+    }
+);
+    semaphore.waitFor();
+  }
+  return document;
 }

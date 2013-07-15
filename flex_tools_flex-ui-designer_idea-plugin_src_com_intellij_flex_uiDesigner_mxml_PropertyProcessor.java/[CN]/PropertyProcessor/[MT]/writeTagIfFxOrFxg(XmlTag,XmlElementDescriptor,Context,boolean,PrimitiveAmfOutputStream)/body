@@ -1,5 +1,9 @@
 {
-  if (!JavaScriptSupportLoader.MXML_URI3.equals(tag.getNamespace()) || type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME) || type.equals(AsCommonTypeNames.DATE)) {
+  String type=descriptor.getQualifiedName();
+  if (!JavaScriptSupportLoader.MXML_URI3.equals(tag.getNamespace())) {
+    return writeIfFxg(tag,descriptor,parentContext,allowIncludeInExcludeFrom,out);
+  }
+ else   if (type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME) || type.equals(AsCommonTypeNames.DATE)) {
     return false;
   }
   if (JSCommonTypeNames.ARRAY_CLASS_NAME.equals(type)) {
@@ -28,7 +32,7 @@
     out.writeAmfUtf(tag.getValue().getText());
   }
  else {
-    final boolean result=writeIfPrimitive(mxmlWriter.valueProviderFactory.create(tag),type,out,null,false,true);
+    boolean result=writeIfPrimitive(mxmlWriter.valueProviderFactory.create(tag),type,out,null,false,true);
     LOG.assertTrue(result);
   }
   return true;
