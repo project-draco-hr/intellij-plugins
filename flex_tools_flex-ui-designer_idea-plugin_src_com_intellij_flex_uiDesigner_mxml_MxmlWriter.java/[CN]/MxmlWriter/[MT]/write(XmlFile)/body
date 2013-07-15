@@ -1,2 +1,55 @@
 {
+  document=MxmlUtil.getDocumentAndWaitIfNotCommitted(psiFile);
+  final AccessToken token=ReadAction.start();
+  try {
+    VirtualFile virtualFile=psiFile.getVirtualFile();
+    LOG.assertTrue(virtualFile != null);
+    problemsHolder.setCurrentFile(virtualFile);
+    XmlTag tag=psiFile.getRootTag();
+    XmlElementDescriptor untypedDescriptor=tag == null ? null : tag.getDescriptor();
+    final ClassBackedElementDescriptor descriptor;
+    if (untypedDescriptor instanceof ClassBackedElementDescriptor) {
+      descriptor=(ClassBackedElementDescriptor)untypedDescriptor;
+    }
+ else {
+      return null;
+    }
+    final Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo;
+    try {
+      PsiElement declaration=descriptor.getDeclaration();
+      if (declaration == null) {
+        return null;
+      }
+      effectiveClassInfo=MxmlUtil.computeEffectiveClass(tag,declaration,projectComponentReferenceCounter,true);
+    }
+ catch (    InvalidPropertyException e) {
+      problemsHolder.add(e);
+      return null;
+    }
+    if (effectiveClassInfo.first == -1) {
+      out.write(Amf3Types.OBJECT);
+      writer.mxmlObjectHeader(effectiveClassInfo.second == null ? descriptor.getQualifiedName() : effectiveClassInfo.second);
+    }
+ else {
+      writer.documentReference(effectiveClassInfo.first);
+      out.allocateClearShort();
+    }
+    processElements(tag,null,false,-1,out.size() - 2,true,effectiveClassInfo.third);
+    writer.endObject();
+    if (stateWriter != null) {
+      stateWriter.write();
+      hasStates=false;
+    }
+ else {
+      out.write(0);
+    }
+    injectedASWriter.write();
+    writer.writeMessageHeader(projectComponentReferenceCounter);
+    return new Pair<ProjectComponentReferenceCounter,List<RangeMarker>>(projectComponentReferenceCounter,rangeMarkers);
+  }
+  finally {
+    token.finish();
+    problemsHolder.setCurrentFile(null);
+    writer.resetAfterMessage();
+  }
 }
