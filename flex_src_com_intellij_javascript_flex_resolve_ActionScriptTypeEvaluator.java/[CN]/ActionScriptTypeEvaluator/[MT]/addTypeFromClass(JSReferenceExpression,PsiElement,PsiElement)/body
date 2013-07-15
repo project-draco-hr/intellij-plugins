@@ -1,0 +1,11 @@
+{
+  if (resolveResult instanceof JSFunction) {
+    resolveResult=resolveResult.getParent();
+  }
+  String psiElementType=parent instanceof JSReferenceExpression || JSResolveUtil.isExprInStrictTypeContext(expression) || PsiTreeUtil.getChildOfType(expression,JSE4XNamespaceReference.class) != null || parent instanceof JSCallExpression ? ((JSClass)resolveResult).getQualifiedName() : "Class";
+  psiElementType=ResolveProcessor.fixGenericTypeName(psiElementType);
+  if (VECTOR_CLASS_NAME.equals(psiElementType)) {
+    psiElementType=JSImportHandlingUtil.resolveTypeName(expression.getText(),expression);
+  }
+  addType(psiElementType,resolveResult);
+}
