@@ -1,0 +1,32 @@
+{
+  JSFunction fun=PsiTreeUtil.getParentOfType(param,JSFunction.class);
+  PsiElement element=JSResolveUtil.findParent(fun);
+  if (element instanceof JSClass && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(ResolveProcessor.fixGenericTypeName(((JSClass)element).getQualifiedName()))) {
+    String name=fun.getName();
+    String qualifiedExpressionType=null;
+    JSExpression methodExpression=((JSCallExpression)JSTypeUtils.getScopeInOriginalTree(myGrandParent).getParent()).getMethodExpression();
+    if (methodExpression instanceof JSReferenceExpression) {
+      JSExpression qualifier=((JSReferenceExpression)methodExpression).getQualifier();
+      if (qualifier != null) {
+        qualifiedExpressionType=JSResolveUtil.getQualifiedExpressionType(qualifier,qualifier.getContainingFile());
+      }
+    }
+    if (qualifiedExpressionType != null) {
+      if ("push".equals(name) || "unshift".equals(name) || "splice".equals(name)) {
+        JSResolveUtil.GenericSignature signature=JSResolveUtil.extractGenericSignature(qualifiedExpressionType);
+        if (signature != null) {
+          myType=signature.genericType;
+          myScope=methodExpression;
+        }
+      }
+ else       if ("concat".equals(name)) {
+        myType=qualifiedExpressionType;
+        myScope=methodExpression;
+      }
+    }
+  }
+ else {
+    myType=JSCommonTypeNames.OBJECT_CLASS_NAME;
+    myScope=myParent;
+  }
+}
