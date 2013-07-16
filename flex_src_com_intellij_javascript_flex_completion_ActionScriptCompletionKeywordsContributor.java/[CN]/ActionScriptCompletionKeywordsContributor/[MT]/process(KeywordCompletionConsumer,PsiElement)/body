@@ -5,17 +5,17 @@
   final PsiElement grandGrandParent=grandParent.getParent();
   if (parent instanceof JSReferenceExpression && ((JSResolveUtil.isExprInTypeContext((JSReferenceExpression)parent) || (grandParent instanceof JSExpressionStatement && (JSResolveUtil.isPlaceWhereNsCanBe(grandParent) || grandGrandParent instanceof JSFile && grandGrandParent.getContext() == null)) || grandParent instanceof JSAttributeList) || parent instanceof JSAttributeNameValuePair)) {
     if (!(grandParent instanceof JSImportStatement) && (grandParent instanceof JSAttributeList || JSResolveUtil.isPlaceWhereNsCanBe(grandParent) || grandGrandParent instanceof JSFile) && (!(grandParent instanceof JSFunction) || ((JSFunction)grandParent).getReturnTypeElement() != parent)) {
-      JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.SMART_KEYWORDS_PRIORITY,true,accessModifiers);
-      JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.SMART_KEYWORDS_PRIORITY,true,"class","function","interface","namespace","package","extends","implements","import","override","static","dynamic","var","const","use","final");
+      consumer.consume(KeywordCompletionConsumer.SMART_KEYWORDS_PRIORITY,true,accessModifiers);
+      consumer.consume(KeywordCompletionConsumer.SMART_KEYWORDS_PRIORITY,true,"class","function","interface","namespace","package","extends","implements","import","override","static","dynamic","var","const","use","final");
       return false;
     }
  else     return false;
   }
   if (JSResolveUtil.isInPlaceWhereTypeCanBeDuringCompletion(parent) && JSResolveUtil.isPlaceWhereNsCanBe(grandParent)) {
-    JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.KEYWORDS_PRIORITY,false,JavaScriptCompletionData.TYPE_LITERAL_VALUES);
-    JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.KEYWORDS_PRIORITY,false,"function");
-    JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.KEYWORDS_PRIORITY,true,accessModifiers);
-    JavaScriptCompletionData.appendKeywords(keywords,JSLookupUtilImpl.KEYWORDS_PRIORITY,true,"extends","implements","include","import","static","override","namespace","class","interface","var","use");
+    consumer.consume(KeywordCompletionConsumer.KEYWORDS_PRIORITY,false,JavaScriptCompletionData.TYPE_LITERAL_VALUES);
+    consumer.consume(KeywordCompletionConsumer.KEYWORDS_PRIORITY,false,"function");
+    consumer.consume(KeywordCompletionConsumer.KEYWORDS_PRIORITY,true,accessModifiers);
+    consumer.consume(KeywordCompletionConsumer.KEYWORDS_PRIORITY,true,"extends","implements","include","import","static","override","namespace","class","interface","var","use");
     return false;
   }
   return true;
