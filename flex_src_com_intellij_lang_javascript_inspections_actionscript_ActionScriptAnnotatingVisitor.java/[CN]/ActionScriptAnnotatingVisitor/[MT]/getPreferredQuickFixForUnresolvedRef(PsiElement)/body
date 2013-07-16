@@ -1,4 +1,10 @@
 {
+  final Module module=ModuleUtilCore.findModuleForPsiElement(nameIdentifier);
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return null;
+  final String conditionalCompilerDefinitionName=getPotentialConditionalCompilerDefinitionName(nameIdentifier);
+  if (conditionalCompilerDefinitionName != null) {
+    return new DeclareConditionalCompilerDefinitionFix(module,conditionalCompilerDefinitionName);
+  }
   final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(nameIdentifier,JSCallExpression.class);
   if (callExpression == null)   return null;
   if (JSResolveUtil.isEventListenerCall(callExpression)) {
