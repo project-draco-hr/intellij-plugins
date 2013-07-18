@@ -1,25 +1,27 @@
 {
-  ArrayList<String> result=new ArrayList<String>();
-  final String[] urls=OrderEnumerator.orderEntries(module).withoutSdk().withoutModuleSourceEntries().withoutDepModules().satisfying(NOT_FRAMEWORK_LIBRARY_CONDITION).recursively().exportedOnly().classes().getUrls();
+  String[] urls=OrderEnumerator.orderEntries(module).withoutSdk().withoutModuleSourceEntries().withoutDepModules().satisfying(NOT_FRAMEWORK_LIBRARY_CONDITION).recursively().exportedOnly().classes().getUrls();
+  File outputDir=null;
+  VirtualFile moduleOutputUrl=getModuleOutputUrl(module);
+  if (moduleOutputUrl != null) {
+    outputDir=BndWrapper.getOutputDir(VfsUtilCore.virtualToIoFile(moduleOutputUrl),compileContext);
+  }
+  if (outputDir == null) {
+    return ArrayUtil.EMPTY_STRING_ARRAY;
+  }
+  List<String> result=new ArrayList<String>();
   BndWrapper wrapper=new BndWrapper();
   for (  String url : urls) {
     url=convertJarUrlToFileUrl(url);
     if (CachingBundleInfoProvider.canBeBundlified(url)) {
       indicator.setText("Bundling non-OSGi libraries for module: " + module.getName());
       indicator.setText2(url);
-      final String outputPath=BndWrapper.getOutputPath(module,compileContext);
-      if (outputPath == null) {
-        break;
-      }
-      String bundledLocation=wrapper.wrapLibrary(module,compileContext,url,outputPath);
+      String bundledLocation=wrapper.wrapLibrary(module,compileContext,url,outputDir);
       if (bundledLocation != null) {
         result.add(fixFileURL(bundledLocation));
       }
     }
- else {
-      if (CachingBundleInfoProvider.isBundle(url)) {
-        result.add(fixFileURL(url));
-      }
+ else     if (CachingBundleInfoProvider.isBundle(url)) {
+      result.add(fixFileURL(url));
     }
   }
   return ArrayUtil.toStringArray(result);

@@ -1,0 +1,82 @@
+{
+  String prefix="[" + module.getName() + "] ";
+  OsmorcFacetConfiguration configuration=facet.getConfiguration();
+  if (configuration.isUseBndFile()) {
+    String fileLocation=configuration.getBndFileLocation();
+    File bndFile=findFileInModuleContentRoots(fileLocation,module);
+    if (bndFile != null && bndFile.canRead()) {
+      return bndFile;
+    }
+ else {
+      String message=String.format("The bnd file \"%s\" for module \"%s\" does not exist.",fileLocation,module.getName());
+      context.addMessage(CompilerMessageCategory.ERROR,prefix + message,fileLocation,0,0);
+      return null;
+    }
+  }
+  Map<String,String> buildProperties=new LinkedHashMap<String,String>();
+  if (configuration.isManifestManuallyEdited() || configuration.isOsmorcControlsManifest()) {
+    if (configuration.isOsmorcControlsManifest()) {
+      buildProperties.putAll(configuration.getBndFileProperties());
+    }
+ else     if (configuration.isManifestManuallyEdited()) {
+      boolean manifestExists=false;
+      VirtualFile manifestFile=facet.getManifestFile();
+      if (manifestFile != null) {
+        String manifestFilePath=manifestFile.getPath();
+        if (manifestFilePath != null) {
+          buildProperties.put("-manifest",manifestFilePath);
+          manifestExists=true;
+        }
+      }
+      if (!manifestExists) {
+        String message="Manifest file for module " + module.getName() + ": '"+ facet.getManifestLocation()+ "' does not exist or cannot be found. Check that file exists and is not excluded from the module.";
+        context.addMessage(CompilerMessageCategory.ERROR,prefix + message,null,0,0);
+        return null;
+      }
+    }
+    StringBuilder pathBuilder=new StringBuilder();
+    pathBuilder.append(moduleOutputDir.getPath());
+    List<Pair<String,String>> list=configuration.getAdditionalJARContents();
+    for (    Pair<String,String> stringStringPair : list) {
+      if (pathBuilder.length() > 0)       pathBuilder.append(",");
+      pathBuilder.append(stringStringPair.second).append(" = ").append(stringStringPair.first);
+    }
+    String includedResources=configuration.getAdditionalPropertiesAsMap().get("Include-Resource");
+    if (includedResources == null) {
+      includedResources=pathBuilder.toString();
+    }
+ else {
+      includedResources=includedResources + "," + pathBuilder.toString();
+    }
+    buildProperties.put("Include-Resource",includedResources);
+    if (!configuration.getIgnoreFilePattern().isEmpty()) {
+      if (!configuration.isIgnorePatternValid()) {
+        String message="The file ignore pattern in the facet configuration is invalid.";
+        context.addMessage(CompilerMessageCategory.ERROR,prefix + message,null,0,0);
+        return null;
+      }
+      buildProperties.put("-donotcopy",configuration.getIgnoreFilePattern());
+    }
+    if (configuration.isOsmorcControlsManifest()) {
+      context.getProgressIndicator().setText2("Calculating local packages");
+      LocalPackageCollector.addLocalPackages(moduleOutputDir,buildProperties);
+    }
+  }
+ else   if (!configuration.isUseBundlorFile()) {
+    String message="OSGi facet configuration for module " + module.getName() + " seems to be invalid. "+ "No supported manifest handling method is set up. Please check configuration and try again.";
+    context.addMessage(CompilerMessageCategory.ERROR,prefix + message,null,0,0);
+    return null;
+  }
+  File outputDir=BndWrapper.getOutputDir(moduleOutputDir,context);
+  if (outputDir == null) {
+    return null;
+  }
+  try {
+    return BndWrapper.makeBndFile(module,buildProperties,outputDir);
+  }
+ catch (  IOException e) {
+    String message="Problem when generating bnd file: " + e.getMessage();
+    context.addMessage(CompilerMessageCategory.ERROR,prefix + message,null,0,0);
+    return null;
+  }
+}

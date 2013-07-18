@@ -1,0 +1,40 @@
+{
+  String prefix="[" + module.getName() + "] ";
+  ReportingBuilder builder=new ReportingBuilder(compileContext,VfsUtilCore.pathToUrl(bndFile.getPath()),module);
+  builder.setPedantic(false);
+  builder.setProperties(bndFile);
+  File[] classPath=new File[classPathUrls.size()];
+  for (int i=0; i < classPathUrls.size(); i++) {
+    classPath[i]=new File(VfsUtilCore.urlToPath(classPathUrls.get(i)));
+  }
+  builder.setClasspath(classPath);
+  String manifest=builder.getProperty(aQute.lib.osgi.Constants.MANIFEST);
+  if (manifest != null) {
+    File manifestFile=builder.getFile(manifest);
+    if (manifestFile != null && manifestFile.canRead()) {
+      Properties props=new Properties();
+      FileInputStream fileInputStream=new FileInputStream(manifestFile);
+      try {
+        props.load(fileInputStream);
+        String value=props.getProperty(Attributes.Name.MANIFEST_VERSION.toString());
+        if (StringUtil.isEmptyOrSpaces(value)) {
+          String message="Your manifest does not contain a Manifest-Version entry. This may produce an empty manifest in the resulting bundle.";
+          compileContext.addMessage(CompilerMessageCategory.WARNING,prefix + message,VfsUtilCore.pathToUrl(manifestFile.getAbsolutePath()),0,0);
+        }
+      }
+ catch (      Exception ex) {
+        String message="There was a problem reading your manifest.";
+        compileContext.addMessage(CompilerMessageCategory.WARNING,prefix + message,VfsUtilCore.pathToUrl(manifestFile.getAbsolutePath()),0,0);
+      }
+ finally {
+        fileInputStream.close();
+      }
+    }
+  }
+  File output=new File(outputPath);
+  Jar jar=builder.build();
+  jar.setName(output.getName());
+  jar.write(output);
+  builder.close();
+  return true;
+}

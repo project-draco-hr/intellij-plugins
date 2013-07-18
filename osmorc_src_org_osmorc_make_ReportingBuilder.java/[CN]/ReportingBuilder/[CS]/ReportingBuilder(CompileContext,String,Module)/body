@@ -1,8 +1,6 @@
 {
-  super();
   myContext=context;
   OsmorcFacet facet=OsmorcFacet.getInstance(module);
-  mySourceFileName=sourceFileName;
   if (facet != null) {
     OsmorcFacetConfiguration configuration=facet.getConfiguration();
     if (configuration.isManifestManuallyEdited()) {
@@ -12,7 +10,7 @@
         PsiFile manifestFile=bundleManifest.getManifestFile();
         VirtualFile virtualFile=manifestFile.getVirtualFile();
         if (virtualFile != null) {
-          mySourceFileName=VfsUtil.pathToUrl(virtualFile.getPath());
+          sourceFileName=VfsUtilCore.pathToUrl(virtualFile.getPath());
         }
       }
     }
@@ -22,10 +20,11 @@
       if (project != null) {
         MavenPlugin plugin=project.findPlugin("org.apache.felix","maven-bundle-plugin");
         if (plugin != null) {
-          mySourceFileName=VfsUtil.pathToUrl(project.getPath());
+          sourceFileName=VfsUtilCore.pathToUrl(project.getPath());
         }
       }
     }
   }
+  mySourceFileName=sourceFileName;
   myMessagePrefix="[" + module.getName() + "] ";
 }

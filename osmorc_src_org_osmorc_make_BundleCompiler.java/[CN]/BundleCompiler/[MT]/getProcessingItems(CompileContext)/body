@@ -1,15 +1,15 @@
 {
   return ApplicationManager.getApplication().runReadAction(new Computable<ProcessingItem[]>(){
     public ProcessingItem[] compute(){
-      CompileScope compilescope=compileContext.getCompileScope();
-      Module[] affectedModules=compilescope.getAffectedModules();
+      Module[] affectedModules=compileContext.getCompileScope().getAffectedModules();
       if (affectedModules.length == 0) {
         return ProcessingItem.EMPTY_ARRAY;
       }
-      List<ProcessingItem> result=new ArrayList<ProcessingItem>();
-      for (      Module affectedModule : affectedModules) {
-        if (OsmorcFacet.hasOsmorcFacet(affectedModule)) {
-          result.add(new BundleProcessingItem(affectedModule));
+      List<ProcessingItem> result=ContainerUtil.newArrayList();
+      for (      Module module : affectedModules) {
+        OsmorcFacet facet=OsmorcFacet.getInstance(module);
+        if (facet != null) {
+          result.add(new BundleProcessingItem(module,facet));
         }
       }
       return result.toArray(new ProcessingItem[result.size()]);
