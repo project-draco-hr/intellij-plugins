@@ -1,28 +1,28 @@
 {
-  StringBuffer includeResource=new StringBuffer();
-  StringBuffer bundleClassPath=new StringBuffer();
-  StringBuffer embeddedArtifacts=new StringBuffer();
-  myInlinedPaths.clear();
+  StringBuilder includeResource=new StringBuilder();
+  StringBuilder bundleClassPath=new StringBuilder();
+  StringBuilder embeddedArtifacts=new StringBuilder();
+  myInlinePaths.clear();
   myEmbeddedArtifacts.clear();
   String embedDependencyHeader=analyzer.getProperty(EMBED_DEPENDENCY);
-  if (StringUtils.isNotEmpty(embedDependencyHeader)) {
+  if (StringUtil.isNotEmpty(embedDependencyHeader)) {
     myEmbedDirectory=analyzer.getProperty(EMBED_DIRECTORY);
     myEmbedStripGroup=analyzer.getProperty(EMBED_STRIP_GROUP,"true");
     myEmbedStripVersion=analyzer.getProperty(EMBED_STRIP_VERSION);
     processInstructions(embedDependencyHeader);
-    for (    String myInlinedPath : myInlinedPaths) {
-      inlineDependency(myInlinedPath,includeResource);
+    for (    String inlinePath : myInlinePaths) {
+      inlineDependency(inlinePath,includeResource);
     }
-    for (    MavenArtifact m_embeddedArtifact : myEmbeddedArtifacts) {
-      embedDependency(m_embeddedArtifact,includeResource,bundleClassPath,embeddedArtifacts);
-    }
-  }
-  if (analyzer.getProperty(Analyzer.WAB) == null && bundleClassPath.length() > 0) {
-    if (analyzer.getProperty(Analyzer.BUNDLE_CLASSPATH) == null) {
-      analyzer.setProperty(Analyzer.BUNDLE_CLASSPATH,".");
+    for (    MavenArtifact embeddedArtifact : myEmbeddedArtifacts) {
+      embedDependency(embeddedArtifact,includeResource,bundleClassPath,embeddedArtifacts);
     }
   }
-  appendDependencies(analyzer,Analyzer.INCLUDE_RESOURCE,includeResource.toString());
-  appendDependencies(analyzer,Analyzer.BUNDLE_CLASSPATH,bundleClassPath.toString());
+  if (analyzer.getProperty(Constants.WAB) == null && bundleClassPath.length() > 0) {
+    if (analyzer.getProperty(Constants.BUNDLE_CLASSPATH) == null) {
+      analyzer.setProperty(Constants.BUNDLE_CLASSPATH,".");
+    }
+  }
+  appendDependencies(analyzer,Constants.INCLUDE_RESOURCE,includeResource.toString());
+  appendDependencies(analyzer,Constants.BUNDLE_CLASSPATH,bundleClassPath.toString());
   appendDependencies(analyzer,EMBEDDED_ARTIFACTS,embeddedArtifacts.toString());
 }

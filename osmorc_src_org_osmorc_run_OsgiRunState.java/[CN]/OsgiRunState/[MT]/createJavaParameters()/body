@@ -5,20 +5,21 @@
   final JavaParameters params=new JavaParameters();
   params.setWorkingDirectory(runner.getWorkingDir());
   params.configureByProject(project,JavaParameters.JDK_ONLY,jdkForRun);
-  PathsList classpath=params.getClassPath();
-  for (  VirtualFile libraryFile : runner.getFrameworkStarterLibraries()) {
-    classpath.add(libraryFile);
-  }
+  params.getClassPath().addAll(runner.getFrameworkStarterLibraries());
   if (runConfiguration.isIncludeAllBundlesInClassPath()) {
     SelectedBundle[] bundles=getSelectedBundles();
-    for (    SelectedBundle bundle : bundles) {
-      String bundlePath=bundle.getBundleUrl();
-      bundlePath=bundlePath.substring(FILE_URL_PREFIX.length());
-      if (bundlePath.indexOf(':') < 0 && bundlePath.charAt(0) != '/') {
-        bundlePath="/" + bundlePath;
+    if (bundles != null) {
+      for (      SelectedBundle bundle : bundles) {
+        String bundlePath=bundle.getBundleUrl();
+        if (bundlePath != null) {
+          bundlePath=bundlePath.substring(FILE_URL_PREFIX.length());
+          if (bundlePath.indexOf(':') < 0 && bundlePath.charAt(0) != '/') {
+            bundlePath="/" + bundlePath;
+          }
+          bundlePath=bundlePath.replace('/',File.separatorChar);
+          params.getClassPath().add(bundlePath);
+        }
       }
-      bundlePath=bundlePath.replace('/',File.separatorChar);
-      classpath.add(bundlePath);
     }
   }
   params.setMainClass(runner.getMainClass());
