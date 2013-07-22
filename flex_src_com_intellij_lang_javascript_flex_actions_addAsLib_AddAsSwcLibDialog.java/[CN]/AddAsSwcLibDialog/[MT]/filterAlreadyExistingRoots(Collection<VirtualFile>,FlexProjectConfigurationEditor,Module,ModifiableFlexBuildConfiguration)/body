@@ -1,0 +1,27 @@
+{
+  final Set<VirtualFile> result=new THashSet<VirtualFile>(roots);
+  final DependencyEntry[] entries=bc.getDependencies().getEntries();
+  for (  DependencyEntry entry : entries) {
+    if (entry instanceof ModifiableModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,flexConfigEditor.getModifiableRootModel(module));
+      if (orderEntry != null) {
+        for (        VirtualFile file : orderEntry.getRootFiles(OrderRootType.CLASSES)) {
+          if (result.contains(file)) {
+            result.remove(file);
+          }
+        }
+      }
+    }
+ else     if (entry instanceof ModifiableSharedLibraryEntry) {
+      final Library library=FlexProjectRootsUtil.findOrderEntry(module.getProject(),(SharedLibraryEntry)entry);
+      if (library != null) {
+        for (        VirtualFile file : library.getFiles(OrderRootType.CLASSES)) {
+          if (result.contains(file)) {
+            result.remove(file);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
