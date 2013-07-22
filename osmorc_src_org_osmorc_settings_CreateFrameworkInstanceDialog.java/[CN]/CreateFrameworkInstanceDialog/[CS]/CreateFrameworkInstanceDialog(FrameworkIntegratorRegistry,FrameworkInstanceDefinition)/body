@@ -1,0 +1,39 @@
+{
+  super(true);
+  setTitle("OSGi Framework Instance");
+  setModal(true);
+  myIntegratorComboBox.setModel(new DefaultComboBoxModel(registry.getFrameworkIntegrators()));
+  myIntegratorComboBox.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      FrameworkIntegrator integrator=(FrameworkIntegrator)myIntegratorComboBox.getSelectedItem();
+      if (integrator != null && StringUtil.isEmptyOrSpaces(myNameTextField.getText())) {
+        myNameTextField.setText(integrator.getDisplayName());
+      }
+      updateUiState();
+    }
+  }
+);
+  myNameTextField.getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    DocumentEvent e){
+      updateUiState();
+    }
+  }
+);
+  FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
+  myBaseFolderChooser.addBrowseFolderListener("Choose framework instance base folder","",null,fileChooserDescriptor);
+  myBaseFolderChooser.getTextField().setEditable(false);
+  myBaseFolderChooser.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      updateUiState();
+    }
+  }
+);
+  if (framework != null) {
+    myNameTextField.setText(framework.getName());
+    myIntegratorComboBox.setSelectedItem(FrameworkIntegratorRegistry.getInstance().findIntegratorByName(framework.getName()));
+    myBaseFolderChooser.setText(framework.getBaseFolder());
+    myVersionField.setText(framework.getVersion());
+  }
+  init();
+  updateUiState();
+}

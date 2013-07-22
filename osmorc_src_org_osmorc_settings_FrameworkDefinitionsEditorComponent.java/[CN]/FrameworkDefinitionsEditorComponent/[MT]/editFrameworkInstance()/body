@@ -1,24 +1,16 @@
 {
-  FrameworkInstanceDefinition frameworkInstanceDefinition=mySelectedFrameworkInstance;
-  if (frameworkInstanceDefinition == null) {
-    return;
-  }
-  CreateFrameworkInstanceDialog dialog=new CreateFrameworkInstanceDialog(myFrameworkIntegratorRegistry,frameworkInstanceDefinition.getName());
-  dialog.setIntegratorName(frameworkInstanceDefinition.getFrameworkIntegratorName());
-  dialog.setBaseFolder(frameworkInstanceDefinition.getBaseFolder());
-  dialog.setVersion(frameworkInstanceDefinition.getVersion());
-  dialog.pack();
-  dialog.show();
-  if (dialog.isOK()) {
-    int index=myModel.indexOf(mySelectedFrameworkInstance);
-    myModel.removeElement(mySelectedFrameworkInstance);
-    frameworkInstanceDefinition=new FrameworkInstanceDefinition();
-    frameworkInstanceDefinition.setName(dialog.getName());
-    frameworkInstanceDefinition.setFrameworkIntegratorName(dialog.getIntegratorName());
-    frameworkInstanceDefinition.setBaseFolder(dialog.getBaseFolder());
-    frameworkInstanceDefinition.setVersion(dialog.getVersion());
-    myModel.add(index,frameworkInstanceDefinition);
-    myModified=true;
-    myFrameworkInstances.setSelectedValue(frameworkInstanceDefinition,true);
+  FrameworkInstanceDefinition selectedFrameworkInstance=this.mySelectedFrameworkInstance;
+  if (selectedFrameworkInstance != null) {
+    CreateFrameworkInstanceDialog dialog=new CreateFrameworkInstanceDialog(myFrameworkIntegratorRegistry,selectedFrameworkInstance);
+    dialog.pack();
+    dialog.show();
+    if (dialog.isOK()) {
+      int index=myModel.indexOf(mySelectedFrameworkInstance);
+      myModel.removeElement(mySelectedFrameworkInstance);
+      selectedFrameworkInstance=dialog.createDefinition();
+      myModel.add(index,selectedFrameworkInstance);
+      myModified=true;
+      myFrameworkInstances.setSelectedValue(selectedFrameworkInstance,true);
+    }
   }
 }
