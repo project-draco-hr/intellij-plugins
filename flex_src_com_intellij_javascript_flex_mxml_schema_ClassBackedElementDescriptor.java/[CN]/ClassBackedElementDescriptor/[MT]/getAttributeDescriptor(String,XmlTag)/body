@@ -12,6 +12,12 @@
   attributeName=skipStateNamePart(attributeName);
   ensureDescriptorsMapsInitialized(element,null);
   AnnotationBackedDescriptor descriptor=myDescriptors.get(attributeName);
+  if (descriptor == null && context != null) {
+    final String prefix=context.getNamespacePrefix();
+    if (StringUtil.isNotEmpty(prefix) && attributeName.startsWith(prefix + ":")) {
+      descriptor=myDescriptors.get(attributeName.substring(prefix.length() + 1));
+    }
+  }
   if (descriptor == null && context != null && !myPackageToInternalDescriptors.isEmpty()) {
     final String contextPackage=JSResolveUtil.getPackageNameFromPlace(context);
     final Map<String,AnnotationBackedDescriptor> internalDescriptors=myPackageToInternalDescriptors.get(contextPackage);
