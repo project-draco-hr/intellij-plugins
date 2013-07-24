@@ -1,0 +1,24 @@
+{
+  final SwfPolicyFileConnection policyFileConnection=new SwfPolicyFileConnection();
+  policyFileConnection.open(params.getSocketPolicyPort());
+  final FlexUnitConnection flexUnitConnection=new FlexUnitConnection();
+  flexUnitConnection.open(params.getPort());
+  final ProcessHandler processHandler=new DefaultDebugProcessHandler(){
+    @Override protected void destroyProcessImpl(){
+      flexUnitConnection.write("Finish");
+      flexUnitConnection.close();
+      policyFileConnection.close();
+      super.destroyProcessImpl();
+    }
+    @Override public boolean detachIsDefault(){
+      return false;
+    }
+  }
+;
+  final ExecutionConsole console=createFlexUnitRunnerConsole(project,env,processHandler);
+  flexUnitConnection.addListener(new FlexUnitListener(processHandler));
+  launchWithSelectedApplication(swfFilePath,params.getLauncherParameters());
+  final RunContentBuilder contentBuilder=new RunContentBuilder(project,this,env.getExecutor(),new DefaultExecutionResult(console,processHandler),env);
+  Disposer.register(project,contentBuilder);
+  return contentBuilder.showRunContent(contentToReuse);
+}
