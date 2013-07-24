@@ -1,2 +1,24 @@
 {
+  final GeneralCommandLine commandLine=new GeneralCommandLine();
+  final String path=myDartSettings == null ? null : myDartSettings.getSdkPath();
+  final String exePath=path == null ? null : DartSdkUtil.getCompilerPathByFolderPath(path);
+  if (exePath == null) {
+    throw new ExecutionException(DartBundle.message("dart.invalid.sdk"));
+  }
+  Project project=getEnvironment().getProject();
+  VirtualFile realFile=VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(myUnitParameters.getFilePath()));
+  PsiFile psiFile=realFile != null ? PsiManager.getInstance(project).findFile(realFile) : null;
+  if (psiFile != null) {
+    String libraryName=DartResolveUtil.getLibraryName(psiFile);
+    if (libraryName == null || libraryName.endsWith(".dart")) {
+      throw new ExecutionException("Missing library statement in " + psiFile.getName());
+    }
+  }
+  commandLine.setExePath(exePath);
+  if (realFile != null) {
+    commandLine.setWorkDirectory(realFile.getParent().getPath());
+  }
+  commandLine.setPassParentEnvironment(true);
+  setupUserProperties(commandLine);
+  return commandLine;
 }
