@@ -1,38 +1,39 @@
 {
+  final DataObject dataObject=(DataObject)CucumberStepsIndex.getInstance(module.getProject()).getExtensionDataObject(this);
   final List<PsiDirectory> notLoadedStepDefinitionsRoots=new ArrayList<PsiDirectory>();
   try {
     if (featureFile != null) {
-      findRelatedStepDefsRoots(module,featureFile,notLoadedStepDefinitionsRoots,myProcessedStepDirectories);
+      findRelatedStepDefsRoots(module,featureFile,notLoadedStepDefinitionsRoots,dataObject.myProcessedStepDirectories);
     }
-    loadStepDefinitionRootsFromLibraries(module,notLoadedStepDefinitionsRoots,myProcessedStepDirectories);
+    loadStepDefinitionRootsFromLibraries(module,notLoadedStepDefinitionsRoots,dataObject.myProcessedStepDirectories);
   }
  catch (  ProcessCanceledException e) {
     return Collections.emptyList();
   }
-synchronized (myStepDefinitions) {
+synchronized (dataObject.myStepDefinitions) {
     final List<AbstractStepDefinition> stepDefinitions=new ArrayList<AbstractStepDefinition>();
     for (    PsiDirectory root : notLoadedStepDefinitionsRoots) {
       stepDefinitions.clear();
       try {
-        myProcessedStepDirectories.add(root.getVirtualFile().getPath());
+        dataObject.myProcessedStepDirectories.add(root.getVirtualFile().getPath());
         final List<PsiFile> files=gatherStepDefinitionsFilesFromDirectory(root,false);
         for (        final PsiFile file : files) {
           removeAbstractStepDefinitionsRelatedTo(file);
           stepDefinitions.addAll(getStepDefinitions(file));
           createWatcher(file);
         }
-        myStepDefinitions.addAll(stepDefinitions);
+        dataObject.myStepDefinitions.addAll(stepDefinitions);
       }
  catch (      ProcessCanceledException e) {
-        myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
+        dataObject.myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
         if (!stepDefinitions.isEmpty()) {
-          myStepDefinitions.removeAll(stepDefinitions);
+          dataObject.myStepDefinitions.removeAll(stepDefinitions);
         }
         throw e;
       }
     }
   }
-synchronized (myStepDefinitions) {
-    return new ArrayList<AbstractStepDefinition>(myStepDefinitions);
+synchronized (dataObject.myStepDefinitions) {
+    return new ArrayList<AbstractStepDefinition>(dataObject.myStepDefinitions);
   }
 }

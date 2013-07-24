@@ -1,13 +1,14 @@
 {
-  myUpdateQueue.setPassThrough(false);
-  PsiManager.getInstance(project).addPsiTreeChangeListener(myCucumberPsiTreeListener);
+  final DataObject result=new DataObject();
+  result.myUpdateQueue.setPassThrough(false);
+  PsiManager.getInstance(project).addPsiTreeChangeListener(result.myCucumberPsiTreeListener);
   PsiManager.getInstance(project).addPsiTreeChangeListener(new PsiTreeChangeAdapter(){
     @Override public void childAdded(    @NotNull PsiTreeChangeEvent event){
       final PsiElement parent=event.getParent();
       PsiElement child=event.getChild();
       if (isStepLikeFile(child,parent)) {
         final PsiFile file=(PsiFile)child;
-        myUpdateQueue.queue(new Update(parent){
+        result.myUpdateQueue.queue(new Update(parent){
           public void run(){
             if (file.isValid()) {
               reloadAbstractStepDefinitions(file);
@@ -22,7 +23,7 @@
       final PsiElement parent=event.getParent();
       final PsiElement child=event.getChild();
       if (isStepLikeFile(child,parent)) {
-        myUpdateQueue.queue(new Update(parent){
+        result.myUpdateQueue.queue(new Update(parent){
           public void run(){
             removeAbstractStepDefinitionsRelatedTo((PsiFile)child);
           }
@@ -43,7 +44,7 @@
       final List<VirtualFile> newStepDefsProviders=new ArrayList<VirtualFile>();
       collectAllStepDefsProviders(newStepDefsProviders,project);
       if (!compareRoots(newStepDefsProviders)) {
-        reset();
+        reset(project);
       }
     }
     private boolean compareRoots(    final List<VirtualFile> newStepDefsProviders){
@@ -60,4 +61,5 @@
   }
 );
   Disposer.register(project,connection);
+  return result;
 }
