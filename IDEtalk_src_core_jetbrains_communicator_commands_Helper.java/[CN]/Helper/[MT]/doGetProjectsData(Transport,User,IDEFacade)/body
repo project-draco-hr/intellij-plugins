@@ -3,12 +3,12 @@
   if (user.isOnline()) {
     try {
       UIUtil.run(ideFacade,StringUtil.getMsg("ViewFilesCommand.title",user.getDisplayName()),new Runnable(){
-        public void run(){
+        @Override public void run(){
           final Semaphore semaphore=new Semaphore(1);
           try {
             semaphore.acquire();
             transport.sendXmlMessage(user,new GetProjectsDataXmlMessage(result){
-              public void processResponse(              Element responseElement){
+              @Override public void processResponse(              Element responseElement){
                 super.processResponse(responseElement);
                 semaphore.release();
               }
@@ -16,13 +16,13 @@
 );
             semaphore.tryAcquire(getWaitTimeout(),TimeUnit.MILLISECONDS);
           }
- catch (          InterruptedException e) {
+ catch (          InterruptedException ignored) {
           }
         }
       }
 );
     }
- catch (    CanceledException e) {
+ catch (    CanceledException ignored) {
     }
   }
   return result[0];
