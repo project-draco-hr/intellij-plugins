@@ -1,0 +1,12 @@
+{
+  final Module module=ModuleUtilCore.findModuleForPsiElement(file);
+  if (!DartSettings.shouldTakeWebSettings(module))   return ProblemDescriptor.EMPTY_ARRAY;
+  final DartSettings dartSettings=DartSettings.getSettingsForModule(module);
+  if (dartSettings == null || StringUtil.isEmpty(dartSettings.getSdkPath())) {
+    return getDescriptors(file,manager,isOnTheFly,DartBundle.message("inspections.dart.sdk.message"),DartBundle.message("dart.setup.sdk"));
+  }
+ else   if (!DartSettingsUtil.isDartSDKConfigured(file.getProject())) {
+    return getDescriptors(file,manager,isOnTheFly,DartBundle.message("inspections.dart.sdk.disabled.message"),DartBundle.message("dart.enable.sdk"));
+  }
+  return ProblemDescriptor.EMPTY_ARRAY;
+}
