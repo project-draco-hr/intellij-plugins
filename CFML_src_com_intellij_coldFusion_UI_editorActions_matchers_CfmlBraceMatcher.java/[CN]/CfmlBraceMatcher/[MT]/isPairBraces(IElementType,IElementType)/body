@@ -1,0 +1,27 @@
+{
+  PairedBraceMatcher matcher=LanguageBraceMatching.INSTANCE.forLanguage(tokenType1.getLanguage());
+  if (matcher != null) {
+    BracePair[] pairs=matcher.getPairs();
+    for (    BracePair pair : pairs) {
+      if (pair.getLeftBraceType() == tokenType1)       return pair.getRightBraceType() == tokenType2;
+      if (pair.getRightBraceType() == tokenType1)       return pair.getLeftBraceType() == tokenType2;
+    }
+  }
+  FileType tokenFileType1=tokenType1.getLanguage().getAssociatedFileType();
+  FileType tokenFileType2=tokenType2.getLanguage().getAssociatedFileType();
+  if (tokenFileType2 != tokenFileType1) {
+    return false;
+  }
+  if (tokenFileType1 != CfmlFileType.INSTANCE && tokenFileType1 != null) {
+    for (    FileTypeExtensionPoint<BraceMatcher> ext : Extensions.getExtensions(BraceMatcher.EP_NAME)) {
+      if (ext.filetype.equals(tokenFileType1.getName())) {
+        return ext.getInstance().isPairBraces(tokenType1,tokenType2);
+      }
+    }
+  }
+  for (  BracePair pair : PAIRS) {
+    if (pair.getLeftBraceType() == tokenType1)     return pair.getRightBraceType() == tokenType2;
+    if (pair.getRightBraceType() == tokenType1)     return pair.getLeftBraceType() == tokenType2;
+  }
+  return (tokenType1.equals(CfmlTokenTypes.OPENER) && tokenType2.equals(CfmlTokenTypes.CLOSER)) || (tokenType1.equals(CfmlTokenTypes.CLOSER) && tokenType2.equals(CfmlTokenTypes.OPENER)) || (tokenType1.equals(CfmlTokenTypes.R_ANGLEBRACKET) && tokenType2.equals(CfmlTokenTypes.OPENER))|| (tokenType1.equals(CfmlTokenTypes.OPENER) && tokenType2.equals(CfmlTokenTypes.R_ANGLEBRACKET));
+}

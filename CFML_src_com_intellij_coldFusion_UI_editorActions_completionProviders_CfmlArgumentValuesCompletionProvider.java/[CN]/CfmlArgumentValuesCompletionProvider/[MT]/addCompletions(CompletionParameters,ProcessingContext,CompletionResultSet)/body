@@ -1,0 +1,20 @@
+{
+  PsiElement element=parameters.getPosition();
+  CfmlFunctionCallExpression parentOfType=PsiTreeUtil.getParentOfType(element,CfmlFunctionCallExpression.class);
+  if (parentOfType == null || !parentOfType.isCreateObject()) {
+    return;
+  }
+  PsiElement parent=element.getParent();
+  PsiElement parentSibling=parent != null ? parent.getPrevSibling() : null;
+  while (parentSibling != null && parentSibling.getNode().getElementType() == TokenType.WHITE_SPACE) {
+    parentSibling=parentSibling.getPrevSibling();
+  }
+  if (parentSibling != null && parent.getNode().getElementType() == CfmlElementTypes.STRING_LITERAL && parentSibling.getNode().getElementType() == CfscriptTokenTypes.L_BRACKET) {
+    result.addAllElements(map2Set(CfmlUtil.getCreateObjectArgumentValues(),new Function<String,LookupElement>(){
+      public LookupElementBuilder fun(      final String argumentValue){
+        return LookupElementBuilder.create(argumentValue).withCaseSensitivity(false);
+      }
+    }
+));
+  }
+}

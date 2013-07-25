@@ -1,0 +1,22 @@
+{
+  PsiBuilder.Marker structDefMarker=mark();
+  IElementType tokenType=getTokenType();
+  if (tokenType == L_CURLYBRACKET) {
+    advance();
+    if (getTokenType() != R_CURLYBRACKET) {
+      parseAssignsList();
+    }
+  }
+ else {
+    structDefMarker.drop();
+    return false;
+  }
+  if (getTokenType() != R_CURLYBRACKET) {
+    structDefMarker.done(CfmlElementTypes.SCRIPT_EXPRESSION);
+    myBuilder.error(CfmlBundle.message("cfml.parsing.close.bracket.expected"));
+    return true;
+  }
+  advance();
+  structDefMarker.drop();
+  return true;
+}

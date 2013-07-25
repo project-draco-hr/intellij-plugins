@@ -1,0 +1,38 @@
+{
+  PsiBuilder.Marker propertyBodyMarker=myBuilder.mark();
+  if (myBuilder.getTokenType() == IDENTIFIER) {
+    myBuilder.advanceLexer();
+    if (myBuilder.getTokenType() == CfmlTokenTypes.ASSIGN) {
+      propertyBodyMarker.rollbackTo();
+      CfmlParser.parseAttributes(myBuilder,"cfproperty",CfscriptTokenTypes.IDENTIFIER,true);
+      return true;
+    }
+ else     if (myBuilder.getTokenType() == IDENTIFIER) {
+      PsiBuilder.Marker attributesMarker=myBuilder.mark();
+      myBuilder.advanceLexer();
+      if (myBuilder.getTokenType() == CfmlTokenTypes.ASSIGN) {
+        attributesMarker.rollbackTo();
+        propertyBodyMarker.drop();
+        CfmlParser.parseAttributes(myBuilder,"cfproperty",CfscriptTokenTypes.IDENTIFIER,true);
+        return true;
+      }
+ else {
+        attributesMarker.drop();
+        propertyBodyMarker.rollbackTo();
+        return false;
+      }
+    }
+ else     if (myBuilder.getTokenType() == CfscriptTokenTypes.POINT) {
+      if (!parseType(myBuilder) || myBuilder.getTokenType() != IDENTIFIER) {
+        propertyBodyMarker.rollbackTo();
+        return false;
+      }
+    }
+ else     if (myBuilder.getTokenType() == SEMICOLON) {
+      propertyBodyMarker.drop();
+      return true;
+    }
+  }
+  propertyBodyMarker.drop();
+  return false;
+}

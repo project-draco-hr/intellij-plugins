@@ -1,0 +1,15 @@
+{
+  if (myBuilder.getTokenType() != IMPORT_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker marker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  IElementType tokenType=myBuilder.getTokenType();
+  if (tokenType == CfmlTokenTypes.SINGLE_QUOTE || tokenType == CfmlTokenTypes.DOUBLE_QUOTE) {
+    (new CfmlExpressionParser(myBuilder)).parseString();
+  }
+ else   if (tokenType == IDENTIFIER) {
+    (new CfmlExpressionParser(myBuilder)).parseComponentReference();
+  }
+  marker.done(CfmlElementTypes.IMPORTEXPRESSION);
+}

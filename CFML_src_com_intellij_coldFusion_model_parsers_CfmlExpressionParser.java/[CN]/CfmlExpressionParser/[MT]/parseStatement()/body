@@ -1,0 +1,72 @@
+{
+  if (myBuilder.eof() || closeExpressionToken()) {
+    return;
+  }
+  int offset=myBuilder.getCurrentOffset();
+  if (CfscriptTokenTypes.PREFIX_OPERATIONS.contains(getTokenType())) {
+    parsePrefixOperationExpression();
+    return;
+  }
+  PsiBuilder.Marker statementMarker=myBuilder.mark();
+  if (getTokenType() == VAR_KEYWORD) {
+    parseAssignmentExpression();
+    statementMarker.drop();
+    return;
+  }
+  if (!parseLValue()) {
+    statementMarker.drop();
+    return;
+  }
+  boolean isClearAssign=false;
+  boolean isProbableVariableDef=false;
+  if (CfscriptTokenTypes.POSTFIX_OPERATIONS.contains(getTokenType())) {
+    advance();
+    statementMarker.done(CfmlElementTypes.NONE);
+    return;
+  }
+ else   if (!CfscriptTokenTypes.ASSIGN_OPERATORS.contains(getTokenType())) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.statemenet.expected"));
+    if (CfscriptTokenTypes.OPERATIONS.contains(getTokenType())) {
+      advance();
+      myBuilder.error(CfmlBundle.message("cfml.parsing.assignment.expected"));
+      isClearAssign=true;
+    }
+  }
+ else {
+    isProbableVariableDef=isClearAssign=(getTokenType() == CfmlTokenTypes.ASSIGN);
+    if (myBuilder.eof()) {
+      statementMarker.drop();
+      return;
+    }
+    advance();
+  }
+  if (!isClearAssign || !parseStructureDefinition()) {
+    if (!isClearAssign || !parseNewExpression()) {
+      if (!isClearAssign || !parseArrayDefinition()) {
+        if (!parseExpression()) {
+          if (offset == myBuilder.getCurrentOffset()) {
+            statementMarker.drop();
+            myBuilder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+            advance();
+            return;
+          }
+          myBuilder.error(CfmlBundle.message("cfml.parsing.right.operand.missed"));
+          statementMarker.drop();
+          return;
+        }
+      }
+    }
+  }
+  if (offset == myBuilder.getCurrentOffset()) {
+    statementMarker.drop();
+    myBuilder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+    advance();
+    return;
+  }
+  if (isProbableVariableDef) {
+    statementMarker.done(CfmlElementTypes.ASSIGNMENT);
+  }
+ else {
+    statementMarker.drop();
+  }
+}

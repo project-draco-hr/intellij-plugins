@@ -1,0 +1,24 @@
+{
+  if (findChildByType(CfscriptTokenTypes.IN_L) != null) {
+    Variable referenceDefinition=findChildByClass(Variable.class);
+    if (referenceDefinition != null) {
+      if (!processor.execute(referenceDefinition,state)) {
+        return false;
+      }
+    }
+  }
+ else {
+    List<PsiElement> childrenByType=findChildrenByType(CfscriptTokenTypes.SEMICOLON);
+    if (childrenByType.size() == 2) {
+      CfmlAssignmentExpression[] childrenByClass=findChildrenByClass(CfmlAssignmentExpression.class);
+      for (      CfmlAssignmentExpression assignment : childrenByClass) {
+        if (assignment.getTextOffset() <= childrenByType.get(0).getTextOffset()) {
+          if (assignment.getAssignedVariable() != null && !processor.execute(assignment.getAssignedVariable(),state)) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}

@@ -1,0 +1,21 @@
+{
+  if (myBuilder.getTokenType() != CATCH_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker catchExpressionMarker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  if (!eatLeftBracket(myBuilder)) {
+    catchExpressionMarker.drop();
+    return;
+  }
+  parseType(myBuilder);
+  if (myBuilder.getTokenType() != IDENTIFIER) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.identifier.expected"));
+    catchExpressionMarker.drop();
+    return;
+  }
+  myBuilder.advanceLexer();
+  eatRightBracket(myBuilder);
+  catchExpressionMarker.done(CfmlElementTypes.CATCHEXPRESSION);
+  parseScript(myBuilder,false);
+}

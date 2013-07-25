@@ -1,0 +1,16 @@
+{
+  final PsiElement parent=getParent();
+  if ((parent.getNode().getElementType() == CfmlElementTypes.ATTRIBUTE)) {
+    final String localName=((CfmlAttribute)parent).getAttributeName();
+    final PsiElement parentTag=parent.getParent();
+    PsiReference[] refs;
+    if (TEMPLATE_ATTR_NAME.equalsIgnoreCase(localName) && parentTag.getNode().getElementType() == CfmlElementTypes.TAG && (((CfmlTag)parentTag).getTagName().equals("cfinclude") || ((CfmlTag)parentTag).getTagName().equalsIgnoreCase("cfmodule"))) {
+      refs=(new CfmlFileReferenceSet(this,0)).getAllReferences();
+      return refs;
+    }
+  }
+  if (parent.getNode().getElementType() == CfmlElementTypes.INCLUDEEXPRESSION) {
+    return (new CfmlFileReferenceSet(this,1)).getAllReferences();
+  }
+  return super.getReferences();
+}

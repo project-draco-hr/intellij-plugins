@@ -1,0 +1,14 @@
+{
+  final FileViewProvider viewProvider=file.getViewProvider();
+  PsiElement elementAt=PsiTreeUtil.findElementOfClassAtRange(file,startOffset,endOffset,CfmlReferenceExpression.class);
+  if (elementAt != null) {
+    return !(elementAt.getParent() instanceof CfmlReferenceExpression) ? new PsiElement[]{elementAt} : PsiElement.EMPTY_ARRAY;
+  }
+  for (  Language language : viewProvider.getLanguages()) {
+    elementAt=viewProvider.findElementAt(startOffset,language);
+    if (elementAt != null && (!language.is(CfmlLanguage.INSTANCE) || elementAt.getNode().getElementType() == CfmlTokenTypes.STRING_TEXT) && elementAt.getNode().getText().matches("(\\S)+") && elementAt.getTextRange().getStartOffset() == startOffset && elementAt.getTextRange().getEndOffset() == endOffset) {
+      return new PsiElement[]{elementAt};
+    }
+  }
+  return PsiElement.EMPTY_ARRAY;
+}

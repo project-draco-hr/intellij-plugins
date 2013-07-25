@@ -1,0 +1,38 @@
+{
+  Stack<Tag> tagNamesStack=new Stack<Tag>();
+  final PsiBuilder.Marker marker=builder.mark();
+  if (builder.getTokenType() == CfscriptTokenTypes.COMMENT || builder.getTokenType() == CfscriptTokenTypes.COMPONENT_KEYWORD || builder.getTokenType() == CfscriptTokenTypes.INTERFACE_KEYWORD || builder.getTokenType() == CfscriptTokenTypes.IMPORT_KEYWORD) {
+    (new CfscriptParser()).parseScript(builder,true);
+    if (!builder.eof()) {
+      builder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+    }
+    while (!builder.eof()) {
+      builder.advanceLexer();
+    }
+  }
+ else {
+    while (!builder.eof()) {
+      if (builder.getTokenType() == OPENER) {
+        parseOpenTag(builder,tagNamesStack);
+      }
+ else       if (builder.getTokenType() == LSLASH_ANGLEBRACKET) {
+        parseCloseTag(builder,tagNamesStack);
+      }
+ else {
+        builder.advanceLexer();
+      }
+    }
+    while (!tagNamesStack.isEmpty()) {
+      Tag tag=tagNamesStack.pop();
+      if (CfmlUtil.isUserDefined(tag.myTagName) || !CfmlUtil.isEndTagRequired(tag.myTagName,builder.getProject())) {
+        tag.myMarkerOfBegin.doneBefore(getElementTypeForTag(tag.myTagName),tag.myMarkerOfContent);
+      }
+ else {
+        tag.myMarkerOfBegin.doneBefore(getElementTypeForTag(tag.myTagName),tag.myMarkerOfContent,CfmlBundle.message("cfml.parsing.element.is.not.closed",tag.myTagName));
+      }
+      tag.myMarkerOfContent.drop();
+    }
+  }
+  marker.done(root);
+  return builder.getTreeBuilt();
+}

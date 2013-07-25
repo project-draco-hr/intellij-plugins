@@ -1,0 +1,19 @@
+{
+  if (element instanceof CfmlReferenceExpression) {
+    final PsiElement scope=((CfmlReferenceExpression)element).getScope();
+    if (scope != null) {
+      myScope=CfmlScopesInfo.getScopeByString(scope.getText());
+    }
+  }
+  myElement=element;
+  myIsForCompletion=referenceName == null;
+  myReferenceName=referenceName != null ? referenceName.toLowerCase() : null;
+  myIsMethodCall=parent instanceof CfmlFunctionCallExpression || parent instanceof CfmlTagInvokeImpl;
+  if (parent instanceof CfmlFunctionCallExpression && !myIsForCompletion) {
+    final PsiType[] parameterTypes=((CfmlFunctionCallExpression)parent).getArgumentTypes();
+    myMethods=new JavaMethodResolveHelper(parent,parameterTypes);
+  }
+ else {
+    myMethods=new JavaMethodResolveHelper(parent,null);
+  }
+}

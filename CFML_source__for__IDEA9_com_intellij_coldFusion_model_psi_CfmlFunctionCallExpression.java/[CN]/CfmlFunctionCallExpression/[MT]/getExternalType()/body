@@ -1,0 +1,63 @@
+{
+  String functionName=getFunctionName();
+  final CfmlReference referenceExpression=getReferenceExpression();
+  if ("createobject".equals(functionName.toLowerCase())) {
+    final CfmlArgumentList cfmlArgumentList=findArgumentList();
+    if (cfmlArgumentList == null) {
+      return null;
+    }
+    CfmlExpression[] argumentsList=cfmlArgumentList.getArguments();
+    if (argumentsList.length == 0) {
+      return null;
+    }
+    if (argumentsList[0] instanceof CfmlStringLiteralExpression) {
+      final String secondParameterName=((CfmlStringLiteralExpression)argumentsList[0]).getValue().toLowerCase();
+      if ("java".equals(secondParameterName) && argumentsList.length >= 2) {
+        String className=argumentsList[1].getText();
+        className=className.substring(1,className.length() - 1);
+        final PsiJavaCodeReferenceElement reference=JavaPsiFacade.getInstance(getProject()).getElementFactory().createReferenceElementByFQClassName(className,getResolveScope());
+        return new PsiClassStaticType(reference,className);
+      }
+ else       if (("component".equals(secondParameterName) && argumentsList.length >= 2) || (argumentsList.length == 1)) {
+        final PsiReference[] references=argumentsList[argumentsList.length == 1 ? 0 : 1].getReferences();
+        if (references.length != 0 && references[0] instanceof CfmlComponentReference) {
+          final CfmlComponentReference componentRef=((CfmlComponentReference)references[0]);
+          if (componentRef != null) {
+            return new CfmlComponentType(componentRef.getText(),getContainingFile(),getProject());
+          }
+        }
+      }
+    }
+  }
+ else   if ("init".equals(getFunctionShortName().toLowerCase())) {
+    CfmlReference qualifier=CfmlPsiUtil.getQualifierInner(this);
+    CfmlReference sourceObject=CfmlPsiUtil.getQualifierInner(qualifier);
+    if (sourceObject != null) {
+      final PsiType type=sourceObject.getPsiType();
+      if (type instanceof PsiClassStaticType) {
+        return ((PsiClassStaticType)type).getRawType();
+      }
+      if (type instanceof CfmlComponentType) {
+        return type;
+      }
+    }
+  }
+ else   if (isCreateFromJavaLoader()) {
+    CfmlArgumentList argumentList=findArgumentList();
+    if (argumentList == null) {
+      return null;
+    }
+    CfmlExpression[] argumentsList=argumentList.getArguments();
+    if (argumentsList.length == 0) {
+      return null;
+    }
+    String className=argumentsList[0].getText();
+    className=className.substring(1,className.length() - 1);
+    return CfmlPsiUtil.getTypeByName(className,getProject());
+  }
+ else   if (referenceExpression != null) {
+    final PsiElement resolve=referenceExpression.resolve();
+    return resolve instanceof CfmlFunction ? ((CfmlFunction)resolve).getReturnType() : null;
+  }
+  return null;
+}

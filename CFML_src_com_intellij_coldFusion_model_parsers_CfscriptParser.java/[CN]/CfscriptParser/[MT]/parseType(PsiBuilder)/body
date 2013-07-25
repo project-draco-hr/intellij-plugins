@@ -1,0 +1,26 @@
+{
+  if (TYPE_KEYWORDS.contains(myBuilder.getTokenType())) {
+    final PsiBuilder.Marker typeMarker=myBuilder.mark();
+    myBuilder.advanceLexer();
+    typeMarker.done(CfmlElementTypes.TYPE);
+  }
+ else {
+    if (myBuilder.getTokenType() != IDENTIFIER) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.type.expected"));
+      return false;
+    }
+    final PsiBuilder.Marker typeMarker=myBuilder.mark();
+    myBuilder.advanceLexer();
+    while (myBuilder.getTokenType() == POINT) {
+      myBuilder.advanceLexer();
+      if (myBuilder.getTokenType() != IDENTIFIER) {
+        myBuilder.error(CfmlBundle.message("cfml.parsing.type.expected"));
+        typeMarker.done(CfmlElementTypes.TYPE);
+        return true;
+      }
+      myBuilder.advanceLexer();
+    }
+    typeMarker.done(CfmlElementTypes.TYPE);
+  }
+  return true;
+}

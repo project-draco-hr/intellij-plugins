@@ -1,0 +1,18 @@
+{
+  super(PsiAnnotation.EMPTY_ARRAY);
+  final String text=comment.getText();
+  myProject=project;
+  Matcher javaLoaderMatcher=CfmlFile.LOADER_DECL_PATTERN_TEMP.matcher(text);
+  mySearchScope=GlobalSearchScope.allScope(project);
+  if (javaLoaderMatcher.matches()) {
+    Collection<String> collection=CfmlPsiUtil.findBetween(text,"loadPaths=\"","\"");
+    if (collection != null) {
+      for (      String str : collection) {
+        VirtualFile file=JarFileSystem.getInstance().findFileByPath(str + JarFileSystem.JAR_SEPARATOR);
+        if (file != null) {
+          mySearchScope=mySearchScope.uniteWith(new JarFileScope(file));
+        }
+      }
+    }
+  }
+}

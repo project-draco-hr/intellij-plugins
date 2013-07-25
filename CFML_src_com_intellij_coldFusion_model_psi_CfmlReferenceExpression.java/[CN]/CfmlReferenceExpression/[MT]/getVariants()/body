@@ -1,0 +1,43 @@
+{
+  final CfmlVariantsProcessor<PsiNamedElement> processor=new CfmlVariantsProcessor<PsiNamedElement>(this,getParent(),null){
+    Set<String> myVariablesNames=new HashSet<String>();
+    protected PsiNamedElement execute(    final PsiNamedElement element,    final boolean error){
+      if (element instanceof CfmlVariable) {
+        if (myVariablesNames.add(element.getName())) {
+          return element;
+        }
+        return null;
+      }
+ else {
+        PsiElement scope=getScope();
+        if (scope != null && !scope.getText().equalsIgnoreCase("this")) {
+          return null;
+        }
+      }
+      return element;
+    }
+  }
+;
+  processVariantsInner(processor);
+  PsiNamedElement[] variants=processor.getVariants(PsiNamedElement.EMPTY_ARRAY);
+  HashSet<LookupElement> result=new HashSet<LookupElement>();
+  for (  PsiNamedElement namedElement : variants) {
+    if (namedElement instanceof CfmlProperty) {
+      final String capitalizedName=StringUtil.capitalize(StringUtil.notNullize(namedElement.getName()));
+      if (((CfmlProperty)namedElement).hasGetter() || (namedElement.getParent() instanceof CfmlComponent && (((CfmlComponent)namedElement.getParent()).hasImplicitAccessors() || ((CfmlComponent)namedElement.getParent()).isPersistent()))) {
+        result.add(LookupElementBuilder.create(namedElement,"get" + capitalizedName + "()").withCaseSensitivity(false).withIcon(PlatformIcons.METHOD_ICON));
+      }
+      if (((CfmlProperty)namedElement).hasSetter() || (namedElement.getParent() instanceof CfmlComponent && (((CfmlComponent)namedElement.getParent()).hasImplicitAccessors() || ((CfmlComponent)namedElement.getParent()).isPersistent()))) {
+        result.add(LookupElementBuilder.create(namedElement,"set" + capitalizedName + "()").withCaseSensitivity(false).withIcon(PlatformIcons.METHOD_ICON));
+      }
+    }
+  }
+  result.addAll(ContainerUtil.map2Set(variants,new Function<PsiNamedElement,LookupElement>(){
+    public LookupElement fun(    final PsiNamedElement element){
+      PsiElement scope=getScope();
+      return CfmlLookUpItemUtil.namedElementToLookupItem(element,scope != null ? scope.getText() : null);
+    }
+  }
+));
+  return result.toArray();
+}

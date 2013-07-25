@@ -1,0 +1,21 @@
+{
+  myFixture.configureByFile(getTestName(true) + ".test.cfml");
+  addScriptComponentsTo(myFixture);
+  Map<String,String> mappings=new HashMap<String,String>();
+  for (  VirtualFile root : ProjectRootManager.getInstance(getProject()).getContentRoots()) {
+    VirtualFile directory=root.findChild("folder");
+    if (directory != null && directory.isDirectory()) {
+      mappings.put("\\myf",directory.getUrl());
+    }
+  }
+  CfmlProjectConfiguration.State defaultState=CfmlProjectConfiguration.getInstance(getProject()).getState();
+  CfmlProjectConfiguration.State state=new CfmlProjectConfiguration.State(new CfmlMappingsConfig(mappings));
+  try {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(state);
+    myFixture.enableInspections(CfmlFileReferenceInspection.class);
+    myFixture.testHighlighting(true,false,true);
+  }
+  finally {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(defaultState);
+  }
+}

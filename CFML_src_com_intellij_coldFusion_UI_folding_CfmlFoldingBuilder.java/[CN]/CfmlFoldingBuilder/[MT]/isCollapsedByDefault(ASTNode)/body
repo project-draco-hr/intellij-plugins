@@ -1,0 +1,18 @@
+{
+  CodeFoldingSettings settings=CodeFoldingSettings.getInstance();
+  final PsiElement element=SourceTreeToPsiMap.treeElementToPsi(node);
+  if (node.getPsi() instanceof PsiComment) {
+    final ASTNode parent=node.getTreeParent();
+    ASTNode treePrev=node.getTreePrev();
+    if (parent.getElementType() == CfmlElementTypes.CFML_FILE && treePrev == null) {
+      return CodeFoldingSettings.getInstance().COLLAPSE_FILE_HEADER;
+    }
+ else {
+      return CodeFoldingSettings.getInstance().COLLAPSE_DOC_COMMENTS;
+    }
+  }
+ else   if (element instanceof CfmlFunction) {
+    return settings.COLLAPSE_METHODS;
+  }
+  return false;
+}

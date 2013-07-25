@@ -1,0 +1,47 @@
+{
+  if (element instanceof LookupElement)   return (LookupElement)element;
+  if (element instanceof PsiClass) {
+    return JavaLookupElementBuilder.forClass((PsiClass)element);
+  }
+  if (element instanceof PsiMethod) {
+    if (((PsiMethod)element).isConstructor()) {
+      return JavaLookupElementBuilder.forMethod((PsiMethod)element,"init",PsiSubstitutor.EMPTY,null);
+    }
+    return JavaLookupElementBuilder.forMethod((PsiMethod)element,PsiSubstitutor.EMPTY);
+  }
+  if (element instanceof PsiVariable) {
+    return JavaLookupElementBuilder.forField((PsiField)element);
+  }
+  if (element instanceof PsiType) {
+    return PsiTypeLookupItem.createLookupItem((PsiType)element,null);
+  }
+  String name="" + element.getName();
+  String typeText=null;
+  String tailText=null;
+  if (element instanceof CfmlFunction) {
+    tailText="(" + ((CfmlFunction)element).getParametersAsString() + ")";
+    PsiType returnType=((CfmlFunction)element).getReturnType();
+    typeText=returnType != null ? returnType.getCanonicalText() : null;
+  }
+ else   if (element instanceof CfmlNamedAttributeImpl && element.getParent() instanceof CfmlFunction) {
+    CfmlFunction cfmlFunction=(CfmlFunction)element.getParent();
+    tailText="(" + cfmlFunction.getParametersAsString() + ")";
+    PsiType returnType=cfmlFunction.getReturnType();
+    typeText=returnType != null ? returnType.getCanonicalText() : null;
+  }
+ else   if (element instanceof CfmlVariable) {
+    PsiType type=((CfmlVariable)element).getPsiType();
+    if (type != null) {
+      typeText=type.getPresentableText();
+    }
+    name=((CfmlVariable)element).getlookUpString();
+  }
+ else   if (element instanceof PsiDirectory) {
+    name=element.getName();
+    tailText=".";
+  }
+  if (prefix != null && prefix.length() != 0 && !name.toLowerCase().startsWith(prefix.toLowerCase())) {
+    name=prefix + "." + name;
+  }
+  return LookupElementBuilder.create(element,name).withTypeText(typeText).withIcon(getIcon(element)).withInsertHandler(getInsertHandler(element)).withTailText(tailText).withCaseSensitivity(false);
+}

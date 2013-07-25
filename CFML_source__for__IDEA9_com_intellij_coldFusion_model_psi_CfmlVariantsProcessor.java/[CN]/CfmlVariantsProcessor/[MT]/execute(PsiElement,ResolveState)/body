@@ -1,0 +1,78 @@
+{
+  if (!(element instanceof PsiNamedElement)) {
+    return true;
+  }
+  if (StringUtil.isEmpty(((PsiNamedElement)element).getName())) {
+    return true;
+  }
+  String elementName=((PsiNamedElement)element).getName();
+  PsiElement namedElement=element instanceof CfmlNamedAttributeImpl ? element.getParent() : element;
+  if (!CfmlScopesInfo.isConvenient(namedElement,myScope)) {
+    return true;
+  }
+  if (namedElement instanceof PsiClass) {
+    return true;
+  }
+  if (namedElement instanceof PsiModifierListOwner) {
+    final PsiModifierListOwner owner=(PsiModifierListOwner)namedElement;
+    if (owner.hasModifierProperty(PRIVATE) || owner.hasModifierProperty(PACKAGE_LOCAL) || owner.hasModifierProperty(PROTECTED)) {
+      return true;
+    }
+  }
+  boolean isJavaMethodCall=namedElement instanceof PsiMethod;
+  if (isJavaMethodCall) {
+    final PsiMethod method=(PsiMethod)namedElement;
+    if (method.isConstructor()) {
+      final PsiClass methodClass=method.getContainingClass();
+      if (methodClass == null) {
+        return true;
+      }
+      if (myStaticScopeFlag && (methodClass.equals(myInitialClass) || !myWasConstructorFound) && (myIsForCompletion || "init".equals(myReferenceName))) {
+        myWasConstructorFound=true;
+        if (!methodClass.equals(myInitialClass) && !myIsForCompletion) {
+          addIfNotNull(execute(myInitialClass,false),myResult);
+          return true;
+        }
+ else {
+          addIfNotNull(execute(method,myMethods.getResolveError() == JavaMethodResolveHelper.ErrorType.RESOLVE),myResult);
+          return true;
+        }
+      }
+    }
+  }
+  if (namedElement instanceof PsiModifierListOwner) {
+    final PsiModifierListOwner owner=(PsiModifierListOwner)namedElement;
+    if (myStaticScopeFlag && !owner.hasModifierProperty(STATIC)) {
+      return true;
+    }
+  }
+  boolean isMyMethodCall=namedElement instanceof CfmlFunction;
+  if (!myIsForCompletion) {
+    if (myIsMethodCall && (myReferenceName.toLowerCase().startsWith("get") || myReferenceName.toLowerCase().startsWith("set")) && myReferenceName.substring(3).equalsIgnoreCase(elementName.toLowerCase())) {
+      addIfNotNull(execute((PsiNamedElement)element,false),myResult);
+      return myResult.size() == 0;
+    }
+    if (!myReferenceName.toLowerCase().equals(elementName.toLowerCase())) {
+      return true;
+    }
+  }
+  if (!myIsForCompletion && (isJavaMethodCall || isMyMethodCall) != myIsMethodCall) {
+    return true;
+  }
+  if (isJavaMethodCall) {
+    myMethods.addMethod((PsiMethod)namedElement,state.get(PsiSubstitutor.KEY),false);
+    return true;
+  }
+  T execute=execute((PsiNamedElement)element,false);
+  if (execute != null) {
+    addIfNotNull(execute,myResult);
+    if (myIsForCompletion || myResult.size() == 0) {
+      return true;
+    }
+ else     if (namedElement instanceof CfmlVariable) {
+      return !((CfmlVariable)namedElement).isTrulyDeclaration();
+    }
+    return false;
+  }
+  return true;
+}

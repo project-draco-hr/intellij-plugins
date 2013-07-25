@@ -1,0 +1,25 @@
+{
+  PsiBuilder.Marker functionMarker=myBuilder.mark();
+  if (CfscriptTokenTypes.ACCESS_KEYWORDS.contains(myBuilder.getTokenType())) {
+    myBuilder.advanceLexer();
+  }
+  if (myBuilder.getTokenType() != FUNCTION_KEYWORD) {
+    parseType(myBuilder);
+  }
+  if (myBuilder.getTokenType() != FUNCTION_KEYWORD) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.function.expected"));
+    functionMarker.drop();
+    return;
+  }
+  myBuilder.advanceLexer();
+  if (myBuilder.getTokenType() != IDENTIFIER && !(myBuilder.getTokenType() == DEFAULT_KEYWORD)) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.identifier.expected"));
+  }
+ else {
+    myBuilder.advanceLexer();
+  }
+  parseParametersListInBrackets(myBuilder);
+  CfmlParser.parseAttributes(myBuilder,"cffunction",CfscriptTokenTypes.IDENTIFIER,true);
+  parseFunctionBody(myBuilder);
+  functionMarker.done(CfmlElementTypes.FUNCTION_DEFINITION);
+}

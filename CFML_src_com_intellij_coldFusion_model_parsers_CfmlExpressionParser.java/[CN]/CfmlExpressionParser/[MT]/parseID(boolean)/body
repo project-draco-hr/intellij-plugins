@@ -1,0 +1,26 @@
+{
+  if (!ifSharpsInIDs) {
+    if (getTokenType() == IDENTIFIER || CfscriptTokenTypes.KEYWORDS.contains(getTokenType())) {
+      advance();
+      return true;
+    }
+  }
+ else {
+    if (getTokenType() != OPENSHARP && getTokenType() != IDENTIFIER) {
+      return false;
+    }
+    while (getTokenType() == OPENSHARP || getTokenType() == IDENTIFIER) {
+      while (getTokenType() == OPENSHARP) {
+        parseSharpExpr();
+      }
+      if (getTokenType() == IDENTIFIER) {
+        advance();
+      }
+      while (getTokenType() == OPENSHARP) {
+        parseSharpExpr();
+      }
+    }
+    return true;
+  }
+  return false;
+}

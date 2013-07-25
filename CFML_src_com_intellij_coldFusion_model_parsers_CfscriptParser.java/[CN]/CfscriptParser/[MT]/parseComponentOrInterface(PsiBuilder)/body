@@ -1,0 +1,33 @@
+{
+  if (myBuilder.getTokenType() != COMPONENT_KEYWORD && myBuilder.getTokenType() != INTERFACE_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker componentMarker=myBuilder.mark();
+  boolean isComponent=myBuilder.getTokenType() == COMPONENT_KEYWORD;
+  myBuilder.advanceLexer();
+  if (myBuilder.getTokenType() == FUNCTION_KEYWORD) {
+    componentMarker.rollbackTo();
+    parseFunctionExpression(myBuilder);
+    return;
+  }
+  CfmlParser.parseAttributes(myBuilder,isComponent ? "cfcomponent" : "cfinterface",CfscriptTokenTypes.IDENTIFIER,true);
+  if (myBuilder.getTokenType() != L_CURLYBRACKET) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.open.curly.bracket.expected"));
+    componentMarker.drop();
+    return;
+  }
+  myBuilder.advanceLexer();
+  if (myBuilder.getTokenType() == PAGEENCODING_KEYWORD) {
+    myBuilder.advanceLexer();
+    IElementType tokenType=myBuilder.getTokenType();
+    if (tokenType == CfmlTokenTypes.SINGLE_QUOTE || tokenType == CfmlTokenTypes.DOUBLE_QUOTE) {
+      (new CfmlExpressionParser(myBuilder)).parseString();
+      eatSemicolon(myBuilder);
+    }
+ else {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.string.expected"));
+    }
+  }
+  parseScript(myBuilder,false,false,true);
+  componentMarker.done(CfmlStubElementTypes.COMPONENT_DEFINITION);
+}

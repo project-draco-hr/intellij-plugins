@@ -1,0 +1,16 @@
+{
+  final PsiElement rEx=getAttributeValueElement(element,"extends");
+  final PsiElement rImpl=getAttributeValueElement(element,"implements");
+  ASTNode rExNode=rEx != null ? rEx.getNode() : null;
+  ASTNode rImplNode=rImpl != null ? rImpl.getNode() : null;
+  if (rExNode != null) {
+    return rImplNode == null ? new PsiReference[]{new CfmlComponentReference(rExNode,element)} : new PsiReference[]{new CfmlComponentReference(rExNode,element),new CfmlComponentReference(rImplNode,element)};
+  }
+  if (rImplNode != null) {
+    String implList=rImplNode.getText();
+    if (!implList.contains(",")) {
+      return new PsiReference[]{new CfmlComponentReference(rImplNode,element)};
+    }
+  }
+  return new PsiReference[0];
+}

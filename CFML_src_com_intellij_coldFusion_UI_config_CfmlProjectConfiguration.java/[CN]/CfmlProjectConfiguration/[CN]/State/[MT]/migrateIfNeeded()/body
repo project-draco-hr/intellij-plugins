@@ -1,0 +1,21 @@
+{
+  if (mySlashMappingElement == null && myMappingsElement == null) {
+    return;
+  }
+  Element firstChild=mySlashMappingElement != null ? mySlashMappingElement.getChild("CfmlMappingsConfig") : null;
+  if (firstChild == null) {
+    firstChild=myMappingsElement.getChild("CfmlMappingsConfig");
+  }
+  if (firstChild != null) {
+    for (    Element e : JDOMUtil.getChildren(firstChild.getChild("server_mappings"),"mapping")) {
+      updateAndAddIfNeeded(e.getAttributeValue("logical_path"),e.getAttributeValue("directory"));
+    }
+  }
+ else {
+    for (    Element e : myMappingsElement.getChildren("mapping")) {
+      myMapps.putToServerMappings(e.getAttributeValue("logical_path"),e.getAttributeValue("directory"));
+    }
+  }
+  setMappingsElement(null);
+  setSlashMappingElement(null);
+}

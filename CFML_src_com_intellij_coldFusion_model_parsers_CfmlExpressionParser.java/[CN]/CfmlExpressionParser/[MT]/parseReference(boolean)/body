@@ -1,0 +1,55 @@
+{
+  boolean isReference=false;
+  PsiBuilder.Marker referenceExpression=myBuilder.mark();
+  boolean start=true;
+  while (getTokenType() == POINT || start) {
+    if (start) {
+      if (getTokenType() == SCOPE_KEYWORD) {
+        advance();
+        if (getTokenType() == POINT) {
+          advance();
+        }
+ else {
+          myBuilder.error(CfmlBundle.message("cfml.parsing.dot.expected"));
+        }
+      }
+ else       if (parseNewExpression()) {
+        if (getTokenType() == POINT) {
+          advance();
+        }
+      }
+    }
+    if (!start && getTokenType() == POINT) {
+      advance();
+    }
+    start=false;
+    if (!parseID(ifSharpsInIDs)) {
+      break;
+    }
+    isReference=true;
+    referenceExpression.done(CfmlElementTypes.REFERENCE_EXPRESSION);
+    do {
+      if (getTokenType() == L_BRACKET) {
+        isReference=false;
+        referenceExpression=referenceExpression.precede();
+        parseArgumentsList();
+        referenceExpression.done(CfmlElementTypes.FUNCTION_CALL_EXPRESSION);
+      }
+      int arrayAccessNumber=0;
+      while (getTokenType() == L_SQUAREBRACKET) {
+        isReference=true;
+        referenceExpression=referenceExpression.precede();
+        parseArrayAccess();
+        referenceExpression.done(CfmlElementTypes.NONE);
+        arrayAccessNumber++;
+      }
+      if (arrayAccessNumber != 1) {
+        break;
+      }
+    }
+ while (getTokenType() == L_BRACKET);
+    referenceExpression=referenceExpression.precede();
+  }
+  referenceExpression.drop();
+  return isReference;
+}

@@ -1,0 +1,20 @@
+{
+  addOneComponentToDir(myFixture);
+  Map<String,String> mappings=new HashMap<String,String>();
+  for (  VirtualFile root : ProjectRootManager.getInstance(getProject()).getContentRoots()) {
+    String directoryName=root.getPresentableUrl() + "/subfolder";
+    VirtualFile fileByUrl=LocalFileSystem.getInstance().findFileByPath(directoryName);
+    if (fileByUrl != null) {
+      mappings.put("/abc",directoryName);
+    }
+  }
+  CfmlProjectConfiguration.State defaultState=CfmlProjectConfiguration.getInstance(getProject()).getState();
+  CfmlProjectConfiguration.State state=new CfmlProjectConfiguration.State(new CfmlMappingsConfig(mappings));
+  try {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(state);
+    doTestCompletionContainsVariants("ComponentName.cfc");
+  }
+  finally {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(defaultState);
+  }
+}

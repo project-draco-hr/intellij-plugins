@@ -1,0 +1,24 @@
+{
+  final String text=element.getText();
+  TextRange range=CfmlPsiUtil.findRange(text,"name=\"","\"");
+  if (range == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final String name=range.substring(text);
+  final CfmlImplicitVariable variable=((CfmlFile)element.getContainingFile()).findImplicitVariable(name);
+  if (variable == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  PsiReferenceBase<PsiComment> ref=new PsiReferenceBase<PsiComment>((PsiComment)element,TextRange.from(range.getStartOffset(),name.length())){
+    public PsiElement resolve(){
+      return variable;
+    }
+    @NotNull public Object[] getVariants(){
+      return EMPTY_ARRAY;
+    }
+  }
+;
+  final List<PsiReference> result=new SmartList<PsiReference>();
+  result.add(ref);
+  return result.toArray(PsiReference.EMPTY_ARRAY);
+}

@@ -1,0 +1,46 @@
+{
+  if (getTokenType() == L_BRACKET) {
+    PsiBuilder.Marker argumentList=myBuilder.mark();
+    advance();
+    if (getTokenType() != R_BRACKET) {
+      boolean first=true;
+      while (first || getTokenType() == COMMA) {
+        if (!first) {
+          advance();
+        }
+        first=false;
+        PsiBuilder.Marker markArgumentName=myBuilder.mark();
+        if (getTokenType() == IDENTIFIER) {
+          advance();
+          if (getTokenType() == CfmlTokenTypes.ASSIGN) {
+            PsiBuilder.Marker assignment=markArgumentName.precede();
+            markArgumentName.done(CfmlElementTypes.ARGUMENT_NAME);
+            advance();
+            parseExpression();
+            assignment.done(CfmlElementTypes.ASSIGNMENT);
+            continue;
+          }
+ else           if (getTokenType() == COMMA || getTokenType() == R_BRACKET) {
+            markArgumentName.done(CfmlElementTypes.ARGUMENT_NAME);
+            continue;
+          }
+        }
+ else         if (parseRValue()) {
+          markArgumentName.drop();
+          continue;
+        }
+        markArgumentName.rollbackTo();
+        parseExpression();
+      }
+    }
+    if (getTokenType() != R_BRACKET) {
+      argumentList.done(CfmlElementTypes.SCRIPT_EXPRESSION);
+      myBuilder.error(CfmlBundle.message("cfml.parsing.close.bracket.expected"));
+      return true;
+    }
+    advance();
+    argumentList.done(CfmlElementTypes.ARGUMENT_LIST);
+    return true;
+  }
+  return false;
+}

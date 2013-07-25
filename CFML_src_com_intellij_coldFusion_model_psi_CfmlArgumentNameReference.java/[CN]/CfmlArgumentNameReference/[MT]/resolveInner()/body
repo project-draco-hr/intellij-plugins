@@ -1,0 +1,21 @@
+{
+  PsiElement nextSibling=getNextSibling();
+  while (nextSibling instanceof PsiWhiteSpace) {
+    nextSibling=nextSibling.getNextSibling();
+  }
+  if (nextSibling != null && nextSibling.getNode().getElementType() != CfmlTokenTypes.ASSIGN) {
+    return super.resolveInner();
+  }
+  CfmlParameter[] functionParameters=getFunctionParameters();
+  if (functionParameters != null) {
+    Collection<ResolveResult> result=new LinkedList<ResolveResult>();
+    String referenceName=getReferenceName();
+    for (    CfmlParameter param : functionParameters) {
+      if (referenceName.equals(param.getName())) {
+        result.add(new PsiElementResolveResult(param));
+      }
+    }
+    return result.toArray(ResolveResult.EMPTY_ARRAY);
+  }
+  return ResolveResult.EMPTY_ARRAY;
+}

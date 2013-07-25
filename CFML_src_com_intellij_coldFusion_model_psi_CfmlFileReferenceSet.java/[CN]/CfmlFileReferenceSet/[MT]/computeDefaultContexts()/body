@@ -1,0 +1,24 @@
+{
+  ArrayList<PsiFileSystemItem> contexts=new ArrayList<PsiFileSystemItem>();
+  if (StringUtil.startsWithChar(getPathString(),'/') || StringUtil.startsWithChar(getPathString(),'\\')) {
+    PsiReference firstFileReference=getElement().getReferences()[0];
+    if ((firstFileReference instanceof FileReference)) {
+      CfmlProjectConfiguration.State state=CfmlProjectConfiguration.getInstance(getElement().getProject()).getState();
+      if (state == null) {
+        return super.computeDefaultContexts();
+      }
+      CfmlMappingsConfig mappingsConfig=state.getMapps();
+      Map<String,String> mapDir=mappingsConfig.getServerMappings();
+      for (      String value : mapDir.keySet()) {
+        final String path=mapDir.get(value);
+        VirtualFile dir=findFile(path);
+        if (dir != null) {
+          PsiDirectory psiDirectory=getElement().getManager().findDirectory(dir);
+          contexts.add(psiDirectory);
+        }
+      }
+    }
+  }
+  contexts.addAll(super.computeDefaultContexts());
+  return contexts;
+}

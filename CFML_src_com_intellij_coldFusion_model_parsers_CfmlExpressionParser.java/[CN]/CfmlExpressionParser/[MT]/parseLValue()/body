@@ -1,0 +1,29 @@
+{
+  boolean isReference;
+  if (getTokenType() == CfmlTokenTypes.DOUBLE_QUOTE || getTokenType() == CfmlTokenTypes.SINGLE_QUOTE) {
+    advance();
+    PsiBuilder.Marker lValueMarker=myBuilder.mark();
+    isReference=(parseReference(true) || parseStringReference(true));
+    if (!isReference) {
+      lValueMarker.error(CfmlBundle.message("cfml.parsing.l.value.expected"));
+    }
+ else {
+      lValueMarker.drop();
+    }
+    if (getTokenType() != CfmlTokenTypes.DOUBLE_QUOTE_CLOSER && getTokenType() != CfmlTokenTypes.SINGLE_QUOTE_CLOSER) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.quote.expected"));
+    }
+ else {
+      advance();
+    }
+    return true;
+  }
+ else {
+    boolean result=parseReference(false);
+    if (POSTFIX_OPERATIONS.contains(getTokenType())) {
+      advance();
+      return false;
+    }
+    return result;
+  }
+}

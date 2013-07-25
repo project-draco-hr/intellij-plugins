@@ -1,0 +1,21 @@
+{
+  Collection<Object> variants=new LinkedList<Object>();
+  String text=getElement().getNode().getText();
+  if (StringUtil.startsWithChar(text,'\"') && text.endsWith("\"")) {
+    text=text.substring(1,text.length() - 1);
+  }
+  if (StringUtil.startsWithChar(text,'/')) {
+    CfmlProjectConfiguration.State state=CfmlProjectConfiguration.getInstance(getElement().getProject()).getState();
+    CfmlMappingsConfig mappings=state != null ? state.getMapps().clone() : new CfmlMappingsConfig();
+    for (    String value : mappings.getServerMappings().keySet()) {
+      if (getIndex() == 0 && (value.startsWith("/") || value.startsWith("\\"))) {
+        variants.add(LookupElementBuilder.create(value,value.replace('\\','/').substring(1)).withCaseSensitivity(false).withIcon(PlatformIcons.FOLDER_ICON));
+      }
+    }
+    if (getIndex() == 0) {
+      return variants.toArray();
+    }
+  }
+  variants.addAll(Arrays.asList(super.getVariants()));
+  return variants.toArray();
+}

@@ -1,0 +1,24 @@
+{
+  final IElementType tokenType=iterator.getTokenType();
+  PairedBraceMatcher matcher=LanguageBraceMatching.INSTANCE.forLanguage(tokenType.getLanguage());
+  if (matcher != null) {
+    BracePair[] pairs=matcher.getPairs();
+    for (    BracePair pair : pairs) {
+      if (pair.getRightBraceType() == tokenType)       return true;
+    }
+  }
+  if (!tokenType.getLanguage().equals(CfmlLanguage.INSTANCE)) {
+    FileType tokenFileType=iterator.getTokenType().getLanguage().getAssociatedFileType();
+    if (tokenFileType != null && tokenFileType != CfmlFileType.INSTANCE) {
+      for (      FileTypeExtensionPoint<BraceMatcher> ext : Extensions.getExtensions(BraceMatcher.EP_NAME)) {
+        if (ext.filetype != null && ext.filetype.equals(tokenFileType.getName())) {
+          return ext.getInstance().isRBraceToken(iterator,fileText,tokenFileType instanceof XmlFileType ? StdFileTypes.HTML : tokenFileType);
+        }
+      }
+    }
+  }
+  for (  BracePair pair : PAIRS) {
+    if (pair.getRightBraceType() == tokenType)     return true;
+  }
+  return ((tokenType.equals(CfmlTokenTypes.CLOSER)) && findBeginTag(fileText,iterator)) || (tokenType.equals(CfmlTokenTypes.R_ANGLEBRACKET) && !CfmlUtil.isEndTagRequired(getTagName(fileText,iterator),null) && !findEndTag(fileText,iterator));
+}

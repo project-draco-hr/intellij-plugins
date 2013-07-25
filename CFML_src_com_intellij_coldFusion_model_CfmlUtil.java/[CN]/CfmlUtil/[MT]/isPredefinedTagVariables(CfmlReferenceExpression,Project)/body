@@ -1,0 +1,15 @@
+{
+  String predefVarText=cfmlRef.getLastChild() != null ? cfmlRef.getLastChild().getText() : null;
+  PsiElement referenceName=cfmlRef.getFirstChild();
+  if (!(referenceName instanceof CfmlReferenceExpression) || predefVarText == null) {
+    return false;
+  }
+  referenceName=((CfmlReferenceExpression)referenceName).resolve();
+  referenceName=referenceName != null ? referenceName.getParent() : null;
+  if (!(referenceName instanceof CfmlTagImpl)) {
+    return false;
+  }
+  String tagName=((CfmlTagImpl)referenceName).getTagName();
+  String tagNameWithoutCf=tagName.startsWith("cf") ? tagName.substring(2) : tagName;
+  return CfmlLangInfo.getInstance(anyProject(project)).getPredefinedVariables().keySet().contains(tagNameWithoutCf.toLowerCase() + "." + predefVarText.toLowerCase());
+}

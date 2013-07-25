@@ -1,0 +1,33 @@
+{
+  PsiBuilder.Marker expr=myBuilder.mark();
+  if (!parseBinaryExpression()) {
+    expr.drop();
+    return false;
+  }
+  if (getTokenType() == CfscriptTokenTypes.QUESTION) {
+    advance();
+    if (!parseExpression()) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.expression.expected"));
+      expr.drop();
+      return true;
+    }
+    if (getTokenType() == CfscriptTokenTypes.DOTDOT) {
+      advance();
+      if (!parseExpression()) {
+        myBuilder.error(CfmlBundle.message("cfml.parsing.expression.expected"));
+        expr.drop();
+        return true;
+      }
+    }
+ else {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.dot.dot.expected"));
+      expr.drop();
+      return true;
+    }
+    expr.done(CfmlElementTypes.TERNARY_EXPRESSION);
+  }
+ else {
+    expr.drop();
+  }
+  return true;
+}

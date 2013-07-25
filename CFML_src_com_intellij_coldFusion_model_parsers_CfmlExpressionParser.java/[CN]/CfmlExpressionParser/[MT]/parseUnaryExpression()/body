@@ -1,0 +1,16 @@
+{
+  final IElementType tokenType=myBuilder.getTokenType();
+  if (UNARY_OPERATIONS.contains(tokenType)) {
+    final PsiBuilder.Marker expr=myBuilder.mark();
+    myBuilder.advanceLexer();
+    if (!parseUnaryExpression()) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.expression.expected"));
+    }
+    expr.done(CfmlElementTypes.UNARY_EXPRESSION);
+    return true;
+  }
+ else {
+    parseOperand();
+    return true;
+  }
+}

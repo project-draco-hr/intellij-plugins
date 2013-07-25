@@ -1,0 +1,36 @@
+{
+  CfmlProjectConfiguration.State state=CfmlProjectConfiguration.getInstance(getElement().getProject()).getState();
+  if (state == null) {
+    super.innerResolveInContext(text,context,result,caseSensitive);
+    return;
+  }
+  CfmlMappingsConfig mappingsConfig=state.getMapps();
+  Map<String,String> mapDir=mappingsConfig.getServerMappings();
+  String textInFile;
+  String filePathWithMap;
+  String updateLogicalPath;
+  int len=getFileReferenceSet().getAllReferences().length;
+  for (  String logicalPath : mapDir.keySet()) {
+    updateLogicalPath=logicalPath.replaceAll("\\\\","/");
+    textInFile=getFileReferenceSet().getReference(0).getText();
+    if (updateLogicalPath.contains(text) && (StringUtil.startsWithChar(updateLogicalPath,'/'))) {
+      for (int i=0; updateLogicalPath.contains(textInFile) && i < len; ++i) {
+        if (updateLogicalPath.substring(1).equalsIgnoreCase(textInFile)) {
+          filePathWithMap=mapDir.get(logicalPath);
+          VirtualFile dir=filePathWithMap != null ? findFile(filePathWithMap) : null;
+          if (dir != null) {
+            PsiFileSystemItem child=context.getManager().findDirectory(dir);
+            result.add(new PsiElementResolveResult(getOriginalFile(child)));
+          }
+        }
+        if (i < len - 1) {
+          textInFile=textInFile + "/" + getFileReferenceSet().getReference(i + 1).getText();
+        }
+      }
+    }
+  }
+  if (getIndex() == 0 && getElement().getNode().getText().startsWith("/")) {
+    return;
+  }
+  super.innerResolveInContext(text,context,result,caseSensitive);
+}

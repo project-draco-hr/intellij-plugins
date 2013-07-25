@@ -1,0 +1,22 @@
+{
+  IElementType tokenType=myBuilder.getTokenType();
+  if (tokenType == INTEGER || tokenType == DOUBLE || tokenType == BOOLEAN) {
+    myBuilder.advanceLexer();
+    return true;
+  }
+ else   if (tokenType == CfmlTokenTypes.SINGLE_QUOTE || tokenType == CfmlTokenTypes.DOUBLE_QUOTE) {
+    myBuilder.advanceLexer();
+    tokenType=myBuilder.getTokenType();
+    if (tokenType != CfmlTokenTypes.SINGLE_QUOTE_CLOSER && tokenType != CfmlTokenTypes.DOUBLE_QUOTE_CLOSER && !myBuilder.eof()) {
+      myBuilder.advanceLexer();
+    }
+    tokenType=myBuilder.getTokenType();
+    if (tokenType != CfmlTokenTypes.SINGLE_QUOTE_CLOSER && tokenType != CfmlTokenTypes.DOUBLE_QUOTE_CLOSER) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.quote.expected"));
+      return true;
+    }
+    myBuilder.advanceLexer();
+    return true;
+  }
+  return false;
+}

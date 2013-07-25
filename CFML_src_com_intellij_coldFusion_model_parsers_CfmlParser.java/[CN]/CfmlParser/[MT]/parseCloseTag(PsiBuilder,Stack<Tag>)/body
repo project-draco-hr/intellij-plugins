@@ -1,0 +1,38 @@
+{
+  builder.advanceLexer();
+  if (builder.getTokenType() == CF_TAG_NAME) {
+    @SuppressWarnings({"ConstantConditions"}) String closeTagName=builder.getTokenText().toLowerCase();
+    builder.advanceLexer();
+    boolean canParse=false;
+    for (    Tag t : tagNamesStack) {
+      if (t.myTagName.equals(closeTagName)) {
+        canParse=true;
+        break;
+      }
+    }
+    if (canParse) {
+      Tag tag=null;
+      while (!tagNamesStack.empty() && !((tag=tagNamesStack.pop()).myTagName.equals(closeTagName))) {
+        if (CfmlUtil.isUserDefined(tag.myTagName) || !CfmlUtil.isEndTagRequired(tag.myTagName,builder.getProject())) {
+          tag.myMarkerOfBegin.doneBefore(getElementTypeForTag(tag.myTagName),tag.myMarkerOfContent);
+        }
+ else {
+          tag.myMarkerOfBegin.doneBefore(getElementTypeForTag(tag.myTagName),tag.myMarkerOfContent,CfmlBundle.message("cfml.parsing.element.is.not.closed",tag.myTagName));
+        }
+        tag.myMarkerOfContent.drop();
+      }
+      parseCloser(builder);
+      if (tag != null) {
+        tag.myMarkerOfContent.drop();
+        tag.myMarkerOfBegin.done(getElementTypeForTag(tag.myTagName));
+      }
+      return true;
+    }
+ else {
+      builder.error(CfmlBundle.message("cfml.parsing.closing.tag.matches.nothing"));
+      parseCloser(builder);
+      return false;
+    }
+  }
+  return false;
+}

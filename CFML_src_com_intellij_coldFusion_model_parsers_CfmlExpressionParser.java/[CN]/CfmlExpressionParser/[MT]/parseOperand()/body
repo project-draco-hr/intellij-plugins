@@ -1,0 +1,52 @@
+{
+  IElementType tokenType=getTokenType();
+  if (tokenType == L_BRACKET) {
+    advance();
+    parseExpression();
+    if (getTokenType() != R_BRACKET) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.close.bracket.expected"));
+      return;
+    }
+    advance();
+  }
+  if (parseArrayDefinition() || parseStructureDefinition()) {
+  }
+ else   if (tokenType == CfmlTokenTypes.SINGLE_QUOTE || tokenType == CfmlTokenTypes.DOUBLE_QUOTE) {
+    parseString();
+  }
+ else   if (tokenType == INTEGER) {
+    PsiBuilder.Marker integerLiteral=myBuilder.mark();
+    advance();
+    integerLiteral.done(CfmlElementTypes.INTEGER_LITERAL);
+  }
+ else   if (tokenType == BOOLEAN) {
+    PsiBuilder.Marker integerLiteral=myBuilder.mark();
+    advance();
+    integerLiteral.done(CfmlElementTypes.BOOLEAN_LITERAL);
+  }
+ else   if (tokenType == DOUBLE) {
+    PsiBuilder.Marker integerLiteral=myBuilder.mark();
+    advance();
+    integerLiteral.done(CfmlElementTypes.DOUBLE_LITERAL);
+  }
+ else   if (tokenType == OPENSHARP) {
+    parseSharpExpr();
+  }
+ else   if (PREFIX_OPERATIONS.contains(tokenType)) {
+    advance();
+    parseOperand();
+  }
+ else   if (tokenType == BAD_CHARACTER) {
+    PsiBuilder.Marker badCharMark=myBuilder.mark();
+    while (getTokenType() == BAD_CHARACTER) {
+      advance();
+    }
+    badCharMark.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+  }
+ else {
+    parseReference(false);
+    if (POSTFIX_OPERATIONS.contains(getTokenType())) {
+      advance();
+    }
+  }
+}

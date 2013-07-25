@@ -1,0 +1,22 @@
+{
+  if (myBuilder.getTokenType() != IF_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker ifExprMarker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  if (!parseConditionInBrackets(myBuilder)) {
+    ifExprMarker.drop();
+    return;
+  }
+  parseScript(myBuilder,false);
+  if (myBuilder.getTokenType() == ELSE_KEYWORD) {
+    myBuilder.advanceLexer();
+    if (myBuilder.getTokenType() == IF_KEYWORD) {
+      parseIfExpression(myBuilder);
+    }
+ else {
+      parseScript(myBuilder,false);
+    }
+  }
+  ifExprMarker.done(CfmlElementTypes.IFEXPRESSION);
+}

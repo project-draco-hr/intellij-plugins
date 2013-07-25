@@ -1,0 +1,20 @@
+{
+  if (StringUtil.isEmpty(scopesFileName) || StringUtil.isEmpty(tagsFileName)) {
+    return;
+  }
+  myVariableScopes=readStringsFromFile(scopesFileName);
+  final CfmlTagsDescriptionsParser cfmlTagsParser=new CfmlTagsDescriptionsParser();
+  try {
+    XMLReader xr=XMLReaderFactory.createXMLReader();
+    xr.setContentHandler(cfmlTagsParser);
+    xr.parse(new InputSource(CfmlLangInfo.class.getResourceAsStream(tagsFileName)));
+  }
+ catch (  Exception e) {
+    LOG.error(e);
+  }
+  myTagAttributes=cfmlTagsParser.getTags();
+  myFunctionParameters=cfmlTagsParser.getFunctions();
+  myPredefinedFunctions=cfmlTagsParser.getFunctionsList();
+  myPredefinedFunctionsInLowCase=cfmlTagsParser.getFunctionsListLowerCased();
+  myPredefinedVariables=cfmlTagsParser.getPredefinedVariables();
+}

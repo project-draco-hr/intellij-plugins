@@ -1,0 +1,36 @@
+{
+  PsiElement element=(lastParent == null ? currentElement.getLastChild() : lastParent.getPrevSibling());
+  do {
+    if (element instanceof PsiNamedElement && !(element instanceof CfmlFunction)) {
+      if (!processor.execute(element,state)) {
+        return false;
+      }
+    }
+ else     if (element instanceof CfmlTag) {
+      if (!(element instanceof CfmlFunction)) {
+        final PsiElement psiElement=((CfmlTag)element).getDeclarativeElement();
+        if (psiElement != null && !processor.execute(psiElement,state)) {
+          return false;
+        }
+        if (OUR_TRANSPARENT_FUNCTIONS.contains(((CfmlTag)element).getTagName())) {
+          if (!processDeclarations(processor,state,null,element)) {
+            return false;
+          }
+        }
+      }
+    }
+ else     if (element instanceof CfmlAssignmentExpression) {
+      final CfmlAssignmentExpression assignmentExpression=(CfmlAssignmentExpression)element;
+      CfmlVariable assignedVariable=assignmentExpression.getAssignedVariable();
+      if (assignedVariable != null && lastParent != assignmentExpression.getRightHandExpr() && !processor.execute(assignedVariable,state)) {
+        return false;
+      }
+    }
+    if (element == null) {
+      return true;
+    }
+    element=element.getPrevSibling();
+  }
+ while (element != null);
+  return true;
+}

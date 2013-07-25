@@ -1,0 +1,20 @@
+{
+  if (element instanceof CfmlProperty && element.getContainingFile() == getContainingFile()) {
+    String name=((CfmlProperty)element).getName();
+    String referenceText=getText();
+    if ((referenceText.toLowerCase().startsWith("get") || referenceText.toLowerCase().startsWith("set")) && referenceText.substring(3).equalsIgnoreCase(name)) {
+      return true;
+    }
+ else {
+      return false;
+    }
+  }
+  final PsiManager manager=getManager();
+  for (  final ResolveResult result : multiResolve(false)) {
+    final PsiElement target=result.getElement();
+    if (manager.areElementsEquivalent(element,target)) {
+      return true;
+    }
+  }
+  return false;
+}

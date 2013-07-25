@@ -1,0 +1,45 @@
+{
+  final String referenceName=getReferenceName();
+  if (referenceName == null) {
+    return ResolveResult.EMPTY_ARRAY;
+  }
+  final CfmlVariantsProcessor<ResolveResult> processor=new CfmlVariantsProcessor<ResolveResult>(this,getParent(),referenceName){
+    protected ResolveResult execute(    final PsiNamedElement element,    final boolean error){
+      return new PsiElementResolveResult(element,false);
+    }
+  }
+;
+  boolean ifContinue=true;
+  final PsiElement parent=getParent();
+  if (parent instanceof CfmlAssignmentExpression) {
+    CfmlAssignmentExpression assignment=(CfmlAssignmentExpression)parent;
+    CfmlVariable var=assignment.getAssignedVariable();
+    if (var != null && assignment.getAssignedVariableElement() == this) {
+      ifContinue=processor.execute(var,ResolveState.initial());
+    }
+  }
+  if (ifContinue) {
+    processVariantsInner(processor);
+  }
+  final ResolveResult[] variantsResults=processor.getVariants(ResolveResult.EMPTY_ARRAY);
+  List<ResolveResult> results=new ArrayList<ResolveResult>();
+  for (  ResolveResult variantsResult : variantsResults) {
+    if (variantsResult.getElement() != null) {
+      PsiElement parentRef=variantsResult.getElement().getParent();
+      if (!(parentRef instanceof CfmlReferenceExpression) || (variantsResult.getElement() instanceof CfmlAssignmentExpression.AssignedVariable && CfmlUtil.hasEqualScope(this,(CfmlReferenceExpression)parentRef))) {
+        results.add(variantsResult);
+      }
+    }
+  }
+  if (results.isEmpty()) {
+    return ResolveResult.EMPTY_ARRAY;
+  }
+  if (results.size() > 1) {
+    ResolveResult result=results.get(results.size() - 1);
+    PsiElement element=result.getElement();
+    if (element instanceof CfmlVariable && ((CfmlVariable)element).isTrulyDeclaration()) {
+      return new ResolveResult[]{result};
+    }
+  }
+  return new ResolveResult[]{results.get(0)};
+}

@@ -1,0 +1,42 @@
+{
+  Collection<LookupElement> result=new LinkedList<LookupElement>();
+  Object[] superResult=ArrayUtil.EMPTY_OBJECT_ARRAY;
+  String functionName=getFunctionName();
+  if (CfmlUtil.isPredefinedFunction(functionName,getProject())) {
+    CfmlFunctionDescription cfmlFunctionDescription=CfmlLangInfo.getInstance(getProject()).getFunctionParameters().get(functionName.toLowerCase());
+    for (    CfmlFunctionDescription.CfmlParameterDescription param : cfmlFunctionDescription.getParameters()) {
+      result.add(TailTypeDecorator.withTail(LookupElementBuilder.create(param.getName()).withCaseSensitivity(false),TailType.createSimpleTailType('=')));
+    }
+  }
+ else {
+    CfmlArgumentList parentArgumentsList=PsiTreeUtil.getParentOfType(this,CfmlArgumentList.class);
+    if (parentArgumentsList != null) {
+      CfmlExpression[] arguments=parentArgumentsList.getArguments();
+      if (arguments.length == 1) {
+        result.add(LookupElementBuilder.create("argumentCollection").withCaseSensitivity(false));
+      }
+    }
+  }
+  PsiElement nextSibling=getNextSibling();
+  while (nextSibling instanceof PsiWhiteSpace) {
+    nextSibling=nextSibling.getNextSibling();
+  }
+  if (nextSibling != null && nextSibling.getNode().getElementType() != CfmlTokenTypes.ASSIGN) {
+    superResult=super.getVariants();
+  }
+  CfmlParameter[] functionParameters=getFunctionParameters();
+  if (functionParameters != null) {
+    for (    CfmlParameter param : functionParameters) {
+      result.add(CfmlLookUpItemUtil.namedElementToLookupItem(param,null));
+    }
+  }
+  if (!result.isEmpty() || superResult.length > 0) {
+    return ArrayUtil.mergeArrays(superResult,ContainerUtil.map2Array(result,Object.class,new Function<LookupElement,Object>(){
+      @Override public Object fun(      LookupElement lookupElement){
+        return lookupElement;
+      }
+    }
+));
+  }
+  return ArrayUtil.EMPTY_OBJECT_ARRAY;
+}

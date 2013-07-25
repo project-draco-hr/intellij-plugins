@@ -1,0 +1,29 @@
+{
+  List<String> result=new LinkedList<String>();
+  Set<Map.Entry<String,String>> entries=getServerMappings().entrySet();
+  for (  Map.Entry<String,String> entry : entries) {
+    StringTokenizer st_lp=new StringTokenizer(entry.getKey(),"\\/");
+    StringTokenizer st=new StringTokenizer(virtualPath,".");
+    int numberOfTokens=st.countTokens();
+    if (numberOfTokens < st_lp.countTokens()) {
+      continue;
+    }
+    boolean checkFailed=false;
+    while (st_lp.hasMoreTokens()) {
+      if (!st_lp.nextToken().equals(st.nextToken())) {
+        checkFailed=true;
+        break;
+      }
+    }
+    if (checkFailed) {
+      continue;
+    }
+    StringBuilder relativePath=new StringBuilder(entry.getValue());
+    while (st.hasMoreTokens()) {
+      relativePath.append(File.separatorChar);
+      relativePath.append(st.nextToken());
+    }
+    result.add(relativePath.toString());
+  }
+  return result;
+}

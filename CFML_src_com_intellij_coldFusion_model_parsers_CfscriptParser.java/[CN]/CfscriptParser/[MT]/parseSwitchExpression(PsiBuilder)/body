@@ -1,0 +1,36 @@
+{
+  PsiBuilder.Marker switchMarker=myBuilder.mark();
+  if (myBuilder.getTokenType() != SWITCH_KEYWORD) {
+    return;
+  }
+  myBuilder.advanceLexer();
+  if (!this.eatLeftBracket(myBuilder)) {
+    switchMarker.drop();
+    return;
+  }
+  this.parseExpression(myBuilder);
+  this.eatRightBracket(myBuilder);
+  if (myBuilder.getTokenType() != L_CURLYBRACKET) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.open.curly.bracket.expected"));
+    switchMarker.drop();
+    return;
+  }
+  myBuilder.advanceLexer();
+  while (myBuilder.getTokenType() == CASE_KEYWORD) {
+    parseCaseExpression(myBuilder);
+  }
+  if (myBuilder.getTokenType() == DEFAULT_KEYWORD) {
+    myBuilder.advanceLexer();
+    parseDOTDOTAndScript(myBuilder);
+  }
+  while (myBuilder.getTokenType() == CASE_KEYWORD) {
+    parseCaseExpression(myBuilder);
+  }
+  if (myBuilder.getTokenType() != R_CURLYBRACKET) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.close.curly.bracket.expected"));
+  }
+ else {
+    myBuilder.advanceLexer();
+  }
+  switchMarker.done(CfmlElementTypes.SWITCHEXPRESSION);
+}

@@ -1,0 +1,33 @@
+{
+  if (localName.equals("tag") && myCurrentTag != null) {
+    myTags.put(myCurrentTag.getName(),myCurrentTag);
+    myCurrentTag=null;
+  }
+ else   if (localName.equals("function") && myCurrentFunction != null) {
+    String functioName=myCurrentFunction.getName();
+    myFunctionUpperCased.add(functioName);
+    myFunctions.put(functioName.toLowerCase(),myCurrentFunction);
+    myCurrentFunction=null;
+  }
+ else   if (localName.equals("parameter") && myCurrentTag != null && myCurrentAttribute != null) {
+    myCurrentTag.addAttribute(myCurrentAttribute);
+    myCurrentAttribute=null;
+  }
+ else   if (localName.equals("scopevar")) {
+    if (!StringUtil.isEmpty(myCurrentScope)) {
+      if (myCurrentScope.charAt(myCurrentScope.length() - 1) != '.') {
+        myPredefinedVariables.put(myCurrentScope.toLowerCase(),CfmlTypesInfo.ANY_TYPE);
+      }
+ else {
+        myCurrentScope=myCurrentScope.substring(0,myCurrentScope.length() - 1);
+      }
+      int i=myCurrentScope.lastIndexOf('.');
+      if (i != -1) {
+        myCurrentScope=myCurrentScope.substring(0,i + 1);
+      }
+ else {
+        myCurrentScope="";
+      }
+    }
+  }
+}

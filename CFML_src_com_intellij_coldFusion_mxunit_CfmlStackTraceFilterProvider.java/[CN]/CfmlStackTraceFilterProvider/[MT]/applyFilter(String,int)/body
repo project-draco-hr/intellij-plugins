@@ -1,0 +1,55 @@
+{
+  Pattern p=WIN_MXUNIT_PATTERN_ERROR;
+  Matcher m=p.matcher(line);
+  int numberOfReferenceGroup=0;
+  String fileName="";
+  String lineNumberString="";
+  if (!m.find()) {
+    p=UNIX_MXUNIT_PATTERN_ERROR;
+    m=p.matcher(line);
+    if (!m.find()) {
+      return null;
+    }
+  }
+  numberOfReferenceGroup=1;
+  fileName=m.group(2);
+  lineNumberString=m.group(3);
+  if (fileName == null) {
+    return null;
+  }
+  final File file=new File(fileName);
+  int lineNumber=StringUtil.isEmpty(lineNumberString) ? 0 : Integer.parseInt(lineNumberString) - 1;
+  if (lineNumber == 0) {
+    return null;
+  }
+  final Ref<VirtualFile> vFile=new Ref<VirtualFile>();
+  if (!file.isFile()) {
+    return null;
+  }
+  try {
+    GuiUtils.runOrInvokeAndWait(new Runnable(){
+      public void run(){
+        vFile.set(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file));
+      }
+    }
+);
+  }
+ catch (  InvocationTargetException e) {
+  }
+catch (  InterruptedException e) {
+  }
+  if (vFile.isNull()) {
+    return null;
+  }
+  final int textStartOffset=entireLength - line.length();
+  final int highlightStartOffset=textStartOffset + m.start(numberOfReferenceGroup);
+  final int highlightEndOffset=textStartOffset + m.end(numberOfReferenceGroup);
+  final OpenFileHyperlinkInfo info=new OpenFileHyperlinkInfo(myProject,vFile.get(),lineNumber);
+  TextAttributes attributes=HYPERLINK_ATTRIBUTES.clone();
+  if (!ProjectRootManager.getInstance(myProject).getFileIndex().isInContent(vFile.get())) {
+    Color color=UIUtil.getInactiveTextColor();
+    attributes.setForegroundColor(color);
+    attributes.setEffectColor(color);
+  }
+  return new Result(highlightStartOffset,highlightEndOffset,info,attributes);
+}

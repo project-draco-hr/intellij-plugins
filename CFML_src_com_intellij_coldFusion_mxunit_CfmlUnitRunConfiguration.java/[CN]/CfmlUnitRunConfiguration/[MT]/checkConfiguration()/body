@@ -1,0 +1,38 @@
+{
+  final CfmlUnitRunnerParameters params=getRunnerParameters();
+  final String path=params.getPath();
+switch (params.getScope()) {
+case Method:
+case Component:
+{
+      if (StringUtil.isEmpty(path)) {
+        throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.file.name.empty",path));
+      }
+      final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      if (file == null || !file.isValid() || file.isDirectory()) {
+        throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.file.not.found",path));
+      }
+      if (!isVirtualFileUnderSourceRoot(file,getProject())) {
+        throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.file.not.in.project",path));
+      }
+      final PsiFile psiFile=PsiManager.getInstance(getProject()).findFile(file);
+      if (!(psiFile instanceof CfmlFile))       throw new RuntimeConfigurationException("Incorrect file type");
+    }
+  break;
+case Directory:
+{
+  if (StringUtil.isEmpty(path)) {
+    throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.directory.name.empty",path));
+  }
+  final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  if (file == null || !file.isValid() || !file.isDirectory()) {
+    throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.directory.not.found",path));
+  }
+  if (!isVirtualFileUnderSourceRoot(file,getProject())) {
+    throw new RuntimeConfigurationError(CfmlBundle.message("cfml.runconfig.directory.not.in.project",path));
+  }
+}
+break;
+}
+CfmlRunConfiguration.checkURL(params.getWebPath());
+}

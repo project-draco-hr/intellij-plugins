@@ -1,0 +1,33 @@
+{
+  PsiFile cfmlFile=file.getViewProvider().getPsi(CfmlLanguage.INSTANCE);
+  if (isNotCfmlFile(cfmlFile,editor)) {
+    return Result.CONTINUE;
+  }
+  int offset=editor.getCaretModel().getOffset();
+  if (c == '{') {
+    CfmlBraceMatcher braceMatcher=new CfmlBraceMatcher();
+    HighlighterIterator iterator=((EditorEx)editor).getHighlighter().createIterator(offset);
+    if (!braceMatcher.isLBraceToken(iterator,editor.getDocument().getCharsSequence(),fileType)) {
+      DocumentUtils.typeInStringAndMoveCaret(editor,offset,"}");
+    }
+    return Result.CONTINUE;
+  }
+  if (c == '#') {
+    if (CfmlEditorUtil.countSharpsBalance(editor) == 0) {
+      char charAtOffset=DocumentUtils.getCharAt(editor.getDocument(),offset);
+      if (charAtOffset == '#') {
+        editor.getCaretModel().moveToOffset(offset + 1);
+        return Result.STOP;
+      }
+      DocumentUtils.typeInStringAndMoveCaret(editor,offset,"#");
+    }
+  }
+ else   if (c == '>') {
+    if (((EditorEx)editor).getHighlighter().createIterator(editor.getCaretModel().getOffset()).getTokenType() == CfmlTokenTypes.COMMENT || ((EditorEx)editor).getHighlighter().createIterator(editor.getCaretModel().getOffset()).getTokenType().getLanguage() != CfmlLanguage.INSTANCE) {
+      return Result.CONTINUE;
+    }
+    insertCloseTagIfNeeded(editor,cfmlFile,project);
+    return Result.STOP;
+  }
+  return Result.CONTINUE;
+}

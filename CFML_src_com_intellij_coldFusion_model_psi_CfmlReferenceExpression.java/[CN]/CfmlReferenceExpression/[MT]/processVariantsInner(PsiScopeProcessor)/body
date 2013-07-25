@@ -1,0 +1,40 @@
+{
+  CfmlTypedElement typedOwner=CfmlPsiUtil.getTypedQualifierInner(this);
+  PsiType type=null;
+  if (typedOwner != null) {
+    type=typedOwner.getPsiType();
+  }
+ else {
+    return processUnqualifiedVariants(processor);
+  }
+  if (type instanceof PsiClassType) {
+    PsiClass psiClass;
+    if (type instanceof CfmlFunctionCallExpression.PsiClassStaticType) {
+      psiClass=PsiUtil.resolveClassInType(((CfmlFunctionCallExpression.PsiClassStaticType)type).getRawType());
+      processor.handleEvent(JavaScopeProcessorEvent.START_STATIC,null);
+    }
+ else {
+      psiClass=PsiUtil.resolveClassInType(type);
+    }
+    processor.handleEvent(CfmlVariantsProcessor.CfmlProcessorEvent.SET_INITIAL_CLASS,psiClass);
+    if (psiClass != null && !psiClass.processDeclarations(processor,ResolveState.initial(),null,this)) {
+      return false;
+    }
+  }
+ else   if (type instanceof CfmlComponentType) {
+    Collection<CfmlComponent> components=((CfmlComponentType)type).resolve();
+    for (    CfmlComponent component : components) {
+      if (!component.processDeclarations(processor,ResolveState.initial(),null,this)) {
+        return false;
+      }
+    }
+  }
+  if (typedOwner instanceof CfmlFunctionCallExpression) {
+    typedOwner=((CfmlFunctionCallExpression)typedOwner).getReferenceExpression();
+  }
+  if (typedOwner instanceof CfmlReference) {
+    final PsiElement psiElement=((CfmlReference)typedOwner).resolve();
+    return psiElement == null || psiElement.processDeclarations(processor,ResolveState.initial(),null,this);
+  }
+  return true;
+}

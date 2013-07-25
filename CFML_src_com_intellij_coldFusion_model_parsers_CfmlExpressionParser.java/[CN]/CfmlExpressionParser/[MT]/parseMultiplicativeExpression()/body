@@ -1,0 +1,21 @@
+{
+  PsiBuilder.Marker expr=myBuilder.mark();
+  if (parseAssignmentIfValid()) {
+    expr.drop();
+    return true;
+  }
+  if (!parseUnaryExpression()) {
+    expr.drop();
+    return false;
+  }
+  while (MULTIPLICATIVE_OPERATIONS.contains(myBuilder.getTokenType())) {
+    myBuilder.advanceLexer();
+    if (!parseUnaryExpression()) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.expression.expected"));
+    }
+    expr.done(CfmlElementTypes.BINARY_EXPRESSION);
+    expr=expr.precede();
+  }
+  expr.drop();
+  return true;
+}

@@ -1,0 +1,13 @@
+{
+  boolean result=false;
+  PsiElement parent=psiElement.getParent();
+  ASTNode prevNode=FormatterUtil.getPreviousNonWhitespaceSibling(parent.getNode());
+  if (prevNode != null) {
+    result=prevNode.getElementType() == CfscriptTokenTypes.L_CURLYBRACKET;
+    if (!result && prevNode.getElementType() == CfscriptTokenTypes.SEMICOLON) {
+      ASTNode superPrevNode=FormatterUtil.getPreviousNonWhitespaceSibling(prevNode);
+      result=superPrevNode != null && superPrevNode.getElementType() == CfmlElementTypes.PROPERTY;
+    }
+  }
+  return result;
+}

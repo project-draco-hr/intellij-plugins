@@ -1,0 +1,34 @@
+{
+  return new PsiElementVisitor(){
+    public void visitElement(    final PsiElement element){
+      PsiElement tagParent=PsiTreeUtil.getParentOfType((element),CfmlTag.class);
+      if ((element.getNode().getElementType() == CfmlTokenTypes.STRING_TEXT)) {
+        if ((tagParent == null || (!((CfmlTag)tagParent).getTagName().equalsIgnoreCase("cfinclude") && !((CfmlTag)tagParent).getTagName().equalsIgnoreCase("cfmodule")))) {
+          PsiElement superParent=element.getParent() != null ? element.getParent().getParent() : null;
+          ASTNode superParentNode=superParent != null ? superParent.getNode() : null;
+          if ((superParentNode == null || superParentNode.getElementType() != CfmlElementTypes.INCLUDEEXPRESSION)) {
+            return;
+          }
+        }
+        final PsiReference[] refs=element.getParent().getReferences();
+        for (int i=0, refsLength=refs.length; i < refsLength; i++) {
+          PsiReference ref=refs[i];
+          if (!(ref instanceof FileReference))           continue;
+          if (ref.resolve() == null) {
+            PsiDirectory dir;
+            if (i > 0) {
+              final PsiElement target=refs[i - 1].resolve();
+              dir=target instanceof PsiDirectory ? (PsiDirectory)target : null;
+            }
+ else {
+              dir=element.getContainingFile().getParent();
+            }
+            holder.registerProblem(ref.getElement(),ref.getRangeInElement(),isOnTheFly ? "Path '" + ref.getCanonicalText() + "' not found" : "Path not found",isOnTheFly && dir != null ? new LocalQuickFix[]{new CreateFileFix(i < refs.length - 1,ref.getCanonicalText(),dir)} : LocalQuickFix.EMPTY_ARRAY);
+            break;
+          }
+        }
+      }
+    }
+  }
+;
+}

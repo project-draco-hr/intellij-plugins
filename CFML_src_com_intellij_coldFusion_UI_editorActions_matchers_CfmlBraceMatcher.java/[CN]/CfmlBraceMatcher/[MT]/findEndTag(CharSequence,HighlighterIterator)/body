@@ -1,0 +1,24 @@
+{
+  IElementType tokenType;
+  final String name=getTagName(fileText,iterator);
+  if (name == null) {
+    return false;
+  }
+  int balance=0;
+  int count=0;
+  while (balance > -1 && !iterator.atEnd()) {
+    iterator.advance();
+    count++;
+    if (iterator.atEnd())     break;
+    tokenType=iterator.getTokenType();
+    String currrentTagName=getTagName(fileText,iterator);
+    if (tokenType == CfmlTokenTypes.OPENER && name.equals(currrentTagName)) {
+      balance++;
+    }
+ else     if (tokenType == CfmlTokenTypes.CLOSER && name.equals(currrentTagName)) {
+      balance--;
+    }
+  }
+  while (count-- > 0)   iterator.retreat();
+  return balance == -1;
+}

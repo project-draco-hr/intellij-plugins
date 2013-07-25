@@ -1,0 +1,32 @@
+{
+  PsiBuilder.Marker argumentMarker=myBuilder.mark();
+  if (myBuilder.getTokenType() == REQUIRED_KEYWORD) {
+    myBuilder.advanceLexer();
+  }
+  final PsiBuilder.Marker marker=myBuilder.mark();
+  if (!parseType(myBuilder) || myBuilder.getTokenType() != IDENTIFIER) {
+    marker.rollbackTo();
+  }
+ else {
+    marker.drop();
+  }
+  if (myBuilder.getTokenType() == IDENTIFIER) {
+    myBuilder.advanceLexer();
+    if (myBuilder.getTokenType() == CfmlTokenTypes.ASSIGN) {
+      myBuilder.advanceLexer();
+      final PsiBuilder.Marker defaultValueMarker=myBuilder.mark();
+      if (!parseConstant(myBuilder)) {
+        parseRValue(myBuilder);
+      }
+      defaultValueMarker.done(CfmlElementTypes.VALUE);
+    }
+    argumentMarker.done(CfmlElementTypes.FUNCTION_ARGUMENT);
+    if (myBuilder.getTokenType() == COMMA) {
+      myBuilder.advanceLexer();
+      parseParametersList(myBuilder);
+    }
+  }
+ else {
+    argumentMarker.drop();
+  }
+}

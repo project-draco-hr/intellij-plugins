@@ -1,0 +1,44 @@
+{
+  if (!(element instanceof CfmlReference)) {
+    return;
+  }
+  final CfmlReference ref=(CfmlReference)element;
+  if (CfmlUtil.isPredefinedFunction(ref.getText(),element.getProject())) {
+    return;
+  }
+  if (ref instanceof CfmlArgumentNameReference) {
+    String functionName=((CfmlArgumentNameReference)ref).getFunctionName();
+    if (CfmlUtil.isPredefinedFunction(functionName,element.getProject())) {
+      return;
+    }
+  }
+  String key=ref.getText().toLowerCase();
+  if (myDictionary.containsKey(key)) {
+    Condition<PsiElement> psiElementCondition=myDictionary.get(key);
+    if (psiElementCondition.value(element)) {
+      return;
+    }
+  }
+  PsiElement mostDescentReferenceParent=element;
+  while (mostDescentReferenceParent.getParent() instanceof CfmlReference) {
+    mostDescentReferenceParent=mostDescentReferenceParent.getParent();
+  }
+  if (CfmlLangInfo.getInstance(element.getProject()).getPredefinedVariables().containsKey(mostDescentReferenceParent.getText().toLowerCase())) {
+    return;
+  }
+  if (ref instanceof CfmlReferenceExpression && CfmlUtil.isPredefinedTagVariables((CfmlReferenceExpression)ref,element.getProject())) {
+    return;
+  }
+  final PsiElement parent=ref.getParent();
+  if (parent instanceof CfmlAssignmentExpression) {
+    CfmlAssignmentExpression assignment=(CfmlAssignmentExpression)parent;
+    CfmlVariable var=assignment.getAssignedVariable();
+    if (var != null && assignment.getAssignedVariableElement() == ref) {
+      return;
+    }
+  }
+  if (ref.multiResolve(false).length == 0) {
+    final String message="Can't resolve";
+    holder.registerProblem(ref,message,WEAK_WARNING);
+  }
+}

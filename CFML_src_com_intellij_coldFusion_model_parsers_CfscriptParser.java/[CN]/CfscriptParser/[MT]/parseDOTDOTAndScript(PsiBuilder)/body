@@ -1,0 +1,30 @@
+{
+  if (myBuilder.getTokenType() != DOTDOT) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.dot.dot.expected"));
+  }
+ else {
+    myBuilder.advanceLexer();
+  }
+  if (myBuilder.getTokenType() != L_CURLYBRACKET) {
+    if (myBuilder.getTokenType() == CASE_KEYWORD) {
+      return;
+    }
+    int offset=myBuilder.getCurrentOffset();
+    while (!myBuilder.eof() && myBuilder.getTokenType() != BREAK_KEYWORD && myBuilder.getTokenType() != DEFAULT_KEYWORD && myBuilder.getTokenType() != CASE_KEYWORD && myBuilder.getTokenType() != R_CURLYBRACKET && !isEndOfScript(myBuilder)) {
+      if (!parseScript(myBuilder,false)) {
+        break;
+      }
+      if (offset == myBuilder.getCurrentOffset()) {
+        break;
+      }
+      offset=myBuilder.getCurrentOffset();
+    }
+    if (myBuilder.getTokenType() == BREAK_KEYWORD) {
+      myBuilder.advanceLexer();
+      eatSemicolon(myBuilder);
+    }
+  }
+ else {
+    parseScript(myBuilder,false);
+  }
+}

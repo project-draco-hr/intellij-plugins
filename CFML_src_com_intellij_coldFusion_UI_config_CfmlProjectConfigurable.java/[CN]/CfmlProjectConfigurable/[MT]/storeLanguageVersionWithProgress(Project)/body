@@ -1,0 +1,27 @@
+{
+  Task.Backgroundable task=new Task.Backgroundable(project,CfmlBundle.message("applying.new.language.version.task.name"),false){
+    public void run(    @NotNull ProgressIndicator indicator){
+      final Collection<VirtualFile> cfmlFiles=new ArrayList<VirtualFile>();
+      final VirtualFile baseDir=project.getBaseDir();
+      if (baseDir != null) {
+        FileBasedIndex.getInstance().iterateIndexableFiles(new ContentIterator(){
+          public boolean processFile(          VirtualFile file){
+            if (CfmlFileType.INSTANCE == file.getFileType()) {
+              cfmlFiles.add(file);
+            }
+            return true;
+          }
+        }
+,project,indicator);
+      }
+      ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+        public void run(){
+          FileContentUtil.reparseFiles(project,cfmlFiles,true);
+        }
+      }
+,ModalityState.NON_MODAL);
+    }
+  }
+;
+  ProgressManager.getInstance().run(task);
+}

@@ -1,0 +1,18 @@
+{
+  if (!(parameters.getOriginalFile().getViewProvider() instanceof CfmlFileViewProvider)) {
+    return;
+  }
+  for (  String s : CfmlUtil.getTagList(parameters.getPosition().getProject())) {
+    result.addElement(LookupElementBuilder.create(s).withCaseSensitivity(false));
+  }
+  CfmlImport[] imports=PsiTreeUtil.getChildrenOfType(parameters.getOriginalFile(),CfmlImport.class);
+  if (imports == null) {
+    return;
+  }
+  for (  CfmlImport cfmlImport : imports) {
+    final String prefix=cfmlImport.getPrefix();
+    if (prefix != null) {
+      addCompletionsFromDirectory(result,parameters,cfmlImport.getImportString(),prefix);
+    }
+  }
+}

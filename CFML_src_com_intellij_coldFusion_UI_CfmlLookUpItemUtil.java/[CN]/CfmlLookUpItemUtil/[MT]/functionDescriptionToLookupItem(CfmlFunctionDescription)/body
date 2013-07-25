@@ -1,0 +1,15 @@
+{
+  String name="" + functionDescription.getName();
+  String typeText=functionDescription.getReturnType();
+  String tailText="(" + functionDescription.getParametersListPresentableText() + ")";
+  return LookupElementBuilder.create(name).withTypeText(typeText).withIcon(METHOD_ICON).withInsertHandler(new ParenthesesInsertHandler<LookupElement>(){
+    protected boolean placeCaretInsideParentheses(    final InsertionContext context,    final LookupElement item){
+      return functionDescription.getParameters().size() != 0;
+    }
+    @Override public void handleInsert(    InsertionContext context,    LookupElement item){
+      super.handleInsert(context,item);
+      new ShowParameterInfoHandler().invoke(context.getProject(),context.getEditor(),context.getFile());
+    }
+  }
+).withTailText(tailText).withCaseSensitivity(false);
+}

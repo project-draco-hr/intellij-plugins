@@ -1,0 +1,89 @@
+{
+  List<CfmlComponent> result=new ArrayList<CfmlComponent>();
+  if (componentQualifiedName == null) {
+    return result;
+  }
+  Project project=originalFile.getProject();
+  if (!componentQualifiedName.contains(".")) {
+{
+      CfmlFile cfmlConteiningFile=originalFile;
+      PsiDirectory directory=cfmlConteiningFile.getParent();
+      if (directory != null) {
+        GlobalSearchScope searchScope=GlobalSearchScopes.directoryScope(directory,false);
+        final Collection<CfmlComponent> components=CfmlIndex.getInstance(project).getComponentsByNameInScope(componentQualifiedName,searchScope);
+        components.addAll(CfmlIndex.getInstance(project).getInterfacesByNameInScope(componentQualifiedName,searchScope));
+        for (        CfmlComponent component : components) {
+          result.add(component);
+        }
+      }
+ else {
+        final Collection<CfmlComponent> components=CfmlIndex.getInstance(project).getComponentsByName(componentQualifiedName);
+        components.addAll(CfmlIndex.getInstance(project).getInterfacesByName(componentQualifiedName));
+        for (        CfmlComponent component : components) {
+          result.add(component);
+        }
+      }
+    }
+  }
+  if (result.isEmpty()) {
+    String componentName=getComponentName(componentQualifiedName);
+    int i=componentQualifiedName.lastIndexOf(".");
+    String directoryName;
+    if (i == -1) {
+      directoryName="";
+    }
+ else {
+      directoryName=componentQualifiedName.substring(0,i);
+    }
+    CfmlProjectConfiguration.State state=CfmlProjectConfiguration.getInstance(project).getState();
+    CfmlMappingsConfig mappings=state != null ? state.getMapps().clone() : new CfmlMappingsConfig();
+    adjustMappingsIfEmpty(mappings,originalFile.getProject());
+    List<String> realPossiblePaths=mappings.mapVirtualToReal(directoryName);
+    final Collection<CfmlComponent> components=CfmlIndex.getInstance(project).getComponentsByName(componentName);
+    components.addAll(CfmlIndex.getInstance(project).getInterfacesByName(componentName));
+    for (    CfmlComponent component : components) {
+      PsiDirectory parent=component.getContainingFile().getParent();
+      if (parent == null) {
+        continue;
+      }
+      VirtualFile virtualFile=parent.getVirtualFile();
+      for (      String realPath : realPossiblePaths) {
+        if (FileUtil.toSystemIndependentName(realPath).equals(FileUtil.toSystemIndependentName(virtualFile.getPresentableUrl()))) {
+          result.add(component);
+          break;
+        }
+      }
+    }
+    for (    String realPath : realPossiblePaths) {
+      VirtualFile fileByUrl=LocalFileSystem.getInstance().findFileByPath(realPath);
+      if (fileByUrl != null) {
+        PsiFile file=PsiManager.getInstance(project).findFile(fileByUrl);
+        if (file != null) {
+          PsiDirectory directory=file.getParent();
+          if (directory != null) {
+            GlobalSearchScope searchScope=GlobalSearchScopes.directoryScope(directory,false);
+            final Collection<CfmlComponent> componentsFromGlobalScope=CfmlIndex.getInstance(project).getComponentsByNameInScope(componentName,searchScope);
+            componentsFromGlobalScope.addAll(CfmlIndex.getInstance(project).getInterfacesByNameInScope(componentName,searchScope));
+            for (            CfmlComponent component : componentsFromGlobalScope) {
+              result.add(component);
+            }
+          }
+        }
+      }
+    }
+  }
+  if (result.isEmpty()) {
+    final Pair<String,String> prefixAndName=CfmlUtil.getPrefixAndName(componentQualifiedName);
+    final String componentName=prefixAndName.getSecond();
+    final CfmlImport cfmlImport=CfmlUtil.getImportByPrefix(originalFile,prefixAndName.getFirst());
+    if (cfmlImport != null && !StringUtil.isEmpty(componentName)) {
+      String libtag=cfmlImport.getImportString();
+      final VirtualFile folder=CfmlUtil.findFileByLibTag(originalFile,libtag);
+      if (folder != null && folder.isDirectory()) {
+        final GlobalSearchScope scope=GlobalSearchScopes.directoryScope(originalFile.getProject(),folder,true);
+        result.addAll(CfmlIndex.getInstance(originalFile.getProject()).getComponentsByNameInScope(componentName,scope));
+      }
+    }
+  }
+  return result;
+}

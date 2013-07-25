@@ -1,0 +1,50 @@
+{
+  if (tagName.equals("cfset")) {
+    (new CfmlExpressionParser(builder)).parseStatement();
+    return;
+  }
+ else   if (tagName.equals("cfif") || tagName.equals("cfelseif") || tagName.equals("cfreturn")) {
+    (new CfmlExpressionParser(builder)).parseExpression();
+    return;
+  }
+  while (!builder.eof() && !CfmlUtil.isControlToken(builder.getTokenType())) {
+    if (builder.getTokenType() == attributeType || builder.getTokenType() == CfscriptTokenTypes.DEFAULT_KEYWORD || (tagName.equalsIgnoreCase("cfproperty") && builder.getTokenType() == CfscriptTokenTypes.ABORT_KEYWORD)) {
+      @SuppressWarnings({"ConstantConditions"}) String attributeName=builder.getTokenText().toLowerCase();
+      PsiBuilder.Marker attrMarker=builder.mark();
+      builder.advanceLexer();
+      if (builder.getTokenType() != ASSIGN) {
+        attrMarker.done(CfmlElementTypes.ATTRIBUTE);
+        builder.error(CfmlBundle.message("cfml.parsing.no.value"));
+        continue;
+      }
+      builder.advanceLexer();
+      if ("name".equals(attributeName)) {
+        readValue(builder,CfmlElementTypes.ATTRIBUTE_VALUE);
+        if (doNeedNamedAttribute(tagName)) {
+          attrMarker.done(CfmlElementTypes.NAMED_ATTRIBUTE);
+        }
+ else {
+          attrMarker.done(CfmlElementTypes.ATTRIBUTE_NAME);
+        }
+      }
+ else       if ("method".equals(attributeName) && "cfinvoke".equals(tagName)) {
+        readValue(builder,CfmlElementTypes.REFERENCE_EXPRESSION);
+        attrMarker.done(CfmlElementTypes.TAG_FUNCTION_CALL);
+      }
+ else       if ("index".equals(attributeName) && "cfloop".equals(tagName)) {
+        readValue(builder,CfmlElementTypes.ATTRIBUTE_VALUE);
+        attrMarker.done(CfmlElementTypes.FORTAGINDEXATTRIBUTE);
+      }
+ else {
+        readValue(builder,CfmlElementTypes.ATTRIBUTE_VALUE);
+        attrMarker.done(CfmlElementTypes.ATTRIBUTE);
+      }
+    }
+ else {
+      if (strict) {
+        return;
+      }
+      builder.advanceLexer();
+    }
+  }
+}

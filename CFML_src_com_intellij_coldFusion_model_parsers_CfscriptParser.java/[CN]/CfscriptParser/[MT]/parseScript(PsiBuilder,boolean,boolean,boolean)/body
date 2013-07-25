@@ -1,0 +1,139 @@
+{
+  PsiBuilder.Marker blockOfStatements=null;
+  if (myBuilder.getTokenType() == L_CURLYBRACKET) {
+    waitForRightBracket=true;
+    blockOfStatements=myBuilder.mark();
+    myBuilder.advanceLexer();
+  }
+  while (!isEndOfScript(myBuilder)) {
+    int lexerPosition=myBuilder.getCurrentOffset();
+    if (myBuilder.getTokenType() == INCLUDE_KEYWORD) {
+      parseInclude(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == IMPORT_KEYWORD) {
+      parseImport(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == COMPONENT_KEYWORD || myBuilder.getTokenType() == INTERFACE_KEYWORD) {
+      parseComponentOrInterface(myBuilder);
+    }
+ else     if (CfscriptTokenTypes.ACCESS_KEYWORDS.contains(myBuilder.getTokenType()) || myBuilder.getTokenType() == FUNCTION_KEYWORD) {
+      parseFunctionExpression(myBuilder);
+    }
+ else     if (CfscriptTokenTypes.TYPE_KEYWORDS.contains(myBuilder.getTokenType())) {
+      if (!tryParseStatement(myBuilder)) {
+        parseFunctionExpression(myBuilder);
+      }
+    }
+ else     if (myBuilder.getTokenType() == VAR_KEYWORD) {
+      parseStatement(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == IF_KEYWORD) {
+      parseIfExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == WHILE_KEYWORD) {
+      parseWhileExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == DO_KEYWORD) {
+      parseDoWhileExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == FOR_KEYWORD) {
+      parseForExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == FOR_IN_KEYWORD) {
+      parseForInExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == SWITCH_KEYWORD) {
+      parseSwitchExpression(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == RETURN_KEYWORD) {
+      parseReturnStatement(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == BREAK_KEYWORD || myBuilder.getTokenType() == ABORT_KEYWORD) {
+      myBuilder.advanceLexer();
+      eatSemicolon(myBuilder);
+    }
+ else     if (CfmlUtil.isActionName(myBuilder)) {
+      parseAction(myBuilder);
+    }
+ else     if (myBuilder.getTokenType() == L_CURLYBRACKET) {
+      parseScript(myBuilder,false);
+    }
+ else     if (myBuilder.getTokenType() == R_CURLYBRACKET) {
+      if (waitForRightBracket) {
+        myBuilder.advanceLexer();
+        if (blockOfStatements != null) {
+          if (createBlockOfStatments) {
+            blockOfStatements.done(CfmlElementTypes.BLOCK_OF_STATEMENTS);
+          }
+ else {
+            blockOfStatements.drop();
+          }
+        }
+        return true;
+      }
+ else {
+        myBuilder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+        myBuilder.advanceLexer();
+        return false;
+      }
+    }
+ else     if (myBuilder.getTokenType() == TRY_KEYWORD) {
+      parseTryCatchExpression(myBuilder);
+    }
+ else     if (CfscriptTokenTypes.KEYWORDS.contains(myBuilder.getTokenType())) {
+      if (myBuilder.getTokenType() == VAR_KEYWORD || myBuilder.getTokenType() == SCOPE_KEYWORD) {
+        parseStatement(myBuilder);
+      }
+ else       if (myBuilder.getTokenType() != CONTINUE_KEYWORD && myBuilder.getTokenType() != RETURN_KEYWORD && myBuilder.getTokenType() != BREAK_KEYWORD) {
+        PsiBuilder.Marker errorMarker=myBuilder.mark();
+        myBuilder.advanceLexer();
+        errorMarker.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+      }
+ else {
+        myBuilder.advanceLexer();
+        eatSemicolon(myBuilder);
+      }
+    }
+ else {
+      PsiBuilder.Marker marker=myBuilder.mark();
+      if (parseType(myBuilder) && myBuilder.getTokenType() == FUNCTION_KEYWORD) {
+        marker.rollbackTo();
+        parseFunctionExpression(myBuilder);
+      }
+ else {
+        marker.rollbackTo();
+        if (myBuilder.getTokenType() == IDENTIFIER) {
+          PsiBuilder.Marker assignMarker=myBuilder.mark();
+          myBuilder.advanceLexer();
+          if (myBuilder.getTokenType() == CfmlTokenTypes.ASSIGN) {
+            assignMarker.rollbackTo();
+            new CfmlExpressionParser(myBuilder).parseExpression();
+            eatSemicolon(myBuilder);
+          }
+ else {
+            assignMarker.rollbackTo();
+            parseStatement(myBuilder);
+          }
+        }
+ else {
+          parseStatement(myBuilder);
+        }
+      }
+    }
+    if (!betweenScriptTags && !waitForRightBracket) {
+      break;
+    }
+    if (lexerPosition == myBuilder.getCurrentOffset()) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+      myBuilder.advanceLexer();
+      if (blockOfStatements != null) {
+        blockOfStatements.drop();
+      }
+      return false;
+    }
+  }
+  if (blockOfStatements != null) {
+    blockOfStatements.drop();
+  }
+  return true;
+}

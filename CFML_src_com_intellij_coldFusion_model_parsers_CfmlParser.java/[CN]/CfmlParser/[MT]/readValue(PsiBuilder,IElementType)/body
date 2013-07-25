@@ -1,0 +1,42 @@
+{
+  if (typeOfValue != null) {
+    if (builder.getTokenType() == SINGLE_QUOTE || builder.getTokenType() == DOUBLE_QUOTE) {
+      builder.advanceLexer();
+      PsiBuilder.Marker marker=builder.mark();
+      int valueStartOffset=builder.getCurrentOffset();
+      while (!builder.eof() && builder.getTokenType() != SINGLE_QUOTE_CLOSER && builder.getTokenType() != DOUBLE_QUOTE_CLOSER && !CfmlUtil.isControlToken(builder.getTokenType())) {
+        if (builder.getTokenType() == START_EXPRESSION) {
+          parseExpression(builder);
+        }
+ else {
+          builder.advanceLexer();
+        }
+      }
+      if (builder.getCurrentOffset() != valueStartOffset) {
+        marker.done(typeOfValue);
+      }
+ else {
+        marker.drop();
+      }
+      if (builder.getTokenType() != SINGLE_QUOTE_CLOSER && builder.getTokenType() != DOUBLE_QUOTE_CLOSER) {
+        builder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+      }
+ else {
+        builder.advanceLexer();
+      }
+      return;
+    }
+ else     if (!CfmlUtil.isControlToken(builder.getTokenType()) && builder.getTokenType() != ATTRIBUTE) {
+      (new CfmlExpressionParser(builder)).parseExpression();
+      return;
+    }
+  }
+  while (!builder.eof() && !CfmlUtil.isControlToken(builder.getTokenType()) && builder.getTokenType() != ATTRIBUTE) {
+    if (builder.getTokenType() == START_EXPRESSION) {
+      parseExpression(builder);
+    }
+ else {
+      builder.advanceLexer();
+    }
+  }
+}

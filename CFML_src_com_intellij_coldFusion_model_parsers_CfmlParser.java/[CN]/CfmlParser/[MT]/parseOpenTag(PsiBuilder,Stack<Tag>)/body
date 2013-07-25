@@ -1,0 +1,49 @@
+{
+  PsiBuilder.Marker marker;
+  String currentTagName;
+  while (!builder.eof()) {
+    marker=builder.mark();
+    builder.advanceLexer();
+    if (builder.getTokenType() == CF_TAG_NAME) {
+      currentTagName=builder.getTokenText().toLowerCase();
+      builder.advanceLexer();
+    }
+ else {
+      builder.error(CfmlBundle.message("cfml.parsing.unexpected.token"));
+      marker.drop();
+      continue;
+    }
+    parseAttributes(builder,currentTagName,ATTRIBUTE,false);
+    if (builder.eof()) {
+      builder.error(CfmlBundle.message("cfml.parsing.tag.is.not.done"));
+      marker.done(getElementTypeForTag(currentTagName));
+      return;
+    }
+    if (builder.getTokenType() == CLOSER) {
+      builder.advanceLexer();
+      marker.done(getElementTypeForTag(currentTagName));
+    }
+ else     if (builder.getTokenType() == R_ANGLEBRACKET) {
+      builder.advanceLexer();
+      tagNamesStack.push(new Tag(currentTagName,marker,builder.mark()));
+    }
+ else {
+      builder.error(CfmlBundle.message("cfml.parsing.tag.is.not.done"));
+      tagNamesStack.push(new Tag(currentTagName,marker,builder.mark()));
+    }
+    if (currentTagName.toLowerCase().equals("cfscript")) {
+      (new CfscriptParser()).parseScript(builder,true);
+    }
+    while (!builder.eof() && builder.getTokenType() != OPENER) {
+      if (builder.getTokenType() == LSLASH_ANGLEBRACKET) {
+        parseCloseTag(builder,tagNamesStack);
+      }
+ else       if (builder.getTokenType() == START_EXPRESSION) {
+        parseExpression(builder);
+      }
+ else {
+        builder.advanceLexer();
+      }
+    }
+  }
+}

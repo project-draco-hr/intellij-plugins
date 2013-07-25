@@ -1,0 +1,21 @@
+{
+  if (!parseStructureDefinition()) {
+    PsiBuilder.Marker referenceExpression=myBuilder.mark();
+    if (!parseNewExpression()) {
+      referenceExpression.rollbackTo();
+      if (!parseArrayDefinition()) {
+        if (!parseExpression()) {
+          return false;
+        }
+      }
+    }
+ else     if (myBuilder.getTokenType() == POINT) {
+      referenceExpression.rollbackTo();
+      parseReference(false);
+    }
+ else {
+      referenceExpression.drop();
+    }
+  }
+  return true;
+}

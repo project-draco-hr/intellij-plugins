@@ -1,0 +1,20 @@
+{
+  IElementType tokenType=getTokenType();
+  if (tokenType != L_SQUAREBRACKET) {
+    return false;
+  }
+  PsiBuilder.Marker arrayDefMarker=mark();
+  getTokenType();
+  advance();
+  if (getTokenType() != R_SQUAREBRACKET) {
+    parseRValuesList();
+  }
+  if (getTokenType() != R_SQUAREBRACKET) {
+    arrayDefMarker.done(CfmlElementTypes.SCRIPT_EXPRESSION);
+    myBuilder.error(CfmlBundle.message("cfml.parsing.square.bracket.expected"));
+    return true;
+  }
+  advance();
+  arrayDefMarker.drop();
+  return true;
+}

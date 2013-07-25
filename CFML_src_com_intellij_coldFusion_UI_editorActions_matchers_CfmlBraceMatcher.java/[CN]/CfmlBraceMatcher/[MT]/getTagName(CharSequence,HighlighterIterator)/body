@@ -1,0 +1,36 @@
+{
+  final IElementType tokenType=iterator.getTokenType();
+  String name=null;
+  if (tokenType == CfmlTokenTypes.CLOSER || tokenType == CfmlTokenTypes.R_ANGLEBRACKET) {
+    iterator.retreat();
+    IElementType tokenType1=(!iterator.atEnd() ? iterator.getTokenType() : null);
+    if (tokenType1 == CfmlTokenTypes.CF_TAG_NAME) {
+      name=fileText.subSequence(iterator.getStart(),iterator.getEnd()).toString();
+    }
+ else {
+      int counter=0;
+      while (!iterator.atEnd()) {
+        if (iterator.getTokenType() == CfmlTokenTypes.CF_TAG_NAME) {
+          name=fileText.subSequence(iterator.getStart(),iterator.getEnd()).toString();
+          break;
+        }
+        if (iterator.getTokenType() == CfmlTokenTypes.CLOSER || iterator.getTokenType() == CfmlTokenTypes.R_ANGLEBRACKET) {
+          break;
+        }
+        iterator.retreat();
+        counter++;
+      }
+      while (counter-- > 0)       iterator.advance();
+    }
+    iterator.advance();
+  }
+ else   if (tokenType == CfmlTokenTypes.OPENER) {
+    iterator.advance();
+    IElementType tokenType1=(!iterator.atEnd() ? iterator.getTokenType() : null);
+    if (tokenType1 == CfmlTokenTypes.CF_TAG_NAME) {
+      name=fileText.subSequence(iterator.getStart(),iterator.getEnd()).toString();
+    }
+    iterator.retreat();
+  }
+  return name == null ? name : name.toLowerCase();
+}

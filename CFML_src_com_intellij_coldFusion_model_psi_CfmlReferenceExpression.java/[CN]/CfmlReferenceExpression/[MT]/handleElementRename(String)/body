@@ -1,0 +1,19 @@
+{
+  CheckUtil.checkWritable(this);
+  PsiElement newElement;
+  final PsiElement referenceNameElement=getReferenceNameElement();
+  if (referenceNameElement != null) {
+    final ASTNode referenceNode=referenceNameElement.getNode();
+    if (referenceNode == null) {
+      return this;
+    }
+    if (referenceNode.getElementType() == CfmlTokenTypes.STRING_TEXT) {
+      newElement=CfmlPsiUtil.createConstantString(newElementName,getProject());
+    }
+ else {
+      newElement=CfmlPsiUtil.createIdentifier(newElementName,getProject());
+    }
+    getNode().replaceChild(referenceNode,newElement.getNode());
+  }
+  return this;
+}

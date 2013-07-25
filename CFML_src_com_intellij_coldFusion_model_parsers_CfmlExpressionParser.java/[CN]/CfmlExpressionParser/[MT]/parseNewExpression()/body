@@ -1,0 +1,24 @@
+{
+  if (getTokenType() != IDENTIFIER) {
+    return false;
+  }
+  if (!"new".equalsIgnoreCase(getTokenText())) {
+    return false;
+  }
+  PsiBuilder.Marker newExpression=mark();
+  advance();
+  PsiBuilder.Marker constructorCall=mark();
+  if (getTokenType() == CfmlTokenTypes.DOUBLE_QUOTE) {
+    parseString();
+  }
+ else   if (getTokenType() == CfscriptTokenTypes.IDENTIFIER) {
+    parseComponentReference();
+  }
+ else {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.identifier.expected"));
+  }
+  parseArgumentsList();
+  constructorCall.done(CfmlElementTypes.COMPONENT_CONSTRUCTOR_CALL);
+  newExpression.done(CfmlElementTypes.NEW_EXPRESSION);
+  return true;
+}

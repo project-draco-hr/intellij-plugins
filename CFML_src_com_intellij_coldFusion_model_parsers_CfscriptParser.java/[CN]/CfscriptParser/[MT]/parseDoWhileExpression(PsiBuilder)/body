@@ -1,0 +1,27 @@
+{
+  if (myBuilder.getTokenType() != DO_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker doWhileMarker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  if (myBuilder.getTokenType() != L_CURLYBRACKET) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.open.bracket.expected"));
+    doWhileMarker.drop();
+    return;
+  }
+  parseScript(myBuilder,false);
+  if (myBuilder.getTokenType() != WHILE_KEYWORD) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.keyword.expected","while"));
+    doWhileMarker.done(CfmlElementTypes.DOWHILEEXPRESSION);
+    return;
+  }
+  myBuilder.advanceLexer();
+  parseConditionInBrackets(myBuilder);
+  if (myBuilder.getTokenType() != SEMICOLON) {
+    myBuilder.error(CfmlBundle.message("cfml.parsing.semicolon.expected"));
+  }
+ else {
+    myBuilder.advanceLexer();
+  }
+  doWhileMarker.done(CfmlElementTypes.DOWHILEEXPRESSION);
+}

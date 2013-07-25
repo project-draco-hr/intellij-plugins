@@ -1,0 +1,16 @@
+{
+  if (myBuilder.getTokenType() != TRY_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker tryCatchMarker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  parseScript(myBuilder,false);
+  while (myBuilder.getTokenType() == CATCH_KEYWORD) {
+    parseCatchExpression(myBuilder);
+  }
+  if (myBuilder.getTokenType() == FINALLY_KEYWORD) {
+    myBuilder.advanceLexer();
+    parseScript(myBuilder,false);
+  }
+  tryCatchMarker.done(CfmlElementTypes.TRYCATCHEXPRESSION);
+}

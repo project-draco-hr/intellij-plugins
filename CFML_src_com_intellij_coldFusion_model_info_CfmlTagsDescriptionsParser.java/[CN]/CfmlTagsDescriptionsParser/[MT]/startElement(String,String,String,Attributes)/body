@@ -1,0 +1,65 @@
+{
+  if (localName.equals("tags")) {
+    myState=TAG_STATE;
+  }
+ else   if (localName.equals("functions")) {
+    myState=FUNCTION_STATE;
+  }
+ else   if (localName.equals("cfscopes")) {
+    myState=SCOPE_STATE;
+  }
+ else   if (localName.equals("scopes")) {
+    myState=PREDEFINED_VARIABLE_STATE;
+  }
+ else   if (myState == TAG_STATE) {
+    myIsTagHelpSection=false;
+    if (localName.equals("tag")) {
+      final String isSingle=attr.getValue("single");
+      final String isEndtagrequired=attr.getValue("endtagrequired");
+      myCurrentTag=new CfmlTagDescription(attr.getValue("name"),Boolean.valueOf(isSingle),Boolean.valueOf(isEndtagrequired));
+    }
+ else     if (localName.equals("help")) {
+      myIsTagHelpSection=true;
+    }
+ else     if (localName.equals("parameter")) {
+      String aName=attr.getValue("name");
+      int aType=CfmlTypesInfo.getTypeByString(attr.getValue("type"));
+      boolean aRequired=Boolean.valueOf(attr.getValue("required"));
+      String aDescription="";
+      myCurrentAttribute=new CfmlAttributeDescription(aName,aType,aRequired,aDescription);
+    }
+ else     if (localName.equals("value") && myCurrentAttribute != null) {
+      myCurrentAttribute.addValue(attr.getValue("option"));
+    }
+  }
+ else   if (myState == FUNCTION_STATE) {
+    myIsFunctionHelpSection=false;
+    if (localName.equals("function")) {
+      myCurrentFunction=new CfmlFunctionDescription(attr.getValue("name"),attr.getValue("returns"));
+    }
+ else     if (localName.equals("parameter") && myCurrentFunction != null) {
+      String aName=attr.getValue("name");
+      String aType=attr.getValue("type");
+      boolean aRequired=Boolean.valueOf(attr.getValue("required"));
+      myCurrentFunction.addParameter(new CfmlFunctionDescription.CfmlParameterDescription(aName,aType,aRequired));
+    }
+ else     if (localName.equals("help")) {
+      myIsFunctionHelpSection=true;
+    }
+  }
+ else   if (myState == PREDEFINED_VARIABLE_STATE) {
+    if (localName.equals("scope")) {
+      int aType=CfmlTypesInfo.getTypeByString(attr.getValue("type"));
+      String aName=attr.getValue("value");
+      myPredefinedVariables.put(aName.toLowerCase(),aType);
+    }
+  }
+ else   if (myState == SCOPE_STATE) {
+    if (localName.equals("scopevar")) {
+      if (!StringUtil.isEmpty(myCurrentScope) && myCurrentScope.charAt(myCurrentScope.length() - 1) != '.') {
+        myCurrentScope+=".";
+      }
+      myCurrentScope+=attr.getValue("name");
+    }
+  }
+}

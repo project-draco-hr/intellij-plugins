@@ -1,0 +1,30 @@
+{
+  boolean res=true;
+  try {
+    component.accept(new CfmlRecursiveElementVisitor(){
+      public void visitCfmlAssignmentExpression(      CfmlAssignmentExpression expression){
+        if (expression.getFirstChild().getNode().getElementType() != CfscriptTokenTypes.VAR_KEYWORD) {
+          if (expression.getAssignedVariable() != null && !processor.execute(expression.getAssignedVariable(),state)) {
+            throw Stop.DONE;
+          }
+        }
+      }
+      @Override public void visitCfmlComponent(      CfmlComponent component){
+        super.visitElement(component);
+      }
+      @Override public void visitElement(      PsiElement element){
+        if (element != lastParent && element instanceof CfmlAssignmentExpression) {
+          visitCfmlAssignmentExpression((CfmlAssignmentExpression)element);
+        }
+ else {
+          super.visitElement(element);
+        }
+      }
+    }
+);
+  }
+ catch (  CfmlRecursiveElementVisitor.Stop e) {
+    res=false;
+  }
+  return res;
+}

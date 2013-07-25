@@ -1,0 +1,15 @@
+{
+  PsiElement element=parameters.getPosition();
+  CfmlFunctionCallExpression parentOfType=PsiTreeUtil.getParentOfType(element,CfmlFunctionCallExpression.class);
+  if (parentOfType != null && parentOfType.isCreateObject()) {
+    CfmlExpression[] arguments=parentOfType.getArguments();
+    if (arguments.length == 2 && "\"java\"".equalsIgnoreCase(arguments[0].getText())) {
+      AllClassesGetter.processJavaClasses(parameters,result.getPrefixMatcher(),parameters.getInvocationCount() <= 1,new Consumer<PsiClass>(){
+        @Override public void consume(        PsiClass psiClass){
+          result.addElement(AllClassesGetter.createLookupItem(psiClass,AllClassesGetter.TRY_SHORTENING));
+        }
+      }
+);
+    }
+  }
+}

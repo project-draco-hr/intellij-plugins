@@ -1,0 +1,13 @@
+{
+  VirtualFile virtualFile=myFixture.getFile().getVirtualFile();
+  final FileType fileType=virtualFile.getFileType();
+  final StructureViewBuilder structureViewBuilder;
+  if (fileType == CfmlFileType.INSTANCE) {
+    CfmlFileViewProvider viewProvider=(CfmlFileViewProvider)myFixture.getFile().getViewProvider();
+    structureViewBuilder=LanguageStructureViewBuilder.INSTANCE.forLanguage(viewProvider.getBaseLanguage()).getStructureViewBuilder(viewProvider.getPsi(viewProvider.getBaseLanguage()));
+  }
+ else {
+    structureViewBuilder=StructureViewBuilder.PROVIDER.getStructureViewBuilder(fileType,virtualFile,getProject());
+  }
+  return structureViewBuilder.createStructureView(FileEditorManager.getInstance(getProject()).getSelectedEditor(virtualFile),getProject());
+}

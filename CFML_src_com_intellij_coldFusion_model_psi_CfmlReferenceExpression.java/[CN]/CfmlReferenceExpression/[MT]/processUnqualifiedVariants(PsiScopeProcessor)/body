@@ -1,0 +1,33 @@
+{
+  PsiFile containingFile=getContainingFile();
+  if (containingFile instanceof CfmlFile) {
+    CfmlComponent componentDefinition=((CfmlFile)containingFile).getComponentDefinition();
+    CfmlFunction[] functions;
+    if (componentDefinition != null) {
+      functions=componentDefinition.getFunctionsWithSupers(this.getFirstChild() instanceof CfmlSuperComponentReference);
+    }
+ else {
+      PsiFile file=this.getContainingFile();
+      if (file instanceof CfmlFile) {
+        functions=((CfmlFile)file).getGlobalFunctions().toArray(CfmlFunction.EMPTY_ARRAY);
+      }
+ else {
+        functions=CfmlFunction.EMPTY_ARRAY;
+      }
+    }
+    for (    CfmlFunction function : functions) {
+      if (!processor.execute(function,ResolveState.initial())) {
+        return false;
+      }
+    }
+    if (componentDefinition != null) {
+      CfmlProperty[] propertiesWithSupers=componentDefinition.getPropertiesWithSupers(this.getFirstChild() instanceof CfmlSuperComponentReference);
+      for (      CfmlProperty property : propertiesWithSupers) {
+        if (!processor.execute(property,ResolveState.initial())) {
+          return false;
+        }
+      }
+    }
+  }
+  return super.processUnqualifiedVariants(processor);
+}

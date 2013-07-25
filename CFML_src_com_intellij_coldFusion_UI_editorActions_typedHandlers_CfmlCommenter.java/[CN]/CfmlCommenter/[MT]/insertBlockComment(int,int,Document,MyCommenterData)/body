@@ -1,0 +1,18 @@
+{
+  int startLineNumber=document.getLineNumber(startOffset);
+  int startLineStart=document.getLineStartOffset(startLineNumber);
+  if (startLineStart == startOffset) {
+    int endLineNumber=document.getLineNumber(endOffset);
+    int endLineStart=document.getLineStartOffset(endLineNumber);
+    if (endLineStart == endOffset) {
+      String commentStart=data.getBlockCommentPrefix() + "\n";
+      String commentEnd=data.getBlockCommentSuffix() + "\n";
+      document.insertString(endOffset,commentEnd);
+      document.insertString(startOffset,commentStart);
+      return new TextRange(startOffset,endOffset + commentStart.length() + commentEnd.length());
+    }
+  }
+  document.insertString(endOffset,data.getBlockCommentSuffix());
+  document.insertString(startOffset,data.getBlockCommentPrefix());
+  return new TextRange(startOffset,endOffset + data.getBlockCommentSuffix().length() + data.getBlockCommentPrefix().length());
+}

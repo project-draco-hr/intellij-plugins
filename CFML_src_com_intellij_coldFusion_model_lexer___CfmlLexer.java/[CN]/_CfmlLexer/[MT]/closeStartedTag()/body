@@ -1,0 +1,22 @@
+{
+  myCurrentConfiguration.myStartExpression=true;
+  if (myCurrentConfiguration.myCurrentTag.equalsIgnoreCase("cfscript")) {
+    myCurrentConfiguration.myStartExpression=false;
+    myCurrentConfiguration.myBlockType=CfmlTokenTypes.SCRIPT_EXPRESSION;
+    yybegin(YYINITIAL);
+  }
+ else   if (myCurrentConfiguration.myCurrentTag.equalsIgnoreCase("cfquery") || myCurrentConfiguration.myCurrentTag.equalsIgnoreCase("cfqueryparam")) {
+    myCurrentConfiguration.myBlockType=CfmlElementTypes.SQL;
+    myCurrentConfiguration.myArePoundsEvaluated++;
+    yybegin(YYINITIAL);
+  }
+ else   if (myCurrentConfiguration.myCurrentTag.equalsIgnoreCase("cfoutput") || myCurrentConfiguration.myCurrentTag.equalsIgnoreCase("cfmail")) {
+    myCurrentConfiguration.myArePoundsEvaluated++;
+    yybegin(YYINITIAL);
+  }
+ else {
+    yybegin(YYINITIAL);
+  }
+  if (CfmlUtil.isSingleCfmlTag(myCurrentConfiguration.myCurrentTag,myProject))   return CfmlTokenTypes.CLOSER;
+  return CfmlTokenTypes.R_ANGLEBRACKET;
+}

@@ -1,0 +1,31 @@
+{
+  final Ref<IOException> error=new Ref<IOException>();
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          try {
+            if (file.isValid()) {
+              file.delete(this);
+            }
+          }
+ catch (          IOException e) {
+            error.set(e);
+          }
+        }
+      }
+);
+    }
+  }
+;
+  if (ApplicationManager.getApplication().isDispatchThread()) {
+    runnable.run();
+  }
+ else {
+    ProgressIndicator pi=ProgressManager.getInstance().getProgressIndicator();
+    ApplicationManager.getApplication().invokeAndWait(runnable,pi != null ? pi.getModalityState() : ModalityState.NON_MODAL);
+  }
+  if (!error.isNull()) {
+    throw new ExecutionException(error.get().getMessage());
+  }
+}

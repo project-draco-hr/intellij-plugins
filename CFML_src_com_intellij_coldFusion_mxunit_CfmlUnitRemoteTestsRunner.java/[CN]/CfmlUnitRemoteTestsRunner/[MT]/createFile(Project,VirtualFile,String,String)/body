@@ -1,0 +1,38 @@
+{
+  LOG.assertTrue(directory != null);
+  final Ref<IOException> error=new Ref<IOException>();
+  final Ref<VirtualFile> launcherFile=new Ref<VirtualFile>();
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        public void run(){
+          try {
+            VirtualFile file=directory.findChild(fileName);
+            if (file == null) {
+              file=directory.createChildData(CfmlUnitRunConfiguration.class,fileName);
+            }
+            CfmlScriptNodeSuppressor.suppress(file);
+            VfsUtil.saveText(file,fileText);
+            launcherFile.set(file);
+          }
+ catch (          IOException e) {
+            error.set(e);
+          }
+        }
+      }
+);
+    }
+  }
+;
+  if (ApplicationManager.getApplication().isDispatchThread()) {
+    runnable.run();
+  }
+ else {
+    ProgressIndicator pi=ProgressManager.getInstance().getProgressIndicator();
+    ApplicationManager.getApplication().invokeAndWait(runnable,pi != null ? pi.getModalityState() : ModalityState.NON_MODAL);
+  }
+  if (!error.isNull()) {
+    throw new ExecutionException(error.get().getMessage());
+  }
+  return launcherFile.get();
+}

@@ -1,0 +1,33 @@
+{
+  TextRange elementRange=tag.getTextRange();
+  final int start=elementRange.getStartOffset();
+  final int end=elementRange.getEndOffset();
+  if (start + 1 < end) {
+    TextRange range=null;
+    ASTNode astNode=tag.getNode();
+    if (tag instanceof CfmlTag) {
+      range=buildRangeForBraces(range,astNode,CfmlTokenTypes.R_ANGLEBRACKET,CfmlTokenTypes.LSLASH_ANGLEBRACKET);
+    }
+ else     if (tag instanceof CfmlFunction) {
+      final ASTNode body=astNode.findChildByType(CfmlElementTypes.FUNCTIONBODY);
+      if (body != null) {
+        range=buildRange(range,body.getStartOffset(),body.getTextRange().getEndOffset());
+      }
+    }
+ else     if (tag instanceof PsiComment) {
+      boolean isColdFusionComment=astNode.getElementType() == CfmlTokenTypes.COMMENT;
+      int endIndex=astNode.getText().lastIndexOf(isColdFusionComment ? "--->" : "*/");
+      if (endIndex != -1) {
+        String commentText=astNode.getText().substring(0,endIndex);
+        if (commentText.contains("\n")) {
+          int startOffset=tag.getTextRange().getStartOffset();
+          range=buildRange(range,startOffset + (isColdFusionComment ? "<!---" : "/*").length(),startOffset + commentText.length());
+        }
+      }
+    }
+    if (range != null) {
+      descriptors.add(new FoldingDescriptor(astNode,range));
+    }
+    addFoldingDescriptorsFromChildren(descriptors,tag,document);
+  }
+}

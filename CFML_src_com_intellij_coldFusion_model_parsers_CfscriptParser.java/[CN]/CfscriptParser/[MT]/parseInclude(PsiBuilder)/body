@@ -1,0 +1,14 @@
+{
+  if (myBuilder.getTokenType() != INCLUDE_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker marker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  IElementType tokenType=myBuilder.getTokenType();
+  if (tokenType != CfmlTokenTypes.SINGLE_QUOTE && tokenType != CfmlTokenTypes.DOUBLE_QUOTE) {
+    marker.drop();
+    return;
+  }
+  (new CfmlExpressionParser(myBuilder)).parseString();
+  marker.done(CfmlElementTypes.INCLUDEEXPRESSION);
+}

@@ -1,0 +1,16 @@
+{
+  if (offset <= 0) {
+    return null;
+  }
+  if (file instanceof CfmlFile) {
+    final CfmlArgumentList parametersList=PsiTreeUtil.findElementOfClassAtOffset(file,offset,CfmlArgumentList.class,false);
+    if (parametersList == null) {
+      return null;
+    }
+    if (isEmbraced(parametersList,offset)) {
+      final PsiElement element=parametersList.getParent();
+      return element instanceof CfmlFunctionCallExpression ? ((CfmlFunctionCallExpression)element).getReferenceExpression() : element;
+    }
+  }
+  return null;
+}

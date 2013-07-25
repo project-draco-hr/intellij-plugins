@@ -1,0 +1,26 @@
+{
+  PsiElement at=getCfmlElementAtOffset(offset,file);
+  if (at != null) {
+    CfmlTagScriptImpl scriptTag=PsiTreeUtil.getParentOfType(at,CfmlTagScriptImpl.class);
+    if (scriptTag != null) {
+      return scriptTag.isInsideTag(offset);
+    }
+ else {
+      PsiElement firstChild=file.getFirstChild();
+      if (firstChild != null) {
+        ASTNode theDeepestChild=firstChild.getNode();
+        if (theDeepestChild == null) {
+          return false;
+        }
+        while (theDeepestChild.getFirstChildNode() != null) {
+          theDeepestChild=theDeepestChild.getFirstChildNode();
+        }
+        IElementType elementType=theDeepestChild.getElementType();
+        if (elementType == CfscriptTokenTypes.COMMENT || elementType == CfscriptTokenTypes.COMPONENT_KEYWORD || elementType == CfscriptTokenTypes.INTERFACE_KEYWORD || elementType == CfscriptTokenTypes.IMPORT_KEYWORD) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}

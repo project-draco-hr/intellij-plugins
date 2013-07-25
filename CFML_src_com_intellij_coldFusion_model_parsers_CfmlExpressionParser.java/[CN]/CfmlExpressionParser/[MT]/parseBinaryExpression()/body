@@ -1,0 +1,17 @@
+{
+  PsiBuilder.Marker expr=myBuilder.mark();
+  if (!parseRelationalExpression()) {
+    expr.drop();
+    return false;
+  }
+  while (LOGICAL_OPERATIONS.contains(myBuilder.getTokenType())) {
+    myBuilder.advanceLexer();
+    if (!parseRelationalExpression()) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.expression.expected"));
+    }
+    expr.done(CfmlElementTypes.BINARY_EXPRESSION);
+    expr=expr.precede();
+  }
+  expr.drop();
+  return true;
+}

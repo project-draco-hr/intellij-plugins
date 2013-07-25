@@ -1,0 +1,78 @@
+{
+  IElementType childType=child.getElementType();
+  IElementType parentType=myNode.getElementType();
+  if (childType == CfscriptTokenTypes.COMMA || childType == CfscriptTokenTypes.SEMICOLON)   return defaultWrap;
+  if (parentType == CfmlElementTypes.PARAMETERS_LIST || parentType == CfmlElementTypes.ARGUMENT_LIST) {
+    ASTNode superParent=myNode.getTreeParent();
+    if (superParent != null) {
+      if ((superParent.getElementType() == CfmlElementTypes.FUNCTION_CALL_EXPRESSION) && mySettings.CALL_PARAMETERS_WRAP != CodeStyleSettings.DO_NOT_WRAP) {
+        if (myNode.getFirstChildNode() == child) {
+          if (mySettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE) {
+            return Wrap.createWrap(WrapType.NORMAL,true);
+          }
+ else {
+            return Wrap.createWrap(WrapType.NONE,true);
+          }
+        }
+        if (!mySettings.PREFER_PARAMETERS_WRAP && childWrap != null) {
+          return Wrap.createChildWrap(childWrap,WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),true);
+        }
+        return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),true);
+      }
+      if ((superParent.getElementType() == CfmlElementTypes.FUNCTION_DEFINITION) && mySettings.METHOD_PARAMETERS_WRAP != CodeStyleSettings.DO_NOT_WRAP) {
+        if (myNode.getFirstChildNode() == child) {
+          if (mySettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE) {
+            return Wrap.createWrap(WrapType.NORMAL,true);
+          }
+ else {
+            return Wrap.createWrap(WrapType.NONE,true);
+          }
+        }
+        return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.METHOD_PARAMETERS_WRAP),true);
+      }
+    }
+  }
+  if (parentType == CfmlElementTypes.FUNCTION_CALL_EXPRESSION) {
+    if (mySettings.CALL_PARAMETERS_WRAP != CodeStyleSettings.DO_NOT_WRAP) {
+      if (childType == CfscriptTokenTypes.R_BRACKET) {
+        return Wrap.createWrap(mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE ? WrapType.NORMAL : WrapType.NONE,true);
+      }
+    }
+  }
+  if ((parentType == CfmlElementTypes.FOREXPRESSION) && mySettings.FOR_STATEMENT_WRAP != CodeStyleSettings.DO_NOT_WRAP) {
+    return createChildWrap(child,mySettings.FOR_STATEMENT_WRAP,mySettings.FOR_STATEMENT_LPAREN_ON_NEXT_LINE,mySettings.FOR_STATEMENT_RPAREN_ON_NEXT_LINE);
+  }
+  if (parentType == CfmlElementTypes.IFEXPRESSION && childType == CfscriptTokenTypes.ELSE_KEYWORD) {
+    return Wrap.createWrap(mySettings.ELSE_ON_NEW_LINE ? WrapType.NORMAL : WrapType.NONE,true);
+  }
+  if (mySettings.BINARY_OPERATION_WRAP != CodeStyleSettings.DO_NOT_WRAP && CfmlElementTypes.BINARY_EXPRESSION == parentType) {
+    if ((mySettings.BINARY_OPERATION_SIGN_ON_NEXT_LINE && CfmlFormatterUtil.isBinaryOperator(childType)) || (!mySettings.BINARY_OPERATION_SIGN_ON_NEXT_LINE && isRightOperand(child))) {
+      return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.BINARY_OPERATION_WRAP),true);
+    }
+  }
+  if (mySettings.ASSIGNMENT_WRAP != CodeStyleSettings.DO_NOT_WRAP && (parentType == CfmlElementTypes.ASSIGNMENT)) {
+    if (!CfmlFormatterUtil.isAssignmentOperator(childType)) {
+      if (FormatterUtil.isPrecededBy(child,CfmlFormatterUtil.ASSIGNMENT_OPERATORS) && mySettings.PLACE_ASSIGNMENT_SIGN_ON_NEXT_LINE) {
+        return Wrap.createWrap(WrapType.NONE,true);
+      }
+      return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.ASSIGNMENT_WRAP),true);
+    }
+ else     if (mySettings.PLACE_ASSIGNMENT_SIGN_ON_NEXT_LINE) {
+      return Wrap.createWrap(WrapType.NORMAL,true);
+    }
+  }
+  if (parentType == CfmlElementTypes.TERNARY_EXPRESSION) {
+    if (myNode.getFirstChildNode() != child) {
+      if (mySettings.TERNARY_OPERATION_SIGNS_ON_NEXT_LINE) {
+        if (!FormatterUtil.isPrecededBy(child,CfscriptTokenTypes.QUESTION) && !FormatterUtil.isPrecededBy(child,CfscriptTokenTypes.DOTDOT)) {
+          return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP),true);
+        }
+      }
+ else       if (childType != CfscriptTokenTypes.QUESTION && childType != CfscriptTokenTypes.DOTDOT) {
+        return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP),true);
+      }
+    }
+    return Wrap.createWrap(WrapType.NONE,true);
+  }
+  return defaultWrap;
+}

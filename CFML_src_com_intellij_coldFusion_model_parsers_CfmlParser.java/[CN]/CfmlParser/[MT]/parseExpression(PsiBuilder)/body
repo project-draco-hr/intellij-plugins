@@ -1,0 +1,19 @@
+{
+  if (builder.getTokenType() == START_EXPRESSION) {
+    builder.advanceLexer();
+  }
+ else {
+    return;
+  }
+  if (!(new CfmlExpressionParser(builder)).parseStructureDefinition()) {
+    if (!(new CfmlExpressionParser(builder)).parseArrayDefinition()) {
+      (new CfmlExpressionParser(builder)).parseExpression();
+    }
+  }
+  if (builder.getTokenType() != END_EXPRESSION) {
+    builder.error(CfmlBundle.message("cfml.parsing.expression.unclosed"));
+  }
+ else   if (!builder.eof()) {
+    builder.advanceLexer();
+  }
+}

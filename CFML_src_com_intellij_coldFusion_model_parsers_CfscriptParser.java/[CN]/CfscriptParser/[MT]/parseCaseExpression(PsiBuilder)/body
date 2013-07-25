@@ -1,0 +1,18 @@
+{
+  if (myBuilder.getTokenType() != CASE_KEYWORD) {
+    return;
+  }
+  PsiBuilder.Marker caseExpressionMarker=myBuilder.mark();
+  myBuilder.advanceLexer();
+  if (!parseConstant(myBuilder)) {
+    if (myBuilder.getTokenType() == IDENTIFIER) {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.constant.expected"));
+      myBuilder.advanceLexer();
+    }
+ else {
+      myBuilder.error(CfmlBundle.message("cfml.parsing.constant.expected"));
+    }
+  }
+  parseDOTDOTAndScript(myBuilder);
+  caseExpressionMarker.done(CfmlElementTypes.CASEEXPRESSION);
+}

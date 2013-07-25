@@ -1,0 +1,18 @@
+{
+  if (myCfscriptLexer != null) {
+    return myCfscriptLexer.getTokenType();
+  }
+  if (super.getTokenType() == CfmlElementTypes.CF_SCRIPT || super.getTokenType() == CfmlTokenTypes.SCRIPT_EXPRESSION) {
+    final int startPosition=super.getTokenStart();
+    myStartPosition=startPosition;
+    int endPosition=super.getTokenEnd();
+    while (super.getTokenType() == CfmlTokenTypes.SCRIPT_EXPRESSION || super.getTokenType() == CfmlElementTypes.CF_SCRIPT) {
+      endPosition=super.getTokenEnd();
+      super.advance();
+    }
+    myCfscriptLexer=new CfscriptLexer(myProject);
+    myCfscriptLexer.start(super.getBufferSequence().subSequence(startPosition,endPosition),0,endPosition - startPosition,myCfscriptLexer.getState());
+    return myCfscriptLexer.getTokenType();
+  }
+  return super.getTokenType();
+}

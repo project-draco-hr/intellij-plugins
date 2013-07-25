@@ -1,0 +1,22 @@
+{
+  addOneComponentToDir(myFixture);
+  Map<String,String> mappings=new HashMap<String,String>();
+  for (  VirtualFile root : ProjectRootManager.getInstance(getProject()).getContentRoots()) {
+    String directoryName=root.getPresentableUrl() + "/subfolder";
+    VirtualFile fileByUrl=LocalFileSystem.getInstance().findFileByPath(directoryName);
+    if (fileByUrl != null) {
+      mappings.put("/lot",directoryName);
+      mappings.put("/fot",directoryName);
+    }
+  }
+  CfmlProjectConfiguration.State defaultState=CfmlProjectConfiguration.getInstance(getProject()).getState();
+  CfmlProjectConfiguration.State state=new CfmlProjectConfiguration.State(new CfmlMappingsConfig());
+  state.setMapps(new CfmlMappingsConfig(mappings));
+  try {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(state);
+    doTestCompletionContainsVariants("lot","fot");
+  }
+  finally {
+    CfmlProjectConfiguration.getInstance(getProject()).loadState(defaultState);
+  }
+}

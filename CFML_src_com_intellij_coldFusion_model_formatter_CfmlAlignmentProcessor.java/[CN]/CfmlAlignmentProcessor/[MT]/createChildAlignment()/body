@@ -1,0 +1,29 @@
+{
+  IElementType parentType=myNode.getElementType();
+  if (parentType == CfmlElementTypes.BINARY_EXPRESSION && mySettings.ALIGN_MULTILINE_BINARY_OPERATION) {
+    return myBaseAlignment;
+  }
+  if (parentType == CfmlElementTypes.TERNARY_EXPRESSION && mySettings.ALIGN_MULTILINE_TERNARY_OPERATION) {
+    return myBaseAlignment;
+  }
+  if (parentType == CfmlElementTypes.PARAMETERS_LIST || parentType == CfmlElementTypes.ARGUMENT_LIST) {
+    ASTNode boundParent=myNode.getTreeParent();
+    IElementType boundElType=boundParent.getElementType();
+    boolean doAlign=false;
+    if (boundElType == CfmlElementTypes.FUNCTION_DEFINITION) {
+      doAlign=mySettings.ALIGN_MULTILINE_PARAMETERS;
+    }
+ else     if (boundElType == CfmlElementTypes.FUNCTION_CALL_EXPRESSION) {
+      doAlign=mySettings.ALIGN_MULTILINE_PARAMETERS_IN_CALLS;
+    }
+    if (doAlign) {
+      return myBaseAlignment;
+    }
+  }
+  if (parentType == CfmlElementTypes.FOREXPRESSION) {
+    if (mySettings.ALIGN_MULTILINE_FOR) {
+      return myBaseAlignment;
+    }
+  }
+  return null;
+}
