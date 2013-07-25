@@ -1,18 +1,14 @@
 {
-  BuiltInServerManager.getInstance().waitForStart();
-  myUserMonitorThread=new UserMonitorThread(this,waitUserResponsesTimeout);
-  P2PCommand[] commands={new SendXmlMessageP2PCommand(myEventBroadcaster,this),new AddOnlineUserP2PCommand(myUserMonitorThread)};
-  XmlRpcServer xmlRpcServer=XmlRpcServer.SERVICE.getInstance();
-  for (  P2PCommand command : commands) {
-    xmlRpcServer.addHandler(command.getXmlRpcId(),command);
+  Application application=ApplicationManager.getApplication();
+  if (application.isUnitTestMode() || !application.isDispatchThread()) {
+    doStart(waitUserResponsesTimeout);
   }
-  myUserMonitorThread.start();
-  myUserMonitorThread.triggerFindNow();
-  new WaitFor(){
-    @Override protected boolean condition(){
-      return myUserMonitorThread.isRunning();
+ else {
+    application.executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        doStart(waitUserResponsesTimeout);
+      }
     }
+);
   }
-;
-  myEventBroadcaster.addListener(myUserAddedCallbackListener);
 }
