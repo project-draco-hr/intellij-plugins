@@ -1,11 +1,6 @@
 {
   BuiltInServerManager.getInstance().waitForStart();
   myUserMonitorThread=new UserMonitorThread(this,waitUserResponsesTimeout);
-  P2PCommand[] commands={new SendXmlMessageP2PCommand(myEventBroadcaster,this),new AddOnlineUserP2PCommand(myUserMonitorThread)};
-  XmlRpcServer xmlRpcServer=XmlRpcServer.SERVICE.getInstance();
-  for (  P2PCommand command : commands) {
-    xmlRpcServer.addHandler(command.getXmlRpcId(),command);
-  }
   myUserMonitorThread.start();
   myUserMonitorThread.triggerFindNow();
   new WaitFor(){
@@ -15,4 +10,9 @@
   }
 ;
   myEventBroadcaster.addListener(myUserAddedCallbackListener);
+  P2PCommand[] commands={new SendXmlMessageP2PCommand(myEventBroadcaster,this),new AddOnlineUserP2PCommand(myUserMonitorThread)};
+  Map<String,Object> handlers=CustomPortServerManager.EP_NAME.findExtension(P2PCustomPortServerManager.class).handlers;
+  for (  P2PCommand command : commands) {
+    handlers.put(command.getXmlRpcId(),command);
+  }
 }
