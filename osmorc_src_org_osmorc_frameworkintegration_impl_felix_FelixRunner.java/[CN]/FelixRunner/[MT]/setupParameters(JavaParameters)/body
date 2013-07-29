@@ -1,0 +1,33 @@
+{
+  ParametersList vmParameters=parameters.getVMParametersList();
+  MultiMap<Integer,String> startBundles=new MultiMap<Integer,String>();
+  List<String> installBundles=ContainerUtil.newSmartList();
+  for (  SelectedBundle bundle : myBundles) {
+    String bundleUrl=bundle.getBundleUrl();
+    if (bundleUrl == null)     continue;
+    boolean isFragment=CachingBundleInfoProvider.isFragmentBundle(bundleUrl);
+    bundleUrl=bundleUrl.replaceAll(" ","%20");
+    if (bundle.isStartAfterInstallation() && !isFragment) {
+      int startLevel=getBundleStartLevel(bundle);
+      startBundles.putValue(startLevel,bundleUrl);
+    }
+ else {
+      installBundles.add(bundleUrl);
+    }
+  }
+  for (  Integer startLevel : startBundles.keySet()) {
+    vmParameters.addProperty("felix.auto.start." + startLevel,StringUtil.join(startBundles.get(startLevel)," "));
+  }
+  if (!installBundles.isEmpty()) {
+    vmParameters.addProperty("felix.auto.install.1",StringUtil.join(installBundles," "));
+  }
+  int startLevel=getFrameworkStartLevel();
+  vmParameters.addProperty("org.osgi.framework.startlevel.beginning",String.valueOf(startLevel));
+  int defaultStartLevel=myRunConfiguration.getDefaultStartLevel();
+  vmParameters.addProperty("felix.startlevel.bundle",String.valueOf(defaultStartLevel));
+  vmParameters.addProperty("org.osgi.framework.storage.clean","onFirstInit");
+  if (myAdditionalProperties.isDebugMode()) {
+    vmParameters.addProperty("felix.log.level","4");
+  }
+  parameters.setMainClass(MAIN_CLASS);
+}

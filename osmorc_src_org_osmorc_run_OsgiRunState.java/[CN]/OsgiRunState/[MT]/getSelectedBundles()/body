@@ -1,37 +1,30 @@
 {
-  if (_selectedBundles == null) {
-    ProgressManager.getInstance().run(new Task.Modal(project,"Preparing bundles...",false){
-      public void run(      @NotNull ProgressIndicator progressIndicator){
-        progressIndicator.setIndeterminate(false);
-        final HashSet<SelectedBundle> selectedBundles=new HashSet<SelectedBundle>();
-        ModuleManager moduleManager=ModuleManager.getInstance(project);
-        int bundleCount=runConfiguration.getBundlesToDeploy().size();
+  final Ref<List<SelectedBundle>> result=Ref.create();
+  final Ref<ExecutionException> error=Ref.create();
+  ProgressManager.getInstance().run(new Task.Modal(myRunConfiguration.getProject(),"Preparing bundles...",false){
+    @Override public void run(    @NotNull ProgressIndicator progressIndicator){
+      progressIndicator.setIndeterminate(false);
+      try {
+        Set<SelectedBundle> selectedBundles=new HashSet<SelectedBundle>();
+        ModuleManager moduleManager=ModuleManager.getInstance(myRunConfiguration.getProject());
+        int bundleCount=myRunConfiguration.getBundlesToDeploy().size();
         for (int i=0; i < bundleCount; i++) {
-          final SelectedBundle selectedBundle=runConfiguration.getBundlesToDeploy().get(i);
-          progressIndicator.setFraction(i / bundleCount);
+          progressIndicator.setFraction((double)i / bundleCount);
+          SelectedBundle selectedBundle=myRunConfiguration.getBundlesToDeploy().get(i);
           if (selectedBundle.isModule()) {
-            try {
-              final Module module=moduleManager.findModuleByName(selectedBundle.getName());
-              if (module == null) {
-                showErrorMessage("Module '" + selectedBundle.getName() + "' does no longer exist. Please check your run configuration.");
-                _selectedBundles=null;
-                return;
-              }
-              if (!OsmorcFacet.hasOsmorcFacet(module)) {
-                showErrorMessage("Module '" + selectedBundle.getName() + "' has no OSGi facet, but should have. Please re-add the OSGi facet to this module.");
-                _selectedBundles=null;
-                return;
-              }
-              selectedBundle.setBundleUrl(new URL("file","/",BundleCompiler.getJarFileName(module)).toString());
-              String[] depUrls=BundleCompiler.bundlifyLibraries(module,progressIndicator,DummyCompileContext.getInstance());
-              for (              String depUrl : depUrls) {
-                SelectedBundle dependency=new SelectedBundle("Dependency",depUrl,SelectedBundle.BundleType.PlainLibrary);
-                selectedBundles.add(dependency);
-              }
-              selectedBundles.add(selectedBundle);
+            Module module=moduleManager.findModuleByName(selectedBundle.getName());
+            if (module == null) {
+              throw new CantRunException("Module '" + selectedBundle.getName() + "' does no longer exist."+ " Please check your run configuration.");
             }
- catch (            MalformedURLException e) {
-              throw new IllegalStateException(e);
+            if (!OsmorcFacet.hasOsmorcFacet(module)) {
+              throw new CantRunException("Module '" + selectedBundle.getName() + "' has no OSGi facet, but should have."+ " Please re-add the OSGi facet to this module.");
+            }
+            selectedBundle.setBundleUrl(new URL("file","/",BundleCompiler.getJarFileName(module)).toString());
+            selectedBundles.add(selectedBundle);
+            String[] depUrls=BundleCompiler.bundlifyLibraries(module,progressIndicator,DummyCompileContext.getInstance());
+            for (            String depUrl : depUrls) {
+              SelectedBundle dependency=new SelectedBundle("Dependency",depUrl,SelectedBundle.BundleType.PlainLibrary);
+              selectedBundles.add(dependency);
             }
           }
  else {
@@ -41,21 +34,32 @@
             selectedBundles.add(selectedBundle);
           }
         }
-        HashMap<String,SelectedBundle> finalList=new HashMap<String,SelectedBundle>();
+        Map<String,SelectedBundle> filteredBundles=new HashMap<String,SelectedBundle>();
         for (        SelectedBundle selectedBundle : selectedBundles) {
           String name=CachingBundleInfoProvider.getBundleSymbolicName(selectedBundle.getBundleUrl());
           String version=CachingBundleInfoProvider.getBundleVersions(selectedBundle.getBundleUrl());
           String key=name + version;
-          if (!finalList.containsKey(key)) {
-            finalList.put(key,selectedBundle);
+          if (!filteredBundles.containsKey(key)) {
+            filteredBundles.put(key,selectedBundle);
           }
         }
-        Collection<SelectedBundle> selectedBundleCollection=finalList.values();
-        _selectedBundles=selectedBundleCollection.toArray(new SelectedBundle[selectedBundleCollection.size()]);
-        Arrays.sort(_selectedBundles,new StartLevelComparator());
+        List<SelectedBundle> sortedBundles=ContainerUtil.newArrayList(filteredBundles.values());
+        Collections.sort(sortedBundles,new StartLevelComparator());
+        result.set(sortedBundles);
+      }
+ catch (      CantRunException e) {
+        error.set(e);
+      }
+catch (      Throwable t) {
+        error.set(new CantRunException("Internal error: " + t.getMessage()));
       }
     }
-);
   }
-  return _selectedBundles;
+);
+  if (!result.isNull()) {
+    return result.get();
+  }
+ else {
+    throw error.get();
+  }
 }

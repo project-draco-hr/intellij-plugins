@@ -1,0 +1,13 @@
+{
+  super(environment);
+  myRunConfiguration=configuration;
+  FrameworkInstanceDefinition instance=myRunConfiguration.getInstanceToUse();
+  if (instance == null) {
+    throw new CantRunException("Incorrect OSGi run configuration: framework not set");
+  }
+  FrameworkIntegrator integrator=FrameworkIntegratorRegistry.getInstance().findIntegratorByInstanceDefinition(instance);
+  if (integrator == null) {
+    throw new CantRunException("Internal error: missing integrator for " + instance);
+  }
+  myRunner=integrator.createFrameworkRunner();
+}

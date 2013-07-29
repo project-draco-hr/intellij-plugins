@@ -11,24 +11,13 @@
   if (usedFramework != null) {
     FrameworkIntegrator integrator=FrameworkIntegratorRegistry.getInstance().findIntegratorByInstanceDefinition(usedFramework);
     if (integrator != null) {
-      integrator.getFrameworkInstanceManager().collectLibraries(usedFramework,new JarFileLibraryCollector(){
-        @Override protected void collectFrameworkJars(        @NotNull Collection<VirtualFile> jarFiles,        @NotNull FrameworkInstanceLibrarySourceFinder sourceFinder){
-          for (          VirtualFile jarFile : jarFiles) {
-            String url=jarFile.getUrl();
-            url=BundleCompiler.convertJarUrlToFileUrl(url);
-            url=BundleCompiler.fixFileURL(url);
-            String bundleName=CachingBundleInfoProvider.getBundleSymbolicName(url);
-            if (bundleName != null) {
-              String bundleVersion=CachingBundleInfoProvider.getBundleVersions(url);
-              SelectedBundle b=new SelectedBundle(bundleName + " - " + bundleVersion,url,SelectedBundle.BundleType.FrameworkBundle);
-              bundles.add(b);
-            }
-          }
-        }
+      FrameworkInstanceManager manager=integrator.getFrameworkInstanceManager();
+      if (manager instanceof AbstractFrameworkInstanceManager) {
+        Collection<SelectedBundle> frameworkBundles=((AbstractFrameworkInstanceManager)manager).getFrameworkBundles(usedFramework,FrameworkBundleType.OTHER);
+        bundles.addAll(frameworkBundles);
       }
-);
     }
-    String[] urls=OrderEnumerator.orderEntries(project).withoutSdk().withoutModuleSourceEntries().satisfying(BundleCompiler.NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getUrls();
+    String[] urls=OrderEnumerator.orderEntries(project).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().satisfying(BundleCompiler.NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getUrls();
     for (    String url : urls) {
       url=BundleCompiler.convertJarUrlToFileUrl(url);
       url=BundleCompiler.fixFileURL(url);

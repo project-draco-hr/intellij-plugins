@@ -1,0 +1,47 @@
+{
+  ParametersList vmParameters=parameters.getVMParametersList();
+  List<String> bundles=ContainerUtil.newArrayList();
+  for (  SelectedBundle bundle : myBundles) {
+    String bundleUrl=bundle.getBundleUrl();
+    if (bundleUrl == null)     continue;
+    boolean isFragment=CachingBundleInfoProvider.isFragmentBundle(bundleUrl);
+    if (!isFragment) {
+      int startLevel=getBundleStartLevel(bundle);
+      bundleUrl+="@" + startLevel;
+      if (bundle.isStartAfterInstallation()) {
+        bundleUrl+=":start";
+      }
+    }
+    bundles.add(bundleUrl);
+  }
+  if (!bundles.isEmpty()) {
+    vmParameters.addProperty("osgi.bundles",StringUtil.join(bundles,","));
+  }
+  int startLevel=getFrameworkStartLevel();
+  vmParameters.addProperty("osgi.startLevel",String.valueOf(startLevel));
+  int defaultStartLevel=myRunConfiguration.getDefaultStartLevel();
+  vmParameters.addProperty("osgi.bundles.defaultStartLevel",String.valueOf(defaultStartLevel));
+  if (myAdditionalProperties.isStartConsole()) {
+    vmParameters.addProperty("osgi.console");
+    vmParameters.addProperty("osgi.console.enable.builtin","true");
+  }
+  vmParameters.addProperty("osgi.clean","true");
+  if (myAdditionalProperties.isDebugMode()) {
+    vmParameters.addProperty("osgi.debug");
+    vmParameters.addProperty("eclipse.consoleLog","true");
+  }
+  String product=myAdditionalProperties.getEquinoxProduct();
+  String application=myAdditionalProperties.getEquinoxApplication();
+  if (!StringUtil.isEmptyOrSpaces(product)) {
+    vmParameters.defineProperty("eclipse.product",product);
+    vmParameters.defineProperty("eclipse.ignoreApp","false");
+  }
+ else   if (!StringUtil.isEmptyOrSpaces(application)) {
+    vmParameters.defineProperty("eclipse.application",application);
+    vmParameters.defineProperty("eclipse.ignoreApp","false");
+  }
+ else {
+    vmParameters.defineProperty("eclipse.ignoreApp","true");
+  }
+  parameters.setMainClass(MAIN_CLASS);
+}

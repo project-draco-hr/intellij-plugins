@@ -1,36 +1,3 @@
 {
-  if (jdkForRun == null) {
-    throw CantRunException.noJdkConfigured();
-  }
-  final JavaParameters params=new JavaParameters();
-  params.setWorkingDirectory(runner.getWorkingDir());
-  params.configureByProject(project,JavaParameters.JDK_ONLY,jdkForRun);
-  params.getClassPath().addAll(runner.getFrameworkStarterLibraries());
-  if (runConfiguration.isIncludeAllBundlesInClassPath()) {
-    SelectedBundle[] bundles=getSelectedBundles();
-    if (bundles != null) {
-      for (      SelectedBundle bundle : bundles) {
-        String bundlePath=bundle.getBundleUrl();
-        if (bundlePath != null) {
-          bundlePath=bundlePath.substring(FILE_URL_PREFIX.length());
-          if (bundlePath.indexOf(':') < 0 && bundlePath.charAt(0) != '/') {
-            bundlePath="/" + bundlePath;
-          }
-          bundlePath=bundlePath.replace('/',File.separatorChar);
-          params.getClassPath().add(bundlePath);
-        }
-      }
-    }
-  }
-  params.setMainClass(runner.getMainClass());
-  SelectedBundle[] bundles=getSelectedBundles();
-  if (bundles == null) {
-    throw new CantRunException("One or more modules seem to be missing their OSGi facets or you have modules in your run configuration that no longer exist. Please re-add the OSGi facets or clean the run configuration and try again.");
-  }
-  final ParametersList programParameters=params.getProgramParametersList();
-  runner.fillCommandLineParameters(programParameters,bundles);
-  final ParametersList vmParameters=params.getVMParametersList();
-  runner.fillVmParameters(vmParameters,bundles);
-  params.setUseDynamicVMOptions(bundles.length > 0);
-  return params;
+  return myRunner.createJavaParameters(myRunConfiguration,getSelectedBundles());
 }
