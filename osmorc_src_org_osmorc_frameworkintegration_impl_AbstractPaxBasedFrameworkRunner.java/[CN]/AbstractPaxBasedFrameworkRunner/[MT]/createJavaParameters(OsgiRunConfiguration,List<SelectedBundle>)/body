@@ -1,6 +1,6 @@
 {
   myRunConfiguration=runConfiguration;
-  myAdditionalProperties=convertProperties(runConfiguration.getAdditionalProperties());
+  myAdditionalProperties=runConfiguration.getAdditionalProperties();
   myBundles=bundles;
   Sdk jdkForRun;
   if (runConfiguration.isUseAlternativeJre()) {
@@ -73,12 +73,11 @@
       commandLineParameters.add(prefix + bundleUrl);
     }
   }
-  P frameworkProperties=myAdditionalProperties;
-  String bootDelegation=frameworkProperties.getBootDelegation();
+  String bootDelegation=GenericRunProperties.getBootDelegation(myAdditionalProperties);
   if (bootDelegation != null && !(bootDelegation.trim().length() == 0)) {
     commandLineParameters.add("--bd=" + bootDelegation);
   }
-  String systemPackages=frameworkProperties.getSystemPackages();
+  String systemPackages=GenericRunProperties.getSystemPackages(myAdditionalProperties);
   if (systemPackages != null && !(systemPackages.trim().length() == 0)) {
     commandLineParameters.add("--sp=" + systemPackages);
   }
@@ -86,10 +85,10 @@
   commandLineParameters.add("--sl=" + startLevel);
   int defaultStartLevel=myRunConfiguration.getDefaultStartLevel();
   commandLineParameters.add("--bsl=" + defaultStartLevel);
-  if (frameworkProperties.isDebugMode()) {
+  if (GenericRunProperties.isDebugMode(myAdditionalProperties)) {
     commandLineParameters.add("--log=DEBUG");
   }
-  if (frameworkProperties.isStartConsole()) {
+  if (GenericRunProperties.isStartConsole(myAdditionalProperties)) {
     commandLineParameters.add("--console");
   }
  else {

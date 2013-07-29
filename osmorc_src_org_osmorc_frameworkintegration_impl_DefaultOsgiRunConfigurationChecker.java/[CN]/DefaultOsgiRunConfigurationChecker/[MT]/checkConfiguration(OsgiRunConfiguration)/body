@@ -1,21 +1,12 @@
 {
   if (!runConfiguration.isGenerateWorkingDir()) {
-    if (runConfiguration.getWorkingDir() == null || "".equals(runConfiguration.getWorkingDir())) {
-      throw new RuntimeConfigurationError("The runtime directory is not specified. Please set a runtime directory at the 'Parameters' tab or select 'Recreate each time'.");
+    if (StringUtil.isEmptyOrSpaces(runConfiguration.getWorkingDir())) {
+      throw new RuntimeConfigurationError(OsmorcBundle.message("run.configuration.working.dir.set"));
     }
-    final File dir=new File(runConfiguration.getWorkingDir());
-    if (!dir.exists()) {
-      if (!dir.mkdirs()) {
-        throw new RuntimeConfigurationError("The runtime directory could not be created. Please check the path at the 'Parameters' tab.");
-      }
+    File dir=new File(runConfiguration.getWorkingDir());
+    if (!dir.exists() && !dir.mkdirs()) {
+      throw new RuntimeConfigurationError(OsmorcBundle.message("run.configuration.working.dir.create"));
     }
   }
   checkFrameworkSpecifics(runConfiguration);
-  final FrameworkInstanceDefinition frameworkInstanceDefinition=runConfiguration.getInstanceToUse();
-  if (frameworkInstanceDefinition != null) {
-    String version=frameworkInstanceDefinition.getVersion();
-    if (version == null || version.length() == 0 && !(runConfiguration.getProgramParameters().contains("--v=") || runConfiguration.getProgramParameters().contains("--version="))) {
-      throw new RuntimeConfigurationWarning("You did not specify a version to be used for '" + frameworkInstanceDefinition.getName() + "'. The runner will download and use the latest available version for this framework.");
-    }
-  }
 }

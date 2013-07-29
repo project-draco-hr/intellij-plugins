@@ -1,2 +1,13 @@
 {
+  Map<String,String> properties=runConfiguration.getAdditionalProperties();
+  String product=EquinoxRunProperties.getEquinoxProduct(properties);
+  String application=EquinoxRunProperties.getEquinoxApplication(properties);
+  if (!StringUtil.isEmptyOrSpaces(product) || !StringUtil.isEmptyOrSpaces(application)) {
+    if (SystemInfo.isMac && !runConfiguration.getVmParameters().contains("-XstartOnFirstThread")) {
+      throw new RuntimeConfigurationWarning(OsmorcBundle.message("run.configuration.equinox.jvm"));
+    }
+    if (GenericRunProperties.isStartConsole(properties)) {
+      throw new RuntimeConfigurationWarning(OsmorcBundle.message("run.configuration.equinox.runningWithConsole"));
+    }
+  }
 }
