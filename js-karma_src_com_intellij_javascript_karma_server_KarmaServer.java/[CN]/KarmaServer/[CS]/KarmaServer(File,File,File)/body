@@ -9,7 +9,7 @@
  catch (  ExecutionException e) {
     throw new IOException("Can not create karma server process",e);
   }
-  myProcessEventStore=new ProcessEventStore(myProcessHandler);
+  myProcessOutputArchive=new ProcessOutputArchive(myProcessHandler);
   registerStreamEventHandler(new StreamEventHandler(){
     @NotNull @Override public String getEventType(){
       return "coverageFinished";
@@ -33,7 +33,7 @@
     }
   }
 );
-  myProcessEventStore.addStreamEventListener(new StreamEventListener(){
+  myProcessOutputArchive.addStreamEventListener(new StreamEventListener(){
     @Override public void on(    @NotNull String eventType,    @NotNull String eventBody){
       JsonElement jsonElement;
       try {
@@ -54,7 +54,7 @@
     }
   }
 );
-  myProcessEventStore.startNotify();
+  myProcessOutputArchive.startNotify();
   Disposer.register(ApplicationManager.getApplication(),new Disposable(){
     @Override public void dispose(){
       if (!myProcessHandler.isProcessTerminated()) {

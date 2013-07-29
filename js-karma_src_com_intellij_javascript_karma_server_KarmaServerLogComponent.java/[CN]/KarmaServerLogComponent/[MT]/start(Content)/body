@@ -1,0 +1,18 @@
+{
+  ArchivedOutputListener outputListener=new ArchivedOutputListener(){
+    @Override public void onOutputAvailable(    @NotNull String text,    Key outputType,    boolean archived){
+      ConsoleViewContentType contentType=ConsoleViewContentType.getConsoleViewType(outputType);
+      myConsole.print(text,contentType);
+      if (!archived && text.startsWith("ERROR ")) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            consoleContent.fireAlert();
+          }
+        }
+,ModalityState.any());
+      }
+    }
+  }
+;
+  myProcessOutputArchive.addOutputListener(outputListener);
+}

@@ -1,15 +1,16 @@
 {
   myProcessHandler.addProcessListener(new ProcessAdapter(){
     @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      String text=event.getText();
       if (outputType != ProcessOutputTypes.SYSTEM && outputType != ProcessOutputTypes.STDERR) {
-        if (handleLineAsEvent(event.getText())) {
+        if (handleLineAsEvent(text)) {
           return;
         }
       }
 synchronized (myTexts) {
-        myTexts.add(Pair.create(event,outputType));
-        for (        ProcessListener listener : myProcessListeners) {
-          listener.onTextAvailable(event,outputType);
+        myTexts.add(Pair.create(text,outputType));
+        for (        ArchivedOutputListener listener : myOutputListeners) {
+          listener.onOutputAvailable(event.getText(),outputType,false);
         }
       }
     }
