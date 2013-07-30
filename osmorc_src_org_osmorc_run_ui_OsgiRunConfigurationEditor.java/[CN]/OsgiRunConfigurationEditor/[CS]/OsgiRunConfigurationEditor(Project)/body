@@ -1,67 +1,65 @@
 {
-  ApplicationSettings registry=ServiceManager.getService(ApplicationSettings.class);
+  myProject=project;
   myFrameworkStartLevel.setModel(new SpinnerNumberModel(0,0,Integer.MAX_VALUE,1));
   JSpinner.DefaultEditor editor=(JSpinner.DefaultEditor)myFrameworkStartLevel.getEditor();
   editor.getTextField().setFormatterFactory(new DefaultFormatterFactory(new JSpinnerCellEditor.MyNumberFormatter("Auto")));
   myDefaultStartLevel.setModel(new SpinnerNumberModel(1,1,Integer.MAX_VALUE,1));
-  frameworkInstances.setModel(new DefaultComboBoxModel(registry.getFrameworkInstanceDefinitions().toArray()));
-  frameworkInstances.addActionListener(new ActionListener(){
+  myFrameworkInstances.setModel(new DefaultComboBoxModel(ApplicationSettings.getInstance().getFrameworkInstanceDefinitions().toArray()));
+  myFrameworkInstances.addActionListener(new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       onFrameworkChange();
     }
   }
 );
-  this.project=project;
-  RunConfigurationTableModel model=new RunConfigurationTableModel();
-  modulesList.setModel(model);
-  modulesList.setRowSelectionAllowed(true);
-  modulesList.setColumnSelectionAllowed(false);
-  modulesList.setDefaultEditor(Integer.class,new JSpinnerCellEditor());
-  modulesList.setDefaultRenderer(Integer.class,new JSpinnerCellEditor());
-  modulesList.setAutoCreateRowSorter(true);
-  addButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+  myCurrentBundleSelectionActions=new DefaultActionGroup("frameworkSpecificBundleSelectionActions",true);
+  myBundlesTable.setModel(new RunConfigurationTableModel());
+  myBundlesTable.setRowSelectionAllowed(true);
+  myBundlesTable.setColumnSelectionAllowed(false);
+  myBundlesTable.setDefaultEditor(Integer.class,new JSpinnerCellEditor());
+  myBundlesTable.setDefaultRenderer(Integer.class,new JSpinnerCellEditor());
+  myBundlesTable.setAutoCreateRowSorter(true);
+  myBundlesPanel.add(ToolbarDecorator.createDecorator(myBundlesTable).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       onAddClick();
     }
   }
-);
-  removeButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
       onRemoveClick();
     }
   }
-);
-  osmorcControlledRadioButton.addChangeListener(new ChangeListener(){
-    public void stateChanged(    ChangeEvent e){
-      boolean isUserDefined=!osmorcControlledRadioButton.isSelected();
-      workingDirField.setEnabled(isUserDefined);
+).addExtraAction(myExtraActionsButton=new AnActionButton("Extra Actions",AllIcons.Actions.IntentionBulb){
+    @Override public void actionPerformed(    AnActionEvent e){
+      JBPopupFactory.getInstance().createActionGroupPopup("Extra Actions",myCurrentBundleSelectionActions,e.getDataContext(),false,false,false,null,-1,null).show(this.getPreferredPopupPoint());
     }
   }
-);
-  workingDirField.addBrowseFolderListener("Choose a working directory","The working directory is the directory from which the framework is started",null,FileChooserDescriptorFactory.createSingleFolderDescriptor());
-  workingDirField.getTextField().setColumns(30);
-  frameworkSpecificBundleSelectionActions=new DefaultActionGroup("frameworkSpecificBundleSelectionActions",true);
-  frameworkSpecificButton.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      JBPopupFactory.getInstance().createActionGroupPopup(null,frameworkSpecificBundleSelectionActions,DataManager.getInstance().getDataContext(frameworkSpecificButton),JBPopupFactory.ActionSelectionAid.NUMBERING,true).showUnderneathOf(frameworkSpecificButton);
-    }
-  }
-);
-  modulesList.addComponentListener(new ComponentAdapter(){
+).createPanel(),BorderLayout.CENTER);
+  myBundlesTable.addComponentListener(new ComponentAdapter(){
     @Override public void componentResized(    ComponentEvent e){
-      int width=modulesList.getWidth();
+      int width=myBundlesTable.getWidth();
       int bundleNameWidth=2 * width / 3;
       int otherWidth=width / 3 / 2;
-      TableColumn bundleColumn=modulesList.getColumnModel().getColumn(0);
+      TableColumn bundleColumn=myBundlesTable.getColumnModel().getColumn(0);
       bundleColumn.setPreferredWidth(bundleNameWidth);
-      TableColumn startLevelColumn=modulesList.getColumnModel().getColumn(1);
+      TableColumn startLevelColumn=myBundlesTable.getColumnModel().getColumn(1);
       startLevelColumn.setPreferredWidth(otherWidth);
-      TableColumn startColumn=modulesList.getColumnModel().getColumn(2);
+      TableColumn startColumn=myBundlesTable.getColumnModel().getColumn(2);
       startColumn.setPreferredWidth(otherWidth);
     }
   }
 );
-  vmParams.getTextField().setPreferredSize(new Dimension(100,20));
-  programParameters.getTextField().setPreferredSize(new Dimension(100,20));
-  setAnchor(alternativeJREPanel.getCbEnabled());
+  myOsmorcControlledDir.addChangeListener(new ChangeListener(){
+    public void stateChanged(    ChangeEvent e){
+      boolean isUserDefined=!myOsmorcControlledDir.isSelected();
+      myWorkingDirField.setEnabled(isUserDefined);
+    }
+  }
+);
+  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
+  String title="Choose a working directory";
+  String description="The working directory is the directory from which the framework is started";
+  myWorkingDirField.addBrowseFolderListener(title,description,null,descriptor);
+  myWorkingDirField.getTextField().setColumns(30);
+  myVmOptions.getTextField().setPreferredSize(new Dimension(100,20));
+  myProgramParameters.getTextField().setPreferredSize(new Dimension(100,20));
 }

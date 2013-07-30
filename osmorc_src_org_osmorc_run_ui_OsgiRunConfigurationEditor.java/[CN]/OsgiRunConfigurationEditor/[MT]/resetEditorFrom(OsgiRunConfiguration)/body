@@ -1,11 +1,11 @@
 {
-  this.osgiRunConfiguration=osgiRunConfiguration;
-  vmParams.setText(osgiRunConfiguration.getVmParameters());
-  programParameters.setText(osgiRunConfiguration.getProgramParameters());
-  frameworkInstances.setSelectedItem(osgiRunConfiguration.getInstanceToUse());
-  includeAllBundlesInClassPath.setSelected(osgiRunConfiguration.isIncludeAllBundlesInClassPath());
-  if (currentFrameworkRunPropertiesEditor != null) {
-    currentFrameworkRunPropertiesEditor.resetEditorFrom(osgiRunConfiguration);
+  myRunConfiguration=osgiRunConfiguration;
+  myVmOptions.setText(osgiRunConfiguration.getVmParameters());
+  myProgramParameters.setText(osgiRunConfiguration.getProgramParameters());
+  myFrameworkInstances.setSelectedItem(osgiRunConfiguration.getInstanceToUse());
+  myClassPathAllBundles.setSelected(osgiRunConfiguration.isIncludeAllBundlesInClassPath());
+  if (myCurrentRunPropertiesEditor != null) {
+    myCurrentRunPropertiesEditor.resetEditorFrom(osgiRunConfiguration);
   }
   List<SelectedBundle> modules=osgiRunConfiguration.getBundlesToDeploy();
   RunConfigurationTableModel model=getTableModel();
@@ -15,22 +15,22 @@
   for (  SelectedBundle module : modules) {
     model.addBundle(module);
   }
-  modulesList.getColumnModel().getColumn(1).setPreferredWidth(200);
+  myBundlesTable.getColumnModel().getColumn(1).setPreferredWidth(200);
   myFrameworkStartLevel.setValue(osgiRunConfiguration.getFrameworkStartLevel());
   myDefaultStartLevel.setValue(osgiRunConfiguration.getDefaultStartLevel());
   boolean useUserDefinedFields=!osgiRunConfiguration.isGenerateWorkingDir();
-  workingDirField.setText(osgiRunConfiguration.getWorkingDir());
-  if (workingDirField.getText().length() == 0) {
-    final CompilerProjectExtension extension=CompilerProjectExtension.getInstance(project);
+  myWorkingDirField.setText(osgiRunConfiguration.getWorkingDir());
+  if (myWorkingDirField.getText().length() == 0) {
+    final CompilerProjectExtension extension=CompilerProjectExtension.getInstance(myProject);
     if (extension != null) {
       final VirtualFilePointer outputDirPointer=extension.getCompilerOutputPointer();
       if (outputDirPointer != null) {
-        workingDirField.setText(VfsUtilCore.urlToPath(outputDirPointer.getUrl() + "/run.osgi/"));
+        myWorkingDirField.setText(VfsUtilCore.urlToPath(outputDirPointer.getUrl() + "/run.osgi/"));
       }
     }
   }
-  workingDirField.setEnabled(useUserDefinedFields);
-  userDefinedRadioButton.setSelected(useUserDefinedFields);
-  osmorcControlledRadioButton.setSelected(!useUserDefinedFields);
-  alternativeJREPanel.init(osgiRunConfiguration.getAlternativeJrePath(),osgiRunConfiguration.isUseAlternativeJre());
+  myWorkingDirField.setEnabled(useUserDefinedFields);
+  myUserDefinedDir.setSelected(useUserDefinedFields);
+  myOsmorcControlledDir.setSelected(!useUserDefinedFields);
+  myAlternativeJrePanel.init(osgiRunConfiguration.getAlternativeJrePath(),osgiRunConfiguration.isUseAlternativeJre());
 }
