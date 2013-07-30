@@ -1,0 +1,21 @@
+{
+  Collection<SelectedBundle> bundles=getFrameworkBundles(instance,FrameworkBundleType.SYSTEM);
+  if (bundles.size() == 1) {
+    String url=bundles.iterator().next().getBundleUrl();
+    if (url != null) {
+      try {
+        JarFile jar=new JarFile(OsgiFileUtil.urlToPath(url));
+        try {
+          InputStream stream=jar.getInputStream(jar.getEntry("release"));
+          return FileUtil.loadTextAndClose(stream);
+        }
+  finally {
+          jar.close();
+        }
+      }
+ catch (      IOException ignored) {
+      }
+    }
+  }
+  return null;
+}

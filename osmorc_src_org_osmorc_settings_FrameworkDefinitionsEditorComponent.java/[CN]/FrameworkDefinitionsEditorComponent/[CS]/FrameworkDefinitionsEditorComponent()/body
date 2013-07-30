@@ -1,0 +1,59 @@
+{
+  myModel=new DefaultListModel();
+  myFrameworkInstances=new JBList(myModel);
+  myFrameworkInstances.getEmptyText().setText(OsmorcBundle.message("frameworks.empty"));
+  myFrameworkInstances.setCellRenderer(new ColoredListCellRenderer(){
+    @Override protected void customizeCellRenderer(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
+      FrameworkInstanceDefinition instance=(FrameworkInstanceDefinition)value;
+      append(instance.getName());
+      String version=instance.getVersion();
+      if (StringUtil.isEmptyOrSpaces(version))       version="(unknown)";
+      append(" [" + instance.getFrameworkIntegratorName() + ", "+ version+ "]",SimpleTextAttributes.GRAY_ATTRIBUTES);
+    }
+  }
+);
+  final List<AddAction> addActions=ContainerUtil.newArrayList();
+  for (  FrameworkIntegrator integrator : FrameworkIntegratorRegistry.getInstance().getFrameworkIntegrators()) {
+    addActions.add(new AddAction(integrator));
+  }
+  Collections.sort(addActions);
+  myFrameworkInstancesPanel.add(ToolbarDecorator.createDecorator(myFrameworkInstances).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      JBPopupFactory.getInstance().createActionGroupPopup(OsmorcBundle.message("frameworks.add.title"),new DefaultActionGroup(addActions),DataManager.getInstance().getDataContext(button.getContextComponent()),false,false,false,null,-1,null).show(button.getPreferredPopupPoint());
+    }
+  }
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      removeFrameworkInstance();
+    }
+  }
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      editFrameworkInstance();
+    }
+  }
+).createPanel(),BorderLayout.CENTER);
+  myFrameworkInstances.addListSelectionListener(new ListSelectionListener(){
+    public void valueChanged(    ListSelectionEvent e){
+      int index=myFrameworkInstances.getSelectedIndex();
+      if (index != -1) {
+        FrameworkInstanceDefinition instance=(FrameworkInstanceDefinition)myModel.get(index);
+        myFrameworkIntegrator.setText(instance.getFrameworkIntegratorName());
+        myHomeDir.setText(instance.getBaseFolder());
+        myVersion.setText(ObjectUtils.notNull(instance.getVersion(),""));
+        myFrameworkInstanceName.setText(instance.getName());
+      }
+    }
+  }
+);
+  new DoubleClickListener(){
+    @Override protected boolean onDoubleClick(    MouseEvent e){
+      if (myFrameworkInstances.getSelectedIndex() != -1) {
+        editFrameworkInstance();
+        return true;
+      }
+      return false;
+    }
+  }
+.installOn(myFrameworkInstances);
+}
