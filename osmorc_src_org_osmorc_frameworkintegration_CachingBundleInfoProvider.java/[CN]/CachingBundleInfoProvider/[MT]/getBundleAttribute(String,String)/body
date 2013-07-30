@@ -1,27 +1,37 @@
 {
+  if (bundleUrl == null)   return null;
   bundleUrl=normalize(bundleUrl);
-  if (!_cache.containsKey(bundleUrl)) {
+  if (!ourCache.containsKey(bundleUrl)) {
     try {
-      File bundleFile=new File(VfsUtil.urlToPath(bundleUrl));
+      File bundleFile=new File(OsgiFileUtil.urlToPath(bundleUrl));
       if (bundleFile.isDirectory()) {
         File manifestFile=new File(bundleFile,"META-INF/MANIFEST.MF");
         if (manifestFile.exists() && !manifestFile.isDirectory()) {
           FileInputStream fileInputStream=new FileInputStream(manifestFile);
-          Manifest manifest=new Manifest(fileInputStream);
-          fileInputStream.close();
-          _cache.put(bundleUrl,manifest);
+          try {
+            Manifest manifest=new Manifest(fileInputStream);
+            ourCache.put(bundleUrl,manifest);
+          }
+  finally {
+            fileInputStream.close();
+          }
         }
       }
  else {
         JarFile file=new JarFile(bundleFile);
-        _cache.put(bundleUrl,file.getManifest());
-        file.close();
+        try {
+          ourCache.put(bundleUrl,file.getManifest());
+        }
+  finally {
+          file.close();
+        }
       }
     }
  catch (    IOException e) {
+      LOG.debug(e);
       return null;
     }
   }
-  Manifest manifest=_cache.get(bundleUrl);
+  Manifest manifest=ourCache.get(bundleUrl);
   return manifest != null ? manifest.getMainAttributes().getValue(attribute) : null;
 }
