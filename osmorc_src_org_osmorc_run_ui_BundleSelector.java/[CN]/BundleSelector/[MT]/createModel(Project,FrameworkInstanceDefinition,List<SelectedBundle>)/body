@@ -14,17 +14,13 @@
   if (instance != null) {
     FrameworkIntegrator integrator=FrameworkIntegratorRegistry.getInstance().findIntegratorByInstanceDefinition(instance);
     if (integrator != null) {
-      FrameworkInstanceManager manager=integrator.getFrameworkInstanceManager();
-      if (manager instanceof AbstractFrameworkInstanceManager) {
-        DefaultMutableTreeNode frameworkNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.framework"));
-        Collection<SelectedBundle> frameworkBundles=((AbstractFrameworkInstanceManager)manager).getFrameworkBundles(instance,FrameworkBundleType.OTHER);
-        for (        SelectedBundle bundle : frameworkBundles) {
-          if (!toHide.contains(bundle)) {
-            frameworkNode.add(new DefaultMutableTreeNode(bundle));
-          }
+      DefaultMutableTreeNode frameworkNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.framework"));
+      for (      SelectedBundle bundle : integrator.getFrameworkInstanceManager().getFrameworkBundles(instance,FrameworkBundleType.OTHER)) {
+        if (!toHide.contains(bundle)) {
+          frameworkNode.add(new DefaultMutableTreeNode(bundle));
         }
-        if (frameworkNode.getChildCount() > 0)         root.add(frameworkNode);
       }
+      if (frameworkNode.getChildCount() > 0)       root.add(frameworkNode);
     }
   }
   DefaultMutableTreeNode libraryNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.libraries"));
