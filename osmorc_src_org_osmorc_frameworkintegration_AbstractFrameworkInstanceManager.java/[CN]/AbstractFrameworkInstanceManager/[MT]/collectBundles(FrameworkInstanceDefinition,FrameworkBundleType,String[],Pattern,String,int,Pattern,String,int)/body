@@ -1,0 +1,26 @@
+{
+  String basePath=instance.getBaseFolder();
+  if (basePath == null || !new File(basePath).isDirectory()) {
+    return ContainerUtil.emptyList();
+  }
+  int expected=type == FrameworkBundleType.SYSTEM ? sysExpected : type == FrameworkBundleType.SHELL ? shellExpected : -1;
+  if (expected == 0)   return ContainerUtil.emptyList();
+  Collection<SelectedBundle> bundles=ContainerUtil.newArrayList();
+  outer:   for (  File dir : flattenDirPatterns(basePath,bundleDirs)) {
+    File[] files=ObjectUtils.notNull(dir.listFiles(),ArrayUtil.EMPTY_FILE_ARRAY);
+    for (    File file : files) {
+      FrameworkBundleType bundleType=detectType(file,sysNamePattern,sysControlClass,shellNamePattern,shellControlClass);
+      if (bundleType == type) {
+        SelectedBundle bundle=makeBundle(file);
+        bundles.add(bundle);
+        if (expected > 0 && bundles.size() == expected) {
+          break outer;
+        }
+      }
+    }
+  }
+  if (expected > 0 && bundles.size() < expected) {
+    return Collections.emptyList();
+  }
+  return bundles;
+}

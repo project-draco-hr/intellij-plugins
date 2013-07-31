@@ -1,0 +1,16 @@
+{
+  FrameworkBundleType bundleType=null;
+  String name=file.getName();
+  if (name.endsWith(".jar") && JarUtil.containsEntry(file,"META-INF/MANIFEST.MF")) {
+    if (sysPattern.matcher(name).matches() && (sysClass == null || JarUtil.containsClass(file,sysClass))) {
+      bundleType=FrameworkBundleType.SYSTEM;
+    }
+ else     if (shellPattern != null && shellPattern.matcher(name).matches() && (shellClass == null || JarUtil.containsClass(file,shellClass))) {
+      bundleType=FrameworkBundleType.SHELL;
+    }
+ else     if (CachingBundleInfoProvider.isBundle(OsgiFileUtil.pathToUrl(file.getPath()))) {
+      bundleType=FrameworkBundleType.OTHER;
+    }
+  }
+  return bundleType;
+}
