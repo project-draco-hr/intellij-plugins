@@ -1,0 +1,41 @@
+{
+  DefaultMutableTreeNode root=new DefaultMutableTreeNode();
+  DefaultMutableTreeNode moduleNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.modules"));
+  Module[] modules=ModuleManager.getInstance(project).getModules();
+  for (  Module module : modules) {
+    if (OsmorcFacet.hasOsmorcFacet(module)) {
+      SelectedBundle bundle=new SelectedBundle(module.getName(),null,SelectedBundle.BundleType.Module);
+      if (!toHide.contains(bundle)) {
+        moduleNode.add(new DefaultMutableTreeNode(bundle));
+      }
+    }
+  }
+  if (moduleNode.getChildCount() > 0)   root.add(moduleNode);
+  if (instance != null) {
+    FrameworkIntegrator integrator=FrameworkIntegratorRegistry.getInstance().findIntegratorByInstanceDefinition(instance);
+    if (integrator != null) {
+      DefaultMutableTreeNode frameworkNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.framework"));
+      for (      SelectedBundle bundle : integrator.getFrameworkInstanceManager().getFrameworkBundles(instance,FrameworkBundleType.OTHER)) {
+        if (!toHide.contains(bundle)) {
+          frameworkNode.add(new DefaultMutableTreeNode(bundle));
+        }
+      }
+      if (frameworkNode.getChildCount() > 0)       root.add(frameworkNode);
+    }
+  }
+  DefaultMutableTreeNode libraryNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.libraries"));
+  String[] urls=OrderEnumerator.orderEntries(project).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().satisfying(BundleCompiler.NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getUrls();
+  for (  String url : urls) {
+    url=BundleCompiler.convertJarUrlToFileUrl(url);
+    url=BundleCompiler.fixFileURL(url);
+    String displayName=CachingBundleInfoProvider.getBundleSymbolicName(url);
+    if (displayName != null) {
+      SelectedBundle bundle=new SelectedBundle(displayName,url,SelectedBundle.BundleType.StartLibrary);
+      if (!toHide.contains(bundle)) {
+        libraryNode.add(new DefaultMutableTreeNode(bundle));
+      }
+    }
+  }
+  if (libraryNode.getChildCount() > 0)   root.add(libraryNode);
+  return new DefaultTreeModel(root);
+}

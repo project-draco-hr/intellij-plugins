@@ -6,8 +6,10 @@
       try {
         JarFile jar=new JarFile(OsgiFileUtil.urlToPath(url));
         try {
-          InputStream stream=jar.getInputStream(jar.getEntry("release"));
-          return FileUtil.loadTextAndClose(stream);
+          ZipEntry entry=jar.getEntry("release");
+          if (entry != null) {
+            return FileUtil.loadTextAndClose(jar.getInputStream(entry));
+          }
         }
   finally {
           jar.close();
