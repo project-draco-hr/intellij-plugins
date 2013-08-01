@@ -2,13 +2,23 @@
   File configurationFile=new File(myRunSettings.getConfigPath());
   KarmaServer server=KarmaServerRegistry.getServerByConfigurationFile(configurationFile);
   if (server == null) {
-    try {
-      server=new KarmaServer(new File(myNodeInterpreterPath),new File(myKarmaPackageDir),configurationFile);
-      KarmaServerRegistry.registerServer(server);
+    KarmaServerRegistry.startServer(new File(myNodeInterpreterPath),new File(myKarmaPackageDir),configurationFile,new CatchingConsumer<KarmaServer,IOException>(){
+      @Override public void consume(      IOException e){
+      }
+      @Override public void consume(      KarmaServer server){
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            RunnerAndConfigurationSettings configuration=myExecutionEnvironment.getRunnerAndConfigurationSettings();
+            if (configuration != null) {
+              ProgramRunnerUtil.executeConfiguration(myProject,configuration,executor);
+            }
+          }
+        }
+);
+      }
     }
- catch (    IOException e) {
-      throw new ExecutionException(e);
-    }
+);
+    return null;
   }
   KarmaExecutionSession session=new KarmaExecutionSession(myProject,myExecutionEnvironment,executor,server,myNodeInterpreterPath,myRunSettings,myExecutionType);
   SMTRunnerConsoleView smtRunnerConsoleView=session.getSmtConsoleView();
