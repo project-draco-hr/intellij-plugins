@@ -1,0 +1,46 @@
+{
+  registerStreamEventHandler(new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "coverageFinished";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      KarmaCoverageSession coverageSession=myActiveCoverageSession;
+      myActiveCoverageSession=null;
+      if (coverageSession != null) {
+        String path=GsonUtil.asString(eventBody);
+        coverageSession.onCoverageSessionFinished(new File(path));
+      }
+    }
+  }
+);
+  registerStreamEventHandler(new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "configFile";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      myKarmaConfig=KarmaConfig.parseFromJson(eventBody);
+    }
+  }
+);
+  myProcessOutputArchive.addStreamEventListener(new StreamEventListener(){
+    @Override public void on(    @NotNull String eventType,    @NotNull String eventBody){
+      JsonElement jsonElement;
+      try {
+        JsonParser jsonParser=new JsonParser();
+        jsonElement=jsonParser.parse(eventBody);
+      }
+ catch (      Exception e) {
+        LOG.warn("Cannot parse message from karma server:" + " (eventType: " + eventType + ", eventBody: "+ eventBody+ ")");
+        return;
+      }
+      StreamEventHandler handler=myHandlers.get(eventType);
+      if (handler != null) {
+        handler.handle(jsonElement);
+      }
+ else {
+        LOG.warn("Cannot find handler for " + eventType);
+      }
+    }
+  }
+);
+}

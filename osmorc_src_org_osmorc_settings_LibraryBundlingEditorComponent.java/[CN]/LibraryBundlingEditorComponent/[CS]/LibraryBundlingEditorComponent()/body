@@ -1,16 +1,67 @@
 {
-  final DataContext dataContext=DataManager.getInstance().getDataContext();
-  Project project=PlatformDataKeys.PROJECT.getData(dataContext);
-  if (project == null) {
-    project=ProjectManager.getInstance().getDefaultProject();
+  GuiUtils.replaceJSplitPaneWithIDEASplitter(myMainPanel);
+  ((JBSplitter)myMainPanel.getComponent(0)).setProportion(0.4f);
+  myRulesPanel.add(ToolbarDecorator.createDecorator(myRulesList).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      updateCurrentRule();
+      myRulesModel.add(new LibraryBundlificationRule());
+      myRulesList.setSelectedIndex(myRulesModel.getSize() - 1);
+      updateFields();
+    }
   }
-  manifestEntries=new ManifestEditor(project,"");
-  UIUtil.invokeLaterIfNeeded(new Runnable(){
-    public void run(){
-      Bindings.bind(manifestEntries,"text",beanAdapter.getValueModel("additionalProperties"));
+).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      myLastSelected=-1;
+      if (myRulesModel.getSize() == 1) {
+        myRulesModel.setElementAt(new LibraryBundlificationRule(),0);
+        myRulesList.setSelectedIndex(0);
+      }
+ else {
+        int index=myRulesList.getSelectedIndex();
+        myRulesModel.remove(index);
+        myRulesList.setSelectedIndex(index > 0 ? index - 1 : 0);
+      }
+      updateFields();
+    }
+  }
+).setMoveUpAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      updateCurrentRule();
+      myLastSelected=-1;
+      ListUtil.moveSelectedItemsUp(myRulesList);
+      updateFields();
+    }
+  }
+).setMoveDownAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      updateCurrentRule();
+      myLastSelected=-1;
+      ListUtil.moveSelectedItemsDown(myRulesList);
+      updateFields();
+    }
+  }
+).addExtraAction(new AnActionButton("Copy",PlatformIcons.COPY_ICON){
+    @Override public void actionPerformed(    AnActionEvent e){
+      updateCurrentRule();
+      int index=myRulesList.getSelectedIndex();
+      if (index >= 0) {
+        myRulesModel.add(myRulesModel.getElementAt(index).copy());
+        myRulesList.setSelectedIndex(myRulesModel.getSize() - 1);
+        updateFields();
+      }
+    }
+    @Override public boolean isEnabled(){
+      return myRulesList.getSelectedIndex() >= 0;
+    }
+  }
+).createPanel(),BorderLayout.CENTER);
+  myRulesModel=new CollectionListModel<LibraryBundlificationRule>();
+  myRulesList.setModel(myRulesModel);
+  myRulesList.addListSelectionListener(new ListSelectionListener(){
+    @Override public void valueChanged(    ListSelectionEvent e){
+      updateCurrentRule();
+      updateFields();
     }
   }
 );
-  _manifestEntriesHolder.add(manifestEntries,BorderLayout.CENTER);
-  beanAdapter.addBeanPropertyChangeListener(beanPropertyChangeListener);
 }

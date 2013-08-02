@@ -1,4 +1,13 @@
 {
-  settings.setLibraryBundlificationRules(rules);
-  modified=false;
+  updateCurrentRule();
+  for (int i=0; i < myRulesModel.getSize(); i++) {
+    try {
+      myRulesModel.getElementAt(i).validate();
+    }
+ catch (    IllegalArgumentException e) {
+      myRulesList.setSelectedIndex(i);
+      throw new ConfigurationException(e.getMessage());
+    }
+  }
+  settings.setLibraryBundlificationRules(ContainerUtil.newArrayList(myRulesModel.getItems()));
 }
