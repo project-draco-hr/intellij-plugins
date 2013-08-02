@@ -1,16 +1,14 @@
 {
-  Map<String,String> result=new HashMap<String,String>();
-  Properties p=new Properties();
-  ByteArrayInputStream bais=new ByteArrayInputStream(getAdditionalProperties().getBytes());
   try {
-    p.load(bais);
+    Properties p=new Properties();
+    p.load(new ByteArrayInputStream(myAdditionalProperties.getBytes("UTF-8")));
+    Map<String,String> result=ContainerUtil.newHashMap();
+    for (    Map.Entry<Object,Object> entry : p.entrySet()) {
+      result.put(String.valueOf(entry.getKey()),String.valueOf(entry.getValue()));
+    }
+    return result;
   }
- catch (  IOException e) {
-    e.printStackTrace();
+ catch (  IOException ignored) {
   }
-  for (Enumeration e=p.propertyNames(); e.hasMoreElements(); ) {
-    String name=(String)e.nextElement();
-    result.put(name,p.getProperty(name));
-  }
-  return result;
+  return Collections.emptyMap();
 }
