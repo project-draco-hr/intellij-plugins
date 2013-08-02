@@ -7,8 +7,12 @@
     }
   }
 );
-  connection.subscribe(ProjectTopics.MODULES,new ModuleNameTracker(project){
-    @Override protected void modulesRenamed(    final Project project,    final Map<String,String> old2newNames){
+  connection.subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void modulesRenamed(    Project project,    List<Module> modules){
+      Map<String,String> old2newNames=ContainerUtil.newHashMap();
+      for (      Module module : modules) {
+        old2newNames.put(module.getUserData(OLD_NAME_KEY),module.getName());
+      }
       for (      RunnerAndConfigurationSettings settings : RunManagerEx.getInstanceEx(project).getSortedConfigurations()) {
         RunConfiguration runConfiguration=settings.getConfiguration();
         if (runConfiguration instanceof FlashRunConfiguration) {
