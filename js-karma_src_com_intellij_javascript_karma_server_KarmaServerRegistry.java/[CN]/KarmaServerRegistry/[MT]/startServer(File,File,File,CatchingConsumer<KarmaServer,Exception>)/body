@@ -1,0 +1,34 @@
+{
+  final String configPath=configurationFile.getAbsolutePath();
+  if (myStartingServers.putIfAbsent(configPath,configPath) != null) {
+    LOG.warn(new Throwable("Unexpected subsequent karma server starting:" + "\n  nodeInterpreter: " + nodeInterpreter + "\n  karmaPackageDir: "+ karmaPackageDir+ "\n  configurationFile: "+ configurationFile));
+    JobScheduler.getScheduler().schedule(new Runnable(){
+      @Override public void run(){
+        startServer(nodeInterpreter,karmaPackageDir,configurationFile,consumer);
+      }
+    }
+,100,TimeUnit.MILLISECONDS);
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      try {
+        KarmaServer server=new KarmaServer(nodeInterpreter,karmaPackageDir,configurationFile);
+        myServers.put(configurationFile.getAbsolutePath(),server);
+        consumer.consume(server);
+        server.doWhenTerminated(new KarmaServerTerminatedListener(){
+          @Override public void onTerminated(          int exitCode){
+            myServers.remove(configPath);
+          }
+        }
+);
+      }
+ catch (      Exception e) {
+        consumer.consume(e);
+      }
+ finally {
+        myStartingServers.remove(configPath);
+      }
+    }
+  }
+);
+}
