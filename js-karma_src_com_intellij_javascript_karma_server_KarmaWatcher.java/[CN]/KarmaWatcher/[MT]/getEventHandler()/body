@@ -1,3 +1,17 @@
 {
-  return myEventHandler;
+  return new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "config-file-patterns";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      JsonArray patterns=eventBody.getAsJsonArray();
+      List<String> paths=ContainerUtil.newArrayListWithExpectedSize(patterns.size());
+      for (      JsonElement pattern : patterns) {
+        JsonPrimitive p=pattern.getAsJsonPrimitive();
+        paths.add(p.getAsString());
+      }
+      startWatching(paths);
+    }
+  }
+;
 }

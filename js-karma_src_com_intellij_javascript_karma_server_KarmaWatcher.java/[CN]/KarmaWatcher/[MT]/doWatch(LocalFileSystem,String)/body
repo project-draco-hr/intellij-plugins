@@ -1,0 +1,27 @@
+{
+  LOG.info("Starting watching " + path);
+  String vfsPath=path.replace(File.separatorChar,'/');
+  final VirtualFile file=fileSystem.findFileByPath(vfsPath);
+  final LocalFileSystem.WatchRequest watchRequest;
+  if (file != null && file.isValid()) {
+    watchRequest=watchDirectory(fileSystem,file);
+  }
+ else {
+    String baseDirPath=BASE_DIR_PATTERN.matcher(vfsPath).replaceFirst("");
+    if (baseDirPath.isEmpty()) {
+      baseDirPath="/";
+    }
+    final VirtualFile baseDir=fileSystem.findFileByPath(baseDirPath);
+    if (baseDir != null && baseDir.isValid()) {
+      watchRequest=watchDirectory(fileSystem,baseDir);
+    }
+ else {
+      LOG.warn("Can not identify watch pattern for " + baseDirPath);
+      watchRequest=null;
+    }
+  }
+  if (watchRequest == null) {
+    LOG.warn("Can not watch " + path);
+  }
+  return watchRequest;
+}

@@ -1,9 +1,33 @@
 {
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
-      for (      String path : paths) {
-        doWatch(path);
+      final List<LocalFileSystem.WatchRequest> watchRequests=ContainerUtil.newArrayList();
+      final LocalFileSystem fileSystem=LocalFileSystem.getInstance();
+      ApplicationManager.getApplication().runReadAction(new Runnable(){
+        @Override public void run(){
+          for (          String path : paths) {
+            LocalFileSystem.WatchRequest watchRequest=doWatch(fileSystem,path);
+            if (watchRequest != null) {
+              watchRequests.add(watchRequest);
+            }
+          }
+          listenForChanges(fileSystem);
+        }
       }
+);
+      myServer.doWhenTerminated(new KarmaServerTerminatedListener(){
+        @Override public void onTerminated(        int exitCode){
+          ApplicationManager.getApplication().runReadAction(new Runnable(){
+            @Override public void run(){
+              for (              LocalFileSystem.WatchRequest watchRequest : watchRequests) {
+                fileSystem.removeWatchedRoot(watchRequest);
+              }
+            }
+          }
+);
+        }
+      }
+);
     }
   }
 );
