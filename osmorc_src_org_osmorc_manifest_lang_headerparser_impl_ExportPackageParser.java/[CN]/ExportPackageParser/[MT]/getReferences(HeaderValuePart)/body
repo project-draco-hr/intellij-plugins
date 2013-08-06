@@ -8,7 +8,15 @@
  else   if (headerValuePart.getParent() instanceof Attribute) {
     final Attribute attribute=(Attribute)headerValuePart.getParent();
     if (ManifestConstants.Attributes.USES.equals(attribute.getName())) {
-      return packageReferences(headerValuePart);
+      List<PsiPackageReference> references=new ArrayList<PsiPackageReference>();
+      for (      ASTNode astNode : headerValuePart.getNode().getChildren(TokenSet.create(ManifestTokenType.HEADER_VALUE_PART))) {
+        if (astNode instanceof ManifestToken) {
+          ManifestToken manifestToken=(ManifestToken)astNode;
+          PackageReferenceSet referenceSet=new PackageReferenceSet(manifestToken.getText(),manifestToken,0);
+          references.addAll(referenceSet.getReferences());
+        }
+      }
+      return references.toArray(new PsiPackageReference[references.size()]);
     }
   }
   return EMPTY_PSI_REFERENCE_ARRAY;
