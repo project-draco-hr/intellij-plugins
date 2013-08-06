@@ -1,0 +1,16 @@
+{
+  return new StreamEventHandler(){
+    @NotNull @Override public String getEventType(){
+      return "coverageFinished";
+    }
+    @Override public void handle(    @NotNull JsonElement eventBody){
+      KarmaCoverageSession coverageSession=myActiveCoverageSession;
+      myActiveCoverageSession=null;
+      if (coverageSession != null) {
+        String path=GsonUtil.asString(eventBody);
+        coverageSession.onCoverageSessionFinished(new File(path));
+      }
+    }
+  }
+;
+}
