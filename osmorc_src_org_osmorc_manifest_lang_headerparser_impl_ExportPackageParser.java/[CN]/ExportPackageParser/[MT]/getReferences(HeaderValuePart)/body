@@ -1,12 +1,15 @@
 {
   if (headerValuePart.getParent() instanceof Clause) {
-    return clauseParser.getReferences(headerValuePart);
+    final PsiElement element=headerValuePart.getOriginalElement();
+    if (isPackageRef(element.getPrevSibling())) {
+      return packageReferences(headerValuePart);
+    }
   }
  else   if (headerValuePart.getParent() instanceof Attribute) {
-    return attributeParser.getReferences(headerValuePart);
-  }
- else   if (headerValuePart.getParent() instanceof Directive) {
-    return directiveParser.getReferences(headerValuePart);
+    final Attribute attribute=(Attribute)headerValuePart.getParent();
+    if (ManifestConstants.Attributes.USES.equals(attribute.getName())) {
+      return packageReferences(headerValuePart);
+    }
   }
   return EMPTY_PSI_REFERENCE_ARRAY;
 }
