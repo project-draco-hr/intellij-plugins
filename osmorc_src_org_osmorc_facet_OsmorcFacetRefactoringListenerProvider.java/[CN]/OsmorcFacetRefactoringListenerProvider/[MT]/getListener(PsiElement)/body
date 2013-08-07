@@ -1,10 +1,12 @@
 {
-  if (element instanceof PsiClass && osmorcFacetUtil.hasOsmorcFacet(element)) {
-    OsmorcFacet osmorcFacet=osmorcFacetUtil.getOsmorcFacet(element);
-    OsmorcFacetConfiguration osmorcFacetConfiguration=osmorcFacet.getConfiguration();
-    PsiClass psiClass=(PsiClass)element;
-    if (osmorcFacetConfiguration.isOsmorcControlsManifest() && osmorcFacetConfiguration.getBundleActivator() != null && osmorcFacetConfiguration.getBundleActivator().equals(psiClass.getQualifiedName())) {
-      return new ActivatorClassRefactoringListener(osmorcFacetConfiguration,application);
+  if (element instanceof PsiClass) {
+    OsmorcFacet osmorcFacet=OsmorcFacet.getInstance(element);
+    if (osmorcFacet != null) {
+      OsmorcFacetConfiguration osmorcFacetConfiguration=osmorcFacet.getConfiguration();
+      PsiClass psiClass=(PsiClass)element;
+      if (osmorcFacetConfiguration.isOsmorcControlsManifest() && osmorcFacetConfiguration.getBundleActivator() != null && osmorcFacetConfiguration.getBundleActivator().equals(psiClass.getQualifiedName())) {
+        return new ActivatorClassRefactoringListener(osmorcFacetConfiguration,myApplication);
+      }
     }
   }
   return null;
