@@ -1,8 +1,25 @@
 {
   if (jsonElement.isJsonObject()) {
     JsonObject rootObject=jsonElement.getAsJsonObject();
-    String basePath=getAsString(rootObject.get(BASE_PATH_NAME));
-    return new KarmaConfig(basePath);
+    String basePath=getAsString(rootObject.get(BASE_PATH));
+    String hostname=getAsString(rootObject.get(HOST_NAME));
+    String urlRoot=getAsString(rootObject.get(URL_ROOT));
+    if (hostname == null) {
+      LOG.warn("Can not parse Karma config.hostname from " + jsonElement.toString());
+      hostname="localhost";
+    }
+    hostname=hostname.toLowerCase();
+    if (urlRoot == null) {
+      LOG.warn("Can not parse Karma config.urlRoot from " + jsonElement.toString());
+      urlRoot="/";
+    }
+    if (!urlRoot.startsWith("/")) {
+      urlRoot="/" + urlRoot;
+    }
+    if (!urlRoot.isEmpty() && urlRoot.endsWith("/")) {
+      urlRoot=urlRoot.substring(0,urlRoot.length() - 1);
+    }
+    return new KarmaConfig(basePath,hostname,urlRoot);
   }
   return null;
 }
