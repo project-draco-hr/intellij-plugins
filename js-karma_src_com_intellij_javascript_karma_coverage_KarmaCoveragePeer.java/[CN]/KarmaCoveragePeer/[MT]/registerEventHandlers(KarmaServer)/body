@@ -15,10 +15,26 @@
 );
   server.registerStreamEventHandler(new StreamEventHandler(){
     @NotNull @Override public String getEventType(){
-      return "karmaCoveragePluginMissing";
+      return "coverageAvailability";
     }
     @Override public void handle(    @NotNull JsonElement eventBody){
-      myKarmaCoveragePluginMissing=true;
+      if (eventBody.isJsonObject()) {
+        JsonObject object=eventBody.getAsJsonObject();
+        JsonElement installedElement=object.get("plugin-installed");
+        if (installedElement != null && installedElement.isJsonPrimitive()) {
+          JsonPrimitive installedPrimitive=installedElement.getAsJsonPrimitive();
+          if (installedPrimitive.isBoolean()) {
+            myKarmaCoveragePluginInstalled=installedPrimitive.getAsBoolean();
+          }
+        }
+        JsonElement reporterElement=object.get("reporter-configured");
+        if (reporterElement != null && reporterElement.isJsonPrimitive()) {
+          JsonPrimitive installedPrimitive=reporterElement.getAsJsonPrimitive();
+          if (installedPrimitive.isBoolean()) {
+            myKarmaCoveragePluginInstalled=installedPrimitive.getAsBoolean();
+          }
+        }
+      }
     }
   }
 );
