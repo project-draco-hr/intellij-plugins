@@ -1,2 +1,18 @@
 {
+  final VirtualFile commonAncestor=VfsUtil.getCommonAncestor(src,dst);
+  if (commonAncestor != null) {
+    StringBuilder buffer=new StringBuilder();
+    if (!Comparing.equal(src,commonAncestor)) {
+      if (src.isDirectory()) {
+        buffer.append("..").append(separatorChar);
+      }
+      while (!Comparing.equal(src.getParent(),commonAncestor)) {
+        buffer.append("..").append(separatorChar);
+        src=src.getParent();
+      }
+    }
+    buffer.append(VfsUtilCore.getRelativePath(dst,commonAncestor,separatorChar));
+    return buffer.toString();
+  }
+  return null;
 }
