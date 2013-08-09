@@ -2,22 +2,20 @@
   if (headerValuePart.getParent() instanceof Clause) {
     final PsiElement element=headerValuePart.getOriginalElement();
     if (isPackageRef(element.getPrevSibling())) {
-      return packageReferences(headerValuePart);
+      return getPackageReferences(headerValuePart,headerValuePart.getUnwrappedText());
     }
   }
  else   if (headerValuePart.getParent() instanceof Attribute) {
     final Attribute attribute=(Attribute)headerValuePart.getParent();
     if (ManifestConstants.Attributes.USES.equals(attribute.getName()) && !ManifestConstants.Attributes.USES.equals(headerValuePart.getUnwrappedText())) {
-      List<PsiPackageReference> references=new ArrayList<PsiPackageReference>();
+      List<PsiReference> references=new ArrayList<PsiReference>();
       for (      ASTNode astNode : headerValuePart.getNode().getChildren(TokenSet.create(ManifestTokenType.HEADER_VALUE_PART))) {
         if (astNode instanceof ManifestToken) {
           ManifestToken manifestToken=(ManifestToken)astNode;
-          final int offset=headerValuePart.getText().indexOf(headerValuePart.getUnwrappedText());
-          PackageReferenceSet referenceSet=new PatternPackageReferenceSet(manifestToken.getText(),manifestToken,offset);
-          references.addAll(referenceSet.getReferences());
+          references.addAll(Arrays.asList(getPackageReferences(manifestToken,manifestToken.getText())));
         }
       }
-      return references.toArray(new PsiPackageReference[references.size()]);
+      return references.toArray(new PsiReference[references.size()]);
     }
   }
   return PsiReference.EMPTY_ARRAY;

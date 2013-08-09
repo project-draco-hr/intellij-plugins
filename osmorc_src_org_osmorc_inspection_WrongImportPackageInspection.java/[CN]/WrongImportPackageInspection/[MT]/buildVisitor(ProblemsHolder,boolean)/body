@@ -6,7 +6,10 @@
         for (        Clause clause : header.getClauses()) {
           HeaderValuePart valuePart=clause.getValue();
           String packageSpec=clause.getClauseText();
-          if (valuePart != null && !valuePart.getText().isEmpty() && !isProvided(element,packageSpec)) {
+          if (valuePart == null || packageSpec == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {
+            continue;
+          }
+          if (!valuePart.getText().isEmpty() && !isProvided(element,packageSpec)) {
             holder.registerProblem(valuePart,OsmorcBundle.message("WrongImportPackageInspection.problem.message.not-exported-package",valuePart.getUnwrappedText(),ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
         }
