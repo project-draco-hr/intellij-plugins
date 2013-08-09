@@ -1,14 +1,15 @@
 {
-  FrameworkInstanceDefinition instance=createDefinition();
+  String version=null;
   FrameworkInstanceManager manager=myIntegrator.getFrameworkInstanceManager();
   if (manager instanceof AbstractFrameworkInstanceManager) {
-    String version=((AbstractFrameworkInstanceManager)manager).getVersion(instance);
-    if (version != null) {
-      myNameField.setText(myIntegrator.getDisplayName() + " (" + version+ ")");
-      myVersionLabel.setText(version);
-      return;
-    }
+    version=((AbstractFrameworkInstanceManager)manager).getVersion(createDefinition());
   }
-  myNameField.setText(myIntegrator.getDisplayName());
-  myVersionLabel.setText("");
+  myVersionLabel.setText(ObjectUtils.notNull(version,""));
+  if (StringUtil.isEmptyOrSpaces(myNameField.getText())) {
+    String name=myIntegrator.getDisplayName();
+    if (version != null) {
+      name=name + " (" + version+ ")";
+    }
+    myNameField.setText(name);
+  }
 }
