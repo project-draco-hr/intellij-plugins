@@ -1,6 +1,8 @@
 {
-  myProjectSettings.addProjectSettingsListener(this);
   myApplicationSettings.addApplicationSettingsListener(this);
-  myProject.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS,new MyModuleRootListener());
+  myProjectSettings.addProjectSettingsListener(this);
+  MessageBusConnection projectBus=myProject.getMessageBus().connect(myProject);
+  projectBus.subscribe(ProjectTopics.PROJECT_ROOTS,new MyModuleRootListener());
+  projectBus.subscribe(ProjectTopics.MODULES,new MyModuleRenameHandler());
   myCompilerManager.addAfterTask(new FileProcessingCompilerAdapterTask(new BundleCompiler()));
 }

@@ -1,0 +1,24 @@
+{
+  final List<Pair<SelectedBundle,String>> pairs=ContainerUtil.newSmartList();
+  for (  Module module : modules) {
+    String oldName=oldNameProvider.fun(module);
+    for (    RunConfiguration runConfiguration : RunManager.getInstance(myProject).getConfigurations(myConfigurationType)) {
+      for (      SelectedBundle bundle : ((OsgiRunConfiguration)runConfiguration).getBundlesToDeploy()) {
+        if (bundle.isModule() && bundle.getName().equals(oldName)) {
+          pairs.add(Pair.create(bundle,module.getName()));
+          break;
+        }
+      }
+    }
+  }
+  if (!pairs.isEmpty()) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        for (        Pair<SelectedBundle,String> pair : pairs) {
+          pair.first.setName(pair.second);
+        }
+      }
+    }
+);
+  }
+}
