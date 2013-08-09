@@ -1,0 +1,18 @@
+{
+  if (myInitStatus != null) {
+    listener.onCoverageInitialized(myInitStatus);
+  }
+ else {
+    final int timeoutMillis=10000;
+    new Alarm(Alarm.ThreadToUse.SWING_THREAD,parent).addRequest(new Runnable(){
+      @Override public void run(){
+        if (myInitStatus == null) {
+          LOG.error("Karma coverage hasn't been initialized in " + timeoutMillis + " ms");
+          myInitListeners.clear();
+        }
+      }
+    }
+,timeoutMillis,ModalityState.any());
+    myInitListeners.add(listener);
+  }
+}

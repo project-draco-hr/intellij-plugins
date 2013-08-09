@@ -1,32 +1,7 @@
 {
-  File configurationFile=new File(myRunSettings.getConfigPath());
-  KarmaServer server=KarmaServerRegistry.getServerByConfigurationFile(configurationFile);
-  if (server == null) {
-    KarmaServerRegistry.startServer(new File(myNodeInterpreterPath),new File(myKarmaPackageDir),configurationFile,new CatchingConsumer<KarmaServer,Exception>(){
-      @Override public void consume(      final Exception e){
-        showServerStartupError(e);
-      }
-      @Override public void consume(      KarmaServer server){
-        UIUtil.invokeLaterIfNeeded(new Runnable(){
-          @Override public void run(){
-            RunnerAndConfigurationSettings configuration=myExecutionEnvironment.getRunnerAndConfigurationSettings();
-            if (configuration != null) {
-              ProgramRunnerUtil.executeConfiguration(myProject,configuration,executor);
-            }
-          }
-        }
-);
-      }
-    }
-);
-    return null;
+  KarmaServer server=getServerOrStart(executor);
+  if (server != null) {
+    return executeWithServer(executor,server);
   }
-  server.getWatcher().flush();
-  KarmaExecutionSession session=new KarmaExecutionSession(myProject,myExecutionEnvironment,executor,server,myNodeInterpreterPath,myRunSettings,myExecutionType);
-  SMTRunnerConsoleView smtRunnerConsoleView=session.getSmtConsoleView();
-  Disposer.register(myProject,smtRunnerConsoleView);
-  ProcessHandler processHandler=session.getProcessHandler();
-  DefaultExecutionResult executionResult=new DefaultExecutionResult(smtRunnerConsoleView,processHandler);
-  executionResult.setRestartActions(new ToggleAutoTestAction());
-  return executionResult;
+  return null;
 }

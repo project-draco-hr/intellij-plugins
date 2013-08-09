@@ -1,0 +1,15 @@
+{
+  ExecutionResult executionResult=state.executeWithServer(env.getExecutor(),server);
+  if (server.isReady() && server.hasCapturedBrowsers()) {
+    return doCoverage(project,executionResult,contentToReuse,env,server);
+  }
+  RunContentBuilder contentBuilder=new RunContentBuilder(this,executionResult,env);
+  final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  server.doWhenReadyWithCapturedBrowser(new Runnable(){
+    @Override public void run(){
+      KarmaUtil.restart(descriptor);
+    }
+  }
+);
+  return descriptor;
+}

@@ -14,26 +14,29 @@
   }
 );
   server.registerStreamEventHandler(new StreamEventHandler(){
+    private AtomicBoolean myCoverageInitialized=new AtomicBoolean(true);
     @NotNull @Override public String getEventType(){
-      return "coverageAvailability";
+      return "coverageInitialized";
     }
     @Override public void handle(    @NotNull JsonElement eventBody){
-      if (eventBody.isJsonObject()) {
-        JsonObject object=eventBody.getAsJsonObject();
-        JsonElement installedElement=object.get("plugin-installed");
-        if (installedElement != null && installedElement.isJsonPrimitive()) {
-          JsonPrimitive installedPrimitive=installedElement.getAsJsonPrimitive();
-          if (installedPrimitive.isBoolean()) {
-            myKarmaCoveragePluginInstalled=installedPrimitive.getAsBoolean();
+      if (myCoverageInitialized.compareAndSet(true,false)) {
+        String crfPropertyName="coverage-reporter-found";
+        Boolean coverageReporterFound=null;
+        if (eventBody.isJsonObject()) {
+          JsonObject object=eventBody.getAsJsonObject();
+          JsonElement crfElement=object.get(crfPropertyName);
+          if (crfElement != null && crfElement.isJsonPrimitive()) {
+            JsonPrimitive crfPrimitive=crfElement.getAsJsonPrimitive();
+            if (crfPrimitive.isBoolean()) {
+              coverageReporterFound=crfPrimitive.getAsBoolean();
+            }
           }
         }
-        JsonElement reporterElement=object.get("reporter-configured");
-        if (reporterElement != null && reporterElement.isJsonPrimitive()) {
-          JsonPrimitive installedPrimitive=reporterElement.getAsJsonPrimitive();
-          if (installedPrimitive.isBoolean()) {
-            myKarmaCoveragePluginInstalled=installedPrimitive.getAsBoolean();
-          }
+        if (coverageReporterFound == null) {
+          LOG.warn("Malformed 'coverageInitialized' event: can not found boolean property " + crfPropertyName + " in "+ eventBody.toString());
+          coverageReporterFound=true;
         }
+        onCoverageInitialized(server,coverageReporterFound);
       }
     }
   }

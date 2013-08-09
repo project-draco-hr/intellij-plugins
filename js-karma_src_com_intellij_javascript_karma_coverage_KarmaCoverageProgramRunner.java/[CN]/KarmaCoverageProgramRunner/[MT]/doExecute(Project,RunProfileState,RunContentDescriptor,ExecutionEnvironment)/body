@@ -1,32 +1,31 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
-  ExecutionResult executionResult=state.execute(env.getExecutor(),this);
-  if (executionResult == null) {
+  KarmaRunProfileState karmaState=ObjectUtils.tryCast(state,KarmaRunProfileState.class);
+  if (karmaState == null) {
     return null;
   }
-  KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult);
-  if (consoleView == null) {
-    throw new RuntimeException("KarmaConsoleView was expected!");
-  }
-  final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
-  if (karmaServer.getCoveragePeer().isKarmaCoveragePluginMissing()) {
-    KarmaCoveragePluginMissingDialog dialog=new KarmaCoveragePluginMissingDialog(project);
-    dialog.show();
-    if (dialog.isOK()) {
-      System.out.println("OK");
-    }
+  KarmaServer server=karmaState.getServerOrStart(env.getExecutor());
+  if (server == null) {
     return null;
   }
-  if (karmaServer.isReady() && karmaServer.hasCapturedBrowsers()) {
-    return doCoverage(project,executionResult,contentToReuse,env,karmaServer);
+  KarmaCoveragePeer coveragePeer=server.getCoveragePeer();
+  KarmaCoverageInitStatus initStatus=coveragePeer.getInitStatus();
+  if (initStatus != null) {
+    if (!initStatus.isCoveragePluginInstalled()) {
+      KarmaCoveragePluginMissingDialog dialog=new KarmaCoveragePluginMissingDialog(project);
+      dialog.show();
+      return null;
+    }
+    return executeAfterSuccessfulInitialization(project,karmaState,contentToReuse,env,server);
   }
-  RunContentBuilder contentBuilder=new RunContentBuilder(this,executionResult,env);
-  final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
-  karmaServer.doWhenReadyWithCapturedBrowser(new Runnable(){
-    @Override public void run(){
-      KarmaUtil.restart(descriptor);
+  coveragePeer.doWhenCoverageInitialized(new KarmaCoverageInitializationListener(){
+    @Override public void onCoverageInitialized(    @NotNull KarmaCoverageInitStatus initStatus){
+      RunnerAndConfigurationSettings configuration=env.getRunnerAndConfigurationSettings();
+      if (configuration != null) {
+        ProgramRunnerUtil.executeConfiguration(project,configuration,env.getExecutor());
+      }
     }
   }
-);
-  return descriptor;
+,project);
+  return null;
 }
