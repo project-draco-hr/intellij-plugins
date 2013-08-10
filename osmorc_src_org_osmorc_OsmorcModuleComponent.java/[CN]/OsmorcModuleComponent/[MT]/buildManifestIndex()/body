@@ -3,13 +3,15 @@
   if (facet != null) {
     myApplication.invokeLater(new Runnable(){
       public void run(){
-        if (myModule.isDisposed())         return;
-        ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
-        if (indicator != null) {
-          indicator.setIndeterminate(true);
-          indicator.setText("Updating manifest indices.");
+        new Task.Backgroundable(myModule.getProject(),"Updating OSGi indices",false){
+          @Override public void run(          @NotNull ProgressIndicator indicator){
+            if (myModule.isDisposed())             return;
+            indicator.setIndeterminate(true);
+            indicator.setText("Updating OSGi indices");
+            myBundleManager.reindex(myModule);
+          }
         }
-        myBundleManager.reindex(myModule);
+.queue();
       }
     }
 ,myModule.getDisposed());
