@@ -1,6 +1,6 @@
 {
   IDEFacade.Process process=new IDEFacade.Process(){
-    public void run(    ProgressIndicator indicator){
+    @Override public void run(    ProgressIndicator indicator){
       indicator.setIndefinite(true);
       indicator.setText(title);
       Future<?> workerThreadFuture=ideFacade.runOnPooledThread(runnable);
@@ -10,13 +10,13 @@
           indicator.setFraction(0.5f);
           workerThreadFuture.get(100,TimeUnit.MILLISECONDS);
         }
- catch (        TimeoutException e) {
+ catch (        TimeoutException ignored) {
         }
 catch (        ExecutionException e) {
           workerThreadFuture.cancel(true);
           throw new RuntimeException(e);
         }
-catch (        InterruptedException e) {
+catch (        InterruptedException ignored) {
           workerThreadFuture.cancel(true);
           break;
         }
