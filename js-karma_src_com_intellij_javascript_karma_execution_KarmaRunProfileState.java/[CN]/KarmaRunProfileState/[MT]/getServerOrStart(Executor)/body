@@ -1,6 +1,10 @@
 {
   File configurationFile=new File(myRunSettings.getConfigPath());
   KarmaServer server=KarmaServerRegistry.getServerByConfigurationFile(configurationFile);
+  if (server != null && server.getRestarter().isRestartRequired()) {
+    server.shutdownAsync();
+    server=null;
+  }
   if (server == null) {
     KarmaServerRegistry.startServer(new File(myNodeInterpreterPath),new File(myKarmaPackageDir),configurationFile,new CatchingConsumer<KarmaServer,Exception>(){
       @Override public void consume(      final Exception e){

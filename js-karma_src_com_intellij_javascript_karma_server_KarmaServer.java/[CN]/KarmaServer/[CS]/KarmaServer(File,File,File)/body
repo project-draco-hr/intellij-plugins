@@ -7,12 +7,7 @@
   myWatcher=new KarmaWatcher(this);
   registerStreamEventHandlers();
   myProcessOutputArchive.startNotify();
-  Disposer.register(ApplicationManager.getApplication(),new Disposable(){
-    @Override public void dispose(){
-      if (!processHandler.isProcessTerminated()) {
-        ScriptRunnerUtil.terminateProcessHandler(processHandler,500,null);
-      }
-    }
-  }
-);
+  myDisposable=new MyDisposable();
+  Disposer.register(ApplicationManager.getApplication(),myDisposable);
+  myRestarter=new KarmaServerRestarter(configurationFile,myDisposable);
 }
