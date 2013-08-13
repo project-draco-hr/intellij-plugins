@@ -1,6 +1,13 @@
 {
-  myExitCode=exitCode;
-  for (  KarmaServerTerminatedListener listener : myDoListWhenTerminated) {
-    listener.onTerminated(exitCode);
+  UIUtil.invokeLaterIfNeeded(new Runnable(){
+    @Override public void run(){
+      myExitCode=exitCode;
+      List<KarmaServerTerminatedListener> listeners=ContainerUtil.newArrayList(myTerminationCallbacks);
+      myTerminationCallbacks.clear();
+      for (      KarmaServerTerminatedListener listener : listeners) {
+        listener.onTerminated(exitCode);
+      }
+    }
   }
+);
 }
