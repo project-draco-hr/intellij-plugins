@@ -41,14 +41,20 @@
       if (pathBuilder.length() > 0)       pathBuilder.append(",");
       pathBuilder.append(stringStringPair.second).append(" = ").append(stringStringPair.first);
     }
-    String includedResources=configuration.getAdditionalPropertiesAsMap().get("Include-Resource");
-    if (includedResources == null) {
-      includedResources=pathBuilder.toString();
+    StringBuilder includedResources=new StringBuilder();
+    if (!configuration.isManifestManuallyEdited()) {
+      String resources=configuration.getAdditionalPropertiesAsMap().get("Include-Resource");
+      if (resources != null) {
+        includedResources.append(resources).append(",").append(pathBuilder);
+      }
+ else {
+        includedResources.append(",").append(pathBuilder);
+      }
     }
  else {
-      includedResources=includedResources + "," + pathBuilder.toString();
+      includedResources.append(pathBuilder);
     }
-    buildProperties.put("Include-Resource",includedResources);
+    buildProperties.put("Include-Resource",includedResources.toString());
     if (!configuration.getIgnoreFilePattern().isEmpty()) {
       if (!configuration.isIgnorePatternValid()) {
         String message="The file ignore pattern in the facet configuration is invalid.";
