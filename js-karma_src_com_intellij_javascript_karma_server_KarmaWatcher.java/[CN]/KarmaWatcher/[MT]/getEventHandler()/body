@@ -5,12 +5,17 @@
     }
     @Override public void handle(    @NotNull JsonElement eventBody){
       JsonArray patterns=eventBody.getAsJsonArray();
-      List<String> paths=ContainerUtil.newArrayListWithExpectedSize(patterns.size());
+      final List<String> paths=ContainerUtil.newArrayListWithExpectedSize(patterns.size());
       for (      JsonElement pattern : patterns) {
         JsonPrimitive p=pattern.getAsJsonPrimitive();
         paths.add(p.getAsString());
       }
-      startWatching(paths);
+      ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+        @Override public void run(){
+          mySession=new KarmaWatchSession(myServer,paths);
+        }
+      }
+);
     }
   }
 ;
