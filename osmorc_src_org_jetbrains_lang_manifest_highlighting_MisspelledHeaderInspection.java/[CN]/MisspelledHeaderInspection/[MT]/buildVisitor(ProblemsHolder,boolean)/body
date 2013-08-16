@@ -1,0 +1,21 @@
+{
+  return new PsiElementVisitor(){
+    @Override public void visitElement(    PsiElement element){
+      if (element instanceof Header) {
+        Header header=(Header)element;
+        Collection<HeaderNameMatch> matches=myRepository.getMatches(header.getName());
+        if (!matches.isEmpty()) {
+          List<HeaderNameSpellingQuickFix> fixes=ContainerUtil.newArrayListWithCapacity(MAX_SUGGESTIONS);
+          for (          HeaderNameMatch match : matches) {
+            fixes.add(new HeaderNameSpellingQuickFix(header,match));
+            if (fixes.size() == MAX_SUGGESTIONS) {
+              break;
+            }
+          }
+          holder.registerProblem(header.getNameToken(),ManifestBundle.message("inspection.header.message"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,fixes.toArray(new HeaderNameSpellingQuickFix[fixes.size()]));
+        }
+      }
+    }
+  }
+;
+}
