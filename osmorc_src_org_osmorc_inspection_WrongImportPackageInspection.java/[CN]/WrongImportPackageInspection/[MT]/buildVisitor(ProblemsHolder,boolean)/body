@@ -1,9 +1,9 @@
 {
   return new PsiElementVisitor(){
-    public void visitElement(    PsiElement element){
-      if (OsmorcFacet.hasOsmorcFacet(element) && isImportPackageHeader(element)) {
+    @Override public void visitElement(    PsiElement element){
+      if (isImportPackageHeader(element) && OsmorcFacet.hasOsmorcFacet(element)) {
         Header header=(Header)element;
-        for (        Clause clause : header.getClauses()) {
+        for (        Clause clause : PsiTreeUtil.getChildrenOfTypeAsList(header,Clause.class)) {
           HeaderValuePart valuePart=clause.getValue();
           String packageSpec=clause.getClauseText();
           if (valuePart == null || packageSpec == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {

@@ -1,0 +1,31 @@
+{
+  PsiBuilder.Marker marker=builder.mark();
+  boolean result=true;
+  while (!builder.eof()) {
+    IElementType tokenType=builder.getTokenType();
+    if (SUB_CLAUSE_END_TOKENS.contains(tokenType)) {
+      break;
+    }
+ else     if (tokenType == ManifestTokenType.QUOTE) {
+      parseQuotedString(builder);
+    }
+ else     if (!assignment && tokenType == ManifestTokenType.EQUALS) {
+      marker.done(ManifestElementType.HEADER_VALUE_PART);
+      return parseAttribute(builder,marker.precede());
+    }
+ else     if (!assignment && tokenType == ManifestTokenType.COLON) {
+      marker.done(ManifestElementType.HEADER_VALUE_PART);
+      return parseDirective(builder,marker.precede());
+    }
+ else {
+      IElementType lastToken=builder.getTokenType();
+      builder.advanceLexer();
+      if (lastToken == ManifestTokenType.NEWLINE && builder.getTokenType() != ManifestTokenType.SIGNIFICANT_SPACE) {
+        result=false;
+        break;
+      }
+    }
+  }
+  marker.done(ManifestElementType.HEADER_VALUE_PART);
+  return result;
+}

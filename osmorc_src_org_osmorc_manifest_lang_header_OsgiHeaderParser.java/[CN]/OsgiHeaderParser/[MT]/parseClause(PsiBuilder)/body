@@ -1,0 +1,19 @@
+{
+  PsiBuilder.Marker clause=builder.mark();
+  boolean result=true;
+  while (!builder.eof()) {
+    if (!parseSubClause(builder,false)) {
+      result=false;
+      break;
+    }
+    IElementType tokenType=builder.getTokenType();
+    if (CLAUSE_END_TOKENS.contains(tokenType)) {
+      break;
+    }
+ else     if (tokenType == ManifestTokenType.SEMICOLON) {
+      builder.advanceLexer();
+    }
+  }
+  clause.done(OsgiManifestElementType.CLAUSE);
+  return result;
+}

@@ -1,0 +1,24 @@
+{
+  HeaderValuePart value=header.getValuePart();
+  if (value == null)   return false;
+  PsiReference[] references=value.getReferences();
+  if (references.length == 0) {
+    holder.createErrorAnnotation(value.getHighlightingRange(),ManifestBundle.message("header.reference.invalid"));
+    return true;
+  }
+  for (int i=0; i < references.length; i++) {
+    PsiReference reference=references[i];
+    PsiElement element=reference.resolve();
+    if (element == null) {
+      TextRange range=reference.getRangeInElement().shiftRight(value.getTextOffset());
+      holder.createErrorAnnotation(range,ManifestBundle.message("header.reference.unknown"));
+      return true;
+    }
+    if (i == references.length - 1) {
+      if (checkClass(reference,element,holder)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

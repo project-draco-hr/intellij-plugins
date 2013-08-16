@@ -1,0 +1,73 @@
+{
+  if (myTokenStart < myEndOffset) {
+    if (isNewline(myTokenStart)) {
+      myTokenType=isLineStart(myTokenStart) ? ManifestTokenType.SECTION_END : ManifestTokenType.NEWLINE;
+      myTokenEnd=myTokenStart + 1;
+      myCurrentState=State.INITIAL_STATE;
+    }
+ else     if (myCurrentState == State.WAITING_FOR_HEADER_ASSIGNMENT_STATE) {
+      if (isColon(myTokenStart)) {
+        myTokenType=ManifestTokenType.COLON;
+        myCurrentState=State.WAITING_FOR_SPACE_AFTER_HEADER_NAME_STATE;
+      }
+ else {
+        myTokenType=TokenType.BAD_CHARACTER;
+      }
+      myTokenEnd=myTokenStart + 1;
+    }
+ else     if (myCurrentState == State.WAITING_FOR_SPACE_AFTER_HEADER_NAME_STATE) {
+      if (isSpace(myTokenStart)) {
+        myTokenEnd=myTokenStart + 1;
+        myTokenType=ManifestTokenType.SIGNIFICANT_SPACE;
+      }
+ else {
+        myTokenEnd=myTokenStart;
+        while (myTokenEnd < myEndOffset && !isSpecialCharacter(myTokenEnd) && !isNewline(myTokenEnd)) {
+          myTokenEnd++;
+        }
+        myTokenType=ManifestTokenType.HEADER_VALUE_PART;
+      }
+      myCurrentState=State.INITIAL_STATE;
+    }
+ else     if (isHeaderStart(myTokenStart)) {
+      if (isAlphaNum(myTokenStart)) {
+        myTokenEnd=myTokenStart + 1;
+        while (myTokenEnd < myEndOffset && isHeaderChar(myTokenEnd)) {
+          myTokenEnd++;
+        }
+        myTokenType=ManifestTokenType.HEADER_NAME;
+        myCurrentState=State.WAITING_FOR_HEADER_ASSIGNMENT_STATE;
+      }
+ else {
+        myTokenEnd=myTokenStart + 1;
+        myTokenType=TokenType.BAD_CHARACTER;
+        myCurrentState=State.BROKEN_LINE;
+      }
+    }
+ else     if (isContinuationStart(myTokenStart)) {
+      myTokenType=ManifestTokenType.SIGNIFICANT_SPACE;
+      myTokenEnd=myTokenStart + 1;
+      myCurrentState=State.INITIAL_STATE;
+    }
+ else     if (myCurrentState == State.BROKEN_LINE) {
+      myTokenEnd=myTokenStart + 1;
+      myTokenType=TokenType.BAD_CHARACTER;
+    }
+ else     if (isSpecialCharacter(myTokenStart)) {
+      myTokenType=getTokenTypeForSpecialCharacter(myTokenStart);
+      myTokenEnd=myTokenStart + 1;
+      myCurrentState=State.INITIAL_STATE;
+    }
+ else {
+      myTokenEnd=myTokenStart;
+      while (myTokenEnd < myEndOffset && !isSpecialCharacter(myTokenEnd) && !isNewline(myTokenEnd)) {
+        myTokenEnd++;
+      }
+      myTokenType=ManifestTokenType.HEADER_VALUE_PART;
+    }
+  }
+ else {
+    myTokenType=null;
+    myTokenEnd=myTokenStart;
+  }
+}

@@ -1,13 +1,12 @@
 {
   return new PsiElementVisitor(){
-    public void visitElement(    PsiElement element){
+    @Override public void visitElement(    PsiElement element){
       if (element instanceof Header) {
         final Header header=(Header)element;
         String name=header.getName();
         if (name != null && name.length() > 0) {
           final List<HeaderNameSpellingQuickFix> quickFixes=new ArrayList<HeaderNameSpellingQuickFix>();
-          final Collection<HeaderNameMatch> matches=getHeaderParserRepository().getMatches(name);
-          for (          HeaderNameMatch match : matches) {
+          for (          HeaderNameMatch match : myRepository.getMatches(name)) {
             quickFixes.add(new HeaderNameSpellingQuickFix(header,match));
             if (quickFixes.size() > 20) {
               break;
