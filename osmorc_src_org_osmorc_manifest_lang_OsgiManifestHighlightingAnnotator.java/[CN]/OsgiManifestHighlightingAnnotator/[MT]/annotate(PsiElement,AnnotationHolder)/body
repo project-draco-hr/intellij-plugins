@@ -1,0 +1,39 @@
+{
+  if (element instanceof HeaderValuePart) {
+    PsiElement parent=element.getParent();
+    if (parent instanceof AssignmentExpression) {
+      HeaderValuePart nameElement=((AssignmentExpression)parent).getNameElement();
+      if (parent instanceof Attribute) {
+        if (element == nameElement) {
+          annotate(element,OsgiManifestColorsAndFonts.ATTRIBUTE_NAME_KEY,holder);
+        }
+ else {
+          annotate(element,OsgiManifestColorsAndFonts.ATTRIBUTE_VALUE_KEY,holder);
+        }
+      }
+ else       if (parent instanceof Directive) {
+        if (element == nameElement) {
+          annotate(element,OsgiManifestColorsAndFonts.DIRECTIVE_NAME_KEY,holder);
+        }
+ else {
+          annotate(element,OsgiManifestColorsAndFonts.DIRECTIVE_VALUE_KEY,holder);
+        }
+      }
+    }
+  }
+ else   if (element instanceof ManifestToken) {
+    ManifestTokenType type=((ManifestToken)element).getTokenType();
+    if (element.getParent() instanceof Attribute && type == ManifestTokenType.EQUALS) {
+      annotate(element,OsgiManifestColorsAndFonts.ATTRIBUTE_ASSIGNMENT_KEY,holder);
+    }
+ else     if (element.getParent() instanceof Directive && (type == ManifestTokenType.COLON || type == ManifestTokenType.EQUALS)) {
+      annotate(element,OsgiManifestColorsAndFonts.DIRECTIVE_ASSIGNMENT_KEY,holder);
+    }
+ else     if (element.getParent() instanceof Clause && type == ManifestTokenType.SEMICOLON) {
+      annotate(element,OsgiManifestColorsAndFonts.PARAMETER_SEPARATOR_KEY,holder);
+    }
+ else     if (element.getParent() instanceof Header && type == ManifestTokenType.COMMA) {
+      annotate(element,OsgiManifestColorsAndFonts.CLAUSE_SEPARATOR_KEY,holder);
+    }
+  }
+}
