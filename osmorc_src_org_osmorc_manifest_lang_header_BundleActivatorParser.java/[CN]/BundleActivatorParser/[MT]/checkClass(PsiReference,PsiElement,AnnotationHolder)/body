@@ -1,10 +1,13 @@
 {
   if (element instanceof PsiClass) {
-    JavaPsiFacade facade=JavaPsiFacade.getInstance(element.getProject());
-    GlobalSearchScope scope=GlobalSearchScope.projectScope(element.getProject());
-    PsiClass activatorClass=facade.findClass("org.osgi.framework.BundleActivator",scope);
-    if (activatorClass != null && ((PsiClass)element).isInheritor(activatorClass,true)) {
-      return false;
+    Module module=ModuleUtilCore.findModuleForPsiElement(element);
+    if (module != null) {
+      GlobalSearchScope scope=GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
+      JavaPsiFacade facade=JavaPsiFacade.getInstance(element.getProject());
+      PsiClass activatorClass=facade.findClass("org.osgi.framework.BundleActivator",scope);
+      if (activatorClass != null && ((PsiClass)element).isInheritor(activatorClass,true)) {
+        return false;
+      }
     }
   }
   TextRange range=reference.getRangeInElement().shiftRight(reference.getElement().getTextOffset());
