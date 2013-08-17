@@ -1,13 +1,13 @@
 {
   Header header=myManifestFile.getHeader(REQUIRE_BUNDLE);
   if (header == null)   return false;
-  for (  Clause clause : PsiTreeUtil.getChildrenOfTypeAsList(header,Clause.class)) {
-    String requireSpec=clause.getClauseText();
-    Directive directiveByName=clause.getDirective(VISIBILITY_DIRECTIVE);
-    if (directiveByName == null) {
+  for (  HeaderValue value : header.getHeaderValues()) {
+    String requireSpec=value.getUnwrappedText();
+    Directive directive=((Clause)value).getDirective(VISIBILITY_DIRECTIVE);
+    if (directive == null) {
       continue;
     }
-    if (VISIBILITY_REEXPORT.equals(directiveByName.getValue())) {
+    if (VISIBILITY_REEXPORT.equals(directive.getValue())) {
       if (otherBundle.isRequiredBundle(requireSpec)) {
         return true;
       }

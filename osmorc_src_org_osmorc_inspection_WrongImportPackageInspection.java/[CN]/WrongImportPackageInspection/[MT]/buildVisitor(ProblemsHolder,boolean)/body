@@ -3,10 +3,10 @@
     @Override public void visitElement(    PsiElement element){
       if (isImportPackageHeader(element) && OsmorcFacet.hasOsmorcFacet(element)) {
         Header header=(Header)element;
-        for (        Clause clause : PsiTreeUtil.getChildrenOfTypeAsList(header,Clause.class)) {
-          HeaderValuePart valuePart=clause.getValue();
-          String packageSpec=clause.getClauseText();
-          if (valuePart == null || packageSpec == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {
+        for (        HeaderValue value : header.getHeaderValues()) {
+          HeaderValuePart valuePart=((Clause)value).getValue();
+          String packageSpec=value.getUnwrappedText();
+          if (valuePart == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {
             continue;
           }
           if (!valuePart.getText().isEmpty() && !isProvided(element,packageSpec)) {

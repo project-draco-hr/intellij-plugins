@@ -2,14 +2,15 @@
   ManifestFile file=createFile("Import-Package: a.b,c.d;a=value;d:=value");
   Header header=file.getHeader("Import-Package");
   assertNotNull(header);
-  List<Clause> clauses=PsiTreeUtil.getChildrenOfTypeAsList(header,Clause.class);
+  List<HeaderValue> clauses=header.getHeaderValues();
   assertEquals(2,clauses.size());
-  assertEquals(0,clauses.get(0).getAttributes().length);
-  assertEquals(0,clauses.get(0).getDirectives().length);
-  assertEquals(1,clauses.get(1).getAttributes().length);
-  assertEquals(1,clauses.get(1).getDirectives().length);
-  assertNotNull(clauses.get(1).getAttribute("a"));
-  assertNull(clauses.get(1).getAttribute("b"));
-  assertNotNull(clauses.get(1).getDirective("d"));
-  assertNull(clauses.get(1).getDirective("z"));
+  Clause clause1=(Clause)clauses.get(0), clause2=(Clause)clauses.get(1);
+  assertEquals(0,clause1.getAttributes().size());
+  assertEquals(0,clause1.getDirectives().size());
+  assertEquals(1,clause2.getAttributes().size());
+  assertEquals(1,clause2.getDirectives().size());
+  assertNotNull(clause2.getAttribute("a"));
+  assertNull(clause2.getAttribute("b"));
+  assertNotNull(clause2.getDirective("d"));
+  assertNull(clause2.getDirective("z"));
 }

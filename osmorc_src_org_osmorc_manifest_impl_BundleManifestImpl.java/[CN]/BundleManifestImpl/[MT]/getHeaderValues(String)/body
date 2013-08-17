@@ -1,10 +1,9 @@
 {
   Header header=myManifestFile.getHeader(headerName);
-  if (header == null)   return Collections.emptyList();
-  List<Clause> clauses=PsiTreeUtil.getChildrenOfTypeAsList(header,Clause.class);
-  List<String> result=ContainerUtil.newArrayListWithCapacity(clauses.size());
-  for (  Clause clause : clauses) {
-    result.add(clause.getClauseText());
+  return header == null ? ContainerUtil.<String>emptyList() : ContainerUtil.map(header.getHeaderValues(),new Function<HeaderValue,String>(){
+    @Override public String fun(    HeaderValue value){
+      return value.getUnwrappedText();
+    }
   }
-  return result;
+);
 }
