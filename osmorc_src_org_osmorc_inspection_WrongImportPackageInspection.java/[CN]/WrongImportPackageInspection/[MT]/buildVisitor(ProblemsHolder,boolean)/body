@@ -1,5 +1,6 @@
 {
   return new PsiElementVisitor(){
+    private final BundleManager myBundleManager=ServiceManager.getService(holder.getProject(),BundleManager.class);
     @Override public void visitElement(    PsiElement element){
       if (isImportPackageHeader(element) && OsmorcFacet.hasOsmorcFacet(element)) {
         Header header=(Header)element;
@@ -9,7 +10,7 @@
           if (valuePart == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {
             continue;
           }
-          if (!valuePart.getText().isEmpty() && !isProvided(element,packageSpec)) {
+          if (!valuePart.getText().isEmpty() && !myBundleManager.isProvided(packageSpec)) {
             holder.registerProblem(valuePart,OsmorcBundle.message("WrongImportPackageInspection.problem.message.not-exported-package",valuePart.getUnwrappedText(),ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
         }
