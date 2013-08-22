@@ -9,17 +9,15 @@
     return null;
   }
   KarmaCoveragePeer coveragePeer=server.getCoveragePeer();
-  KarmaCoverageInitStatus initStatus=coveragePeer.getInitStatus();
-  if (initStatus != null) {
-    if (!initStatus.isCoverageReportFound() && !initStatus.isCoveragePluginInstalled()) {
-      KarmaCoveragePluginMissingDialog.showWarning(project,server.getKarmaPackageDir());
-      server.getRestarter().requestRestart();
-      return showKarmaServerOnly(server,env,contentToReuse);
+  KarmaCoverageStartupStatus status=coveragePeer.getStartupStatus();
+  if (status != null) {
+    if (isSuccessStatus(project,server,status)) {
+      return executeAfterSuccessfulInitialization(project,karmaState,contentToReuse,env,server);
     }
-    return executeAfterSuccessfulInitialization(project,karmaState,contentToReuse,env,server);
+    return showKarmaServerOnly(server,env,contentToReuse);
   }
   coveragePeer.doWhenCoverageInitialized(new KarmaCoverageInitializationListener(){
-    @Override public void onCoverageInitialized(    @NotNull KarmaCoverageInitStatus initStatus){
+    @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus initStatus){
       RunnerAndConfigurationSettings configuration=env.getRunnerAndConfigurationSettings();
       if (configuration != null) {
         ProgramRunnerUtil.executeConfiguration(project,configuration,env.getExecutor());
