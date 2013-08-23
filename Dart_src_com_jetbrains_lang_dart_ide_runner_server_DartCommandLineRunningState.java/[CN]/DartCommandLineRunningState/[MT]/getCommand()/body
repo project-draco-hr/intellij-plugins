@@ -4,11 +4,15 @@
   if (dartSettings == null || dartExecutablePath == null) {
     throw new ExecutionException(DartBundle.message("bad.home.for.sdk",module.getName()));
   }
+  final VirtualFile libraryFile=VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(filePath));
+  if (libraryFile == null) {
+    throw new ExecutionException(DartBundle.message("bad.script.path",filePath));
+  }
   final GeneralCommandLine commandLine=new GeneralCommandLine();
   commandLine.setExePath(dartExecutablePath);
   commandLine.setWorkDirectory(PathUtil.getParentPath(filePath));
   commandLine.setPassParentEnvironment(true);
-  setupUserProperties(module,commandLine,dartSettings);
+  setupUserProperties(libraryFile,commandLine,dartSettings);
   addConsoleFilters(new DartStackTraceMessageFiler(module.getProject(),filePath));
   return commandLine;
 }
