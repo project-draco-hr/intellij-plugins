@@ -9,7 +9,6 @@
   if (virtualFile == null) {
     return;
   }
-  final boolean update=DartResolveUtil.findPackagesFolder(module) != null;
   final DartSettings settings=DartSettings.getSettingsForModule(module);
   final VirtualFile dartPub=settings == null ? null : settings.getPub();
   if (dartPub == null) {
@@ -23,11 +22,8 @@
       final GeneralCommandLine command=new GeneralCommandLine();
       command.setExePath(dartPub.getPath());
       command.setWorkDirectory(virtualFile.getParent().getPath());
-      command.addParameter(update ? "update" : "install");
-      final DartSettings dartSettings=getSettings(psiFile);
-      if (dartSettings != null) {
-        command.getEnvironment().put("DART_SDK",settings.getSdkPath());
-      }
+      command.addParameter(getPubCommandArgument());
+      command.getEnvironment().put("DART_SDK",settings.getSdkPath());
       ApplicationManager.getApplication().invokeAndWait(new Runnable(){
         @Override public void run(){
           FileDocumentManager.getInstance().saveAllDocuments();
@@ -36,11 +32,11 @@
 ,ModalityState.defaultModalityState());
       try {
         final ProcessOutput processOutput=new CapturingProcessHandler(command).runProcess();
-        LOG.debug("pub exited with exit code: " + processOutput.getExitCode());
+        LOG.debug("pub terminated with exit code: " + processOutput.getExitCode());
         LOG.debug(processOutput.getStdout());
         LOG.debug(processOutput.getStderr());
         final String output=processOutput.getStdout().trim();
-        final boolean ok=isOK(update,output);
+        final boolean ok=isOK(output);
         if (!ok) {
           Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart.pub.title"),DartBundle.message("dart.pub.error",output,processOutput.getStderr()),NotificationType.WARNING));
         }
