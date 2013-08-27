@@ -23,7 +23,7 @@
       registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace(prefix,(host instanceof XmlAttributeValue ? "\n" : "") + suffix,(PsiLanguageInjectionHost)host,range).doneInjecting();
     }
   }
- else {
+ else   if (!(host instanceof XmlText) || !hasCDATA((XmlText)host)) {
     final String text=StringUtil.stripQuotesAroundValue(host.getText());
     int openedBraces=0;
     int start=-1;
@@ -35,7 +35,9 @@
         quoted=false;
         continue;
       }
-      if (ch == '\\')       quoted=true;
+      if (ch == '\\') {
+        quoted=true;
+      }
  else       if (ch == '{') {
         if (openedBraces == 0)         start=i + 1;
         openedBraces++;
