@@ -1,0 +1,26 @@
+{
+  Color foreground=UIUtil.getLabelForeground();
+  EditorColorsScheme colorsScheme=EditorColorsManager.getInstance().getGlobalScheme();
+  TextAttributes textAttributes=colorsScheme.getAttributes(ConsoleViewContentType.ERROR_OUTPUT_KEY);
+  if (textAttributes != null) {
+    foreground=textAttributes.getForegroundColor();
+  }
+  Font font=colorsScheme.getFont(EditorFontType.PLAIN);
+  messageComponent.setFont(font);
+  if (BasicHTML.isHTMLString(message)) {
+    final HTMLEditorKit editorKit=new HTMLEditorKit();
+    editorKit.getStyleSheet().addRule(UIUtil.displayPropertiesToCSS(font,foreground));
+    messageComponent.setEditorKit(editorKit);
+    messageComponent.setContentType(UIUtil.HTML_MIME);
+    if (addBrowserHyperlinkListener) {
+      messageComponent.addHyperlinkListener(new BrowserHyperlinkListener());
+    }
+  }
+  messageComponent.setText(message);
+  messageComponent.setEditable(false);
+  if (messageComponent.getCaret() != null) {
+    messageComponent.setCaretPosition(0);
+  }
+  messageComponent.setBackground(UIUtil.getTableBackground());
+  messageComponent.setForeground(foreground);
+}
