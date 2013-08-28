@@ -11,10 +11,10 @@
   KarmaCoveragePeer coveragePeer=server.getCoveragePeer();
   KarmaCoverageStartupStatus status=coveragePeer.getStartupStatus();
   if (status != null) {
-    if (isSuccessStatus(project,server,status)) {
+    if (status.isSuccessful()) {
       return executeAfterSuccessfulInitialization(project,karmaState,contentToReuse,env,server);
     }
-    return showKarmaServerOnly(server,env,contentToReuse);
+    return showWarningUi(status,server,env,contentToReuse);
   }
   coveragePeer.doWhenCoverageInitialized(new KarmaCoverageInitializationListener(){
     @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus initStatus){
@@ -24,6 +24,6 @@
       }
     }
   }
-,project);
+);
   return null;
 }
