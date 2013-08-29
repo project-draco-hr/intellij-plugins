@@ -1,3 +1,22 @@
 {
-  return null;
+  if (!(element instanceof DartComponent) && !(element.getParent() instanceof DartComponent)) {
+    return null;
+  }
+  final DartComponent namedComponent=(DartComponent)(element instanceof DartComponent ? element : element.getParent());
+  final String componentName=namedComponent.getName();
+  if (componentName == null || !namedComponent.isPublic()) {
+    return null;
+  }
+  final List<String> result=new ArrayList<String>();
+  final PsiManager psiManager=element.getManager();
+  List<VirtualFile> library=DartResolveUtil.findLibrary(element.getContainingFile());
+  for (  VirtualFile libraryRoot : library) {
+    final PsiFile libPsiFile=psiManager.findFile(libraryRoot);
+    String libName=libPsiFile != null ? DartResolveUtil.getLibraryName(libPsiFile) : null;
+    final String docUrl=libName != null ? constructDocUrl(namedComponent,componentName,libName) : null;
+    if (docUrl != null) {
+      result.add(docUrl);
+    }
+  }
+  return result;
 }
