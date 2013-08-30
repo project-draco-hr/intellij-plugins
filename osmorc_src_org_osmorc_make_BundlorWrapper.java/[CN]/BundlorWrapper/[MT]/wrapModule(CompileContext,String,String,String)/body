@@ -1,35 +1,24 @@
 {
-  MavenProjectsManager mpm=MavenProjectsManager.getInstance(compileContext.getProject());
-  Properties props=new Properties();
-  if (mpm.isMavenizedProject()) {
-    Module[] affectedModules=compileContext.getCompileScope().getAffectedModules();
-    for (    Module affectedModule : affectedModules) {
-      MavenProject project=mpm.findProject(affectedModule);
-      if (project != null) {
-        props.putAll(project.getProperties());
-      }
-    }
-  }
-  PropertiesSource ps=new PropertiesPropertiesSource(props);
+  Properties properties=MavenIntegrationUtil.getMavenProjectProperties(context.getProject(),context.getCompileScope().getAffectedModules());
+  PropertiesSource propertiesSource=new PropertiesPropertiesSource(properties);
+  ManifestGenerator generator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create(propertiesSource));
+  ClassPath classPath=new StandardClassPathFactory().create(inputJar);
+  ManifestContents contents=new StandardManifestTemplateFactory().create(manifestTemplateFile,null,null,null);
+  ManifestContents manifest=generator.generate(contents,classPath);
   ManifestWriter manifestWriter=new StandardManifestWriterFactory().create(inputJar,outputJar);
-  ManifestGenerator manifestGenerator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create(ps));
-  ClassPathFactory cpf=new StandardClassPathFactory();
-  ClassPath classPath=cpf.create(inputJar);
-  StandardManifestValidator manifestValidator=new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create());
-  ManifestContents manifest=manifestGenerator.generate(new StandardManifestTemplateFactory().create(manifestTemplateFile,null,null,null),classPath);
   try {
     manifestWriter.write(manifest);
   }
  catch (  Exception e) {
-    compileContext.addMessage(CompilerMessageCategory.ERROR,"Error writing manifest: " + e.getMessage(),null,0,0);
+    context.addMessage(CompilerMessageCategory.ERROR,"Error writing manifest: " + e.getMessage(),null,0,0);
     return false;
   }
  finally {
     manifestWriter.close();
   }
-  final List<String> warningsList=manifestValidator.validate(manifest);
+  List<String> warningsList=new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create()).validate(manifest);
   for (  String s : warningsList) {
-    compileContext.addMessage(CompilerMessageCategory.WARNING,s,VfsUtil.pathToUrl(manifestTemplateFile),0,0);
+    context.addMessage(CompilerMessageCategory.WARNING,s,VfsUtilCore.pathToUrl(manifestTemplateFile),0,0);
   }
   return true;
 }
