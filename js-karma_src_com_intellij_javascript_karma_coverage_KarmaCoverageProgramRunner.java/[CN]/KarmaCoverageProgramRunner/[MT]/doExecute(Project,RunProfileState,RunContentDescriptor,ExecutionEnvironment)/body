@@ -1,10 +1,10 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
-  KarmaRunProfileState karmaState=ObjectUtils.tryCast(state,KarmaRunProfileState.class);
-  if (karmaState == null) {
+  KarmaRunProfileState runProfileState=ObjectUtils.tryCast(state,KarmaRunProfileState.class);
+  if (runProfileState == null) {
     return null;
   }
-  final KarmaServer server=karmaState.getServerOrStart(env.getExecutor());
+  final KarmaServer server=runProfileState.getServerOrStart(env.getExecutor());
   if (server == null) {
     return null;
   }
@@ -12,9 +12,9 @@
   KarmaCoverageStartupStatus status=coveragePeer.getStartupStatus();
   if (status != null) {
     if (status.isSuccessful()) {
-      return executeAfterSuccessfulInitialization(project,karmaState,contentToReuse,env,server);
+      return executeAfterSuccessfulInitialization(project,runProfileState,contentToReuse,env,server);
     }
-    return showWarningUi(status,server,env,contentToReuse);
+    return showWarningConsole(status,server,env,contentToReuse);
   }
   coveragePeer.doWhenCoverageInitialized(new KarmaCoverageInitializationListener(){
     @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus initStatus){
@@ -25,5 +25,5 @@
     }
   }
 );
-  return null;
+  return showWarningConsole(null,server,env,contentToReuse);
 }
