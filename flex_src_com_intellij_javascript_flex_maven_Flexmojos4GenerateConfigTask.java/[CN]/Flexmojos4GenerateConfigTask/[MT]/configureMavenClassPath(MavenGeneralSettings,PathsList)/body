@@ -1,16 +1,17 @@
 {
-  String pathToBundledJar=FlexCommonUtils.getPathToBundledJar("flexmojos-flex-configs-generator-server.jar");
+  String mavenHome=MavenExternalParameters.resolveMavenHome(mavenGeneralSettings);
+  String version=MavenUtil.getMavenVersion(mavenHome);
+  String pathToBundledJar=FlexCommonUtils.getPathToBundledJar(StringUtil.compareVersionNumbers(version,"3.1") >= 0 ? "flexmojos-flex-configs-generator-server-31.jar" : "flexmojos-flex-configs-generator-server.jar");
   LOG.info("Generating flex configs pathToBundledJar: " + pathToBundledJar);
   LOG.assertTrue(!StringUtil.isEmpty(pathToBundledJar));
   classPath.add(pathToBundledJar);
-  final String mavenHome=MavenExternalParameters.resolveMavenHome(mavenGeneralSettings) + File.separator;
-  final String libDirPath=mavenHome + "lib";
+  final String libDirPath=mavenHome + "/lib";
   for (  String s : new File(libDirPath).list()) {
     if (s.endsWith(".jar") && !s.startsWith("maven-embedder-") && !s.startsWith("commons-cli-")&& !s.startsWith("nekohtml-")) {
       classPath.add(libDirPath + File.separator + s);
     }
   }
-  final String libBootDirPath=mavenHome + "boot";
+  final String libBootDirPath=mavenHome + "/boot";
   for (  String s : new File(libBootDirPath).list()) {
     if (s.endsWith(".jar")) {
       classPath.add(libBootDirPath + File.separator + s);
