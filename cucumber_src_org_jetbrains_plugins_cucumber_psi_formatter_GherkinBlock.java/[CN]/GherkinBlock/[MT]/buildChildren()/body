@@ -15,11 +15,17 @@
       }
     }
     if (child.getElementType() == GherkinTokenTypes.COMMENT) {
-      final ASTNode previous=child.getTreePrev();
-      if (previous != null && previous.getText().contains("\n")) {
-        final String whiteSpaceText=previous.getText();
+      final ASTNode commentIndentElement=child.getTreePrev();
+      final ASTNode parentIndentElement=myNode.getTreePrev();
+      if (commentIndentElement != null && (commentIndentElement.getText().contains("\n") || commentIndentElement.getTreePrev() == null)) {
+        final String whiteSpaceText=commentIndentElement.getText();
         final int lineBreakIndex=whiteSpaceText.lastIndexOf("\n");
-        indent=Indent.getSpaceIndent(whiteSpaceText.length() - lineBreakIndex - 1);
+        int parentIndent=0;
+        if (parentIndentElement != null && parentIndentElement.getText().contains("\n")) {
+          String parentIndentText=parentIndentElement.getText();
+          parentIndent=parentIndentText.length() - parentIndentText.lastIndexOf("\n") - 1;
+        }
+        indent=Indent.getSpaceIndent(whiteSpaceText.length() - lineBreakIndex - 1- parentIndent);
       }
     }
     result.add(new GherkinBlock(child,indent));
