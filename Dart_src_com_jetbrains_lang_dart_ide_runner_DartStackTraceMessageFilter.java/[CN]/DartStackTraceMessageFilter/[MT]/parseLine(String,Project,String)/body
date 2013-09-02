@@ -1,13 +1,9 @@
 {
-  final Matcher matcher=tracePattern.matcher(line.trim());
-  if (!matcher.matches()) {
+  final Trinity<String,Integer,Integer> position=findPosition(line);
+  if (position == null) {
     return null;
   }
-  final String prefix=matcher.group(1);
-  final String name=matcher.group(2);
-  final String fileUrl=matcher.group(3);
-  final int lineNumber=Integer.parseInt(matcher.group(4)) - 1;
-  final int offset=Integer.parseInt(matcher.group(5)) - 1;
+  final String fileUrl=position.getFirst();
   VirtualFile file=VirtualFileManager.getInstance().findFileByUrl(fileUrl);
   if (fileUrl.startsWith(DartResolveUtil.PACKAGE_PREFIX) && libraryRootPath != null) {
     String libUrl=VfsUtilCore.pathToUrl(libraryRootPath);
@@ -22,6 +18,7 @@
   if (file == null) {
     return null;
   }
-  OpenFileHyperlinkInfo hyperlinkInfo=new OpenFileHyperlinkInfo(project,file,lineNumber,offset);
-  return new Result(prefix.length(),prefix.length() + name.length(),hyperlinkInfo);
+  OpenFileHyperlinkInfo hyperlinkInfo=new OpenFileHyperlinkInfo(project,file,position.getSecond(),position.getThird());
+  final int urlOffset=line.indexOf(fileUrl);
+  return new Result(urlOffset,urlOffset + fileUrl.length(),hyperlinkInfo);
 }
