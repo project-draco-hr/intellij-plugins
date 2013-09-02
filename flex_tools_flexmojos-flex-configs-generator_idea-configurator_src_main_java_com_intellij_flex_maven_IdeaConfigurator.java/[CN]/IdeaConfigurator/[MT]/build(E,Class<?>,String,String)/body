@@ -31,7 +31,7 @@
       out.append(indent,0,indent.length() - 1).append('<').append(configurationName).append('>');
     }
     final Class<?> returnType=method.getReturnType();
-    final String name=camelCaseToSnake(methodName);
+    final String name=camelCaseToSnake(methodName,true);
     if (value instanceof IFlexConfiguration) {
       build(value,returnType,indent + '\t',name.substring(0,name.length() - 14));
     }
@@ -89,7 +89,14 @@
             }
           }
  else           if (argValue != null) {
-            writeTag(indent,argMethodName.equals("serialNumber") ? "serial-number" : argMethodName,(String)argValue,name);
+            String xmlSrgMethodName;
+            if (argMethodName.equals("serialNumber") || name.equals("default-script-limits")) {
+              xmlSrgMethodName=camelCaseToSnake(argMethodName,false);
+            }
+ else {
+              xmlSrgMethodName=argMethodName;
+            }
+            writeTag(indent,xmlSrgMethodName,(String)argValue,name);
           }
         }
         out.append(indent).append("</").append(name).append('>');
