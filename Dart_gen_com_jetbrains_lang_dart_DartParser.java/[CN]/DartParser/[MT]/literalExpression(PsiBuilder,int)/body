@@ -2,9 +2,7 @@
   if (!recursion_guard_(builder_,level_,"literalExpression"))   return false;
   if (!nextTokenIs(builder_,LBRACKET) && !nextTokenIs(builder_,FALSE) && !nextTokenIs(builder_,NULL)&& !nextTokenIs(builder_,TRUE)&& !nextTokenIs(builder_,LBRACE)&& !nextTokenIs(builder_,HEX_NUMBER)&& !nextTokenIs(builder_,NUMBER)&& !nextTokenIs(builder_,OPEN_QUOTE)&& !nextTokenIs(builder_,RAW_SINGLE_QUOTED_STRING)&& !nextTokenIs(builder_,RAW_TRIPLE_QUOTED_STRING)&& replaceVariants(builder_,10,"<literal expression>"))   return false;
   boolean result_=false;
-  int start_=builder_.getCurrentOffset();
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<literal expression>");
+  Marker marker_=enter_section_(builder_,level_,_COLLAPSE_,"<literal expression>");
   result_=consumeToken(builder_,NULL);
   if (!result_)   result_=consumeToken(builder_,TRUE);
   if (!result_)   result_=consumeToken(builder_,FALSE);
@@ -13,16 +11,6 @@
   if (!result_)   result_=stringLiteralExpression(builder_,level_ + 1);
   if (!result_)   result_=listLiteralExpression(builder_,level_ + 1);
   if (!result_)   result_=mapLiteralExpression(builder_,level_ + 1);
-  LighterASTNode last_=result_ ? builder_.getLatestDoneMarker() : null;
-  if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(),LITERAL_EXPRESSION)) {
-    marker_.drop();
-  }
- else   if (result_) {
-    marker_.done(LITERAL_EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,false,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,LITERAL_EXPRESSION,result_,false,null);
   return result_;
 }

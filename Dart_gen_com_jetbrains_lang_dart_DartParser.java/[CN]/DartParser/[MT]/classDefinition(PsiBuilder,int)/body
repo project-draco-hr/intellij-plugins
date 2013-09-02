@@ -3,8 +3,7 @@
   if (!nextTokenIs(builder_,ABSTRACT) && !nextTokenIs(builder_,CLASS) && replaceVariants(builder_,2,"<class definition>"))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<class definition>");
+  Marker marker_=enter_section_(builder_,level_,_NONE_,"<class definition>");
   result_=classDefinition_0(builder_,level_ + 1);
   result_=result_ && consumeToken(builder_,CLASS);
   result_=result_ && componentName(builder_,level_ + 1);
@@ -14,12 +13,6 @@
   result_=pinned_ && report_error_(builder_,classDefinition_5(builder_,level_ + 1)) && result_;
   result_=pinned_ && report_error_(builder_,classDefinition_6(builder_,level_ + 1)) && result_;
   result_=pinned_ && classBodyWithBracesPrivate(builder_,level_ + 1) && result_;
-  if (result_ || pinned_) {
-    marker_.done(CLASS_DEFINITION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,CLASS_DEFINITION,result_,pinned_,null);
   return result_ || pinned_;
 }

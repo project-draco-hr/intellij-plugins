@@ -3,19 +3,12 @@
   if (!nextTokenIs(builder_,LT))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,null);
+  Marker marker_=enter_section_(builder_,level_,_NONE_,null);
   result_=consumeToken(builder_,LT);
   pinned_=result_;
   result_=result_ && report_error_(builder_,typeParameter(builder_,level_ + 1));
   result_=pinned_ && report_error_(builder_,typeParameters_2(builder_,level_ + 1)) && result_;
   result_=pinned_ && consumeToken(builder_,GT) && result_;
-  if (result_ || pinned_) {
-    marker_.done(TYPE_PARAMETERS);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,TYPE_PARAMETERS,result_,pinned_,null);
   return result_ || pinned_;
 }

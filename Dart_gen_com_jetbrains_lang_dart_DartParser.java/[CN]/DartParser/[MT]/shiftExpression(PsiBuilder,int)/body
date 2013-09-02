@@ -2,19 +2,9 @@
   if (!recursion_guard_(builder_,level_,"shiftExpression"))   return false;
   if (!nextTokenIs(builder_,LT_LT) && !nextTokenIs(builder_,GT) && replaceVariants(builder_,2,"<shift expression>"))   return false;
   boolean result_=false;
-  Marker left_marker_=(Marker)builder_.getLatestDoneMarker();
-  if (!invalid_left_marker_guard_(builder_,left_marker_,"shiftExpression"))   return false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,"<shift expression>");
+  Marker marker_=enter_section_(builder_,level_,_LEFT_,"<shift expression>");
   result_=shiftOperator(builder_,level_ + 1);
   result_=result_ && additiveExpressionWrapper(builder_,level_ + 1);
-  if (result_) {
-    marker_.drop();
-    left_marker_.precede().done(SHIFT_EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,false,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,SHIFT_EXPRESSION,result_,false,null);
   return result_;
 }

@@ -3,18 +3,11 @@
   if (!nextTokenIs(builder_,OPEN_QUOTE))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,null);
+  Marker marker_=enter_section_(builder_,level_,_NONE_,null);
   result_=consumeToken(builder_,OPEN_QUOTE);
   pinned_=result_;
   result_=result_ && report_error_(builder_,stringTemplate_1(builder_,level_ + 1));
   result_=pinned_ && consumeToken(builder_,CLOSING_QUOTE) && result_;
-  if (!result_ && !pinned_) {
-    marker_.rollbackTo();
-  }
- else {
-    marker_.drop();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,null,result_,pinned_,null);
   return result_ || pinned_;
 }

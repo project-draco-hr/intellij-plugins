@@ -1,20 +1,8 @@
 {
   if (!recursion_guard_(builder_,level_,"expression"))   return false;
   boolean result_=false;
-  int start_=builder_.getCurrentOffset();
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_RECOVER_,"<expression>");
+  Marker marker_=enter_section_(builder_,level_,_COLLAPSE_,"<expression>");
   result_=assignExpressionWrapper(builder_,level_ + 1);
-  LighterASTNode last_=result_ ? builder_.getLatestDoneMarker() : null;
-  if (last_ != null && last_.getStartOffset() == start_ && type_extends_(last_.getTokenType(),EXPRESSION)) {
-    marker_.drop();
-  }
- else   if (result_) {
-    marker_.done(EXPRESSION);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,false,_SECTION_RECOVER_,expression_recover_parser_);
+  exit_section_(builder_,level_,marker_,EXPRESSION,result_,false,expression_recover_parser_);
   return result_;
 }

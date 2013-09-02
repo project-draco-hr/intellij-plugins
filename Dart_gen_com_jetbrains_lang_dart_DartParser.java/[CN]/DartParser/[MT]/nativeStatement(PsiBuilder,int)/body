@@ -3,8 +3,7 @@
   if (!nextTokenIs(builder_,HASH))   return false;
   boolean result_=false;
   boolean pinned_=false;
-  Marker marker_=builder_.mark();
-  enterErrorRecordingSection(builder_,level_,_SECTION_GENERAL_,null);
+  Marker marker_=enter_section_(builder_,level_,_NONE_,null);
   result_=consumeToken(builder_,HASH);
   result_=result_ && consumeToken(builder_,NATIVE);
   pinned_=result_;
@@ -12,12 +11,6 @@
   result_=pinned_ && report_error_(builder_,pathOrLibraryReference(builder_,level_ + 1)) && result_;
   result_=pinned_ && report_error_(builder_,consumeToken(builder_,RPAREN)) && result_;
   result_=pinned_ && consumeToken(builder_,SEMICOLON) && result_;
-  if (result_ || pinned_) {
-    marker_.done(NATIVE_STATEMENT);
-  }
- else {
-    marker_.rollbackTo();
-  }
-  result_=exitErrorRecordingSection(builder_,level_,result_,pinned_,_SECTION_GENERAL_,null);
+  exit_section_(builder_,level_,marker_,NATIVE_STATEMENT,result_,pinned_,null);
   return result_ || pinned_;
 }
