@@ -1,4 +1,12 @@
 {
-  final String testName="Test: " + findTestName(PsiTreeUtil.getParentOfType(context.getPsiLocation(),DartCallExpression.class));
-  return testName.equals(configuration.getName());
+  final PsiElement location=context.getPsiLocation();
+  if (location == null) {
+    return false;
+  }
+  final String testName="Test: " + findTestName(PsiTreeUtil.getParentOfType(location,DartCallExpression.class));
+  if (testName.equals(configuration.getName())) {
+    return true;
+  }
+  final VirtualFile virtualFile=location.getContainingFile().getVirtualFile();
+  return virtualFile != null && configuration.getRunnerParameters().getFilePath().equals(virtualFile.getPath());
 }
