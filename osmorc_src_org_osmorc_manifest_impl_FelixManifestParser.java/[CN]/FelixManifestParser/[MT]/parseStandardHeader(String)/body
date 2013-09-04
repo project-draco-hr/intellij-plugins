@@ -1,0 +1,120 @@
+{
+  List<ParsedHeaderClause> clauses=new ArrayList<ParsedHeaderClause>();
+  if (header == null) {
+    return clauses;
+  }
+  ParsedHeaderClause clause=null;
+  String key=null;
+  Map targetMap=null;
+  int state=CLAUSE_START;
+  int currentPosition=0;
+  int startPosition=0;
+  int length=header.length();
+  boolean quoted=false;
+  boolean escaped=false;
+  char currentChar=EOF;
+  do {
+    currentChar=charAt(currentPosition,header,length);
+switch (state) {
+case CLAUSE_START:
+      clause=new ParsedHeaderClause(new ArrayList<String>(),new HashMap<String,String>(),new HashMap<String,Object>(),new HashMap<String,String>());
+    clauses.add(clause);
+  state=PARAMETER_START;
+case PARAMETER_START:
+startPosition=currentPosition;
+state=KEY;
+case KEY:
+switch (currentChar) {
+case ':':
+case '=':
+key=header.substring(startPosition,currentPosition).trim();
+startPosition=currentPosition + 1;
+targetMap=clause.m_attrs;
+state=currentChar == ':' ? DIRECTIVE_OR_TYPEDATTRIBUTE : ARGUMENT;
+break;
+case EOF:
+case ',':
+case ';':
+clause.m_paths.add(header.substring(startPosition,currentPosition).trim());
+state=currentChar == ',' ? CLAUSE_START : PARAMETER_START;
+break;
+default :
+break;
+}
+currentPosition++;
+break;
+case DIRECTIVE_OR_TYPEDATTRIBUTE:
+switch (currentChar) {
+case '=':
+if (startPosition != currentPosition) {
+clause.m_types.put(key,header.substring(startPosition,currentPosition).trim());
+}
+ else {
+targetMap=clause.m_dirs;
+}
+state=ARGUMENT;
+startPosition=currentPosition + 1;
+break;
+default :
+break;
+}
+currentPosition++;
+break;
+case ARGUMENT:
+if (currentChar == '\"') {
+quoted=true;
+currentPosition++;
+}
+ else {
+quoted=false;
+}
+if (!Character.isWhitespace(currentChar)) {
+state=VALUE;
+}
+ else {
+currentPosition++;
+}
+break;
+case VALUE:
+if (escaped) {
+escaped=false;
+}
+ else {
+if (currentChar == '\\') {
+escaped=true;
+}
+ else if (quoted && currentChar == '\"') {
+quoted=false;
+}
+ else if (!quoted) {
+String value=null;
+switch (currentChar) {
+case EOF:
+case ';':
+case ',':
+value=header.substring(startPosition,currentPosition).trim();
+if (value.startsWith("\"") && value.endsWith("\"")) {
+value=value.substring(1,value.length() - 1);
+}
+if (targetMap.put(key,value) != null) {
+throw new IllegalArgumentException("Duplicate '" + key + "' in: "+ header);
+}
+state=currentChar == ';' ? PARAMETER_START : CLAUSE_START;
+break;
+default :
+break;
+}
+}
+}
+currentPosition++;
+break;
+default :
+break;
+}
+}
+ while (currentChar != EOF);
+if (state > PARAMETER_START) {
+throw new IllegalArgumentException("Unable to parse header: " + header);
+}
+return clauses;
+}

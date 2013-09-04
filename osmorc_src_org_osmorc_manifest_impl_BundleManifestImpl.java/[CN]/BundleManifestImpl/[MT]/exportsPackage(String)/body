@@ -3,33 +3,15 @@
   if (header == null) {
     return false;
   }
-  List<ICapability> capabilities=new ArrayList<ICapability>();
-  for (  HeaderValue value : header.getHeaderValues()) {
-    try {
-      capabilities.addAll(Arrays.asList(ManifestParser.parseExportHeader(value.getUnwrappedText())));
-    }
- catch (    Exception e) {
-      return false;
-    }
+  List<BundleCapability> capabilities=ContainerUtil.newArrayList();
+  String bsn=getBundleSymbolicName();
+  String bv=getBundleVersion().toString();
+  for (  HeaderValue headerValue : header.getHeaderValues()) {
+    List<BundleCapability> caps=FelixManifestParser.parseExportHeader(headerValue.getUnwrappedText(),bsn,bv);
+    if (caps == null)     return false;
+    capabilities.addAll(caps);
   }
-  IRequirement[] requirements;
-  try {
-    requirements=ManifestParser.parseImportHeader(packageSpec);
-  }
- catch (  Exception e) {
-    return false;
-  }
-  for (  IRequirement requirement : requirements) {
-    boolean satisfied=false;
-    for (    ICapability capability : capabilities) {
-      if (requirement.isSatisfied(capability)) {
-        satisfied=true;
-        break;
-      }
-    }
-    if (!satisfied) {
-      return false;
-    }
-  }
-  return true;
+  List<BundleRequirement> requirements=FelixManifestParser.parseImportHeader(packageSpec);
+  if (requirements == null)   return false;
+  return satisfies(capabilities,requirements);
 }

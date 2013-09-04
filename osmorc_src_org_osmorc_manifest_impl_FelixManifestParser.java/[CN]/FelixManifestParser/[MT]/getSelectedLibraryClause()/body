@@ -1,0 +1,27 @@
+{
+  if ((m_libraryClauses != null) && (m_libraryClauses.size() > 0)) {
+    List clauseList=new ArrayList();
+    for (    R4LibraryClause libraryClause : m_libraryClauses) {
+      if (libraryClause.match(m_configMap)) {
+        clauseList.add(libraryClause);
+      }
+    }
+    int selected=0;
+    if (clauseList.isEmpty()) {
+      if (m_libraryHeadersOptional) {
+        return null;
+      }
+ else {
+        throw new BundleException("Unable to select a native library clause.");
+      }
+    }
+ else     if (clauseList.size() == 1) {
+      selected=0;
+    }
+ else     if (clauseList.size() > 1) {
+      selected=firstSortedClause(clauseList);
+    }
+    return ((R4LibraryClause)clauseList.get(selected));
+  }
+  return null;
+}

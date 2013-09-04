@@ -1,0 +1,84 @@
+{
+  m_logger=logger;
+  m_configMap=configMap;
+  m_headerMap=headerMap;
+  String manifestVersion=getManifestVersion(m_headerMap);
+  if ((manifestVersion != null) && !manifestVersion.equals("2")) {
+    throw new BundleException("Unknown 'Bundle-ManifestVersion' value: " + manifestVersion);
+  }
+  List<BundleCapabilityImpl> capList=new ArrayList();
+  m_bundleVersion=Version.emptyVersion;
+  if (headerMap.get(Constants.BUNDLE_VERSION) != null) {
+    try {
+      m_bundleVersion=Version.parseVersion((String)headerMap.get(Constants.BUNDLE_VERSION));
+    }
+ catch (    RuntimeException ex) {
+      if (getManifestVersion().equals("2")) {
+        throw ex;
+      }
+      m_bundleVersion=Version.emptyVersion;
+    }
+  }
+  BundleCapabilityImpl bundleCap=parseBundleSymbolicName(owner,m_headerMap);
+  if (bundleCap != null) {
+    m_bundleSymbolicName=(String)bundleCap.getAttributes().get(BundleRevision.BUNDLE_NAMESPACE);
+    if (headerMap.get(Constants.FRAGMENT_HOST) == null) {
+      capList.add(bundleCap);
+      String attachment=bundleCap.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
+      attachment=(attachment == null) ? Constants.FRAGMENT_ATTACHMENT_RESOLVETIME : attachment;
+      if (!attachment.equalsIgnoreCase(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+        Map<String,Object> hostAttrs=new HashMap<String,Object>(bundleCap.getAttributes());
+        Object value=hostAttrs.remove(BundleRevision.BUNDLE_NAMESPACE);
+        hostAttrs.put(BundleRevision.HOST_NAMESPACE,value);
+        capList.add(new BundleCapabilityImpl(owner,BundleRevision.HOST_NAMESPACE,bundleCap.getDirectives(),hostAttrs));
+      }
+    }
+  }
+  if (getManifestVersion().equals("2") && (m_bundleSymbolicName == null)) {
+    throw new BundleException("R4 bundle manifests must include bundle symbolic name.");
+  }
+  List<BundleRequirementImpl> hostReqs=parseFragmentHost(m_logger,owner,m_headerMap);
+  List<ParsedHeaderClause> rbClauses=parseStandardHeader((String)headerMap.get(Constants.REQUIRE_BUNDLE));
+  rbClauses=normalizeRequireClauses(m_logger,rbClauses,getManifestVersion());
+  List<BundleRequirementImpl> rbReqs=convertRequires(rbClauses,owner);
+  List<ParsedHeaderClause> importClauses=parseStandardHeader((String)headerMap.get(Constants.IMPORT_PACKAGE));
+  importClauses=normalizeImportClauses(m_logger,importClauses,getManifestVersion());
+  List<BundleRequirement> importReqs=convertImports(importClauses,owner);
+  List<ParsedHeaderClause> dynamicClauses=parseStandardHeader((String)headerMap.get(Constants.DYNAMICIMPORT_PACKAGE));
+  dynamicClauses=normalizeDynamicImportClauses(m_logger,dynamicClauses,getManifestVersion());
+  List<BundleRequirement> dynamicReqs=convertImports(dynamicClauses,owner);
+  List<ParsedHeaderClause> requireClauses=parseStandardHeader((String)headerMap.get(Constants.REQUIRE_CAPABILITY));
+  importClauses=normalizeRequireCapabilityClauses(m_logger,requireClauses,getManifestVersion());
+  List<BundleRequirement> requireReqs=convertRequireCapabilities(importClauses,owner);
+  List<ParsedHeaderClause> exportClauses=parseStandardHeader((String)headerMap.get(Constants.EXPORT_PACKAGE));
+  exportClauses=normalizeExportClauses(logger,exportClauses,getManifestVersion(),m_bundleSymbolicName,m_bundleVersion);
+  List<BundleCapability> exportCaps=convertExports(exportClauses,owner);
+  List<ParsedHeaderClause> provideClauses=parseStandardHeader((String)headerMap.get(Constants.PROVIDE_CAPABILITY));
+  exportClauses=normalizeProvideCapabilityClauses(logger,provideClauses,getManifestVersion());
+  List<BundleCapability> provideCaps=convertProvideCapabilities(provideClauses,owner);
+  if (!getManifestVersion().equals("2")) {
+    List<ParsedHeaderClause> implicitClauses=calculateImplicitImports(exportCaps,importClauses);
+    importReqs.addAll(convertImports(implicitClauses,owner));
+    List<ParsedHeaderClause> allImportClauses=new ArrayList<ParsedHeaderClause>(implicitClauses.size() + importClauses.size());
+    allImportClauses.addAll(importClauses);
+    allImportClauses.addAll(implicitClauses);
+    exportCaps=calculateImplicitUses(exportCaps,allImportClauses);
+  }
+  m_capabilities=new ArrayList(capList.size() + exportCaps.size() + provideCaps.size());
+  m_capabilities.addAll(capList);
+  m_capabilities.addAll(exportCaps);
+  m_capabilities.addAll(provideCaps);
+  m_requirements=new ArrayList(hostReqs.size() + importReqs.size() + rbReqs.size()+ requireReqs.size()+ dynamicReqs.size());
+  m_requirements.addAll(hostReqs);
+  m_requirements.addAll(importReqs);
+  m_requirements.addAll(rbReqs);
+  m_requirements.addAll(requireReqs);
+  m_requirements.addAll(dynamicReqs);
+  m_libraryClauses=parseLibraryStrings(m_logger,parseDelimitedString((String)m_headerMap.get(Constants.BUNDLE_NATIVECODE),","));
+  if (!m_libraryClauses.isEmpty() && (m_libraryClauses.get(m_libraryClauses.size() - 1).getLibraryEntries() == null)) {
+    m_libraryHeadersOptional=true;
+    m_libraryClauses.remove(m_libraryClauses.size() - 1);
+  }
+  parseActivationPolicy(headerMap);
+  m_isExtension=checkExtensionBundle(headerMap);
+}

@@ -1,0 +1,64 @@
+{
+  ArrayList indexList=new ArrayList();
+  ArrayList selection=new ArrayList();
+  for (int i=0; i < clauseList.size(); i++) {
+    indexList.add("" + i);
+  }
+  Version osVersionRangeMaxFloor=new Version(0,0,0);
+  for (int i=0; i < indexList.size(); i++) {
+    int index=Integer.parseInt(indexList.get(i).toString());
+    String[] osversions=((R4LibraryClause)clauseList.get(index)).getOSVersions();
+    if (osversions != null) {
+      selection.add("" + indexList.get(i));
+    }
+    for (int k=0; (osversions != null) && (k < osversions.length); k++) {
+      VersionRange range=VersionRange.parse(osversions[k]);
+      if ((range.getFloor()).compareTo(osVersionRangeMaxFloor) >= 0) {
+        osVersionRangeMaxFloor=range.getFloor();
+      }
+    }
+  }
+  if (selection.size() == 1) {
+    return Integer.parseInt(selection.get(0).toString());
+  }
+ else   if (selection.size() > 1) {
+    indexList=selection;
+    selection=new ArrayList();
+    for (int i=0; i < indexList.size(); i++) {
+      int index=Integer.parseInt(indexList.get(i).toString());
+      String[] osversions=((R4LibraryClause)clauseList.get(index)).getOSVersions();
+      for (int k=0; k < osversions.length; k++) {
+        VersionRange range=VersionRange.parse(osversions[k]);
+        if ((range.getFloor()).compareTo(osVersionRangeMaxFloor) >= 0) {
+          selection.add("" + indexList.get(i));
+        }
+      }
+    }
+  }
+  if (selection.isEmpty()) {
+    selection.clear();
+    indexList.clear();
+    for (int i=0; i < clauseList.size(); i++) {
+      indexList.add("" + i);
+    }
+  }
+ else   if (selection.size() == 1) {
+    return Integer.parseInt(selection.get(0).toString());
+  }
+ else {
+    indexList=selection;
+    selection.clear();
+  }
+  for (int i=0; i < indexList.size(); i++) {
+    int index=Integer.parseInt(indexList.get(i).toString());
+    if (((R4LibraryClause)clauseList.get(index)).getLanguages() != null) {
+      selection.add("" + indexList.get(i));
+    }
+  }
+  if (selection.isEmpty()) {
+    return 0;
+  }
+ else {
+    return Integer.parseInt(selection.get(0).toString());
+  }
+}

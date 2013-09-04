@@ -1,0 +1,55 @@
+{
+  Set dupeSet=new HashSet();
+  for (  ParsedHeaderClause clause : clauses) {
+    Object v=clause.m_attrs.get(Constants.VERSION_ATTRIBUTE);
+    Object sv=clause.m_attrs.get(Constants.PACKAGE_SPECIFICATION_VERSION);
+    if ((v != null) && (sv != null)) {
+      if (!((String)v).trim().equals(((String)sv).trim())) {
+        throw new IllegalArgumentException("Both version and specification-version are specified, but they are not equal.");
+      }
+    }
+    if ((v != null) || (sv != null)) {
+      clause.m_attrs.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+      v=(v == null) ? sv : v;
+      clause.m_attrs.put(Constants.VERSION_ATTRIBUTE,VersionRange.parse(v.toString()));
+    }
+    v=clause.m_attrs.get(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    if (v != null) {
+      clause.m_attrs.put(Constants.BUNDLE_VERSION_ATTRIBUTE,VersionRange.parse(v.toString()));
+    }
+    for (    String pkgName : clause.m_paths) {
+      if (!dupeSet.contains(pkgName)) {
+        if (pkgName.startsWith("java.")) {
+          throw new BundleException("Importing java.* packages not allowed: " + pkgName);
+        }
+ else         if (pkgName.equals(".")) {
+          throw new BundleException("Imporing '.' is invalid.");
+        }
+ else         if (pkgName.length() == 0) {
+          throw new BundleException("Imported package names cannot be zero length.");
+        }
+        dupeSet.add(pkgName);
+      }
+ else {
+        throw new BundleException("Duplicate import: " + pkgName);
+      }
+    }
+    if (!mv.equals("2")) {
+      if (!clause.m_dirs.isEmpty()) {
+        throw new BundleException("R3 imports cannot contain directives.");
+      }
+      if (!clause.m_attrs.isEmpty()) {
+        Object pkgVersion=clause.m_attrs.get(BundleCapabilityImpl.VERSION_ATTR);
+        pkgVersion=(pkgVersion == null) ? new VersionRange(Version.emptyVersion,true,null,true) : pkgVersion;
+        for (        Entry<String,Object> entry : clause.m_attrs.entrySet()) {
+          if (!entry.getKey().equals(BundleCapabilityImpl.VERSION_ATTR)) {
+            logger.log(Logger.LOG_WARNING,"Unknown R3 import attribute: " + entry.getKey());
+          }
+        }
+        clause.m_attrs.clear();
+        clause.m_attrs.put(BundleCapabilityImpl.VERSION_ATTR,pkgVersion);
+      }
+    }
+  }
+  return clauses;
+}

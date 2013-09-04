@@ -1,0 +1,19 @@
+{
+  List<BundleRequirementImpl> reqList=new ArrayList();
+  for (  ParsedHeaderClause clause : clauses) {
+    for (    String path : clause.m_paths) {
+      Map<String,Object> attrs=clause.m_attrs;
+      Map<String,Object> newAttrs=new LinkedHashMap<String,Object>(attrs.size() + 1);
+      newAttrs.put(BundleRevision.BUNDLE_NAMESPACE,path);
+      newAttrs.putAll(attrs);
+      newAttrs.put(BundleRevision.BUNDLE_NAMESPACE,path);
+      SimpleFilter sf=SimpleFilter.convert(newAttrs);
+      Map<String,String> dirs=clause.m_dirs;
+      Map<String,String> newDirs=new HashMap<String,String>(dirs.size() + 1);
+      newDirs.putAll(dirs);
+      newDirs.put(Constants.FILTER_DIRECTIVE,sf.toString());
+      reqList.add(new BundleRequirementImpl(owner,BundleRevision.BUNDLE_NAMESPACE,newDirs,newAttrs));
+    }
+  }
+  return reqList;
+}

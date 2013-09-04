@@ -1,0 +1,38 @@
+{
+  List<BundleRequirementImpl> reqs=new ArrayList();
+  String mv=getManifestVersion(headerMap);
+  if ((mv != null) && mv.equals("2")) {
+    List<ParsedHeaderClause> clauses=parseStandardHeader((String)headerMap.get(Constants.FRAGMENT_HOST));
+    if (clauses.size() > 0) {
+      if (clauses.size() > 1) {
+        throw new BundleException("Fragments cannot have multiple hosts: " + headerMap.get(Constants.FRAGMENT_HOST));
+      }
+ else       if (clauses.get(0).m_paths.size() > 1) {
+        throw new BundleException("Fragments cannot have multiple hosts: " + headerMap.get(Constants.FRAGMENT_HOST));
+      }
+      Object value=clauses.get(0).m_attrs.get(Constants.BUNDLE_VERSION_ATTRIBUTE);
+      value=(value == null) ? "0.0.0" : value;
+      if (value != null) {
+        clauses.get(0).m_attrs.put(Constants.BUNDLE_VERSION_ATTRIBUTE,VersionRange.parse(value.toString()));
+      }
+      Map<String,Object> attrs=clauses.get(0).m_attrs;
+      Map<String,Object> newAttrs=new LinkedHashMap<String,Object>(attrs.size() + 1);
+      newAttrs.put(BundleRevision.HOST_NAMESPACE,clauses.get(0).m_paths.get(0));
+      newAttrs.putAll(attrs);
+      newAttrs.put(BundleRevision.HOST_NAMESPACE,clauses.get(0).m_paths.get(0));
+      SimpleFilter sf=SimpleFilter.convert(newAttrs);
+      Map<String,String> dirs=clauses.get(0).m_dirs;
+      Map<String,String> newDirs=new HashMap<String,String>(dirs.size() + 1);
+      newDirs.putAll(dirs);
+      newDirs.put(Constants.FILTER_DIRECTIVE,sf.toString());
+      reqs.add(new BundleRequirementImpl(owner,BundleRevision.HOST_NAMESPACE,newDirs,newAttrs));
+    }
+  }
+ else   if (headerMap.get(Constants.FRAGMENT_HOST) != null) {
+    String s=(String)headerMap.get(Constants.BUNDLE_SYMBOLICNAME);
+    s=(s == null) ? (String)headerMap.get(Constants.BUNDLE_NAME) : s;
+    s=(s == null) ? headerMap.toString() : s;
+    logger.log(Logger.LOG_WARNING,"Only R4 bundles can be fragments: " + s);
+  }
+  return reqs;
+}

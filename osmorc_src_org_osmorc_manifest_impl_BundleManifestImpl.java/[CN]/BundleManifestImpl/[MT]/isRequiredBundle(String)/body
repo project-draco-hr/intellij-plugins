@@ -1,21 +1,7 @@
 {
-  IRequirement[] requirements;
-  try {
-    requirements=ManifestParser.parseRequireBundleHeader(bundleSpec);
-  }
- catch (  Exception e) {
-    return false;
-  }
-  String symbolicName=getBundleSymbolicName();
-  if (symbolicName == null) {
-    return false;
-  }
-  Version version=getBundleVersion();
-  ICapability moduleCapability=new Capability(ICapability.MODULE_NAMESPACE,new R4Directive[]{new R4Directive(BUNDLE_SYMBOLICNAME,symbolicName)},new R4Attribute[]{new R4Attribute(BUNDLE_SYMBOLICNAME_ATTRIBUTE,symbolicName,false),new R4Attribute(BUNDLE_VERSION_ATTRIBUTE,new org.osgi.framework.Version(version.getMajor(),version.getMinor(),version.getMicro(),version.getQualifier()),false)});
-  for (  IRequirement requirement : requirements) {
-    if (!requirement.isSatisfied(moduleCapability)) {
-      return false;
-    }
-  }
-  return true;
+  BundleCapability capability=FelixManifestParser.constructBundleCapability(getBundleSymbolicName(),getBundleVersion().toString());
+  if (capability == null)   return false;
+  List<BundleRequirement> requirements=FelixManifestParser.parseRequireBundleHeader(bundleSpec);
+  if (requirements == null)   return false;
+  return satisfies(Collections.singletonList(capability),requirements);
 }

@@ -1,0 +1,20 @@
+{
+  m_activationPolicy=BundleRevisionImpl.EAGER_ACTIVATION;
+  List<ParsedHeaderClause> clauses=parseStandardHeader((String)headerMap.get(Constants.BUNDLE_ACTIVATIONPOLICY));
+  if (clauses.size() > 0) {
+    for (    String path : clauses.get(0).m_paths) {
+      if (path.equals(Constants.ACTIVATION_LAZY)) {
+        m_activationPolicy=BundleRevisionImpl.LAZY_ACTIVATION;
+        for (        Entry<String,String> entry : clauses.get(0).m_dirs.entrySet()) {
+          if (entry.getKey().equalsIgnoreCase(Constants.INCLUDE_DIRECTIVE)) {
+            m_activationIncludeDir=entry.getValue();
+          }
+ else           if (entry.getKey().equalsIgnoreCase(Constants.EXCLUDE_DIRECTIVE)) {
+            m_activationExcludeDir=entry.getValue();
+          }
+        }
+        break;
+      }
+    }
+  }
+}
