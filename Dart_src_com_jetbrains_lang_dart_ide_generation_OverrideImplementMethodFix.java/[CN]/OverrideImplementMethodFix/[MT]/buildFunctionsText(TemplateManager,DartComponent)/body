@@ -1,0 +1,21 @@
+{
+  final Template template=templateManager.createTemplate(getClass().getName(),DART_TEMPLATE_GROUP);
+  template.setToReformat(true);
+  final DartReturnType returnType=PsiTreeUtil.getChildOfType(element,DartReturnType.class);
+  final DartType dartType=returnType == null ? PsiTreeUtil.getChildOfType(element,DartType.class) : returnType.getType();
+  if (dartType != null) {
+    template.addTextSegment(DartPresentableUtil.buildTypeText(element,dartType,specializations));
+    template.addTextSegment(" ");
+  }
+  if (element.isGetter() || element.isSetter()) {
+    template.addTextSegment(element.isGetter() ? "get " : "set ");
+  }
+  template.addTextSegment(element.getName());
+  template.addTextSegment("(");
+  template.addTextSegment(DartPresentableUtil.getPresentableParameterList(element,specializations));
+  template.addTextSegment(")");
+  template.addTextSegment("{\n");
+  template.addEndVariable();
+  template.addTextSegment("\n}\n");
+  return template;
+}
