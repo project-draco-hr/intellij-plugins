@@ -1,16 +1,13 @@
 {
-  Matcher m=findMatcher(line);
-  if (m != null) {
-    int hyperlinkStartInd=m.start(1);
-    int hyperlinkEndInd=m.end(1);
-    File file=findFile(m.group(2));
+  LinkInfo linkInfo=createLinkInfo(line);
+  if (linkInfo != null) {
+    File file=findFile(linkInfo.getPath());
     if (file != null) {
       VirtualFile virtualFile=VfsUtil.findFileByIoFile(file,false);
       if (virtualFile != null) {
-        int lineNumber=getLineFrom(m.group(1));
-        lineNumber=Math.max(-1,lineNumber - 1);
+        int lineNumber=Math.max(-1,linkInfo.getLineNumber() - 1);
         HyperlinkInfo link=new OpenFileHyperlinkInfo(myProject,virtualFile,lineNumber);
-        return new Filter.Result(hyperlinkStartInd,hyperlinkEndInd,link);
+        return new Filter.Result(linkInfo.getHyperlinkStartInd(),linkInfo.getHyperlinkEndInd(),link);
       }
     }
   }
