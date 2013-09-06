@@ -19,7 +19,11 @@
     if (toAdd != null) {
       final PsiElement anchor=findAnchorForImportStatement(file,importStatements);
       if (anchor == null) {
-        file.addBefore(toAdd,file.getFirstChild());
+        final PsiElement child=file.getFirstChild();
+        file.addBefore(toAdd,child);
+        if (!(child instanceof PsiWhiteSpace)) {
+          file.getNode().addLeaf(DartTokenTypesSets.WHITE_SPACE,"\n",child.getNode());
+        }
       }
  else {
         file.addAfter(toAdd,anchor);
