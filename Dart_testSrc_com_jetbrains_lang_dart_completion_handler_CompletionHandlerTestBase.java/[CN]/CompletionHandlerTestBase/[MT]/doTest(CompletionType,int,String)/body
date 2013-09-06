@@ -1,0 +1,22 @@
+{
+  configure();
+  myFixture.complete(type,invocationCount);
+  final LookupEx lookup=LookupManager.getActiveLookup(myFixture.getEditor());
+  assertFalse(toComplete != null && lookup == null);
+  if (lookup != null && toComplete != null) {
+    final LookupElement[] elements=myFixture.getLookupElements();
+    assertNotNull("no lookups",elements);
+    final LookupElement element=ContainerUtil.find(elements,new Condition<LookupElement>(){
+      @Override public boolean value(      LookupElement element){
+        return StringUtil.equals(element.getLookupString(),toComplete);
+      }
+    }
+);
+    assertNotNull("Can't find '" + toComplete + "' variant",element);
+    lookup.setCurrentItem(element);
+  }
+  if (lookup != null) {
+    myFixture.type('\n');
+  }
+  myFixture.checkResultByFile(getTestName(true) + ".after" + getTestFileExtension());
+}

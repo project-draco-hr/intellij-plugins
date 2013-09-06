@@ -1,0 +1,23 @@
+{
+  for (  DartHideCombinator hideCombinator : importStatement.getHideCombinatorList()) {
+    final List<DartLibraryComponentReferenceExpression> libraryComponents=hideCombinator.getLibraryReferenceList().getLibraryComponentReferenceExpressionList();
+    for (    DartLibraryComponentReferenceExpression libraryComponentReferenceExpression : libraryComponents) {
+      if (componentName.equals(libraryComponentReferenceExpression.getText())) {
+        final PsiElement toRemove=libraryComponents.size() > 1 ? libraryComponentReferenceExpression : hideCombinator;
+        toRemove.delete();
+        return;
+      }
+    }
+  }
+  final List<DartShowCombinator> showCombinators=importStatement.getShowCombinatorList();
+  if (showCombinators.isEmpty()) {
+    return;
+  }
+  final DartShowCombinator combinatoroToAdd=showCombinators.iterator().next();
+  final DartLibraryComponentReferenceExpression libraryComponentReference=DartElementGenerator.createLibraryComponentReference(importStatement.getProject(),componentName);
+  if (libraryComponentReference != null) {
+    combinatoroToAdd.getLibraryReferenceList().getNode().addLeaf(DartTokenTypes.COMMA,",",null);
+    combinatoroToAdd.getLibraryReferenceList().getNode().addLeaf(DartTokenTypesSets.WHITE_SPACE," ",null);
+    combinatoroToAdd.getLibraryReferenceList().add(libraryComponentReference);
+  }
+}

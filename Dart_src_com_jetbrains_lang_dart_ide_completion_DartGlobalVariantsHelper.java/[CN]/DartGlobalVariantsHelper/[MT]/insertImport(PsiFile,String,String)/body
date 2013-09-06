@@ -1,0 +1,29 @@
+{
+  final PsiManager psiManager=context.getManager();
+  libraryRootLoop:   for (  VirtualFile libraryRoot : DartResolveUtil.findLibrary(context)) {
+    final PsiFile file=psiManager.findFile(libraryRoot);
+    if (file == null) {
+      continue;
+    }
+    final DartImportStatement[] importStatements=PsiTreeUtil.getChildrenOfType(file,DartImportStatement.class);
+    if (importStatements != null) {
+      for (      DartImportStatement importStatement : importStatements) {
+        final PsiElement importTarget=importStatement.getPathOrLibraryReference().resolve();
+        if (importTarget != null && DartResolver.resolveSimpleReference(importTarget,componentName) != null) {
+          addShowOrRemoveHide(importStatement,componentName);
+          continue libraryRootLoop;
+        }
+      }
+    }
+    final PsiElement toAdd=DartElementGenerator.createTopLevelStatementFromText(file.getProject(),"import '" + libraryId + "';");
+    if (toAdd != null) {
+      final PsiElement anchor=findAnchorForImportStatement(file,importStatements);
+      if (anchor == null) {
+        file.addBefore(toAdd,file.getFirstChild());
+      }
+ else {
+        file.addAfter(toAdd,anchor);
+      }
+    }
+  }
+}

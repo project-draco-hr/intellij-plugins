@@ -1,0 +1,22 @@
+{
+  final List<String> addedNames=ContainerUtil.skipNulls(ContainerUtil.mapNotNull(variants,new Function<DartComponentName,String>(){
+    @Override public String fun(    DartComponentName name){
+      return name.getName();
+    }
+  }
+));
+  DartComponentIndex.processAllComponents(context,new PairProcessor<String,DartComponentInfo>(){
+    @Override public boolean process(    String componentName,    DartComponentInfo info){
+      if (infoFilter == null || !infoFilter.value(info)) {
+        result.addElement(buildElement(componentName,info));
+      }
+      return true;
+    }
+  }
+,new Condition<String>(){
+    @Override public boolean value(    String componentName){
+      return addedNames.contains(componentName);
+    }
+  }
+);
+}
