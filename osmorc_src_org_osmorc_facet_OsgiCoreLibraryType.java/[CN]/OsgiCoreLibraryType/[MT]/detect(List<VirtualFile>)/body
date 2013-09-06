@@ -1,0 +1,27 @@
+{
+  if (!LibraryUtil.isClassAvailableInLibrary(roots,DETECTOR_CLASS)) {
+    return null;
+  }
+  VirtualFile jar=LibrariesHelper.getInstance().findRootByClass(roots,DETECTOR_CLASS);
+  if (jar != null && jar.getFileSystem() instanceof JarFileSystem) {
+    VirtualFile manifestFile=jar.findFileByRelativePath(JarFile.MANIFEST_NAME);
+    if (manifestFile != null) {
+      try {
+        InputStream input=manifestFile.getInputStream();
+        try {
+          String version=new Manifest(input).getMainAttributes().getValue(Constants.BUNDLE_VERSION);
+          if (version != null) {
+            Version v=new Version(version);
+            return new LibraryVersionProperties(v.getMajor() + "." + v.getMinor()+ "."+ v.getMicro());
+          }
+        }
+  finally {
+          input.close();
+        }
+      }
+ catch (      IOException ignored) {
+      }
+    }
+  }
+  return new LibraryVersionProperties(null);
+}
