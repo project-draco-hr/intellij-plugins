@@ -1,31 +1,14 @@
 {
-  if (configuration.getJarFileLocation().length() == 0) {
-    final String outputPathUrl=CompilerModuleExtension.getInstance(module).getCompilerOutputUrl();
-    StartupManager.getInstance(module.getProject()).runWhenProjectIsInitialized(new Runnable(){
-      public void run(){
-        try {
-          VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
-        }
- catch (        IOException e) {
-          return;
-        }
-        VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(module).getCompilerOutputPath();
-        if (moduleCompilerOutputPath == null) {
-          return;
-        }
-        String jarFileName=module.getName();
-        jarFileName=jarFileName.replaceAll("[\\s]","_") + ".jar";
-        OsmorcFacetConfiguration.OutputPathType outputPathType=OsmorcFacetConfiguration.OutputPathType.CompilerOutputPath;
-        final ProjectSettings projectSettings=ModuleServiceManager.getService(module,ProjectSettings.class);
-        if (projectSettings != null) {
-          String bundlesOutputPath=projectSettings.getBundlesOutputPath();
-          if (bundlesOutputPath != null && bundlesOutputPath.length() > 0) {
-            outputPathType=OsmorcFacetConfiguration.OutputPathType.OsgiOutputPath;
-          }
-        }
-        configuration.setJarFileLocation(jarFileName,outputPathType);
+  if (StringUtil.isEmpty(configuration.getJarFileLocation())) {
+    String jarFileName=module.getName().replaceAll("[\\s]","_") + ".jar";
+    OsmorcFacetConfiguration.OutputPathType outputPathType=OsmorcFacetConfiguration.OutputPathType.CompilerOutputPath;
+    ProjectSettings projectSettings=ProjectSettings.getInstance(module.getProject());
+    if (projectSettings != null) {
+      String bundlesOutputPath=projectSettings.getBundlesOutputPath();
+      if (StringUtil.isNotEmpty(bundlesOutputPath)) {
+        outputPathType=OsmorcFacetConfiguration.OutputPathType.OsgiOutputPath;
       }
     }
-);
+    configuration.setJarFileLocation(jarFileName,outputPathType);
   }
 }
