@@ -1,0 +1,47 @@
+{
+  return new JavaElementVisitor(){
+    private final BundleManager myBundleManager=ServiceManager.getService(holder.getProject(),BundleManager.class);
+    @Override public void visitReferenceElement(    PsiJavaCodeReferenceElement reference){
+      checkReference(reference);
+    }
+    @Override public void visitImportStaticReferenceElement(    PsiImportStaticReferenceElement reference){
+      checkReference(reference);
+    }
+    @Override public void visitReferenceExpression(    PsiReferenceExpression expression){
+      checkReference(expression);
+    }
+    private void checkReference(    PsiJavaCodeReferenceElement ref){
+      OsmorcFacet facet=OsmorcFacet.getInstance(ref);
+      if (facet != null && facet.getConfiguration().isManifestManuallyEdited()) {
+        PsiElement target=ref.resolve();
+        if (target instanceof PsiClass && !isAccessible((PsiClass)target,facet.getModule())) {
+          holder.registerProblem(ref,OsmorcBundle.message("PackageAccessibilityInspection.message"));
+        }
+      }
+    }
+    private boolean isAccessible(    PsiClass aClass,    Module requestorModule){
+      String packageName=((PsiJavaFile)aClass.getContainingFile()).getPackageName();
+      if (packageName.isEmpty() || packageName.startsWith("java.")) {
+        return true;
+      }
+      Module targetModule=ModuleUtilCore.findModuleForPsiElement(aClass);
+      if (targetModule == requestorModule) {
+        return true;
+      }
+      BundleManifest manifest=myBundleManager.getManifestByObject(requestorModule);
+      if (manifest != null) {
+        if (manifest.isPackageImported(packageName)) {
+          return true;
+        }
+        for (        String bundleSpec : manifest.getRequiredBundles()) {
+          BundleManifest bundle=myBundleManager.getManifestByBundleSpec(bundleSpec);
+          if (bundle != null && bundle.isPackageExported(packageName)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+  }
+;
+}
