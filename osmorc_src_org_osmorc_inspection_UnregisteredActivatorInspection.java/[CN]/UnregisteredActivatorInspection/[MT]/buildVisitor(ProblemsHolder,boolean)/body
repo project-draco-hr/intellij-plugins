@@ -1,2 +1,39 @@
 {
+  return new JavaElementVisitor(){
+    @Override public void visitClass(    PsiClass psiClass){
+      if (!psiClass.hasModifierProperty(PsiModifier.ABSTRACT)) {
+        OsmorcFacet facet=OsmorcFacet.getInstance(psiClass);
+        if (facet != null) {
+          Project project=psiClass.getProject();
+          PsiClass activator=JavaPsiFacade.getInstance(project).findClass(ACTIVATOR_CLASS,ProjectScope.getLibrariesScope(project));
+          if (activator != null && psiClass.isInheritor(activator,true)) {
+            String className=psiClass.getQualifiedName();
+            if (className != null) {
+              LocalQuickFix fix=null;
+              OsmorcFacetConfiguration configuration=facet.getConfiguration();
+              if (configuration.isManifestManuallyEdited()) {
+                BundleManager bundleManager=ServiceManager.getService(project,BundleManager.class);
+                BundleManifest manifest=bundleManager.getManifestByObject(facet.getModule());
+                if (manifest != null && !className.equals(manifest.getBundleActivator())) {
+                  fix=new RegisterInManifestQuickfix(className,manifest.getManifestFile());
+                }
+              }
+ else {
+                if (!className.equals(configuration.getBundleActivator())) {
+                  fix=new RegisterInConfigurationQuickfix(className,configuration);
+                }
+              }
+              if (fix != null) {
+                PsiIdentifier identifier=psiClass.getNameIdentifier();
+                if (identifier != null) {
+                  holder.registerProblem(identifier,OsmorcBundle.message("UnregisteredActivatorInspection.message"),fix);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+;
 }

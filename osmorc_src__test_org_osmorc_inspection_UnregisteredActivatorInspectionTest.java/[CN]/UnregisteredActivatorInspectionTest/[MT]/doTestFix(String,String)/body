@@ -1,0 +1,8 @@
+{
+  myFixture.enableInspections(new UnregisteredActivatorInspection());
+  PsiFile manifest=myFixture.addFileToProject("META-INF/MANIFEST.MF",text);
+  myFixture.configureByText("C.java","package pkg;" + "import org.osgi.framework.*;\n" + "public class <caret>C implements BundleActivator {\n"+ "  public void start(BundleContext context) throws Exception { }\n"+ "  public void stop(BundleContext context) throws Exception { }\n"+ "}");
+  IntentionAction intention=myFixture.findSingleIntention(OsmorcBundle.message("UnregisteredActivatorInspection.fix.manifest"));
+  myFixture.launchAction(intention);
+  assertEquals(expected,manifest.getText());
+}

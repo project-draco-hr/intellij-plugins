@@ -9,6 +9,9 @@
   if (OsmorcFacet.hasOsmorcFacet(module)) {
     ManifestHolder manifestHolder=myManifestHolderRegistry.getManifestHolder(module);
     boolean needsNotification=myBundleCache.updateWith(manifestHolder);
+    CommonProcessors.CollectProcessor<Library> collector=new CommonProcessors.CollectProcessor<Library>();
+    OrderEnumerator.orderEntries(module).forEachLibrary(collector);
+    needsNotification|=doReindex(collector.getResults());
     needsNotification|=myBundleCache.cleanup();
     return needsNotification;
   }

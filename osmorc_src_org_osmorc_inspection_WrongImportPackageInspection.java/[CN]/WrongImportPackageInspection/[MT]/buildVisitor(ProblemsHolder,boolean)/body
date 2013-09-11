@@ -2,16 +2,12 @@
   return new PsiElementVisitor(){
     private final BundleManager myBundleManager=ServiceManager.getService(holder.getProject(),BundleManager.class);
     @Override public void visitElement(    PsiElement element){
-      if (isImportPackageHeader(element) && OsmorcFacet.hasOsmorcFacet(element)) {
-        Header header=(Header)element;
-        for (        HeaderValue value : header.getHeaderValues()) {
-          HeaderValuePart valuePart=((Clause)value).getValue();
+      if (OsgiPsiUtil.isHeader(element,Constants.IMPORT_PACKAGE) && OsmorcFacet.hasOsmorcFacet(element)) {
+        for (        HeaderValue value : ((Header)element).getHeaderValues()) {
           String packageSpec=value.getUnwrappedText();
-          if (valuePart == null || packageSpec.indexOf('*') != -1 || packageSpec.indexOf('?') != -1) {
-            continue;
-          }
-          if (!valuePart.getText().isEmpty() && !myBundleManager.isProvided(packageSpec)) {
-            holder.registerProblem(valuePart,OsmorcBundle.message("WrongImportPackageInspection.problem.message.not-exported-package",valuePart.getUnwrappedText(),ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
+          if (!StringUtil.isEmptyOrSpaces(packageSpec) && !myBundleManager.isProvided(packageSpec)) {
+            TextRange range=OsgiPsiUtil.trimRange(value);
+            holder.registerProblem(value,range,OsmorcBundle.message("WrongImportPackageInspection.message"));
           }
         }
       }
