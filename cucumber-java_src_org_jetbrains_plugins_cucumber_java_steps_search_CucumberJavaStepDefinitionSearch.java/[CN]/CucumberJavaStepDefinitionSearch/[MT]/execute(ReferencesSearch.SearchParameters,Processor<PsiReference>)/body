@@ -1,2 +1,53 @@
 {
+  final PsiElement myElement=queryParameters.getElementToSearch();
+  if (!(myElement instanceof PsiMethod)) {
+    return true;
+  }
+  final PsiMethod method=(PsiMethod)myElement;
+  Boolean isStepDefinition=ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+    @Override public Boolean compute(){
+      return CucumberJavaUtil.isStepDefinition(method);
+    }
+  }
+);
+  if (!isStepDefinition) {
+    return true;
+  }
+  final PsiAnnotation stepAnnotation=ApplicationManager.getApplication().runReadAction(new Computable<PsiAnnotation>(){
+    @Override public PsiAnnotation compute(){
+      return CucumberJavaUtil.getCucumberStepAnnotation(method);
+    }
+  }
+);
+  final String regexp=CucumberJavaUtil.getPatternFromStepDefinition(stepAnnotation);
+  if (regexp == null) {
+    return true;
+  }
+  final String word=CucumberUtil.getTheBiggestWordToSearchByIndex(regexp);
+  if (StringUtil.isEmpty(word)) {
+    return true;
+  }
+  final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
+    public SearchScope compute(){
+      return queryParameters.getEffectiveSearchScope();
+    }
+  }
+);
+  final TextOccurenceProcessor processor=new TextOccurenceProcessor(){
+    @Override public boolean execute(    PsiElement element,    int offsetInElement){
+      PsiElement parent=element.getParent();
+      if (parent == null)       return true;
+      for (      PsiReference ref : parent.getReferences()) {
+        if (ref != null && ref.isReferenceTo(myElement)) {
+          if (!consumer.process(ref)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+  }
+;
+  short context=UsageSearchContext.IN_STRINGS | UsageSearchContext.IN_CODE;
+  return PsiSearchHelper.SERVICE.getInstance(myElement.getProject()).processElementsWithWord(processor,searchScope,word,context,true);
 }
