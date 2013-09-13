@@ -1,9 +1,10 @@
 {
-  String messagePrefix="[" + module.getName() + "] ";
+  String prefix="[" + module.getName() + "] ";
   try {
     File sourceFile=new File(VfsUtilCore.urlToPath(sourceJarUrl));
     if (!sourceFile.exists()) {
-      compileContext.addMessage(CompilerMessageCategory.WARNING,messagePrefix + "The library " + sourceFile.getPath()+ " does not exist. Please check your module settings. Ignoring missing library.",null,0,0);
+      String message="The library " + sourceFile + " does not exist. Please check your module settings. Ignoring missing library.";
+      compileContext.addMessage(CompilerMessageCategory.WARNING,prefix + message,null,0,0);
       return null;
     }
     if (sourceFile.isDirectory()) {
@@ -35,7 +36,8 @@
     }
   }
  catch (  final Exception e) {
-    compileContext.addMessage(CompilerMessageCategory.WARNING,MessageFormat.format(messagePrefix + "There was an unexpected problem when trying to bundlify {0}: {1}",sourceJarUrl,StacktraceUtil.stackTraceToString(e)),null,0,0);
+    String message=MessageFormat.format("There was an unexpected problem when trying to bundlify {0}: {1}",sourceJarUrl,ExceptionUtil.getThrowableText(e));
+    compileContext.addMessage(CompilerMessageCategory.WARNING,prefix + message,null,0,0);
   }
   return null;
 }

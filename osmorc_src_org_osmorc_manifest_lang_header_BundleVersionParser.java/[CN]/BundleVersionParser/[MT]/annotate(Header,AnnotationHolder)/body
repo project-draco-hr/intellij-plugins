@@ -1,7 +1,13 @@
 {
   HeaderValue value=header.getHeaderValue();
   if (value instanceof HeaderValuePart) {
-    myVersionParser.parseValue((HeaderValuePart)value,holder);
+    try {
+      new Version(value.getUnwrappedText());
+    }
+ catch (    IllegalArgumentException e) {
+      holder.createErrorAnnotation(OsgiPsiUtil.trimRange(value).shiftRight(value.getTextOffset()),e.getMessage());
+      return true;
+    }
   }
   return false;
 }
