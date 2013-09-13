@@ -1,0 +1,17 @@
+{
+  if (module.isDisposed()) {
+    return;
+  }
+  if (!module.getProject().equals(myProject)) {
+    LOG.warn("Someone tried to index a module that doesn't belong to my project.");
+    return;
+  }
+  if (OsmorcFacet.hasOsmorcFacet(module)) {
+    ManifestHolder manifestHolder=myManifestHolderRegistry.getManifestHolder(module);
+    myBundleCache.updateWith(manifestHolder);
+    CommonProcessors.CollectProcessor<Library> collector=new CommonProcessors.CollectProcessor<Library>();
+    OrderEnumerator.orderEntries(module).forEachLibrary(collector);
+    reindex(collector.getResults());
+    myBundleCache.cleanup();
+  }
+}

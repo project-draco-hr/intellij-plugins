@@ -23,20 +23,32 @@
   myDefaultManifestFileLocation.setEditable(true);
   myDefaultManifestFileLocation.addItem("META-INF");
   myBundleOutputPath.addActionListener(new ActionListener(){
-    public void actionPerformed(    ActionEvent e){
-      onOutputPathSelect();
+    @Override public void actionPerformed(    ActionEvent e){
+      VirtualFile preselect=LocalFileSystem.getInstance().findFileByPath(myBundleOutputPath.getText());
+      if (preselect == null)       preselect=myProject.getBaseDir();
+      VirtualFile virtualFile=FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(),myProject,preselect);
+      if (virtualFile != null) {
+        myBundleOutputPath.setText(virtualFile.getPath());
+      }
     }
   }
 );
   myApplyToAllButton.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      onApplyToAllClick();
-    }
-  }
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          for (          Module module : ModuleManager.getInstance(myProject).getModules()) {
+            OsmorcFacet facet=OsmorcFacet.getInstance(module);
+            if (facet != null) {
+              OsmorcFacetConfiguration configuration=facet.getConfiguration();
+              configuration.setJarFileLocation(configuration.getJarFileName(),OsmorcFacetConfiguration.OutputPathType.OsgiOutputPath);
+            }
+          }
+        }
+      }
 );
-  mySynchronizeNowButton.addActionListener(new ActionListener(){
-    @Override public void actionPerformed(    ActionEvent e){
-      ModuleDependencySynchronizer.resynchronizeAll(myProject);
+      String message="The output path has been applied to all OSGi facets in the current project.";
+      Messages.showInfoMessage(myProject,message,"Output Path Applied");
     }
   }
 );
