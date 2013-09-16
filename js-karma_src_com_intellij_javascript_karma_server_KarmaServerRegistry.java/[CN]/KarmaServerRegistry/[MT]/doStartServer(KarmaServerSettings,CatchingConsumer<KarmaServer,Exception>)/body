@@ -1,0 +1,38 @@
+{
+  if (myStartingServers.putIfAbsent(serverSettings,serverSettings) != null) {
+    LOG.warn(new Throwable("Unexpected subsequent karma server starting:" + serverSettings.toString()));
+    JobScheduler.getScheduler().schedule(new Runnable(){
+      @Override public void run(){
+        startServer(serverSettings,consumer);
+      }
+    }
+,100,TimeUnit.MILLISECONDS);
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      try {
+        final KarmaServer server;
+        try {
+          server=new KarmaServer(myProject,serverSettings);
+          myServers.put(serverSettings,server);
+          myServerByConfigFile.put(serverSettings.getConfigurationFilePath(),server);
+        }
+  finally {
+          myStartingServers.remove(serverSettings);
+        }
+        consumer.consume(server);
+        server.onTerminated(new KarmaServerTerminatedListener(){
+          @Override public void onTerminated(          int exitCode){
+            myServers.remove(serverSettings,server);
+            myServerByConfigFile.remove(serverSettings.getConfigurationFilePath(),server);
+          }
+        }
+);
+      }
+ catch (      Exception e) {
+        consumer.consume(e);
+      }
+    }
+  }
+);
+}

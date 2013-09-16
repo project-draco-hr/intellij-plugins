@@ -1,15 +1,13 @@
 {
-  File nodeInterpreter=new File(myNodeInterpreterPath);
-  File karmaPackageDir=new File(myKarmaPackageDirPath);
-  File configurationFile=new File(myRunSettings.getConfigPath());
+  KarmaServerSettings serverSettings=new KarmaServerSettings.Builder().setNodeInterpreterPath(myNodeInterpreterPath).setKarmaPackageDirPath(myKarmaPackageDirPath).setRunSettings(myRunSettings).build();
   KarmaServerRegistry registry=KarmaServerRegistry.getInstance(myProject);
-  KarmaServer server=registry.getServer(nodeInterpreter,karmaPackageDir,configurationFile);
+  KarmaServer server=registry.getServer(serverSettings);
   if (server != null && server.getRestarter().isRestartRequired()) {
     server.shutdownAsync();
     server=null;
   }
   if (server == null) {
-    registry.startServer(nodeInterpreter,karmaPackageDir,configurationFile,new CatchingConsumer<KarmaServer,Exception>(){
+    registry.startServer(serverSettings,new CatchingConsumer<KarmaServer,Exception>(){
       @Override public void consume(      final Exception e){
         showServerStartupError(e);
       }

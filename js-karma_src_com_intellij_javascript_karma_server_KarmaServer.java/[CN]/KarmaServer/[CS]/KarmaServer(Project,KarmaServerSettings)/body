@@ -1,0 +1,15 @@
+{
+  myServerSettings=serverSettings;
+  myKarmaJsSourcesLocator=new KarmaJsSourcesLocator(serverSettings.getKarmaPackageDir());
+  KillableColoredProcessHandler processHandler=startServer(serverSettings);
+  myProcessHashCode=System.identityHashCode(processHandler.getProcess());
+  File configurationFile=myServerSettings.getConfigurationFile();
+  myState=new KarmaServerState(this,processHandler,configurationFile);
+  myProcessOutputArchive=new ProcessOutputArchive(processHandler);
+  myWatcher=new KarmaWatcher(this);
+  registerStreamEventHandlers();
+  myProcessOutputArchive.startNotify();
+  myDisposable=new MyDisposable();
+  Disposer.register(project,myDisposable);
+  myRestarter=new KarmaServerRestarter(configurationFile,myDisposable);
+}

@@ -1,5 +1,16 @@
 {
-  String configPath=StringUtil.notNullize(JDOMExternalizer.readString(element,CONFIG_PATH));
-  configPath=FileUtil.toSystemDependentName(configPath);
-  return new KarmaRunSettings.Builder().setConfigPath(configPath).build();
+  KarmaRunSettings.Builder builder=new KarmaRunSettings.Builder();
+  String configPath=getAttrValue(element,CONFIG_FILE);
+  if (configPath == null) {
+    configPath=StringUtil.notNullize(JDOMExternalizer.readString(element,OLD_CONFIG_PATH));
+  }
+  builder.setConfigPath(FileUtil.toSystemDependentName(configPath));
+  Map<String,String> envVars=ContainerUtil.newHashMap();
+  EnvironmentVariablesComponent.readExternal(element,envVars);
+  builder.setEnvVars(envVars);
+  String passParentEnvVarsStr=getAttrValue(element,PASS_PARENT_ENV_VAR);
+  if (passParentEnvVarsStr != null) {
+    builder.setPassParentEnvVars(Boolean.parseBoolean(passParentEnvVarsStr));
+  }
+  return builder.build();
 }
