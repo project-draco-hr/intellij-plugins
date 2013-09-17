@@ -1,7 +1,7 @@
 {
   final Sdk sdk=bc.getSdk();
   if (sdk == null) {
-    errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.not.set"),DependenciesConfigurable.Location.SDK));
+    errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(Severity.ERROR,FlexBundle.message("sdk.not.set"),DependenciesConfigurable.Location.SDK));
   }
   if (sdk != null) {
     String version=sdk.getVersionString();
@@ -9,10 +9,10 @@
       version=version.substring(FlexCommonUtils.AIR_SDK_VERSION_PREFIX.length());
     }
     if (StringUtil.compareVersionNumbers(version,"0") < 0 || StringUtil.compareVersionNumbers(version,"100") > 0) {
-      errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(FlexBundle.message("sdk.version.unknown",sdk.getName()),DependenciesConfigurable.Location.SDK));
+      errorConsumer.consume(FlashProjectStructureProblem.createDependenciesProblem(Severity.ERROR,FlexBundle.message("sdk.version.unknown",sdk.getName()),DependenciesConfigurable.Location.SDK));
     }
     if (FlexSdkUtils.isAirSdkWithoutFlex(sdk) && !bc.isPureAs()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("air.sdk.requires.pure.as",sdk.getName()),FlexBCConfigurable.Location.Nature));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("air.sdk.requires.pure.as",sdk.getName()),FlexBCConfigurable.Location.Nature));
     }
   }
   InfoFromConfigFile info=InfoFromConfigFile.DEFAULT;
@@ -20,7 +20,7 @@
   if (!additionalConfigFilePath.isEmpty()) {
     final VirtualFile additionalConfigFile=LocalFileSystem.getInstance().findFileByPath(additionalConfigFilePath);
     if (additionalConfigFile == null || additionalConfigFile.isDirectory()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("additional.config.file.not.found",FileUtil.toSystemDependentName(additionalConfigFilePath)),CompilerOptionsConfigurable.Location.AdditonalConfigFile));
+      errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(Severity.ERROR,FlexBundle.message("additional.config.file.not.found",FileUtil.toSystemDependentName(additionalConfigFilePath)),CompilerOptionsConfigurable.Location.AdditonalConfigFile));
     }
     if (!bc.isTempBCForCompilation()) {
       info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(additionalConfigFilePath);
@@ -29,24 +29,24 @@
   final BuildConfigurationNature nature=bc.getNature();
   if (!nature.isLib() && info.getMainClass(module) == null && !bc.isTempBCForCompilation()) {
     if (bc.getMainClass().isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("main.class.not.set"),FlexBCConfigurable.Location.MainClass));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("main.class.not.set"),FlexBCConfigurable.Location.MainClass));
     }
  else {
       if (FlexUtils.getPathToMainClassFile(bc.getMainClass(),module).isEmpty()) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("main.class.not.found",bc.getMainClass()),FlexBCConfigurable.Location.MainClass));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("main.class.not.found",bc.getMainClass()),FlexBCConfigurable.Location.MainClass));
       }
     }
   }
   if (info.getOutputFileName() == null && info.getOutputFolderPath() == null) {
     if (FileUtil.getNameWithoutExtension(bc.getOutputFileName()).isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.name.not.set"),FlexBCConfigurable.Location.OutputFileName));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("output.file.name.not.set"),FlexBCConfigurable.Location.OutputFileName));
     }
  else {
       if (!nature.isLib() && !bc.getOutputFileName().toLowerCase().endsWith(".swf")) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swf"),FlexBCConfigurable.Location.OutputFileName));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("output.file.wrong.extension","swf"),FlexBCConfigurable.Location.OutputFileName));
       }
       if (nature.isLib() && !bc.getOutputFileName().toLowerCase().endsWith(".swc")) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.file.wrong.extension","swc"),FlexBCConfigurable.Location.OutputFileName));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("output.file.wrong.extension","swc"),FlexBCConfigurable.Location.OutputFileName));
       }
     }
     if (bc.getOutputFolder().isEmpty()) {
@@ -54,26 +54,26 @@
         errorConsumer.consume(FlashProjectStructureProblem.FlexUnitOutputFolderProblem.INSTANCE);
       }
  else {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.set"),FlexBCConfigurable.Location.OutputFolder));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("output.folder.not.set"),FlexBCConfigurable.Location.OutputFolder));
       }
     }
  else     if (!FileUtil.isAbsolute(bc.getOutputFolder())) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("output.folder.not.absolute",FileUtil.toSystemDependentName(bc.getOutputFolder())),FlexBCConfigurable.Location.OutputFolder));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("output.folder.not.absolute",FileUtil.toSystemDependentName(bc.getOutputFolder())),FlexBCConfigurable.Location.OutputFolder));
     }
   }
   if (nature.isWebPlatform() && nature.isApp() && bc.isUseHtmlWrapper()) {
     if (bc.getWrapperTemplatePath().isEmpty()) {
-      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.set"),FlexBCConfigurable.Location.HtmlTemplatePath));
+      errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("html.template.folder.not.set"),FlexBCConfigurable.Location.HtmlTemplatePath));
     }
  else {
       final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
       if (templateDir == null || !templateDir.isDirectory()) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("html.template.folder.not.found",FileUtil.toSystemDependentName(bc.getWrapperTemplatePath())),FlexBCConfigurable.Location.HtmlTemplatePath));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("html.template.folder.not.found",FileUtil.toSystemDependentName(bc.getWrapperTemplatePath())),FlexBCConfigurable.Location.HtmlTemplatePath));
       }
  else {
         final VirtualFile templateFile=templateDir.findChild(FlexCommonUtils.HTML_WRAPPER_TEMPLATE_FILE_NAME);
         if (templateFile == null) {
-          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexCommonBundle.message("no.index.template.html.file",templateDir.getPresentableUrl()),FlexBCConfigurable.Location.HtmlTemplatePath));
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexCommonBundle.message("no.index.template.html.file",templateDir.getPresentableUrl()),FlexBCConfigurable.Location.HtmlTemplatePath));
         }
  else {
           final String templateFolderPath=templateDir.getPath();
@@ -99,45 +99,45 @@
   if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
     for (    FlexBuildConfiguration.RLMInfo rlm : bc.getRLMs()) {
       if (rlm.MAIN_CLASS.isEmpty()) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.not.set"),FlexBCConfigurable.Location.RLMs));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.main.class.not.set"),FlexBCConfigurable.Location.RLMs));
       }
  else {
         if (FlexUtils.getPathToMainClassFile(rlm.MAIN_CLASS,module).isEmpty()) {
-          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.not.found",rlm.MAIN_CLASS),FlexBCConfigurable.Location.RLMs));
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.main.class.not.found",rlm.MAIN_CLASS),FlexBCConfigurable.Location.RLMs));
         }
       }
       if (bc.getMainClass().equals(rlm.MAIN_CLASS)) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.main.class.equal.to.bc.main.class",rlm.MAIN_CLASS),FlexBCConfigurable.Location.RLMs));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.main.class.equal.to.bc.main.class",rlm.MAIN_CLASS),FlexBCConfigurable.Location.RLMs));
       }
       if (bc.getOutputFileName().equals(rlm.OUTPUT_FILE)) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.equal.to.bc.output",rlm.OUTPUT_FILE),FlexBCConfigurable.Location.RLMs));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.output.equal.to.bc.output",rlm.OUTPUT_FILE),FlexBCConfigurable.Location.RLMs));
       }
       if (rlm.OUTPUT_FILE.isEmpty()) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.file.name.not.specified"),FlexBCConfigurable.Location.RLMs));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.output.file.name.not.specified"),FlexBCConfigurable.Location.RLMs));
       }
  else {
         if (!rlm.OUTPUT_FILE.toLowerCase().endsWith(".swf")) {
-          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("rlm.output.file.must.have.swf.extension"),FlexBCConfigurable.Location.RLMs));
+          errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("rlm.output.file.must.have.swf.extension"),FlexBCConfigurable.Location.RLMs));
         }
       }
     }
     for (    String cssPath : bc.getCssFilesToCompile()) {
       if (!cssPath.toLowerCase().endsWith(".css")) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("not.a.css.runtime.stylesheet",FileUtil.toSystemDependentName(cssPath)),FlexBCConfigurable.Location.RuntimeStyleSheets));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("not.a.css.runtime.stylesheet",FileUtil.toSystemDependentName(cssPath)),FlexBCConfigurable.Location.RuntimeStyleSheets));
       }
  else       if (LocalFileSystem.getInstance().findFileByPath(cssPath) == null) {
-        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(bc.getName(),FlexBundle.message("css.not.found",FileUtil.toSystemDependentName(cssPath)),FlexBCConfigurable.Location.RuntimeStyleSheets));
+        errorConsumer.consume(FlashProjectStructureProblem.createGeneralOptionProblem(Severity.ERROR,bc.getName(),FlexBundle.message("css.not.found",FileUtil.toSystemDependentName(cssPath)),FlexBCConfigurable.Location.RuntimeStyleSheets));
       }
     }
   }
   if (nature.isLib()) {
     for (    String path : bc.getCompilerOptions().getFilesToIncludeInSWC()) {
       if (LocalFileSystem.getInstance().findFileByPath(path) == null) {
-        errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(FlexBundle.message("file.to.include.in.swc.not.found",FileUtil.toSystemDependentName(path)),CompilerOptionsConfigurable.Location.FilesToIncludeInSwc));
+        errorConsumer.consume(FlashProjectStructureProblem.createCompilerOptionsProblem(Severity.ERROR,FlexBundle.message("file.to.include.in.swc.not.found",FileUtil.toSystemDependentName(path)),CompilerOptionsConfigurable.Location.FilesToIncludeInSwc));
       }
     }
   }
   if (checkPackaging) {
-    checkPackagingOptions(bc,errorConsumer);
+    checkPackagingOptions(module,bc,errorConsumer);
   }
 }
