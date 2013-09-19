@@ -1,0 +1,39 @@
+{
+  JSExpression qualifier=((JSReferenceExpressionImpl)node).getResolveQualifier();
+  if (qualifier != null) {
+    final PsiFile containingFile=node.getContainingFile();
+    JSType type=JSType.NO_TYPE;
+    boolean checkType=false;
+    if (qualifier instanceof JSReferenceExpression) {
+      ResolveResult[] results=((JSReferenceExpression)qualifier).multiResolve(false);
+      if (results.length != 0) {
+        PsiElement resultElement=results[0].getElement();
+        if (resultElement instanceof JSPackageWrapper)         return ProblemHighlightType.ERROR;
+        type=getResolveResultType(qualifier,resultElement);
+        checkType=true;
+      }
+    }
+ else {
+      type=JSResolveUtil.getExpressionJSType(qualifier,containingFile);
+      checkType=true;
+    }
+    if (checkType) {
+      if (type == JSType.NO_TYPE || type == JSType.ANY) {
+        return ProblemHighlightType.LIKE_UNKNOWN_SYMBOL;
+      }
+    }
+    JSClass jsClass=JSResolveUtil.findClassOfQualifier(qualifier,containingFile);
+    if (jsClass == null) {
+      return ProblemHighlightType.ERROR;
+    }
+    final JSAttributeList attributeList=jsClass.getAttributeList();
+    if (attributeList == null || !attributeList.hasModifier(JSAttributeList.ModifierType.DYNAMIC)) {
+      return ProblemHighlightType.ERROR;
+    }
+    final String qualifiedName=jsClass.getQualifiedName();
+    if ("Error".equals(qualifiedName) || "Date".equals(qualifiedName)) {
+      return ProblemHighlightType.GENERIC_ERROR_OR_WARNING;
+    }
+  }
+  return super.getUnresolvedReferenceHighlightType(node);
+}
