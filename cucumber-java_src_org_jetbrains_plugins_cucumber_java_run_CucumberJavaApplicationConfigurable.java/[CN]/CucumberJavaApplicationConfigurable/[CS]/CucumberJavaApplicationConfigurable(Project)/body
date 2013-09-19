@@ -3,7 +3,7 @@
   myModuleSelector=new ConfigurationModuleSelector(project,myModule.getComponent());
   ClassBrowser.createApplicationClassBrowser(project,myModuleSelector).setField(myMainClass.getComponent());
   myModuleContext=myModuleSelector.getModule();
-  ActionListener workingDirectoryActionListener=new ActionListener(){
+  final ActionListener workingDirectoryActionListener=new ActionListener(){
     public void actionPerformed(    ActionEvent e){
       FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
       fileChooserDescriptor.setTitle(ExecutionBundle.message("select.working.directory.message"));
@@ -17,12 +17,21 @@
   }
 ;
   myWorkingDirectory.getComponent().getButton().addActionListener(workingDirectoryActionListener);
-  myModule.getComponent().addActionListener(new ActionListener(){
+  final ActionListener fileToRunActionListener=new ActionListener(){
     public void actionPerformed(    ActionEvent e){
+      FileChooserDescriptor fileChooserDescriptor=FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor();
+      fileChooserDescriptor.setTitle(CucumberJavaBundle.message("run.configuration.form.choose.file.or.folder.title"));
+      fileChooserDescriptor.putUserData(LangDataKeys.MODULE_CONTEXT,myModuleContext);
+      Project project=myProject;
+      VirtualFile file=FileChooser.chooseFile(fileChooserDescriptor,myWorkingDirectory,project,null);
+      if (file != null) {
+        setFeatureOrFolder(file.getPresentableUrl());
+      }
     }
   }
-);
-  myAnchor=UIUtil.mergeComponentsWithAnchor(myMainClass,myGlue,myModule,myVmOptions,myProgramArguments,myWorkingDirectory);
+;
+  myFeatureOrFolder.getComponent().getButton().addActionListener(fileToRunActionListener);
+  myAnchor=UIUtil.mergeComponentsWithAnchor(myMainClass,myGlue,myFeatureOrFolder,myModule,myVmOptions,myProgramArguments,myWorkingDirectory);
   myProgramArguments.getComponent().setDialogCaption(CucumberJavaBundle.message("run.configuration.form.program.parameters.title"));
   myVmOptions.getComponent().setDialogCaption(CucumberJavaBundle.message("run.configuration.form.vm.options.title"));
   myGlue.getComponent().setDialogCaption(CucumberJavaBundle.message("run.configuration.form.glue.title"));
