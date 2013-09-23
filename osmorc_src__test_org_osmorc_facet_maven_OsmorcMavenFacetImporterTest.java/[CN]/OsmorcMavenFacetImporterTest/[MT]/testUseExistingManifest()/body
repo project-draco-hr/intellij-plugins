@@ -1,11 +1,8 @@
 {
-  importProject(pomContents("simple","<configuration>" + "<instructions>" + "<_include>${project.basedir}/foo/Manifest.MF</_include>"+ "</instructions>"+ "</configuration>",""));
+  String instructions="<configuration><instructions><_include>${project.basedir}/foo/Manifest.MF</_include></instructions></configuration>";
+  importProject(pomContents("simple",instructions,""));
   assertModules("simple");
-  OsmorcFacet simple=getFacet("simple");
-  OsmorcFacetConfiguration configuration=simple.getConfiguration();
-  assertNotNull(configuration);
-  assertEquals("org.osmorc.simple",configuration.getBundleSymbolicName());
-  assertFalse(configuration.isOsmorcControlsManifest());
+  OsmorcFacetConfiguration configuration=assertConfiguration(getFacet("simple"));
   assertFalse(configuration.isUseProjectDefaultManifestFileLocation());
-  assertTrue(configuration.getManifestLocation().contains("foo/Manifest.MF"));
+  assertTrue(configuration.getManifestLocation().endsWith("/foo/Manifest.MF"));
 }
