@@ -2,7 +2,12 @@
   try {
     final Collection<Pair<Module,FlexBuildConfiguration>> modulesAndBCsToCompile=FlexCompiler.getModulesAndBCsToCompile(context.getCompileScope());
     suggestParallelCompilationIfNeeded(context.getProject(),modulesAndBCsToCompile);
-    final Collection<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>> problems=FlexCompiler.getProblems(context.getCompileScope(),modulesAndBCsToCompile);
+    final Collection<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>> problems=ApplicationManager.getApplication().runReadAction(new Computable<Collection<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>>>(){
+      public Collection<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>> compute(){
+        return FlexCompiler.getProblems(context.getCompileScope(),modulesAndBCsToCompile);
+      }
+    }
+);
     if (!problems.isEmpty()) {
       reportProblems(context,problems);
       return false;
