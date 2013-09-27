@@ -1,0 +1,48 @@
+{
+  while (tokenizer.hasMoreTokens()) {
+    final String line=tokenizer.nextToken().trim();
+    final int spaceIndex=line.indexOf(' ');
+    final int commaIndex=line.indexOf(", ");
+    if (spaceIndex == -1 || commaIndex == -1) {
+      FlexDebugProcess.log("Unexpected string format:" + line);
+      continue;
+    }
+    final String id=line.substring(0,spaceIndex);
+    String fullPath=FileUtil.toSystemIndependentName(line.substring(spaceIndex + 1,commaIndex));
+    int markerIndex=fullPath.indexOf("/frameworks/projects/");
+    if (markerIndex != -1 && fullPath.indexOf("/src/",markerIndex) > 0) {
+      fullPath=myFlexDebugProcess.getAppSdkHome() + fullPath.substring(markerIndex);
+    }
+    final int nextSpaceIndex=line.indexOf(' ',commaIndex + 2);
+    final String shortName=nextSpaceIndex > 0 ? line.substring(commaIndex + 2,nextSpaceIndex) : line.substring(commaIndex);
+    int worker=0;
+    if (nextSpaceIndex > 0) {
+      if ("(Main Thread)".equals(line.substring(nextSpaceIndex + 1))) {
+        worker=0;
+      }
+ else       if (line.substring(nextSpaceIndex + 1).startsWith("(Worker ") && line.endsWith(")")) {
+        try {
+          worker=Integer.parseInt(line.substring(nextSpaceIndex + 1 + "(Worker ".length(),line.length() - 1));
+        }
+ catch (        NumberFormatException e) {
+          FlexDebugProcess.log("Unexpected string format:" + line);
+        }
+      }
+ else {
+        FlexDebugProcess.log("Unexpected string format:" + line);
+      }
+    }
+    BidirectionalMap<String,String> filePathToIdMap=myWorkerToFilePathToIdMap.get(worker);
+    if (filePathToIdMap == null) {
+      filePathToIdMap=new BidirectionalMap<String,String>();
+      myWorkerToFilePathToIdMap.put(worker,filePathToIdMap);
+    }
+    filePathToIdMap.put(fullPath,id);
+    Map<String,Collection<String>> fileNameToPaths=myWorkerToFileNameToPathsMap.get(worker);
+    if (fileNameToPaths == null) {
+      fileNameToPaths=new THashMap<String,Collection<String>>();
+      myWorkerToFileNameToPathsMap.put(worker,fileNameToPaths);
+    }
+    addToMap(fileNameToPaths,shortName,fullPath);
+  }
+}
