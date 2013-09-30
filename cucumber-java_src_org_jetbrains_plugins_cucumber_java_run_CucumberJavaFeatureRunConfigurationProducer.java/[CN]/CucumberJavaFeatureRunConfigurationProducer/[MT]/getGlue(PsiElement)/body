@@ -1,0 +1,17 @@
+{
+  final PsiFile file=element.getContainingFile();
+  if (file instanceof GherkinFile) {
+    return new NullableComputable<String>(){
+      @Nullable @Override public String compute(){
+        final Set<String> glues=new LinkedHashSet<String>();
+        final CucumberJvmExtensionPoint[] extensions=Extensions.getExtensions(CucumberJvmExtensionPoint.EP_NAME);
+        for (        CucumberJvmExtensionPoint extension : extensions) {
+          glues.addAll(extension.getGlues((GherkinFile)file,null));
+        }
+        return StringUtil.join(glues," ");
+      }
+    }
+;
+  }
+  return null;
+}

@@ -1,0 +1,50 @@
+{
+  final VirtualFile virtualFile=getFileToRun(context);
+  if (virtualFile == null) {
+    return false;
+  }
+  final Project project=configuration.getProject();
+  final PsiElement element=context.getPsiLocation();
+  if (element == null) {
+    return false;
+  }
+  final Module module=ModuleUtilCore.findModuleForFile(virtualFile,project);
+  if (module == null)   return false;
+  int testRootCount=ModuleRootManager.getInstance(module).getSourceRoots(JavaSourceRootType.TEST_SOURCE).size();
+  if (testRootCount < 2)   return false;
+  String mainClassName=null;
+  final Location location=context.getLocation();
+  if (location != null) {
+    if (LocationUtil.isJarAttached(location,CUCUMBER_1_0_MAIN_CLASS,new PsiDirectory[0])) {
+      mainClassName=CUCUMBER_1_0_MAIN_CLASS;
+    }
+ else     if (LocationUtil.isJarAttached(location,CUCUMBER_1_1_MAIN_CLASS,new PsiDirectory[0])) {
+      mainClassName=CUCUMBER_1_1_MAIN_CLASS;
+    }
+  }
+  if (mainClassName == null) {
+    return false;
+  }
+  final VirtualFile file=getFileToRun(context);
+  if (file == null) {
+    return false;
+  }
+  if (StringUtil.isEmpty(configuration.getGlue())) {
+    final NullableComputable<String> glue=getGlue(element);
+    configuration.setGlue(glue);
+  }
+  configuration.setNameFilter(getNameFilter(context));
+  configuration.setFilePath(file.getPath());
+  configuration.setProgramParameters(FORMATTER_OPTIONS);
+  if (StringUtil.isEmpty(configuration.MAIN_CLASS_NAME)) {
+    configuration.MAIN_CLASS_NAME=mainClassName;
+  }
+  if (configuration.getNameFilter() != null && configuration.getNameFilter().length() > 0) {
+    final String newProgramParameters=configuration.getProgramParameters() + " --name \"" + configuration.getNameFilter()+ "\"";
+    configuration.setProgramParameters(newProgramParameters);
+  }
+  configuration.setName(getConfigurationName(context));
+  setupConfigurationModule(context,configuration);
+  JavaRunConfigurationExtensionManager.getInstance().extendCreatedConfiguration(configuration,location);
+  return true;
+}
