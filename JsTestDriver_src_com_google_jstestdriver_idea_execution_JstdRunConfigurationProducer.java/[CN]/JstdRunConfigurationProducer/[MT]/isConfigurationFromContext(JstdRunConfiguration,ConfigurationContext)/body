@@ -1,0 +1,41 @@
+{
+  JstdRunSettings patternRunSettings=buildRunSettingsContext(context.getLocation());
+  if (patternRunSettings == null) {
+    return false;
+  }
+  JstdRunSettings candidateRunSettings=configuration.getRunSettings();
+  TestType patternTestType=patternRunSettings.getTestType();
+  if (patternTestType != candidateRunSettings.getTestType()) {
+    return false;
+  }
+  if (patternTestType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    File dir1=new File(patternRunSettings.getDirectory());
+    File dir2=new File(candidateRunSettings.getDirectory());
+    if (dir1.isDirectory() && dir2.isDirectory() && FileUtil.filesEqual(dir1,dir2)) {
+      return true;
+    }
+  }
+ else   if (patternTestType == TestType.CONFIG_FILE) {
+    File configFilePattern=new File(patternRunSettings.getConfigFile());
+    File configFileCandidate=new File(candidateRunSettings.getConfigFile());
+    if (configFilePattern.isFile() && configFileCandidate.isFile() && FileUtil.filesEqual(configFilePattern,configFileCandidate)) {
+      return true;
+    }
+  }
+ else   if (patternTestType == TestType.JS_FILE || patternTestType == TestType.TEST_CASE || patternTestType == TestType.TEST_METHOD) {
+    File patternJsFile=new File(patternRunSettings.getJsFilePath());
+    File candidateJsFile=new File(candidateRunSettings.getJsFilePath());
+    boolean eq=candidateJsFile.isFile() && FileUtil.filesEqual(patternJsFile,candidateJsFile);
+    if (patternTestType == TestType.TEST_CASE) {
+      eq=eq && patternRunSettings.getTestCaseName().equals(candidateRunSettings.getTestCaseName());
+    }
+    if (patternTestType == TestType.TEST_METHOD) {
+      eq=eq && patternRunSettings.getTestCaseName().equals(candidateRunSettings.getTestCaseName());
+      eq=eq && patternRunSettings.getTestMethodName().equals(candidateRunSettings.getTestMethodName());
+    }
+    if (eq) {
+      return true;
+    }
+  }
+  return false;
+}

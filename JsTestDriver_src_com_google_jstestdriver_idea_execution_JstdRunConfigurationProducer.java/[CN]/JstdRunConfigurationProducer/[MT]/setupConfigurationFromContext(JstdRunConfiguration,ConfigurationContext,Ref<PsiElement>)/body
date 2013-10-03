@@ -1,0 +1,29 @@
+{
+  RunConfiguration original=context.getOriginalConfiguration(null);
+  if (original != null && !ConfigurationTypeUtil.equals(original.getType(),JstdConfigurationType.getInstance())) {
+    return false;
+  }
+  Project project=configuration.getProject();
+  if (project != null) {
+    if (!JstdSettingsUtil.areJstdConfigFilesInProjectCached(project)) {
+      return false;
+    }
+  }
+  long startTimeNano=System.nanoTime();
+  @SuppressWarnings({"unchecked"}) JstdRunSettings settings=buildRunSettingsContext(context.getLocation());
+  if (settings == null) {
+    logDoneCreateConfigurationByElement(startTimeNano,"1");
+    return false;
+  }
+  if (settings.getConfigFile().isEmpty()) {
+    JstdRunSettings clonedSettings=configuration.getRunSettings();
+    JstdRunSettings.Builder builder=new JstdRunSettings.Builder(settings);
+    builder.setConfigFile(clonedSettings.getConfigFile());
+    settings=builder.build();
+  }
+  configuration.setRunSettings(settings);
+  String configurationName=configuration.resetGeneratedName();
+  configuration.setName(configurationName);
+  logDoneCreateConfigurationByElement(startTimeNano,"3");
+  return true;
+}

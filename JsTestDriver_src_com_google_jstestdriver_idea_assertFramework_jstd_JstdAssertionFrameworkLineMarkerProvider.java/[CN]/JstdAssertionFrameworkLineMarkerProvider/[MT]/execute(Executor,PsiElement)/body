@@ -5,19 +5,20 @@
     return;
   }
   DataContext dataContext=DataManager.getInstance().getDataContext(editor.getComponent());
-  JstdRuntimeConfigurationProducer jstdOriginalProducer=getJstdRuntimeConfigurationProducer();
+  RunConfigurationProducer jstdOriginalProducer=getJstdRunConfigurationProducer();
   if (jstdOriginalProducer == null) {
     return;
   }
-  Location<PsiElement> location=PsiLocation.fromPsiElement(element);
   ConfigurationContext context=ConfigurationContext.getFromContext(dataContext);
-  RuntimeConfigurationProducer producer=jstdOriginalProducer.createProducer(location,context);
   boolean created=false;
-  RunnerAndConfigurationSettings configuration=producer.findExistingConfiguration(location,context);
+  RunnerAndConfigurationSettings configuration=jstdOriginalProducer.findExistingConfiguration(context);
   if (configuration == null) {
     created=true;
-    configuration=producer.getConfiguration();
-    if (configuration == null) {
+    ConfigurationFromContext fromContext=jstdOriginalProducer.createConfigurationFromContext(context);
+    if (fromContext != null) {
+      configuration=fromContext.getConfigurationSettings();
+    }
+ else {
       return;
     }
   }
