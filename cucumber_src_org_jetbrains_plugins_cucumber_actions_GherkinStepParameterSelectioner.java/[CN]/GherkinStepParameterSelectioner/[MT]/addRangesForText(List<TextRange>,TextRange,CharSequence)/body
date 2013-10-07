@@ -6,10 +6,21 @@
     final String start=startEnd.first;
     final String end=startEnd.second;
     if (text.startsWith(start) && text.endsWith(end)) {
-      final TextRange newRange=new TextRange(startOffset + start.length(),endOffset - end.length());
+      final TextRange newRange=TextRange.create(startOffset + start.length(),endOffset - end.length());
       if (!newRange.isEmpty()) {
         result.add(newRange);
         addRangesForText(result,newRange,charSequence);
+      }
+    }
+    int startOffsetWithEdge=startOffset - start.length();
+    int endOffsetWithEdge=endOffset + end.length();
+    if (startOffsetWithEdge >= 0 && endOffsetWithEdge <= charSequence.length()) {
+      final String textWithEdges=charSequence.subSequence(startOffsetWithEdge,endOffsetWithEdge).toString();
+      if (textWithEdges.startsWith(start) && textWithEdges.endsWith(end)) {
+        final TextRange newRange=TextRange.create(startOffsetWithEdge,endOffsetWithEdge);
+        if (!newRange.isEmpty()) {
+          result.add(newRange);
+        }
       }
     }
   }

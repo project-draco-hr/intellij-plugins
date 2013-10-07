@@ -4,12 +4,18 @@
     result.addAll(super.select(e,editorText,cursorOffset,editor));
   }
   final GherkinStep step=(GherkinStep)e.getParent();
-  final CucumberStepReference reference=(CucumberStepReference)step.getReference();
-  final AbstractStepDefinition definition=reference != null ? reference.resolveToDefinition() : null;
-  if (definition != null) {
-    final List<TextRange> ranges=GherkinPsiUtil.buildParameterRanges(step,definition,step.getTextOffset() + reference.getRangeInElement().getStartOffset());
-    result.addAll(ranges);
-    result.addAll(buildAdditionalRanges(ranges,editorText));
+  final PsiReference[] references=step.getReferences();
+  for (  PsiReference reference : references) {
+    if (reference instanceof CucumberStepReference) {
+      final AbstractStepDefinition definition=((CucumberStepReference)reference).resolveToDefinition();
+      if (definition != null) {
+        final List<TextRange> ranges=GherkinPsiUtil.buildParameterRanges(step,definition,step.getTextOffset() + reference.getRangeInElement().getStartOffset());
+        if (ranges != null) {
+          result.addAll(ranges);
+          result.addAll(buildAdditionalRanges(ranges,editorText));
+        }
+      }
+    }
   }
   buildAdditionalRanges(result,editorText);
   return result;
