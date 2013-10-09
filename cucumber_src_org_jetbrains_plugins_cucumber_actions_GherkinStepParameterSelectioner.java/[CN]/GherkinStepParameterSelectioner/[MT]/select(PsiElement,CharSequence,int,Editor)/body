@@ -3,20 +3,33 @@
   if (editor.getSettings().isCamelWords()) {
     result.addAll(super.select(e,editorText,cursorOffset,editor));
   }
-  final GherkinStep step=(GherkinStep)e.getParent();
-  final PsiReference[] references=step.getReferences();
-  for (  PsiReference reference : references) {
-    if (reference instanceof CucumberStepReference) {
-      final AbstractStepDefinition definition=((CucumberStepReference)reference).resolveToDefinition();
-      if (definition != null) {
-        final List<TextRange> ranges=GherkinPsiUtil.buildParameterRanges(step,definition,step.getTextOffset() + reference.getRangeInElement().getStartOffset());
-        if (ranges != null) {
-          result.addAll(ranges);
-          result.addAll(buildAdditionalRanges(ranges,editorText));
+  final PsiElement parent=e.getParent();
+  if (parent instanceof GherkinStep) {
+    final GherkinStep step=(GherkinStep)parent;
+    final PsiReference[] references=step.getReferences();
+    for (    PsiReference reference : references) {
+      if (reference instanceof CucumberStepReference) {
+        final AbstractStepDefinition definition=((CucumberStepReference)reference).resolveToDefinition();
+        if (definition != null) {
+          final List<TextRange> ranges=GherkinPsiUtil.buildParameterRanges(step,definition,step.getTextOffset() + reference.getRangeInElement().getStartOffset());
+          if (ranges != null) {
+            result.addAll(ranges);
+            result.addAll(buildAdditionalRanges(ranges,editorText));
+          }
         }
       }
     }
+    buildAdditionalRanges(result,editorText);
   }
-  buildAdditionalRanges(result,editorText);
+ else   if (parent instanceof GherkinStepsHolder) {
+    final ASTNode stepHolderNode=parent.getNode();
+    if (stepHolderNode != null) {
+      final ASTNode keyword=stepHolderNode.findChildByType(GherkinTokenTypes.KEYWORDS);
+      if (keyword != null) {
+        result.add(TextRange.create(keyword.getTextRange().getStartOffset(),parent.getTextRange().getEndOffset()));
+      }
+    }
+    result.add(parent.getTextRange());
+  }
   return result;
 }
