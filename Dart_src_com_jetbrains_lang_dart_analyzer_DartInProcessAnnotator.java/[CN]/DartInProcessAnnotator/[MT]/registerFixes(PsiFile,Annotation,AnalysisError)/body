@@ -1,0 +1,33 @@
+{
+  List<? extends IntentionAction> fixes=Collections.emptyList();
+switch (message.getErrorCode().getType()) {
+case STATIC_WARNING:
+    final DartResolverErrorCode resolverErrorCode=DartResolverErrorCode.findError(message.getErrorCode().toString());
+  if (resolverErrorCode != null) {
+    fixes=resolverErrorCode.getFixes(psiFile,message.getOffset(),message.getMessage());
+  }
+break;
+case STATIC_TYPE_WARNING:
+case COMPILE_TIME_ERROR:
+final DartTypeErrorCode typeErrorCode=DartTypeErrorCode.findError(message.getErrorCode().toString());
+if (typeErrorCode != null) {
+fixes=typeErrorCode.getFixes(psiFile,message.getOffset(),message.getMessage());
+}
+break;
+}
+if (!fixes.isEmpty()) {
+PsiElement element=psiFile.findElementAt(message.getOffset() + message.getLength() / 2);
+while (element != null && ((annotation.getStartOffset() < element.getTextOffset()) || annotation.getEndOffset() > element.getTextRange().getEndOffset())) {
+element=element.getParent();
+}
+if (element != null && (annotation.getStartOffset() != element.getTextRange().getStartOffset() || annotation.getEndOffset() != element.getTextRange().getEndOffset())) {
+element=null;
+}
+for (IntentionAction intentionAction : fixes) {
+if (intentionAction instanceof FixAndIntentionAction) {
+((FixAndIntentionAction)intentionAction).setElement(element);
+}
+annotation.registerFix(intentionAction);
+}
+}
+}

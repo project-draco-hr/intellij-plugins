@@ -1,0 +1,35 @@
+{
+  myProject=project;
+  LocalFileSystem.getInstance().addVirtualFileListener(new VirtualFileAdapter(){
+    public void beforePropertyChange(    final VirtualFilePropertyEvent event){
+      if (VirtualFile.PROP_NAME.equals(event.getPropertyName())) {
+        fileDeleted(event);
+      }
+    }
+    public void beforeFileMovement(    final VirtualFileMoveEvent event){
+      fileDeleted(event);
+    }
+    public void fileDeleted(    final VirtualFileEvent event){
+      if (FileUtilRt.extensionEquals(event.getFileName(),DartFileType.DEFAULT_EXTENSION)) {
+        myFileToSourceMap.remove(event.getFile());
+      }
+    }
+    public void propertyChanged(    final VirtualFilePropertyEvent event){
+      if (VirtualFile.PROP_NAME.equals(event.getPropertyName())) {
+        fileCreated(event);
+      }
+    }
+    public void fileMoved(    final VirtualFileMoveEvent event){
+      fileCreated(event);
+    }
+    public void fileCopied(    final VirtualFileCopyEvent event){
+      fileCreated(event);
+    }
+    public void fileCreated(    final VirtualFileEvent event){
+      if (FileUtilRt.extensionEquals(event.getFileName(),DartFileType.DEFAULT_EXTENSION)) {
+        myCreatedFiles.add(event.getFile());
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,14 @@
+{
+  final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (virtualFile == null)   return null;
+  final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
+  if (module == null)   return null;
+  final DartSettings settings=DartSettings.getSettingsForModule(module);
+  if (settings == null)   return null;
+  final String sdkPath=settings.getSdkPath();
+  if (StringUtil.isEmptyOrSpaces(sdkPath))   return null;
+  final File sdkDir=new File(sdkPath);
+  if (!sdkDir.isDirectory())   return null;
+  final VirtualFile packagesFolder=DartResolveUtil.findPackagesFolder(psiFile);
+  return Pair.create(DartFileBasedSource.getSource(psiFile.getProject(),virtualFile),DartAnalyzerService.getInstance(psiFile.getProject()).getAnalysisContext(sdkPath,packagesFolder));
+}
