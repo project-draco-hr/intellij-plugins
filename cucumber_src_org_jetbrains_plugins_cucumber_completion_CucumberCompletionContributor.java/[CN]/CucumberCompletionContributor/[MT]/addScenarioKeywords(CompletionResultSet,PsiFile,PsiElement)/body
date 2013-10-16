@@ -1,12 +1,22 @@
 {
+  PsiElement prevElement=getPreviousElement(originalPosition);
+  if (prevElement == null) {
+    return;
+  }
   final Project project=originalFile.getProject();
   final GherkinKeywordTable table=GherkinKeywordTable.getKeywordsTable(originalFile,project);
   final List<String> keywords=new ArrayList<String>();
   if (!haveBackground(originalFile)) {
     keywords.addAll(table.getBackgroundKeywords());
   }
-  addKeywordsToResult(table.getScenarioKeywords(),result,true,SCENARIO_KEYWORD_PRIORITY);
-  addKeywordsToResult(table.getScenarioOutlineKeywords(),result,true,SCENARIO_OUTLINE_KEYWORD_PRIORITY);
+  if (prevElement.getNode().getElementType() == GherkinTokenTypes.SCENARIO_KEYWORD) {
+    result=result.withPrefixMatcher(result.getPrefixMatcher().cloneWithPrefix("Scenario " + result.getPrefixMatcher().getPrefix()));
+    addKeywordsToResult(table.getScenarioOutlineKeywords(),result,false,SCENARIO_OUTLINE_KEYWORD_PRIORITY,false);
+  }
+ else {
+    addKeywordsToResult(table.getScenarioKeywords(),result,true,SCENARIO_KEYWORD_PRIORITY,true);
+    addKeywordsToResult(table.getScenarioOutlineKeywords(),result,true,SCENARIO_OUTLINE_KEYWORD_PRIORITY,true);
+  }
   if (PsiTreeUtil.getParentOfType(originalPosition,GherkinScenarioOutlineImpl.class,GherkinExamplesBlockImpl.class) != null) {
     keywords.addAll(table.getExampleSectionKeywords());
   }
