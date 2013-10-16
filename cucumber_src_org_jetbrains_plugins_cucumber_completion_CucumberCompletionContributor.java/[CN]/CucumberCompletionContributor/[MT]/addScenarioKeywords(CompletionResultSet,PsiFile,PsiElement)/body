@@ -10,8 +10,15 @@
     keywords.addAll(table.getBackgroundKeywords());
   }
   if (prevElement.getNode().getElementType() == GherkinTokenTypes.SCENARIO_KEYWORD) {
-    result=result.withPrefixMatcher(result.getPrefixMatcher().cloneWithPrefix("Scenario " + result.getPrefixMatcher().getPrefix()));
-    addKeywordsToResult(table.getScenarioOutlineKeywords(),result,false,SCENARIO_OUTLINE_KEYWORD_PRIORITY,false);
+    String scenarioKeyword=(String)table.getScenarioKeywords().toArray()[0];
+    result=result.withPrefixMatcher(result.getPrefixMatcher().cloneWithPrefix(scenarioKeyword + " " + result.getPrefixMatcher().getPrefix()));
+    boolean haveColon=false;
+    final String elementText=originalPosition.getText();
+    final int rulezzIndex=elementText.indexOf(INTELLIJ_IDEA_RULEZZZ);
+    if (rulezzIndex >= 0) {
+      haveColon=elementText.substring(rulezzIndex + INTELLIJ_IDEA_RULEZZZ.length()).trim().startsWith(":");
+    }
+    addKeywordsToResult(table.getScenarioOutlineKeywords(),result,!haveColon,SCENARIO_OUTLINE_KEYWORD_PRIORITY,!haveColon);
   }
  else {
     addKeywordsToResult(table.getScenarioKeywords(),result,true,SCENARIO_KEYWORD_PRIORITY,true);
