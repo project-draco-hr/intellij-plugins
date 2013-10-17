@@ -1,56 +1,23 @@
 {
-  final PsiFile psiFile=CommonDataKeys.PSI_FILE.getData(e.getDataContext());
-  Module module=LangDataKeys.MODULE.getData(e.getDataContext());
-  if (!(psiFile instanceof YAMLFile) || module == null) {
-    Messages.showOkCancelDialog(e.getProject(),DartBundle.message("dart.sdk.bad.dartpub.file"),DartBundle.message("dart.warning"),DartIcons.Dart_16);
-    return;
+  final Pair<Module,VirtualFile> moduleAndPubspecYamlFile=getModuleAndPubspecYamlFile(e);
+  if (moduleAndPubspecYamlFile == null)   return;
+  File sdkRoot=getSdkRoot(moduleAndPubspecYamlFile);
+  if (sdkRoot == null) {
+    final int answer=Messages.showDialog(moduleAndPubspecYamlFile.first.getProject(),"Dart SDK is not configured",getPresentableText(),new String[]{"Configure SDK","Cancel"},0,Messages.getErrorIcon());
+    if (answer != 0)     return;
+    ShowSettingsUtil.getInstance().showSettingsDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.title"));
+    sdkRoot=getSdkRoot(moduleAndPubspecYamlFile);
+    if (sdkRoot == null)     return;
   }
-  final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile(psiFile);
-  if (virtualFile == null) {
-    return;
+  File pubFile=new File(sdkRoot,SystemInfo.isWindows ? "bin/pub.bat" : "bin/pub");
+  if (!pubFile.isFile()) {
+    final int answer=Messages.showDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.sdk.bad.dartpub.path",pubFile.getPath()),getPresentableText(),new String[]{"Configure SDK","Cancel"},0,Messages.getErrorIcon());
+    if (answer != 0)     return;
+    ShowSettingsUtil.getInstance().showSettingsDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.title"));
+    sdkRoot=getSdkRoot(moduleAndPubspecYamlFile);
+    if (sdkRoot == null)     return;
+    pubFile=new File(sdkRoot,SystemInfo.isWindows ? "bin/pub.bat" : "bin/pub");
+    if (!pubFile.isFile())     return;
   }
-  final DartSettings settings=DartSettings.getSettingsForModule(module);
-  final VirtualFile dartPub=settings == null ? null : settings.getPub();
-  if (dartPub == null) {
-    Messages.showOkCancelDialog(e.getProject(),DartBundle.message("dart.sdk.bad.dartpub.path",settings != null ? settings.getPubUrl() : ""),DartBundle.message("dart.warning"),DartIcons.Dart_16);
-    return;
-  }
-  new Task.Backgroundable(psiFile.getProject(),"Dart Pub",true){
-    public void run(    @NotNull ProgressIndicator indicator){
-      indicator.setText("Running pub manager...");
-      indicator.setFraction(0.0);
-      final GeneralCommandLine command=new GeneralCommandLine();
-      command.setExePath(dartPub.getPath());
-      command.setWorkDirectory(virtualFile.getParent().getPath());
-      command.addParameter(getPubCommandArgument());
-      command.getEnvironment().put("DART_SDK",settings.getSdkPath());
-      ApplicationManager.getApplication().invokeAndWait(new Runnable(){
-        @Override public void run(){
-          FileDocumentManager.getInstance().saveAllDocuments();
-        }
-      }
-,ModalityState.defaultModalityState());
-      try {
-        final ProcessOutput processOutput=new CapturingProcessHandler(command).runProcess();
-        LOG.debug("pub terminated with exit code: " + processOutput.getExitCode());
-        LOG.debug(processOutput.getStdout());
-        LOG.debug(processOutput.getStderr());
-        final String output=processOutput.getStdout().trim();
-        final boolean ok=isOK(output);
-        if (!ok) {
-          Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart.pub.title"),DartBundle.message("dart.pub.error",output,processOutput.getStderr()),NotificationType.WARNING));
-        }
- else {
-          Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart.pub.title"),output,NotificationType.INFORMATION));
-          virtualFile.getParent().refresh(true,false);
-        }
-      }
- catch (      ExecutionException ex) {
-        LOG.error(ex);
-        Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart.pub.title"),DartBundle.message("dart.pub.exception",ex.getMessage()),NotificationType.ERROR));
-      }
-      indicator.setFraction(1.0);
-    }
-  }
-.setCancelText("Stop").queue();
+  doExecute(moduleAndPubspecYamlFile.first,moduleAndPubspecYamlFile.second,sdkRoot.getPath(),pubFile.getPath());
 }
