@@ -1,15 +1,12 @@
 {
-  PsiElement prevElement=getPreviousElement(originalPosition);
-  if (prevElement == null) {
-    return;
-  }
   final Project project=originalFile.getProject();
   final GherkinKeywordTable table=GherkinKeywordTable.getKeywordsTable(originalFile,project);
   final List<String> keywords=new ArrayList<String>();
   if (!haveBackground(originalFile)) {
     keywords.addAll(table.getBackgroundKeywords());
   }
-  if (prevElement.getNode().getElementType() == GherkinTokenTypes.SCENARIO_KEYWORD) {
+  final PsiElement prevElement=getPreviousElement(originalPosition);
+  if (prevElement != null && prevElement.getNode().getElementType() == GherkinTokenTypes.SCENARIO_KEYWORD) {
     String scenarioKeyword=(String)table.getScenarioKeywords().toArray()[0];
     result=result.withPrefixMatcher(result.getPrefixMatcher().cloneWithPrefix(scenarioKeyword + " " + result.getPrefixMatcher().getPrefix()));
     boolean haveColon=false;
