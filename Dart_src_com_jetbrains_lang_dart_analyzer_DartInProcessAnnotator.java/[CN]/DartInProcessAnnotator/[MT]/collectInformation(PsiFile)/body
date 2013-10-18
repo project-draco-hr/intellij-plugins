@@ -9,6 +9,8 @@
   if (StringUtil.isEmptyOrSpaces(sdkPath))   return null;
   final File sdkDir=new File(sdkPath);
   if (!sdkDir.isDirectory())   return null;
+  if (FileUtil.isAncestor(sdkDir.getPath(),virtualFile.getPath(),true))   return null;
   final VirtualFile packagesFolder=DartResolveUtil.findPackagesFolder(psiFile);
+  if (packagesFolder != null && VfsUtilCore.isAncestor(packagesFolder,virtualFile,true))   return null;
   return Pair.create(DartFileBasedSource.getSource(psiFile.getProject(),virtualFile),DartAnalyzerService.getInstance(psiFile.getProject()).getAnalysisContext(sdkPath,packagesFolder));
 }
