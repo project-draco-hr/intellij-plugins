@@ -1,7 +1,15 @@
 {
-  return new TreeBasedStructureViewBuilder(){
-    @NotNull @Override public StructureViewModel createStructureViewModel(    @Nullable Editor editor){
-      return new HbStructureViewModel((HbPsiFile)psiFile,editor);
+  return new TemplateLanguageStructureViewBuilder(psiFile){
+    @Override protected StructureViewComposite.StructureViewDescriptor createMainView(    FileEditor fileEditor,    PsiFile mainFile){
+      if (!psiFile.isValid())       return null;
+      final StructureViewBuilder builder=new TreeBasedStructureViewBuilder(){
+        @NotNull @Override public StructureViewModel createStructureViewModel(        @Nullable Editor editor){
+          return new HbStructureViewModel((HbPsiFile)psiFile,editor);
+        }
+      }
+;
+      StructureView structureView=builder.createStructureView(fileEditor,psiFile.getProject());
+      return new StructureViewComposite.StructureViewDescriptor(HbLanguage.INSTANCE.getDisplayName(),structureView,HbFileType.INSTANCE.getIcon());
     }
   }
 ;
