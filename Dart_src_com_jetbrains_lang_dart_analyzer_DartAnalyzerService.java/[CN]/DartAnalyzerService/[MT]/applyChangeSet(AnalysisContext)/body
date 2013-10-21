@@ -1,16 +1,7 @@
 {
   final ChangeSet changeSet=new ChangeSet();
-  for (  final Source source : context.getLibrarySources()) {
-    if (source instanceof DartFileBasedSource) {
-      if (!source.exists() || !myFileToSourceMap.containsKey(((DartFileBasedSource)source).getFile())) {
-        changeSet.removed(source);
-        continue;
-      }
-      if (((DartFileBasedSource)source).isOutOfDate()) {
-        changeSet.changed(source);
-      }
-    }
-  }
+  handleDeletedAndOutOfDateSources(changeSet,context.getLibrarySources());
+  handleDeletedAndOutOfDateSources(changeSet,context.getHtmlSources());
 synchronized (myCreatedFiles) {
     for (    VirtualFile file : myCreatedFiles) {
       changeSet.added(DartFileBasedSource.getSource(myProject,file));
