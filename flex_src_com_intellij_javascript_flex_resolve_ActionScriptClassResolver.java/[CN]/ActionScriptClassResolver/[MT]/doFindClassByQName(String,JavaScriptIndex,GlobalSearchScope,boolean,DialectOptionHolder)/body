@@ -1,0 +1,55 @@
+{
+  if (VECTOR_CLASS_NAME.equals(link)) {
+    link=JSResolveUtil.VECTOR$OBJECT_TYPE_NAME;
+  }
+  Project project=index.getProject();
+  final PsiElement[] result=new PsiElement[1];
+  boolean clazzShouldBeTakenFromOurLibrary=OBJECT_CLASS_NAME.equals(link) || "Arguments".equals(link);
+  if (clazzShouldBeTakenFromOurLibrary && !(searchScope instanceof AdditionalIndexedRootsScope)) {
+    searchScope=new AdditionalIndexedRootsScope(searchScope,JSIndexedRootProvider.class);
+  }
+  final Collection<JSQualifiedNamedElement> candidates=StubIndex.getInstance().get(JSQualifiedElementIndex.KEY,link.hashCode(),project,searchScope);
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  PsiElement preferredResult=null;
+  long preferredResultTimestamp=0;
+  for (  Object _clazz : candidates) {
+    if (!(_clazz instanceof JSQualifiedNamedElement))     continue;
+    JSQualifiedNamedElement clazz=(JSQualifiedNamedElement)_clazz;
+    if (link.equals(clazz.getQualifiedName())) {
+      PsiFile file=clazz.getContainingFile();
+      if (!file.getLanguage().isKindOf(JavaScriptSupportLoader.ECMA_SCRIPT_L4))       continue;
+      VirtualFile vFile=file.getVirtualFile();
+      if (clazzShouldBeTakenFromOurLibrary && !JavaScriptIndex.ECMASCRIPT_JS2.equals(vFile.getName())) {
+        continue;
+      }
+      if (!allowFileLocalSymbols && JSResolveUtil.isFileLocalSymbol(clazz)) {
+        continue;
+      }
+      result[0]=clazz;
+      if (projectFileIndex.isInSourceContent(vFile)) {
+        preferredResult=clazz;
+        break;
+      }
+      if (preferredResult == null) {
+        preferredResult=clazz;
+      }
+ else {
+        if (preferredResultTimestamp == 0) {
+          preferredResultTimestamp=getResolveResultTimestamp(preferredResult);
+        }
+        final long classTimestamp=getResolveResultTimestamp(clazz);
+        if (classTimestamp > preferredResultTimestamp) {
+          preferredResult=clazz;
+          preferredResultTimestamp=classTimestamp;
+        }
+      }
+    }
+  }
+  if (result[0] == null) {
+    String className=link.substring(link.lastIndexOf('.') + 1);
+    if (className.length() > 0 && !isBuiltInClassName(className) && (Character.isLetter(className.charAt(0)) || '_' == className.charAt(0))) {
+      result[0]=findClassByQNameViaHelper(link,project,className,searchScope);
+    }
+  }
+  return preferredResult != null ? preferredResult : result[0];
+}
