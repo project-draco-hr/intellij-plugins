@@ -1,0 +1,17 @@
+{
+  final String sdkPath=DartSettingsUtil.getSettings().getSdkPath();
+  if (StringUtil.isEmptyOrSpaces(sdkPath)) {
+    throwRuntimeConfigurationError(project,DartBundle.message("dart.sdk.not.configured"));
+  }
+  final File sdkDir=new File(sdkPath);
+  if (!sdkDir.isDirectory()) {
+    throwRuntimeConfigurationError(project,DartBundle.message("dart.sdk.bad.path",sdkPath));
+  }
+  final File dartDir=sdkDir.getParentFile();
+  final String relativePath=SystemInfo.isMac ? "chromium/Chromium.app" : SystemInfo.isWindows ? "chromium/chrome.exe" : "chromium/chrome";
+  final File dartiumPath=new File(dartDir,relativePath);
+  if (!dartiumPath.exists()) {
+    throwRuntimeConfigurationError(project,DartBundle.message("dartium.not.found",dartiumPath.getPath()));
+  }
+  return FileUtil.toSystemIndependentName(dartiumPath.getPath());
+}
