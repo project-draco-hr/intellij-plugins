@@ -1,0 +1,16 @@
+{
+  final PsiFile psiFile=CommonDataKeys.PSI_FILE.getData(e.getDataContext());
+  if (!(psiFile instanceof XmlFile))   return;
+  final String dartiumPath=DartSettingsUtil.getDartiumPath();
+  if (dartiumPath == null || !isHtmlFileWithDartScript(((XmlFile)psiFile)))   return;
+  try {
+    Url url=WebBrowserService.getInstance().getUrlToOpen(psiFile,(e.getModifiers() & InputEvent.SHIFT_MASK) != 0);
+    if (url != null) {
+      FileDocumentManager.getInstance().saveAllDocuments();
+      UrlOpener.launchBrowser(url.toExternalForm(),DartSettingsUtil.DARTIUM);
+    }
+  }
+ catch (  WebBrowserUrlProvider.BrowserException e1) {
+    Messages.showErrorDialog(e1.getMessage(),XmlBundle.message("browser.error"));
+  }
+}
