@@ -4,9 +4,11 @@
   }
   String psiElementType=parent instanceof JSReferenceExpression || JSResolveUtil.isExprInStrictTypeContext(expression) || PsiTreeUtil.getChildOfType(expression,JSE4XNamespaceReference.class) != null || parent instanceof JSCallExpression ? ((JSClass)resolveResult).getQualifiedName() : "Class";
   psiElementType=ResolveProcessor.fixGenericTypeName(psiElementType);
+  JSTypeSource source=JSTypeSourceFactory.createTypeSource(expression);
+  JSType type=JSNamedType.createType(psiElementType,source,JSNamedType.StaticOrInstance.UNKNOWN);
   if (VECTOR_CLASS_NAME.equals(psiElementType)) {
-    psiElementType=JSImportHandlingUtil.resolveTypeName(expression.getText(),expression);
+    type=JSTypeUtils.createType(JSImportHandlingUtil.resolveTypeName(expression.getText(),expression),source);
   }
   myCallExpressionsToApply.pollLast();
-  addType(psiElementType,resolveResult);
+  addType(type,resolveResult);
 }

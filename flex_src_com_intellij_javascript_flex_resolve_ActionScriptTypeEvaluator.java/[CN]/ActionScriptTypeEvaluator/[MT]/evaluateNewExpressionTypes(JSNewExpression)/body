@@ -2,10 +2,13 @@
   JSExpression methodExpr=newExpression.getMethodExpression();
   if (methodExpr != null) {
     if (methodExpr instanceof JSArrayLiteralExpression) {
-      String type=VECTOR_CLASS_NAME;
+      JSTypeSource source=JSTypeSourceFactory.createTypeSource(methodExpr);
+      JSType type=JSNamedType.createType(VECTOR_CLASS_NAME,source,JSNamedType.StaticOrInstance.INSTANCE);
       PsiElement arrayInitializingType=newExpression.getArrayInitializingType();
       if (arrayInitializingType != null) {
-        type+=".<" + JSImportHandlingUtil.resolveTypeName(arrayInitializingType.getText(),newExpression) + ">";
+        JSType argType=JSNamedType.createType(JSImportHandlingUtil.resolveTypeName(arrayInitializingType.getText(),newExpression),source,JSNamedType.StaticOrInstance.INSTANCE);
+        type=new JSGenericTypeImpl(source,type);
+        ((JSGenericTypeImpl)type).addGenericArgument(argType);
       }
       addType(type,methodExpr);
     }
@@ -33,7 +36,7 @@
           text=JSImportHandlingUtil.resolveTypeName(text,methodExpr);
         }
       }
-      addType(JSTypeUtils.createType(text,JSTypeSourceFactory.createTypeSource(methodExpr,false,JSTypeSource.StaticOrInstance.INSTANCE)),methodExpr);
+      addType(JSTypeUtils.createType(text,JSTypeSourceFactory.createTypeSource(methodExpr,false)),methodExpr);
     }
   }
 }

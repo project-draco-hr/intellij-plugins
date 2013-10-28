@@ -10,7 +10,16 @@
       final PsiElement arrayClass=ActionScriptClassResolver.findClassByQNameStatic(ARRAY_CLASS_NAME,xmlToken);
       if (arrayClass != null) {
         final String arrayType=new BaseJSSymbolProcessor.TagContextBuilder(resolveResult,null).typeName;
-        addType(arrayType == null ? ARRAY_CLASS_NAME : arrayType + "[]",arrayClass);
+        JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
+        JSType type;
+        if (arrayType != null) {
+          JSType baseType=JSNamedType.createType(arrayType,source,JSNamedType.StaticOrInstance.INSTANCE);
+          type=new JSArrayTypeImpl(baseType,source);
+        }
+ else {
+          type=new JSPrimitiveArrayType(source,JSNamedType.StaticOrInstance.INSTANCE);
+        }
+        addType(type,arrayClass);
       }
     }
  else {
