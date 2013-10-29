@@ -6,10 +6,10 @@
   FileDocumentManager.getInstance().saveAllDocuments();
   final JSDebugEngine<Connection> debugEngine=debugBrowserInfo.getDebugEngine();
   if (!debugEngine.prepareDebugger(project))   return null;
-  final String url;
+  final Url url;
   final Connection connection=debugEngine.openConnection(false);
   if (debugEngine.getBrowserFamily().equals(BrowsersConfiguration.BrowserFamily.CHROME)) {
-    url="http://127.0.0.1:" + JstdToolWindowPanel.serverPort + debugBrowserInfo.getCapturedBrowserUrl();
+    url=Urls.newHttpUrl("127.0.0.1:" + JstdToolWindowPanel.serverPort,debugBrowserInfo.getCapturedBrowserUrl());
   }
  else {
     url=null;
@@ -19,14 +19,14 @@
   debugBrowserInfo.fixIfChrome(executionResult.getProcessHandler());
   final RemoteDebuggingFileFinder fileFinder=new JstdDebuggableFileFinderProvider(new File(runConfiguration.getRunSettings().getConfigFile())).provideFileFinder();
   XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
-    @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
+    @Override @NotNull public XDebugProcess start(    @NotNull XDebugSession session){
       JSDebugProcess process=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult);
       process.setElementsInspectorEnabled(false);
       return process;
     }
   }
 );
-  ((JSDebugProcess)session.getDebugProcess()).getConnection().queueRequest(new Runnable(){
+  ((JSDebugProcess)session.getDebugProcess()).getConnection().executeOnStart(new Runnable(){
     @Override public void run(){
       resumeJstdClientRunning(executionResult.getProcessHandler());
     }
