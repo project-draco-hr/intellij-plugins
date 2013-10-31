@@ -2,7 +2,16 @@
   final int i=myResult.indexOf(OBJECT_MARKER);
   if (i == -1)   super.computeChildren(node);
   final String typeFromFlexValueResult=getTypeAndAdditionalInfo(myResult).first;
-  final FlexStackFrame.EvaluateCommand command=myFlexStackFrame.new EvaluateCommand(referenceObjectBase(i,OBJECT_MARKER),null){
+  final String expression;
+  try {
+    expression=referenceObjectBase(i,OBJECT_MARKER);
+  }
+ catch (  StringIndexOutOfBoundsException e) {
+    FlexDebugProcess.log(new Exception(myResult,e));
+    node.addChildren(XValueChildrenList.EMPTY,true);
+    return;
+  }
+  final FlexStackFrame.EvaluateCommand command=myFlexStackFrame.new EvaluateCommand(expression,null){
     @Override CommandOutputProcessingMode doOnTextAvailable(    @NonNls final String resultS){
       StringTokenizer tokenizer=new StringTokenizer(resultS,"\r\n");
       tokenizer.nextToken();
