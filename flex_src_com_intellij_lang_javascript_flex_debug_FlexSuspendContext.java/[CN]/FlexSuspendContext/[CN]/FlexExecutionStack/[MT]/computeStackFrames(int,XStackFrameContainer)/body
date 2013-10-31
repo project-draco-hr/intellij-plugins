@@ -1,12 +1,13 @@
 {
-  if (myFrames != null) {
-    processFrames(myFrames,container,frameIndex);
+  if (myAprioriKnownFrames != null) {
+    container.addStackFrames(myAprioriKnownFrames.subList(frameIndex,myAprioriKnownFrames.size()),true);
   }
  else {
     myTopFrame.getDebugProcess().sendCommand(new DebuggerCommand("bt",CommandOutputProcessingType.SPECIAL_PROCESSING){
       @Override CommandOutputProcessingMode onTextAvailable(      @NonNls final String s){
         if (container.isObsolete())         return CommandOutputProcessingMode.DONE;
-        processFrames(splitStackFrames(s),container,frameIndex);
+        final List<XStackFrame> frames=getFrames(splitStackFrames(s));
+        container.addStackFrames(frames.subList(frameIndex,frames.size()),true);
         return CommandOutputProcessingMode.DONE;
       }
     }
