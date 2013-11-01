@@ -1,12 +1,12 @@
 {
   final Task.Backgroundable task=new Task.Backgroundable(module.getProject(),getPresentableText(),true){
     public void run(    @NotNull ProgressIndicator indicator){
-      indicator.setText("Running pub manager...");
+      indicator.setText(DartBundle.message("dart.pub.0.in.progress",getPubCommand()));
       indicator.setIndeterminate(true);
       final GeneralCommandLine command=new GeneralCommandLine();
       command.setExePath(pubPath);
       command.setWorkDirectory(pubspecYamlFile.getParent().getPath());
-      command.addParameter(getPubCommandArgument());
+      command.addParameter(getPubCommand());
       command.getEnvironment().put("DART_SDK",sdkPath);
       ApplicationManager.getApplication().invokeAndWait(new Runnable(){
         @Override public void run(){
@@ -16,17 +16,15 @@
 ,ModalityState.defaultModalityState());
       try {
         final ProcessOutput processOutput=new CapturingProcessHandler(command).runProcess();
-        LOG.debug("pub terminated with exit code: " + processOutput.getExitCode());
-        LOG.debug(processOutput.getStdout());
-        LOG.debug(processOutput.getStderr());
-        final String output=processOutput.getStdout().trim();
-        if (output.contains(getSuccessOutputMessage())) {
-          Notifications.Bus.notify(new Notification(GROUP_DISPLAY_ID,getPresentableText(),getSuccessOutputMessage().replace('!','.'),NotificationType.INFORMATION));
-          pubspecYamlFile.getParent().refresh(true,true);
+        final String err=processOutput.getStderr().trim();
+        LOG.debug("pub " + getPubCommand() + ", exit code: "+ processOutput.getExitCode()+ ", err:\n"+ err+ "\nout:\n"+ processOutput.getStdout());
+        if (err.isEmpty()) {
+          Notifications.Bus.notify(new Notification(GROUP_DISPLAY_ID,getPresentableText(),getSuccessMessage(),NotificationType.INFORMATION));
         }
  else {
-          Notifications.Bus.notify(new Notification(GROUP_DISPLAY_ID,getPresentableText(),DartBundle.message("dart.pub.error",output,processOutput.getStderr()),NotificationType.ERROR));
+          Notifications.Bus.notify(new Notification(GROUP_DISPLAY_ID,getPresentableText(),err,NotificationType.ERROR));
         }
+        pubspecYamlFile.getParent().refresh(true,true);
       }
  catch (      ExecutionException ex) {
         LOG.error(ex);
