@@ -2,24 +2,27 @@
   myProject=project;
   myPathChooser.getButton().addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      final FileChooserDescriptor descriptor=new FileChooserDescriptor(false,true,false,false,false,false);
-      final VirtualFile file=FileChooser.chooseFile(descriptor,myMainPanel,null,null);
-      if (file != null && getExecutablePathByFolderPath(file.getPath(),"dart") == null) {
-        Messages.showOkCancelDialog(myProject,DartBundle.message("dart.sdk.bad.home.path.to.dartvm"),DartBundle.message("dart.sdk.name"),DartIcons.Dart_16);
-      }
- else       if (file != null && getExecutablePathByFolderPath(file.getPath(),"dart") != null) {
-        myPathChooser.setText(FileUtil.toSystemDependentName(file.getPath()));
-        updateUI();
-        if (!SystemInfo.isWindows && getSettings().getAnalyzer() == null) {
-          Messages.showErrorDialog(myProject,DartBundle.message("dart.sdk.bad.analyzer.path",getSettings().getAnalyzerUrl()),DartBundle.message("dart.warning"));
+      FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(),null,myMainPanel,null,new ChooseFileHandler(){
+        @Override public void consume(        @NotNull VirtualFile file){
+          if (getExecutablePathByFolderPath(file.getPath(),"dart") == null) {
+            Messages.showOkCancelDialog(myProject,DartBundle.message("dart.sdk.bad.home.path.to.dartvm"),DartBundle.message("dart.sdk.name"),DartIcons.Dart_16);
+          }
+ else           if (getExecutablePathByFolderPath(file.getPath(),"dart") != null) {
+            myPathChooser.setText(FileUtil.toSystemDependentName(file.getPath()));
+            updateUI();
+            if (!SystemInfo.isWindows && getSettings().getAnalyzer() == null) {
+              Messages.showErrorDialog(myProject,DartBundle.message("dart.sdk.bad.analyzer.path",getSettings().getAnalyzerUrl()),DartBundle.message("dart.warning"));
+            }
+          }
         }
       }
+);
     }
   }
 );
   mySetupScopeLabel.addHyperlinkListener(new HyperlinkListener(){
     @Override public void hyperlinkUpdate(    HyperlinkEvent e){
-      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && DartSettingsUtil.isDartSDKConfigured(DartSettingsUI.this.myProject)) {
+      if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && DartSettingsUtil.isDartSDKConfigured(myProject)) {
         JSLibraryManager libraryManager=ServiceManager.getService(myProject,JSLibraryManager.class);
         final JSLibraryMappings mappings=ServiceManager.getService(project,JSLibraryMappings.class);
         ShowSettingsUtil.getInstance().editConfigurable(project,new ScriptingContextsConfigurable(project,mappings));
@@ -27,7 +30,7 @@
         libraryManager.commitChanges();
         writeToken.finish();
       }
- else       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && !DartSettingsUtil.isDartSDKConfigured(DartSettingsUI.this.myProject) && isDartSDKPathValid()) {
+ else       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && !DartSettingsUtil.isDartSDKConfigured(myProject) && isDartSDKPathValid()) {
         updateOrCreateDartLibrary();
         updateUI();
       }
