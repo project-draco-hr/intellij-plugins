@@ -1,12 +1,13 @@
 {
-  VirtualFile packagesFolder=DartResolveUtil.findPackagesFolder(this);
   VirtualFile file=DartResolveUtil.getRealVirtualFile(getContainingFile());
-  if (packagesFolder == null || file == null) {
+  VirtualFile parentFile=file == null ? null : file.getParent();
+  VirtualFile packagesFolder=DartResolveUtil.getDartPackagesFolder(getProject(),file);
+  if (packagesFolder == null || parentFile == null) {
     return PsiReference.EMPTY_ARRAY;
   }
-  String prefix=FileUtil.getRelativePath(file.getParent().getPath(),packagesFolder.getPath(),'/');
+  String prefix=FileUtil.getRelativePath(parentFile.getPath(),packagesFolder.getPath(),'/');
   if (prefix == null) {
-    return null;
+    return PsiReference.EMPTY_ARRAY;
   }
   prefix+="/";
   int shift=startIndex - prefix.length();

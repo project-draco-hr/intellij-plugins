@@ -1,0 +1,26 @@
+{
+  final VirtualFile firstItem=ContainerUtil.getFirstItem(foldersToExclude);
+  if (firstItem == null)   return;
+  final VirtualFile contentRoot=ProjectRootManager.getInstance(module.getProject()).getFileIndex().getContentRootForFile(firstItem);
+  if (contentRoot == null)   return;
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+      try {
+        for (        final ContentEntry contentEntry : modifiableModel.getContentEntries()) {
+          if (contentEntry.getFile() == contentRoot) {
+            for (            VirtualFile packagesFolder : foldersToExclude) {
+              contentEntry.addExcludeFolder(packagesFolder);
+            }
+            break;
+          }
+        }
+        modifiableModel.commit();
+      }
+ catch (      Exception e) {
+        modifiableModel.dispose();
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,12 @@
+{
+  if (project == null || file == null)   return null;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  VirtualFile parent=file;
+  while ((parent=parent.getParent()) != null && fileIndex.isInContent(parent)) {
+    if (parent.findChild("pubspec.yaml") != null) {
+      final VirtualFile packagesFolder=parent.findChild("packages");
+      return packagesFolder != null && packagesFolder.isDirectory() ? packagesFolder : null;
+    }
+  }
+  return null;
+}
