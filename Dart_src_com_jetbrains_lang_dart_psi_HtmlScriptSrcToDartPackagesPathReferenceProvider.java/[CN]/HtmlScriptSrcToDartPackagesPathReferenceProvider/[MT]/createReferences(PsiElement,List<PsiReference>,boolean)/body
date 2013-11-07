@@ -1,0 +1,27 @@
+{
+  if (!(psiElement instanceof XmlAttributeValue))   return false;
+  final PsiElement parent=psiElement.getParent();
+  if (!(parent instanceof XmlAttribute) || !"src".equalsIgnoreCase(((XmlAttribute)parent).getName()))   return false;
+  final XmlTag tag=(XmlTag)parent.getParent();
+  if (tag == null || !"script".equalsIgnoreCase(tag.getName()))   return false;
+  final TextRange range=ElementManipulators.getValueTextRange(psiElement);
+  int offset=range.getStartOffset();
+  int endOffset=range.getEndOffset();
+  final String elementText=psiElement.getText();
+  final String text=elementText.substring(offset,endOffset);
+  if (!text.trim().startsWith("packages/"))   return false;
+  FileReferenceSet set=new FileReferenceSet(text,psiElement,offset,null,true,false,null);
+  set.addCustomization(FileReferenceSet.DEFAULT_PATH_EVALUATOR_OPTION,new Function<PsiFile,Collection<PsiFileSystemItem>>(){
+    public Collection<PsiFileSystemItem> fun(    final PsiFile psiFile){
+      final VirtualFile file=DartResolveUtil.getRealVirtualFile(psiFile);
+      final VirtualFile packagesFolder=DartResolveUtil.getDartPackagesFolder(psiFile.getProject(),file);
+      final VirtualFile parentFolder=packagesFolder == null ? null : packagesFolder.getParent();
+      final PsiFileSystemItem psiDirectory=parentFolder == null ? null : PsiManager.getInstance(psiFile.getProject()).findDirectory(parentFolder);
+      return psiDirectory != null ? Collections.singletonList(psiDirectory) : null;
+    }
+  }
+);
+  final FileReference[] allReferences=set.getAllReferences();
+  Collections.addAll(references,allReferences);
+  return allReferences.length > 0;
+}
