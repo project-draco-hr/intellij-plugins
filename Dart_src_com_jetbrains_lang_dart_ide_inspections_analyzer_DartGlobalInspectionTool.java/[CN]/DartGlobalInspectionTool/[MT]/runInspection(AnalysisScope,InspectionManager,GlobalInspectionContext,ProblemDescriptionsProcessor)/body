@@ -5,9 +5,11 @@
   }
   ApplicationManager.getApplication().runReadAction(new Runnable(){
     @Override public void run(){
-      for (      List<AnalyzerMessage> messageList : inspectionContext.getLibraryRoot2Errors().values()) {
-        for (        AnalyzerMessage message : messageList) {
-          processMessage(message,globalContext,manager,problemDescriptionsProcessor);
+      for (      Map.Entry<VirtualFile,AnalysisError[]> entry : inspectionContext.getLibraryRoot2Errors().entrySet()) {
+        final VirtualFile file=entry.getKey();
+        final AnalysisError[] analysisErrors=entry.getValue();
+        for (        AnalysisError analysisError : analysisErrors) {
+          processMessage(file,analysisError,globalContext,manager,problemDescriptionsProcessor);
         }
       }
     }

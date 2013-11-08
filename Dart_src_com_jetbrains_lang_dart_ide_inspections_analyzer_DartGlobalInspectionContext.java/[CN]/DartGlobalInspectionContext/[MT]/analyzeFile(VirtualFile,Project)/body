@@ -1,0 +1,18 @@
+{
+  final DartInProcessAnnotator annotator=new DartInProcessAnnotator();
+  final Pair<DartFileBasedSource,AnalysisContext> sourceAndContext=ApplicationManager.getApplication().runReadAction(new NullableComputable<Pair<DartFileBasedSource,AnalysisContext>>(){
+    @Nullable public Pair<DartFileBasedSource,AnalysisContext> compute(){
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      if (psiFile == null)       return null;
+      return annotator.collectInformation(psiFile);
+    }
+  }
+);
+  if (sourceAndContext == null) {
+    return;
+  }
+  setIndicatorText("Analyzing " + virtualFile.getName() + "...");
+  final AnalysisContext analysisContext=annotator.doAnnotate(sourceAndContext);
+  if (analysisContext == null)   return;
+  libraryRoot2Errors.put(virtualFile,analysisContext.getErrors(DartFileBasedSource.getSource(project,virtualFile)).getErrors());
+}

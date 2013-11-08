@@ -1,0 +1,12 @@
+{
+  final int startOffset=analysisError.getOffset();
+  final TextRange textRange=new TextRange(startOffset,startOffset + analysisError.getLength());
+  PsiElement element=psiFile.findElementAt(startOffset + analysisError.getLength() / 2);
+  while (element != null && textRange.getStartOffset() < element.getTextOffset()) {
+    element=element.getParent();
+  }
+  if (element != null && textRange.equals(element.getTextRange())) {
+    return computeProblemDescriptor(manager,analysisError,element);
+  }
+  return computeProblemDescriptor(manager,analysisError,psiFile,textRange);
+}
