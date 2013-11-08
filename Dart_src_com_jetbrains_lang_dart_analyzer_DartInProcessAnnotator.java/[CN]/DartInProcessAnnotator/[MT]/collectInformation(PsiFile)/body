@@ -1,7 +1,7 @@
 {
   final Project project=psiFile.getProject();
-  final VirtualFile annotatetFile=DartResolveUtil.getRealVirtualFile(psiFile);
-  if (annotatetFile == null)   return null;
+  final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (annotatedFile == null)   return null;
   final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
   if (module == null)   return null;
   final DartSettings settings=DartSettings.getSettingsForModule(module);
@@ -11,10 +11,10 @@
   final File sdkDir=new File(sdkPath);
   if (!sdkDir.isDirectory())   return null;
   if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
-  if (FileUtil.isAncestor(sdkDir.getPath(),annotatetFile.getPath(),true))   return null;
-  final VirtualFile packagesFolder=DartResolveUtil.getDartPackagesFolder(project,annotatetFile);
-  if (packagesFolder != null && VfsUtilCore.isAncestor(packagesFolder,annotatetFile,true))   return null;
+  if (FileUtil.isAncestor(sdkDir.getPath(),annotatedFile.getPath(),true))   return null;
+  final VirtualFile packagesFolder=DartResolveUtil.getDartPackagesFolder(project,annotatedFile);
+  if (packagesFolder != null && VfsUtilCore.isAncestor(packagesFolder,annotatedFile,true))   return null;
   final List<VirtualFile> libraries=DartResolveUtil.findLibrary(psiFile,GlobalSearchScope.projectScope(project));
-  final VirtualFile fileToAnalyze=libraries.isEmpty() || libraries.contains(annotatetFile) ? annotatetFile : libraries.get(0);
-  return Pair.create(DartFileBasedSource.getSource(project,fileToAnalyze),DartAnalyzerService.getInstance(project).getAnalysisContext(annotatetFile,sdkPath,packagesFolder));
+  final VirtualFile fileToAnalyze=libraries.isEmpty() || libraries.contains(annotatedFile) ? annotatedFile : libraries.get(0);
+  return Pair.create(DartFileBasedSource.getSource(project,fileToAnalyze),DartAnalyzerService.getInstance(project).getAnalysisContext(annotatedFile,sdkPath,packagesFolder));
 }
