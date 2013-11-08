@@ -1,2 +1,57 @@
 {
+  final PsiFile psiFile=CommonDataKeys.PSI_FILE.getData(e.getDataContext());
+  if (!(psiFile instanceof DartFile)) {
+    return;
+  }
+  VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (virtualFile == null) {
+    return;
+  }
+  final DartSettings settings=DartSettingsUtil.getSettings();
+  final VirtualFile dart2js=settings.getDart2JS();
+  if (dart2js == null) {
+    Messages.showOkCancelDialog(e.getProject(),DartBundle.message("dart.sdk.bad.dart2js.path",settings.getDart2JSUrl()),DartBundle.message("dart.warning"),DartIcons.Dart_16);
+    return;
+  }
+  final String jsFilePath=virtualFile.getPath() + ".js";
+  final Dart2JSSettingsDialog dialog=new Dart2JSSettingsDialog(psiFile.getProject(),virtualFile.getPath(),jsFilePath);
+  dialog.disableInput();
+  dialog.show();
+  if (!dialog.isOK()) {
+    return;
+  }
+  new Task.Backgroundable(psiFile.getProject(),"dart2js",false){
+    public void run(    @NotNull ProgressIndicator indicator){
+      indicator.setText("Running dart2js...");
+      indicator.setFraction(0.0);
+      final GeneralCommandLine command=getCommandLine(dart2js,dialog.getInputPath(),dialog.getOutputPath(),dialog.isCheckedMode(),dialog.isMinify());
+      ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+        @Override public void run(){
+          FileDocumentManager.getInstance().saveAllDocuments();
+        }
+      }
+,ModalityState.defaultModalityState());
+      try {
+        final String output=ScriptRunnerUtil.getProcessOutput(command);
+        final VirtualFile folder=LocalFileSystem.getInstance().findFileByPath(PathUtil.getParentPath(dialog.getInputPath()));
+        if (folder != null) {
+          folder.refresh(true,false);
+        }
+        ProgressManager.progress("");
+        LOG.debug(output);
+        boolean error=!output.isEmpty();
+        if (error) {
+          Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart2js.title"),DartBundle.message("dart2js.js.file.creation.error",output),NotificationType.ERROR));
+          return;
+        }
+        Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart2js.title"),DartBundle.message("dart2js.js.file.created",jsFilePath),NotificationType.INFORMATION));
+      }
+ catch (      ExecutionException ex) {
+        LOG.error(ex);
+        Notifications.Bus.notify(new Notification(e.getPresentation().getText(),DartBundle.message("dart2js.title"),DartBundle.message("dart2js.js.file.creation.error",ex.getMessage()),NotificationType.ERROR));
+      }
+      indicator.setFraction(1.0);
+    }
+  }
+.queue();
 }
