@@ -1,18 +1,21 @@
 {
   myProject=project;
-  myPathChooser.getButton().addActionListener(new ActionListener(){
+  myPathChooser.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
       FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(),null,myMainPanel,null,new Consumer<VirtualFile>(){
-        @Override public void consume(        @NotNull VirtualFile file){
-          if (getExecutablePathByFolderPath(file.getPath(),"dart") == null) {
-            Messages.showOkCancelDialog(myProject,DartBundle.message("dart.sdk.bad.home.path.to.dartvm"),DartBundle.message("dart.sdk.name"),DartIcons.Dart_16);
-          }
- else           if (getExecutablePathByFolderPath(file.getPath(),"dart") != null) {
-            myPathChooser.setText(FileUtil.toSystemDependentName(file.getPath()));
-            updateUI();
-            if (!SystemInfo.isWindows && getSettings().getAnalyzer() == null) {
-              Messages.showErrorDialog(myProject,DartBundle.message("dart.sdk.bad.analyzer.path",getSettings().getAnalyzerUrl()),DartBundle.message("dart.warning"));
+        @Override public void consume(        @NotNull VirtualFile sdkFolder){
+          if (getExecutablePathByFolderPath(sdkFolder.getPath(),"dart") == null) {
+            final VirtualFile child=sdkFolder.findChild("dart-sdk");
+            if (child != null && child.isDirectory()) {
+              sdkFolder=child;
             }
+          }
+          if (getExecutablePathByFolderPath(sdkFolder.getPath(),"dart") == null) {
+            Messages.showOkCancelDialog(myProject,DartBundle.message("dart.sdk.bad.path",FileUtil.toSystemDependentName(sdkFolder.getPath())),DartBundle.message("dart.sdk.name"),DartIcons.Dart_16);
+          }
+ else {
+            myPathChooser.setText(FileUtil.toSystemDependentName(sdkFolder.getPath()));
+            updateUI();
           }
         }
       }
@@ -40,7 +43,7 @@
     }
   }
 );
-  myDartSdkEnabled.addActionListener(new ActionListener(){
+  myDartSdkEnabledCheckBox.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
       final JSLibraryManager libraryManager=JSLibraryManager.getInstance(myProject);
       final ScriptingLibraryMappings libraryMappings=libraryManager.getLibraryMappings();
