@@ -1,7 +1,8 @@
 {
   JSFunction fun=PsiTreeUtil.getParentOfType(param,JSFunction.class);
   PsiElement element=JSResolveUtil.findParent(fun);
-  if (element instanceof JSClass && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(ResolveProcessor.fixGenericTypeName(((JSClass)element).getQualifiedName()))) {
+  JSType classType=element instanceof JSClass ? JSNamedType.createType(((JSClass)element).getQualifiedName(),null,JSNamedType.StaticOrInstance.INSTANCE) : null;
+  if (classType != null && JSTypeUtils.isActionScriptVectorType(classType)) {
     String name=fun.getName();
     String qualifiedExpressionType=null;
     JSExpression methodExpression=((JSCallExpression)JSTypeUtils.getScopeInOriginalTree(myGrandParent).getParent()).getMethodExpression();
