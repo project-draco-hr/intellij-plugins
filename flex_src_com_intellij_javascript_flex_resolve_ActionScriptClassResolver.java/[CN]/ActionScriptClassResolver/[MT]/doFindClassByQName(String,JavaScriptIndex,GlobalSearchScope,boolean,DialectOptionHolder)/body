@@ -1,17 +1,14 @@
 {
-  if (VECTOR_CLASS_NAME.equals(link)) {
-    link=JSResolveUtil.VECTOR$OBJECT_TYPE_NAME;
-  }
   Project project=index.getProject();
-  final PsiElement[] result=new PsiElement[1];
   boolean clazzShouldBeTakenFromOurLibrary=OBJECT_CLASS_NAME.equals(link) || "Arguments".equals(link);
   if (clazzShouldBeTakenFromOurLibrary && !(searchScope instanceof AdditionalIndexedRootsScope)) {
     searchScope=new AdditionalIndexedRootsScope(searchScope,JSIndexedRootProvider.class);
   }
   final Collection<JSQualifiedNamedElement> candidates=StubIndex.getInstance().get(JSQualifiedElementIndex.KEY,link.hashCode(),project,searchScope);
   ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  PsiElement preferredResult=null;
-  long preferredResultTimestamp=0;
+  PsiElement resultFromSourceContent=null;
+  PsiElement resultFromLibraries=null;
+  long resultFormLibrariesTimestamp=0;
   for (  Object _clazz : candidates) {
     if (!(_clazz instanceof JSQualifiedNamedElement))     continue;
     JSQualifiedNamedElement clazz=(JSQualifiedNamedElement)_clazz;
@@ -25,31 +22,38 @@
       if (!allowFileLocalSymbols && JSResolveUtil.isFileLocalSymbol(clazz)) {
         continue;
       }
-      result[0]=clazz;
       if (projectFileIndex.isInSourceContent(vFile)) {
-        preferredResult=clazz;
-        break;
+        if (resultFromSourceContent != null && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link)) {
+          if (clazz.getChildren().length > resultFromSourceContent.getChildren().length) {
+            resultFromSourceContent=clazz;
+          }
+        }
+ else {
+          resultFromSourceContent=clazz;
+        }
+        continue;
       }
-      if (preferredResult == null) {
-        preferredResult=clazz;
+      if (resultFromLibraries == null) {
+        resultFromLibraries=clazz;
       }
  else {
-        if (preferredResultTimestamp == 0) {
-          preferredResultTimestamp=getResolveResultTimestamp(preferredResult);
+        if (resultFormLibrariesTimestamp == 0) {
+          resultFormLibrariesTimestamp=getResolveResultTimestamp(resultFromLibraries);
         }
         final long classTimestamp=getResolveResultTimestamp(clazz);
-        if (classTimestamp > preferredResultTimestamp) {
-          preferredResult=clazz;
-          preferredResultTimestamp=classTimestamp;
+        if (classTimestamp > resultFormLibrariesTimestamp) {
+          resultFromLibraries=clazz;
+          resultFormLibrariesTimestamp=classTimestamp;
         }
       }
     }
   }
-  if (result[0] == null) {
+  PsiElement result=resultFromSourceContent != null ? resultFromSourceContent : resultFromLibraries;
+  if (result == null) {
     String className=link.substring(link.lastIndexOf('.') + 1);
     if (className.length() > 0 && !isBuiltInClassName(className) && (Character.isLetter(className.charAt(0)) || '_' == className.charAt(0))) {
-      result[0]=findClassByQNameViaHelper(link,project,className,searchScope);
+      result=findClassByQNameViaHelper(link,project,className,searchScope);
     }
   }
-  return preferredResult != null ? preferredResult : result[0];
+  return result;
 }
