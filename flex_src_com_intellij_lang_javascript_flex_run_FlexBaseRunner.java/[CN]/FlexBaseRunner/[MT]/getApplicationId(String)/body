@@ -1,5 +1,14 @@
 {
-  final VirtualFile descriptorFile=LocalFileSystem.getInstance().findFileByPath(airDescriptorPath);
+  final VirtualFile descriptorFile=ApplicationManager.getApplication().runWriteAction(new Computable<VirtualFile>(){
+    public VirtualFile compute(){
+      final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(airDescriptorPath);
+      if (file != null) {
+        file.refresh(false,false);
+      }
+      return file;
+    }
+  }
+);
   if (descriptorFile != null) {
     try {
       return FlexUtils.findXMLElement(descriptorFile.getInputStream(),"<application><id>");
