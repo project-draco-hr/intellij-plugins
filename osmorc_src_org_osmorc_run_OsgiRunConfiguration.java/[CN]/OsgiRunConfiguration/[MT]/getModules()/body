@@ -1,8 +1,15 @@
 {
   List<Module> modules=new ArrayList<Module>();
+  ModuleManager moduleManager=ModuleManager.getInstance(getProject());
   for (  SelectedBundle selectedBundle : getBundlesToDeploy()) {
     if (selectedBundle.isModule()) {
-      modules.add(ModuleManager.getInstance(getProject()).findModuleByName(selectedBundle.getName()));
+      Module module=moduleManager.findModuleByName(selectedBundle.getName());
+      if (module != null) {
+        modules.add(module);
+      }
+ else {
+        LOG.error("no module [" + selectedBundle.getName() + "]");
+      }
     }
   }
   return modules.toArray(new Module[modules.size()]);
