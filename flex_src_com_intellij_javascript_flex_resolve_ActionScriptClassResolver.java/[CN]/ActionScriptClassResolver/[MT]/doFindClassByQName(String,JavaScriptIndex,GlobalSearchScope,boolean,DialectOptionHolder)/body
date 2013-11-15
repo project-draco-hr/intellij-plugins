@@ -6,8 +6,8 @@
   }
   final Collection<JSQualifiedNamedElement> candidates=StubIndex.getInstance().get(JSQualifiedElementIndex.KEY,link.hashCode(),project,searchScope);
   ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  PsiElement resultFromSourceContent=null;
-  PsiElement resultFromLibraries=null;
+  JSQualifiedNamedElement resultFromSourceContent=null;
+  JSQualifiedNamedElement resultFromLibraries=null;
   long resultFormLibrariesTimestamp=0;
   for (  Object _clazz : candidates) {
     if (!(_clazz instanceof JSQualifiedNamedElement))     continue;
@@ -23,18 +23,18 @@
         continue;
       }
       if (projectFileIndex.isInSourceContent(vFile)) {
-        if (resultFromSourceContent != null && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link)) {
-          if (clazz.getChildren().length > resultFromSourceContent.getChildren().length) {
-            resultFromSourceContent=clazz;
-          }
-        }
- else {
+        if (resultFromSourceContent == null || JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link) && clazz.getChildren().length > resultFromSourceContent.getChildren().length) {
           resultFromSourceContent=clazz;
         }
         continue;
       }
       if (resultFromLibraries == null) {
         resultFromLibraries=clazz;
+      }
+ else       if (JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link)) {
+        if (clazz.getChildren().length > resultFromLibraries.getChildren().length) {
+          resultFromLibraries=clazz;
+        }
       }
  else {
         if (resultFormLibrariesTimestamp == 0) {
