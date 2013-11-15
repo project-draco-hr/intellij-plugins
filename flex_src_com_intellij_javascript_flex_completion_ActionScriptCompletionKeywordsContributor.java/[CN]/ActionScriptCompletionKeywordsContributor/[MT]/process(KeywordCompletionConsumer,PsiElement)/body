@@ -1,8 +1,8 @@
 {
   if (JSCompletionContributor.getInstance().isDoingSmartCodeCompleteAction())   return false;
   final PsiElement parent=context.getParent();
-  final PsiElement grandParent=parent.getParent();
-  final PsiElement grandGrandParent=grandParent.getParent();
+  final PsiElement grandParent=parent != null ? parent.getParent() : null;
+  final PsiElement grandGrandParent=grandParent != null ? grandParent.getParent() : null;
   if (parent instanceof JSReferenceExpression && ((JSResolveUtil.isExprInTypeContext((JSReferenceExpression)parent) || (grandParent instanceof JSExpressionStatement && (JSResolveUtil.isPlaceWhereNsCanBe(grandParent) || grandGrandParent instanceof JSFile && grandGrandParent.getContext() == null)) || grandParent instanceof JSAttributeList) || parent instanceof JSAttributeNameValuePair)) {
     if (!(grandParent instanceof JSImportStatement) && (grandParent instanceof JSAttributeList || JSResolveUtil.isPlaceWhereNsCanBe(grandParent) || grandGrandParent instanceof JSFile) && (!(grandParent instanceof JSFunction) || ((JSFunction)grandParent).getReturnTypeElement() != parent)) {
       consumer.consume(KeywordCompletionConsumer.SMART_KEYWORDS_PRIORITY,true,accessModifiers);
