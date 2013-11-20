@@ -1,0 +1,20 @@
+{
+  PsiElement element=PsiTreeUtil.getParentOfType(node,JSExecutionScope.class,JSClass.class,JSObjectLiteralExpression.class);
+  if (element instanceof JSFunction) {
+    final JSFunction function=(JSFunction)element;
+    final JSAttributeList attributeList=function.getAttributeList();
+    if (attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.STATIC)) {
+      myHolder.createErrorAnnotation(node,JSBundle.message(key));
+      return;
+    }
+  }
+  if (node instanceof JSSuperExpression) {
+    if (element instanceof JSObjectLiteralExpression) {
+      element=PsiTreeUtil.getParentOfType(node,JSExecutionScope.class,JSClass.class);
+    }
+    if (element == null || !(element instanceof JSClass) && !(JSResolveUtil.findParent(element) instanceof JSClass)) {
+      final String message=JSBundle.message("javascript.validation.message.super.referenced.without.class.instance.context");
+      myHolder.createErrorAnnotation(node,message);
+    }
+  }
+}
