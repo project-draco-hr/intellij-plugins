@@ -8,7 +8,7 @@
   ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
   JSQualifiedNamedElement resultFromSourceContent=null;
   JSQualifiedNamedElement resultFromLibraries=null;
-  long resultFormLibrariesTimestamp=0;
+  long resultFromLibrariesTimestamp=0;
   for (  Object _clazz : candidates) {
     if (!(_clazz instanceof JSQualifiedNamedElement))     continue;
     JSQualifiedNamedElement clazz=(JSQualifiedNamedElement)_clazz;
@@ -23,27 +23,25 @@
         continue;
       }
       if (projectFileIndex.isInSourceContent(vFile)) {
-        if (resultFromSourceContent == null || JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link) && clazz.getChildren().length > resultFromSourceContent.getChildren().length) {
-          resultFromSourceContent=clazz;
-        }
+        resultFromSourceContent=clazz;
         continue;
       }
       if (resultFromLibraries == null) {
         resultFromLibraries=clazz;
       }
  else       if (JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link)) {
-        if (clazz.getChildren().length > resultFromLibraries.getChildren().length) {
+        if (clazz instanceof JSClass && resultFromLibraries instanceof JSClass && ((JSClass)clazz).getFunctions().length > ((JSClass)resultFromLibraries).getFunctions().length) {
           resultFromLibraries=clazz;
         }
       }
  else {
-        if (resultFormLibrariesTimestamp == 0) {
-          resultFormLibrariesTimestamp=getResolveResultTimestamp(resultFromLibraries);
+        if (resultFromLibrariesTimestamp == 0) {
+          resultFromLibrariesTimestamp=getResolveResultTimestamp(resultFromLibraries);
         }
         final long classTimestamp=getResolveResultTimestamp(clazz);
-        if (classTimestamp > resultFormLibrariesTimestamp) {
+        if (classTimestamp > resultFromLibrariesTimestamp) {
           resultFromLibraries=clazz;
-          resultFormLibrariesTimestamp=classTimestamp;
+          resultFromLibrariesTimestamp=classTimestamp;
         }
       }
     }
