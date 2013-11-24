@@ -1,0 +1,25 @@
+{
+  try {
+    String contents=FileUtil.loadFile(bndFile);
+    Matcher m=Pattern.compile("-include[:=\\s](.+)").matcher(contents);
+    while (m.find()) {
+      String dependentFileLocation=m.group(1);
+      String[] listMembers=dependentFileLocation.split(",");
+      for (      String listMember : listMembers) {
+        listMember=listMember.trim().replaceFirst("^[~-]","");
+        File dependentFile=new File(bndFile,listMember);
+        if (dependentFile.exists()) {
+          if (paths2Timestamps.containsKey(dependentFile.getAbsolutePath())) {
+            return;
+          }
+ else {
+            registerTimestamps(dependentFile,paths2Timestamps);
+            registerDependencies(dependentFile,paths2Timestamps);
+          }
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+  }
+}

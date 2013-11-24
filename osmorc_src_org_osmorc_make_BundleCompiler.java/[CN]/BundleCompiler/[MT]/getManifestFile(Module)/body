@@ -1,13 +1,13 @@
 {
   OsmorcFacet facet=OsmorcFacet.getInstance(module);
-  if (facet == null) {
-    return null;
-  }
-  ModuleRootManager manager=ModuleRootManager.getInstance(module);
-  for (  VirtualFile root : manager.getContentRoots()) {
-    VirtualFile result=VfsUtilCore.findRelativeFile(facet.getManifestLocation(),root);
-    if (result != null) {
-      return result;
+  if (facet != null) {
+    String manifestLocation=facet.getManifestLocation();
+    ModuleRootManager manager=ModuleRootManager.getInstance(module);
+    for (    String root : manager.getContentRootUrls()) {
+      File file=new File(VfsUtilCore.urlToPath(root),manifestLocation);
+      if (file.exists()) {
+        return file;
+      }
     }
   }
   return null;

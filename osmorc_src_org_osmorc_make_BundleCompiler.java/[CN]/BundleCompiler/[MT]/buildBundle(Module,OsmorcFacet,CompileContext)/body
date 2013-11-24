@@ -9,14 +9,12 @@
     return;
   }
   OsmorcFacetConfiguration configuration=facet.getConfiguration();
-  VirtualFile moduleOutputUrl=getModuleOutputUrl(module);
-  if (moduleOutputUrl == null) {
+  File moduleOutputDir=getModuleOutputDir(module);
+  if (moduleOutputDir == null) {
     String message="Unable to determine the compiler output path for module " + module.getName();
     context.addMessage(CompilerMessageCategory.WARNING,message,null,0,0);
     return;
   }
-  File moduleOutputDir=VfsUtilCore.virtualToIoFile(moduleOutputUrl);
-  List<String> classPathUrls=ContainerUtil.newSmartList(moduleOutputUrl.getUrl());
   File bndFile=getBndFile(module,facet,context,moduleOutputDir);
   if (bndFile == null) {
     return;
@@ -27,7 +25,7 @@
   }
   progressIndicator.setText2("Running bnd to build the bundle");
   try {
-    BndWrapper.build(module,context,bndFile,classPathUrls,outputPath);
+    BndWrapper.build(module,context,bndFile,moduleOutputDir,outputPath);
   }
  catch (  Exception e) {
     context.addMessage(CompilerMessageCategory.ERROR,messagePrefix + "Unexpected error: " + e.getMessage(),null,0,0);

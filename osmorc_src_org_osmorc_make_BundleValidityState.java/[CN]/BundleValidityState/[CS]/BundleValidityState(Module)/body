@@ -1,62 +1,52 @@
 {
-  myModuleName=module.getName();
-  myJarUrl=BundleCompiler.getJarFileName(module);
   OsmorcFacet osmorcFacet=OsmorcFacet.getInstance(module);
   OsmorcFacetConfiguration configuration=osmorcFacet != null ? osmorcFacet.getConfiguration() : null;
   myAlwaysRebuildBundleJAR=configuration != null && configuration.isAlwaysRebuildBundleJAR();
+  myModuleName=module.getName();
+  myJarPath=ObjectUtils.notNull(BundleCompiler.getJarFileName(module),"");
   if (myAlwaysRebuildBundleJAR) {
+    myFilePaths=ArrayUtil.EMPTY_STRING_ARRAY;
+    myFileTimestamps=ArrayUtil.EMPTY_LONG_ARRAY;
     myJarLastModificationTime=0;
-    myFileTimestamps=new long[0];
-    myFileUrls=ArrayUtil.EMPTY_STRING_ARRAY;
   }
  else {
-    myJarLastModificationTime=(new File(VfsUtilCore.urlToPath(myJarUrl))).lastModified();
-    final TObjectLongHashMap<String> url2Timestamps=new TObjectLongHashMap<String>();
-    ApplicationManager.getApplication().runReadAction(new Runnable(){
-      public void run(){
-        VirtualFile moduleOutputDir=BundleCompiler.getModuleOutputUrl(module);
-        if (moduleOutputDir != null) {
-          registerTimestamps(moduleOutputDir,url2Timestamps);
-        }
-      }
+    TObjectLongHashMap<String> paths2Timestamps=new TObjectLongHashMap<String>();
+    File moduleOutputDir=BundleCompiler.getModuleOutputDir(module);
+    if (moduleOutputDir != null) {
+      registerTimestamps(moduleOutputDir,paths2Timestamps);
     }
-);
-    VirtualFile manifestFile=BundleCompiler.getManifestFile(module);
+    File manifestFile=BundleCompiler.getManifestFile(module);
     if (manifestFile != null) {
-      registerTimestamps(manifestFile,url2Timestamps);
+      registerTimestamps(manifestFile,paths2Timestamps);
     }
     if (osmorcFacet != null) {
       List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
       for (      Pair<String,String> jarContent : jarContents) {
-        VirtualFile file=LocalFileSystem.getInstance().findFileByPath(jarContent.getFirst());
-        if (file != null) {
-          registerTimestamps(file,url2Timestamps);
-        }
+        registerTimestamps(new File(jarContent.getFirst()),paths2Timestamps);
       }
       if (configuration.isUseBndFile()) {
         String bndFileLocation=configuration.getBndFileLocation();
-        File bndFileIo=BundleCompiler.findFileInModuleContentRoots(bndFileLocation,module);
-        if (bndFileIo != null) {
-          VirtualFile bndFile=LocalFileSystem.getInstance().findFileByIoFile(bndFileIo);
-          if (bndFile != null && bndFile.exists()) {
-            registerTimestamps(bndFile,url2Timestamps);
-            registerDependencies(bndFile,url2Timestamps);
-          }
+        File bndFile=BundleCompiler.findFileInModuleContentRoots(bndFileLocation,module);
+        if (bndFile != null) {
+          registerTimestamps(bndFile,paths2Timestamps);
+          registerDependencies(bndFile,paths2Timestamps);
         }
       }
     }
-    myFileUrls=new String[url2Timestamps.size()];
-    myFileTimestamps=new long[url2Timestamps.size()];
-    url2Timestamps.forEachEntry(new TObjectLongProcedure<String>(){
-      public boolean execute(      String s,      long l){
-        myFileUrls[i]=s;
+    myFilePaths=new String[paths2Timestamps.size()];
+    myFileTimestamps=new long[paths2Timestamps.size()];
+    paths2Timestamps.forEachEntry(new TObjectLongProcedure<String>(){
+      private int i=0;
+      @Override public boolean execute(      String s,      long l){
+        myFilePaths[i]=s;
         myFileTimestamps[i]=l;
         i++;
         return true;
       }
-      int i;
     }
 );
+    FileAttributes attributes=FileSystemUtil.getAttributes(myJarPath);
+    myJarLastModificationTime=attributes != null ? attributes.lastModified : FileSystemInterface.DEFAULT_TIMESTAMP;
   }
   long lastModified=0;
   ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
