@@ -1,11 +1,11 @@
 {
-  if (virtualfile.isDirectory()) {
-    VirtualFile avirtualfile1[]=virtualfile.getChildren();
-    for (    VirtualFile virtualfile1 : avirtualfile1) {
-      registerTimestamps(virtualfile1,url2Timestamps);
+  VfsUtilCore.visitChildrenRecursively(root,new VirtualFileVisitor(){
+    @Override public boolean visitFile(    @NotNull VirtualFile file){
+      if (!file.isDirectory()) {
+        url2Timestamps.put(file.getUrl(),file.getTimeStamp());
+      }
+      return super.visitFile(file);
     }
   }
- else {
-    url2Timestamps.put(virtualfile.getUrl(),virtualfile.getTimeStamp());
-  }
+);
 }

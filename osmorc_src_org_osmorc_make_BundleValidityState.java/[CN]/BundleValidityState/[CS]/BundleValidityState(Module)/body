@@ -1,15 +1,16 @@
 {
-  moduleName=module.getName();
-  jarUrl=BundleCompiler.getJarFileName(module);
-  final OsmorcFacet osmorcFacet=OsmorcFacet.getInstance(module);
-  alwaysRebuildBundleJAR=OsmorcFacet.hasOsmorcFacet(module) && osmorcFacet.getConfiguration().isAlwaysRebuildBundleJAR();
-  if (alwaysRebuildBundleJAR) {
-    jarLastModificationTime=0;
-    fileTimestamps=new long[0];
-    fileUrls=ArrayUtil.EMPTY_STRING_ARRAY;
+  myModuleName=module.getName();
+  myJarUrl=BundleCompiler.getJarFileName(module);
+  OsmorcFacet osmorcFacet=OsmorcFacet.getInstance(module);
+  OsmorcFacetConfiguration configuration=osmorcFacet != null ? osmorcFacet.getConfiguration() : null;
+  myAlwaysRebuildBundleJAR=configuration != null && configuration.isAlwaysRebuildBundleJAR();
+  if (myAlwaysRebuildBundleJAR) {
+    myJarLastModificationTime=0;
+    myFileTimestamps=new long[0];
+    myFileUrls=ArrayUtil.EMPTY_STRING_ARRAY;
   }
  else {
-    jarLastModificationTime=(new File(VfsUtil.urlToPath(jarUrl))).lastModified();
+    myJarLastModificationTime=(new File(VfsUtilCore.urlToPath(myJarUrl))).lastModified();
     final TObjectLongHashMap<String> url2Timestamps=new TObjectLongHashMap<String>();
     ApplicationManager.getApplication().runReadAction(new Runnable(){
       public void run(){
@@ -25,7 +26,6 @@
       registerTimestamps(manifestFile,url2Timestamps);
     }
     if (osmorcFacet != null) {
-      OsmorcFacetConfiguration configuration=osmorcFacet.getConfiguration();
       List<Pair<String,String>> jarContents=configuration.getAdditionalJARContents();
       for (      Pair<String,String> jarContent : jarContents) {
         VirtualFile file=LocalFileSystem.getInstance().findFileByPath(jarContent.getFirst());
@@ -35,31 +35,33 @@
       }
       if (configuration.isUseBndFile()) {
         String bndFileLocation=configuration.getBndFileLocation();
-        VirtualFile bndFile=LocalFileSystem.getInstance().findFileByIoFile(BundleCompiler.findFileInModuleContentRoots(bndFileLocation,module));
-        if (bndFile != null && bndFile.exists()) {
-          registerTimestamps(bndFile,url2Timestamps);
-          registerDependencies(bndFile,url2Timestamps);
+        File bndFileIo=BundleCompiler.findFileInModuleContentRoots(bndFileLocation,module);
+        if (bndFileIo != null) {
+          VirtualFile bndFile=LocalFileSystem.getInstance().findFileByIoFile(bndFileIo);
+          if (bndFile != null && bndFile.exists()) {
+            registerTimestamps(bndFile,url2Timestamps);
+            registerDependencies(bndFile,url2Timestamps);
+          }
         }
       }
     }
-    fileUrls=new String[url2Timestamps.size()];
-    fileTimestamps=new long[url2Timestamps.size()];
-    TObjectLongProcedure<String> tobjectlongprocedure=new TObjectLongProcedure<String>(){
+    myFileUrls=new String[url2Timestamps.size()];
+    myFileTimestamps=new long[url2Timestamps.size()];
+    url2Timestamps.forEachEntry(new TObjectLongProcedure<String>(){
       public boolean execute(      String s,      long l){
-        fileUrls[i]=s;
-        fileTimestamps[i]=l;
+        myFileUrls[i]=s;
+        myFileTimestamps[i]=l;
         i++;
         return true;
       }
       int i;
     }
-;
-    url2Timestamps.forEachEntry(tobjectlongprocedure);
+);
   }
   long lastModified=0;
   ApplicationSettings settings=ServiceManager.getService(ApplicationSettings.class);
   for (  LibraryBundlificationRule bundlificationRule : settings.getLibraryBundlificationRules()) {
     lastModified=Math.max(lastModified,bundlificationRule.getLastModified());
   }
-  rulesModifiedTimeStamp=lastModified;
+  myRulesModifiedTimeStamp=lastModified;
 }
