@@ -1,0 +1,51 @@
+{
+  boolean noRootBefore=false;
+  boolean rootValid=myRoot != null && myRoot.isValid();
+  if (rootValid) {
+    String path=myRoot.getPath();
+    if (!path.equals(myRootPath)) {
+      rootValid=false;
+      if (myRootPath != null) {
+        VfsUtilCore.visitChildrenRecursively(myRoot,new VirtualFileVisitor(){
+          @Override public boolean visitFile(          @NotNull VirtualFile file){
+            if (!file.isDirectory()) {
+              String subPath=VfsUtilCore.getRelativePath(file,myRoot,KarmaWatchSession.SEPARATOR_CHAR);
+              if (subPath != null) {
+                myChangedFileManager.onFileRemoved(KarmaWatchSession.join(myRootPath,subPath));
+              }
+            }
+            return true;
+          }
+        }
+);
+      }
+    }
+  }
+  if (!rootValid) {
+    noRootBefore=true;
+    myRoot=null;
+    myRootPath=null;
+    stopWatching();
+    final VirtualFile file=myFileSystem.findFileByPath(myVfsPath);
+    if (file != null && file.isValid()) {
+      myRoot=file;
+    }
+ else     if (myCheckBasePathDir) {
+      final VirtualFile baseDir=myFileSystem.findFileByPath(myBasePathDir);
+      if (baseDir != null && baseDir.isValid()) {
+        myRoot=baseDir;
+      }
+    }
+    if (myRoot != null) {
+      myRootPath=myRoot.getPath();
+    }
+  }
+  if (myRoot == null) {
+    LOG.warn("[Karma watch] Can not find vfs root for " + myBasePathDir);
+    return;
+  }
+  if (myWatchRequest == null) {
+    myWatchRequest=watchRoot(myRoot,rescan && noRootBefore);
+    LOG.info("Watching " + myRoot.getPath());
+  }
+}

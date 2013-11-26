@@ -1,0 +1,15 @@
+{
+  updateWatchPatterns();
+  if ("name".equals(event.getPropertyName())) {
+    VirtualFile parent=event.getParent();
+    if (parent != null) {
+      String parentWatchedPath=findWatchedOriginalPath(parent);
+      if (parentWatchedPath != null) {
+        String oldPath=join(parentWatchedPath,event.getOldValue().toString());
+        String newPath=join(parentWatchedPath,event.getNewValue().toString());
+        myChangedFilesManager.onFileRemoved(oldPath);
+        myChangedFilesManager.onFileAdded(newPath);
+      }
+    }
+  }
+}

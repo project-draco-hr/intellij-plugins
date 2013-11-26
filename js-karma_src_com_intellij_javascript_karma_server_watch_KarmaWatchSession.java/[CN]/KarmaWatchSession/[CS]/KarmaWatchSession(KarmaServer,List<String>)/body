@@ -1,0 +1,16 @@
+{
+  myChangedFilesManager=new KarmaChangedFilesManager(server);
+  myFileSystem=LocalFileSystem.getInstance();
+  final List<KarmaWatchPattern> watchPatterns=ContainerUtil.newArrayList();
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      for (      String path : paths) {
+        KarmaWatchPattern watchPattern=new KarmaWatchPattern(myFileSystem,myChangedFilesManager,path);
+        watchPatterns.add(watchPattern);
+      }
+      myFileSystem.addVirtualFileListener(myVfsListener);
+    }
+  }
+);
+  myWatchPatterns=ImmutableList.copyOf(watchPatterns);
+}
