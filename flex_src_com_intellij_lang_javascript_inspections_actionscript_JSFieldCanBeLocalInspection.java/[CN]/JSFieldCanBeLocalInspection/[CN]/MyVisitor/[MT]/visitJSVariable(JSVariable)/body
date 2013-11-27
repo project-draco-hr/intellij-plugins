@@ -1,0 +1,72 @@
+{
+  if (!DialectDetector.isActionScript(field))   return;
+  final PsiElement parentParent=field.getParent().getParent();
+  final PsiElement context=parentParent.getContext();
+  if (!(parentParent instanceof JSClass) && !(parentParent instanceof JSFile && context instanceof XmlText && JavaScriptSupportLoader.isFlexMxmFile(context.getContainingFile()))) {
+    return;
+  }
+  final JSAttributeList attributeList=field.getAttributeList();
+  if (attributeList == null)   return;
+  if (attributeList.getAccessType() != JSAttributeList.AccessType.PRIVATE)   return;
+  if (field.isConst() && attributeList.hasModifier(JSAttributeList.ModifierType.STATIC))   return;
+  if (attributeList.findAttributeByName("Embed") != null || attributeList.findAttributeByName("Inject") != null)   return;
+  final SortedMap<JSFunction,Collection<PsiReference>> functionToReferences=new TreeMap<JSFunction,Collection<PsiReference>>(new Comparator<JSFunction>(){
+    public int compare(    final JSFunction f1,    final JSFunction f2){
+      return f1.getTextRange().getStartOffset() - f2.getTextRange().getStartOffset();
+    }
+  }
+);
+  final Map<JSFunction,PsiElement> functionToFirstReadUsage=new THashMap<JSFunction,PsiElement>();
+  final Map<JSFunction,PsiElement> functionToFirstWriteUsage=new THashMap<JSFunction,PsiElement>();
+  final PsiFile topLevelFile=InjectedLanguageManager.getInstance(field.getProject()).getTopLevelFile(field);
+  final boolean ok=ReferencesSearch.search(field,new LocalSearchScope(topLevelFile)).forEach(new Processor<PsiReference>(){
+    public boolean process(    final PsiReference reference){
+      final PsiElement element=reference.getElement();
+      if (JSResolveUtil.isSelfReference(element))       return true;
+      if (!(element instanceof JSReferenceExpression))       return false;
+      if (((JSReferenceExpression)element).getQualifier() != null)       return false;
+      final JSFunction function=PsiTreeUtil.getParentOfType(element,JSFunction.class);
+      if (function == null)       return false;
+      Collection<PsiReference> references=functionToReferences.get(function);
+      if (references == null) {
+        references=new ArrayList<PsiReference>();
+        functionToReferences.put(function,references);
+      }
+      references.add(reference);
+      final ReadWriteAccessDetector.Access access=JSReadWriteAccessDetector.ourInstance.getExpressionAccess(element);
+      if (access == ReadWriteAccessDetector.Access.Read || access == ReadWriteAccessDetector.Access.ReadWrite) {
+        final PsiElement previous=functionToFirstReadUsage.get(function);
+        if (previous == null || element.getTextRange().getStartOffset() < previous.getTextRange().getStartOffset()) {
+          functionToFirstReadUsage.put(function,element);
+        }
+      }
+      if (access == ReadWriteAccessDetector.Access.Write || access == ReadWriteAccessDetector.Access.ReadWrite) {
+        final PsiElement previous=functionToFirstWriteUsage.get(function);
+        if (previous == null || element.getTextRange().getStartOffset() < previous.getTextRange().getStartOffset()) {
+          functionToFirstWriteUsage.put(function,element);
+        }
+      }
+      return true;
+    }
+  }
+);
+  if (!ok)   return;
+  if (functionToFirstWriteUsage.isEmpty() && functionToFirstReadUsage.isEmpty())   return;
+  final boolean trivialInitializer=field.getInitializer() instanceof JSLiteralExpression;
+  if (functionToFirstWriteUsage.isEmpty() && trivialInitializer) {
+    registerCanBeLocal(field,functionToReferences);
+    return;
+  }
+  for (  Map.Entry<JSFunction,PsiElement> entry : functionToFirstReadUsage.entrySet()) {
+    final JSFunction function=entry.getKey();
+    final PsiElement readUsage=entry.getValue();
+    final PsiElement writeUsage=functionToFirstWriteUsage.get(function);
+    if (writeUsage == null)     return;
+    if (writeUsage.getTextRange().getStartOffset() >= readUsage.getTextRange().getStartOffset())     return;
+    final JSElement branchingParent=PsiTreeUtil.getParentOfType(writeUsage,JSConditionalExpression.class,JSIfStatement.class,JSSwitchStatement.class);
+    if (branchingParent != null)     return;
+    final PsiElement commonParent=PsiTreeUtil.findCommonParent(readUsage,writeUsage);
+    if (commonParent instanceof JSAssignmentExpression)     return;
+  }
+  registerCanBeLocal(field,functionToReferences);
+}
