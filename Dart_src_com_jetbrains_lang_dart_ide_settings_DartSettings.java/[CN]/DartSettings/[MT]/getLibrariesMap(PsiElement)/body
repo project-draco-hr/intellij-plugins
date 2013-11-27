@@ -1,15 +1,3 @@
 {
-  VirtualFile configFile=getConfigFile();
-  if (configFile == null || context == null) {
-    return Collections.emptyMap();
-  }
-  Pair<Long,Map<String,String>> data=configFile.getUserData(LIBRARIES_TIME_AND_MAP_KEY);
-  final Long cachedTimestamp=data == null ? null : data.first;
-  long modificationCount=configFile.getModificationCount();
-  if (cachedTimestamp == null || !cachedTimestamp.equals(modificationCount)) {
-    PsiFile psiFile=context.getManager().findFile(configFile);
-    data=Pair.create(modificationCount,computeData(psiFile));
-    configFile.putUserData(LIBRARIES_TIME_AND_MAP_KEY,data);
-  }
-  return data.getSecond();
+  return context == null ? Collections.<String,String>emptyMap() : getLibrariesMap(context.getManager());
 }
