@@ -15,6 +15,11 @@
   }
 ;
   myOwnPresence=new UserPresence(true);
-  startup(waitUserResponsesTimeout);
+  myUserMonitorThread=new UserMonitorThread(this,waitUserResponsesTimeout);
+  Map<String,Object> handlers=CustomPortServerManager.EP_NAME.findExtension(P2PCustomPortServerManager.class).handlers;
+  for (  P2PCommand command : new P2PCommand[]{new SendXmlMessageP2PCommand(myEventBroadcaster,this),new AddOnlineUserP2PCommand(myUserMonitorThread)}) {
+    handlers.put(command.getXmlRpcId(),command);
+  }
+  startup();
   Runtime.getRuntime().addShutdownHook(new IDETalkShutdownHook());
 }
