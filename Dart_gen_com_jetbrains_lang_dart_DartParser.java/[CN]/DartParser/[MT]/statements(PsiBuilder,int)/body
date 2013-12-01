@@ -1,15 +1,11 @@
 {
   if (!recursion_guard_(builder_,level_,"statements"))   return false;
   Marker marker_=enter_section_(builder_,level_,_NONE_,"<statements>");
-  int offset_=builder_.getCurrentOffset();
+  int pos_=current_position_(builder_);
   while (true) {
     if (!statement(builder_,level_ + 1))     break;
-    int next_offset_=builder_.getCurrentOffset();
-    if (offset_ == next_offset_) {
-      empty_element_parsed_guard_(builder_,offset_,"statements");
-      break;
-    }
-    offset_=next_offset_;
+    if (!empty_element_parsed_guard_(builder_,"statements",pos_))     break;
+    pos_=current_position_(builder_);
   }
   exit_section_(builder_,level_,marker_,STATEMENTS,true,false,null);
   return true;
