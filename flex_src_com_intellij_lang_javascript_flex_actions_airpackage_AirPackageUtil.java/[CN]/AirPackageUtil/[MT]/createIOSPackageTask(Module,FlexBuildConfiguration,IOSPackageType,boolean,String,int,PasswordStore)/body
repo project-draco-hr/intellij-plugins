@@ -11,7 +11,7 @@
       command.add("-package");
       final String adtOptions=packagingOptions.getSigningOptions().getADTOptions();
       if (!adtOptions.isEmpty()) {
-        final String undocumentedOptions=FlexCommonUtils.removeOptions(adtOptions,"sampler","hideAneLibSymbols");
+        final String undocumentedOptions=FlexCommonUtils.removeOptions(adtOptions,"sampler","hideAneLibSymbols","useLegacyAOT");
         command.addAll(StringUtil.split(undocumentedOptions," "));
       }
       command.add("-target");
@@ -44,10 +44,15 @@ break;
 if (!adtOptions.isEmpty() && (adtOptions.equals("-sampler") || adtOptions.startsWith("-sampler ") || adtOptions.endsWith(" -sampler")|| adtOptions.contains(" -sampler "))) {
 command.add("-sampler");
 }
-final List<String> optionValues=FlexCommonUtils.getOptionValues(adtOptions,"hideAneLibSymbols");
-if (!optionValues.isEmpty()) {
+final List<String> hideAneLibSymbols=FlexCommonUtils.getOptionValues(adtOptions,"hideAneLibSymbols");
+if (!hideAneLibSymbols.isEmpty()) {
 command.add("-hideAneLibSymbols");
-command.add(optionValues.get(0));
+command.add(hideAneLibSymbols.get(0));
+}
+final List<String> useLegacyAOT=FlexCommonUtils.getOptionValues(adtOptions,"useLegacyAOT");
+if (!useLegacyAOT.isEmpty()) {
+command.add("-useLegacyAOT");
+command.add(useLegacyAOT.get(0));
 }
 if (simulator) {
 command.add("-storetype");
