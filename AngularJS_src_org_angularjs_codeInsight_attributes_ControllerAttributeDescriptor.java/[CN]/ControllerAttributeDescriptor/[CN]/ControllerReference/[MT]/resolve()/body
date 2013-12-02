@@ -1,20 +1,8 @@
 {
-  final Ref<PsiElement> result=Ref.create();
   final XmlAttributeValue element=getElement();
-  FileBasedIndex.getInstance().processValues(AngularJSIndex.INDEX_ID,AngularJSIndexingHandler.CONTROLLER_KEY,null,new FileBasedIndex.ValueProcessor<TObjectIntHashMap<String>>(){
-    @Override public boolean process(    VirtualFile file,    TObjectIntHashMap<String> descriptorNames){
-      for (      Object o : descriptorNames.keys()) {
-        if (element.getValue().equals(o)) {
-          PsiFile psiFile=element.getManager().findFile(file);
-          if (psiFile != null) {
-            result.set(psiFile.findElementAt(descriptorNames.get((String)o)));
-            break;
-          }
-        }
-      }
-      return result.get() == null;
-    }
-  }
-,GlobalSearchScope.allScope(element.getProject()));
-  return result.get();
+  final String key=element.getValue();
+  final AngularIndexUtil.Entry entry=AngularIndexUtil.resolve(element.getProject(),AngularJSIndexingHandler.CONTROLLER_KEY,key);
+  if (entry == null)   return null;
+  PsiFile psiFile=element.getManager().findFile(entry.file);
+  return psiFile != null ? psiFile.findElementAt(entry.offset) : null;
 }
