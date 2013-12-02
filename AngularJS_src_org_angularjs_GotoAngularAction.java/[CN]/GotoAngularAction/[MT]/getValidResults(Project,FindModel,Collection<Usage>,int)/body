@@ -1,0 +1,48 @@
+{
+  final List<AngularItem> validResults=new ArrayList<AngularItem>();
+  Runnable runnable=new Runnable(){
+    public void run(){
+      for (      final Usage result : usages) {
+        final UsageInfo2UsageAdapter usage=(UsageInfo2UsageAdapter)result;
+        if (usage.getFile().getName().startsWith("angular"))         continue;
+        usage.processRangeMarkers(new Processor<Segment>(){
+          @Override public boolean process(          Segment segment){
+            try {
+              final int textOffset=segment.getStartOffset();
+              final int textEndOffset=segment.getEndOffset();
+              Document document=usage.getDocument();
+              CharSequence charsSequence=document.getCharsSequence();
+              final CharSequence foundString=charsSequence.subSequence(textOffset,textEndOffset);
+              String s=foundString.toString();
+              String regExMatch=FindManager.getInstance(project).getStringToReplace(s,findModel,textOffset,document.getText());
+              System.out.println(regExMatch);
+              PsiElement element=PsiUtilBase.getElementAtOffset(((UsageInfo2UsageAdapter)result).getUsageInfo().getFile(),textOffset + 1);
+              String elementText=element.getText();
+              System.out.println(elementText + ": " + regExMatch+ " - "+ s);
+switch (type) {
+case CTRL_CONVENTIONS:
+                validResults.add(new AngularItem(s,elementText,result,element,"controller"));
+              break;
+case MODULE_METHODS:
+            validResults.add(new AngularItem(s,regExMatch,result,element,element.getText()));
+          break;
+case NG_CONTROLLER:
+        validResults.add(new AngularItem(s,regExMatch,result,element,"ng-controller"));
+      break;
+  }
+  return true;
+}
+ catch (FindManager.MalformedReplacementStringException e1) {
+  e1.printStackTrace();
+}
+return false;
+}
+}
+);
+}
+}
+}
+;
+ApplicationManager.getApplication().runReadAction(runnable);
+return validResults;
+}

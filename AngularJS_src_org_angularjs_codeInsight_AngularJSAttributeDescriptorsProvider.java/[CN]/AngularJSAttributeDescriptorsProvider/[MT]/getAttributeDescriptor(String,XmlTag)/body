@@ -1,0 +1,23 @@
+{
+  if (xmlTag != null) {
+    final Project project=xmlTag.getProject();
+    final Ref<XmlAttributeDescriptor> result=new Ref<XmlAttributeDescriptor>();
+    FileBasedIndex.getInstance().processValues(AngularJSIndex.INDEX_ID,AngularJSIndexingHandler.DIRECTIVE,null,new FileBasedIndex.ValueProcessor<TObjectIntHashMap<String>>(){
+      @Override public boolean process(      VirtualFile file,      TObjectIntHashMap<String> descriptorNames){
+        for (        Object o : descriptorNames.keys()) {
+          if (attrName.equals(o)) {
+            AngularAttributeDescriptor descriptor=new AngularAttributeDescriptor(project,(String)o,file,descriptorNames.get((String)o));
+            result.set(descriptor);
+            break;
+          }
+        }
+        return result.get() == null;
+      }
+    }
+,GlobalSearchScope.allScope(project));
+    if (result.get() != null) {
+      return result.get();
+    }
+  }
+  return ATTRIBUTE_BY_NAME.get(attrName);
+}
