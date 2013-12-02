@@ -1,12 +1,22 @@
 {
   JSReferenceExpression callee=(JSReferenceExpression)callExpression.getMethodExpression();
   JSExpression qualifier=callee.getQualifier();
-  if (DIRECTIVE.equals(callee.getReferencedName()) && qualifier != null) {
+  if (qualifier == null)   return;
+  if (DIRECTIVE.equals(callee.getReferencedName())) {
     JSExpression[] arguments=callExpression.getArguments();
     if (arguments.length > 0) {
       JSExpression argument=arguments[0];
       if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
         visitor.storeAdditionalData(DIRECTIVE_KEY,getAttributeName(argument.getText()),argument.getTextOffset());
+      }
+    }
+  }
+ else   if ("controller".equals(callee.getReferencedName())) {
+    JSExpression[] arguments=callExpression.getArguments();
+    if (arguments.length > 0) {
+      JSExpression argument=arguments[0];
+      if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
+        visitor.storeAdditionalData(CONTROLLER_KEY,StringUtil.unquoteString(argument.getText()),argument.getTextOffset());
       }
     }
   }
