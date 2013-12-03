@@ -2,7 +2,7 @@
   JSExpression qualifier=((JSReferenceExpressionImpl)node).getResolveQualifier();
   if (qualifier != null) {
     final PsiFile containingFile=node.getContainingFile();
-    JSType type=JSType.NO_TYPE;
+    JSType type=null;
     boolean checkType=false;
     if (qualifier instanceof JSReferenceExpression) {
       ResolveResult[] results=((JSReferenceExpression)qualifier).multiResolve(false);
@@ -17,10 +17,8 @@
       type=JSResolveUtil.getExpressionJSType(qualifier,containingFile);
       checkType=true;
     }
-    if (checkType) {
-      if (type == JSType.NO_TYPE || type == JSType.ANY) {
-        return ProblemHighlightType.LIKE_UNKNOWN_SYMBOL;
-      }
+    if (checkType && (type instanceof JSAnyType || type == null)) {
+      return ProblemHighlightType.LIKE_UNKNOWN_SYMBOL;
     }
     JSClass jsClass=JSResolveUtil.findClassOfQualifier(qualifier,containingFile);
     if (jsClass == null) {
