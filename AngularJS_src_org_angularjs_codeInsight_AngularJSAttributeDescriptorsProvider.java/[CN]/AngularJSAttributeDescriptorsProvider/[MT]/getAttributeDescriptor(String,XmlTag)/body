@@ -2,12 +2,8 @@
   final String attributeName=normalizeAttributeName(attrName);
   if (xmlTag != null) {
     final Project project=xmlTag.getProject();
-    final AngularIndexUtil.Entry resolve=AngularIndexUtil.resolve(project,AngularJSIndexingHandler.DIRECTIVE_KEY,attributeName);
-    if (resolve != null) {
-      return createDescriptor(project,attributeName,resolve.file,resolve.offset);
-    }
-    if (ATTRIBUTE_BY_NAME.containsKey(attributeName)) {
-      return createDescriptor(project,attributeName,null,-1);
+    if (FileBasedIndex.getInstance().getAllKeys(AngularDirectivesIndex.INDEX_ID,project).contains(attributeName) || ATTRIBUTE_BY_NAME.containsKey(attributeName)) {
+      return createDescriptor(project,attributeName);
     }
   }
   return ATTRIBUTE_BY_NAME.get(attributeName);
