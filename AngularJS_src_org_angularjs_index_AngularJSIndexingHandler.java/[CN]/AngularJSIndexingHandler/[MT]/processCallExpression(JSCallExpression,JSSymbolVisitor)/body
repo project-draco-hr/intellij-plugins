@@ -3,23 +3,20 @@
   JSExpression qualifier=callee.getQualifier();
   if (qualifier == null)   return;
   final String command=callee.getReferencedName();
-  if (DIRECTIVE.equals(command)) {
+  final ID<String,Void> index=INDEXERS.get(command);
+  if (index != null) {
     JSExpression[] arguments=callExpression.getArguments();
     if (arguments.length > 0) {
       JSExpression argument=arguments[0];
       if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
-        final String attributeName=getAttributeName(argument.getText());
-        visitor.storeAdditionalData(argument,AngularDirectivesIndex.INDEX_ID.toString(),attributeName,argument.getTextOffset());
-        visitor.storeAdditionalData(argument,AngularSymbolIndex.INDEX_ID.toString(),attributeName,argument.getTextOffset());
-      }
-    }
-  }
- else   if (CONTROLLER.equals(command)) {
-    JSExpression[] arguments=callExpression.getArguments();
-    if (arguments.length > 0) {
-      JSExpression argument=arguments[0];
-      if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
-        visitor.storeAdditionalData(argument,AngularControllerIndex.INDEX_ID.toString(),StringUtil.unquoteString(argument.getText()),argument.getTextOffset());
+        final Function<String,String> converter=NAME_CONVERTERS.get(command);
+        final String defaultName=StringUtil.unquoteString(argument.getText());
+        final String name=converter != null ? converter.fun(argument.getText()) : defaultName;
+        visitor.storeAdditionalData(argument,index.toString(),name,argument.getTextOffset());
+        visitor.storeAdditionalData(argument,AngularSymbolIndex.INDEX_ID.toString(),name,argument.getTextOffset());
+        if (!StringUtil.equals(defaultName,name)) {
+          visitor.storeAdditionalData(argument,AngularSymbolIndex.INDEX_ID.toString(),defaultName,argument.getTextOffset());
+        }
       }
     }
   }
