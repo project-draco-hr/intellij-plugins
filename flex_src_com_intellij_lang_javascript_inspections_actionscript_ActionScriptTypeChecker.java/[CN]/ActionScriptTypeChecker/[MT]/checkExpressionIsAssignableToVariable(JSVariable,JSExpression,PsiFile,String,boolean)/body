@@ -1,6 +1,6 @@
 {
   final JSType type=p.getType();
-  Pair<Annotation,String> annotationAndExprType=ValidateTypesUtil.checkExpressionIsAssignableToType(expr,type,myHolder,containingFile,problemKey,allowChangeVariableTypeFix ? p : null);
+  Pair<Annotation,String> annotationAndExprType=checkExpressionIsAssignableToType(expr,type,containingFile,problemKey,allowChangeVariableTypeFix ? p : null);
   if (annotationAndExprType != null && p.getParent() instanceof JSParameterList && expr.getParent() instanceof JSArgumentList && !JSCommonTypeNames.VOID_TYPE_NAME.equals(annotationAndExprType.second)) {
     JSFunction method=(JSFunction)p.getParent().getParent();
     JSFunction topMethod=JSInheritanceUtil.findTopMethods(method).iterator().next();
@@ -37,7 +37,7 @@
  else {
           expr_=expr;
         }
-        JSProblemUtil.registerProblem(expr_,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,myHolder,JSValidateTypesInspection.SHORT_NAME,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+        registerProblem(expr_,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,null,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
       }
  else {
         final JSClass expectedEventClass=calcNontrivialExpectedEventType(expr);
@@ -45,12 +45,12 @@
         final String actualParameterType=paramType != null ? paramType.getResolvedTypeText() : null;
         if (expectedEventClass == null) {
           if (!JSResolveUtil.isAssignableType(FlexCommonTypeNames.FLASH_EVENT_FQN,actualParameterType,parameters[0]) && !JSResolveUtil.isAssignableType(FlexCommonTypeNames.STARLING_EVENT_FQN,actualParameterType,parameters[0])) {
-            JSProblemUtil.registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,myHolder,JSValidateTypesInspection.SHORT_NAME,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+            registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,null,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
           }
         }
  else {
           if (!JSResolveUtil.isAssignableType(actualParameterType,expectedEventClass.getQualifiedName(),parameters[0])) {
-            JSProblemUtil.registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch.event.class",expectedEventClass.getQualifiedName()),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,myHolder,JSValidateTypesInspection.SHORT_NAME,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+            registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch.event.class",expectedEventClass.getQualifiedName()),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,null,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
           }
         }
       }
