@@ -6,11 +6,12 @@
   arrayElementType=_arrayElementType;
   myDeferredInstance=deferredInstance;
   if (originatingElement instanceof JSAttributeNameValuePair) {
-    myDefinedByMetadata=true;
+    myOriginatingElementType=OriginatingElementType.Metadata;
     final JSAttribute attribute=(JSAttribute)originatingElement.getParent();
     initFromAttribute(attribute);
   }
  else   if (originatingElement instanceof JSAttributeListOwner) {
+    myOriginatingElementType=OriginatingElementType.VarOrFunction;
     myProperty=originatingElement instanceof JSFunction || originatingElement instanceof JSVariable;
     JSAttribute attribute=findInspectableAttr(originatingElement);
     initFromAttribute(attribute);
@@ -26,7 +27,10 @@
     initRichTextContentAndCollapseWhiteSpace((JSAttributeListOwner)originatingElement);
   }
  else   if (originatingElement instanceof XmlAttribute && FlexMxmlLanguageAttributeNames.ID.equals(((XmlAttribute)originatingElement).getName())) {
-    myDefinedByIdAttribute=true;
+    myOriginatingElementType=OriginatingElementType.IdAttribute;
+  }
+ else {
+    myOriginatingElementType=OriginatingElementType.Other;
   }
   if (predefined) {
     if (FlexStateElementNames.ITEM_CREATION_POLICY.equals(name)) {
