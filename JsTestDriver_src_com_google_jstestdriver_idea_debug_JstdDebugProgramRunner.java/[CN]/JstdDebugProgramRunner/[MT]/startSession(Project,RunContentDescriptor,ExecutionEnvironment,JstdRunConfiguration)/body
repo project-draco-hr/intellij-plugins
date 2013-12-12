@@ -28,7 +28,18 @@
 );
   ((JSDebugProcess)session.getDebugProcess()).getConnection().executeOnStart(new Runnable(){
     @Override public void run(){
-      resumeJstdClientRunning(executionResult.getProcessHandler());
+      Runnable runnable=new Runnable(){
+        @Override public void run(){
+          resumeJstdClientRunning(executionResult.getProcessHandler());
+        }
+      }
+;
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        ApplicationManager.getApplication().executeOnPooledThread(runnable);
+      }
+ else {
+        runnable.run();
+      }
     }
   }
 );
