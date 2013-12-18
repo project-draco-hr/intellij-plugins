@@ -13,16 +13,7 @@
     }
   }
   if (delimiterIndex != -1 && attributeType == null) {
-    final int delimiterIndex2=link.lastIndexOf(':',delimiterIndex - 1);
-    if (delimiterIndex2 == -1)     return null;
-    String fileName=link.substring(0,delimiterIndex2).replace(File.separatorChar,'/');
-    String name=link.substring(delimiterIndex2 + 1,delimiterIndex);
-    int offset=Integer.parseInt(link.substring(delimiterIndex + 1));
-    VirtualFile relativeFile=VfsUtil.findRelativeFile(fileName,null);
-    if (relativeFile == null) {
-      relativeFile=JSResolveUtil.findPredefinedOrLibraryFile(psiManager.getProject(),fileName);
-    }
-    return index.findSymbolByFileAndNameAndOffset(relativeFile,name,offset,psiManager.findFile(relativeFile));
+    return resolveDocumentLink(psiManager,link,delimiterIndex);
   }
  else   if (attributeType != null) {
     PsiElement clazz=ActionScriptClassResolver.findClassByQName(link,index,context != null ? ModuleUtil.findModuleForPsiElement(context) : null);
