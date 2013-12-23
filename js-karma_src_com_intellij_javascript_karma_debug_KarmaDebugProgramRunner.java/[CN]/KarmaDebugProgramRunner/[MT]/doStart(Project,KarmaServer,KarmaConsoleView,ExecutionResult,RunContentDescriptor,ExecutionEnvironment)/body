@@ -1,17 +1,16 @@
 {
-  final JSDebugEngine<Connection> debugEngine=getDebugEngine(karmaServer.getCapturedBrowsers());
+  final JSDebugEngine debugEngine=getDebugEngine(karmaServer.getCapturedBrowsers());
   if (debugEngine == null) {
     throw new ExecutionException("No debuggable browser found");
   }
   if (!debugEngine.prepareDebugger(project)) {
     return null;
   }
-  final Connection connection=debugEngine.openConnection();
   final Url url=Urls.newFromEncoded(karmaServer.formatUrl("/debug.html"));
   final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
   XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,connection,url,executionResult,true);
+      JSDebugProcess debugProcess=debugEngine.createDebugProcess(session,fileFinder,url,executionResult,true);
       debugProcess.setElementsInspectorEnabled(false);
       debugProcess.setLayouter(consoleView.createDebugLayouter(debugProcess));
       return debugProcess;
