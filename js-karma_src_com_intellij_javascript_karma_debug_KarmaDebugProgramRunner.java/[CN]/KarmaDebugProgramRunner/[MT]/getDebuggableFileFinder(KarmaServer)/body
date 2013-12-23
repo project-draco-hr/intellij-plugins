@@ -2,7 +2,7 @@
   ImmutableBiMap.Builder<String,VirtualFile> mappings=ImmutableBiMap.builder();
   KarmaConfig karmaConfig=karmaServer.getKarmaConfig();
   if (karmaConfig != null) {
-    @SuppressWarnings("ConstantConditions") File basePath=new File(karmaConfig.getBasePath());
+    File basePath=new File(karmaConfig.getBasePath());
     VirtualFile vBasePath=VfsUtil.findFileByIoFile(basePath,false);
     if (vBasePath != null && vBasePath.isValid()) {
       String baseUrl=karmaServer.formatUrlWithoutUrlRoot("/base");
@@ -12,13 +12,11 @@
   VirtualFile root=LocalFileSystem.getInstance().getRoot();
   if (SystemInfo.isWindows) {
     for (    VirtualFile child : root.getChildren()) {
-      String url=karmaServer.formatUrlWithoutUrlRoot("/absolute" + child.getName());
-      mappings.put(url,child);
+      mappings.put(karmaServer.formatUrlWithoutUrlRoot("/absolute" + child.getName()),child);
     }
   }
  else {
-    String url=karmaServer.formatUrlWithoutUrlRoot("/absolute");
-    mappings.put(url,root);
+    mappings.put(karmaServer.formatUrlWithoutUrlRoot("/absolute"),root);
   }
   return new RemoteDebuggingFileFinder(mappings.build(),false);
 }

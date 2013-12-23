@@ -4,13 +4,13 @@
   if (browsers == null) {
     return null;
   }
-  JSDebugEngine[] engines=listDebugEngines();
-  List<JstdDebugBrowserInfo<Connection>> debugBrowserInfos=Lists.newArrayList();
+  JSDebugEngine[] engines=JSDebugEngine.getEngines();
+  List<JstdDebugBrowserInfo> debugBrowserInfos=Lists.newArrayList();
   for (  SlaveBrowser slaveBrowser : browsers.getSlaveBrowsers()) {
     String browserName=slaveBrowser.getBrowserInfo().getName();
     for (    JSDebugEngine engine : engines) {
       if (engine.getWebBrowser().getName().equalsIgnoreCase(browserName)) {
-        debugBrowserInfos.add(new JstdDebugBrowserInfo<Connection>(engine,slaveBrowser.getCaptureUrl(),slaveBrowser));
+        debugBrowserInfos.add(new JstdDebugBrowserInfo(engine,slaveBrowser.getCaptureUrl(),slaveBrowser));
       }
     }
   }
@@ -19,7 +19,7 @@
   }
   if (debugBrowserInfos.size() > 1) {
     BrowsersConfiguration.BrowserFamily preferredBrowser=settings.getPreferredDebugBrowser();
-    for (    JstdDebugBrowserInfo<Connection> info : debugBrowserInfos) {
+    for (    JstdDebugBrowserInfo info : debugBrowserInfos) {
       if (info.getDebugEngine().getBrowserFamily() == preferredBrowser) {
         return info;
       }
