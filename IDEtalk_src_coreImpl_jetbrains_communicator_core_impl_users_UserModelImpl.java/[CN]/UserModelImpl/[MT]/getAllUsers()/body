@@ -1,18 +1,17 @@
 {
-synchronized (myCachedUsersLock) {
-    if (myCachedUsers == null) {
-      Collection<User> users=_getUsers();
-      myCachedUsers=users.toArray(new User[users.size()]);
-      Arrays.sort(myCachedUsers,new Comparator<User>(){
-        @Override public int compare(        User u1,        User u2){
-          if (u1.getGroup().equals(u2.getGroup())) {
-            return UIUtil.compareUsers(u1,u2);
-          }
-          return u1.getGroup().compareTo(u2.getGroup());
-        }
-      }
-);
-    }
-    return myCachedUsers;
+  User[] usersList=myCachedUsers.get();
+  if (usersList != null) {
+    return usersList;
   }
+  usersList=getUsersList();
+  Arrays.sort(usersList,new Comparator<User>(){
+    @Override public int compare(    User u1,    User u2){
+      if (u1.getGroup().equals(u2.getGroup())) {
+        return UIUtil.compareUsers(u1,u2);
+      }
+      return u1.getGroup().compareTo(u2.getGroup());
+    }
+  }
+);
+  return myCachedUsers.compareAndSet(null,usersList) ? usersList : getAllUsers();
 }
