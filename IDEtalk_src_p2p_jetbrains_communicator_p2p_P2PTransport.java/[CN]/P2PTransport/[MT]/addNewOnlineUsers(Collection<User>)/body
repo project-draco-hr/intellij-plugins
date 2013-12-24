@@ -1,13 +1,17 @@
 {
-  for (  final User user : onlineUsers) {
-    if (!myOnlineUsers.contains(user) && myUserToInfoNew.containsKey(user)) {
-      myEventBroadcaster.doChange(new UserEvent.Online(user),new Runnable(){
-        @Override public void run(){
-          myOnlineUsers.add(user);
-          myUserToInfo.put(user,myUserToInfoNew.get(user));
+  List<Pair<IDEtalkEvent,Runnable>> events=new SmartList<Pair<IDEtalkEvent,Runnable>>();
+synchronized (myLock) {
+    for (    final User user : onlineUsers) {
+      if (!myOnlineUsers.contains(user) && myUserToInfoNew.containsKey(user)) {
+        events.add(new Pair<IDEtalkEvent,Runnable>(new UserEvent.Online(user),new MySyncRunnable(){
+          @Override protected void execute(){
+            myOnlineUsers.add(user);
+            myUserToInfo.put(user,myUserToInfoNew.get(user));
+          }
         }
+));
       }
-);
     }
   }
+  dispatchEvents(events);
 }

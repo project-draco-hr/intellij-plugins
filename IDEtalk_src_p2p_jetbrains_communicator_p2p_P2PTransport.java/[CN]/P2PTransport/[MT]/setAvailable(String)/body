@@ -2,9 +2,9 @@
   final User user=myUserModel.findUser(remoteUser,getName());
   if (user != null) {
     UserPresence oldPresence=getNotNullOnlineInfo(user).getPresence();
-    final UserPresence newPresence=new UserPresence(true);
-    myEventBroadcaster.doChange(new UserEvent.Updated(user,"presence",oldPresence,newPresence),new Runnable(){
-      @Override public void run(){
+    UserPresence newPresence=new UserPresence(true);
+    myEventBroadcaster.doChange(new UserEvent.Updated(user,"presence",oldPresence,newPresence),new MySyncRunnable(){
+      @Override protected void execute(){
         OnlineUserInfo onlineInfo=getNotNullOnlineInfo(user);
         onlineInfo.setPresence(new UserPresence(true));
         myUserToInfo.put(user,onlineInfo);
