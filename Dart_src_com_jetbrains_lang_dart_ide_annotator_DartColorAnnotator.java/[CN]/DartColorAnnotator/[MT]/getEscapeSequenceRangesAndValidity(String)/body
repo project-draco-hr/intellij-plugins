@@ -1,0 +1,62 @@
+{
+  if (StringUtil.isEmpty(text))   return Collections.emptyList();
+  final List<Pair<TextRange,Boolean>> result=new ArrayList<Pair<TextRange,Boolean>>();
+  int currentIndex=-1;
+  while ((currentIndex=text.indexOf('\\',currentIndex)) != -1) {
+    final int startIndex=currentIndex;
+    if (text.length() <= currentIndex + 1) {
+      result.add(Pair.create(new TextRange(startIndex,text.length()),false));
+      break;
+    }
+    final char nextChar=text.charAt(++currentIndex);
+    if (nextChar == 'x') {
+      if (text.length() <= currentIndex + 2) {
+        result.add(Pair.create(new TextRange(startIndex,text.length()),false));
+        break;
+      }
+      final char hexChar1=text.charAt(++currentIndex);
+      final char hexChar2=text.charAt(++currentIndex);
+      final boolean valid=StringUtil.isHexDigit(hexChar1) && StringUtil.isHexDigit(hexChar2);
+      currentIndex++;
+      result.add(Pair.create(new TextRange(startIndex,currentIndex),valid));
+    }
+ else     if (nextChar == 'u') {
+      if (text.length() <= currentIndex + 1) {
+        result.add(Pair.create(new TextRange(startIndex,text.length()),false));
+        break;
+      }
+      final char hexOrBraceChar1=text.charAt(++currentIndex);
+      if (hexOrBraceChar1 == '{') {
+        currentIndex++;
+        final int closingBraceIndex=text.indexOf('}',currentIndex);
+        if (closingBraceIndex == -1) {
+          result.add(Pair.create(new TextRange(startIndex,currentIndex),false));
+        }
+ else {
+          final String textInBrackets=text.substring(currentIndex,closingBraceIndex);
+          currentIndex=closingBraceIndex + 1;
+          final boolean valid=textInBrackets.length() > 0 && textInBrackets.length() <= 6 && isHexString(textInBrackets);
+          result.add(Pair.create(new TextRange(startIndex,currentIndex),valid));
+        }
+      }
+ else {
+        final char hexChar1=hexOrBraceChar1;
+        if (text.length() <= currentIndex + 3) {
+          result.add(Pair.create(new TextRange(startIndex,text.length()),false));
+          break;
+        }
+        final char hexChar2=text.charAt(++currentIndex);
+        final char hexChar3=text.charAt(++currentIndex);
+        final char hexChar4=text.charAt(++currentIndex);
+        final boolean valid=StringUtil.isHexDigit(hexChar1) && StringUtil.isHexDigit(hexChar2) && StringUtil.isHexDigit(hexChar3)&& StringUtil.isHexDigit(hexChar4);
+        currentIndex++;
+        result.add(Pair.create(new TextRange(startIndex,currentIndex),valid));
+      }
+    }
+ else {
+      currentIndex++;
+      result.add(Pair.create(new TextRange(startIndex,currentIndex),true));
+    }
+  }
+  return result;
+}
