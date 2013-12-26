@@ -1,12 +1,28 @@
 {
   JSDebugEngine[] engines=JSDebugEngine.getEngines();
-  for (  JSDebugEngine engine : engines) {
-    for (    CapturedBrowser browser : myCapturedBrowsers) {
-      if (browser.getName().contains(engine.getWebBrowser().getName())) {
-        return engine;
+  List<JSDebugEngine> filteredEngines=ContainerUtil.filter(engines,new Condition<JSDebugEngine>(){
+    @Override public boolean value(    JSDebugEngine engine){
+      return !engine.getWebBrowser().getName().equals("Dartium");
+    }
+  }
+);
+  List<JSDebugEngine> candidates=ContainerUtil.newSmartList();
+  for (  JSDebugEngine engine : filteredEngines) {
+    WebBrowser webBrowser=engine.getWebBrowser();
+    for (    CapturedBrowser capturedBrowser : myCapturedBrowsers) {
+      if (capturedBrowser.getName().contains(webBrowser.getName())) {
+        candidates.add(engine);
+        break;
       }
     }
   }
-  select();
+  if (candidates.size() == 1) {
+    return candidates.get(0);
+  }
+  JSDebugEngine debugEngineToReuse=getDebugEngineToReuse();
+  if (debugEngineToReuse != null) {
+    return debugEngineToReuse;
+  }
+  showSelectionUI(filteredEngines);
   return null;
 }
