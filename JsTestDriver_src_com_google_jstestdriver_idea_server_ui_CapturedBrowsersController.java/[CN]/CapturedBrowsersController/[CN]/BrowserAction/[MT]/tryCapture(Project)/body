@@ -4,15 +4,9 @@
     Messages.showErrorDialog("Please start a local JsTestDriver server before capturing a browser.","JsTestDriver Browser Capturing Failed");
     return false;
   }
-  BrowsersConfiguration browsersConfiguration=BrowsersConfiguration.getInstance();
-  if (browsersConfiguration == null) {
-    return false;
-  }
-  WebBrowserSettings browserSettings=browsersConfiguration.getBrowserSettings(myBrowser.getBrowserFamily());
-  String browserPath=browserSettings.getPath();
+  String browserPath=myBrowser.getBrowser().getPath();
   if (StringUtil.isEmptyOrSpaces(browserPath)) {
     String message="Path to " + myBrowser.getName() + " is not specified.";
-    Project project=null;
     int exitCode=Messages.showOkCancelDialog(project,message,"JsTestDriver Browser Capturing Failed","Specify path","Cancel",Messages.getWarningIcon());
     if (exitCode == Messages.OK) {
       ShowSettingsUtil settingsUtil=ShowSettingsUtil.getInstance();
@@ -20,6 +14,6 @@
     }
     return false;
   }
-  UrlOpener.launchBrowser(myBrowser.getBrowserFamily(),captureUrl);
+  UrlOpener.launchBrowser(captureUrl,myBrowser.getBrowser());
   return true;
 }
