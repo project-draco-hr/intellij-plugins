@@ -1,12 +1,13 @@
 {
-  if (!HtmlUtil.isHtmlFile(psiFile))   return false;
+  if (psiFile == null || !HtmlUtil.isHtmlFile(psiFile)) {
+    return false;
+  }
   final String text=psiFile.getText();
   int i=-1;
   while ((i=text.indexOf("application/dart",i + 1)) != -1) {
     final PsiElement element=psiFile.findElementAt(i);
     if (element != null && element.getParent() instanceof XmlAttributeValue) {
-      final XmlTag tag=PsiTreeUtil.getParentOfType(element,XmlTag.class);
-      if (tag != null && HtmlUtil.isScriptTag(tag)) {
+      if (HtmlUtil.isScriptTag(PsiTreeUtil.getParentOfType(element,XmlTag.class))) {
         return true;
       }
     }
