@@ -14,18 +14,18 @@
     final PsiElement context=psiFile.getContext();
     if (context != null)     psiFile=context.getContainingFile();
     final VirtualFile vFile=psiFile.getVirtualFile();
-    if (vFile != null && VfsUtil.findRelativeFile(path,vFile) != null) {
+    if (vFile != null && VfsUtilCore.findRelativeFile(path,vFile) != null) {
       return RelativeToWhat.CurrentFile;
     }
   }
-  if (lookupOptions.RELATIVE_TO_PROJECT_BASE_DIR && VfsUtil.findRelativeFile(path,psiElement.getProject().getBaseDir()) != null) {
+  if (lookupOptions.RELATIVE_TO_PROJECT_BASE_DIR && VfsUtilCore.findRelativeFile(path,psiElement.getProject().getBaseDir()) != null) {
     return RelativeToWhat.ProjectRoot;
   }
   if ((lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITH_SLASH && path.startsWith("/")) || lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITHOUT_SLASH && !path.startsWith("/")) {
-    final Module module=ModuleUtil.findModuleForPsiElement(psiElement);
+    final Module module=ModuleUtilCore.findModuleForPsiElement(psiElement);
     if (module != null) {
       for (      final VirtualFile sourceRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
-        if (VfsUtil.findRelativeFile(path,sourceRoot) != null) {
+        if (VfsUtilCore.findRelativeFile(path,sourceRoot) != null) {
           return RelativeToWhat.SourceRoot;
         }
       }
