@@ -8,7 +8,7 @@
   if (server == null) {
     return null;
   }
-  KarmaCoveragePeer coveragePeer=server.getCoveragePeer();
+  KarmaCoveragePeer coveragePeer=getCoveragePeer(server);
   KarmaCoverageStartupStatus status=coveragePeer.getStartupStatus();
   if (status != null) {
     if (status.isSuccessful()) {
@@ -16,8 +16,8 @@
     }
     return showWarningConsole(status,server,env,contentToReuse);
   }
-  coveragePeer.doWhenCoverageInitialized(new KarmaCoverageInitializationListener(){
-    @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus initStatus){
+  coveragePeer.onCoverageInitialized(new KarmaCoverageInitializationCallback(){
+    @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus startupStatus){
       RunnerAndConfigurationSettings configuration=env.getRunnerAndConfigurationSettings();
       if (configuration != null) {
         ProgramRunnerUtil.executeConfiguration(project,configuration,env.getExecutor());
