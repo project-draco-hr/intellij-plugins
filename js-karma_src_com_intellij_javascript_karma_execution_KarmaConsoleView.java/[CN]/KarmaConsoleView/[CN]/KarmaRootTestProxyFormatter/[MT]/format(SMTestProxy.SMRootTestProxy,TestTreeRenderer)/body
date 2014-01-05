@@ -1,13 +1,17 @@
 {
   if (testProxy.isLeaf()) {
-    if (myDebug) {
-      renderer.clear();
-      renderer.append("Test tree is not available in a debug session");
+    if (myServerProcessTerminated) {
+      render(renderer,"Server is dead",true);
     }
-    if (!myTestRunProcessTerminated && !myServerProcessTerminated) {
-      if (myServer.isPortBound() && !myServer.areBrowsersReady()) {
-        renderer.clear();
-        renderer.append("Waiting for browser capturing...");
+ else {
+      if (myDebug) {
+        render(renderer,"Test tree is not available in a debug session",false);
+      }
+ else       if (myTestRunProcessTerminated) {
+        render(renderer,"Aborted",true);
+      }
+ else       if (myServer.isPortBound() && !myServer.areBrowsersReady()) {
+        render(renderer,"Waiting for browser capturing...",false);
       }
     }
   }
