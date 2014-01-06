@@ -1,0 +1,24 @@
+{
+  final Alarm alarm=new Alarm(Alarm.ThreadToUse.SWING_THREAD,parentDisposable);
+  alarm.addRequest(new Runnable(){
+    @Override public void run(){
+      if (!myServer.areBrowsersReady()) {
+        printBrowserCapturingSuggestion();
+      }
+      Disposer.dispose(alarm);
+    }
+  }
+,1000,ModalityState.any());
+  myServer.onBrowsersReady(new Runnable(){
+    @Override public void run(){
+      alarm.cancelAllRequests();
+    }
+  }
+);
+  myServer.onTerminated(new KarmaServerTerminatedListener(){
+    @Override public void onTerminated(    int exitCode){
+      alarm.cancelAllRequests();
+    }
+  }
+);
+}
