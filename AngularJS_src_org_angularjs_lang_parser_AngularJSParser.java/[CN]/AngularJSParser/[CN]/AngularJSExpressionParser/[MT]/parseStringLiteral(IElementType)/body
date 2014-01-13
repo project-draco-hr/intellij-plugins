@@ -1,0 +1,16 @@
+{
+  final PsiBuilder.Marker mark=builder.mark();
+  IElementType currentToken=firstToken;
+  StringBuilder literal=new StringBuilder();
+  while (currentToken == JSTokenTypes.STRING_LITERAL || currentToken == AngularJSTokenTypes.ESCAPE_SEQUENCE || currentToken == AngularJSTokenTypes.INVALID_ESCAPE_SEQUENCE) {
+    literal.append(builder.getTokenText());
+    builder.advanceLexer();
+    currentToken=builder.getTokenType();
+  }
+  mark.done(JSElementTypes.LITERAL_EXPRESSION);
+  final String errorMessage=validateLiteralText(literal.toString());
+  if (errorMessage != null) {
+    builder.error(errorMessage);
+  }
+  return true;
+}

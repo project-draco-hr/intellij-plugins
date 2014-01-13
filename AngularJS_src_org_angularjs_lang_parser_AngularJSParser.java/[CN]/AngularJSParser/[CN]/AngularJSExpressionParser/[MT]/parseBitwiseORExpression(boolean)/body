@@ -1,0 +1,19 @@
+{
+  PsiBuilder.Marker expr=builder.mark();
+  if (!parseBitwiseXORExpression(allowIn)) {
+    expr.drop();
+    return false;
+  }
+  if (builder.getUserData(IN_FILTER) == null) {
+    while (builder.getTokenType() == JSTokenTypes.OR) {
+      builder.advanceLexer();
+      if (!parseFilter()) {
+        builder.error("expected filter");
+      }
+      expr.done(JSElementTypes.BINARY_EXPRESSION);
+      expr=expr.precede();
+    }
+  }
+  expr.drop();
+  return true;
+}

@@ -1,0 +1,12 @@
+{
+  final String text=FileUtil.loadFile(new File(path,suffix),true);
+  final StringBuilder result=new StringBuilder();
+  for (  String line : StringUtil.splitByLines(text)) {
+    if (result.length() > 0)     result.append("------\n");
+    final AngularJSParserDefinition definition=new AngularJSParserDefinition();
+    final PsiBuilder builder=PsiBuilderFactory.getInstance().createBuilder(definition,new AngularJSLexer(),line);
+    final ASTNode root=definition.createParser(getProject()).parse(JSStubElementTypes.FILE,builder);
+    result.append(DebugUtil.psiToString(root.getPsi(),false,false));
+  }
+  assertEquals(FileUtil.loadFile(new File(path,suffix.replace("js","txt")),true),result.toString());
+}
