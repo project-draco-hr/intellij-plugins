@@ -10,26 +10,42 @@
     }
 ;
     checkConfiguration(module,bc,false,errorConsumer);
-    if (bc.getNature().isMobilePlatform() && bc.getNature().isApp()) {
-      final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(scope);
-      if (runConfig instanceof FlashRunConfiguration) {
-        final FlashRunnerParameters params=((FlashRunConfiguration)runConfig).getRunnerParameters();
-        if (module.getName().equals(params.getModuleName()) && bc.getName().equals(params.getBCName())) {
-          if (params.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice) {
-            checkPackagingOptions(module.getProject(),bc.getSdk(),bc.getAndroidPackagingOptions(),PathUtil.getParentPath(bc.getActualOutputFilePath()),errorConsumer);
-          }
- else           if (params.getMobileRunTarget() == AirMobileRunTarget.iOSDevice) {
-            checkPackagingOptions(module.getProject(),bc.getSdk(),bc.getIosPackagingOptions(),PathUtil.getParentPath(bc.getActualOutputFilePath()),errorConsumer);
-          }
+    final RunConfiguration runConfig=CompileStepBeforeRun.getRunConfiguration(scope);
+    if (bc.getNature().isApp() && runConfig instanceof FlashRunConfiguration) {
+      final FlashRunnerParameters params=((FlashRunConfiguration)runConfig).getRunnerParameters();
+      if (module.getName().equals(params.getModuleName()) && bc.getName().equals(params.getBCName())) {
+        if (bc.getNature().isDesktopPlatform()) {
+          checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAirDesktopPackagingOptions(),errorConsumer,false,"does not matter");
         }
-      }
+ else         if (bc.getNature().isMobilePlatform()) {
+switch (params.getMobileRunTarget()) {
+case Emulator:
+switch (params.getAppDescriptorForEmulator()) {
+case Android:
+              checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAndroidPackagingOptions(),errorConsumer,false,"does not matter");
+            break;
+case IOS:
+          checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getIosPackagingOptions(),errorConsumer,false,"does not matter");
+        break;
     }
-  }
-  checkSimilarOutputFiles(modulesAndBCsToCompile,new Consumer<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>>(){
-    public void consume(    final Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem> trinity){
-      problems.add(trinity);
-    }
-  }
+  break;
+case AndroidDevice:
+checkPackagingOptions(module,bc.getSdk(),bc.getAndroidPackagingOptions(),PathUtil.getParentPath(bc.getActualOutputFilePath()),errorConsumer);
+break;
+case iOSSimulator:
+case iOSDevice:
+checkPackagingOptions(module,bc.getSdk(),bc.getIosPackagingOptions(),PathUtil.getParentPath(bc.getActualOutputFilePath()),errorConsumer);
+break;
+}
+}
+}
+}
+}
+checkSimilarOutputFiles(modulesAndBCsToCompile,new Consumer<Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem>>(){
+public void consume(final Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem> trinity){
+problems.add(trinity);
+}
+}
 );
-  return problems;
+return problems;
 }

@@ -3,12 +3,41 @@
     final Pair<Module,FlexBuildConfiguration> moduleAndBC=super.checkAndGetModuleAndBC(project);
     final Module module=moduleAndBC.first;
     final FlexBuildConfiguration bc=moduleAndBC.second;
+    final Ref<String> errorMessageRef=new Ref<String>(null);
+    final Consumer<FlashProjectStructureProblem> consumer=new Consumer<FlashProjectStructureProblem>(){
+      public void consume(      final FlashProjectStructureProblem problem){
+        errorMessageRef.set(problem.errorMessage);
+      }
+    }
+;
     if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
-      checkNamespaceIfCustomDescriptor(module,bc.getSdk(),bc.getAirDesktopPackagingOptions(),getBCName());
+      FlexCompiler.checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAirDesktopPackagingOptions(),consumer,true,getBCName());
     }
  else     if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
-    }
-  }
- catch (  RuntimeConfigurationError e) {
-  }
+switch (myMobileRunTarget) {
+case Emulator:
+switch (myAppDescriptorForEmulator) {
+case Android:
+          FlexCompiler.checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAndroidPackagingOptions(),consumer,true,getBCName());
+        break;
+case IOS:
+      FlexCompiler.checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getIosPackagingOptions(),consumer,true,getBCName());
+    break;
+}
+break;
+case AndroidDevice:
+FlexCompiler.checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAndroidPackagingOptions(),consumer,true,getBCName());
+break;
+case iOSSimulator:
+case iOSDevice:
+FlexCompiler.checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getIosPackagingOptions(),consumer,true,getBCName());
+break;
+}
+}
+if (!errorMessageRef.isNull()) {
+throw new RuntimeConfigurationWarning(errorMessageRef.get());
+}
+}
+ catch (RuntimeConfigurationError e) {
+}
 }

@@ -1,10 +1,10 @@
 {
-  context.addMessage(CompilerMessageCategory.ERROR,"Flash build configurations contain errors. " + "Double-click error message below to navigate to the corresponding field in the Project Structure dialog",null,-1,-1);
   for (  Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem> trinity : problems) {
     final Module module=trinity.getFirst();
     final FlexBuildConfiguration bc=trinity.getSecond();
     final FlashProjectStructureProblem problem=trinity.getThird();
     final String message=problem instanceof FlashProjectStructureProblem.FlexUnitOutputFolderProblem ? problem.errorMessage : FlexBundle.message("bc.0.module.1.problem.2",bc.getName(),module.getName(),problem.errorMessage);
-    context.addMessage(CompilerMessageCategory.ERROR,message,null,-1,-1,new BCProblemNavigatable(module,bc.getName(),problem));
+    final CompilerMessageCategory severity=problem.severity == ProjectStructureProblemType.Severity.ERROR ? CompilerMessageCategory.ERROR : CompilerMessageCategory.WARNING;
+    context.addMessage(severity,message,null,-1,-1,new BCProblemNavigatable(module,bc.getName(),problem));
   }
 }

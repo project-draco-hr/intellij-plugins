@@ -10,14 +10,7 @@
         errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(Severity.ERROR,packagingOptions,FlexBundle.message("custom.descriptor.not.found",device,FileUtil.toSystemDependentName(packagingOptions.getCustomDescriptorPath())),AirPackagingConfigurableBase.Location.CustomDescriptor));
       }
  else       if (sdk != null && sdk.getSdkType() != FlexmojosSdkType.getInstance()) {
-        final PsiFile file=PsiManager.getInstance(project).findFile(descriptorFile);
-        final XmlTag rootTag=file instanceof XmlFile ? ((XmlFile)file).getRootTag() : null;
-        final String ns=rootTag == null ? null : rootTag.getNamespace();
-        final String nsVersion=ns != null && ns.startsWith(FlexCommonUtils.AIR_NAMESPACE_BASE) ? ns.substring(FlexCommonUtils.AIR_NAMESPACE_BASE.length()) : null;
-        final String airSdkVersion=FlexCommonUtils.getAirVersion(sdk.getHomePath(),sdk.getVersionString());
-        if (nsVersion != null && airSdkVersion != null && !nsVersion.equals(airSdkVersion)) {
-          errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(Severity.WARNING,packagingOptions,FlexBundle.message("air.version.mismatch.warning",device,descriptorFile.getName(),nsVersion,airSdkVersion),AirPackagingConfigurableBase.Location.CustomDescriptor));
-        }
+        checkAirVersionIfCustomDescriptor(module,sdk,packagingOptions,errorConsumer,false,"does not matter");
       }
     }
   }

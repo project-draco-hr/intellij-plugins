@@ -9,8 +9,18 @@
     }
 );
     if (!problems.isEmpty()) {
+      boolean hasErrors=false;
+      for (      Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem> problem : problems) {
+        if (problem.getThird().severity == ProjectStructureProblemType.Severity.ERROR) {
+          hasErrors=true;
+          break;
+        }
+      }
+      if (hasErrors) {
+        context.addMessage(CompilerMessageCategory.ERROR,"Flash build configurations contain errors. " + "Double-click error message below to navigate to the corresponding field in the Project Structure dialog",null,-1,-1);
+      }
       reportProblems(context,problems);
-      return false;
+      return !hasErrors;
     }
   }
  catch (  ConfigurationException e) {
