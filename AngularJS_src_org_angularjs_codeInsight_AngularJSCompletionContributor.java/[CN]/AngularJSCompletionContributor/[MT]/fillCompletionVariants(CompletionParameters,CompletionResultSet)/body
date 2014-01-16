@@ -1,0 +1,13 @@
+{
+  if (!getElementLanguage(parameters).is(AngularJSLanguage.INSTANCE))   return;
+  PsiReference ref=parameters.getPosition().getContainingFile().findReferenceAt(parameters.getOffset());
+  if (ref instanceof JSReferenceExpressionImpl) {
+    final JavaScriptCompletionData.JSInsertHandler insertHandler=new JavaScriptCompletionData.JSInsertHandler();
+    AngularJSProcessor.process(parameters.getPosition(),new Consumer<JSVariable>(){
+      @Override public void consume(      JSVariable element){
+        result.consume(LookupElementBuilder.createWithIcon(element).withInsertHandler(insertHandler));
+      }
+    }
+);
+  }
+}

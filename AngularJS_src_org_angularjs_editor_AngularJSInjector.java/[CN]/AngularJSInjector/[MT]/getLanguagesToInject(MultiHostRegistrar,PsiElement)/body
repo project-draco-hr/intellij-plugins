@@ -1,6 +1,14 @@
 {
   if (context.getContainingFile().getViewProvider() instanceof MultiplePsiFilesPerDocumentFileViewProvider)   return;
-  if (AngularIndexUtil.resolve(context.getProject(),AngularDirectivesIndex.INDEX_ID,"ng-model") == null)   return;
+  final Project project=context.getProject();
+  if (AngularIndexUtil.resolve(project,AngularDirectivesIndex.INDEX_ID,"ng-model") == null)   return;
+  if (context instanceof XmlAttributeValueImpl) {
+    final XmlAttribute attribute=(XmlAttribute)context.getParent();
+    if (isAngularAttribute(attribute,"ng-init")) {
+      registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(1,context.getTextLength() - 1)).doneInjecting();
+      return;
+    }
+  }
   if (context instanceof XmlTextImpl || context instanceof XmlAttributeValueImpl) {
     final String text=context.getText();
     int startIndex;
@@ -10,7 +18,7 @@
       endIndex=startIndex >= 0 ? text.indexOf("}}",startIndex) : -1;
       endIndex=endIndex > 0 ? endIndex : text.length();
       if (startIndex >= 0) {
-        registrar.startInjecting(injectJavaScript() ? JavascriptLanguage.INSTANCE : AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(startIndex + 2,endIndex)).doneInjecting();
+        registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(startIndex + 2,endIndex)).doneInjecting();
       }
     }
  while (startIndex >= 0);
