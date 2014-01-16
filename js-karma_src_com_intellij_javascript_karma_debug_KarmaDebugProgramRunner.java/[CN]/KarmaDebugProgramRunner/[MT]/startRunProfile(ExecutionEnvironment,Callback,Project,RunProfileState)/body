@@ -1,0 +1,51 @@
+{
+  final ExecutionResult executionResult=state.execute(environment.getExecutor(),this);
+  if (executionResult == null) {
+    JsRunners.start(environment,callback,project,state,null,null);
+    return;
+  }
+  final KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult);
+  if (consoleView == null) {
+    throw new RuntimeException("KarmaConsoleView was expected!");
+  }
+  final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
+  if (karmaServer.areBrowsersReady()) {
+    final Pair<JSDebugEngine,WebBrowser> engineAndBrowser=new KarmaDebugBrowserSelector(project,karmaServer.getCapturedBrowsers(),environment,this).selectDebugEngine();
+    JsRunners.start(environment,callback,project,state,engineAndBrowser,new JsRunners.Starter(){
+      @Override public RunContentDescriptor start(      RunContentDescriptor contentToReuse) throws ExecutionException {
+        if (engineAndBrowser == null) {
+          return null;
+        }
+        final Url url=Urls.newFromEncoded(karmaServer.formatUrl("/debug.html"));
+        final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
+        XDebugSession session=XDebuggerManager.getInstance(project).startSession(KarmaDebugProgramRunner.this,environment,contentToReuse,new XDebugProcessStarter(){
+          @Override @NotNull public XDebugProcess start(          @NotNull final XDebugSession session){
+            JSDebugProcess<?> debugProcess=engineAndBrowser.first.createDebugProcess(session,engineAndBrowser.second,fileFinder,url,executionResult,true);
+            debugProcess.setElementsInspectorEnabled(false);
+            debugProcess.setLayouter(consoleView.createDebugLayouter(debugProcess));
+            return debugProcess;
+          }
+        }
+);
+        return session.getRunContentDescriptor();
+      }
+    }
+);
+  }
+ else {
+    JsRunners.start(environment,callback,project,state,null,new JsRunners.Starter(){
+      @NotNull @Override public RunContentDescriptor start(      @Nullable RunContentDescriptor contentToReuse){
+        RunContentBuilder contentBuilder=new RunContentBuilder(KarmaDebugProgramRunner.this,executionResult,environment);
+        final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+        karmaServer.onBrowsersReady(new Runnable(){
+          @Override public void run(){
+            KarmaUtil.restart(descriptor);
+          }
+        }
+);
+        return descriptor;
+      }
+    }
+);
+  }
+}

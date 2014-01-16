@@ -1,14 +1,5 @@
 {
-  JstdDebugBrowserInfo debugBrowserInfo=JstdDebugBrowserInfo.build(runConfiguration.getRunSettings());
-  if (debugBrowserInfo == null) {
-    throw new ExecutionException("Can not find a browser that supports debugging.");
-  }
-  FileDocumentManager.getInstance().saveAllDocuments();
-  final JSDebugEngine debugEngine=debugBrowserInfo.getDebugEngine();
   final WebBrowser browser=debugBrowserInfo.getBrowser();
-  if (!debugEngine.prepareDebugger(project,browser)) {
-    return null;
-  }
   final Url url;
   if (browser.getFamily().equals(BrowsersConfiguration.BrowserFamily.CHROME)) {
     url=Urls.newHttpUrl("127.0.0.1:" + JstdToolWindowPanel.serverPort,debugBrowserInfo.getCapturedBrowserUrl());
@@ -22,7 +13,7 @@
   final RemoteDebuggingFileFinder fileFinder=new JstdDebuggableFileFinderProvider(new File(runConfiguration.getRunSettings().getConfigFile())).provideFileFinder();
   XDebugSession session=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull XDebugSession session){
-      JSDebugProcess<?> process=debugEngine.createDebugProcess(session,browser,fileFinder,url,executionResult,false);
+      JSDebugProcess<?> process=debugBrowserInfo.getDebugEngine().createDebugProcess(session,browser,fileFinder,url,executionResult,false);
       process.setElementsInspectorEnabled(false);
       return process;
     }

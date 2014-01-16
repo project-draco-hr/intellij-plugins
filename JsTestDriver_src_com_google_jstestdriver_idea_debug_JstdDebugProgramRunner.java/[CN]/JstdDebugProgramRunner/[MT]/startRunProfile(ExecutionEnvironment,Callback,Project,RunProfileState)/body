@@ -1,0 +1,14 @@
+{
+  final JstdRunConfiguration runConfiguration=(JstdRunConfiguration)environment.getRunProfile();
+  JstdRunConfigurationVerifier.checkJstdServerAndBrowserEnvironment(project,runConfiguration.getRunSettings(),true);
+  final JstdDebugBrowserInfo debugBrowserInfo=JstdDebugBrowserInfo.build(runConfiguration.getRunSettings());
+  if (debugBrowserInfo == null) {
+    throw new ExecutionException("Cannot find a browser that supports debugging.");
+  }
+  JsRunners.start(environment,callback,project,state,Pair.create(debugBrowserInfo.getDebugEngine(),debugBrowserInfo.getBrowser()),new JsRunners.Starter(){
+    @Nullable @Override public RunContentDescriptor start(    @Nullable RunContentDescriptor contentToReuse) throws ExecutionException {
+      return startSession(project,contentToReuse,environment,runConfiguration,debugBrowserInfo);
+    }
+  }
+);
+}
