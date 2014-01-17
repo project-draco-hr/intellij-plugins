@@ -1,6 +1,9 @@
 {
   int offset=editor.getCaretModel().getOffset();
   FileViewProvider provider=file.getViewProvider();
+  if (provider.getBaseLanguage() != HbLanguage.INSTANCE) {
+    return Result.CONTINUE;
+  }
   if (offset < 2 || offset > editor.getDocument().getTextLength()) {
     return Result.CONTINUE;
   }
@@ -37,6 +40,9 @@
   if (closeBraceCompleted || (c == '}' && previousChar.equals("}"))) {
     autoInsertCloseTag(project,offset,editor,provider);
     adjustMustacheFormatting(project,offset,editor,file,provider);
+  }
+ else   if (c == '/' && previousChar.equals("{")) {
+    finishCloseTag(offset,editor,provider);
   }
   return Result.CONTINUE;
 }
