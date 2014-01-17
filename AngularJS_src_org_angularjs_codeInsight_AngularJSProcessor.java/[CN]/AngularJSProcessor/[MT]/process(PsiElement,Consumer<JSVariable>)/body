@@ -2,12 +2,20 @@
   final XmlFile file=(XmlFile)InjectedLanguageUtil.getTopLevelFile(element);
   final JSResolveUtil.JSInjectedFilesVisitor visitor=new JSResolveUtil.JSInjectedFilesVisitor(){
     @Override protected void process(    JSFile file){
-      file.accept(new JSRecursiveElementVisitor(){
+      file.accept(new AngularJSRecursiveVisitor(){
         @Override public void visitJSVariable(        JSVariable node){
           if (scopeMatches(element,node)) {
             consumer.consume(node);
           }
           super.visitJSVariable(node);
+        }
+        @Override public void visitAngularJSRepeatExpression(        AngularJSRepeatExpression repeatExpression){
+          if (scopeMatches(element,repeatExpression)) {
+            for (            Map.Entry<String,String> entry : NG_REPEAT_IMPLICITS.entrySet()) {
+              consumer.consume(new ImplicitJSVariableImpl(entry.getKey(),entry.getValue(),repeatExpression));
+            }
+          }
+          super.visitAngularJSRepeatExpression(repeatExpression);
         }
       }
 );
