@@ -1,13 +1,16 @@
 {
   if (!recursion_guard_(builder_,level_,"exportStatement"))   return false;
-  if (!nextTokenIs(builder_,EXPORT))   return false;
+  if (!nextTokenIs(builder_,"<export statement>",AT,EXPORT))   return false;
   boolean result_=false;
-  Marker marker_=enter_section_(builder_);
-  result_=consumeToken(builder_,EXPORT);
+  boolean pinned_=false;
+  Marker marker_=enter_section_(builder_,level_,_NONE_,"<export statement>");
+  result_=exportStatement_0(builder_,level_ + 1);
+  result_=result_ && consumeToken(builder_,EXPORT);
   result_=result_ && pathOrLibraryReference(builder_,level_ + 1);
-  result_=result_ && exportStatement_2(builder_,level_ + 1);
-  result_=result_ && exportStatement_3(builder_,level_ + 1);
-  result_=result_ && consumeToken(builder_,SEMICOLON);
-  exit_section_(builder_,marker_,EXPORT_STATEMENT,result_);
-  return result_;
+  pinned_=result_;
+  result_=result_ && report_error_(builder_,exportStatement_3(builder_,level_ + 1));
+  result_=pinned_ && report_error_(builder_,exportStatement_4(builder_,level_ + 1)) && result_;
+  result_=pinned_ && consumeToken(builder_,SEMICOLON) && result_;
+  exit_section_(builder_,level_,marker_,EXPORT_STATEMENT,result_,pinned_,null);
+  return result_ || pinned_;
 }
