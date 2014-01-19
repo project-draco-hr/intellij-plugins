@@ -21,7 +21,6 @@
   finally {
           myStartingServers.remove(serverSettings);
         }
-        consumer.consume(server);
         server.onTerminated(new KarmaServerTerminatedListener(){
           @Override public void onTerminated(          int exitCode){
             myServers.remove(serverSettings,server);
@@ -29,9 +28,20 @@
           }
         }
 );
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            consumer.consume(server);
+          }
+        }
+);
       }
- catch (      Exception e) {
-        consumer.consume(e);
+ catch (      final Exception e) {
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            consumer.consume(e);
+          }
+        }
+);
       }
     }
   }
