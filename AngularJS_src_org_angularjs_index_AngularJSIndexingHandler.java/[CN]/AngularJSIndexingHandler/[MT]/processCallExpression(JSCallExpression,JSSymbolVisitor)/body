@@ -9,16 +9,8 @@
     if (arguments.length > 0) {
       JSExpression argument=arguments[0];
       if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
-        final Function<String,String> converter=NAME_CONVERTERS.get(command);
-        final String defaultName=StringUtil.unquoteString(argument.getText());
-        final String name=converter != null ? converter.fun(argument.getText()) : defaultName;
-        if (name != null) {
-          visitor.storeAdditionalData(argument,index.toString(),name,argument.getTextOffset());
-          visitor.storeAdditionalData(argument,AngularSymbolIndex.INDEX_ID.toString(),name,argument.getTextOffset());
-          if (!StringUtil.equals(defaultName,name)) {
-            visitor.storeAdditionalData(argument,AngularSymbolIndex.INDEX_ID.toString(),defaultName,argument.getTextOffset());
-          }
-        }
+        final String argumentText=argument.getText();
+        storeAdditionalData(visitor,index,argument,command,argumentText,argument.getTextOffset());
       }
     }
   }

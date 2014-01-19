@@ -1,13 +1,21 @@
 {
   if (myReferencedName == null)   return ResolveResult.EMPTY_ARRAY;
-  final Collection<JSNamedElement> localVariables=getItemsByName(myReferencedName,myRef);
-  if (!localVariables.isEmpty()) {
-    return ContainerUtil.map2Array(localVariables,JSResolveResult.class,new Function<JSNamedElement,JSResolveResult>(){
-      @Override public JSResolveResult fun(      JSNamedElement item){
-        return new JSResolveResult(item);
-      }
+  if (AngularJSFilterExpression.isFilterNameRef(myRef,myParent)) {
+    final JSNamedElementProxy resolve=AngularIndexUtil.resolve(myParent.getProject(),AngularFilterIndex.INDEX_ID,myReferencedName);
+    if (resolve != null) {
+      return new JSResolveResult[]{new JSResolveResult(resolve)};
     }
+  }
+ else {
+    final Collection<JSNamedElement> localVariables=getItemsByName(myReferencedName,myRef);
+    if (!localVariables.isEmpty()) {
+      return ContainerUtil.map2Array(localVariables,JSResolveResult.class,new Function<JSNamedElement,JSResolveResult>(){
+        @Override public JSResolveResult fun(        JSNamedElement item){
+          return new JSResolveResult(item);
+        }
+      }
 );
+    }
   }
   return super.doResolve();
 }
