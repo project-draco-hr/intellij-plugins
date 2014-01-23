@@ -2,6 +2,13 @@
   final GroovyPsiElementFactory factory=GroovyPsiElementFactory.getInstance(step.getProject());
   final Step cucumberStep=new Step(Collections.<Comment>emptyList(),step.getKeyword().getText(),step.getStepName(),0,null,null);
   SnippetGenerator generator=new SnippetGenerator(new GroovySnippet());
-  StringBuilder snippet=escapePattern(generator.getSnippet(cucumberStep).replace("PendingException","cucumber.runtime.PendingException"));
+  final String fqnPendingException;
+  if (GrCucumberUtil.isCucumber_1_1_orAbove(step)) {
+    fqnPendingException="cucumber.api.PendingException";
+  }
+ else {
+    fqnPendingException="cucumber.runtime.PendingException";
+  }
+  StringBuilder snippet=escapePattern(generator.getSnippet(cucumberStep).replace("PendingException",fqnPendingException));
   return (GrMethodCall)factory.createStatementFromText(snippet,step);
 }
