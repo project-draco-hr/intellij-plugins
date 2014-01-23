@@ -1,0 +1,37 @@
+{
+  if (!sourceFile.exists()) {
+    mySession.warn("The library does not exist. Please check your module settings. Ignoring missing library.",sourceFile);
+    return null;
+  }
+  if (sourceFile.isDirectory()) {
+    return null;
+  }
+  File targetFile=new File(myOutputDir,sourceFile.getName());
+  Map<String,String> additionalProperties=new HashMap<String,String>();
+  long lastModified=Long.MIN_VALUE;
+  for (  JpsLibraryBundlificationRule bundlificationRule : JpsOsmorcExtensionService.getInstance().getLibraryBundlificationRules()) {
+    if (bundlificationRule.appliesTo(sourceFile.getName())) {
+      if (bundlificationRule.isDoNotBundle()) {
+        return null;
+      }
+      additionalProperties.putAll(bundlificationRule.getAdditionalPropertiesMap());
+      lastModified=Math.max(lastModified,bundlificationRule.getLastModified());
+      if (bundlificationRule.isStopAfterThisRule()) {
+        break;
+      }
+    }
+  }
+  if (!targetFile.exists() || targetFile.lastModified() < sourceFile.lastModified() || targetFile.lastModified() < lastModified) {
+    try {
+      doWrap(sourceFile,targetFile,additionalProperties);
+    }
+ catch (    OsmorcBuildException e) {
+      mySession.processException(e);
+      return null;
+    }
+    return targetFile;
+  }
+ else {
+    return targetFile;
+  }
+}

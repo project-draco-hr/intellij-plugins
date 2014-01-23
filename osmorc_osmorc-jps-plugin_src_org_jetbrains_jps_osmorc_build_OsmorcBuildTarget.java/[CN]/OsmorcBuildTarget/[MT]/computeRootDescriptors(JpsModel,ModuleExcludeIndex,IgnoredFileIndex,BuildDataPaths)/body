@@ -1,0 +1,17 @@
+{
+  final List<BuildRootDescriptor> roots=new ArrayList<BuildRootDescriptor>();
+  myExtension.processAffectedModules(new Consumer<JpsModule>(){
+    @Override public void consume(    JpsModule module){
+      JpsOsmorcModuleExtension extension=JpsOsmorcExtensionService.getInstance().getExtension(module);
+      if (extension == null) {
+        return;
+      }
+      for (      JpsModuleSourceRoot sourceRoot : module.getSourceRoots(JavaSourceRootType.SOURCE)) {
+        final File root=JpsPathUtil.urlToFile(sourceRoot.getUrl());
+        roots.add(new BuildRootDescriptorImpl(OsmorcBuildTarget.this,root,true));
+      }
+    }
+  }
+);
+  return roots;
+}

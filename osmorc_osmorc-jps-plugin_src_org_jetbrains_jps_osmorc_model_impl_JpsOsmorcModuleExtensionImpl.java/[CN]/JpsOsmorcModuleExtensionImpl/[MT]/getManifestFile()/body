@@ -1,0 +1,31 @@
+{
+  if (isOsmorcControlsManifest()) {
+    String pathToJar=getJarFileLocation();
+    if (pathToJar.isEmpty()) {
+      return null;
+    }
+    File jarFile=new File(pathToJar);
+    if (!jarFile.exists()) {
+      return null;
+    }
+    try {
+      JarFile jar=new JarFile(jarFile);
+      try {
+        JarEntry manifestEntry=jar.getJarEntry("META-INF/MANIFEST.MF");
+        if (manifestEntry == null) {
+          return null;
+        }
+        return new File(jarFile,manifestEntry.getName());
+      }
+  finally {
+        jar.close();
+      }
+    }
+ catch (    IOException e) {
+      return null;
+    }
+  }
+ else {
+    return findFileInModuleContentRoots(getManifestLocation());
+  }
+}

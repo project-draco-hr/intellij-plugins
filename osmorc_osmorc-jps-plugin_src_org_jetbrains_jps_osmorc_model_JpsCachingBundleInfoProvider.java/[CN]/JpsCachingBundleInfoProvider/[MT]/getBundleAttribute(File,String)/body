@@ -1,0 +1,35 @@
+{
+  if (bundleFile == null)   return null;
+  if (!ourCache.containsKey(bundleFile)) {
+    try {
+      if (bundleFile.isDirectory()) {
+        File manifestFile=new File(bundleFile,"META-INF/MANIFEST.MF");
+        if (manifestFile.exists() && !manifestFile.isDirectory()) {
+          FileInputStream fileInputStream=new FileInputStream(manifestFile);
+          try {
+            Manifest manifest=new Manifest(fileInputStream);
+            ourCache.put(bundleFile,manifest);
+          }
+  finally {
+            fileInputStream.close();
+          }
+        }
+      }
+ else {
+        JarFile file=new JarFile(bundleFile);
+        try {
+          ourCache.put(bundleFile,file.getManifest());
+        }
+  finally {
+          file.close();
+        }
+      }
+    }
+ catch (    IOException e) {
+      LOG.debug(e);
+      return null;
+    }
+  }
+  Manifest manifest=ourCache.get(bundleFile);
+  return manifest != null ? manifest.getMainAttributes().getValue(attribute) : null;
+}

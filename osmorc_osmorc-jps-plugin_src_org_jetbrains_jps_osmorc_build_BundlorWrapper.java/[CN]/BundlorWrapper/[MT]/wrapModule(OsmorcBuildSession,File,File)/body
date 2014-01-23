@@ -1,0 +1,26 @@
+{
+  String inputPath=inputJar.getAbsolutePath();
+  ManifestContents manifest;
+  try {
+    Properties properties=MavenIntegrationUtil.getMavenProjectProperties(session);
+    PropertiesSource propertiesSource=new PropertiesPropertiesSource(properties);
+    ManifestGenerator generator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create(propertiesSource));
+    ClassPath classPath=new StandardClassPathFactory().create(inputPath);
+    ManifestContents contents=new StandardManifestTemplateFactory().create(manifestTemplateFile.getAbsolutePath(),null,null,null);
+    manifest=generator.generate(contents,classPath);
+    ManifestWriter manifestWriter=new StandardManifestWriterFactory().create(inputPath,session.getOutputJarFile().getAbsolutePath());
+    try {
+      manifestWriter.write(manifest);
+    }
+  finally {
+      manifestWriter.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new OsmorcBuildException("Bundlifying the file with Bundlor failed: error generating manifest",e,inputJar);
+  }
+  List<String> warningsList=new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create()).validate(manifest);
+  for (  String s : warningsList) {
+    session.warn(s,manifestTemplateFile);
+  }
+}
