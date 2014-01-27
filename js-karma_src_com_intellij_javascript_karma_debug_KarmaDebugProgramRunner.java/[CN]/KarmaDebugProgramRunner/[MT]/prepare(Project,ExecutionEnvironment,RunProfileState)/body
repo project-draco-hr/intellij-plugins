@@ -1,7 +1,7 @@
 {
   final ExecutionResult executionResult=state.execute(env.getExecutor(),this);
   if (executionResult == null) {
-    return;
+    return AsyncResult.rejected();
   }
   final KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult);
   if (consoleView == null) {
@@ -10,7 +10,7 @@
   final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
   if (karmaServer.areBrowsersReady()) {
     final Pair<JSDebugEngine,WebBrowser> engineAndBrowser=new KarmaDebugBrowserSelector(project,karmaServer.getCapturedBrowsers(),env,this).selectDebugEngine();
-    prepareDebugger(project,engineAndBrowser,consumer,new RunProfileStarter(){
+    return prepareDebugger(project,engineAndBrowser,new RunProfileStarter(){
       @Nullable @Override public RunContentDescriptor execute(      @NotNull Project project,      @NotNull Executor executor,      @NotNull RunProfileState state,      @Nullable RunContentDescriptor contentToReuse,      @NotNull ExecutionEnvironment env) throws ExecutionException {
         if (engineAndBrowser == null) {
           return null;
@@ -32,7 +32,7 @@
 );
   }
  else {
-    consumer.consume(new RunProfileStarter(){
+    return AsyncResult.<RunProfileStarter>done(new RunProfileStarter(){
       @Nullable @Override public RunContentDescriptor execute(      @NotNull Project project,      @NotNull Executor executor,      @NotNull RunProfileState state,      @Nullable RunContentDescriptor contentToReuse,      @NotNull ExecutionEnvironment env) throws ExecutionException {
         RunContentBuilder contentBuilder=new RunContentBuilder(KarmaDebugProgramRunner.this,executionResult,env);
         final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
