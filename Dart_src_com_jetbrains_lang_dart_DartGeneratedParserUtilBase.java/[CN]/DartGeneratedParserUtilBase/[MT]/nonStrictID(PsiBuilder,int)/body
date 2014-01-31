@@ -7,20 +7,13 @@
   }
  else   if ("get".equals(builder_.getTokenText()) || "set".equals(builder_.getTokenText())) {
     builder_.advanceLexer();
-    final boolean nextIsID=builder_.getTokenType() == IDENTIFIER || pseudoKeywords.contains(builder_.getTokenText());
+    final boolean nextIsID=builder_.getTokenType() == IDENTIFIER || DartTokenTypesSets.BUILT_IN_IDENTIFIERS.contains(builder_.getTokenType());
     if (!nextIsID) {
       marker_.done(ID);
       return true;
     }
   }
- else   if ("operator".equals(builder_.getTokenText())) {
-    builder_.advanceLexer();
-    if (!operators.contains(builder_.getTokenText())) {
-      marker_.done(ID);
-      return true;
-    }
-  }
- else   if (pseudoKeywords.contains(builder_.getTokenText())) {
+ else   if (DartTokenTypesSets.BUILT_IN_IDENTIFIERS.contains(builder_.getTokenType())) {
     builder_.advanceLexer();
     marker_.done(ID);
     return true;
