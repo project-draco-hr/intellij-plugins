@@ -1,34 +1,19 @@
 {
   if (holder.isBatchMode())   return;
-  if (node.getNode().getElementType() == DartTokenTypes.REGULAR_STRING_PART) {
-    highlightEscapeSequences(node,holder);
+  if (DartTokenTypesSets.BUILT_IN_IDENTIFIERS.contains(element.getNode().getElementType())) {
+    if (element.getNode().getTreeParent().getElementType() != DartTokenTypes.ID) {
+      final String message=ApplicationManager.getApplication().isUnitTestMode() ? "highlighted as keyword" : null;
+      holder.createInfoAnnotation(element,message).setTextAttributes(TextAttributesKey.find(DartSyntaxHighlighterColors.DART_KEYWORD));
+      return;
+    }
+  }
+  if (element.getNode().getElementType() == DartTokenTypes.REGULAR_STRING_PART) {
+    highlightEscapeSequences(element,holder);
     return;
   }
-  PsiElement element=node;
-  if (element instanceof DartReference && element.getParent() instanceof DartType) {
-    final TextAttributesKey attribute=getAttributeByBuiltinType(element.getText());
-    if (attribute != null) {
-      holder.createInfoAnnotation(node,null).setTextAttributes(attribute);
-      return;
-    }
+  if (element instanceof DartReference && element.getParent() instanceof DartType && "dynamic".equals(element.getText())) {
+    holder.createInfoAnnotation(element,null).setTextAttributes(TextAttributesKey.find(DartSyntaxHighlighterColors.DART_BUILTIN));
+    return;
   }
-  if (element instanceof DartReference) {
-    final DartReference[] references=PsiTreeUtil.getChildrenOfType(element,DartReference.class);
-    boolean chain=references != null && references.length > 1;
-    if (!chain) {
-      element=((DartReference)element).resolve();
-    }
-  }
-  if (element instanceof DartComponentName) {
-    TextAttributesKey attribute=getAttributeByBuiltinType(((DartComponentName)element).getName());
-    if (attribute != null) {
-      holder.createInfoAnnotation(node,null).setTextAttributes(attribute);
-      return;
-    }
-    final boolean isStatic=checkStatic(element.getParent());
-    attribute=getAttributeByType(DartComponentType.typeOf(element.getParent()),isStatic);
-    if (attribute != null) {
-      holder.createInfoAnnotation(node,null).setTextAttributes(attribute);
-    }
-  }
+  highlightIfDeclarationOrReference(element,holder);
 }
