@@ -2,8 +2,12 @@
   final Template template=templateManager.createTemplate(getClass().getName(),DART_TEMPLATE_GROUP);
   template.setToReformat(true);
   final DartReturnType returnType=PsiTreeUtil.getChildOfType(element,DartReturnType.class);
-  final DartType dartType=returnType == null ? PsiTreeUtil.getChildOfType(element,DartType.class) : returnType.getType();
-  if (dartType != null) {
+  final DartType dartType=PsiTreeUtil.getChildOfType(element,DartType.class);
+  if (returnType != null) {
+    template.addTextSegment(DartPresentableUtil.buildTypeText(element,returnType,specializations));
+    template.addTextSegment(" ");
+  }
+ else   if (dartType != null) {
     template.addTextSegment(DartPresentableUtil.buildTypeText(element,dartType,specializations));
     template.addTextSegment(" ");
   }
