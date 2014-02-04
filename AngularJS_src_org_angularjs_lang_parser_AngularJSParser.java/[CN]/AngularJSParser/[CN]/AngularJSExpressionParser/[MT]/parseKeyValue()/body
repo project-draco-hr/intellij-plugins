@@ -1,28 +1,14 @@
 {
   builder.advanceLexer();
   final PsiBuilder.Marker comma=builder.mark();
-  if (isIdentifierToken(builder.getTokenType())) {
-    final PsiBuilder.Marker def=builder.mark();
-    buildTokenElement(JSElementTypes.REFERENCE_EXPRESSION);
-    def.done(JSElementTypes.DEFINITION_EXPRESSION);
-  }
- else {
-    builder.error(JSBundle.message("javascript.parser.message.expected.identifier"));
-  }
+  parseExplicitIdentifierWithError();
   if (builder.getTokenType() == JSTokenTypes.COMMA) {
     builder.advanceLexer();
   }
  else {
     builder.error(JSBundle.message("javascript.parser.message.expected.comma"));
   }
-  if (isIdentifierToken(builder.getTokenType())) {
-    final PsiBuilder.Marker def=builder.mark();
-    buildTokenElement(JSElementTypes.REFERENCE_EXPRESSION);
-    def.done(JSElementTypes.DEFINITION_EXPRESSION);
-  }
- else {
-    builder.error(JSBundle.message("javascript.parser.message.expected.identifier"));
-  }
+  parseExplicitIdentifierWithError();
   comma.done(JSElementTypes.COMMA_EXPRESSION);
   if (builder.getTokenType() == JSTokenTypes.RPAR) {
     builder.advanceLexer();
