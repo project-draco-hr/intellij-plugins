@@ -1,0 +1,18 @@
+{
+  if (!myDartSupportEnabledInitial && !myEnableDartSupportCheckBox.isSelected())   return false;
+  if (myDartSupportEnabledInitial && !myEnableDartSupportCheckBox.isSelected())   return true;
+  final String sdkHomePath=FileUtilRt.toSystemIndependentName(mySdkPathTextWithBrowse.getText().trim());
+  final String initialSdkHomePath=mySdkInitial == null ? "" : mySdkInitial.getHomePath();
+  if (DartSdkUtil.isDartSdkHome(sdkHomePath) && !sdkHomePath.equals(initialSdkHomePath))   return true;
+  if (isIdeWithMultipleModuleSupport()) {
+    final Module[] selectedModules=myModulesCheckboxTree.getCheckedNodes(Module.class,null);
+    if (selectedModules.length != myModulesWithDartSdkLibAttachedInitial.size())     return true;
+    for (    final Module module : selectedModules) {
+      if (!myModulesWithDartSdkLibAttachedInitial.contains(module))       return true;
+    }
+  }
+ else {
+    return myDartSupportEnabledInitial != myEnableDartSupportCheckBox.isSelected();
+  }
+  return false;
+}

@@ -1,0 +1,18 @@
+{
+  for (  final Module module : modules) {
+    final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    try {
+      for (      final OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+        if (isOrderEntryPointingToThisSdk(orderEntry,sdk.getGlobalLibName())) {
+          modifiableModel.removeOrderEntry(orderEntry);
+          break;
+        }
+      }
+      modifiableModel.commit();
+    }
+ catch (    Exception e) {
+      LOG.warn(e);
+      if (!modifiableModel.isDisposed())       modifiableModel.dispose();
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  final CheckboxTree.CheckboxTreeCellRenderer renderer=new CheckboxTree.CheckboxTreeCellRenderer(){
+    public void customizeRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      if (!(value instanceof CheckedTreeNode))       return;
+      final boolean dartSupportEnabled=myEnableDartSupportCheckBox.isSelected();
+      final CheckedTreeNode node=(CheckedTreeNode)value;
+      final Object userObject=node.getUserObject();
+      if (userObject instanceof Project) {
+        if (!dartSupportEnabled) {
+          getCheckbox().setEnabled(false);
+        }
+        getTextRenderer().setEnabled(dartSupportEnabled);
+        getTextRenderer().append(DartBundle.message("project.0",((Project)userObject).getName()));
+      }
+ else       if (userObject instanceof Module) {
+        getCheckbox().setEnabled(dartSupportEnabled);
+        getTextRenderer().setEnabled(dartSupportEnabled);
+        final Icon moduleIcon=ModuleType.get((Module)userObject).getIcon();
+        getTextRenderer().setIcon(dartSupportEnabled ? moduleIcon : IconLoader.getDisabledIcon(moduleIcon));
+        getTextRenderer().append(((Module)userObject).getName());
+      }
+    }
+  }
+;
+  myModulesCheckboxTree=new CheckboxTree(renderer,null,new CheckboxTreeBase.CheckPolicy(true,true,true,true)){
+    protected void checkNode(    final CheckedTreeNode node,    final boolean checked){
+      super.checkNode(node,checked);
+      updateErrorLabel();
+    }
+  }
+;
+}

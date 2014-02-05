@@ -1,0 +1,31 @@
+{
+  for (  final Module module : ModuleManager.getInstance(project).getModules()) {
+    final boolean mustHaveDart=ArrayUtil.contains(module,modulesWithDart);
+    boolean hasDart=false;
+    final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    try {
+      for (      final OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+        if (isOrderEntryPointingToThisSdk(orderEntry,dartSdkGlobalLibName)) {
+          hasDart=true;
+          if (!mustHaveDart) {
+            modifiableModel.removeOrderEntry(orderEntry);
+          }
+          break;
+        }
+      }
+      if (mustHaveDart && !hasDart) {
+        modifiableModel.addInvalidLibrary(dartSdkGlobalLibName,LibraryTablesRegistrar.APPLICATION_LEVEL);
+      }
+      if (modifiableModel.isChanged()) {
+        modifiableModel.commit();
+      }
+ else {
+        modifiableModel.dispose();
+      }
+    }
+ catch (    Exception e) {
+      LOG.warn(e);
+      if (!modifiableModel.isDisposed())       modifiableModel.dispose();
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  if (!isIdeWithMultipleModuleSupport()) {
+    myModulesPanel.setVisible(false);
+    return;
+  }
+  final Module[] modules=ModuleManager.getInstance(myProject).getModules();
+  Arrays.sort(modules,new Comparator<Module>(){
+    public int compare(    final Module module1,    final Module module2){
+      return module1.getName().toLowerCase().compareTo(module2.getName().toLowerCase());
+    }
+  }
+);
+  myModulesCheckboxTree.setVisibleRowCount(5);
+  final CheckedTreeNode rootNode=new CheckedTreeNode(myProject);
+  myModulesCheckboxTree.setModel(new DefaultTreeModel(rootNode));
+  for (  final Module module : modules) {
+    rootNode.add(new CheckedTreeNode(module));
+  }
+  ((DefaultTreeModel)myModulesCheckboxTree.getModel()).reload(rootNode);
+}
