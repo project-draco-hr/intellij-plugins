@@ -1,0 +1,17 @@
+{
+  final String oldDartSdkPath=PropertiesComponent.getInstance().getValue("dart_sdk_path");
+  PropertiesComponent.getInstance().unsetValue("dart_sdk_path");
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk != null) {
+    return sdk.getGlobalLibName();
+  }
+ else   if (DartSdkUtil.isDartSdkHome(oldDartSdkPath)) {
+    return ApplicationManager.getApplication().runWriteAction(new Computable<String>(){
+      public String compute(){
+        return DartSdkGlobalLibUtil.createDartSdkGlobalLib(oldDartSdkPath);
+      }
+    }
+);
+  }
+  return null;
+}
