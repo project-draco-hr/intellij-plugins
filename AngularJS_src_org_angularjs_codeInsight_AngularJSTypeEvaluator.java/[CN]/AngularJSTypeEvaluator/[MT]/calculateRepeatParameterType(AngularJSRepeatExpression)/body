@@ -1,0 +1,21 @@
+{
+  final PsiElement last=findReferenceExpression(resolveParent);
+  JSType arrayType=null;
+  if (last instanceof JSReferenceExpression) {
+    PsiElement resolve=((JSReferenceExpression)last).resolve();
+    resolve=resolve instanceof JSNamedElementProxy ? ((JSNamedElementProxy)resolve).getElement() : resolve;
+    resolve=resolve instanceof JSVariable ? ((JSVariable)resolve).getInitializer() : resolve;
+    if (resolve instanceof JSExpression) {
+      arrayType=evalExprType((JSExpression)resolve);
+    }
+  }
+ else   if (last instanceof JSExpression) {
+    arrayType=evalExprType((JSExpression)last);
+  }
+  final JSType elementType=findElementType(arrayType);
+  if (elementType != null) {
+    addType(elementType,null);
+    return true;
+  }
+  return false;
+}
