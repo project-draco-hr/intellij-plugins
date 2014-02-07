@@ -1,0 +1,29 @@
+{
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      if (DartSdkUtil.isDartSdkHome(dartSdkPath)) {
+        final DartSdk sdk=DartSdk.getGlobalDartSdk();
+        final String dartSdkLibName;
+        if (sdk == null) {
+          dartSdkLibName=DartSdkGlobalLibUtil.createDartSdkGlobalLib(dartSdkPath);
+        }
+ else {
+          dartSdkLibName=sdk.getGlobalLibName();
+          if (!dartSdkPath.equals(sdk.getHomePath())) {
+            DartSdkGlobalLibUtil.updateDartSdkGlobalLib(dartSdkLibName,dartSdkPath);
+          }
+        }
+        DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkLibName);
+      }
+      try {
+        baseDir.createChildDirectory(this,"web");
+        baseDir.createChildDirectory(this,"lib");
+        final VirtualFile pubspecYamlFile=baseDir.createChildData(this,"pubspec.yaml");
+        pubspecYamlFile.setBinaryContent(("name: " + module.getName() + "\n"+ "dependencies:\n"+ "  browser: any").getBytes());
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+);
+}
