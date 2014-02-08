@@ -1,0 +1,20 @@
+{
+  return PlatformPatterns.psiElement(JSLiteralExpression.class).and(new FilterPattern(new ElementFilter(){
+    @Override public boolean isAcceptable(    Object element,    @Nullable PsiElement context){
+      if (element instanceof JSLiteralExpression) {
+        final JSLiteralExpression literal=(JSLiteralExpression)element;
+        if (literal.isQuotedLiteral()) {
+          final PsiElement parent=literal.getParent();
+          if (parent instanceof JSProperty && propertyName.equals(((JSProperty)parent).getName())) {
+            return AngularIndexUtil.hasAngularJS(literal.getProject());
+          }
+        }
+      }
+      return false;
+    }
+    @Override public boolean isClassAcceptable(    Class hintClass){
+      return true;
+    }
+  }
+));
+}
