@@ -1,23 +1,23 @@
 {
   final Pair<Module,VirtualFile> moduleAndPubspecYamlFile=getModuleAndPubspecYamlFile(e);
   if (moduleAndPubspecYamlFile == null)   return;
-  File sdkRoot=getSdkRoot();
-  if (sdkRoot == null) {
+  DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
     final int answer=Messages.showDialog(moduleAndPubspecYamlFile.first.getProject(),"Dart SDK is not configured",getPresentableText(),new String[]{"Configure SDK","Cancel"},0,Messages.getErrorIcon());
     if (answer != 0)     return;
     ShowSettingsUtil.getInstance().showSettingsDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.title"));
-    sdkRoot=getSdkRoot();
-    if (sdkRoot == null)     return;
+    sdk=DartSdk.getGlobalDartSdk();
+    if (sdk == null)     return;
   }
-  File pubFile=new File(sdkRoot,SystemInfo.isWindows ? "bin/pub.bat" : "bin/pub");
+  File pubFile=new File(sdk.getHomePath() + (SystemInfo.isWindows ? "/bin/pub.bat" : "/bin/pub"));
   if (!pubFile.isFile()) {
     final int answer=Messages.showDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.sdk.bad.dartpub.path",pubFile.getPath()),getPresentableText(),new String[]{"Configure SDK","Cancel"},0,Messages.getErrorIcon());
     if (answer != 0)     return;
     ShowSettingsUtil.getInstance().showSettingsDialog(moduleAndPubspecYamlFile.first.getProject(),DartBundle.message("dart.title"));
-    sdkRoot=getSdkRoot();
-    if (sdkRoot == null)     return;
-    pubFile=new File(sdkRoot,SystemInfo.isWindows ? "bin/pub.bat" : "bin/pub");
+    sdk=DartSdk.getGlobalDartSdk();
+    if (sdk == null)     return;
+    pubFile=new File(sdk.getHomePath() + (SystemInfo.isWindows ? "/bin/pub.bat" : "/bin/pub"));
     if (!pubFile.isFile())     return;
   }
-  doExecute(moduleAndPubspecYamlFile.first,moduleAndPubspecYamlFile.second,sdkRoot.getPath(),pubFile.getPath());
+  doExecute(moduleAndPubspecYamlFile.first,moduleAndPubspecYamlFile.second,sdk.getHomePath(),pubFile.getPath());
 }

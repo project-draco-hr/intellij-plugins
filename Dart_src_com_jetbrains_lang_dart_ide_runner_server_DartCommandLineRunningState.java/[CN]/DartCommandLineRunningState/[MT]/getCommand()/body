@@ -1,18 +1,18 @@
 {
-  DartSettings dartSettings=DartSettings.getSettings();
-  String dartExecutablePath=DartSdkUtil.getCompilerPathByFolderPath(dartSettings.getSdkPath());
-  if (dartExecutablePath == null) {
-    throw new ExecutionException(DartBundle.message("bad.home.for.sdk",module.getName()));
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
+    throw new ExecutionException("Dart SDK is not configured");
   }
-  final VirtualFile libraryFile=VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(filePath));
+  final String dartExePath=DartSdkUtil.getDartExePath(sdk);
+  final VirtualFile libraryFile=LocalFileSystem.getInstance().findFileByPath(filePath);
   if (libraryFile == null) {
     throw new ExecutionException(DartBundle.message("bad.script.path",filePath));
   }
   final GeneralCommandLine commandLine=new GeneralCommandLine();
-  commandLine.setExePath(dartExecutablePath);
+  commandLine.setExePath(dartExePath);
   commandLine.setWorkDirectory(PathUtil.getParentPath(filePath));
   commandLine.setPassParentEnvironment(true);
-  setupUserProperties(libraryFile,commandLine,dartSettings);
+  setupUserProperties(commandLine,libraryFile);
   addConsoleFilters(new DartStackTraceMessageFilter(module.getProject(),filePath));
   return commandLine;
 }

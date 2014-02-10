@@ -1,0 +1,21 @@
+{
+  final String dartSdkGlobalLibName;
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk != null) {
+    dartSdkGlobalLibName=sdk.getGlobalLibName();
+  }
+ else {
+    dartSdkGlobalLibName=ApplicationManager.getApplication().runWriteAction(new Computable<String>(){
+      public String compute(){
+        return DartSdkGlobalLibUtil.createDartSdkGlobalLib(BASE_TEST_DATA_PATH + "/sdk");
+      }
+    }
+);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkGlobalLibName);
+    }
+  }
+);
+}

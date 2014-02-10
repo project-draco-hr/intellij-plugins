@@ -1,8 +1,9 @@
 {
   extend(CompletionType.BASIC,psiElement().withSuperParent(2,DartPathOrLibraryReference.class).withParent(DartStringLiteralExpression.class),new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
-      final Set<String> names=DartLibraryIndex.getAllLibraryNames(parameters.getPosition().getProject());
-      names.addAll(ContainerUtil.map(getStdLibraries(parameters.getPosition()),new Function<String,String>(){
+      final Project project=parameters.getPosition().getProject();
+      final Set<String> names=DartLibraryIndex.getAllLibraryNames(project);
+      names.addAll(ContainerUtil.map(DartLibraryIndex.getAllStandardLibrariesFromSdk(project),new Function<String,String>(){
         @Override public String fun(        String coreLib){
           return "dart:" + coreLib;
         }

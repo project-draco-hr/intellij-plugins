@@ -7,12 +7,8 @@
   if (virtualFile == null) {
     return;
   }
-  final DartSettings settings=DartSettings.getSettings();
-  final VirtualFile dart2js=settings.getDart2JS();
-  if (dart2js == null) {
-    Messages.showOkCancelDialog(e.getProject(),DartBundle.message("dart.sdk.bad.dart2js.path",settings.getDart2JSUrl()),DartBundle.message("dart.warning"),DartIcons.Dart_16);
-    return;
-  }
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null)   return;
   final String jsFilePath=virtualFile.getPath() + ".js";
   final Dart2JSSettingsDialog dialog=new Dart2JSSettingsDialog(psiFile.getProject(),virtualFile.getPath(),jsFilePath);
   dialog.disableInput();
@@ -24,7 +20,7 @@
     public void run(    @NotNull ProgressIndicator indicator){
       indicator.setText("Running dart2js...");
       indicator.setFraction(0.0);
-      final GeneralCommandLine command=getCommandLine(dart2js,dialog.getInputPath(),dialog.getOutputPath(),dialog.isCheckedMode(),dialog.isMinify());
+      final GeneralCommandLine command=getCommandLine(DartSdkUtil.getDart2jsPath(sdk),dialog.getInputPath(),dialog.getOutputPath(),dialog.isCheckedMode(),dialog.isMinify());
       ApplicationManager.getApplication().invokeAndWait(new Runnable(){
         @Override public void run(){
           FileDocumentManager.getInstance().saveAllDocuments();
