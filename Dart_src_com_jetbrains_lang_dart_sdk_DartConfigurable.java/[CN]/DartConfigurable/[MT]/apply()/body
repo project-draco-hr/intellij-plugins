@@ -18,6 +18,17 @@
           final Module[] modules=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModulesCheckboxTree.getCheckedNodes(Module.class,null) : ModuleManager.getInstance(myProject).getModules();
           DartSdkGlobalLibUtil.updateDependencyOnDartSdkGlobalLib(myProject,modules,dartSdkGlobalLibName);
         }
+        final String dartiumPath=FileUtilRt.toSystemIndependentName(myDartiumPathTextWithBrowse.getText().trim());
+        final String dartiumPathInitial=myDartiumInitial == null ? null : myDartiumInitial.getPath();
+        if (!dartiumPath.isEmpty() && new File(dartiumPath).exists() && !dartiumPath.equals(dartiumPathInitial)) {
+          final WebBrowser browser=DartiumUtil.ensureDartiumBrowserConfigured(dartiumPath);
+          if (!myDartiumSettingsCurrent.equals(browser.getSpecificSettings())) {
+            WebBrowserManager.getInstance().setBrowserSpecificSettings(browser,myDartiumSettingsCurrent);
+          }
+        }
+        if (myDartiumInitial != null && !myDartiumSettingsCurrent.equals(myDartiumInitial.getSpecificSettings())) {
+          WebBrowserManager.getInstance().setBrowserSpecificSettings(myDartiumInitial,myDartiumSettingsCurrent);
+        }
       }
  else {
         if (myModulesWithDartSdkLibAttachedInitial.size() > 0 && mySdkInitial != null) {

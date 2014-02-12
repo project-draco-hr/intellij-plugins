@@ -1,12 +1,22 @@
 {
+  myInReset=true;
   mySdkInitial=DartSdk.getGlobalDartSdk();
   myModulesWithDartSdkLibAttachedInitial.clear();
   if (mySdkInitial != null) {
     myModulesWithDartSdkLibAttachedInitial.addAll(DartSdkGlobalLibUtil.getModulesWithDartSdkGlobalLibAttached(myProject,mySdkInitial.getGlobalLibName()));
   }
   myDartSupportEnabledInitial=!myModulesWithDartSdkLibAttachedInitial.isEmpty();
+  myDartiumInitial=DartiumUtil.getDartiumBrowser();
+  myDartiumSettingsCurrent=new ChromeSettings();
+  if (myDartiumInitial != null) {
+    final BrowserSpecificSettings browserSpecificSettings=myDartiumInitial.getSpecificSettings();
+    if (browserSpecificSettings instanceof ChromeSettings) {
+      myDartiumSettingsCurrent=(ChromeSettings)browserSpecificSettings.clone();
+    }
+  }
   myEnableDartSupportCheckBox.setSelected(myDartSupportEnabledInitial);
   mySdkPathTextWithBrowse.setText(mySdkInitial == null ? "" : FileUtilRt.toSystemDependentName(mySdkInitial.getHomePath()));
+  myDartiumPathTextWithBrowse.setText(myDartiumInitial == null ? "" : FileUtilRt.toSystemDependentName(StringUtil.notNullize(myDartiumInitial.getPath())));
   if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
     final CheckedTreeNode rootNode=(CheckedTreeNode)myModulesCheckboxTree.getModel().getRoot();
     rootNode.setChecked(false);
@@ -18,4 +28,5 @@
   }
   updateControlsEnabledState();
   updateErrorLabel();
+  myInReset=false;
 }
