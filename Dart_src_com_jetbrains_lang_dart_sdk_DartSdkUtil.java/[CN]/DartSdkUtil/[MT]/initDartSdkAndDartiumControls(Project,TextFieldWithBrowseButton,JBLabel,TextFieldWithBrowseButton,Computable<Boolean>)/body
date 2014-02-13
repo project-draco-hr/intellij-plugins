@@ -17,13 +17,18 @@
 ;
   final ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> browseFolderListener=new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>("Select Dart SDK path",null,dartSdkPathComponent,project,FileChooserDescriptorFactory.createSingleFolderDescriptor(),textComponentAccessor);
   dartSdkPathComponent.addBrowseFolderListener(project,browseFolderListener);
-  if (versionLabel != null) {
-    dartSdkPathComponent.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
-      @Override protected void textChanged(      final DocumentEvent e){
-        final String sdkHomePath=dartSdkPathComponent.getText().trim();
-        versionLabel.setText(sdkHomePath.isEmpty() ? "" : getSdkVersion(sdkHomePath));
+  dartiumPathComponent.addBrowseFolderListener("Select Dartium browser path",null,project,FileChooserDescriptorFactory.createSingleFileOrExecutableAppDescriptor());
+  dartSdkPathComponent.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    final DocumentEvent e){
+      final String sdkHomePath=dartSdkPathComponent.getText().trim();
+      versionLabel.setText(sdkHomePath.isEmpty() ? "" : getSdkVersion(sdkHomePath));
+      if (!isResettingControlsComputable.compute() && isDartSdkHome(sdkHomePath)) {
+        final String dartiumPath=DartiumUtil.getDartiumPathForSdk(sdkHomePath);
+        if (dartiumPath != null) {
+          dartiumPathComponent.setText(FileUtilRt.toSystemDependentName(dartiumPath));
+        }
       }
     }
-);
   }
+);
 }
