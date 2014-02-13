@@ -1,5 +1,20 @@
 {
-  DartSdkUtil.initDartSdkPathTextFieldWithBrowseButton(null,mySdkPathTextWithBrowse,myVersionLabel);
-  final DartSdk sdk=DartSdk.getGlobalDartSdk();
-  mySdkPathTextWithBrowse.setText(sdk == null ? "" : FileUtil.toSystemDependentName(sdk.getHomePath()));
+  final DartSdk sdkInitial=DartSdk.getGlobalDartSdk();
+  mySdkPathTextWithBrowse.setText(sdkInitial == null ? "" : FileUtil.toSystemDependentName(sdkInitial.getHomePath()));
+  final WebBrowser dartiumInitial=DartiumUtil.getDartiumBrowser();
+  myDartiumSettingsCurrent=new ChromeSettings();
+  if (dartiumInitial != null) {
+    final BrowserSpecificSettings browserSpecificSettings=dartiumInitial.getSpecificSettings();
+    if (browserSpecificSettings instanceof ChromeSettings) {
+      myDartiumSettingsCurrent=(ChromeSettings)browserSpecificSettings.clone();
+    }
+  }
+  myDartiumPathTextWithBrowse.setText(dartiumInitial == null ? "" : FileUtilRt.toSystemDependentName(StringUtil.notNullize(dartiumInitial.getPath())));
+  DartSdkUtil.initDartSdkAndDartiumControls(null,mySdkPathTextWithBrowse,myVersionLabel,myDartiumPathTextWithBrowse,new Computable.PredefinedValueComputable<Boolean>(false));
+  myDartiumSettingsButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      ShowSettingsUtil.getInstance().editConfigurable(myDartiumSettingsButton,myDartiumSettingsCurrent.createConfigurable());
+    }
+  }
+);
 }

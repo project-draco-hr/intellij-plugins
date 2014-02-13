@@ -1,20 +1,21 @@
 {
   ApplicationManager.getApplication().runWriteAction(new Runnable(){
     public void run(){
-      if (DartSdkUtil.isDartSdkHome(dartSdkPath)) {
+      if (DartSdkUtil.isDartSdkHome(data.dartSdkPath)) {
         final DartSdk sdk=DartSdk.getGlobalDartSdk();
         final String dartSdkLibName;
         if (sdk == null) {
-          dartSdkLibName=DartSdkGlobalLibUtil.createDartSdkGlobalLib(dartSdkPath);
+          dartSdkLibName=DartSdkGlobalLibUtil.createDartSdkGlobalLib(data.dartSdkPath);
         }
  else {
           dartSdkLibName=sdk.getGlobalLibName();
-          if (!dartSdkPath.equals(sdk.getHomePath())) {
-            DartSdkGlobalLibUtil.updateDartSdkGlobalLib(dartSdkLibName,dartSdkPath);
+          if (!data.dartSdkPath.equals(sdk.getHomePath())) {
+            DartSdkGlobalLibUtil.updateDartSdkGlobalLib(dartSdkLibName,data.dartSdkPath);
           }
         }
         DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkLibName);
       }
+      DartiumUtil.applyDartiumSettings(FileUtilRt.toSystemIndependentName(data.dartiumPath),data.dartiumSettings);
       try {
         baseDir.createChildDirectory(this,"web");
         baseDir.createChildDirectory(this,"lib");
