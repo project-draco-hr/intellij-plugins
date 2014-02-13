@@ -4,8 +4,11 @@
       throw new RuntimeConfigurationError(OsmorcBundle.message("run.configuration.working.dir.set"));
     }
     File dir=new File(runConfiguration.getWorkingDir());
-    if (!dir.exists() && !dir.mkdirs()) {
-      throw new RuntimeConfigurationError(OsmorcBundle.message("run.configuration.working.dir.create"));
+    if (!dir.isDirectory()) {
+      if (!dir.mkdirs()) {
+        throw new RuntimeConfigurationError(OsmorcBundle.message("run.configuration.working.dir.create"));
+      }
+      FileUtil.delete(dir);
     }
   }
   checkFrameworkSpecifics(runConfiguration);
