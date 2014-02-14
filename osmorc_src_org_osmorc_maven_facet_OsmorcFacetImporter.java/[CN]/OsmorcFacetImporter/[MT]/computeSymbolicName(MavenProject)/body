@@ -1,23 +1,21 @@
 {
   String bundleSymbolicName=findConfigValue(mavenProject,"instructions." + Constants.BUNDLE_SYMBOLICNAME);
-  if (bundleSymbolicName == null || bundleSymbolicName.length() == 0) {
-    MavenId mavenId=mavenProject.getMavenId();
-    String groupId=mavenId.getGroupId();
-    String artifactId=mavenId.getArtifactId();
-    if (groupId == null || artifactId == null) {
-      return "";
-    }
-    String lastSectionOfGroupId=groupId.substring(groupId.lastIndexOf(".") + 1);
-    if (lastSectionOfGroupId.endsWith(artifactId)) {
-      return groupId;
-    }
-    String doubledNamePart=lastSectionOfGroupId + "-";
-    if (artifactId.startsWith(doubledNamePart) && artifactId.length() > doubledNamePart.length()) {
-      return groupId + "." + artifactId.substring(doubledNamePart.length());
-    }
-    return groupId + "." + artifactId;
-  }
- else {
+  if (!StringUtil.isEmpty(bundleSymbolicName)) {
     return bundleSymbolicName;
   }
+  MavenId mavenId=mavenProject.getMavenId();
+  String groupId=mavenId.getGroupId();
+  String artifactId=mavenId.getArtifactId();
+  if (groupId == null || artifactId == null) {
+    return "";
+  }
+  String lastSectionOfGroupId=groupId.substring(groupId.lastIndexOf(".") + 1);
+  if (lastSectionOfGroupId.endsWith(artifactId)) {
+    return groupId;
+  }
+  String doubledNamePart=lastSectionOfGroupId + "-";
+  if (artifactId.startsWith(doubledNamePart) && artifactId.length() > doubledNamePart.length()) {
+    return groupId + "." + artifactId.substring(doubledNamePart.length());
+  }
+  return groupId + "." + artifactId;
 }
