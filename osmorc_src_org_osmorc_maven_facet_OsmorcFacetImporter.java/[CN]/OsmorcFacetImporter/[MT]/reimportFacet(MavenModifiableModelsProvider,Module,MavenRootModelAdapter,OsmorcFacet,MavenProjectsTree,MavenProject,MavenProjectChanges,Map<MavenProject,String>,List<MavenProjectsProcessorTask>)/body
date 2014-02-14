@@ -5,13 +5,14 @@
   }
   MavenId id=mavenProject.getMavenId();
   conf.setBundleSymbolicName(id.getGroupId() + "." + id.getArtifactId());
-  conf.setBundleVersion(ImporterUtil.cleanupVersion(id.getVersion()));
+  String defaultVersion=ImporterUtil.cleanupVersion(id.getVersion());
+  conf.setBundleVersion(defaultVersion);
   MavenPlugin plugin=mavenProject.findPlugin(myPluginGroupID,myPluginArtifactID);
   if (plugin == null) {
     return;
   }
   conf.setBundleSymbolicName(computeSymbolicName(mavenProject));
-  conf.setBundleVersion(findConfigValue(mavenProject,"instructions." + Constants.BUNDLE_VERSION));
+  conf.setBundleVersion(findConfigValue(mavenProject,"instructions." + Constants.BUNDLE_VERSION,defaultVersion));
   conf.setBundleActivator(findConfigValue(mavenProject,"instructions." + Constants.BUNDLE_ACTIVATOR));
   Map<String,String> props=ContainerUtil.newLinkedHashMap();
   Map<String,String> modelMap=mavenProject.getModelMap();
