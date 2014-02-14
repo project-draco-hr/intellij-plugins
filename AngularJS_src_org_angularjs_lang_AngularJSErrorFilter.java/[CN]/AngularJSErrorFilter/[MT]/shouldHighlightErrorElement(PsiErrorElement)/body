@@ -1,8 +1,12 @@
 {
   final Project project=error.getProject();
-  if ("CSS".equals(error.getLanguage().getID()) && AngularIndexUtil.hasAngularJS(project)) {
-    final String textNearError=error.getParent().getText().substring(error.getStartOffsetInParent());
-    return textNearError.startsWith(AngularJSBracesUtil.getInjectionEnd(project));
+  if ("CSS".equals(error.getLanguage().getID()) && PsiTreeUtil.getParentOfType(error,XmlAttribute.class) != null && AngularIndexUtil.hasAngularJS(project)) {
+    final PsiFile file=error.getContainingFile();
+    PsiErrorElement nextError=error;
+    while (nextError != null) {
+      if (hasAngularInjectionAt(project,file,nextError.getTextOffset()))       return false;
+      nextError=PsiTreeUtil.getNextSiblingOfType(nextError,PsiErrorElement.class);
+    }
   }
   return true;
 }
