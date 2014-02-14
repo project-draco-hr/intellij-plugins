@@ -29,6 +29,18 @@
   if (!StringUtil.isEmptyOrSpaces(docUrl)) {
     props.put(Constants.BUNDLE_DOCURL,docUrl);
   }
+  Map<String,String> versions=null;
+  Element versionsNode=MavenJDOMUtil.findChildByPath(plugin.getGoalConfiguration("cleanVersions"),"versions");
+  if (versionsNode != null) {
+    versions=ContainerUtil.newHashMap();
+    for (    Element child : versionsNode.getChildren()) {
+      String name=child.getName();
+      String value=child.getValue();
+      if (!StringUtil.isEmpty(value)) {
+        versions.put(name,ImporterUtil.cleanupVersion(value));
+      }
+    }
+  }
   Element instructionsNode=getConfig(mavenProject,"instructions");
   if (instructionsNode != null) {
     boolean useExistingManifest=false;
@@ -36,6 +48,7 @@
       String name=child.getName();
       String value=child.getTextTrim();
       value=value.replaceAll("\\p{Blank}*[\r\n]\\p{Blank}*","");
+      value=substituteVersions(value,versions);
       if (INCLUDE_MANIFEST.equals(name)) {
         conf.setManifestLocation(value);
         conf.setManifestGenerationMode(OsmorcFacetConfiguration.ManifestGenerationMode.Manually);
