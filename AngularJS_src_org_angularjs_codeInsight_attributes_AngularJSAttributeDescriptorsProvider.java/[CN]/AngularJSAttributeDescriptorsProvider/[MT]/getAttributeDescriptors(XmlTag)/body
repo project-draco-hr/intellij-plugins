@@ -1,0 +1,19 @@
+{
+  if (xmlTag != null) {
+    final Project project=xmlTag.getProject();
+    final Map<String,XmlAttributeDescriptor> result=new LinkedHashMap<String,XmlAttributeDescriptor>();
+    final Collection<String> docDirectives=AngularIndexUtil.getAllKeys(AngularDirectivesDocIndex.INDEX_ID,project);
+    for (    String directiveName : docDirectives) {
+      if (isApplicable(project,directiveName,xmlTag.getName())) {
+        result.put(directiveName,createDescriptor(project,directiveName));
+      }
+    }
+    for (    String directiveName : AngularIndexUtil.getAllKeys(AngularDirectivesIndex.INDEX_ID,project)) {
+      if (!docDirectives.contains(directiveName)) {
+        result.put(directiveName,createDescriptor(project,directiveName));
+      }
+    }
+    return result.values().toArray(new XmlAttributeDescriptor[result.size()]);
+  }
+  return XmlAttributeDescriptor.EMPTY;
+}
