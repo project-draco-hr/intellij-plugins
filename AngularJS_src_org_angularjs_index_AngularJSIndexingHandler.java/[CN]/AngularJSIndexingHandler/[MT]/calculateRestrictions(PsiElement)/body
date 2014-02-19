@@ -1,0 +1,19 @@
+{
+  final Ref<String> restrict=Ref.create("A");
+  final JSFunction function=PsiTreeUtil.getNextSiblingOfType(element,JSFunction.class);
+  if (function != null) {
+    function.accept(new JSRecursiveElementVisitor(){
+      @Override public void visitJSProperty(      JSProperty node){
+        final String name=node.getName();
+        if ("restrict".equals(name)) {
+          final JSExpression value=node.getValue();
+          if (value instanceof JSLiteralExpression && ((JSLiteralExpression)value).isQuotedLiteral()) {
+            restrict.set(StringUtil.unquoteString(value.getText()));
+          }
+        }
+      }
+    }
+);
+  }
+  return restrict.get().trim() + ";;";
+}

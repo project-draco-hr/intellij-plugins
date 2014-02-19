@@ -1,0 +1,34 @@
+{
+  final DartPositionInfo info=DartPositionInfo.parsePositionInfo(line);
+  if (info == null)   return null;
+  final VirtualFile file;
+switch (info.type) {
+case FILE:
+    file=LocalFileSystem.getInstance().findFileByPath(info.path);
+  break;
+case DART:
+if (mySdk != null) {
+  file=LocalFileSystem.getInstance().findFileByPath(mySdk.getHomePath() + "/lib/" + info.path);
+}
+ else {
+  file=null;
+}
+break;
+case PACKAGE:
+if (myPackagesFolder != null) {
+file=myPackagesFolder.findFileByRelativePath(info.path);
+}
+ else {
+file=findFileInPackagesFolder(myProject,info.path);
+}
+break;
+default :
+file=null;
+}
+if (file != null) {
+final int highlightStartOffset=entireLength - line.length() + info.highlightingStartIndex;
+final int highlightEndOffset=entireLength - line.length() + info.highlightingEndIndex;
+return new Result(highlightStartOffset,highlightEndOffset,new OpenFileHyperlinkInfo(myProject,file,info.line,info.column));
+}
+return null;
+}

@@ -10,7 +10,9 @@
       JSExpression argument=arguments[0];
       if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
         final String argumentText=argument.getText();
-        storeAdditionalData(visitor,index,argument,command,argumentText,argument.getTextOffset(),null);
+        final Function<PsiElement,String> calculator=DATA_CALCULATORS.get(command);
+        final String data=calculator != null ? calculator.fun(argument) : null;
+        storeAdditionalData(visitor,index,argument,command,argumentText,argument.getTextOffset(),data);
       }
  else       if (argument instanceof JSObjectLiteralExpression) {
         for (        JSProperty property : ((JSObjectLiteralExpression)argument).getProperties()) {
