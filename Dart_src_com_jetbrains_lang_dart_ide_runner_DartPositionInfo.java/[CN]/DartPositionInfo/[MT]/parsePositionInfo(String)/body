@@ -1,0 +1,18 @@
+{
+  final int dotDartIndex=text.toLowerCase().lastIndexOf(".dart");
+  final int pathEndIndex=dotDartIndex + ".dart".length();
+  if (dotDartIndex <= 0 || text.length() == pathEndIndex)   return null;
+  final char nextChar=text.charAt(pathEndIndex);
+  if (nextChar != ':' && nextChar != ')')   return null;
+  final int leftParenIndex=text.substring(0,dotDartIndex).lastIndexOf("(");
+  final int rightParenIndex=text.indexOf(")",dotDartIndex);
+  if (leftParenIndex < 0 || rightParenIndex < 0)   return null;
+  final int colonIndex=text.indexOf(":",leftParenIndex);
+  if (colonIndex < 0)   return null;
+  final Type type=Type.getType(text.substring(leftParenIndex + 1,colonIndex));
+  if (type == null)   return null;
+  final Pair<Integer,Integer> lineAndColumn=parseLineAndColumn(text.substring(pathEndIndex,rightParenIndex));
+  final int pathStartIndex=type == Type.FILE ? colonIndex + 1 + getPathStartIndex(text.substring(colonIndex + 1)) : colonIndex + 1;
+  final String path=text.substring(pathStartIndex,pathEndIndex);
+  return new DartPositionInfo(type,path,leftParenIndex + 1,pathStartIndex + path.length(),lineAndColumn.first >= 0 ? lineAndColumn.first - 1 : lineAndColumn.first,lineAndColumn.second >= 0 ? lineAndColumn.second - 1 : lineAndColumn.second);
+}
