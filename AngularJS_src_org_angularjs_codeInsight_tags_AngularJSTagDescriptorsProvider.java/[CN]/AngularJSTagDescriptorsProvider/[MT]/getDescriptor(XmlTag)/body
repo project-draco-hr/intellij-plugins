@@ -1,5 +1,5 @@
 {
-  final String attributeName=AngularJSAttributeDescriptorsProvider.normalizeAttributeName(xmlTag.getName());
+  final String directiveName=AngularJSAttributeDescriptorsProvider.normalizeAttributeName(xmlTag.getName());
   if (xmlTag != null) {
     final XmlNSDescriptor nsDescriptor=xmlTag.getNSDescriptor(xmlTag.getNamespace(),false);
     final XmlElementDescriptor descriptor=nsDescriptor != null ? nsDescriptor.getElementDescriptor(xmlTag) : null;
@@ -7,8 +7,9 @@
       return null;
     }
     final Project project=xmlTag.getProject();
-    final JSNamedElementProxy directive=getTagDirective(project,attributeName);
-    return directive != null ? new AngularJSTagDescriptor(attributeName,directive) : null;
+    JSNamedElementProxy directive=getTagDirective(project,directiveName,AngularDirectivesDocIndex.INDEX_ID);
+    directive=directive == null ? getTagDirective(project,directiveName,AngularDirectivesIndex.INDEX_ID) : directive;
+    return directive != null ? new AngularJSTagDescriptor(directiveName,directive) : null;
   }
   return null;
 }
