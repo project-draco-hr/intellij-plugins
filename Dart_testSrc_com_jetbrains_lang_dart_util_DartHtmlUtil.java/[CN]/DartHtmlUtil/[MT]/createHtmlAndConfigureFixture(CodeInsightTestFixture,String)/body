@@ -1,10 +1,9 @@
 {
-  List<VirtualFile> virtualFileList=ContainerUtil.map(fileNames,new Function<String,VirtualFile>(){
-    @Override public VirtualFile fun(    String name){
-      return myFixture.copyFileToProject(name.endsWith(".dart") ? name : name + ".dart");
+  if (fileNames.length > 1) {
+    for (int i=1; i < fileNames.length; i++) {
+      fixture.copyFileToProject(fileNames[i]);
     }
   }
-);
-  VirtualFile root=virtualFileList.iterator().next();
-  return myFixture.configureByText(fileNames[0] + ".html",DartHtmlUtil.getHtmlText(root));
+  final String content=FileUtil.loadFile(new File(fixture.getTestDataPath() + "/" + fileNames[0]));
+  return fixture.configureByText(fileNames[0] + ".html",DartHtmlUtil.getHtmlText(content));
 }

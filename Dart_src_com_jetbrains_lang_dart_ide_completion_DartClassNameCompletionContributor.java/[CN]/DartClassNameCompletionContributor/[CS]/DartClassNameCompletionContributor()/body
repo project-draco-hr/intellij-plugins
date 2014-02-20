@@ -1,6 +1,12 @@
 {
   final PsiElementPattern.Capture<PsiElement> idInComponentName=psiElement().withSuperParent(1,DartId.class).withSuperParent(2,DartComponentName.class);
-  extend(CompletionType.BASIC,idInComponentName.withSuperParent(4,DartNormalFormalParameter.class),new CompletionProvider<CompletionParameters>(){
+  final ElementPattern<PsiElement> pattern=or(idInComponentName.withSuperParent(4,DartNormalFormalParameter.class),idInComponentName.withSuperParent(3,DartVarAccessDeclaration.class).with(new PatternCondition<PsiElement>("not after DartType"){
+    public boolean accepts(    @NotNull final PsiElement element,    final ProcessingContext context){
+      return !(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(element.getParent().getParent(),true) instanceof DartType);
+    }
+  }
+));
+  extend(CompletionType.BASIC,pattern,new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
       final Set<DartComponentName> suggestedVariants=new THashSet<DartComponentName>();
       final ClassNameScopeProcessor processor=new ClassNameScopeProcessor(suggestedVariants);
