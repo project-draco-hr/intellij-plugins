@@ -1,0 +1,15 @@
+{
+  File packageJson=new File(packageDir,"package.json");
+  if (!packageJson.isFile()) {
+    return null;
+  }
+  long lastModified=packageJson.lastModified();
+  String path=packageDir.getAbsolutePath();
+  TimestampedSemVer r=PACKAGE_VERSION_CACHE.get(path);
+  if (r == null || r.getTimestamp() != lastModified) {
+    SemVer semver=calc(packageJson);
+    r=new TimestampedSemVer(lastModified,semver);
+    PACKAGE_VERSION_CACHE.put(path,r);
+  }
+  return r.getSemVer();
+}

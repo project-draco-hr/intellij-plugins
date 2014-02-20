@@ -1,0 +1,24 @@
+{
+  JsonReader jsonReader=null;
+  try {
+    BufferedReader reader=Files.newReader(packageJson,Charsets.UTF_8);
+    jsonReader=new JsonReader(reader);
+    String version=JsonUtil.getChildAsString(jsonReader,"version");
+    if (version != null) {
+      return SemVer.parseFromText(version);
+    }
+  }
+ catch (  IOException e) {
+    LOG.warn(e);
+  }
+ finally {
+    if (jsonReader != null) {
+      try {
+        jsonReader.close();
+      }
+ catch (      IOException ignored) {
+      }
+    }
+  }
+  return null;
+}

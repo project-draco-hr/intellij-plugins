@@ -2,8 +2,17 @@
   myGlobalSettingsRef.remove();
   String nodeInterpreterPath=KarmaGlobalSettingsUtil.getNodeInterpreterPath();
   String karmaPackagePath=KarmaGlobalSettingsUtil.getKarmaNodePackageDir(getProject(),myRunSettings.getConfigPath());
-  check(nodeInterpreterPath,karmaPackagePath);
-  if (nodeInterpreterPath != null && karmaPackagePath != null) {
-    myGlobalSettingsRef.set(new GlobalSettings(nodeInterpreterPath,karmaPackagePath));
+  boolean ok=true;
+  try {
+    check(nodeInterpreterPath,karmaPackagePath);
+  }
+ catch (  RuntimeConfigurationError e) {
+    ok=false;
+    throw e;
+  }
+ finally {
+    if (ok && nodeInterpreterPath != null && karmaPackagePath != null) {
+      myGlobalSettingsRef.set(new GlobalSettings(nodeInterpreterPath,karmaPackagePath));
+    }
   }
 }
