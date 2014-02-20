@@ -1,0 +1,22 @@
+{
+  Set<String> allKeys=new THashSet<String>();
+  final GlobalSearchScope scope=GlobalSearchScope.allScope(project);
+  final CommonProcessors.CollectProcessor<String> processor=new CommonProcessors.CollectProcessor<String>(allKeys){
+    @Override protected boolean accept(    String key){
+      return true;
+    }
+  }
+;
+  FileBasedIndex.getInstance().processAllKeys(index,processor,scope,null);
+  return checkExisting ? ContainerUtil.filter(allKeys,new Condition<String>(){
+    @Override public boolean value(    String key){
+      return !FileBasedIndex.getInstance().processValues(index,key,null,new FileBasedIndex.ValueProcessor<Void>(){
+        @Override public boolean process(        VirtualFile file,        Void value){
+          return false;
+        }
+      }
+,scope);
+    }
+  }
+) : allKeys;
+}
