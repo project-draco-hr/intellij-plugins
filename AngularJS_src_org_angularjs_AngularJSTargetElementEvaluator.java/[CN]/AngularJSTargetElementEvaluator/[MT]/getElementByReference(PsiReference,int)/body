@@ -1,0 +1,14 @@
+{
+  if (ref instanceof JSTextReference) {
+    final PsiElement element=ref.getElement();
+    final JSCallExpression call=PsiTreeUtil.getParentOfType(element,JSCallExpression.class);
+    if (call != null) {
+      JSReferenceExpression callee=(JSReferenceExpression)call.getMethodExpression();
+      JSExpression qualifier=callee.getQualifier();
+      if (qualifier != null && "directive".equals(callee.getReferencedName()) && AngularIndexUtil.hasAngularJS(element.getProject())) {
+        return element;
+      }
+    }
+  }
+  return null;
+}
