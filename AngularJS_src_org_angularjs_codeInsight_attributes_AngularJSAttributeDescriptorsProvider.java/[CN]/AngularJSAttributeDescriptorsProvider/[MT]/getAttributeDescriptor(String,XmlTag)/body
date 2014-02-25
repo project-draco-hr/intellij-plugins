@@ -2,14 +2,12 @@
   final String attributeName=DirectiveUtil.normalizeAttributeName(attrName);
   if (xmlTag != null) {
     final Project project=xmlTag.getProject();
-    boolean attributeAvailable;
-    if (AngularIndexUtil.getAllKeys(AngularDirectivesDocIndex.INDEX_ID,project,false).contains(attributeName)) {
-      attributeAvailable=isApplicable(project,attributeName,xmlTag.getName(),AngularDirectivesDocIndex.INDEX_ID);
+    final String tagName=xmlTag.getName();
+    ThreeState attributeAvailable=isApplicable(project,attributeName,tagName,AngularDirectivesDocIndex.INDEX_ID);
+    if (attributeAvailable == ThreeState.UNSURE) {
+      attributeAvailable=isApplicable(project,attributeName,tagName,AngularDirectivesIndex.INDEX_ID);
     }
- else {
-      attributeAvailable=AngularIndexUtil.getAllKeys(AngularDirectivesIndex.INDEX_ID,project,false).contains(attributeName);
-    }
-    return attributeAvailable ? createDescriptor(project,attributeName) : null;
+    return attributeAvailable == ThreeState.YES ? createDescriptor(project,attributeName) : null;
   }
   return null;
 }
