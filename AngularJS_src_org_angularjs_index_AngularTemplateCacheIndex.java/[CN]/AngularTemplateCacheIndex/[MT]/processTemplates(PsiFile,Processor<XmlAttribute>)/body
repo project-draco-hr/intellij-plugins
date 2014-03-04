@@ -1,0 +1,17 @@
+{
+  if (psiFile instanceof XmlFile) {
+    psiFile.accept(new XmlRecursiveElementVisitor(){
+      @Override public void visitXmlTag(      XmlTag tag){
+        if (HtmlUtil.isScriptTag(tag) && "text/ng-template".equals(tag.getAttributeValue("type"))) {
+          final XmlAttribute id=tag.getAttribute("id");
+          if (id != null) {
+            processor.process(id);
+            return;
+          }
+        }
+        super.visitXmlTag(tag);
+      }
+    }
+);
+  }
+}
