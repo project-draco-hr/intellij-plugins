@@ -1,0 +1,20 @@
+{
+  final FileBasedIndex instance=FileBasedIndex.getInstance();
+  final Project project=getElement().getProject();
+  final String id=getCanonicalText();
+  final Collection<VirtualFile> files=instance.getContainingFiles(AngularTemplateCacheIndex.TEMPLATE_CACHE_INDEX,id,GlobalSearchScope.allScope(project));
+  final Ref<PsiElement> result=new Ref<PsiElement>();
+  for (  VirtualFile file : files) {
+    final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+    AngularTemplateCacheIndex.processTemplates(psiFile,new Processor<XmlAttribute>(){
+      @Override public boolean process(      XmlAttribute attribute){
+        if (id.equals(attribute.getValue())) {
+          result.set(attribute.getValueElement());
+        }
+        return result.isNull();
+      }
+    }
+);
+  }
+  return result.get();
+}
