@@ -1,0 +1,16 @@
+{
+  BackendCompiler compiler=((CompilerConfigurationImpl)CompilerConfiguration.getInstance(myProject)).getDefaultCompiler();
+  if (compiler instanceof ErrorProneJavaCompiler) {
+    File pluginClassesRoot=new File(PathUtil.getJarPathForClass(getClass()));
+    File libJar;
+    if (pluginClassesRoot.isFile()) {
+      libJar=new File(pluginClassesRoot.getParentFile(),"jps/error-prone-core-1.1.1.jar");
+    }
+ else {
+      libJar=new File(PluginPathManager.getPluginHome("error-prone"),"lib/error-prone-core-1.1.1.jar");
+    }
+    LOG.assertTrue(libJar.exists(),"error-prone compiler jar not found: " + libJar.getAbsolutePath());
+    return Collections.singletonList(libJar.getAbsolutePath());
+  }
+  return Collections.emptyList();
+}
