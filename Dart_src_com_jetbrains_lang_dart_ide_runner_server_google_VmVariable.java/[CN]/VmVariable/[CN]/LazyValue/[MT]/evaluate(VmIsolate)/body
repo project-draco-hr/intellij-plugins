@@ -1,0 +1,22 @@
+{
+  final VmValue[] result=new VmValue[1];
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    connection.getListElements(isolate,listValue.getObjectId(),index,new VmCallback<VmValue>(){
+      @Override public void handleResult(      VmResult<VmValue> r){
+        result[0]=r.getResult();
+        latch.countDown();
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    latch.countDown();
+  }
+  try {
+    latch.await();
+  }
+ catch (  InterruptedException e) {
+  }
+  return result[0];
+}

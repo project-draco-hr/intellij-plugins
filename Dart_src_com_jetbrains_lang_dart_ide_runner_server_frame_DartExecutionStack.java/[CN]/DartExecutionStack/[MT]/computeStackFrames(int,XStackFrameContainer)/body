@@ -1,19 +1,9 @@
 {
-  if (!myStackFrames.isEmpty()) {
-    addStackFrames(container,firstFrameIndex - 1);
-    return;
+  final Iterator<VmCallFrame> iterator=myVmCallFrames.iterator();
+  if (iterator.hasNext())   iterator.next();
+  while (iterator.hasNext()) {
+    final VmCallFrame frame=iterator.next();
+    container.addStackFrames(Collections.singletonList(new DartStackFrame(myDebugProcess,frame)),false);
   }
-  myDebugProcess.sendSimpleCommand("getStackTrace",new AbstractResponseToRequestHandler<JsonResponse>(){
-    @Override public boolean processResponse(    JsonResponse response){
-      if (response.getJsonObject().get("error") == null) {
-        final JsonObject result=response.getJsonObject().getAsJsonObject("result");
-        myStackFrames.clear();
-        myStackFrames.addAll(DartStackFrame.fromJson(myDebugProcess,result.getAsJsonArray("callFrames")));
-        DartStackFrame.requestLines(myDebugProcess,myStackFrames,null);
-      }
-      addStackFrames(container,firstFrameIndex - 1);
-      return true;
-    }
-  }
-);
+  container.addStackFrames(Collections.<XStackFrame>emptyList(),true);
 }

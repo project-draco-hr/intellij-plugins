@@ -1,0 +1,20 @@
+{
+  if (callback == null) {
+    throw new IllegalArgumentException("a callback is required");
+  }
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","getClassProperties");
+    request.put("params",new JSONObject().put("classId",classId));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject result) throws JSONException {
+        VmResult<VmClass> vmClassResult=convertGetClassPropertiesResult(isolate,classId,result);
+        callback.handleResult(vmClassResult);
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

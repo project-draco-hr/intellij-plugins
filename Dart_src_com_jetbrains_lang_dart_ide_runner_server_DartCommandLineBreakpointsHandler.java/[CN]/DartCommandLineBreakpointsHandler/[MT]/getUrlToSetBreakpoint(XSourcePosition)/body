@@ -1,0 +1,13 @@
+{
+  final VirtualFile file=position.getFile();
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  final VirtualFile sdkLibFolder=sdk == null ? null : LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/lib");
+  final String relativeToSdkLib=sdkLibFolder == null ? null : VfsUtilCore.getRelativePath(file,sdkLibFolder,'/');
+  final VirtualFile packagesFolder=myDebugProcess.getPackagesFolder();
+  final String relativeToPackages=packagesFolder == null || relativeToSdkLib != null ? null : VfsUtilCore.getRelativePath(file,packagesFolder,'/');
+  final VirtualFile pubspecYamlFile=myDebugProcess.getPubspecYamlFile();
+  final VirtualFile libFolder=pubspecYamlFile == null ? null : pubspecYamlFile.getParent().findChild("lib");
+  final String pubspecName=pubspecYamlFile == null ? null : PubspecYamlUtil.getPubspecName(pubspecYamlFile);
+  final String relativeToLibFolder=libFolder == null || relativeToSdkLib != null || relativeToPackages != null ? null : VfsUtilCore.getRelativePath(file,libFolder,'/');
+  return relativeToSdkLib != null ? "dart:" + relativeToSdkLib : relativeToPackages != null ? "package:" + relativeToPackages : relativeToLibFolder != null && pubspecName != null ? "package:" + pubspecName + "/"+ relativeToLibFolder : getAbsoluteUrlForResource(file);
+}

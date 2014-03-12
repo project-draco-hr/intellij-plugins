@@ -1,7 +1,17 @@
 {
-  final XValueChildrenList childrenList=new XValueChildrenList(myGlobals.size());
-  for (  DartVMValue field : myGlobals) {
-    childrenList.add(field.getName(),field);
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      if (node.isObsolete())       return;
+      final VmLibrary vmLibrary=myDebugProcess.getVmConnection().getLibraryPropertiesSync(myIsolate,myLibraryId);
+      final List<VmVariable> globals=vmLibrary == null ? null : vmLibrary.getGlobals();
+      if (globals != null) {
+        final XValueChildrenList childrenList=new XValueChildrenList(globals.size());
+        for (        VmVariable vmVariable : globals) {
+          childrenList.add(new DartValue(myDebugProcess,vmVariable));
+        }
+        node.addChildren(childrenList,true);
+      }
+    }
   }
-  node.addChildren(childrenList,true);
+);
 }

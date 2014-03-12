@@ -1,0 +1,20 @@
+{
+  if (callback == null) {
+    throw new IllegalArgumentException("a callback is required");
+  }
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","getListElements");
+    request.put("params",new JSONObject().put("objectId",listObjectId).put("index",index));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject result) throws JSONException {
+        VmResult<VmValue> vmObjectResult=convertGetListElementsResult(isolate,result);
+        callback.handleResult(vmObjectResult);
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

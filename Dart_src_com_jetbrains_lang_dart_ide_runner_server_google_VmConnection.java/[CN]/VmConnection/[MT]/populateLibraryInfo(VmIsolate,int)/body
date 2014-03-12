@@ -1,0 +1,22 @@
+{
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    getLibraryProperties(isolate,libraryId,new VmCallback<VmLibrary>(){
+      @Override public void handleResult(      VmResult<VmLibrary> result){
+        if (!result.isError()) {
+          isolate.setLibraryInfo(libraryId,result.getResult());
+        }
+        latch.countDown();
+      }
+    }
+);
+  }
+ catch (  IOException e1) {
+    latch.countDown();
+  }
+  try {
+    latch.await();
+  }
+ catch (  InterruptedException e) {
+  }
+}

@@ -1,0 +1,21 @@
+{
+  VmBreakpoint breakpoint=null;
+synchronized (breakpoints) {
+    for (    VmBreakpoint bp : breakpoints) {
+      if (bp.getBreakpointId() == breakpointId) {
+        breakpoint=bp;
+        break;
+      }
+    }
+  }
+  if (breakpoint == null) {
+    breakpoint=new VmBreakpoint(isolate,location,breakpointId);
+    breakpoints.add(breakpoint);
+  }
+ else {
+    breakpoint.updateLocation(location);
+  }
+  for (  VmListener listener : listeners) {
+    listener.breakpointResolved(isolate,breakpoint);
+  }
+}

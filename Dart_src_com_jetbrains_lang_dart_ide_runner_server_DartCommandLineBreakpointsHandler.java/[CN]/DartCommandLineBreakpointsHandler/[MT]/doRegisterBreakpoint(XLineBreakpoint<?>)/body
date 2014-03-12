@@ -1,0 +1,13 @@
+{
+  final XSourcePosition position=breakpoint.getSourcePosition();
+  final VmIsolate isolate=myDebugProcess.getMainIsolate();
+  if (position == null || isolate == null)   return;
+  suspendPerformActionAndResume(new ThrowableRunnable<IOException>(){
+    public void run() throws IOException {
+      final String urlToSetBreakpoint=getUrlToSetBreakpoint(position);
+      final int line=breakpoint.getLine() + 1;
+      sendSetBreakpointCommand(isolate,breakpoint,urlToSetBreakpoint,line);
+    }
+  }
+);
+}

@@ -1,0 +1,27 @@
+{
+  Pair<Long,Map<String,Object>> data=pubspecYamlFile.getUserData(MOD_STAMP_TO_PUBSPEC_NAME);
+  final FileDocumentManager documentManager=FileDocumentManager.getInstance();
+  final Document cachedDocument=documentManager.getCachedDocument(pubspecYamlFile);
+  final Long currentTimestamp=cachedDocument != null ? cachedDocument.getModificationStamp() : pubspecYamlFile.getModificationCount();
+  final Long cachedTimestamp=data == null ? null : data.first;
+  if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+    data=null;
+    pubspecYamlFile.putUserData(MOD_STAMP_TO_PUBSPEC_NAME,null);
+    try {
+      final Map<String,Object> pubspecYamlInfo;
+      if (cachedDocument != null) {
+        pubspecYamlInfo=loadPubspecYamlInfo(cachedDocument.getText());
+      }
+ else {
+        pubspecYamlInfo=loadPubspecYamlInfo(VfsUtilCore.loadText(pubspecYamlFile));
+      }
+      if (pubspecYamlInfo != null) {
+        data=Pair.create(currentTimestamp,pubspecYamlInfo);
+        pubspecYamlFile.putUserData(MOD_STAMP_TO_PUBSPEC_NAME,data);
+      }
+    }
+ catch (    IOException ignored) {
+    }
+  }
+  return data == null ? null : data.second;
+}

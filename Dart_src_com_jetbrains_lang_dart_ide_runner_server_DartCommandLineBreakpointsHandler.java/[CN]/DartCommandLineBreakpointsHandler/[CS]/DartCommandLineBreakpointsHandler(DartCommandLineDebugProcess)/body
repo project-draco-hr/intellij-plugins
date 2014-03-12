@@ -1,41 +1,20 @@
 {
-  myDebugProcess=process;
-  List<XBreakpointHandler> handlers=new ArrayList<XBreakpointHandler>(2);
+  myDebugProcess=debugProcess;
+  List<XBreakpointHandler> handlers=new ArrayList<XBreakpointHandler>(1);
   handlers.add(new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(JavaScriptBreakpointType.class){
     public void registerBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint){
       final XSourcePosition position=breakpoint.getSourcePosition();
       if (position == null)       return;
       if (position.getFile().getFileType() != DartFileType.INSTANCE)       return;
-      myDebugProcess.sendCommand(getSetBreakpointCommand(breakpoint),new AbstractResponseToRequestHandler<JsonResponse>(){
-        @Override public boolean processResponse(        JsonResponse response){
-          if (response.getJsonObject().get("error") != null) {
-            myDebugProcess.getSession().updateBreakpointPresentation(breakpoint,AllIcons.Debugger.Db_invalid_breakpoint,null);
-            return true;
-          }
-          final JsonObject result=response.getJsonObject().get("result").getAsJsonObject();
-          final int id=result.get("breakpointId").getAsInt();
-          myBreakpointToIndexMap.put(breakpoint,id);
-          myIndexToBreakpointMap.put(id,breakpoint);
-          myDebugProcess.getSession().updateBreakpointPresentation(breakpoint,AllIcons.Debugger.Db_verified_breakpoint,null);
-          return true;
-        }
+      if (myDebugProcess.isVmConnected()) {
+        doRegisterBreakpoint(breakpoint);
       }
-);
+ else {
+        myInitialBreakpoints.add(breakpoint);
+      }
     }
     public void unregisterBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint,    final boolean temporary){
-      final XSourcePosition position=breakpoint.getSourcePosition();
-      if (position == null)       return;
-      if (position.getFile().getFileType() != DartFileType.INSTANCE)       return;
-      myDebugProcess.sendCommand(getRemoveBreakpointCommand(breakpoint),new AbstractResponseToRequestHandler<JsonResponse>(){
-        @Override public boolean processResponse(        JsonResponse response){
-          final Integer id=myBreakpointToIndexMap.remove(breakpoint);
-          if (myIndexToBreakpointMap.containsKey(id)) {
-            myIndexToBreakpointMap.remove(id);
-          }
-          return true;
-        }
-      }
-);
+      doUnregisterBreakpoint(breakpoint);
     }
   }
 );

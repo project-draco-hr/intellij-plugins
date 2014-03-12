@@ -1,0 +1,47 @@
+{
+  if (result.has("event")) {
+    String eventName=result.getString("event");
+    JSONObject params=result.optJSONObject("params");
+    if (eventName.equals(EVENT_PAUSED)) {
+      int isolateId=params.optInt("isolateId",-1);
+      String reason=params.optString("reason",null);
+      VmIsolate isolate=getCreateIsolate(isolateId);
+      VmValue exception=VmValue.createFrom(isolate,params.optJSONObject("exception"));
+      VmLocation location=VmLocation.createFrom(isolate,params.optJSONObject("location"));
+      isolate.setPaused(true);
+      if (!"interrupted".equals(reason) || !isolate.isTemporarilyInterrupted()) {
+        sendDelayedDebuggerPaused(PausedReason.parse(reason),isolate,location,exception);
+      }
+    }
+ else     if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
+      int breakpointId=params.optInt("breakpointId");
+      int isolateId=params.optInt("isolateId");
+      VmIsolate isolate=getCreateIsolate(isolateId);
+      VmLocation location=VmLocation.createFrom(isolate,params.getJSONObject("location"));
+      handleBreakpointResolved(isolate,breakpointId,location);
+    }
+ else     if (eventName.equals(EVENT_ISOLATE)) {
+      String reason=params.optString("reason",null);
+      int isolateId=params.optInt("id",-1);
+      final VmIsolate isolate=getCreateIsolate(isolateId);
+      if ("created".equals(reason)) {
+        for (        VmListener listener : listeners) {
+          listener.isolateCreated(isolate);
+        }
+      }
+ else       if ("shutdown".equals(reason)) {
+        for (        VmListener listener : listeners) {
+          listener.isolateShutdown(isolate);
+        }
+        isolate.setPaused(false);
+        isolateMap.remove(isolate.getId());
+      }
+    }
+ else {
+      LOG.info("no handler for notification: " + eventName);
+    }
+  }
+ else {
+    LOG.info("event not understood: " + result);
+  }
+}

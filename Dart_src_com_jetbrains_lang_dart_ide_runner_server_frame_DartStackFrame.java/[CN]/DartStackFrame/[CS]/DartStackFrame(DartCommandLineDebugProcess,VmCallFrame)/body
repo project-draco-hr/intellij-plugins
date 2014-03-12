@@ -1,0 +1,31 @@
+{
+  myDebugProcess=debugProcess;
+  myVmCallFrame=vmCallFrame;
+  final VmLocation location=vmCallFrame.getLocation();
+  final String locationUrl=location == null ? null : location.getUrl();
+  if (locationUrl != null) {
+    final VirtualFile file;
+    if (locationUrl.startsWith("file:")) {
+      file=VirtualFileManager.getInstance().findFileByUrl(threeSlashizeFileUrl(locationUrl));
+    }
+ else     if (locationUrl.startsWith("dart:")) {
+      final DartSdk sdk=DartSdk.getGlobalDartSdk();
+      final String path=sdk == null ? null : sdk.getHomePath() + "/lib/" + locationUrl.substring("dart:".length());
+      file=path == null ? null : LocalFileSystem.getInstance().findFileByPath(path);
+    }
+ else     if (locationUrl.startsWith("package:")) {
+      final VirtualFile packagesFolder=myDebugProcess.getPackagesFolder();
+      final String path=packagesFolder == null ? null : packagesFolder.getPath() + "/" + locationUrl.substring("package:".length());
+      file=path == null ? null : LocalFileSystem.getInstance().findFileByPath(path);
+    }
+ else {
+      LOG.warn("Unexpected URL:" + locationUrl);
+      file=null;
+    }
+    final int line=location.getLineNumber(debugProcess.getVmConnection()) - 1;
+    mySourcePosition=file == null || line < 0 ? null : XDebuggerUtil.getInstance().createPosition(file,line);
+  }
+ else {
+    mySourcePosition=null;
+  }
+}

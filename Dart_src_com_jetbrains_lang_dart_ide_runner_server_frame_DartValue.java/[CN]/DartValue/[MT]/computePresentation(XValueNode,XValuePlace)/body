@@ -1,0 +1,26 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      if (node.isObsolete())       return;
+      myVmValue=myVmVariable.getValue();
+      if (myVmValue == null) {
+        node.setPresentation(AllIcons.Debugger.Value,null,"<no value>",false);
+        return;
+      }
+      final String value=StringUtil.notNullize(myVmValue.getText(),"null");
+      final XValuePresentation presentation;
+      if (myVmValue.isString()) {
+        presentation=new XStringValuePresentation(StringUtil.stripQuotesAroundValue(value));
+      }
+ else       if (myVmValue.isNumber()) {
+        presentation=new XNumericValuePresentation(value);
+      }
+ else {
+        presentation=new XRegularValuePresentation(value,myVmValue.getKind());
+      }
+      final boolean neverHasChildren=myVmValue.isPrimitive() || myVmValue.isNull() || myVmValue.isFunction();
+      node.setPresentation(getIcon(myVmValue),presentation,!neverHasChildren);
+    }
+  }
+);
+}

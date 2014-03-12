@@ -1,0 +1,36 @@
+{
+  if (!isolate.isPaused()) {
+    throw new IOException("attempt to set breakpoint on a running isolate");
+  }
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","setBreakpoint");
+    request.put("params",new JSONObject().put("url",VmUtils.eclipseUrlToVm(url)).put("line",line));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject object) throws JSONException {
+        VmResult<VmBreakpoint> result=new VmResult<VmBreakpoint>();
+        if (!object.has("error")) {
+          int breakpointId=JsonUtils.getInt(object.getJSONObject("result"),"breakpointId");
+          VmBreakpoint breakpoint=new VmBreakpoint(isolate,null,breakpointId);
+          breakpoints.add(breakpoint);
+          result.setResult(breakpoint);
+        }
+ else {
+          result.setError(object.getString("error"));
+        }
+        if (callback != null) {
+          callback.handleResult(result);
+        }
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+  try {
+    Thread.sleep(10);
+  }
+ catch (  InterruptedException e) {
+  }
+}

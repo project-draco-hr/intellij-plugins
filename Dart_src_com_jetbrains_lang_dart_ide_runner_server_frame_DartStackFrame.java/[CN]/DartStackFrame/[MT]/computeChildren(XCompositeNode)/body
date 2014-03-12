@@ -1,8 +1,12 @@
 {
-  final XValueChildrenList childrenList=new XValueChildrenList(myLocals.size() + 1);
-  for (  DartVMValue local : myLocals) {
-    childrenList.add(local.getName(),local);
+  final List<VmVariable> locals=myVmCallFrame.getLocals();
+  final XValueChildrenList childrenList=new XValueChildrenList(locals == null ? 1 : locals.size() + 1);
+  if (locals != null) {
+    for (    final VmVariable local : locals) {
+      childrenList.add(new DartValue(myDebugProcess,local));
+    }
   }
-  childrenList.add("library",new DartLibraryValue(myDebugProcess,myLibraryId));
+  if (myVmCallFrame.getIsolate() != null && myVmCallFrame.getLibraryId() != -1) {
+  }
   node.addChildren(childrenList,true);
 }

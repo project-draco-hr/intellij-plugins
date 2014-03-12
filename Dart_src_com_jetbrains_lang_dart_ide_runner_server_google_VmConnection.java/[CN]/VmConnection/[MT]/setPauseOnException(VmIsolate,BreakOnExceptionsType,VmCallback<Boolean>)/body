@@ -1,0 +1,23 @@
+{
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","setPauseOnException");
+    request.put("params",new JSONObject().put("exceptions",kind.toString()));
+    if (callback == null) {
+      sendRequest(request,isolate.getId(),null);
+    }
+ else {
+      sendRequest(request,isolate.getId(),new Callback(){
+        @Override public void handleResult(        JSONObject result) throws JSONException {
+          VmResult<Boolean> callbackResult=VmResult.createFrom(result);
+          callbackResult.setResult(true);
+          callback.handleResult(callbackResult);
+        }
+      }
+);
+    }
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

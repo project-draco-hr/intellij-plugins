@@ -1,0 +1,34 @@
+{
+  socket=new Socket(host,port);
+  out=socket.getOutputStream();
+  final InputStream in=socket.getInputStream();
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      for (      VmListener listener : listeners) {
+        listener.connectionOpened(VmConnection.this);
+      }
+      try {
+        processVmEvents(in);
+      }
+ catch (      EOFException e) {
+      }
+catch (      SocketException se) {
+        final String reset="Connection reset";
+        if (!(se.getMessage() != null && se.getMessage().contains(reset))) {
+          LOG.warn(se);
+        }
+      }
+catch (      IOException e) {
+        LOG.warn(e);
+      }
+ finally {
+        socket=null;
+      }
+      for (      VmListener listener : listeners) {
+        listener.connectionClosed(VmConnection.this);
+      }
+      handleTerminated();
+    }
+  }
+);
+}

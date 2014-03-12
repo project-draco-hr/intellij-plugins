@@ -1,0 +1,19 @@
+{
+  if (callback == null) {
+    throw new IllegalArgumentException("a callback is required");
+  }
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","getScriptSource");
+    request.put("params",new JSONObject().put("libraryId",libraryId).put("url",url));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject result) throws JSONException {
+        callback.handleResult(convertGetScriptSourceResult(result));
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

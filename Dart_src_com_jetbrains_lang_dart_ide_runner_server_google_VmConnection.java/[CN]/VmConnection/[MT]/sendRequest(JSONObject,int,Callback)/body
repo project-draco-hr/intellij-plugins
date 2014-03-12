@@ -1,0 +1,44 @@
+{
+  int id=0;
+  try {
+    if (!isConnected()) {
+      if (callback != null) {
+        callback.handleResult(VmResult.createJsonErrorResult("connection termination"));
+      }
+      return;
+    }
+    if (!request.has("params")) {
+      request.put("params",new JSONObject());
+    }
+    JSONObject params=request.getJSONObject("params");
+    if (!params.has("isolateId") && isolateId != -1) {
+      params.put("isolateId",isolateId);
+    }
+  }
+ catch (  JSONException jse) {
+    throw new IOException(jse);
+  }
+synchronized (this) {
+    id=nextCommandId++;
+    try {
+      request.put("id",id);
+    }
+ catch (    JSONException ex) {
+      throw new IOException(ex);
+    }
+    if (callback != null) {
+      callbackMap.put(id,callback);
+    }
+  }
+  try {
+    send(request.toString());
+  }
+ catch (  IOException ex) {
+    if (callback != null) {
+synchronized (this) {
+        callbackMap.remove(id);
+      }
+    }
+    throw ex;
+  }
+}

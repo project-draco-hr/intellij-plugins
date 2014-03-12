@@ -1,0 +1,32 @@
+{
+  String cacheKey=location.getLibraryId() + ":" + location.getUrl();
+  if (!lineNumberTableCache.containsKey(cacheKey)) {
+    final CountDownLatch latch=new CountDownLatch(1);
+    final VmLineNumberTable[] result=new VmLineNumberTable[1];
+    try {
+      getLineNumberTable(isolate,location.getLibraryId(),location.getUrl(),new VmCallback<VmLineNumberTable>(){
+        @Override public void handleResult(        VmResult<VmLineNumberTable> r){
+          result[0]=r.getResult();
+          latch.countDown();
+        }
+      }
+);
+    }
+ catch (    IOException ex) {
+      latch.countDown();
+    }
+    try {
+      latch.await();
+    }
+ catch (    InterruptedException e) {
+    }
+    lineNumberTableCache.put(cacheKey,result[0]);
+  }
+  VmLineNumberTable lineNumberTable=lineNumberTableCache.get(cacheKey);
+  if (lineNumberTable == null) {
+    return 0;
+  }
+ else {
+    return lineNumberTable.getLineForLocation(location);
+  }
+}

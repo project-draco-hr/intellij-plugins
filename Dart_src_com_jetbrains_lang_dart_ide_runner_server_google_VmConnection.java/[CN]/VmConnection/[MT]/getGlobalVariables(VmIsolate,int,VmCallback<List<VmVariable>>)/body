@@ -1,0 +1,20 @@
+{
+  if (callback == null) {
+    throw new IllegalArgumentException("a callback is required");
+  }
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","getGlobalVariables");
+    request.put("params",new JSONObject().put("libraryId",libraryId));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject result) throws JSONException {
+        VmResult<List<VmVariable>> retValue=convertGetGlobalVariablesResult(isolate,result);
+        callback.handleResult(retValue);
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

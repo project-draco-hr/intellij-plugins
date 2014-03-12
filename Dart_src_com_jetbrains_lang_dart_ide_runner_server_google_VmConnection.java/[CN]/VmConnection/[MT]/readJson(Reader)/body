@@ -1,0 +1,46 @@
+{
+  StringBuilder builder=new StringBuilder();
+  boolean inQuote=false;
+  boolean ignoreLast=false;
+  int curlyCount=0;
+  int c=in.read();
+  while (true) {
+    if (c == -1) {
+      throw new EOFException();
+    }
+    builder.append((char)c);
+    if (!ignoreLast) {
+      if (c == '"') {
+        inQuote=!inQuote;
+      }
+    }
+    if (inQuote && c == '\\') {
+      ignoreLast=true;
+    }
+ else {
+      ignoreLast=false;
+    }
+    if (!inQuote) {
+      if (c == '{') {
+        curlyCount++;
+      }
+ else       if (c == '}') {
+        curlyCount--;
+        if (curlyCount == 0) {
+          try {
+            String str=builder.toString();
+            if (str.indexOf('\n') != -1) {
+              LOG.error("bad json from vm: " + str);
+              str=str.replace("\n","\\n");
+            }
+            return new JSONObject(str);
+          }
+ catch (          JSONException e) {
+            throw new IOException(e);
+          }
+        }
+      }
+    }
+    c=in.read();
+  }
+}

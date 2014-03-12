@@ -1,0 +1,23 @@
+{
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    setPauseOnException(isolate,kind,new VmCallback<Boolean>(){
+      @Override public void handleResult(      VmResult<Boolean> result){
+        latch.countDown();
+      }
+    }
+);
+  }
+ catch (  IOException ioe) {
+    latch.countDown();
+  }
+catch (  Throwable t) {
+    latch.countDown();
+    throw new RuntimeException(t);
+  }
+  try {
+    latch.await();
+  }
+ catch (  InterruptedException e) {
+  }
+}

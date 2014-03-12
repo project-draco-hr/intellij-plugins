@@ -1,0 +1,21 @@
+{
+  if (callback == null) {
+    throw new IllegalArgumentException("a callback is required");
+  }
+  final String vmUrl=VmUtils.eclipseUrlToVm(eclipseUrl);
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","getLineNumberTable");
+    request.put("params",new JSONObject().put("libraryId",libraryId).put("url",vmUrl));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject result) throws JSONException {
+        VmResult<VmLineNumberTable> vmObjectResult=convertGetLineNumberTableResult(isolate,libraryId,eclipseUrl,result);
+        callback.handleResult(vmObjectResult);
+      }
+    }
+);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

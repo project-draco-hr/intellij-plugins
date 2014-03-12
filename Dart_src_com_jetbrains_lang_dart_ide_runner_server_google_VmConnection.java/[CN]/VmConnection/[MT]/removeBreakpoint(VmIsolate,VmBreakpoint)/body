@@ -1,0 +1,20 @@
+{
+  try {
+    JSONObject request=new JSONObject();
+    request.put("command","removeBreakpoint");
+    request.put("params",new JSONObject().put("breakpointId",breakpoint.getBreakpointId()));
+    sendRequest(request,isolate.getId(),new Callback(){
+      @Override public void handleResult(      JSONObject object) throws JSONException {
+        VmResult<?> result=VmResult.createFrom(object);
+        if (!result.isError()) {
+          breakpoints.remove(breakpoint);
+        }
+      }
+    }
+);
+    breakpoints.remove(breakpoint);
+  }
+ catch (  JSONException exception) {
+    throw new IOException(exception);
+  }
+}

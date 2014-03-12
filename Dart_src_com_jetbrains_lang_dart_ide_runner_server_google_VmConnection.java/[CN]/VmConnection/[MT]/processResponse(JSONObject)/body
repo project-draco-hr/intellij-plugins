@@ -1,0 +1,14 @@
+{
+  int id=result.getInt("id");
+  Callback callback;
+synchronized (this) {
+    callback=callbackMap.remove(id);
+  }
+  if (callback != null) {
+    callback.handleResult(result);
+  }
+ else   if (result.has("error")) {
+    VmResult<?> vmResult=VmResult.createFrom(result);
+    LOG.info("Error from command id " + id + ": "+ vmResult.getError());
+  }
+}

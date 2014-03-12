@@ -1,0 +1,22 @@
+{
+  final CountDownLatch latch=new CountDownLatch(1);
+  try {
+    getClassProperties(isolate,classId,new VmCallback<VmClass>(){
+      @Override public void handleResult(      VmResult<VmClass> result){
+        if (!result.isError()) {
+          isolate.setClassInfo(classId,result.getResult());
+        }
+        latch.countDown();
+      }
+    }
+);
+  }
+ catch (  IOException e1) {
+    latch.countDown();
+  }
+  try {
+    latch.await();
+  }
+ catch (  InterruptedException e) {
+  }
+}

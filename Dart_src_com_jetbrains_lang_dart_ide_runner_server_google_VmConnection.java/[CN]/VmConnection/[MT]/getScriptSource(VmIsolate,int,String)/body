@@ -1,0 +1,30 @@
+{
+  final String cacheKey=libraryId + ":" + url;
+  if (!sourceCache.containsKey(cacheKey)) {
+    final CountDownLatch latch=new CountDownLatch(1);
+    try {
+      getScriptSourceAsync(isolate,libraryId,url,new VmCallback<String>(){
+        @Override public void handleResult(        VmResult<String> result){
+          if (result.isError()) {
+            sourceCache.put(cacheKey,null);
+          }
+ else {
+            sourceCache.put(cacheKey,result.getResult());
+          }
+          latch.countDown();
+        }
+      }
+);
+    }
+ catch (    IOException e) {
+      sourceCache.put(cacheKey,null);
+      latch.countDown();
+    }
+    try {
+      latch.await();
+    }
+ catch (    InterruptedException e) {
+    }
+  }
+  return sourceCache.get(cacheKey);
+}
