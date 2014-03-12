@@ -9,17 +9,19 @@
   }
   final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
   if (karmaServer.areBrowsersReady()) {
-    final Pair<JSDebugEngine,WebBrowser> engineAndBrowser=new KarmaDebugBrowserSelector(project,karmaServer.getCapturedBrowsers(),environment,this).selectDebugEngine();
-    return prepareDebugger(project,engineAndBrowser,new RunProfileStarter(){
+    final DebuggableWebBrowser debuggableWebBrowser=new KarmaDebugBrowserSelector(project,karmaServer.getCapturedBrowsers(),environment,this).selectDebugEngine();
+    return prepareDebugger(project,debuggableWebBrowser,new RunProfileStarter(){
       @Nullable @Override public RunContentDescriptor execute(      @NotNull Project project,      @NotNull Executor executor,      @NotNull RunProfileState state,      @Nullable RunContentDescriptor contentToReuse,      @NotNull ExecutionEnvironment env) throws ExecutionException {
-        if (engineAndBrowser == null) {
+        if (debuggableWebBrowser == null) {
           return null;
         }
         final Url url=Urls.newFromEncoded(karmaServer.formatUrl("/debug.html"));
         final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
         XDebugSession session=XDebuggerManager.getInstance(project).startSession(KarmaDebugProgramRunner.this,env,contentToReuse,new XDebugProcessStarter(){
           @Override @NotNull public XDebugProcess start(          @NotNull final XDebugSession session){
-            JSDebugProcess<?> debugProcess=engineAndBrowser.first.createDebugProcess(session,engineAndBrowser.second,fileFinder,url,executionResult,true);
+            JSDebugEngine debugEngine=debuggableWebBrowser.getDebugEngine();
+            WebBrowser browser=debuggableWebBrowser.getWebBrowser();
+            JSDebugProcess<?> debugProcess=debugEngine.createDebugProcess(session,browser,fileFinder,url,executionResult,true);
             debugProcess.setElementsInspectorEnabled(false);
             debugProcess.setLayouter(consoleView.createDebugLayouter(debugProcess));
             return debugProcess;

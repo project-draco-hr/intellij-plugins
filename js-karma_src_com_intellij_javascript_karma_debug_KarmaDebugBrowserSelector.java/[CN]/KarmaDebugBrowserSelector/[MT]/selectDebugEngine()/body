@@ -1,2 +1,20 @@
 {
+  List<WebBrowser> activeCapturedBrowsers=getActiveCapturedBrowsers();
+  List<DebuggableWebBrowser> debuggableActiveCapturedBrowsers=toDebuggableWebBrowsers(activeCapturedBrowsers);
+  if (debuggableActiveCapturedBrowsers.size() == 1) {
+    DebuggableWebBrowser debuggableWebBrowser=ContainerUtil.getFirstItem(debuggableActiveCapturedBrowsers);
+    if (debuggableWebBrowser != null) {
+      setWebBrowserToReuse(null);
+      return debuggableWebBrowser;
+    }
+  }
+  WebBrowser browserToReuse=getWebBrowserToReuse();
+  if (browserToReuse != null) {
+    DebuggableWebBrowser debuggableBrowser=DebuggableWebBrowser.create(browserToReuse);
+    if (debuggableBrowser != null) {
+      return debuggableBrowser;
+    }
+  }
+  showBrowserSelectionUi(debuggableActiveCapturedBrowsers);
+  return null;
 }
