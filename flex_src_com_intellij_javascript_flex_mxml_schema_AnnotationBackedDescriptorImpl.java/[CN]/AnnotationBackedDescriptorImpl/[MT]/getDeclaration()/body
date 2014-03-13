@@ -15,14 +15,14 @@
   }
   final JSNamedElement jsClass=(JSNamedElement)element;
   final ClassBackedElementDescriptor.AttributedItemsProcessor itemsProcessor=new ClassBackedElementDescriptor.AttributedItemsProcessor(){
-    public boolean process(    final JSNamedElement jsNamedElement,    final boolean isPackageLocalVisibility){
+    @Override public boolean process(    final JSNamedElement jsNamedElement,    final boolean isPackageLocalVisibility){
       if (myOriginatingElementType != OriginatingElementType.Metadata && name.equals(jsNamedElement.getName())) {
         result[0]=jsNamedElement;
         return false;
       }
       return true;
     }
-    public boolean process(    final JSAttributeNameValuePair pair,    final String annotationName,    final boolean included){
+    @Override public boolean process(    final JSAttributeNameValuePair pair,    final String annotationName,    final boolean included){
       if (myOriginatingElementType == OriginatingElementType.Metadata && name.equals(pair.getSimpleValue()) && included) {
         result[0]=pair;
         return false;
@@ -44,7 +44,7 @@
   }
   if (b && parentDescriptorDeclaration instanceof XmlFile) {
     final JSResolveUtil.JSInjectedFilesVisitor injectedFilesVisitor=new JSResolveUtil.JSInjectedFilesVisitor(){
-      protected void process(      final JSFile file){
+      @Override protected void process(      final JSFile file){
         ClassBackedElementDescriptor.processAttributes(file,itemsProcessor);
       }
     }
