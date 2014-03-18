@@ -1,11 +1,8 @@
 {
   myDebugProcess=debugProcess;
-  List<XBreakpointHandler> handlers=new ArrayList<XBreakpointHandler>(1);
-  handlers.add(new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(JavaScriptBreakpointType.class){
+  Class<? extends XLineBreakpointTypeBase> breakpointTypeClass=DartProjectComponent.JS_BREAKPOINT_TYPE != null ? DartProjectComponent.JS_BREAKPOINT_TYPE.getClass() : DartLineBreakpointType.class;
+  myBreakpointHandlers=new XBreakpointHandler[]{new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(breakpointTypeClass){
     public void registerBreakpoint(    @NotNull final XLineBreakpoint<XBreakpointProperties> breakpoint){
-      final XSourcePosition position=breakpoint.getSourcePosition();
-      if (position == null)       return;
-      if (position.getFile().getFileType() != DartFileType.INSTANCE)       return;
       if (myDebugProcess.isVmConnected()) {
         doRegisterBreakpoint(breakpoint);
       }
@@ -17,6 +14,5 @@
       doUnregisterBreakpoint(breakpoint);
     }
   }
-);
-  myBreakpointHandlers=handlers.toArray(new XBreakpointHandler<?>[handlers.size()]);
+};
 }

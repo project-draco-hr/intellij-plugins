@@ -1,0 +1,20 @@
+{
+  final XBreakpointManager breakpointManager=XDebuggerManager.getInstance(project).getBreakpointManager();
+  final Collection<XBreakpoint<?>> toRemove=new ArrayList<XBreakpoint<?>>();
+  for (  XBreakpoint<?> breakpoint : breakpointManager.getAllBreakpoints()) {
+    final XSourcePosition position=breakpoint.getSourcePosition();
+    if (position != null && position.getFile().getFileType() == DartFileType.INSTANCE && (breakpoint.getType() instanceof DartLineBreakpointType)) {
+      toRemove.add(breakpoint);
+    }
+  }
+  if (!toRemove.isEmpty()) {
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      public void run(){
+        for (        XBreakpoint<?> breakpoint : toRemove) {
+          breakpointManager.removeBreakpoint(breakpoint);
+        }
+      }
+    }
+);
+  }
+}
