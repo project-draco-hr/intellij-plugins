@@ -1,0 +1,20 @@
+{
+  if (!jsBreakpointTypeInitialized) {
+    jsBreakpointTypeInitialized=true;
+    try {
+      final Class<?> jsBreakpointTypeClass=Class.forName("com.intellij.javascript.debugger.breakpoints.JavaScriptBreakpointType");
+      if (jsBreakpointTypeClass != null) {
+        final XBreakpointType type=ContainerUtil.find(XBreakpointType.EXTENSION_POINT_NAME.getExtensions(),new Condition<XBreakpointType>(){
+          public boolean value(          final XBreakpointType type){
+            return jsBreakpointTypeClass.isInstance(type);
+          }
+        }
+);
+        jsBreakpointType=type instanceof XLineBreakpointTypeBase ? (XLineBreakpointTypeBase)type : null;
+      }
+    }
+ catch (    Throwable ignored) {
+    }
+  }
+  return jsBreakpointType;
+}
