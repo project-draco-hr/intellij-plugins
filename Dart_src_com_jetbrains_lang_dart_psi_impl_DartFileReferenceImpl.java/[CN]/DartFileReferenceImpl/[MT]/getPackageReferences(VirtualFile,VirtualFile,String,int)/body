@@ -1,0 +1,12 @@
+{
+  final VirtualFile parentFile=contextFile.getParent();
+  if (packagesFolder == null || parentFile == null)   return PsiReference.EMPTY_ARRAY;
+  String relPathFromContextFileToPackagesFolder=FileUtil.getRelativePath(parentFile.getPath(),packagesFolder.getPath(),'/');
+  if (relPathFromContextFileToPackagesFolder == null)   return PsiReference.EMPTY_ARRAY;
+  relPathFromContextFileToPackagesFolder+="/";
+  final FileReferenceSet referenceSet=new FileReferenceSet(relPathFromContextFileToPackagesFolder + relPathFromPackagesFolderToReferencedFile,this,0,null,false,true);
+  final FileReference[] references=referenceSet.getAllReferences();
+  final int nestedLevel=StringUtil.countChars(relPathFromContextFileToPackagesFolder,'/');
+  final int shift=startIndex - relPathFromContextFileToPackagesFolder.length();
+  return references.length < nestedLevel ? PsiReference.EMPTY_ARRAY : shiftReferences(Arrays.copyOfRange(references,nestedLevel,references.length),shift);
+}

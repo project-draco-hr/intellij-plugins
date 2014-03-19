@@ -1,8 +1,19 @@
 {
   final String path=StringUtil.unquoteString(getText());
-  if (path.startsWith(DartResolveUtil.PACKAGE_PREFIX)) {
-    int length=DartResolveUtil.PACKAGE_PREFIX.length();
-    return getPackageReferences(path.substring(length),length + 1);
+  if (path.startsWith(PACKAGE_PREFIX)) {
+    final VirtualFile file=DartResolveUtil.getRealVirtualFile(getContainingFile());
+    if (file == null)     return PsiReference.EMPTY_ARRAY;
+    final VirtualFile pubspecYamlFile=PubspecYamlUtil.getPubspecYamlFile(getProject(),file);
+    final String pubspecName=pubspecYamlFile == null ? null : PubspecYamlUtil.getPubspecName(pubspecYamlFile);
+    final String prefix=pubspecName == null ? null : PACKAGE_PREFIX + pubspecName + "/";
+    if (prefix != null && path.startsWith(prefix)) {
+      final VirtualFile libFolder=pubspecYamlFile.getParent().findChild("lib");
+      return getPackageReferences(file,libFolder,path.substring(prefix.length()),prefix.length() + 1);
+    }
+ else {
+      final VirtualFile packagesFolder=PubspecYamlUtil.getDartPackagesFolder(getProject(),file);
+      return getPackageReferences(file,packagesFolder,path.substring(PACKAGE_PREFIX.length()),PACKAGE_PREFIX.length() + 1);
+    }
   }
   final FileReferenceSet referenceSet=new FileReferenceSet(path,this,1,null,false,true);
   return ArrayUtil.mergeArrays(super.getReferences(),referenceSet.getAllReferences());
