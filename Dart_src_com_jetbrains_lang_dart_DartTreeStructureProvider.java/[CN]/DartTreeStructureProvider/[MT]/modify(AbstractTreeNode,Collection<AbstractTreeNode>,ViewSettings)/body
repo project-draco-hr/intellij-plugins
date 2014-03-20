@@ -1,0 +1,12 @@
+{
+  final VirtualFile file=parentNode instanceof PsiDirectoryNode ? ((PsiDirectoryNode)parentNode).getVirtualFile() : null;
+  final VirtualFile parentFolder=file != null && file.isDirectory() && "packages".equals(file.getName()) ? file.getParent() : null;
+  final VirtualFile pubspecYamlFile=parentFolder == null ? null : parentFolder.findChild(PubspecYamlUtil.PUBSPEC_YAML);
+  final String pubspecName=pubspecYamlFile == null ? null : PubspecYamlUtil.getPubspecName(pubspecYamlFile);
+  if (pubspecName != null && file.findChild(pubspecName) != null && !containsFolderNode(children,pubspecName)) {
+    final ArrayList<AbstractTreeNode> result=new ArrayList<AbstractTreeNode>(children);
+    result.add(new SymlinkToLibFolderNode(parentNode.getProject(),pubspecName));
+    return result;
+  }
+  return children;
+}

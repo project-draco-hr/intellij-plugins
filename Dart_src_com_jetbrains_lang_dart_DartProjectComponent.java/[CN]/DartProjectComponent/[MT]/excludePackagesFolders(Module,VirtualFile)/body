@@ -1,19 +1,25 @@
 {
   final VirtualFile root=pubspecYamlFile.getParent();
+  if (root == null)   return;
   root.refresh(false,true);
   final Collection<VirtualFile> foldersToExclude=new ArrayList<VirtualFile>();
   final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(module.getProject()).getFileIndex();
   final VirtualFile packagesFolder=VfsUtilCore.findRelativeFile("bin/packages",root);
-  if (packagesFolder != null && packagesFolder.isDirectory()) {
-    if (fileIndex.isInContent(packagesFolder)) {
-      foldersToExclude.add(packagesFolder);
-    }
+  if (packagesFolder != null && packagesFolder.isDirectory() && fileIndex.isInContent(packagesFolder)) {
+    foldersToExclude.add(packagesFolder);
   }
   appendPackagesFolders(foldersToExclude,root.findChild("benchmark"),fileIndex);
   appendPackagesFolders(foldersToExclude,root.findChild("example"),fileIndex);
   appendPackagesFolders(foldersToExclude,root.findChild("test"),fileIndex);
   appendPackagesFolders(foldersToExclude,root.findChild("tool"),fileIndex);
   appendPackagesFolders(foldersToExclude,root.findChild("web"),fileIndex);
+  final String pubspecName=PubspecYamlUtil.getPubspecName(pubspecYamlFile);
+  if (pubspecName != null) {
+    final VirtualFile copyOfLibFolder=VfsUtilCore.findRelativeFile("packages/" + pubspecName,root);
+    if (copyOfLibFolder != null && copyOfLibFolder.isDirectory() && fileIndex.isInContent(copyOfLibFolder)) {
+      foldersToExclude.add(copyOfLibFolder);
+    }
+  }
   if (!foldersToExclude.isEmpty()) {
     excludeFoldersInWriteAction(module,foldersToExclude);
   }
