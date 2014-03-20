@@ -1,5 +1,4 @@
 {
-  myTimeWhenAnalysisContextWasLastQueried=System.currentTimeMillis();
   AnalysisContext analysisContext=SoftReference.dereference(myAnalysisContextRef);
   if (analysisContext != null && Comparing.equal(sdkPath,mySdkPath) && Comparing.equal(packagesFolder,myDartPackagesFolder)) {
     applyChangeSet(analysisContext,annotatedFile);
@@ -7,8 +6,8 @@
   }
  else {
     final DartUriResolver dartUriResolver=new DartUriResolver(new DirectoryBasedDartSdk(new File(sdkPath)));
-    final UriResolver fileResolver=new DartFileResolver(myProject);
-    final SourceFactory sourceFactory=packagesFolder == null ? new SourceFactory(dartUriResolver,fileResolver) : new SourceFactory(dartUriResolver,fileResolver,new PackageUriResolver(new File(packagesFolder.getPath())));
+    final UriResolver fileResolver=new DartFileUriResolver(myProject);
+    final SourceFactory sourceFactory=packagesFolder == null ? new SourceFactory(dartUriResolver,fileResolver) : new SourceFactory(dartUriResolver,fileResolver,new DartPackageUriResolver(myProject,packagesFolder));
     analysisContext=AnalysisEngine.getInstance().createAnalysisContext();
     analysisContext.setSourceFactory(sourceFactory);
     mySdkPath=sdkPath;
