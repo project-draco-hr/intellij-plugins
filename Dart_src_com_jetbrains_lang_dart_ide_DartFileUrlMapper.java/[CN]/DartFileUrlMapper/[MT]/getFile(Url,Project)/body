@@ -18,23 +18,17 @@
     }
     return libraryFilePath == null ? file : file.getParent().findFileByRelativePath(libraryFilePath);
   }
- else   if (DartResolveUtil.PACKAGE_SCHEME.equals(url.getScheme())) {
-    return DumbService.getInstance(project).tryRunReadActionInSmartMode(new Computable<VirtualFile>(){
+ else   if (PACKAGE_SCHEME.equals(url.getScheme())) {
+    final String packageUrl=PACKAGE_PREFIX + url.getPath();
+    if (ApplicationManager.getApplication().isDispatchThread()) {
+      return DumbService.getInstance(project).isDumb() ? null : findFileInPackagesFolder(project,packageUrl);
+    }
+    return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<VirtualFile>(){
       @Override public VirtualFile compute(){
-        Collection<VirtualFile> files=FilenameIndex.getVirtualFilesByName(project,PUBSPEC_YAML,ProjectScope.getContentScope(project));
-        for (        VirtualFile file : files) {
-          final VirtualFile packagesDir=file.getParent().findChild("packages");
-          if (packagesDir != null && packagesDir.isDirectory()) {
-            VirtualFile result=packagesDir.findFileByRelativePath(url.getPath());
-            if (result != null) {
-              return result;
-            }
-          }
-        }
-        return null;
+        return findFileInPackagesFolder(project,packageUrl);
       }
     }
-,"Smart remote file mapping is not possible during index update");
+);
   }
   return null;
 }
