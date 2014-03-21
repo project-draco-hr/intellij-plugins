@@ -1,0 +1,25 @@
+{
+  if (DartSdkUtil.isDartSdkHome(data.dartSdkPath)) {
+    final DartSdk sdk=DartSdk.getGlobalDartSdk();
+    final String dartSdkLibName;
+    if (sdk == null) {
+      dartSdkLibName=DartSdkGlobalLibUtil.createDartSdkGlobalLib(module.getProject(),data.dartSdkPath);
+    }
+ else {
+      dartSdkLibName=sdk.getGlobalLibName();
+      if (!data.dartSdkPath.equals(sdk.getHomePath())) {
+        DartSdkGlobalLibUtil.updateDartSdkGlobalLib(module.getProject(),dartSdkLibName,data.dartSdkPath);
+      }
+    }
+    DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkLibName);
+  }
+  DartiumUtil.applyDartiumSettings(FileUtilRt.toSystemIndependentName(data.dartiumPath),data.dartiumSettings);
+  try {
+    baseDir.createChildDirectory(this,"web");
+    baseDir.createChildDirectory(this,"lib");
+    final VirtualFile pubspecYamlFile=baseDir.createChildData(this,PUBSPEC_YAML);
+    pubspecYamlFile.setBinaryContent(("name: " + module.getName() + "\n"+ "dependencies:\n"+ "  browser: any").getBytes());
+  }
+ catch (  IOException ignore) {
+  }
+}
