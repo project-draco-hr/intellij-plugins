@@ -1,15 +1,16 @@
 {
-  ApplicationManager.getApplication().invokeLater(new Runnable(){
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
     public void run(){
-      ApplicationManager.getApplication().runWriteAction(new Runnable(){
-        public void run(){
-          if (!module.isDisposed()) {
-            doGenerateProject(module,baseDir,data);
-          }
-        }
+      setupSdkAndDartium(module,data);
+      try {
+        baseDir.createChildDirectory(DartWebApplicationGenerator.this,"web");
+        baseDir.createChildDirectory(DartWebApplicationGenerator.this,"lib");
+        final VirtualFile pubspecYamlFile=baseDir.createChildData(DartWebApplicationGenerator.this,PUBSPEC_YAML);
+        pubspecYamlFile.setBinaryContent(("name: " + module.getName() + "\n"+ "dependencies:\n"+ "  browser: any").getBytes());
       }
-);
+ catch (      IOException ignore) {
+      }
     }
   }
-,ModalityState.NON_MODAL);
+);
 }
