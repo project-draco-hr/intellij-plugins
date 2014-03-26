@@ -1,0 +1,22 @@
+{
+  final THashSet<String> newExcludedPackagesUrls=new THashSet<String>();
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(module.getProject()).getFileIndex();
+  final VirtualFile root=pubspecYamlFile.getParent();
+  final VirtualFile binFolder=root.findChild("bin");
+  if (binFolder != null && binFolder.isDirectory() && fileIndex.isInContent(binFolder)) {
+    newExcludedPackagesUrls.add(binFolder.getUrl() + "/packages");
+  }
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("benchmark"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("example"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("test"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("tool"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("web"),fileIndex);
+  final VirtualFile libFolder=root.findChild("lib");
+  if (libFolder != null && libFolder.isDirectory()) {
+    final String pubspecName=PubspecYamlUtil.getPubspecName(pubspecYamlFile);
+    if (pubspecName != null) {
+      newExcludedPackagesUrls.add(root.getUrl() + "/packages/" + pubspecName);
+    }
+  }
+  return newExcludedPackagesUrls;
+}

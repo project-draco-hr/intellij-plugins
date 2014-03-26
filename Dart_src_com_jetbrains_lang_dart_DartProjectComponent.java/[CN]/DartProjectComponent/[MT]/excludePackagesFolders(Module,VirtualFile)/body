@@ -1,26 +1,20 @@
 {
   final VirtualFile root=pubspecYamlFile.getParent();
-  if (root == null)   return;
-  root.refresh(false,true);
-  final Collection<VirtualFile> foldersToExclude=new ArrayList<VirtualFile>();
-  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(module.getProject()).getFileIndex();
-  final VirtualFile packagesFolder=VfsUtilCore.findRelativeFile("bin/packages",root);
-  if (packagesFolder != null && packagesFolder.isDirectory() && fileIndex.isInContent(packagesFolder)) {
-    foldersToExclude.add(packagesFolder);
-  }
-  appendPackagesFolders(foldersToExclude,root.findChild("benchmark"),fileIndex);
-  appendPackagesFolders(foldersToExclude,root.findChild("example"),fileIndex);
-  appendPackagesFolders(foldersToExclude,root.findChild("test"),fileIndex);
-  appendPackagesFolders(foldersToExclude,root.findChild("tool"),fileIndex);
-  appendPackagesFolders(foldersToExclude,root.findChild("web"),fileIndex);
-  final String pubspecName=PubspecYamlUtil.getPubspecName(pubspecYamlFile);
-  if (pubspecName != null) {
-    final VirtualFile copyOfLibFolder=VfsUtilCore.findRelativeFile("packages/" + pubspecName,root);
-    if (copyOfLibFolder != null && copyOfLibFolder.isDirectory() && fileIndex.isInContent(copyOfLibFolder)) {
-      foldersToExclude.add(copyOfLibFolder);
+  final VirtualFile contentRoot=root == null ? null : ProjectRootManager.getInstance(module.getProject()).getFileIndex().getContentRootForFile(root);
+  if (contentRoot == null)   return;
+  final Collection<String> oldExcludedPackagesUrls=ContainerUtil.filter(ModuleRootManager.getInstance(module).getExcludeRootUrls(),new Condition<String>(){
+    final String rootUrlPrefix=root.getUrl() + '/';
+    public boolean value(    final String url){
+      if (!url.startsWith(rootUrlPrefix))       return false;
+      if (url.endsWith("/packages"))       return true;
+      final int lastSlashIndex=url.lastIndexOf('/');
+      if (lastSlashIndex > 0 && url.substring(0,lastSlashIndex).endsWith("/packages"))       return true;
+      return false;
     }
   }
-  if (!foldersToExclude.isEmpty()) {
-    excludeFoldersInWriteAction(module,foldersToExclude);
+);
+  final THashSet<String> newExcludedPackagesUrls=collectFoldersToExclude(module,pubspecYamlFile);
+  if (oldExcludedPackagesUrls.size() != newExcludedPackagesUrls.size() || !newExcludedPackagesUrls.containsAll(oldExcludedPackagesUrls)) {
+    updateExcludedFolders(module,contentRoot,oldExcludedPackagesUrls,newExcludedPackagesUrls);
   }
 }

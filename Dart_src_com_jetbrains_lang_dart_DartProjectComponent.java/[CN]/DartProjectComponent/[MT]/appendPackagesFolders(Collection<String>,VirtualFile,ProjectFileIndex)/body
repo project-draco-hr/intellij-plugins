@@ -1,0 +1,20 @@
+{
+  if (folder == null)   return;
+  VfsUtilCore.visitChildrenRecursively(folder,new VirtualFileVisitor(){
+    @NotNull public Result visitFileEx(    @NotNull final VirtualFile file){
+      if (!fileIndex.isInContent(file)) {
+        return SKIP_CHILDREN;
+      }
+      if (file.isDirectory()) {
+        if ("packages".equals(file.getName())) {
+          return SKIP_CHILDREN;
+        }
+ else {
+          excludedPackagesUrls.add(file.getUrl() + "/packages");
+        }
+      }
+      return CONTINUE;
+    }
+  }
+);
+}
