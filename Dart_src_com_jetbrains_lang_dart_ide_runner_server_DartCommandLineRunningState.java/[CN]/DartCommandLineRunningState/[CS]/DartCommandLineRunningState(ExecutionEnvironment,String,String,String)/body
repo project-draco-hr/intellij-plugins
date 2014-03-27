@@ -1,0 +1,13 @@
+{
+  super(env);
+  myFilePath=filePath;
+  myVmOptions=vmOptions;
+  myArguments=arguments;
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+  final VirtualFile packagesFolder=file == null ? null : PubspecYamlUtil.getDartPackagesFolder(env.getProject(),file);
+  final TextConsoleBuilder builder=getConsoleBuilder();
+  if (builder instanceof TextConsoleBuilderImpl) {
+    ((TextConsoleBuilderImpl)builder).setUsePredefinedMessageFilter(false);
+  }
+  builder.addFilter(new DartConsoleFilter(env.getProject(),packagesFolder));
+}
