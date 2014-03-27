@@ -1,0 +1,18 @@
+{
+  int index=text.indexOf("line ");
+  if (index == -1)   return null;
+  index+="line ".length();
+  final Pair<Integer,String> lineAndRemainingText=parseNextIntSkippingColon(text.substring(index));
+  if (lineAndRemainingText == null)   return null;
+  Pair<Integer,String> colonAndRemainingText=null;
+  final String trimmedTail=lineAndRemainingText.second.trim();
+  if (trimmedTail.startsWith("pos ")) {
+    colonAndRemainingText=parseNextIntSkippingColon(trimmedTail.substring("pos ".length()));
+  }
+  if (colonAndRemainingText == null) {
+    return Pair.create(lineAndRemainingText.first,-1);
+  }
+ else {
+    return Pair.create(lineAndRemainingText.first,colonAndRemainingText.first);
+  }
+}

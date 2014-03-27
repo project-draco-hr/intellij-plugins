@@ -8,7 +8,12 @@ case FILE:
   break;
 case DART:
 if (mySdk != null) {
-  file=LocalFileSystem.getInstance().findFileByPath(mySdk.getHomePath() + "/lib/" + info.path);
+  if (info.path.contains("/")) {
+    file=LocalFileSystem.getInstance().findFileByPath(mySdk.getHomePath() + "/lib/" + info.path);
+  }
+ else {
+    file=DartLibraryIndex.getStandardLibraryFromSdk(myProject,info.path);
+  }
 }
  else {
   file=null;
@@ -16,7 +21,7 @@ if (mySdk != null) {
 break;
 case PACKAGE:
 if (myPackagesFolder != null) {
-file=myPackagesFolder.findFileByRelativePath(info.path);
+file=DartResolveUtil.getPackagePrefixImportedFile(myProject,myPackagesFolder,"package:" + info.path);
 }
  else {
 file=findFileInPackagesFolder(myProject,info.path);
