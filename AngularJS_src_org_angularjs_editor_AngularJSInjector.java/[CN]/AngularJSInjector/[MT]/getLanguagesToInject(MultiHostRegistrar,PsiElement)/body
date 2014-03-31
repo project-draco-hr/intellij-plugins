@@ -4,8 +4,9 @@
   if (!AngularIndexUtil.hasAngularJS(project))   return;
   final PsiElement parent=context.getParent();
   if (context instanceof XmlAttributeValueImpl && parent instanceof XmlAttribute) {
-    if (AngularAttributesRegistry.isAngularExpressionAttribute((XmlAttribute)parent)) {
-      registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(1,context.getTextLength() - 1)).doneInjecting();
+    final int length=context.getTextLength();
+    if (AngularAttributesRegistry.isAngularExpressionAttribute((XmlAttribute)parent) && length > 1) {
+      registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(1,length - 1)).doneInjecting();
       return;
     }
   }
