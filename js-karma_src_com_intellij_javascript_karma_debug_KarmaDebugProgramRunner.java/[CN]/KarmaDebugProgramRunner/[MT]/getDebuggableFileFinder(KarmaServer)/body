@@ -6,11 +6,26 @@
     VirtualFile vBasePath=VfsUtil.findFileByIoFile(basePath,false);
     if (vBasePath != null && vBasePath.isValid()) {
       String baseUrl=karmaServer.formatUrlWithoutUrlRoot("/base");
-      mappings.forcePut(baseUrl,vBasePath);
+      mappings.put(baseUrl,vBasePath);
     }
   }
-  for (  VirtualFile root : ManagingFS.getInstance().getLocalRoots()) {
-    mappings.forcePut(karmaServer.formatUrlWithoutUrlRoot("/absolute"),root);
+  if (SystemInfo.isWindows) {
+    VirtualFile[] roots=ManagingFS.getInstance().getLocalRoots();
+    for (    VirtualFile root : roots) {
+      String key=karmaServer.formatUrlWithoutUrlRoot("/absolute" + root.getName());
+      if (mappings.containsKey(key)) {
+        LOG.warn("Duplicate mapping for Karma debug: " + key);
+      }
+ else {
+        mappings.put(key,root);
+      }
+    }
+  }
+ else {
+    VirtualFile[] roots=ManagingFS.getInstance().getLocalRoots();
+    if (roots.length == 1) {
+      mappings.put(karmaServer.formatUrlWithoutUrlRoot("/absolute"),roots[0]);
+    }
   }
   return new RemoteDebuggingFileFinder(mappings,false);
 }
