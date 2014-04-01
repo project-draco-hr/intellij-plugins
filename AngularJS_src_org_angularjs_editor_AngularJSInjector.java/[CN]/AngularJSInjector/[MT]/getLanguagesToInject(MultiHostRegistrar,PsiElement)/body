@@ -1,5 +1,4 @@
 {
-  if (context.getContainingFile().getViewProvider() instanceof MultiplePsiFilesPerDocumentFileViewProvider)   return;
   final Project project=context.getProject();
   if (!AngularIndexUtil.hasAngularJS(project))   return;
   final PsiElement parent=context.getParent();
@@ -11,13 +10,15 @@
     }
   }
   if (context instanceof XmlTextImpl || context instanceof XmlAttributeValueImpl) {
+    final String start=AngularJSBracesUtil.getInjectionStart(project);
+    final String end=AngularJSBracesUtil.getInjectionEnd(project);
+    if (AngularJSBracesUtil.hasConflicts(start,end,context.getContainingFile()))     return;
     final String text=context.getText();
     int startIndex;
     int endIndex=-1;
     do {
-      final String start=AngularJSBracesUtil.getInjectionStart(project);
       startIndex=text.indexOf(start,endIndex);
-      endIndex=startIndex >= 0 ? text.indexOf(AngularJSBracesUtil.getInjectionEnd(project),startIndex) : -1;
+      endIndex=startIndex >= 0 ? text.indexOf(end,startIndex) : -1;
       endIndex=endIndex > 0 ? endIndex : text.length();
       final PsiElement injectionCandidate=startIndex >= 0 ? context.findElementAt(startIndex) : null;
       if (injectionCandidate != null && injectionCandidate.getNode().getElementType() != XmlTokenType.XML_COMMENT_CHARACTERS) {
