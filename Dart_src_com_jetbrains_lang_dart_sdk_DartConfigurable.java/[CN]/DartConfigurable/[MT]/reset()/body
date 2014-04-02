@@ -14,17 +14,25 @@
       myDartiumSettingsCurrent=(ChromeSettings)browserSpecificSettings.clone();
     }
   }
+  myModuleToCustomPackageRootCurrent.clear();
+  for (  final Module module : ModuleManager.getInstance(myProject).getModules()) {
+    myModuleToCustomPackageRootCurrent.put(module,PubspecYamlUtil.getCustomPackagesPathForModule(module));
+  }
   myEnableDartSupportCheckBox.setSelected(myDartSupportEnabledInitial);
   mySdkPathTextWithBrowse.setText(mySdkInitial == null ? "" : FileUtilRt.toSystemDependentName(mySdkInitial.getHomePath()));
   myDartiumPathTextWithBrowse.setText(myDartiumInitial == null ? "" : FileUtilRt.toSystemDependentName(StringUtil.notNullize(myDartiumInitial.getPath())));
   if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
-    final CheckedTreeNode rootNode=(CheckedTreeNode)myModulesCheckboxTree.getModel().getRoot();
+    final CheckedTreeNode rootNode=(CheckedTreeNode)myModulesCheckboxTreeTable.getTree().getModel().getRoot();
     rootNode.setChecked(false);
     final Enumeration children=rootNode.children();
     while (children.hasMoreElements()) {
       final CheckedTreeNode node=(CheckedTreeNode)children.nextElement();
       node.setChecked(myModulesWithDartSdkLibAttachedInitial.contains((Module)node.getUserObject()));
     }
+  }
+ else {
+    final Map.Entry<Module,String> entry=myModuleToCustomPackageRootCurrent.entrySet().iterator().next();
+    myCustomPackageRootTextWithBrowse.setText(FileUtilRt.toSystemDependentName(StringUtil.notNullize(entry.getValue())));
   }
   updateControlsEnabledState();
   updateErrorLabel();

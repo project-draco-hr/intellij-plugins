@@ -15,8 +15,17 @@
               DartSdkGlobalLibUtil.updateDartSdkGlobalLib(myProject,dartSdkGlobalLibName,sdkHomePath);
             }
           }
-          final Module[] modules=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModulesCheckboxTree.getCheckedNodes(Module.class,null) : ModuleManager.getInstance(myProject).getModules();
+          final Module[] modules=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModulesCheckboxTreeTable.getCheckedNodes(Module.class) : ModuleManager.getInstance(myProject).getModules();
           DartSdkGlobalLibUtil.updateDependencyOnDartSdkGlobalLib(myProject,modules,dartSdkGlobalLibName);
+          for (          Module module : ModuleManager.getInstance(myProject).getModules()) {
+            if (ArrayUtil.contains(module,modules)) {
+              final String customPackagesPath=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModuleToCustomPackageRootCurrent.get(module) : myCustomPackageRootCheckBox.isSelected() ? myModuleToCustomPackageRootCurrent.get(module) : null;
+              PubspecYamlUtil.setCustomPackagesPathForModule(module,customPackagesPath);
+            }
+ else {
+              PubspecYamlUtil.setCustomPackagesPathForModule(module,null);
+            }
+          }
         }
         final String dartiumPath=FileUtilRt.toSystemIndependentName(myDartiumPathTextWithBrowse.getText().trim());
         DartiumUtil.applyDartiumSettings(dartiumPath,myDartiumSettingsCurrent);
@@ -24,6 +33,9 @@
  else {
         if (myModulesWithDartSdkLibAttachedInitial.size() > 0 && mySdkInitial != null) {
           DartSdkGlobalLibUtil.detachDartSdkGlobalLib(myModulesWithDartSdkLibAttachedInitial,mySdkInitial.getGlobalLibName());
+        }
+        for (        final Module module : ModuleManager.getInstance(myProject).getModules()) {
+          PubspecYamlUtil.setCustomPackagesPathForModule(module,null);
         }
       }
     }

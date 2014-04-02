@@ -1,4 +1,13 @@
 {
+  final Module module=ModuleUtilCore.findModuleForFile(contextFile,project);
+  final String customPackagesPath=module == null ? null : getCustomPackagesPathForModule(module);
+  if (!StringUtil.isEmptyOrSpaces(customPackagesPath)) {
+    final VirtualFile customPackagesFolder=LocalFileSystem.getInstance().findFileByPath(customPackagesPath);
+    if (customPackagesFolder != null && customPackagesFolder.isDirectory()) {
+      return Pair.create(null,customPackagesFolder);
+    }
+    return Pair.create(null,null);
+  }
   final VirtualFile pubspecYamlFile=getPubspecYamlFile(project,contextFile);
   final VirtualFile parentFolder=pubspecYamlFile == null ? null : pubspecYamlFile.getParent();
   final VirtualFile packagesFolder=parentFolder == null ? null : parentFolder.findChild("packages");

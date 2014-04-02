@@ -6,8 +6,32 @@
   if (message != null)   return message;
   message=DartiumUtil.getErrorMessageIfWrongDartiumPath(myDartiumPathTextWithBrowse.getText().trim());
   if (message != null)   return message;
-  if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() && myModulesCheckboxTree.getCheckedNodes(Module.class,null).length == 0) {
-    return DartBundle.message("warning.no.modules.selected.dart.support.will.be.disabled");
+  if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
+    final Module[] modules=myModulesCheckboxTreeTable.getCheckedNodes(Module.class);
+    if (modules.length == 0) {
+      return DartBundle.message("warning.no.modules.selected.dart.support.will.be.disabled");
+    }
+    for (    final Module module : modules) {
+      final String customPackagesPath=myModuleToCustomPackageRootCurrent.get(module);
+      if (!StringUtil.isEmpty(customPackagesPath)) {
+        final VirtualFile folder=LocalFileSystem.getInstance().findFileByPath(customPackagesPath);
+        if (folder == null || !folder.isDirectory()) {
+          return DartBundle.message("warning.custom.package.root.not.found",FileUtil.toSystemDependentName(customPackagesPath));
+        }
+      }
+    }
+  }
+ else {
+    if (myCustomPackageRootCheckBox.isSelected()) {
+      final String customPackagesPath=myCustomPackageRootTextWithBrowse.getText().trim();
+      if (customPackagesPath.isEmpty()) {
+        return DartBundle.message("warning.custom.package.root.not.specified");
+      }
+      final VirtualFile folder=LocalFileSystem.getInstance().findFileByPath(customPackagesPath);
+      if (folder == null || !folder.isDirectory()) {
+        return DartBundle.message("warning.custom.package.root.not.found",FileUtil.toSystemDependentName(customPackagesPath));
+      }
+    }
   }
   return null;
 }

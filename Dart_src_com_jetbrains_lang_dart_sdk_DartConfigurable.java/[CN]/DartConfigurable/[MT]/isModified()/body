@@ -10,14 +10,19 @@
   if (!dartiumPath.isEmpty() && new File(dartiumPath).exists() && !dartiumPath.equals(dartiumPathInitial))   return true;
   if (myDartiumInitial != null && !myDartiumSettingsCurrent.equals(myDartiumInitial.getSpecificSettings()))   return true;
   if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
-    final Module[] selectedModules=myModulesCheckboxTree.getCheckedNodes(Module.class,null);
+    final Module[] selectedModules=myModulesCheckboxTreeTable.getCheckedNodes(Module.class);
     if (selectedModules.length != myModulesWithDartSdkLibAttachedInitial.size())     return true;
     for (    final Module module : selectedModules) {
       if (!myModulesWithDartSdkLibAttachedInitial.contains(module))       return true;
+      final String currentCustomPackagesPath=myModuleToCustomPackageRootCurrent.get(module);
+      if (!Comparing.equal(PubspecYamlUtil.getCustomPackagesPathForModule(module),currentCustomPackagesPath))       return true;
     }
   }
  else {
-    return myDartSupportEnabledInitial != myEnableDartSupportCheckBox.isSelected();
+    if (myDartSupportEnabledInitial != myEnableDartSupportCheckBox.isSelected())     return true;
+    final Map.Entry<Module,String> entry=myModuleToCustomPackageRootCurrent.entrySet().iterator().next();
+    final String customPackagesPath=myCustomPackageRootCheckBox.isSelected() ? entry.getValue() : null;
+    if (!Comparing.equal(PubspecYamlUtil.getCustomPackagesPathForModule(entry.getKey()),customPackagesPath))     return true;
   }
   return false;
 }

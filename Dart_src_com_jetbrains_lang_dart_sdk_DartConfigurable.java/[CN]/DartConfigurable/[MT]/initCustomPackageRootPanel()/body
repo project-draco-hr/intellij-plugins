@@ -1,0 +1,28 @@
+{
+  if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
+    myCustomPackageRootPanel.setVisible(false);
+    return;
+  }
+  final Insets margin=myCustomPackageRootCheckBox.getMargin();
+  myCustomPackageRootCheckBox.setMargin(new Insets(margin.top,-2,margin.bottom,margin.right));
+  myCustomPackageRootCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      myCustomPackageRootTextWithBrowse.setEnabled(myCustomPackageRootCheckBox.isSelected());
+      updateErrorLabel();
+      if (myCustomPackageRootCheckBox.isSelected() && myCustomPackageRootCheckBox.isEnabled()) {
+        IdeFocusManager.getInstance(myProject).requestFocus(myCustomPackageRootTextWithBrowse.getTextField(),true);
+      }
+    }
+  }
+);
+  myCustomPackageRootTextWithBrowse.addBrowseFolderListener(DartBundle.message("select.custom.package.root"),null,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myCustomPackageRootTextWithBrowse.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    final DocumentEvent e){
+      final Module module=myModuleToCustomPackageRootCurrent.entrySet().iterator().next().getKey();
+      final String customPackagesPath=FileUtil.toSystemIndependentName(myCustomPackageRootTextWithBrowse.getText().trim());
+      myModuleToCustomPackageRootCurrent.put(module,customPackagesPath);
+      updateErrorLabel();
+    }
+  }
+);
+}

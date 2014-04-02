@@ -1,5 +1,5 @@
 {
-  final CheckboxTree.CheckboxTreeCellRenderer renderer=new CheckboxTree.CheckboxTreeCellRenderer(){
+  final CheckboxTree.CheckboxTreeCellRenderer checkboxTreeCellRenderer=new CheckboxTree.CheckboxTreeCellRenderer(){
     @Override public void customizeRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
       if (!(value instanceof CheckedTreeNode))       return;
       final boolean dartSupportEnabled=myEnableDartSupportCheckBox.isSelected();
@@ -22,11 +22,54 @@
     }
   }
 ;
-  myModulesCheckboxTree=new CheckboxTree(renderer,null,new CheckboxTreeBase.CheckPolicy(true,true,true,true)){
-    @Override protected void checkNode(    final CheckedTreeNode node,    final boolean checked){
-      super.checkNode(node,checked);
-      updateErrorLabel();
+  final TableCellRenderer customPackagesCellRenderer=new TableCellRenderer(){
+    private final JBLabel myLabel=new JBLabel();
+    public Component getTableCellRendererComponent(    final JTable table,    final Object value,    final boolean isSelected,    final boolean hasFocus,    final int row,    final int column){
+      myLabel.setText(value instanceof String ? (String)value : "");
+      return myLabel;
     }
   }
 ;
+  final String columnName=DartBundle.message("custom.package.root");
+  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGES_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
+    @Nullable public String valueOf(    final CheckedTreeNode node){
+      final Object userObject=node.getUserObject();
+      if (node.isChecked() && userObject instanceof Module) {
+        return FileUtil.toSystemDependentName(StringUtil.notNullize(myModuleToCustomPackageRootCurrent.get(userObject)));
+      }
+      return null;
+    }
+    public boolean isCellEditable(    final CheckedTreeNode node){
+      return node.isChecked() && node.getUserObject() instanceof Module;
+    }
+    @Nullable public TableCellRenderer getRenderer(    final CheckedTreeNode node){
+      return customPackagesCellRenderer;
+    }
+    @Nullable public TableCellEditor getEditor(    final CheckedTreeNode node){
+      return new LocalPathCellEditor();
+    }
+    public void setValue(    final CheckedTreeNode node,    final String value){
+      final Object userObject=node.getUserObject();
+      if (userObject instanceof Module) {
+        myModuleToCustomPackageRootCurrent.put((Module)userObject,FileUtil.toSystemIndependentName(value.trim()));
+        updateErrorLabel();
+      }
+    }
+    public int getWidth(    final JTable table){
+      return new JLabel(getName()).getMinimumSize().width * 3 / 2;
+    }
+  }
+;
+  myModulesCheckboxTreeTable=new CheckboxTreeTable(null,checkboxTreeCellRenderer,new ColumnInfo[]{new TreeColumnInfo(""),CUSTOM_PACKAGES_COLUMN}){
+    protected boolean toggleNode(    final CheckedTreeNode node){
+      final boolean result=super.toggleNode(node);
+      updateErrorLabel();
+      return result;
+    }
+  }
+;
+  myModulesCheckboxTreeTable.setRowHeight(myModulesCheckboxTreeTable.getRowHeight() + 2);
+  final DefaultActionGroup group=new DefaultActionGroup();
+  group.add(new RemoveCustomPackagesRootAction(myModulesCheckboxTreeTable));
+  PopupHandler.installPopupHandler(myModulesCheckboxTreeTable,group,ActionPlaces.UNKNOWN,ActionManager.getInstance());
 }
