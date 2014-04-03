@@ -22,7 +22,7 @@
     }
   }
 ;
-  final TableCellRenderer customPackagesCellRenderer=new TableCellRenderer(){
+  final TableCellRenderer customPackageRootsCellRenderer=new TableCellRenderer(){
     private final JBLabel myLabel=new JBLabel();
     public Component getTableCellRendererComponent(    final JTable table,    final Object value,    final boolean isSelected,    final boolean hasFocus,    final int row,    final int column){
       myLabel.setText(value instanceof String ? (String)value : "");
@@ -30,12 +30,23 @@
     }
   }
 ;
-  final String columnName=DartBundle.message("custom.package.root");
-  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGES_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
+  final LocalPathCellEditor customPackageRootsEditor=new LocalPathCellEditor(myProject){
+    protected ActionListener createActionListener(    final JTable table){
+      return new ActionListener(){
+        public void actionPerformed(        ActionEvent e){
+          selectCustomPackageRoots(myComponent.getChildComponent());
+        }
+      }
+;
+    }
+  }
+;
+  final String columnName=DartBundle.message("custom.package.roots");
+  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGE_ROOTS_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
     @Nullable public String valueOf(    final CheckedTreeNode node){
       final Object userObject=node.getUserObject();
       if (node.isChecked() && userObject instanceof Module) {
-        return FileUtil.toSystemDependentName(StringUtil.notNullize(myModuleToCustomPackageRootCurrent.get(userObject)));
+        return FileUtil.toSystemDependentName(StringUtil.notNullize(myModuleToCustomPackageRootsCurrent.get(userObject)));
       }
       return null;
     }
@@ -43,15 +54,15 @@
       return node.isChecked() && node.getUserObject() instanceof Module;
     }
     @Nullable public TableCellRenderer getRenderer(    final CheckedTreeNode node){
-      return customPackagesCellRenderer;
+      return customPackageRootsCellRenderer;
     }
     @Nullable public TableCellEditor getEditor(    final CheckedTreeNode node){
-      return new LocalPathCellEditor();
+      return customPackageRootsEditor;
     }
     public void setValue(    final CheckedTreeNode node,    final String value){
       final Object userObject=node.getUserObject();
       if (userObject instanceof Module) {
-        myModuleToCustomPackageRootCurrent.put((Module)userObject,FileUtil.toSystemIndependentName(value.trim()));
+        myModuleToCustomPackageRootsCurrent.put((Module)userObject,FileUtil.toSystemIndependentName(value.trim()));
         updateErrorLabel();
       }
     }
@@ -60,7 +71,7 @@
     }
   }
 ;
-  myModulesCheckboxTreeTable=new CheckboxTreeTable(null,checkboxTreeCellRenderer,new ColumnInfo[]{new TreeColumnInfo(""),CUSTOM_PACKAGES_COLUMN}){
+  myModulesCheckboxTreeTable=new CheckboxTreeTable(null,checkboxTreeCellRenderer,new ColumnInfo[]{new TreeColumnInfo(""),CUSTOM_PACKAGE_ROOTS_COLUMN}){
     protected boolean toggleNode(    final CheckedTreeNode node){
       final boolean result=super.toggleNode(node);
       updateErrorLabel();
@@ -70,6 +81,6 @@
 ;
   myModulesCheckboxTreeTable.setRowHeight(myModulesCheckboxTreeTable.getRowHeight() + 2);
   final DefaultActionGroup group=new DefaultActionGroup();
-  group.add(new RemoveCustomPackagesRootAction(myModulesCheckboxTreeTable));
+  group.add(new RemoveCustomPackageRootsAction(myModulesCheckboxTreeTable));
   PopupHandler.installPopupHandler(myModulesCheckboxTreeTable,group,ActionPlaces.UNKNOWN,ActionManager.getInstance());
 }

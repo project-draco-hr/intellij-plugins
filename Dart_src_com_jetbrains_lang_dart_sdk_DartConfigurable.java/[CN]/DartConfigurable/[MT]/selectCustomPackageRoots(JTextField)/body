@@ -1,0 +1,21 @@
+{
+  final String currentCustomPackageRoots=textField.getText().trim();
+  final int separatorIndex=currentCustomPackageRoots.indexOf(PubspecYamlUtil.DART_CUSTOM_PACKAGE_ROOTS_SEPARATOR);
+  final String path=separatorIndex < 0 ? currentCustomPackageRoots : currentCustomPackageRoots.substring(0,separatorIndex).trim();
+  final VirtualFile initialFile=StringUtil.isNotEmpty(path) ? LocalFileSystem.getInstance().findFileByPath(path) : null;
+  final FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createMultipleFoldersDescriptor();
+  descriptor.setTitle(DartBundle.message("select.custom.package.roots"));
+  FileChooser.chooseFiles(descriptor,myProject,initialFile,new Consumer<List<VirtualFile>>(){
+    public void consume(    final List<VirtualFile> files){
+      final StringBuilder buffer=new StringBuilder();
+      for (      VirtualFile file : files) {
+        if (buffer.length() > 0) {
+          buffer.append(PubspecYamlUtil.DART_CUSTOM_PACKAGE_ROOTS_SEPARATOR);
+        }
+        buffer.append(file.getPath());
+      }
+      textField.setText(FileUtil.toSystemDependentName(buffer.toString()));
+    }
+  }
+);
+}

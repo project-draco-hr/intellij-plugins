@@ -1,0 +1,34 @@
+{
+  if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
+    myCustomPackageRootsPanel.setVisible(false);
+    return;
+  }
+  final Insets margin=myCustomPackageRootsCheckBox.getMargin();
+  myCustomPackageRootsCheckBox.setMargin(new Insets(margin.top,-2,margin.bottom,margin.right));
+  myCustomPackageRootsCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      myCustomPackageRootsTextWithBrowse.setEnabled(myCustomPackageRootsCheckBox.isSelected());
+      updateErrorLabel();
+      if (myCustomPackageRootsCheckBox.isSelected() && myCustomPackageRootsCheckBox.isEnabled()) {
+        IdeFocusManager.getInstance(myProject).requestFocus(myCustomPackageRootsTextWithBrowse.getTextField(),true);
+      }
+    }
+  }
+);
+  final ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> bfListener=new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(DartBundle.message("select.custom.package.roots"),null,myCustomPackageRootsTextWithBrowse,myProject,FileChooserDescriptorFactory.createMultipleFoldersDescriptor(),TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT){
+    public void actionPerformed(    final ActionEvent e){
+      selectCustomPackageRoots(myCustomPackageRootsTextWithBrowse.getTextField());
+    }
+  }
+;
+  myCustomPackageRootsTextWithBrowse.addBrowseFolderListener(myProject,bfListener);
+  myCustomPackageRootsTextWithBrowse.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    final DocumentEvent e){
+      final Module module=myModuleToCustomPackageRootsCurrent.entrySet().iterator().next().getKey();
+      final String customPackageRoots=FileUtil.toSystemIndependentName(myCustomPackageRootsTextWithBrowse.getText().trim());
+      myModuleToCustomPackageRootsCurrent.put(module,customPackageRoots);
+      updateErrorLabel();
+    }
+  }
+);
+}
