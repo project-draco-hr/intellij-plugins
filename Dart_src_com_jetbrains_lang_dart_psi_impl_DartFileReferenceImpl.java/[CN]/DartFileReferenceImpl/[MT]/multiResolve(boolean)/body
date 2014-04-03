@@ -13,11 +13,18 @@
       final PsiFile sourcePsiFile=sourceFile == null ? null : psiFile.getManager().findFile(sourceFile);
       return sourcePsiFile == null ? ResolveResult.EMPTY_ARRAY : new ResolveResult[]{new PsiElementResolveResult(sourcePsiFile)};
     }
-    final VirtualFile packagesFolder=virtualFile == null ? null : PubspecYamlUtil.getDartPackagesFolder(getProject(),virtualFile);
-    final String relativePath=text.substring(PACKAGE_PREFIX.length());
-    final VirtualFile sourceFile=packagesFolder == null ? null : VfsUtilCore.findRelativeFile(relativePath,packagesFolder);
-    final PsiFile sourcePsiFile=sourceFile == null ? null : psiFile.getManager().findFile(sourceFile);
-    return sourcePsiFile == null ? ResolveResult.EMPTY_ARRAY : new ResolveResult[]{new PsiElementResolveResult(sourcePsiFile)};
+    if (virtualFile != null) {
+      final String relativePath=text.substring(PACKAGE_PREFIX.length());
+      final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(getProject(),virtualFile);
+      for (      VirtualFile packageRoot : packageRoots) {
+        final VirtualFile sourceFile=VfsUtilCore.findRelativeFile(relativePath,packageRoot);
+        final PsiFile sourcePsiFile=sourceFile == null ? null : psiFile.getManager().findFile(sourceFile);
+        if (sourcePsiFile != null) {
+          return new ResolveResult[]{new PsiElementResolveResult(sourcePsiFile)};
+        }
+      }
+    }
+    return ResolveResult.EMPTY_ARRAY;
   }
   VirtualFile sourceFile=virtualFile == null ? null : DartResolveUtil.findRelativeFile(virtualFile,text);
   sourceFile=sourceFile != null ? sourceFile : VirtualFileManager.getInstance().findFileByUrl(text);

@@ -1,17 +1,18 @@
 {
   AnalysisContext analysisContext=SoftReference.dereference(myAnalysisContextRef);
-  if (analysisContext != null && Comparing.equal(sdkPath,mySdkPath) && Comparing.equal(packagesFolder,myDartPackagesFolder)) {
+  final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(myProject,annotatedFile);
+  if (analysisContext != null && Comparing.equal(sdkPath,mySdkPath) && Comparing.haveEqualElements(packageRoots,myDartPackageRoots)) {
     applyChangeSet(analysisContext,annotatedFile);
     myCreatedFiles.clear();
   }
  else {
     final DartUriResolver dartUriResolver=new DartUriResolver(new DirectoryBasedDartSdk(new File(sdkPath)));
     final UriResolver fileResolver=new DartFileUriResolver(myProject);
-    final SourceFactory sourceFactory=packagesFolder == null ? new SourceFactory(dartUriResolver,fileResolver) : new SourceFactory(dartUriResolver,fileResolver,new DartPackageUriResolver(myProject,packagesFolder));
+    final SourceFactory sourceFactory=new SourceFactory(dartUriResolver,fileResolver,new DartPackageUriResolver(myProject,annotatedFile));
     analysisContext=AnalysisEngine.getInstance().createAnalysisContext();
     analysisContext.setSourceFactory(sourceFactory);
     mySdkPath=sdkPath;
-    myDartPackagesFolder=packagesFolder;
+    myDartPackageRoots=packageRoots;
     myAnalysisContextRef=new WeakReference<AnalysisContext>(analysisContext);
   }
   return analysisContext;

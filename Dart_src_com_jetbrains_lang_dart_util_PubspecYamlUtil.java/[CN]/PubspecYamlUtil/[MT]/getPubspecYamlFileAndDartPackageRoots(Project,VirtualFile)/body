@@ -2,16 +2,17 @@
   final Module module=ModuleUtilCore.findModuleForFile(contextFile,project);
   final String customPackageRootPaths=module == null ? null : getCustomPackageRootsForModule(module);
   if (!StringUtil.isEmptyOrSpaces(customPackageRootPaths)) {
+    final List<VirtualFile> dartPackageRoots=new ArrayList<VirtualFile>();
     for (    String path : StringUtil.split(customPackageRootPaths,DART_CUSTOM_PACKAGE_ROOTS_SEPARATOR)) {
       final VirtualFile customPackagesFolder=LocalFileSystem.getInstance().findFileByPath(path.trim());
       if (customPackagesFolder != null && customPackagesFolder.isDirectory()) {
-        return Pair.create(null,customPackagesFolder);
+        dartPackageRoots.add(customPackagesFolder);
       }
     }
-    return Pair.create(null,null);
+    return Pair.create(null,dartPackageRoots);
   }
   final VirtualFile pubspecYamlFile=getPubspecYamlFile(project,contextFile);
   final VirtualFile parentFolder=pubspecYamlFile == null ? null : pubspecYamlFile.getParent();
   final VirtualFile packagesFolder=parentFolder == null ? null : parentFolder.findChild("packages");
-  return Pair.create(pubspecYamlFile,packagesFolder != null && packagesFolder.isDirectory() ? packagesFolder : null);
+  return packagesFolder == null || !packagesFolder.isDirectory() ? Pair.create(pubspecYamlFile,Collections.<VirtualFile>emptyList()) : Pair.create(pubspecYamlFile,Collections.singletonList(packagesFolder));
 }

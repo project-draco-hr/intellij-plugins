@@ -4,11 +4,12 @@
   while (argumentsTokenizer.hasMoreTokens()) {
     commandLine.addParameter(argumentsTokenizer.nextToken());
   }
-  String libUrl=VfsUtilCore.pathToUrl(myUnitParameters.getFilePath());
-  final VirtualFile libraryRoot=VirtualFileManager.getInstance().findFileByUrl(libUrl);
-  final VirtualFile packages=libraryRoot == null ? null : PubspecYamlUtil.getDartPackagesFolder(getEnvironment().getProject(),libraryRoot);
-  if (packages != null && packages.isDirectory()) {
-    commandLine.addParameter("--package-root=" + packages.getPath() + "/");
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myUnitParameters.getFilePath());
+  if (file != null) {
+    final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(getEnvironment().getProject(),file);
+    if (!packageRoots.isEmpty()) {
+      commandLine.addParameter("--package-root=" + packageRoots.get(0).getPath() + "/");
+    }
   }
   if (myDebuggingPort > 0) {
     commandLine.addParameter("--debug:" + myDebuggingPort);

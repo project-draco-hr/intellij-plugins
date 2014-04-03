@@ -20,11 +20,21 @@ if (mySdk != null) {
 }
 break;
 case PACKAGE:
-if (myPackagesFolder != null) {
-file=DartResolveUtil.getPackagePrefixImportedFile(myProject,myPackagesFolder,"package:" + info.path);
+if (myContextFile != null) {
+file=DartResolveUtil.getPackagePrefixImportedFile(myProject,myContextFile,"package:" + info.path);
 }
  else {
-file=findFileInAnyPackagesFolder(myProject,info.path);
+if (myAllPubspecYamlFiles == null) {
+myAllPubspecYamlFiles=FilenameIndex.getVirtualFilesByName(myProject,PUBSPEC_YAML,GlobalSearchScope.projectScope(myProject));
+}
+VirtualFile inPackage=null;
+for (VirtualFile yamlFile : myAllPubspecYamlFiles) {
+inPackage=DartResolveUtil.getPackagePrefixImportedFile(myProject,yamlFile,"package:" + info.path);
+if (inPackage != null) {
+  break;
+}
+}
+file=inPackage;
 }
 break;
 default :

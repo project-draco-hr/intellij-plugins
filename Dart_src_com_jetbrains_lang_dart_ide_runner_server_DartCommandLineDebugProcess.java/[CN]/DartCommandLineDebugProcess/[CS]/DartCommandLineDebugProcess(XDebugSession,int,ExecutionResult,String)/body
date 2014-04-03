@@ -1,7 +1,15 @@
 {
   super(session);
   final VirtualFile dartFile=LocalFileSystem.getInstance().findFileByPath(dartScriptPath);
-  myPubspecYamlFile=dartFile == null ? null : PubspecYamlUtil.getPubspecYamlFile(session.getProject(),dartFile);
+  if (dartFile != null) {
+    final Pair<VirtualFile,List<VirtualFile>> yamlAndPackageRoots=PubspecYamlUtil.getPubspecYamlFileAndDartPackageRoots(session.getProject(),dartFile);
+    myPubspecYamlFile=yamlAndPackageRoots.first;
+    myPackageRoots=yamlAndPackageRoots.second;
+  }
+ else {
+    myPubspecYamlFile=null;
+    myPackageRoots=Collections.emptyList();
+  }
   myBreakpointsHandler=new DartCommandLineBreakpointsHandler(this);
   myExecutionResult=executionResult;
   myVmConnection=new VmConnection(null,debuggingPort);
