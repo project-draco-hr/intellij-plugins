@@ -11,12 +11,12 @@
   appendPackagesFolders(newExcludedPackagesUrls,root.findChild("test"),fileIndex);
   appendPackagesFolders(newExcludedPackagesUrls,root.findChild("tool"),fileIndex);
   appendPackagesFolders(newExcludedPackagesUrls,root.findChild("web"),fileIndex);
-  final VirtualFile libFolder=root.findChild("lib");
-  if (libFolder != null && libFolder.isDirectory()) {
-    final String pubspecName=PubspecYamlUtil.getPubspecName(pubspecYamlFile);
-    if (pubspecName != null) {
-      newExcludedPackagesUrls.add(root.getUrl() + "/packages/" + pubspecName);
+  final DartUrlResolver resolver=DartUrlResolver.getInstance(module.getProject(),pubspecYamlFile);
+  resolver.processLivePackages(new PairConsumer<String,VirtualFile>(){
+    public void consume(    final String packageName,    final VirtualFile packageDir){
+      newExcludedPackagesUrls.add(root.getUrl() + "/packages/" + packageName);
     }
   }
+);
   return newExcludedPackagesUrls;
 }

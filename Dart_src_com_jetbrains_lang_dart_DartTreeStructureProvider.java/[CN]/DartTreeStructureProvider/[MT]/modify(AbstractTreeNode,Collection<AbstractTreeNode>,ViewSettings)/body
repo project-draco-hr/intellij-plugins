@@ -1,11 +1,19 @@
 {
-  final VirtualFile file=parentNode instanceof PsiDirectoryNode ? ((PsiDirectoryNode)parentNode).getVirtualFile() : null;
-  final VirtualFile parentFolder=file != null && file.isDirectory() && "packages".equals(file.getName()) ? file.getParent() : null;
-  final VirtualFile pubspecYamlFile=parentFolder == null ? null : parentFolder.findChild(PubspecYamlUtil.PUBSPEC_YAML);
-  final String pubspecName=pubspecYamlFile == null ? null : PubspecYamlUtil.getPubspecName(pubspecYamlFile);
-  if (pubspecName != null && file.findChild(pubspecName) != null && !containsFolderNode(children,pubspecName)) {
+  final Project project=parentNode.getProject();
+  final VirtualFile packagesDir=parentNode instanceof PsiDirectoryNode && project != null ? ((PsiDirectoryNode)parentNode).getVirtualFile() : null;
+  final VirtualFile parentFolder=packagesDir != null && packagesDir.isDirectory() && "packages".equals(packagesDir.getName()) ? packagesDir.getParent() : null;
+  final VirtualFile pubspecYamlFile=parentFolder != null ? parentFolder.findChild(PubspecYamlUtil.PUBSPEC_YAML) : null;
+  if (pubspecYamlFile != null && !pubspecYamlFile.isDirectory()) {
     final ArrayList<AbstractTreeNode> result=new ArrayList<AbstractTreeNode>(children);
-    result.add(new SymlinkToLibFolderNode(parentNode.getProject(),pubspecName));
+    final DartUrlResolver resolver=DartUrlResolver.getInstance(project,pubspecYamlFile);
+    resolver.processLivePackages(new PairConsumer<String,VirtualFile>(){
+      public void consume(      final @NotNull String packageName,      final @NotNull VirtualFile packageDir){
+        if (packagesDir.findChild(packageName) != null && !containsFolderNode(children,packageName)) {
+          result.add(new SymlinkToLivePackageNode(project,packageName,packageDir));
+        }
+      }
+    }
+);
     return result;
   }
   return children;
