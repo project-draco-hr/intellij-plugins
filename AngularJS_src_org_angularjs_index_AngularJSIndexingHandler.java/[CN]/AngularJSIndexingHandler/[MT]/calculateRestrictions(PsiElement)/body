@@ -1,19 +1,30 @@
 {
   final Ref<String> restrict=Ref.create("A");
+  final Ref<String> scope=Ref.create("");
   final JSFunction function=PsiTreeUtil.getNextSiblingOfType(element,JSFunction.class);
   if (function != null) {
     function.accept(new JSRecursiveElementVisitor(){
       @Override public void visitJSProperty(      JSProperty node){
         final String name=node.getName();
+        final JSExpression value=node.getValue();
         if ("restrict".equals(name)) {
-          final JSExpression value=node.getValue();
           if (value instanceof JSLiteralExpression && ((JSLiteralExpression)value).isQuotedLiteral()) {
             restrict.set(StringUtil.unquoteString(value.getText()));
+          }
+        }
+ else         if ("scope".equals(name)) {
+          if (value instanceof JSObjectLiteralExpression) {
+            scope.set(StringUtil.join(((JSObjectLiteralExpression)value).getProperties(),new Function<JSProperty,String>(){
+              @Override public String fun(              JSProperty property){
+                return property.getName();
+              }
+            }
+,","));
           }
         }
       }
     }
 );
   }
-  return restrict.get().trim() + ";;";
+  return restrict.get().trim() + ";;;" + scope.get();
 }

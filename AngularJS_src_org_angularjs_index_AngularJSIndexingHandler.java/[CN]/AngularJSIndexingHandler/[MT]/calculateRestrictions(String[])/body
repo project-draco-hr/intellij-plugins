@@ -2,10 +2,19 @@
   String restrict="A";
   String tag="";
   String param="";
+  StringBuilder attributes=new StringBuilder();
   for (  String line : commentLines) {
     restrict=getParamValue(restrict,line,RESTRICT_PATTERN,RESTRICT);
     tag=getParamValue(tag,line,ELEMENT_PATTERN,ELEMENT);
-    param=getParamValue(param,line,PARAM_PATTERN,PARAM);
+    final int start=line.indexOf(PARAM);
+    if (start >= 0) {
+      final JSDocumentationUtils.DocTag docTag=JSDocumentationUtils.getDocTag(line.substring(start));
+      if (docTag != null) {
+        param=docTag.matchValue;
+        if (attributes.length() > 0)         attributes.append(",");
+        attributes.append(docTag.matchName);
+      }
+    }
   }
-  return restrict.trim() + ";" + tag.trim()+ ";"+ param.trim();
+  return restrict.trim() + ";" + tag.trim()+ ";"+ param.trim()+ ";"+ attributes.toString().trim();
 }
