@@ -7,21 +7,11 @@ case FILE:
     file=LocalFileSystem.getInstance().findFileByPath(info.path);
   break;
 case DART:
-if (mySdk != null) {
-  if (info.path.contains("/")) {
-    file=LocalFileSystem.getInstance().findFileByPath(mySdk.getHomePath() + "/lib/" + info.path);
-  }
- else {
-    file=DartLibraryIndex.getStandardLibraryFromSdk(myProject,info.path);
-  }
-}
- else {
-  file=null;
-}
+file=DartUrlResolver.findFileInDarSdkLibFolder(myProject,mySdk,DART_PREFIX + info.path);
 break;
 case PACKAGE:
-if (myContextFile != null) {
-file=DartResolveUtil.getPackagePrefixImportedFile(myProject,myContextFile,"package:" + info.path);
+if (myDartUrlResolver != null) {
+file=myDartUrlResolver.findFileByDartUrl(PACKAGE_PREFIX + info.path);
 }
  else {
 if (myAllPubspecYamlFiles == null) {
@@ -29,7 +19,7 @@ myAllPubspecYamlFiles=FilenameIndex.getVirtualFilesByName(myProject,PUBSPEC_YAML
 }
 VirtualFile inPackage=null;
 for (VirtualFile yamlFile : myAllPubspecYamlFiles) {
-inPackage=DartResolveUtil.getPackagePrefixImportedFile(myProject,yamlFile,"package:" + info.path);
+inPackage=DartUrlResolver.getInstance(myProject,yamlFile).findFileByDartUrl(PACKAGE_PREFIX + info.path);
 if (inPackage != null) {
   break;
 }

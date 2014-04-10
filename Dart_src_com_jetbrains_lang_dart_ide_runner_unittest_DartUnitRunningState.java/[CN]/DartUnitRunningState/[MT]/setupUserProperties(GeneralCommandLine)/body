@@ -6,9 +6,9 @@
   }
   final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myUnitParameters.getFilePath());
   if (file != null) {
-    final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(getEnvironment().getProject(),file);
-    if (!packageRoots.isEmpty()) {
-      commandLine.addParameter("--package-root=" + packageRoots.get(0).getPath() + "/");
+    final VirtualFile[] packageRoots=DartUrlResolver.getInstance(getEnvironment().getProject(),file).getPackageRoots();
+    if (packageRoots.length > 0) {
+      commandLine.addParameter("--package-root=" + packageRoots[0].getPath());
     }
   }
   if (myDebuggingPort > 0) {

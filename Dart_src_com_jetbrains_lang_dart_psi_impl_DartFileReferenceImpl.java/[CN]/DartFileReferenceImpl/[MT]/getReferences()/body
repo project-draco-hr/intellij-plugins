@@ -1,29 +1,37 @@
 {
-  final String path=StringUtil.unquoteString(getText());
-  if (path.startsWith(PACKAGE_PREFIX)) {
+  final String url=StringUtil.unquoteString(getText());
+  if (url.startsWith(PACKAGE_PREFIX)) {
     final VirtualFile file=DartResolveUtil.getRealVirtualFile(getContainingFile());
     if (file == null)     return PsiReference.EMPTY_ARRAY;
-    final VirtualFile pubspecYamlFile=PubspecYamlUtil.getPubspecYamlFile(getProject(),file);
-    final String pubspecName=pubspecYamlFile == null ? null : PubspecYamlUtil.getPubspecName(pubspecYamlFile);
-    final String prefix=pubspecName == null ? null : PACKAGE_PREFIX + pubspecName + "/";
-    if (prefix != null && path.startsWith(prefix)) {
-      final VirtualFile libFolder=pubspecYamlFile.getParent().findChild("lib");
-      return getPackageReferences(file,libFolder,path.substring(prefix.length()),prefix.length() + 1);
-    }
- else {
-      final String relPath=path.substring(PACKAGE_PREFIX.length());
-      final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(getProject(),file);
-      if (packageRoots.size() == 0)       return PsiReference.EMPTY_ARRAY;
-      if (packageRoots.size() == 1)       return getPackageReferences(file,packageRoots.get(0),relPath,PACKAGE_PREFIX.length() + 1);
-      final Collection<PsiReference> result=new SmartList<PsiReference>();
-      for (      VirtualFile packageRoot : packageRoots) {
-        if (packageRoot.findFileByRelativePath(relPath) != null) {
-          ContainerUtil.addAll(result,getPackageReferences(file,packageRoot,relPath,PACKAGE_PREFIX.length() + 1));
+    final DartUrlResolver dartUrlResolver=DartUrlResolver.getInstance(getProject(),file);
+    final int slashIndex=url.indexOf('/');
+    if (slashIndex > 0) {
+      final Ref<VirtualFile> packageDirRef=new Ref<VirtualFile>();
+      final String packageName=url.substring(PACKAGE_PREFIX.length(),slashIndex);
+      dartUrlResolver.processLivePackages(new PairConsumer<String,VirtualFile>(){
+        public void consume(        final String packageName1,        final VirtualFile packageDir){
+          if (packageName.equals(packageName1)) {
+            packageDirRef.set(packageDir);
+          }
         }
       }
-      return result.toArray(new PsiReference[result.size()]);
+);
+      if (!packageDirRef.isNull()) {
+        return getPackageReferences(file,packageDirRef.get(),url.substring(slashIndex + 1),slashIndex + 1);
+      }
     }
+    final String relPath=url.substring(PACKAGE_PREFIX.length());
+    final VirtualFile[] packageRoots=dartUrlResolver.getPackageRoots();
+    if (packageRoots.length == 0)     return PsiReference.EMPTY_ARRAY;
+    if (packageRoots.length == 1)     return getPackageReferences(file,packageRoots[0],relPath,PACKAGE_PREFIX.length() + 1);
+    final Collection<PsiReference> result=new SmartList<PsiReference>();
+    for (    VirtualFile packageRoot : packageRoots) {
+      if (packageRoot.findFileByRelativePath(relPath) != null) {
+        ContainerUtil.addAll(result,getPackageReferences(file,packageRoot,relPath,PACKAGE_PREFIX.length() + 1));
+      }
+    }
+    return result.toArray(new PsiReference[result.size()]);
   }
-  final FileReferenceSet referenceSet=new FileReferenceSet(path,this,1,null,false,true);
+  final FileReferenceSet referenceSet=new FileReferenceSet(url,this,1,null,false,true);
   return ArrayUtil.mergeArrays(super.getReferences(),referenceSet.getAllReferences());
 }

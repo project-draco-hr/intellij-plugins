@@ -1,17 +1,20 @@
 {
   AnalysisContext analysisContext=SoftReference.dereference(myAnalysisContextRef);
-  final List<VirtualFile> packageRoots=PubspecYamlUtil.getDartPackageRoots(myProject,annotatedFile);
-  if (analysisContext != null && Comparing.equal(sdkPath,mySdkPath) && Comparing.haveEqualElements(packageRoots,myDartPackageRoots)) {
+  final DartUrlResolver dartUrlResolver=DartUrlResolver.getInstance(myProject,annotatedFile);
+  final VirtualFile yamlFile=dartUrlResolver.getPubspecYamlFile();
+  final Document cachedDocument=yamlFile == null ? null : FileDocumentManager.getInstance().getCachedDocument(yamlFile);
+  final long pubspecYamlTimestamp=yamlFile == null ? -1 : cachedDocument == null ? yamlFile.getModificationCount() : cachedDocument.getModificationStamp();
+  final VirtualFile[] packageRoots=dartUrlResolver.getPackageRoots();
+  if (analysisContext != null && Comparing.equal(sdkPath,mySdkPath) && pubspecYamlTimestamp == myPubspecYamlTimestamp && Comparing.haveEqualElements(packageRoots,myDartPackageRoots)) {
     applyChangeSet(analysisContext,annotatedFile);
     myCreatedFiles.clear();
   }
  else {
-    final DartUriResolver dartUriResolver=new DartUriResolver(new DirectoryBasedDartSdk(new File(sdkPath)));
-    final UriResolver fileResolver=new DartFileUriResolver(myProject);
-    final SourceFactory sourceFactory=new SourceFactory(dartUriResolver,fileResolver,new DartPackageUriResolver(myProject,annotatedFile));
+    final SourceFactory sourceFactory=new SourceFactory(new DartUriResolver(new DirectoryBasedDartSdk(new File(sdkPath))),new DartFileUriResolver(myProject,dartUrlResolver));
     analysisContext=AnalysisEngine.getInstance().createAnalysisContext();
     analysisContext.setSourceFactory(sourceFactory);
     mySdkPath=sdkPath;
+    myPubspecYamlTimestamp=pubspecYamlTimestamp;
     myDartPackageRoots=packageRoots;
     myAnalysisContextRef=new WeakReference<AnalysisContext>(analysisContext);
   }

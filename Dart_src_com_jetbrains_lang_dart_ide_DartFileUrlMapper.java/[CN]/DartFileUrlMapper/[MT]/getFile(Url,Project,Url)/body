@@ -1,34 +1,29 @@
 {
-  if (SCHEME.equals(url.getScheme())) {
-    String path=url.getPath();
-    int i=path.indexOf('/');
-    String libraryName;
-    String libraryFilePath;
-    if (i > 0) {
-      libraryName=path.substring(0,i);
-      libraryFilePath=path.substring(i + 1);
+  if (DART_SCHEME.equals(url.getScheme())) {
+    return DartUrlResolver.findFileInDarSdkLibFolder(project,DartSdk.getGlobalDartSdk(),DART_PREFIX + url.getPath());
+  }
+  if (PACKAGE_SCHEME.equals(url.getScheme())) {
+    final String packageUrl=PACKAGE_PREFIX + url.getPath();
+    final VirtualFile contextFile=findContextFile(project,requestor);
+    if (contextFile != null) {
+      return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
+        public VirtualFile compute(){
+          return DartUrlResolver.getInstance(project,contextFile).findFileByDartUrl(packageUrl);
+        }
+      }
+);
     }
  else {
-      libraryName=path;
-      libraryFilePath=null;
-    }
-    VirtualFile file=DartLibraryIndex.getStandardLibraryFromSdk(project,libraryName);
-    if (file == null) {
-      return null;
-    }
-    return libraryFilePath == null ? file : file.getParent().findFileByRelativePath(libraryFilePath);
-  }
- else   if (PACKAGE_SCHEME.equals(url.getScheme())) {
-    final String packageUrl=PACKAGE_PREFIX + url.getPath();
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      return DumbService.getInstance(project).isDumb() ? null : findFileInPackagesFolder(project,packageUrl);
-    }
-    return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<VirtualFile>(){
-      @Override public VirtualFile compute(){
-        return findFileInPackagesFolder(project,packageUrl);
+      if (ApplicationManager.getApplication().isDispatchThread()) {
+        return DumbService.getInstance(project).isDumb() ? null : findFileInAnyPackagesFolder(project,packageUrl);
       }
-    }
+      return DumbService.getInstance(project).runReadActionInSmartMode(new Computable<VirtualFile>(){
+        @Override public VirtualFile compute(){
+          return findFileInAnyPackagesFolder(project,packageUrl);
+        }
+      }
 );
+    }
   }
   return null;
 }
