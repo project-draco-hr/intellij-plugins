@@ -16,7 +16,7 @@
   }
   myModuleToCustomPackageRootsCurrent.clear();
   for (  final Module module : ModuleManager.getInstance(myProject).getModules()) {
-    myModuleToCustomPackageRootsCurrent.put(module,PubspecYamlUtil.getCustomPackageRootsForModule(module));
+    myModuleToCustomPackageRootsCurrent.put(module,getCustomPackageRootPaths(module));
   }
   myEnableDartSupportCheckBox.setSelected(myDartSupportEnabledInitial);
   mySdkPathTextWithBrowse.setText(mySdkInitial == null ? "" : FileUtilRt.toSystemDependentName(mySdkInitial.getHomePath()));
@@ -31,8 +31,13 @@
     }
   }
  else {
-    final Map.Entry<Module,String> entry=myModuleToCustomPackageRootsCurrent.entrySet().iterator().next();
-    myCustomPackageRootsTextWithBrowse.setText(FileUtilRt.toSystemDependentName(StringUtil.notNullize(entry.getValue())));
+    final List<String> paths=myModuleToCustomPackageRootsCurrent.entrySet().iterator().next().getValue();
+    myCustomPackageRootsTextWithBrowse.setText(StringUtil.join(paths,new Function<String,String>(){
+      public String fun(      final String s){
+        return FileUtil.toSystemDependentName(s);
+      }
+    }
+,SEMICOLON));
   }
   updateControlsEnabledState();
   updateErrorLabel();

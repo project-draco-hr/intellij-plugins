@@ -1,13 +1,9 @@
 {
   final Module module=ModuleUtilCore.findModuleForFile(contextFile,myProject);
-  final String customPackageRootPaths=module == null ? null : getCustomPackageRootsForModule(module);
-  if (!StringUtil.isEmptyOrSpaces(customPackageRootPaths)) {
-    for (    String path : StringUtil.split(customPackageRootPaths,DART_CUSTOM_PACKAGE_ROOTS_SEPARATOR)) {
-      final VirtualFile customPackagesFolder=LocalFileSystem.getInstance().findFileByPath(path.trim());
-      if (customPackagesFolder != null && customPackagesFolder.isDirectory()) {
-        myPackageRoots.add(customPackagesFolder);
-      }
-    }
+  if (module == null)   return null;
+  final VirtualFile[] customPackageRoots=getCustomPackageRoots(module);
+  if (customPackageRoots.length > 0) {
+    Collections.addAll(myPackageRoots,customPackageRoots);
     return null;
   }
   final VirtualFile pubspecYamlFile=findPubspecYamlFile(myProject,contextFile);

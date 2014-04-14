@@ -19,11 +19,11 @@
           DartSdkGlobalLibUtil.updateDependencyOnDartSdkGlobalLib(myProject,modules,dartSdkGlobalLibName);
           for (          Module module : ModuleManager.getInstance(myProject).getModules()) {
             if (ArrayUtil.contains(module,modules)) {
-              final String customPackageRoots=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModuleToCustomPackageRootsCurrent.get(module) : myCustomPackageRootsCheckBox.isSelected() ? myModuleToCustomPackageRootsCurrent.get(module) : null;
-              PubspecYamlUtil.setCustomPackageRootsForModule(module,customPackageRoots);
+              final List<String> customPackageRoots=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() || myCustomPackageRootsCheckBox.isSelected() ? myModuleToCustomPackageRootsCurrent.get(module) : Collections.<String>emptyList();
+              setCustomPackageRootPaths(module,customPackageRoots);
             }
  else {
-              PubspecYamlUtil.setCustomPackageRootsForModule(module,null);
+              setCustomPackageRootPaths(module,Collections.<String>emptyList());
             }
           }
         }
@@ -35,7 +35,7 @@
           DartSdkGlobalLibUtil.detachDartSdkGlobalLib(myModulesWithDartSdkLibAttachedInitial,mySdkInitial.getGlobalLibName());
         }
         for (        final Module module : ModuleManager.getInstance(myProject).getModules()) {
-          PubspecYamlUtil.setCustomPackageRootsForModule(module,null);
+          setCustomPackageRootPaths(module,Collections.<String>emptyList());
         }
       }
     }
