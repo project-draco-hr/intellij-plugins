@@ -1,11 +1,16 @@
 {
   final Ref<Boolean> jstdConfigFound=Ref.create(false);
-  FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,JstdConfigFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
-    @Override public boolean process(    final VirtualFile file,    final Void value){
-      jstdConfigFound.set(true);
-      return false;
+  try {
+    FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,JstdConfigFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
+      @Override public boolean process(      final VirtualFile file,      final Void value){
+        jstdConfigFound.set(true);
+        return false;
+      }
     }
-  }
 ,scope);
+  }
+ catch (  IndexNotReadyException e) {
+    return false;
+  }
   return jstdConfigFound.get();
 }
