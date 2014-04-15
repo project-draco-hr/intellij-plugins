@@ -24,21 +24,33 @@
 ;
   final TableCellRenderer customPackageRootsCellRenderer=new TableCellRenderer(){
     private final JBLabel myLabel=new JBLabel();
+    private final TextFieldWithBrowseButton myTextWithBrowse=new TextFieldWithBrowseButton(){
+      public void setOpaque(      final boolean isOpaque){
+      }
+    }
+;
     public Component getTableCellRendererComponent(    final JTable table,    final Object value,    final boolean isSelected,    final boolean hasFocus,    final int row,    final int column){
-      final String text;
       if (value instanceof List) {
-        text=StringUtil.join((List<String>)value,new Function<String,String>(){
+        final List<String> paths=(List<String>)value;
+        final String text=StringUtil.join(paths,new Function<String,String>(){
           public String fun(          final String s){
             return FileUtil.toSystemDependentName(s);
           }
         }
 ,SEMICOLON);
+        if (isSelected) {
+          myTextWithBrowse.setText(text);
+          return myTextWithBrowse;
+        }
+ else {
+          myLabel.setText(text);
+          return myLabel;
+        }
       }
  else {
-        text="";
+        myLabel.setText("");
+        return myLabel;
       }
-      myLabel.setText(text);
-      return myLabel;
     }
   }
 ;
@@ -106,6 +118,14 @@
   }
 ;
   myModulesCheckboxTreeTable.setRowHeight(myModulesCheckboxTreeTable.getRowHeight() + 2);
+  myModulesCheckboxTreeTable.getTree().addTreeWillExpandListener(new TreeWillExpandListener(){
+    public void treeWillExpand(    final TreeExpansionEvent event) throws ExpandVetoException {
+    }
+    public void treeWillCollapse(    final TreeExpansionEvent event) throws ExpandVetoException {
+      throw new ExpandVetoException(event);
+    }
+  }
+);
   final DefaultActionGroup group=new DefaultActionGroup();
   group.add(new RemoveCustomPackageRootsAction(myModulesCheckboxTreeTable));
   PopupHandler.installPopupHandler(myModulesCheckboxTreeTable,group,ActionPlaces.UNKNOWN,ActionManager.getInstance());
