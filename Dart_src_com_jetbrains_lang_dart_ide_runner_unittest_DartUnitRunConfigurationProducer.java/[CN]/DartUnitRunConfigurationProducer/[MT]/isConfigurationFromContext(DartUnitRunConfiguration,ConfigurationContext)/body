@@ -1,12 +1,12 @@
 {
   final PsiElement testElement=findTestElement(context.getPsiLocation());
-  final DartUnitRunnerParameters parameters=configuration.getRunnerParameters();
-  if (parameters.getScope() == DartUnitRunnerParameters.Scope.ALL && testElement != null) {
-    final VirtualFile virtualFile=testElement.getContainingFile().getVirtualFile();
-    return virtualFile != null && parameters.getFilePath().equals(virtualFile.getPath());
+  if (testElement == null)   return false;
+  final DartUnitRunnerParameters paramsFromContext=new DartUnitRunnerParameters();
+  if (!setupRunConfiguration(paramsFromContext,testElement))   return false;
+  final DartUnitRunnerParameters existingParams=configuration.getRunnerParameters();
+  final boolean b=Comparing.equal(existingParams.getFilePath(),paramsFromContext.getFilePath()) && Comparing.equal(existingParams.getScope(),paramsFromContext.getScope()) && (existingParams.getScope() == Scope.ALL || Comparing.equal(existingParams.getTestName(),paramsFromContext.getTestName()));
+  if (b) {
+    int i=0;
   }
- else   if (parameters.getScope() != DartUnitRunnerParameters.Scope.ALL && testElement instanceof DartCallExpression) {
-    return StringUtil.equalsIgnoreCase(parameters.getTestName(),findTestName((DartCallExpression)testElement));
-  }
-  return false;
+  return b;
 }

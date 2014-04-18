@@ -1,0 +1,27 @@
+{
+  if (psiElement instanceof DartCallExpression) {
+    final String testName=findTestName((DartCallExpression)psiElement);
+    final List<VirtualFile> virtualFiles=DartResolveUtil.findLibrary(psiElement.getContainingFile());
+    if (testName == null || virtualFiles.isEmpty()) {
+      return false;
+    }
+    runnerParams.setTestName(testName);
+    runnerParams.setScope(isTest((DartCallExpression)psiElement) ? Scope.METHOD : Scope.GROUP);
+    runnerParams.setFilePath(virtualFiles.iterator().next().getPath());
+    return true;
+  }
+ else {
+    final PsiFile psiFile=psiElement.getContainingFile();
+    if (psiFile instanceof DartFile) {
+      final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile((DartFile)psiElement);
+      if (virtualFile == null || !DartResolveUtil.isLibraryRoot((DartFile)psiElement)) {
+        return false;
+      }
+      runnerParams.setTestName(DartResolveUtil.getLibraryName((DartFile)psiElement));
+      runnerParams.setScope(Scope.ALL);
+      runnerParams.setFilePath(FileUtil.toSystemIndependentName(virtualFile.getPath()));
+      return true;
+    }
+  }
+  return false;
+}
