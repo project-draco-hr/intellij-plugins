@@ -1,3 +1,13 @@
 {
-  return new DirectoryCoverageViewExtension(project,getCoverageAnnotator(project),suiteBundle,stateBean);
+  return new DirectoryCoverageViewExtension(project,getCoverageAnnotator(project),suiteBundle,stateBean){
+    @Override public AbstractTreeNode createRootNode(){
+      VirtualFile rootDir=findRootDir(project,suiteBundle);
+      if (rootDir == null) {
+        rootDir=myProject.getBaseDir();
+      }
+      PsiDirectory psiRootDir=PsiManager.getInstance(myProject).findDirectory(rootDir);
+      return new CoverageListRootNode(myProject,psiRootDir,mySuitesBundle,myStateBean);
+    }
+  }
+;
 }
