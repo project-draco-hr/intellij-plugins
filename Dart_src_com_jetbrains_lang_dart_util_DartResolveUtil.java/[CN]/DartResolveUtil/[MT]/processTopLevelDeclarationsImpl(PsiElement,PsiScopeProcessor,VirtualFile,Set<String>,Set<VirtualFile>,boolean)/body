@@ -34,19 +34,12 @@
   if (isLookingForPrivate) {
     return true;
   }
-  for (  DartPathInfo libraryPathInfo : DartImportIndex.getLibraryNames(context.getProject(),virtualFile)) {
-    if (libraryPathInfo.getPrefix() != null) {
+  for (  DartImportInfo importInfo : DartImportIndex.getImportInfos(context.getProject(),virtualFile)) {
+    if (importInfo.getPrefix() != null) {
       continue;
     }
-    final PsiScopeProcessor importShowHideAwareProcessor=libraryPathInfo.wrapElementProcessor(processor);
-    final String libraryNameOrPath=libraryPathInfo.getPath();
-    List<VirtualFile> libraryRoots=DartLibraryIndex.findLibraryClass(context,libraryNameOrPath);
-    for (    VirtualFile libraryRoot : libraryRoots) {
-      if (!processTopLevelDeclarationsImpl(context,importShowHideAwareProcessor,libraryRoot,fileNames,processedFiles)) {
-        return false;
-      }
-    }
-    VirtualFile sourceFile=getImportedFile(context.getProject(),virtualFile,libraryNameOrPath);
+    final PsiScopeProcessor importShowHideAwareProcessor=importInfo.wrapElementProcessor(processor);
+    final VirtualFile sourceFile=getImportedFile(context.getProject(),virtualFile,importInfo.getImportText());
     if (sourceFile != null) {
       if (!processTopLevelDeclarationsImpl(context,importShowHideAwareProcessor,sourceFile,fileNames,processedFiles)) {
         return false;
