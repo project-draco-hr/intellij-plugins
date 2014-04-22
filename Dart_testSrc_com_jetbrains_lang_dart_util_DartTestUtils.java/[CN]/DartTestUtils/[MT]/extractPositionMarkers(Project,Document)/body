@@ -1,0 +1,23 @@
+{
+  final Pattern caretPattern=Pattern.compile("<caret expected=\'([^\']*)\'>");
+  final LinkedHashMap<Integer,String> result=new LinkedHashMap<Integer,String>();
+  WriteCommandAction.runWriteCommandAction(null,new Runnable(){
+    @Override public void run(){
+      while (true) {
+        Matcher m=caretPattern.matcher(document.getText());
+        if (m.find()) {
+          document.deleteString(m.start(),m.end());
+          result.put(m.start() < document.getTextLength() - 1 ? m.start() : m.start() - 1,m.group(1));
+        }
+ else {
+          break;
+        }
+      }
+    }
+  }
+);
+  if (!result.isEmpty()) {
+    PsiDocumentManager.getInstance(project).commitDocument(document);
+  }
+  return result;
+}

@@ -1,0 +1,15 @@
+{
+  final LinkedHashMap<Integer,String> caretOffsetToExpectedResult=DartTestUtils.extractPositionMarkers(getProject(),myFixture.getEditor().getDocument());
+  for (  Map.Entry<Integer,String> entry : caretOffsetToExpectedResult.entrySet()) {
+    final Integer caretOffset=entry.getKey();
+    final String expectedResult=entry.getValue();
+    final int line=myFixture.getEditor().getDocument().getLineNumber(caretOffset);
+    final int column=caretOffset - myFixture.getEditor().getDocument().getLineStartOffset(line);
+    final String fileNameAndPosition=myFixture.getFile().getName() + ":" + (line + 1)+ ":"+ (column + 1);
+    final PsiReference reference=myFixture.getFile().findReferenceAt(caretOffset);
+    assertNotNull("No reference in " + fileNameAndPosition,reference);
+    final PsiElement resolve=reference.resolve();
+    final String actualElementPosition=getPresentableElementPosition(resolve);
+    assertEquals("Incorrect resolve for element in " + fileNameAndPosition,expectedResult,actualElementPosition);
+  }
+}
