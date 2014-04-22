@@ -1,12 +1,12 @@
 {
+  final Project project=context.getProject();
   final List<VirtualFile> virtualFiles=findLibrary(context.getContainingFile());
   for (  VirtualFile virtualFile : virtualFiles) {
-    for (    DartImportInfo importInfo : DartImportIndex.getImportInfos(context.getProject(),virtualFile)) {
-      final String importPrefix=importInfo.getPrefix();
-      if (importPrefix == null || !prefix.equals(StringUtil.unquoteString(importPrefix))) {
-        continue;
-      }
-      return getImportedFile(context.getProject(),virtualFile,importInfo.getImportText());
+    for (    DartImportOrExportInfo importOrExportInfo : DartImportAndExportIndex.getImportAndExportInfos(project,virtualFile)) {
+      if (importOrExportInfo.getKind() != Kind.Import)       continue;
+      final String importPrefix=importOrExportInfo.getImportPrefix();
+      if (importPrefix == null || !prefix.equals(StringUtil.unquoteString(importPrefix)))       continue;
+      return getImportedFile(project,virtualFile,importOrExportInfo.getUri());
     }
   }
   return null;

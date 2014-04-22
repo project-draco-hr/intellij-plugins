@@ -1,0 +1,20 @@
+{
+  final String uri=importOrExportStatement.getUri();
+  final Set<String> showComponentNames=new THashSet<String>();
+  for (  DartShowCombinator showCombinator : importOrExportStatement.getShowCombinatorList()) {
+    for (    DartExpression expression : showCombinator.getLibraryReferenceList().getLibraryComponentReferenceExpressionList()) {
+      showComponentNames.add(expression.getText());
+    }
+  }
+  final Set<String> hideComponentNames=new THashSet<String>();
+  for (  DartHideCombinator hideCombinator : importOrExportStatement.getHideCombinatorList()) {
+    for (    DartExpression expression : hideCombinator.getLibraryReferenceList().getLibraryComponentReferenceExpressionList()) {
+      hideComponentNames.add(expression.getText());
+    }
+  }
+  final DartComponentName importPrefixComponent=importOrExportStatement instanceof DartImportStatement ? ((DartImportStatement)importOrExportStatement).getImportPrefix() : null;
+  final String importPrefix=importPrefixComponent != null ? importPrefixComponent.getName() : null;
+  final Kind kind=importOrExportStatement instanceof DartImportStatement ? Kind.Import : Kind.Export;
+  result.addImportInfo(new DartImportOrExportInfo(kind,uri,importPrefix,showComponentNames,hideComponentNames));
+  result.addComponentInfo(importPrefix,new DartComponentInfo(importOrExportStatement.getContainingFile().getName(),DartComponentType.LABEL,null));
+}
