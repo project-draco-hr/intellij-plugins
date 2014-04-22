@@ -1,11 +1,17 @@
 {
   final int pathStartIndex=text.indexOf(prefix);
-  if (pathStartIndex < 0 || pathStartIndex > 0 && !isCharAllowedBeforeOrAfterPath(text.charAt(pathStartIndex - 1))) {
+  if (pathStartIndex < 0 || pathStartIndex > 0 && !isCharAllowedBeforePath(text.charAt(pathStartIndex - 1))) {
     return null;
   }
-  final int dotDartIndex=text.toLowerCase().indexOf(".dart",pathStartIndex);
-  final int pathEndIndex=dotDartIndex + ".dart".length();
-  if (dotDartIndex <= 0 || text.length() > pathEndIndex && !isCharAllowedBeforeOrAfterPath(text.charAt(pathEndIndex))) {
+  final String lowercased=text.toLowerCase(Locale.US);
+  int dotDartIndex=pathStartIndex;
+  int pathEndIndex;
+  do {
+    dotDartIndex=lowercased.indexOf(".dart",dotDartIndex + 1);
+    pathEndIndex=dotDartIndex + ".dart".length();
+  }
+ while (dotDartIndex > 0 && text.length() > pathEndIndex && !isCharAllowedAfterPath(text.charAt(pathEndIndex)));
+  if (dotDartIndex <= pathStartIndex || text.length() > pathEndIndex && !isCharAllowedAfterPath(text.charAt(pathEndIndex))) {
     return null;
   }
   return Pair.create(pathStartIndex,pathEndIndex);
