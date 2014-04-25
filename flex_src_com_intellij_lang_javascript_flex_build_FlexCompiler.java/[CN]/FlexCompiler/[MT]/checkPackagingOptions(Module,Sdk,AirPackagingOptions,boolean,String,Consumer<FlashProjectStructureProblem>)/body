@@ -51,7 +51,7 @@
     }
   }
   final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
-  if (packagingOptions instanceof IosPackagingOptions) {
+  if (packagingOptions instanceof IosPackagingOptions && !isForIosSimulator) {
     final String provisioningProfilePath=signingOptions.getProvisioningProfilePath();
     if (provisioningProfilePath.isEmpty()) {
       errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(Severity.ERROR,packagingOptions,FlexBundle.message("ios.provisioning.profile.not.set"),AirPackagingConfigurableBase.Location.ProvisioningProfile));
@@ -63,7 +63,7 @@
       }
     }
   }
-  final boolean tempCertificate=!(packagingOptions instanceof IosPackagingOptions) && signingOptions.isUseTempCertificate();
+  final boolean tempCertificate=packagingOptions instanceof IosPackagingOptions && isForIosSimulator || signingOptions.isUseTempCertificate();
   if (!tempCertificate) {
     final String keystorePath=signingOptions.getKeystorePath();
     if (keystorePath.isEmpty()) {
