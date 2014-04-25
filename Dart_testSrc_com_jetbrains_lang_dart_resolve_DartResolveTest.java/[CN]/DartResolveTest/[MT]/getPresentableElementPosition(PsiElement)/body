@@ -6,6 +6,9 @@
     buf.insert(0,componentName.getName() + " -> ");
     componentName=PsiTreeUtil.getParentOfType(componentName,DartComponentName.class);
   }
-  buf.insert(0,element.getContainingFile().getName() + " -> ");
+  String path=element instanceof PsiDirectoryImpl ? ((PsiDirectoryImpl)element).getVirtualFile().getPath() : element.getContainingFile().getVirtualFile().getPath();
+  if (path.startsWith("/src/"))   path=path.substring("/src/".length());
+  if (buf.length() > 0)   buf.insert(0," -> ");
+  buf.insert(0,path);
   return buf.toString();
 }
