@@ -5,13 +5,13 @@
     return ((DartReference)expression).resolve();
   }
   List<DartComponentName> result=new ArrayList<DartComponentName>();
-  final ResolveScopeProcessor resolveScopeProcessor=new ResolveScopeProcessor(result,typeName);
+  final DartResolveProcessor dartResolveProcessor=new DartResolveProcessor(result,typeName);
   final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile(dartType.getContainingFile());
   if (virtualFile != null) {
-    DartResolveUtil.processTopLevelDeclarations(dartType,resolveScopeProcessor,virtualFile,typeName);
+    DartResolveUtil.processTopLevelDeclarations(dartType,dartResolveProcessor,virtualFile,typeName);
   }
   if (result.isEmpty()) {
-    PsiTreeUtil.treeWalkUp(resolveScopeProcessor,dartType,null,new ResolveState());
+    PsiTreeUtil.treeWalkUp(dartResolveProcessor,dartType,null,ResolveState.initial());
     for (Iterator<DartComponentName> iterator=result.iterator(); iterator.hasNext(); ) {
       if (!(iterator.next().getParent() instanceof DartTypeParameter)) {
         iterator.remove();
@@ -20,11 +20,11 @@
   }
   if (result.isEmpty()) {
     final List<VirtualFile> libraryFile=DartResolveUtil.findLibrary(dartType.getContainingFile());
-    DartResolveUtil.processTopLevelDeclarations(dartType,resolveScopeProcessor,libraryFile,typeName);
+    DartResolveUtil.processTopLevelDeclarations(dartType,dartResolveProcessor,libraryFile,typeName);
   }
   if (result.isEmpty()) {
     final List<VirtualFile> libraryFile=DartLibraryIndex.findLibraryClass(dartType,"dart:core");
-    DartResolveUtil.processTopLevelDeclarations(dartType,resolveScopeProcessor,libraryFile,typeName);
+    DartResolveUtil.processTopLevelDeclarations(dartType,dartResolveProcessor,libraryFile,typeName);
   }
   return result.isEmpty() ? null : result.iterator().next();
 }

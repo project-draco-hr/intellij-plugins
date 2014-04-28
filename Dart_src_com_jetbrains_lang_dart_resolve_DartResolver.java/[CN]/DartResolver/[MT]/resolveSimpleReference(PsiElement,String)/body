@@ -1,0 +1,22 @@
+{
+  final List<DartComponentName> result=new ArrayList<DartComponentName>();
+  final DartResolveProcessor dartResolveProcessor=new DartResolveProcessor(result,name,DartResolveUtil.isLValue(scopeElement));
+  PsiTreeUtil.treeWalkUp(dartResolveProcessor,scopeElement,null,ResolveState.initial());
+  final DartClass dartClass=PsiTreeUtil.getParentOfType(scopeElement,DartClass.class);
+  final boolean inClass=PsiTreeUtil.getParentOfType(scopeElement,DartClassBody.class,false) != null;
+  if (result.isEmpty() && dartClass != null && inClass) {
+    final DartComponent field=filterAccess(scopeElement,dartClass.findMembersByName(name));
+    if (field != null) {
+      return toResult(field.getComponentName());
+    }
+  }
+  if (result.isEmpty()) {
+    final List<VirtualFile> libraryFiles=DartResolveUtil.findLibrary(scopeElement.getContainingFile());
+    DartResolveUtil.processTopLevelDeclarations(scopeElement,dartResolveProcessor,libraryFiles,name);
+  }
+  if (result.isEmpty() && !"void".equals(name)) {
+    final List<VirtualFile> libraryFiles=DartLibraryIndex.findLibraryClass(scopeElement,"dart:core");
+    DartResolveUtil.processTopLevelDeclarations(scopeElement,dartResolveProcessor,libraryFiles,name);
+  }
+  return result;
+}
