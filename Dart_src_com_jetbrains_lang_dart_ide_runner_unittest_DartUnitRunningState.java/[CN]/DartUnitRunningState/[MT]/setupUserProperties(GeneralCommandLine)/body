@@ -4,11 +4,14 @@
   while (argumentsTokenizer.hasMoreTokens()) {
     commandLine.addParameter(argumentsTokenizer.nextToken());
   }
-  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myUnitParameters.getFilePath());
-  if (file != null) {
-    final VirtualFile[] packageRoots=DartUrlResolver.getInstance(getEnvironment().getProject(),file).getPackageRoots();
-    if (packageRoots.length > 0) {
-      commandLine.addParameter("--package-root=" + packageRoots[0].getPath());
+  final String filePath=myUnitParameters.getFilePath();
+  if (filePath != null) {
+    final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+    if (file != null) {
+      final VirtualFile[] packageRoots=DartUrlResolver.getInstance(getEnvironment().getProject(),file).getPackageRoots();
+      if (packageRoots.length > 0) {
+        commandLine.addParameter("--package-root=" + packageRoots[0].getPath());
+      }
     }
   }
   if (myDebuggingPort > 0) {
