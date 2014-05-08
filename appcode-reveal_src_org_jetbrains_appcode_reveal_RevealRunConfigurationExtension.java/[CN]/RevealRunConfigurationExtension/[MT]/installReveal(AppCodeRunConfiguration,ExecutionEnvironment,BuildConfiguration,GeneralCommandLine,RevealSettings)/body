@@ -1,0 +1,26 @@
+{
+  File libReveal=Reveal.getRevealLib();
+  if (libReveal == null || !libReveal.exists())   throw new ExecutionException("Reveal library not found");
+  Reveal.LOG.info("Reveal lib found at " + libReveal);
+  if (hasBundledRevealLib(buildConfiguration,libReveal)) {
+    return new File(commandLine.getExePath(),libReveal.getName());
+  }
+  BuildDestination destination=buildConfiguration.getDestination();
+  if (!destination.isIOSDevice()) {
+    return libReveal;
+  }
+  if (!settings.autoInstall) {
+    final int[] response=new int[1];
+    UIUtil.invokeAndWaitIfNeeded(new Runnable(){
+      @Override public void run(){
+        response[0]=Messages.showYesNoDialog(configuration.getProject(),"Project is not configured with Reveal library.<br><br>" + "Would you like to enable automatic library upload for this run configuration?","Reveal",Messages.getQuestionIcon());
+      }
+    }
+);
+    if (response[0] != Messages.YES)     return null;
+    settings.autoInstall=true;
+    setRevealSettings(configuration,settings);
+  }
+  AMDevice device=destination.getIOSDeviceSafe();
+  return installOnDevice(libReveal,buildConfiguration,commandLine,device,getBundleID(environment,buildConfiguration));
+}

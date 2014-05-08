@@ -1,0 +1,20 @@
+{
+  Project project=getEventProject(e);
+  if (project == null)   return;
+  RevealRunConfigurationExtension.RevealSettings settings=RevealRunConfigurationExtension.getRevealSettings(myConfiguration);
+  if (!settings.autoInject) {
+    int response=Messages.showYesNoDialog(project,"Reveal library was not injected.<br><br>" + "Would you like to enable automatic library injection for this run configuration?<br><br>" + "You'll need to relaunch the configuration after this change.","Reveal",Messages.getQuestionIcon());
+    if (response != Messages.YES)     return;
+    settings.autoInject=true;
+    RevealRunConfigurationExtension.setRevealSettings(myConfiguration,settings);
+    myDisabled=true;
+    return;
+  }
+  try {
+    Reveal.refreshReveal(myBundleID,getDeviceName(myDestination));
+  }
+ catch (  ExecutionException ex) {
+    Reveal.LOG.info(ex);
+    ExecutionUtil.handleExecutionError(project,myEnvironment.getExecutor().getToolWindowId(),myEnvironment.getRunProfile(),ex);
+  }
+}

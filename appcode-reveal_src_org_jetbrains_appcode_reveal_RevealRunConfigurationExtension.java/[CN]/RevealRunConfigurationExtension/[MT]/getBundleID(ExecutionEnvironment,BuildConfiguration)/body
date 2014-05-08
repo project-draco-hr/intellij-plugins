@@ -1,0 +1,12 @@
+{
+  String result=environment.getUserData(BUNDLE_ID_KEY);
+  if (result != null)   return result;
+  File product=buildConfiguration.getProductFile();
+  File plistFile=new File(product,"Info.plist");
+  Plist plist=PlistDriver.readAnyFormatSafe(plistFile);
+  if (plist == null)   throw new ExecutionException("Info.plist not found at " + plistFile);
+  result=plist.getString("CFBundleIdentifier");
+  if (result == null)   throw new ExecutionException("CFBundleIdentifier not found in " + plistFile);
+  environment.putUserData(BUNDLE_ID_KEY,result);
+  return result;
+}

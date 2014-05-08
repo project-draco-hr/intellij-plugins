@@ -1,0 +1,10 @@
+{
+  super.install(configuration,environment,buildConfiguration,commandLine);
+  if (!Reveal.isCompatible())   return;
+  RevealSettings settings=getRevealSettings(configuration);
+  if (!settings.autoInject)   return;
+  File toInject=installReveal(configuration,environment,buildConfiguration,commandLine,settings);
+  if (toInject == null)   return;
+  Reveal.LOG.info("Injecting Reveal lib: " + toInject);
+  CidrExecUtil.appendSearchPath(commandLine.getEnvironment(),EnvParameterNames.DYLD_INSERT_LIBRARIES,toInject.getPath());
+}

@@ -1,0 +1,11 @@
+{
+  File bundle=getRevealBundle();
+  if (bundle == null)   return null;
+  Plist plist=PlistDriver.readAnyFormatSafe(new File(bundle,"Contents/Info.plist"));
+  if (plist == null)   return null;
+  String version=plist.getString("CFBundleVersion");
+  if (version == null)   return null;
+  List<String> parts=StringUtil.split(version,".");
+  if (parts.isEmpty())   return null;
+  return new Version(StringUtil.parseInt(parts.get(0),0),parts.size() > 1 ? StringUtil.parseInt(parts.get(1),0) : 0,parts.size() > 2 ? StringUtil.parseInt(parts.get(2),0) : 0);
+}
