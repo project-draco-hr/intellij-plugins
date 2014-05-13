@@ -1,0 +1,32 @@
+{
+  final Ref<String> urlRef=Ref.create(null);
+  pane.addHyperlinkListener(new HyperlinkListener(){
+    @Override public void hyperlinkUpdate(    HyperlinkEvent e){
+      if (e.getEventType() == HyperlinkEvent.EventType.EXITED) {
+        urlRef.set(null);
+      }
+ else       if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
+        urlRef.set(e.getDescription());
+      }
+ else       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+        BrowserUtil.browse(e.getDescription());
+      }
+    }
+  }
+);
+  final CopyLinkAction copyLinkAction=new CopyLinkAction();
+  final OpenLinkInBrowser openLinkInBrowserAction=new OpenLinkInBrowser();
+  final DefaultActionGroup group=new DefaultActionGroup(openLinkInBrowserAction,copyLinkAction);
+  pane.addMouseListener(new PopupHandler(){
+    public void invokePopup(    Component comp,    int x,    int y){
+      String url=urlRef.get();
+      copyLinkAction.setUrl(url);
+      openLinkInBrowserAction.setUrl(url);
+      if (url != null) {
+        ActionPopupMenu popupMenu=ActionManager.getInstance().createActionPopupMenu(ActionPlaces.UNKNOWN,group);
+        popupMenu.getComponent().show(comp,x,y);
+      }
+    }
+  }
+);
+}

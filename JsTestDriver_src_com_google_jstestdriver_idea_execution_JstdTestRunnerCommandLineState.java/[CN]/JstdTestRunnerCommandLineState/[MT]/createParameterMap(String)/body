@@ -1,0 +1,28 @@
+{
+  Map<TestRunner.ParameterKey,String> parameters=Maps.newLinkedHashMap();
+  parameters.put(TestRunner.ParameterKey.SERVER_URL,serverUrl);
+  TestType testType=myRunSettings.getTestType();
+  if (testType == TestType.ALL_CONFIGS_IN_DIRECTORY) {
+    parameters.put(TestRunner.ParameterKey.ALL_CONFIGS_IN_DIRECTORY,myRunSettings.getDirectory());
+  }
+  List<VirtualFile> jstdConfigs=JstdSettingsUtil.collectJstdConfigs(myProject,myRunSettings);
+  if (jstdConfigs.isEmpty()) {
+    throw new ExecutionException("Can't find JsTestDriver configuration file.");
+  }
+  parameters.put(TestRunner.ParameterKey.CONFIG_FILES,joinJstdConfigs(jstdConfigs));
+  TestFileScope testFileScope=buildTestFileScope(myProject,myRunSettings);
+  if (!testFileScope.isAll()) {
+    parameters.put(TestRunner.ParameterKey.TESTS,testFileScope.serialize());
+  }
+  if (myCoverageFilePath != null) {
+    parameters.put(TestRunner.ParameterKey.COVERAGE_OUTPUT_FILE,myCoverageFilePath);
+    if (!myRunSettings.getFilesExcludedFromCoverage().isEmpty()) {
+      String excludedPaths=EscapeUtils.join(myRunSettings.getFilesExcludedFromCoverage(),',');
+      parameters.put(TestRunner.ParameterKey.COVERAGE_EXCLUDED_PATHS,excludedPaths);
+    }
+  }
+  if (myDebug) {
+    parameters.put(TestRunner.ParameterKey.DEBUG,Boolean.TRUE.toString());
+  }
+  return parameters;
+}

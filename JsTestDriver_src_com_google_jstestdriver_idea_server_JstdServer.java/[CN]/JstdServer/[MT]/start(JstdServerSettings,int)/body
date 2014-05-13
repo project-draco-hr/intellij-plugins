@@ -1,0 +1,14 @@
+{
+  GeneralCommandLine commandLine=createCommandLine(settings);
+  OSProcessHandler processHandler;
+  try {
+    processHandler=new KillableColoredProcessHandler(commandLine);
+  }
+ catch (  ExecutionException e) {
+    throw new IOException("Cannot start " + formatName(id,null) + ".\nCommand: "+ commandLine.getCommandLineString(),e);
+  }
+  LOG.info(formatName(id,processHandler.getProcess()) + " started successfully: " + commandLine.getCommandLineString());
+  ProcessTerminatedListener.attach(processHandler);
+  processHandler.setShouldDestroyProcessRecursively(true);
+  return processHandler;
+}

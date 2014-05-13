@@ -1,22 +1,8 @@
 {
-  if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-    JstdServerState jstdServerState=JstdServerState.getInstance();
-    if (!jstdServerState.isServerRunning()) {
-      ServerStartAction.asyncStartServer(myProject,new Runnable(){
-        @Override public void run(){
-          UIUtil.invokeLaterIfNeeded(new Runnable(){
-            @Override public void run(){
-              JstdToolWindowManager manager=JstdToolWindowManager.getInstance(myProject);
-              ToolWindow toolWindow=manager.registerToolWindowIfNeeded();
-              if (toolWindow != null) {
-                toolWindow.show(null);
-              }
-            }
-          }
-);
-        }
-      }
-);
-    }
+  if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED && START_LOCAL_SERVER_HREF.equals(e.getDescription())) {
+    JstdToolWindowManager manager=JstdToolWindowManager.getInstance(myProject);
+    manager.setAvailable(true);
+    manager.show();
+    manager.restartServer();
   }
 }

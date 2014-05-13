@@ -1,0 +1,24 @@
+{
+  myPortField=new PortField();
+  myBrowserTimeoutSpinner=createBrowserTimeoutSpinner();
+  myRunnerModeComboBox=new ComboBox(JstdServerSettings.RunnerMode.values());
+  JPanel form=FormBuilder.createFormBuilder().setAlignLabelOnRight(true).addLabeledComponent("&Port:",myPortField).addLabeledComponent("&Browser timeout:",addMillisDescription(myBrowserTimeoutSpinner)).addLabeledComponent("&Runner mode:",myRunnerModeComboBox).getPanel();
+  JPanel result=createResultPanel(form);
+  result.setBorder(BorderFactory.createEmptyBorder(GAP,GAP,GAP,GAP));
+  myTabInfo=new TabInfo(new JBScrollPane(result));
+  myTabInfo.setText("Settings");
+  setSettings(JstdServerSettingsManager.loadSettings());
+  JstdServerSettingsManager.addListener(new JstdServerSettingsManager.Listener(){
+    @Override public void onChanged(    @NotNull JstdServerSettings settings){
+      setSettings(settings);
+    }
+  }
+,parentDisposable);
+  Disposer.register(parentDisposable,new Disposable(){
+    @Override public void dispose(){
+      saveSettings();
+    }
+  }
+);
+  listenForChanges();
+}

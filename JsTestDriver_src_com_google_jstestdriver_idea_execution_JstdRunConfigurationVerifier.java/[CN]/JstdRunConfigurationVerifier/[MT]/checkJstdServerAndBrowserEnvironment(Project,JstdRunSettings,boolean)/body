@@ -2,27 +2,28 @@
   if (settings.isExternalServerType()) {
     return;
   }
-  JstdServerState jstdServerState=JstdServerState.getInstance();
-  if (!jstdServerState.isServerRunning()) {
+  JstdServer server=JstdServerRegistry.getInstance().getServer();
+  if (server == null || !server.isProcessRunning()) {
     String browserMessage=debug ? "Firefox or Chrome" : "a browser";
-    throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is not running.<br>" + "<a href=\"\">Start a local server</a>, capture " + browserMessage + " and try again.");
+    String link=formatLink(JstdSlaveBrowserIsNotReadyExecutionException.START_LOCAL_SERVER_HREF,"Start a local server");
+    throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is not running.<br>" + link + ", capture "+ browserMessage+ " and try again.");
   }
   if (debug) {
-    Collection<BrowserInfo> capturedBrowsers=jstdServerState.getCapturedBrowsers();
+    Collection<JstdBrowserInfo> capturedBrowsers=server.getCapturedBrowsers();
     boolean ok=false;
-    for (    BrowserInfo browserInfo : capturedBrowsers) {
+    for (    JstdBrowserInfo browserInfo : capturedBrowsers) {
       if (JSDebugEngine.findByBrowserName(browserInfo.getName()) != null) {
         ok=true;
         break;
       }
     }
     if (!ok) {
-      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"Debug is available in Firefox or Chrome only.\n" + "Please <a href=\"\">capture</a> one of these browsers and try again.");
+      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"Debug is available in Firefox or Chrome only.\n" + "Please capture one of these browsers and try again.");
     }
   }
  else {
-    if (jstdServerState.getCapturedBrowsers().isEmpty()) {
-      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is running without captured browsers.\n" + "Please <a href=\"\">capture</a> a browser and try again.");
+    if (server.getCapturedBrowsers().isEmpty()) {
+      throw new JstdSlaveBrowserIsNotReadyExecutionException(project,"JsTestDriver local server is running without captured browsers.\n" + "Please capture a browser and try again.");
     }
   }
   ensureJstdToolWindowRegistered(project);

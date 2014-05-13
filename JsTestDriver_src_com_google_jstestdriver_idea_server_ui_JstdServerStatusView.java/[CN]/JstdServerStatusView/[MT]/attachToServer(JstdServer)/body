@@ -1,0 +1,22 @@
+{
+  setInfoBodyHtml("Starting up...");
+  server.addLifeCycleListener(new JstdServerLifeCycleAdapter(){
+    @Override public void onServerStarted(){
+      JstdServerSettings settings=server.getSettings();
+      String url="http://127.0.0.1:" + settings.getPort() + "/capture";
+      setInfoBodyHtml("To capture a browser open <a href='" + url + "'>"+ url+ "</a>");
+      updateCapturedBrowsersCount(server);
+    }
+    @Override public void onServerStopped(){
+      setInfoBodyHtml("Not running");
+      updateCapturedBrowsersCount(server);
+    }
+    @Override public void onBrowserCaptured(    @NotNull JstdBrowserInfo info){
+      updateCapturedBrowsersCount(server);
+    }
+    @Override public void onBrowserPanicked(    @NotNull JstdBrowserInfo info){
+      updateCapturedBrowsersCount(server);
+    }
+  }
+,myDisposable);
+}

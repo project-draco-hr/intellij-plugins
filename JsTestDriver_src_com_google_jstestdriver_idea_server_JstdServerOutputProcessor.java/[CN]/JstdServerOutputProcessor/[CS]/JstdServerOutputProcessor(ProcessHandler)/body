@@ -1,0 +1,22 @@
+{
+  processHandler.addProcessListener(new ProcessAdapter(){
+    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
+      String text=event.getText();
+      if (outputType != ProcessOutputTypes.SYSTEM && outputType != ProcessOutputTypes.STDERR) {
+        if (handleLineAsEvent(text)) {
+          return;
+        }
+      }
+synchronized (myTexts) {
+        myTexts.add(Pair.create(text,outputType));
+        if (myTexts.size() > LIMIT) {
+          myTexts.poll();
+        }
+      }
+      for (      JstdServerOutputListener listener : myListeners) {
+        listener.onOutputAvailable(text,outputType);
+      }
+    }
+  }
+);
+}

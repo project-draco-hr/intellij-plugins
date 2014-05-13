@@ -1,0 +1,20 @@
+{
+  int id=NEXT_ID.getAndIncrement();
+  mySettings=settings;
+  myProcessHandler=start(settings,id);
+  myProcessHandler.startNotify();
+  myName=formatName(id,myProcessHandler.getProcess());
+  myOutputProcessor=new JstdServerOutputProcessor(myProcessHandler);
+  myLifeCycleManager=new JstdServerLifeCycleManager();
+  myOutputProcessor.addListener(myLifeCycleManager);
+  myDisposable=new MyDisposable();
+  myProcessHandler.addProcessListener(new ProcessAdapter(){
+    @Override public void processTerminated(    ProcessEvent event){
+      LOG.info(myName + " terminated with exit code " + event.getExitCode());
+      myLifeCycleManager.onTerminated();
+      Disposer.dispose(myDisposable);
+    }
+  }
+);
+  Disposer.register(ApplicationManager.getApplication(),myDisposable);
+}

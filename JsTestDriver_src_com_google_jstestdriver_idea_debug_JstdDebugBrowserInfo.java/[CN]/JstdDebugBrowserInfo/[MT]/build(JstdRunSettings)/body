@@ -1,21 +1,21 @@
 {
-  JstdServerState jstdServerState=JstdServerState.getInstance();
-  CapturedBrowsers browsers=jstdServerState.getCaptured();
-  if (browsers == null) {
+  JstdServer server=JstdServerRegistry.getInstance().getServer();
+  if (server == null || !server.isProcessRunning()) {
     return null;
   }
+  Collection<JstdBrowserInfo> capturedBrowsers=server.getCapturedBrowsers();
   List<JstdDebugBrowserInfo> debugBrowserInfos=new SmartList<JstdDebugBrowserInfo>();
-  for (  SlaveBrowser slaveBrowser : browsers.getSlaveBrowsers()) {
-    Pair<JSDebugEngine,WebBrowser> engine=JSDebugEngine.findByBrowserName(slaveBrowser.getBrowserInfo().getName());
+  for (  JstdBrowserInfo browserInfo : capturedBrowsers) {
+    Pair<JSDebugEngine,WebBrowser> engine=JSDebugEngine.findByBrowserName(browserInfo.getName());
     if (engine != null) {
-      debugBrowserInfos.add(new JstdDebugBrowserInfo(engine,slaveBrowser.getCaptureUrl(),slaveBrowser));
+      debugBrowserInfos.add(new JstdDebugBrowserInfo(engine,server.getSettings(),browserInfo));
     }
   }
   if (debugBrowserInfos.size() == 1) {
     return debugBrowserInfos.get(0);
   }
   if (debugBrowserInfos.size() > 1) {
-    WebBrowser preferredBrowser=settings.getPreferredDebugBrowser();
+    WebBrowser preferredBrowser=runSettings.getPreferredDebugBrowser();
     for (    JstdDebugBrowserInfo info : debugBrowserInfos) {
       if (preferredBrowser.equals(info.getBrowser())) {
         return info;

@@ -1,0 +1,21 @@
+{
+  if (line.startsWith(JstdServerConstants.EVENT_PREFIX) && line.endsWith(JstdServerConstants.EVENT_SUFFIX)) {
+    String json=line.substring(JstdServerConstants.EVENT_PREFIX.length(),line.length() - JstdServerConstants.EVENT_SUFFIX.length());
+    LOG.info("Processing JsTestDriver event " + json);
+    try {
+      JsonParser jsonParser=new JsonParser();
+      JsonElement jsonElement=jsonParser.parse(json);
+      if (jsonElement.isJsonObject()) {
+        fireEvent(jsonElement.getAsJsonObject());
+      }
+ else {
+        LOG.warn("Unexpected JsTestDriver event. Json root object expected. " + json);
+      }
+    }
+ catch (    Exception e) {
+      LOG.warn("Cannot parse message from JsTestDriver server:" + json);
+    }
+    return true;
+  }
+  return false;
+}
