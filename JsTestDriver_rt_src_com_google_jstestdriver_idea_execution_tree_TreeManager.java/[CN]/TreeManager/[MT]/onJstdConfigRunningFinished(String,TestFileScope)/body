@@ -4,7 +4,7 @@
     for (    TestCaseNode testCaseNode : browserNode.getChildren()) {
       for (      TestNode testNode : testCaseNode.getChildren()) {
         TCMessage testFailedMessage=TC.newTestFailedMessage(testNode);
-        String reason=testsRunException != null ? "JsTestDriver crash" : "unknown reason";
+        String reason=errorMessage != null ? "JsTestDriver crash" : "unknown reason";
         testFailedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,"Can't execute test due to " + reason + ".");
         testFailedMessage.addAttribute(TCAttribute.IS_TEST_ERROR,"yes");
         printTCMessage(testFailedMessage);
@@ -15,13 +15,12 @@
     TCMessage browserFinishedMessage=TC.newTestSuiteFinishedMessage(browserNode);
     printTCMessage(browserFinishedMessage);
   }
-  if (testsRunException != null) {
+  if (errorMessage != null) {
     ConfigErrorNode configErrorNode=new ConfigErrorNode(configNode);
     TCMessage startedMessage=configErrorNode.createStartedMessage();
     printTCMessage(startedMessage);
     TCMessage finishedMessage=TC.newConfigErrorFinishedMessage(configErrorNode);
-    String fullMessage=formatMessage(testsRunException.getMessage(),testsRunException.getCause());
-    finishedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,fullMessage);
+    finishedMessage.addAttribute(TCAttribute.EXCEPTION_MESSAGE,errorMessage);
     printTCMessage(finishedMessage);
   }
  else   if (configNode.getChildren().isEmpty()) {

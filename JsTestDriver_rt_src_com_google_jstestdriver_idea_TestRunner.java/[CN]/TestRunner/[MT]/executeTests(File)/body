@@ -12,11 +12,26 @@
  catch (  ConfigurationException ce) {
     exception=ce;
   }
+catch (  RuntimeException re) {
+    String haltErrorMessage=getErrorMessageIfNoServerRunning(re,mySettings);
+    if (haltErrorMessage == null) {
+      haltErrorMessage=getErrorMessageIfNoCapturedBrowsersFound(re,mySettings);
+    }
+    if (haltErrorMessage != null) {
+      myTreeManager.onJstdConfigRunningFinished(haltErrorMessage,mySettings.getTestFileScope());
+      System.exit(1);
+    }
+    exception=new Exception("Can't run tests.",re);
+  }
 catch (  Exception e) {
-    exception=new Exception("Can't run tests. Details:",e);
+    exception=new Exception("Can't run tests.",e);
   }
  finally {
-    myTreeManager.onJstdConfigRunningFinished(exception,mySettings.getTestFileScope());
+    String errorMessage=null;
+    if (exception != null) {
+      errorMessage=TreeManager.formatMessage(exception.getMessage(),exception.getCause());
+    }
+    myTreeManager.onJstdConfigRunningFinished(errorMessage,mySettings.getTestFileScope());
     nullSystemOut.close();
     System.setOut(myTreeManager.getSystemOutStream());
   }
