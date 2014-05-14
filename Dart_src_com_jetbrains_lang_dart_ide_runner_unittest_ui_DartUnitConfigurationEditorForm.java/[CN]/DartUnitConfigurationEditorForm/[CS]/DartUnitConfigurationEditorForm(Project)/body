@@ -17,22 +17,17 @@
     }
   }
 );
-  myWorkingDirectory.getButton().addActionListener(new ActionListener(){
-    @Override public void actionPerformed(    final ActionEvent event){
-      final VirtualFile virtualFile=FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(),project,null);
-      if (virtualFile != null) {
-        final String path=FileUtil.toSystemDependentName(virtualFile.getPath());
-        myWorkingDirectory.setText(path);
-      }
+  myWorkingDirectory.addBrowseFolderListener(ExecutionBundle.message("select.working.directory.message"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myScopeCombo.setModel(new EnumComboBoxModel<Scope>(Scope.class));
+  myScopeCombo.setRenderer(new ListCellRendererWrapper<Scope>(){
+    @Override public void customize(    final JList list,    final Scope value,    final int index,    final boolean selected,    final boolean hasFocus){
+      setText(StringUtil.capitalize(value.toString().toLowerCase(Locale.US)));
     }
   }
 );
-  for (  DartUnitRunnerParameters.Scope scope : DartUnitRunnerParameters.Scope.values()) {
-    myScopeCombo.addItem(StringUtil.capitalize(scope.toString().toLowerCase()));
-  }
   myScopeCombo.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      updateScope(getScope());
+      onScopeChanged();
     }
   }
 );
