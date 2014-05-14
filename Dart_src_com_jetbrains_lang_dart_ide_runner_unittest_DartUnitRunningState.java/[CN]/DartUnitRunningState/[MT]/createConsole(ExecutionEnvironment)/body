@@ -2,7 +2,12 @@
   final Project project=env.getProject();
   final DartUnitRunConfiguration runConfiguration=(DartUnitRunConfiguration)env.getRunProfile();
   final DartUnitRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
-  final DartConsoleFilter filter=new DartConsoleFilter(project,LocalFileSystem.getInstance().findFileByPath(runnerParameters.getFilePath()));
+  VirtualFile file=null;
+  final String filePath=runnerParameters.getFilePath();
+  if (filePath != null) {
+    file=LocalFileSystem.getInstance().findFileByPath(filePath);
+  }
+  final DartConsoleFilter filter=new DartConsoleFilter(project,file);
   TestConsoleProperties testConsoleProperties=new SMTRunnerConsoleProperties(runConfiguration,DART_FRAMEWORK_NAME,env.getExecutor());
   testConsoleProperties.setUsePredefinedMessageFilter(false);
   SMTRunnerConsoleView smtConsoleView=SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(DART_FRAMEWORK_NAME,testConsoleProperties,env,new DartTestLocationProvider(),true,null);
