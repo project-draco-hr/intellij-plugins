@@ -4,14 +4,14 @@
   final VirtualFile realFile=filePath == null ? null : VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.pathToUrl(filePath));
   commandLine.setExePath(DartSdkUtil.getDartExePath(myDartSdk));
   final String workingDirectory=myUnitParameters.getWorkingDirectory();
-  if (workingDirectory != null) {
+  if (!StringUtil.isEmptyOrSpaces(workingDirectory)) {
     commandLine.setWorkDirectory(workingDirectory);
   }
  else   if (realFile != null) {
     commandLine.setWorkDirectory(realFile.getParent().getPath());
   }
-  commandLine.setPassParentEnvironment(true);
   commandLine.getEnvironment().putAll(myUnitParameters.getEnvs());
+  commandLine.setPassParentEnvironment(myUnitParameters.isIncludeParentEnvs());
   setupUserProperties(commandLine);
   return commandLine;
 }
