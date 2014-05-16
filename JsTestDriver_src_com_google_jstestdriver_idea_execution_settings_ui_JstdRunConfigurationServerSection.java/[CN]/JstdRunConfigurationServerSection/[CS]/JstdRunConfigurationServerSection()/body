@@ -1,0 +1,27 @@
+{
+  myInternalServerRadioButton=new JRadioButton("\u001BRunning in IDE");
+  myInternalServerRadioButton.addActionListener(createSwitchServerTypeAction(ServerType.INTERNAL));
+  myExternalServerRadioButton=new JRadioButton("\u001BAt address:");
+  myExternalServerRadioButton.addActionListener(createSwitchServerTypeAction(ServerType.EXTERNAL));
+  ButtonGroup group=new ButtonGroup();
+  group.add(myExternalServerRadioButton);
+  group.add(myInternalServerRadioButton);
+  myExternalServerUrl=new JTextField();
+  myTestConnectionButton=new JButton("\u001BTest Connection");
+  myTestConnectionButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      testConnectionToExternalServer();
+    }
+  }
+);
+  myTestConnectionResult=new JLabel();
+  myExternalServerPanel=createExternalServerPanel(myExternalServerUrl,myTestConnectionButton,myTestConnectionResult);
+  JPanel panel=SwingHelper.newVerticalPanel(Component.LEFT_ALIGNMENT,myInternalServerRadioButton,myExternalServerRadioButton,Box.createVerticalStrut(3),myExternalServerPanel);
+  myRoot=SwingHelper.wrapWithHorizontalStretch(panel);
+  SwingUtils.addTextChangeListener(myExternalServerUrl,new TextChangeListener(){
+    @Override public void textChanged(    String oldText,    @NotNull String newText){
+      myTestConnectionResult.setText("");
+    }
+  }
+);
+}
