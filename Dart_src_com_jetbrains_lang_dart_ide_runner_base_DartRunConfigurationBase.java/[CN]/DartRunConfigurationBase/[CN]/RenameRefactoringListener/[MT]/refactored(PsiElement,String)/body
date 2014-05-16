@@ -1,6 +1,11 @@
 {
   final boolean generatedName=getName().equals(suggestedName());
-  setFilePath(getNewPath(element));
+  final boolean updateWorkingDir=getFilePath() != null && PathUtil.getParentPath(getFilePath()).equals(getWorkingDirectory());
+  final String newPath=getNewPathAndUpdateAffectedPath(element);
+  setFilePath(newPath);
+  if (updateWorkingDir) {
+    setWorkingDirectory(PathUtil.getParentPath(newPath));
+  }
   if (generatedName) {
     setGeneratedName();
   }

@@ -1,21 +1,17 @@
 {
-  if (element instanceof PsiFileSystemItem) {
-    final String filePath=getFilePath();
-    if (filePath != null) {
-      final VirtualFile changedElement=((PsiFileSystemItem)element).getVirtualFile();
-      if (changedElement != null) {
-        final String affectedPath=changedElement.getPath();
-        if (element instanceof PsiFile) {
-          if (filePath.equals(affectedPath)) {
-            return new RenameRefactoringListener(filePath,affectedPath);
-          }
-        }
-        if (element instanceof PsiDirectory) {
-          if (filePath.startsWith(affectedPath)) {
-            return new RenameRefactoringListener(filePath,affectedPath);
-          }
-        }
-      }
+  if (!(element instanceof PsiFileSystemItem))   return null;
+  final String filePath=getFilePath();
+  final VirtualFile file=filePath == null ? null : ((PsiFileSystemItem)element).getVirtualFile();
+  if (file == null)   return null;
+  final String affectedPath=file.getPath();
+  if (element instanceof PsiFile) {
+    if (filePath.equals(affectedPath)) {
+      return new RenameRefactoringListener(affectedPath);
+    }
+  }
+  if (element instanceof PsiDirectory) {
+    if (filePath.startsWith(affectedPath + "/")) {
+      return new RenameRefactoringListener(affectedPath);
     }
   }
   return null;
