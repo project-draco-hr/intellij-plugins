@@ -37,7 +37,9 @@
       if (arguments.length > 0) {
         JSExpression argument=arguments[0];
         if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
-          visitor.storeAdditionalData(argument,AngularInjectionDelimiterIndex.INDEX_ID.toString(),command,argument.getTextOffset(),StringUtil.unquoteString(argument.getText()));
+          String interpolation=StringUtil.unquoteString(argument.getText());
+          if ("//".equals(interpolation))           return;
+          visitor.storeAdditionalData(argument,AngularInjectionDelimiterIndex.INDEX_ID.toString(),command,argument.getTextOffset(),interpolation);
         }
       }
     }
