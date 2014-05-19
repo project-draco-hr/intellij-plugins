@@ -1,0 +1,12 @@
+{
+  super(env);
+  myRunnerParameters=runnerParameters;
+  myDebuggingPort=debuggingPort;
+  final TextConsoleBuilder builder=getConsoleBuilder();
+  if (builder instanceof TextConsoleBuilderImpl) {
+    ((TextConsoleBuilderImpl)builder).setUsePredefinedMessageFilter(false);
+  }
+  final String path=myRunnerParameters.getFilePath();
+  final VirtualFile contextFile=StringUtil.isEmptyOrSpaces(path) ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  builder.addFilter(new DartConsoleFilter(env.getProject(),contextFile));
+}

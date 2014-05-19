@@ -1,2 +1,22 @@
 {
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final DartCommandLineRunConfiguration configuration=(DartCommandLineRunConfiguration)env.getRunProfile();
+  final String filePath=configuration.getFilePath();
+  if (StringUtil.isEmptyOrSpaces(filePath)) {
+    throw new ExecutionException(DartBundle.message("path.to.dart.file.not.set"));
+  }
+  final VirtualFile mainDartFile=LocalFileSystem.getInstance().findFileByPath(filePath);
+  if (mainDartFile == null) {
+    throw new ExecutionException(DartBundle.message("dart.file.not.found",filePath));
+  }
+  final int debuggingPort=NetUtils.tryToFindAvailableSocketPort();
+  final DartCommandLineRunningState state=new DartCommandLineRunningState(env,configuration.getRunnerParameters(),debuggingPort);
+  final ExecutionResult executionResult=state.execute(env.getExecutor(),this);
+  final XDebugSession debugSession=XDebuggerManager.getInstance(project).startSession(this,env,contentToReuse,new XDebugProcessStarter(){
+    @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session) throws ExecutionException {
+      return new DartCommandLineDebugProcess(session,debuggingPort,executionResult,mainDartFile);
+    }
+  }
+);
+  return debugSession.getRunContentDescriptor();
 }
