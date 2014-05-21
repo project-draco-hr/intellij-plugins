@@ -1,0 +1,16 @@
+{
+  final String executorId=env.getExecutor().getId();
+  if (DefaultRunExecutor.EXECUTOR_ID.equals(executorId)) {
+    return super.doExecute(project,state,contentToReuse,env);
+  }
+  if (DefaultDebugExecutor.EXECUTOR_ID.equals(executorId)) {
+    try {
+      return doExecuteDartDebug(state,contentToReuse,env);
+    }
+ catch (    RuntimeConfigurationError e) {
+      throw new ExecutionException(e);
+    }
+  }
+  LOG.error("Unexpected executor id: " + executorId);
+  return null;
+}

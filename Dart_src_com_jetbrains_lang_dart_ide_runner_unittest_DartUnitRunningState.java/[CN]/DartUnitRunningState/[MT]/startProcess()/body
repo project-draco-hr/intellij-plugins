@@ -1,6 +1,10 @@
 {
-  GeneralCommandLine commandLine=getCommand();
-  final OSProcessHandler processHandler=new OSProcessHandler(commandLine.createProcess(),commandLine.getCommandLineString());
-  ProcessTerminatedListener.attach(processHandler,getEnvironment().getProject());
-  return processHandler;
+  final String testRunnerPath;
+  try {
+    testRunnerPath=createTestRunnerFile();
+  }
+ catch (  IOException e) {
+    throw new ExecutionException(DartBundle.message("failed.to.create.test.runner",e.getMessage()));
+  }
+  return doStartProcess(testRunnerPath);
 }

@@ -1,0 +1,20 @@
+{
+  super(env);
+  myRunnerParameters=((DartRunConfigurationBase)env.getRunProfile()).getRunnerParameters();
+  try {
+    myRunnerParameters.check(env.getProject());
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e);
+  }
+  final TextConsoleBuilder builder=getConsoleBuilder();
+  if (builder instanceof TextConsoleBuilderImpl) {
+    ((TextConsoleBuilderImpl)builder).setUsePredefinedMessageFilter(false);
+  }
+  try {
+    builder.addFilter(new DartConsoleFilter(env.getProject(),myRunnerParameters.getDartFile()));
+  }
+ catch (  RuntimeConfigurationError e) {
+    builder.addFilter(new DartConsoleFilter(env.getProject(),null));
+  }
+}

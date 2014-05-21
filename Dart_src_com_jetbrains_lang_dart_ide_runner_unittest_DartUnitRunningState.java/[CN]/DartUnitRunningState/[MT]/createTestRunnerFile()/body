@@ -1,0 +1,16 @@
+{
+  final File file=new File(FileUtil.getTempDirectory(),UNIT_CONFIG_FILE_NAME);
+  if (!file.exists()) {
+    file.createNewFile();
+  }
+  final DartUnitRunnerParameters.Scope scope=((DartUnitRunnerParameters)myRunnerParameters).getScope();
+  final String name=((DartUnitRunnerParameters)myRunnerParameters).getTestName();
+  String runnerCode=getRunnerCode();
+  runnerCode=runnerCode.replaceFirst("DART_UNITTEST","package:unittest/unittest.dart");
+  runnerCode=runnerCode.replaceFirst("NAME",StringUtil.notNullize(name));
+  runnerCode=runnerCode.replaceFirst("SCOPE",scope.toString());
+  final String filePath=myRunnerParameters.getFilePath();
+  runnerCode=runnerCode.replaceFirst("TEST_FILE_PATH",filePath == null ? "" : pathToDartUrl(filePath));
+  FileUtil.writeToFile(file,runnerCode);
+  return file.getAbsolutePath();
+}

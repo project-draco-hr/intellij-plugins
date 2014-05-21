@@ -1,0 +1,19 @@
+{
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
+    throw new RuntimeConfigurationError(DartBundle.message("dart.sdk.is.not.configured"),new Runnable(){
+      public void run(){
+        ShowSettingsUtil.getInstance().showSettingsDialog(project,DartConfigurable.DART_SETTINGS_PAGE_NAME);
+      }
+    }
+);
+  }
+  getDartFile();
+  final String workDirPath=getWorkingDirectory();
+  if (!StringUtil.isEmptyOrSpaces(workDirPath)) {
+    final VirtualFile workDir=LocalFileSystem.getInstance().findFileByPath(workDirPath);
+    if (workDir == null || !workDir.isDirectory()) {
+      throw new RuntimeConfigurationError(DartBundle.message("work.dir.does.not.exist",FileUtil.toSystemDependentName(workDirPath)));
+    }
+  }
+}

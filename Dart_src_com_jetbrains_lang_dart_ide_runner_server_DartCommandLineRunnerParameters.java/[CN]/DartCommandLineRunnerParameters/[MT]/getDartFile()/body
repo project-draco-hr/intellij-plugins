@@ -1,0 +1,14 @@
+{
+  final String filePath=getFilePath();
+  if (StringUtil.isEmptyOrSpaces(filePath)) {
+    throw new RuntimeConfigurationError(DartBundle.message("path.to.dart.file.not.set"));
+  }
+  final VirtualFile dartFile=LocalFileSystem.getInstance().findFileByPath(filePath);
+  if (dartFile == null || dartFile.isDirectory()) {
+    throw new RuntimeConfigurationError(DartBundle.message("dart.file.not.found",FileUtil.toSystemDependentName(filePath)));
+  }
+  if (dartFile.getFileType() != DartFileType.INSTANCE) {
+    throw new RuntimeConfigurationError(DartBundle.message("not.a.dart.file",FileUtil.toSystemDependentName(filePath)));
+  }
+  return dartFile;
+}

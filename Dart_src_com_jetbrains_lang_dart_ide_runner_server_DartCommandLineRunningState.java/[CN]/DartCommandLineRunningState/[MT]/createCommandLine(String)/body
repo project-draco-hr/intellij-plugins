@@ -1,0 +1,22 @@
+{
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
+    throw new ExecutionException(DartBundle.message("dart.sdk.is.not.configured"));
+  }
+  final String dartExePath=DartSdkUtil.getDartExePath(sdk);
+  final VirtualFile dartFile;
+  try {
+    dartFile=myRunnerParameters.getDartFile();
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e);
+  }
+  final String workingDir=StringUtil.isEmptyOrSpaces(myRunnerParameters.getWorkingDirectory()) ? dartFile.getParent().getPath() : myRunnerParameters.getWorkingDirectory();
+  final GeneralCommandLine commandLine=new GeneralCommandLine();
+  commandLine.setExePath(dartExePath);
+  commandLine.setWorkDirectory(workingDir);
+  commandLine.getEnvironment().putAll(myRunnerParameters.getEnvs());
+  commandLine.setPassParentEnvironment(myRunnerParameters.isIncludeParentEnvs());
+  setupParameters(getEnvironment().getProject(),commandLine,myRunnerParameters,myDebuggingPort,overriddenMainFilePath);
+  return commandLine;
+}
