@@ -1,0 +1,26 @@
+{
+  File libRevealInTempDir;
+  try {
+    File tempDir=FileUtil.createTempDirectory("libReveal",null);
+    libRevealInTempDir=new File(tempDir,libReveal.getName());
+    FileUtil.copy(libReveal,libRevealInTempDir);
+  }
+ catch (  IOException e) {
+    throw new ExecutionException("Cannot create a temporary copy of Reveal library",e);
+  }
+  Reveal.LOG.info("Reading executable signature from " + mainExecutable);
+  String signature=runCodesign(mainExecutable.getParent(),"Cannot sign Reveal library","/usr/bin/codesign","--verbose=2","--display",mainExecutable.getPath()).getStderr();
+  String identity;
+  Matcher matcher=AUTHORITY_PATTERN.matcher(signature);
+  if (matcher.find()) {
+    identity=matcher.group(1);
+  }
+ else {
+    identity=buildConfiguration.getBuildSetting("CODE_SIGN_IDENTITY").getString();
+    Reveal.LOG.info("Executable signature not found, using the default: " + identity);
+  }
+  Reveal.LOG.info("Signing " + libRevealInTempDir + " with "+ identity);
+  runCodesign(libRevealInTempDir.getParent(),"Cannot sign Reveal library.\n" + "Please remove expired certificates from Kaychain","/usr/bin/codesign","-fs",identity,libRevealInTempDir.getPath());
+  AMDeviceUtil.transferPathToApplicationBundle(device,libRevealInTempDir.getParent(),"/tmp",bundleId);
+  return new File(new File(commandLine.getExePath()).getParentFile().getParentFile(),"tmp/" + libRevealInTempDir.getParentFile().getName() + "/"+ libRevealInTempDir.getName());
+}
