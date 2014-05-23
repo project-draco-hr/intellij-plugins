@@ -8,19 +8,28 @@
  catch (  IOException e) {
     throw new ExecutionException("Cannot create a temporary copy of Reveal library",e);
   }
-  Reveal.LOG.info("Reading executable signature from " + mainExecutable);
-  String signature=runCodesign(mainExecutable.getParent(),"Cannot sign Reveal library","/usr/bin/codesign","--verbose=2","--display",mainExecutable.getPath()).getStderr();
-  String identity;
-  Matcher matcher=AUTHORITY_PATTERN.matcher(signature);
-  if (matcher.find()) {
-    identity=matcher.group(1);
+  String signature=null;
+  try {
+    File tmpDir=FileUtil.createTempDirectory("revealCodesign",null);
+    try {
+      Reveal.LOG.info("Reading executable signature from " + mainExecutable);
+      runTool(tmpDir.getPath(),"Cannot sign Reveal library","/usr/bin/codesign","-d","--extract-certificates",mainExecutable.getPath()).getStderr();
+      Reveal.LOG.info("Reading fingerprint from " + new File(tmpDir,"codesign0"));
+      String fingerprint=runTool(tmpDir.getPath(),"Cannot read certificate fingerprint using openssl","/usr/bin/openssl","x509","-inform","der","-in","codesign0","-fingerprint","-noout").getStdout();
+      signature=readFingerprint(fingerprint);
+    }
+  finally {
+      FileUtil.delete(tmpDir);
+    }
   }
- else {
-    identity=buildConfiguration.getBuildSetting("CODE_SIGN_IDENTITY").getString();
-    Reveal.LOG.info("Executable signature not found, using the default: " + identity);
+ catch (  IOException ignore) {
   }
-  Reveal.LOG.info("Signing " + libRevealInTempDir + " with "+ identity);
-  runCodesign(libRevealInTempDir.getParent(),"Cannot sign Reveal library.\n" + "Please remove expired certificates from Kaychain","/usr/bin/codesign","-fs",identity,libRevealInTempDir.getPath());
+  if (signature == null) {
+    signature=buildConfiguration.getBuildSetting("CODE_SIGN_IDENTITY").getString();
+    Reveal.LOG.warn("Executable signature not found, using the default: " + signature);
+  }
+  Reveal.LOG.info("Signing " + libRevealInTempDir + " with "+ signature);
+  runTool(libRevealInTempDir.getParent(),"Cannot sign Reveal library." + "/usr/bin/codesign","-fs",signature,libRevealInTempDir.getPath());
   AMDeviceUtil.transferPathToApplicationBundle(device,libRevealInTempDir.getParent(),"/tmp",bundleId);
   return new File(new File(commandLine.getExePath()).getParentFile().getParentFile(),"tmp/" + libRevealInTempDir.getParentFile().getName() + "/"+ libRevealInTempDir.getName());
 }
