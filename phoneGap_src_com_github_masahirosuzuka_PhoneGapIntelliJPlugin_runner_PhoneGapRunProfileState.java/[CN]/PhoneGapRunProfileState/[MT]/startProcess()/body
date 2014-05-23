@@ -1,12 +1,10 @@
 {
   String projectDir=this.project.getBasePath();
-  if (this.phoneGapRunConfiguration.PHONEGAP_PLATFORM.equals("ripple")) {
+  if (PhoneGapSettings.PHONEGAP_PLATFORM_RIPPLE.equals(this.phoneGapRunConfiguration.getPlatform())) {
     try {
       File serverScript=new File(projectDir + "/" + "server.js");
       if (!serverScript.exists()) {
-        FileWriter fileWriter=new FileWriter(serverScript);
-        fileWriter.write("var http = require('http');\n" + "var url = require('url');\n" + "var path = require('path');\n"+ "var fs = require('fs');\n"+ "\n"+ "http.createServer(function(req, res) {\n"+ "  var webroot = 'www';\n"+ "  var uri = webroot + url.parse(req.url).pathname;\n"+ "  var fileName = path.join(process.cwd(), uri);\n"+ "\n"+ "  if (uri == 'www/') {\n"+ "    fileName = path.join(process.cwd(), 'www/index.html');\n"+ "  }\n"+ "\n"+ "  fs.readFile(fileName, function(err, file) {\n"+ "    if(err){\n"+ "      // 404\n"+ "      res.writeHead(404, {\"Content-Type\": \"text/plain\"});\n"+ "      res.write('404 not found\\n');\n"+ "      res.end();\n"+ "    } else {\n"+ "      // 200\n"+ "      var mimeType = 'text/plain';// Default mime-type\n"+ "      var extention = path.extname(fileName);\n"+ "      if (extention == '.html') {\n"+ "        mimeType = 'text/html';\n"+ "      } else if (extention == '.css') {\n"+ "        mimeType = 'text/css';\n"+ "      } else if (extention == '.js') {\n"+ "        mimeType = 'text/javascript';\n"+ "      }\n"+ "\n"+ "      res.writeHead(200, {\"Content-Type\": mimeType});\n"+ "      res.write(file);\n"+ "      res.end();\n"+ "    }\n"+ "  });\n"+ "\n"+ "}).listen(1337, '127.0.0.1');\n"+ "\n"+ "console.log('Server running at http://127.0.0.1:1337/');");
-        fileWriter.close();
+        writeScript(serverScript);
       }
     }
  catch (    Exception e) {
@@ -14,13 +12,11 @@
     }
     GeneralCommandLine commandLine=new GeneralCommandLine("node","server.js");
     commandLine.setWorkDirectory(projectDir);
-    OSProcessHandler handler=new OSProcessHandler(commandLine);
-    return handler;
+    return new OSProcessHandler(commandLine);
   }
  else {
-    GeneralCommandLine commandLine=new GeneralCommandLine(this.phoneGapRunConfiguration.PHONEGAP_PATH,this.phoneGapRunConfiguration.PHONEGAP_COMMAND,this.phoneGapRunConfiguration.PHONEGAP_PLATFORM);
+    GeneralCommandLine commandLine=new GeneralCommandLine(phoneGapRunConfiguration.getExecutableType().getPath(),phoneGapRunConfiguration.getCommand(),phoneGapRunConfiguration.getPlatform());
     commandLine.setWorkDirectory(projectDir);
-    OSProcessHandler handler=new OSProcessHandler(commandLine);
-    return handler;
+    return new OSProcessHandler(commandLine);
   }
 }
