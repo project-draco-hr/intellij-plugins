@@ -6,18 +6,10 @@
     final DartUrlResolver dartUrlResolver=DartUrlResolver.getInstance(getProject(),file);
     final int slashIndex=url.indexOf('/');
     if (slashIndex > 0) {
-      final Ref<VirtualFile> packageDirRef=new Ref<VirtualFile>();
       final String packageName=url.substring(PACKAGE_PREFIX.length(),slashIndex);
-      dartUrlResolver.processLivePackages(new PairConsumer<String,VirtualFile>(){
-        public void consume(        final String packageName1,        final VirtualFile packageDir){
-          if (packageName.equals(packageName1)) {
-            packageDirRef.set(packageDir);
-          }
-        }
-      }
-);
-      if (!packageDirRef.isNull()) {
-        return getPackageReferences(file,packageDirRef.get(),url.substring(slashIndex + 1),slashIndex + 1);
+      final VirtualFile packageDir=dartUrlResolver.getPackageDirIfLivePackageOrFromPubListPackageDirs(packageName);
+      if (packageDir != null) {
+        return getPackageReferences(file,packageDir,url.substring(slashIndex + 1),slashIndex + 1);
       }
     }
     final String relPath=url.substring(PACKAGE_PREFIX.length());

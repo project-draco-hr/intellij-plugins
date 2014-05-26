@@ -1,0 +1,29 @@
+{
+  Library library=ProjectLibraryTable.getInstance(project).getLibraryByName(PUB_LIST_PACKAGE_DIRS_LIB_NAME);
+  if (library == null) {
+    final LibraryTableBase.ModifiableModelEx libTableModel=(LibraryTableBase.ModifiableModelEx)ProjectLibraryTable.getInstance(project).getModifiableModel();
+    library=libTableModel.createLibrary(PUB_LIST_PACKAGE_DIRS_LIB_NAME,DartListPackageDirsLibraryType.LIBRARY_KIND);
+    libTableModel.commit();
+  }
+  final LibraryEx.ModifiableModelEx libModel=(LibraryEx.ModifiableModelEx)library.getModifiableModel();
+  try {
+    for (    String url : libModel.getUrls(OrderRootType.CLASSES)) {
+      libModel.removeRoot(url,OrderRootType.CLASSES);
+    }
+    for (    Set<String> packageDirs : packageMap.values()) {
+      for (      String packageDir : packageDirs) {
+        libModel.addRoot(VfsUtilCore.pathToUrl(packageDir),OrderRootType.CLASSES);
+      }
+    }
+    final DartListPackageDirsLibraryProperties libraryProperties=new DartListPackageDirsLibraryProperties();
+    libraryProperties.setPackageNameToDirsMap(packageMap);
+    libModel.setProperties(libraryProperties);
+    libModel.commit();
+  }
+  finally {
+    if (!Disposer.isDisposed(libModel)) {
+      Disposer.dispose(libModel);
+    }
+  }
+  return library;
+}

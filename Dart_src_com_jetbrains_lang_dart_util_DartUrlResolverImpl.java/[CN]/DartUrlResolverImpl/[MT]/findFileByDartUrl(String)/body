@@ -6,14 +6,24 @@
     final String packageRelPath=url.substring(PACKAGE_PREFIX.length());
     final int slashIndex=packageRelPath.indexOf('/');
     final String packageName=slashIndex > 0 ? packageRelPath.substring(0,slashIndex) : packageRelPath;
+    final String relPathToPackageDir=slashIndex > 0 ? packageRelPath.substring(slashIndex + 1) : "";
     final VirtualFile packageDir=StringUtil.isEmpty(packageName) ? null : myLivePackageNameToDirMap.get(packageName);
     if (packageDir != null) {
-      return slashIndex > 0 ? packageDir.findFileByRelativePath(packageRelPath.substring(slashIndex + 1)) : packageDir;
+      return packageDir.findFileByRelativePath(relPathToPackageDir);
     }
     for (    final VirtualFile packageRoot : myPackageRoots) {
       final VirtualFile file=packageRoot.findFileByRelativePath(packageRelPath);
       if (file != null) {
         return file;
+      }
+    }
+    final Set<String> packageDirs=myPubListPackageDirsMap.get(packageName);
+    if (packageDirs != null) {
+      for (      String packageDirPath : packageDirs) {
+        final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(packageDirPath + "/" + relPathToPackageDir);
+        if (file != null) {
+          return file;
+        }
       }
     }
   }

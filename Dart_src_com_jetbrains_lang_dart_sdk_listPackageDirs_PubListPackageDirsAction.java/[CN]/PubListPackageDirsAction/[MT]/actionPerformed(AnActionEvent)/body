@@ -1,0 +1,47 @@
+{
+  final Project project=e.getProject();
+  if (project == null)   return;
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null)   return;
+  final DirectoryBasedDartSdk dirBasedSdk=new DirectoryBasedDartSdk(new File(sdk.getHomePath()));
+  final Set<Module> affectedModules=new THashSet<Module>();
+  final SortedMap<String,Set<String>> packageNameToDirMap=new TreeMap<String,Set<String>>();
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      final Module[] modules=ModuleManager.getInstance(project).getModules();
+      for (int i=0; i < modules.length; i++) {
+        final Module module=modules[i];
+        final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+        if (indicator != null) {
+          indicator.setText("pub list-package-dirs");
+          indicator.setText2("Module: " + module.getName());
+          indicator.setIndeterminate(false);
+          indicator.setFraction((i + 1.) / modules.length);
+          indicator.checkCanceled();
+        }
+        if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+          for (          VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
+            if (contentRoot.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null)             continue;
+            final File rootDir=new File(contentRoot.getPath());
+            final Map<String,List<File>> map=new MyExplicitPackageUriResolver(dirBasedSdk,rootDir).calculatePackageMap();
+            if (!map.isEmpty()) {
+              affectedModules.add(module);
+              addResults(packageNameToDirMap,map);
+            }
+          }
+        }
+      }
+    }
+  }
+;
+  if (ProgressManager.getInstance().runProcessWithProgressSynchronously(runnable,"pub list-package-dirs",true,project)) {
+    final DartListPackageDirsDialog dialog=new DartListPackageDirsDialog(project,packageNameToDirMap);
+    dialog.show();
+    if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+      configurePubListPackageDirsLibrary(project,affectedModules,packageNameToDirMap);
+    }
+    if (dialog.getExitCode() == DartListPackageDirsDialog.CONFIGURE_NONE_EXIT_CODE) {
+      removePubListPackageDirsLibrary(project);
+    }
+  }
+}
