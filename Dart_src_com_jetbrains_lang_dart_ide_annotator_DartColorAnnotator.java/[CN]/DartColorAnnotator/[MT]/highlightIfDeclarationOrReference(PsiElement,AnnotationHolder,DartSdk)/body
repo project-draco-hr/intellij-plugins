@@ -8,18 +8,35 @@
     boolean chain=references != null && references.length > 1;
     if (!chain) {
       final PsiElement resolved=((DartReference)element).resolve();
-      if (resolved instanceof DartComponentName)       componentName=(DartComponentName)resolved;
+      final PsiElement elementParent=element.getParent();
+      if (resolved != null && elementParent instanceof DartCallExpression) {
+        final PsiElement parent=resolved.getParent();
+        if (parent instanceof DartFunctionDeclarationWithBodyOrNative) {
+          createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_FUNCTION_CALL);
+        }
+ else         if (parent instanceof DartMethodDeclaration) {
+          final String callType=((DartMethodDeclaration)parent).isStatic() ? DartSyntaxHighlighterColors.DART_STATIC_MEMBER_FUNCTION_CALL : DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_FUNCTION_CALL;
+          createInfoAnnotation(holder,element,callType);
+        }
+      }
+ else {
+        if (resolved instanceof DartComponentName)         componentName=(DartComponentName)resolved;
+      }
     }
   }
   if (componentName != null) {
     if (BUILT_IN_TYPES_HIGHLIGHTED_AS_KEYWORDS.contains(componentName.getName()) && sdk != null && isInSdkCore(sdk,componentName.getContainingFile())) {
-      holder.createInfoAnnotation(element,null).setTextAttributes(TextAttributesKey.find(DartSyntaxHighlighterColors.DART_BUILTIN));
+      createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_BUILTIN);
       return;
     }
     final boolean isStatic=isStatic(componentName.getParent());
-    final TextAttributesKey attribute=getAttributeByType(DartComponentType.typeOf(componentName.getParent()),isStatic);
+    final boolean isTopLevel=!isStatic && isTopLevel(componentName.getParent());
+    final TextAttributesKey attribute=getAttributeByType(DartComponentType.typeOf(componentName.getParent()),isStatic,isTopLevel);
     if (attribute != null) {
       holder.createInfoAnnotation(element,null).setTextAttributes(attribute);
     }
+  }
+ else {
+    highlightDeclarationsAndInvocations(element,holder);
   }
 }
