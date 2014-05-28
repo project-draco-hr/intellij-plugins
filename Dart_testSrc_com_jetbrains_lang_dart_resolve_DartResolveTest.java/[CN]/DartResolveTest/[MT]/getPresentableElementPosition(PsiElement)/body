@@ -1,10 +1,13 @@
 {
   if (element == null)   return "";
   final StringBuilder buf=new StringBuilder(element.getText());
-  DartComponentName componentName=PsiTreeUtil.getParentOfType(element,DartComponentName.class);
-  while (componentName != null) {
-    buf.insert(0,componentName.getName() + " -> ");
-    componentName=PsiTreeUtil.getParentOfType(componentName,DartComponentName.class);
+  DartComponent component=PsiTreeUtil.getParentOfType(element,DartComponent.class);
+  while (component != null) {
+    final DartComponentName componentName=component.getComponentName();
+    if (componentName != null && componentName != element) {
+      buf.insert(0,component.getName() + " -> ");
+    }
+    component=PsiTreeUtil.getParentOfType(component,DartComponent.class);
   }
   String path=element instanceof PsiDirectoryImpl ? ((PsiDirectoryImpl)element).getVirtualFile().getPath() : element.getContainingFile().getVirtualFile().getPath();
   if (path.startsWith("/src/"))   path=path.substring("/src/".length());
