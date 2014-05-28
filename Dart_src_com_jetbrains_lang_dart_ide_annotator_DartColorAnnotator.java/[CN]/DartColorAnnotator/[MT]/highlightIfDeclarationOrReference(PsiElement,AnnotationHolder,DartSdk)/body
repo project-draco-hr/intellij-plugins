@@ -19,8 +19,29 @@
           createInfoAnnotation(holder,element,callType);
         }
       }
+ else       if (resolved != null) {
+        final PsiElement parent=resolved.getParent();
+        if (parent instanceof DartVarAccessDeclaration) {
+          final DartComponentType type=DartComponentType.typeOf(parent);
+          if (type == DartComponentType.VARIABLE) {
+            final PsiElement varParent=parent.getParent().getParent();
+            if (varParent instanceof DartFile) {
+              createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_VARIABLE_ACCESS);
+            }
  else {
-        if (resolved instanceof DartComponentName)         componentName=(DartComponentName)resolved;
+              createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_LOCAL_VARIABLE_ACCESS);
+            }
+          }
+ else {
+            if (((DartVarAccessDeclaration)parent).isStatic()) {
+              createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_STATIC_MEMBER_VARIABLE_ACCESS);
+            }
+ else {
+              createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_VARIABLE_ACCESS);
+            }
+          }
+        }
+ else         if (resolved instanceof DartComponentName)         componentName=(DartComponentName)resolved;
       }
     }
   }
