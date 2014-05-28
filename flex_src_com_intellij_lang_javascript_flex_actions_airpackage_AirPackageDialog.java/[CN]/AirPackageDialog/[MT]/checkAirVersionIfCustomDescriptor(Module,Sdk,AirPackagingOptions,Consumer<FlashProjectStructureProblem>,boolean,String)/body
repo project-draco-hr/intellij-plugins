@@ -1,0 +1,23 @@
+{
+  if (packagingOptions.isUseGeneratedDescriptor())   return;
+  if (packagingOptions.getCustomDescriptorPath().isEmpty())   return;
+  final VirtualFile descriptorFile=LocalFileSystem.getInstance().findFileByPath(packagingOptions.getCustomDescriptorPath());
+  if (descriptorFile == null || descriptorFile.isDirectory())   return;
+  if (sdk.getSdkType() == FlexmojosSdkType.getInstance())   return;
+  final PsiFile file=PsiManager.getInstance(module.getProject()).findFile(descriptorFile);
+  final XmlTag rootTag=file instanceof XmlFile ? ((XmlFile)file).getRootTag() : null;
+  final String ns=rootTag == null ? null : rootTag.getNamespace();
+  final String nsVersion=ns != null && ns.startsWith(FlexCommonUtils.AIR_NAMESPACE_BASE) ? ns.substring(FlexCommonUtils.AIR_NAMESPACE_BASE.length()) : null;
+  final String airSdkVersion=FlexCommonUtils.getAirVersion(sdk.getHomePath(),sdk.getVersionString());
+  if (nsVersion != null && airSdkVersion != null && !nsVersion.equals(airSdkVersion)) {
+    final String message;
+    if (errorMessageForRunConfigValidation) {
+      message=FlexBundle.message("bc.0.module.1.air.version.mismatch.warning",bcName,module.getName(),nsVersion,airSdkVersion,FileUtil.toSystemDependentName(descriptorFile.getPath()));
+    }
+ else {
+      final String device=packagingOptions instanceof AndroidPackagingOptions ? "Android" : packagingOptions instanceof IosPackagingOptions ? "iOS" : "";
+      message=FlexBundle.message("air.version.mismatch.warning",device,descriptorFile.getName(),nsVersion,airSdkVersion);
+    }
+    errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.WARNING,packagingOptions,message,AirPackagingConfigurableBase.Location.CustomDescriptor));
+  }
+}

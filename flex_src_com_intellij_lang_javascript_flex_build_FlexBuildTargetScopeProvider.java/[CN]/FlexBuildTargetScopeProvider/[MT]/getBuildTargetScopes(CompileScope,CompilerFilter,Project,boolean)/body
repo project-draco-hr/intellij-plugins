@@ -1,15 +1,13 @@
 {
-  final FlexCompiler flexCompiler=FlexCompiler.getInstance(project);
-  if (!filter.acceptCompiler(flexCompiler))   return Collections.emptyList();
   final RunConfiguration runConfiguration=CompileStepBeforeRun.getRunConfiguration(baseScope);
-  final Collection<Pair<Module,FlexBuildConfiguration>> bcsToCompileForPackaging=FlexCompiler.getBCsToCompileForPackaging(baseScope);
+  final Collection<Pair<Module,FlexBuildConfiguration>> bcsToCompileForPackaging=FlexResourceBuildTargetScopeProvider.getBCsToCompileForPackaging(baseScope);
   List<String> targetIds=new ArrayList<String>();
   try {
-    for (    Pair<Module,FlexBuildConfiguration> moduleAndBC : FlexCompiler.getModulesAndBCsToCompile(baseScope)) {
+    for (    Pair<Module,FlexBuildConfiguration> moduleAndBC : getModulesAndBCsToCompile(baseScope)) {
       final Module module=moduleAndBC.first;
       final FlexBuildConfiguration bc=moduleAndBC.second;
       if (bcsToCompileForPackaging != null && contains(bcsToCompileForPackaging,module,bc)) {
-        final boolean forcedDebugStatus=FlexCompiler.getForcedDebugStatus(project,bc);
+        final boolean forcedDebugStatus=getForcedDebugStatus(project,bc);
         targetIds.add(FlexCommonUtils.getBuildTargetId(module.getName(),bc.getName(),forcedDebugStatus));
       }
  else       if (bc.isTempBCForCompilation()) {

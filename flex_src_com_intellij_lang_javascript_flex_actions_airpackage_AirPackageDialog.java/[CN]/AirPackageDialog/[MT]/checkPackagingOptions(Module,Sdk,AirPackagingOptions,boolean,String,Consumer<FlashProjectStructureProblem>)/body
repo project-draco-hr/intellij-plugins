@@ -1,0 +1,79 @@
+{
+  final String device=packagingOptions instanceof AndroidPackagingOptions ? "Android" : packagingOptions instanceof IosPackagingOptions ? "iOS" : "";
+  if (!packagingOptions.isUseGeneratedDescriptor()) {
+    if (packagingOptions.getCustomDescriptorPath().isEmpty()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("custom.descriptor.not.set",device),AirPackagingConfigurableBase.Location.CustomDescriptor));
+    }
+ else {
+      final VirtualFile descriptorFile=LocalFileSystem.getInstance().findFileByPath(packagingOptions.getCustomDescriptorPath());
+      if (descriptorFile == null || descriptorFile.isDirectory()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("custom.descriptor.not.found",device,FileUtil.toSystemDependentName(packagingOptions.getCustomDescriptorPath())),AirPackagingConfigurableBase.Location.CustomDescriptor));
+      }
+ else       if (sdk != null && sdk.getSdkType() != FlexmojosSdkType.getInstance()) {
+        checkAirVersionIfCustomDescriptor(module,sdk,packagingOptions,errorConsumer,false,"does not matter");
+      }
+    }
+  }
+  if (packagingOptions.getPackageFileName().isEmpty()) {
+    errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("package.file.name.not.set",device),AirPackagingConfigurableBase.Location.PackageFileName));
+  }
+  for (  AirPackagingOptions.FilePathAndPathInPackage entry : packagingOptions.getFilesToPackage()) {
+    final String fullPath=entry.FILE_PATH;
+    String relPathInPackage=entry.PATH_IN_PACKAGE;
+    if (relPathInPackage.startsWith("/")) {
+      relPathInPackage=relPathInPackage.substring(1);
+    }
+    if (fullPath.isEmpty()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("packaging.options.empty.file.name",device),AirPackagingConfigurableBase.Location.FilesToPackage));
+    }
+ else {
+      final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(fullPath);
+      if (file == null) {
+        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("packaging.options.file.not.found",device,FileUtil.toSystemDependentName(fullPath)),AirPackagingConfigurableBase.Location.FilesToPackage));
+      }
+      if (relPathInPackage.isEmpty()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("packaging.options.empty.relative.path",device),AirPackagingConfigurableBase.Location.FilesToPackage));
+      }
+      if (file != null && file.isDirectory()) {
+        if (FileUtil.isAncestor(file.getPath(),outputFolderPath,false)) {
+          errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("folder.to.package.includes.output",device,file.getPresentableUrl()),AirPackagingConfigurableBase.Location.FilesToPackage));
+        }
+ else         if (!relPathInPackage.isEmpty() && !".".equals(relPathInPackage) && !fullPath.endsWith("/" + relPathInPackage)) {
+          errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("packaging.options.relative.path.not.matches",device,FileUtil.toSystemDependentName(relPathInPackage)),AirPackagingConfigurableBase.Location.FilesToPackage));
+        }
+      }
+    }
+  }
+  if (packagingOptions instanceof IosPackagingOptions) {
+    final String path=packagingOptions.getSigningOptions().getIOSSdkPath();
+    if (!path.isEmpty() && !new File(path).isDirectory()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("packaging.options.bad.ios.sdk.path",device,FileUtil.toSystemDependentName(path)),AirPackagingConfigurableBase.Location.IosSdkPath));
+    }
+  }
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  if (packagingOptions instanceof IosPackagingOptions && !isForIosSimulator) {
+    final String provisioningProfilePath=signingOptions.getProvisioningProfilePath();
+    if (provisioningProfilePath.isEmpty()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("ios.provisioning.profile.not.set"),AirPackagingConfigurableBase.Location.ProvisioningProfile));
+    }
+ else {
+      final VirtualFile provisioningProfile=LocalFileSystem.getInstance().findFileByPath(provisioningProfilePath);
+      if (provisioningProfile == null || provisioningProfile.isDirectory()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("ios.provisioning.profile.not.found",FileUtil.toSystemDependentName(provisioningProfilePath)),AirPackagingConfigurableBase.Location.ProvisioningProfile));
+      }
+    }
+  }
+  final boolean tempCertificate=packagingOptions instanceof IosPackagingOptions ? isForIosSimulator : signingOptions.isUseTempCertificate();
+  if (!tempCertificate) {
+    final String keystorePath=signingOptions.getKeystorePath();
+    if (keystorePath.isEmpty()) {
+      errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("keystore.not.set",device),AirPackagingConfigurableBase.Location.Keystore));
+    }
+ else {
+      final VirtualFile keystore=LocalFileSystem.getInstance().findFileByPath(keystorePath);
+      if (keystore == null || keystore.isDirectory()) {
+        errorConsumer.consume(FlashProjectStructureProblem.createPackagingOptionsProblem(ProjectStructureProblemType.Severity.ERROR,packagingOptions,FlexBundle.message("keystore.not.found",device,FileUtil.toSystemDependentName(keystorePath)),AirPackagingConfigurableBase.Location.Keystore));
+      }
+    }
+  }
+}
