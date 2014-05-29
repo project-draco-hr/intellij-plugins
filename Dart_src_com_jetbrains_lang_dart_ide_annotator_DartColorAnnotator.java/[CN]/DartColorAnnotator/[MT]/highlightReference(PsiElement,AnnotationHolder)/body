@@ -1,0 +1,44 @@
+{
+  DartComponentName componentName=null;
+  final DartReference[] references=PsiTreeUtil.getChildrenOfType(element,DartReference.class);
+  boolean chain=references != null && references.length > 1;
+  if (!chain) {
+    final PsiElement resolved=((DartReference)element).resolve();
+    final PsiElement elementParent=element.getParent();
+    if (resolved != null && elementParent instanceof DartCallExpression) {
+      final PsiElement parent=resolved.getParent();
+      if (parent instanceof DartFunctionDeclarationWithBodyOrNative) {
+        createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_FUNCTION_CALL);
+      }
+ else       if (parent instanceof DartMethodDeclaration) {
+        final String callType=((DartMethodDeclaration)parent).isStatic() ? DartSyntaxHighlighterColors.DART_STATIC_MEMBER_FUNCTION_CALL : DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_FUNCTION_CALL;
+        createInfoAnnotation(holder,element,callType);
+      }
+    }
+ else     if (resolved != null) {
+      final PsiElement parent=resolved.getParent();
+      if (parent instanceof DartVarAccessDeclaration) {
+        final DartComponentType type=DartComponentType.typeOf(parent);
+        if (type == DartComponentType.VARIABLE) {
+          final PsiElement varParent=parent.getParent().getParent();
+          if (varParent instanceof DartFile) {
+            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_VARIABLE_ACCESS);
+          }
+ else {
+            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_LOCAL_VARIABLE_ACCESS);
+          }
+        }
+ else {
+          if (((DartVarAccessDeclaration)parent).isStatic()) {
+            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_STATIC_MEMBER_VARIABLE_ACCESS);
+          }
+ else {
+            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_VARIABLE_ACCESS);
+          }
+        }
+      }
+ else       if (resolved instanceof DartComponentName)       componentName=(DartComponentName)resolved;
+    }
+  }
+  return componentName;
+}
