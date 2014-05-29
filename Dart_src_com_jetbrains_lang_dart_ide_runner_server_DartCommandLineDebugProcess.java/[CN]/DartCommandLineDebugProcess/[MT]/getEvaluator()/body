@@ -1,0 +1,30 @@
+{
+  return new XDebuggerEvaluator(){
+    public void evaluate(    @NotNull final String expression,    @NotNull final XEvaluationCallback callback,    @Nullable final XSourcePosition expressionPosition){
+      final DartStackFrame frame=(DartStackFrame)getSession().getCurrentStackFrame();
+      if (frame == null) {
+        callback.errorOccurred("Debugger is not paused");
+        return;
+      }
+      try {
+        final VmCallFrame vmCallFrame=frame.getVmCallFrame();
+        myVmConnection.evaluateOnCallFrame(vmCallFrame.getIsolate(),vmCallFrame,expression,new VmCallback<VmValue>(){
+          public void handleResult(          final VmResult<VmValue> result){
+            if (result.isError()) {
+              callback.errorOccurred(result.getError());
+            }
+ else {
+              final VmValue vmValue=result.getResult();
+              callback.evaluated(new DartValue(DartCommandLineDebugProcess.this,vmValue));
+            }
+          }
+        }
+);
+      }
+ catch (      IOException e) {
+        callback.errorOccurred(e.toString());
+      }
+    }
+  }
+;
+}
