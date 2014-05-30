@@ -1,0 +1,23 @@
+{
+  final String evalText=xExpression == null ? null : xExpression.getExpression();
+  if (StringUtil.isEmptyOrSpaces(evalText))   return null;
+  final Ref<String> evalResult=new Ref<String>();
+  final Semaphore semaphore=new Semaphore();
+  semaphore.down();
+  try {
+    myDebugProcess.getVmConnection().evaluateOnCallFrame(isolate,topFrame,evalText,new VmCallback<VmValue>(){
+      public void handleResult(      final VmResult<VmValue> result){
+        final VmValue vmValue=result.getResult();
+        if (vmValue != null) {
+          evalResult.set(vmValue.getText());
+        }
+        semaphore.up();
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+  }
+  semaphore.waitFor(1000);
+  return evalResult.get();
+}

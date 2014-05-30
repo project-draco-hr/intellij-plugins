@@ -1,0 +1,29 @@
+{
+  LOG.debug("debugger paused, reason: " + reason.name());
+  final VmCallFrame topFrame=frames.isEmpty() ? null : frames.get(0);
+  if (myFirstBreak) {
+    myFirstBreak=false;
+    firstIsolateInit(isolate);
+    if (PausedReason.breakpoint == reason) {
+      if (topFrame != null && topFrame.isMain() && !myDebugProcess.getDartBreakpointsHandler().hasInitialBreakpointHere(frames.get(0).getLocation())) {
+        resume(isolate);
+        return;
+      }
+    }
+  }
+  if (PausedReason.breakpoint == reason && !isStepping && topFrame != null) {
+    final XLineBreakpoint<?> breakpoint=myDebugProcess.getDartBreakpointsHandler().getBreakpointForLocation(topFrame.getLocation());
+    if (breakpoint != null) {
+      if ("false".equals(evaluateExpression(isolate,topFrame,breakpoint.getConditionExpression()))) {
+        resume(isolate);
+        return;
+      }
+      final boolean suspend=myDebugProcess.getSession().breakpointReached(breakpoint,evaluateExpression(isolate,topFrame,breakpoint.getLogExpressionObject()),new DartSuspendContext(myDebugProcess,frames));
+      if (!suspend) {
+        resume(isolate);
+      }
+      return;
+    }
+  }
+  myDebugProcess.getSession().positionReached(new DartSuspendContext(myDebugProcess,frames));
+}
