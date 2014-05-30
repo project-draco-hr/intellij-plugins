@@ -1,0 +1,19 @@
+{
+  try {
+    myDebugProcess.getVmConnection().evaluateOnCallFrame(myVmCallFrame.getIsolate(),myVmCallFrame,expression,new VmCallback<VmValue>(){
+      public void handleResult(      final VmResult<VmValue> result){
+        if (result.isError()) {
+          callback.errorOccurred(result.getError());
+        }
+ else {
+          final VmValue vmValue=result.getResult();
+          callback.evaluated(new DartValue(myDebugProcess,vmValue));
+        }
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    callback.errorOccurred(e.toString());
+  }
+}
