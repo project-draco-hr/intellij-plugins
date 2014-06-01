@@ -1,0 +1,14 @@
+{
+  JstdRunConfiguration runConfiguration=(JstdRunConfiguration)myEnvironment.getRunProfile();
+  TestConsoleProperties testConsoleProperties=new SMTRunnerConsoleProperties(runConfiguration,JSTD_FRAMEWORK_NAME,myEnvironment.getExecutor(),false);
+  testConsoleProperties.setUsePredefinedMessageFilter(false);
+  testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS,false);
+  testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_IGNORED_TEST,true);
+  testConsoleProperties.setIfUndefined(TestConsoleProperties.SCROLL_TO_SOURCE,true);
+  String splitterPropertyName=SMTestRunnerConnectionUtil.getSplitterPropertyName(JSTD_FRAMEWORK_NAME);
+  PropertiesComponent.getInstance().setValue(splitterPropertyName,String.valueOf(0.2f));
+  JstdConsoleView consoleView=new JstdConsoleView(testConsoleProperties,myEnvironment,splitterPropertyName,ideServer);
+  Disposer.register(myProject,consoleView);
+  SMTestRunnerConnectionUtil.initConsoleView(consoleView,JSTD_FRAMEWORK_NAME,new JstdTestLocationProvider(),true,new JstdTestProxyFilterProvider(myProject));
+  return consoleView;
+}

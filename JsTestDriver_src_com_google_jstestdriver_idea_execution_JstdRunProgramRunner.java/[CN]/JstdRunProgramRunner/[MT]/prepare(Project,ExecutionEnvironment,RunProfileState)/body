@@ -1,0 +1,28 @@
+{
+  if (state instanceof JstdRunProfileState) {
+    JstdRunProfileState jstdState=(JstdRunProfileState)state;
+    if (jstdState.getRunSettings().isExternalServerType()) {
+      return AsyncResult.<RunProfileStarter>done(new MyStarter(null,this));
+    }
+  }
+  JstdToolWindowManager jstdToolWindowManager=JstdToolWindowManager.getInstance(project);
+  jstdToolWindowManager.setAvailable(true);
+  JstdServerRegistry registry=JstdServerRegistry.getInstance();
+  JstdServer server=registry.getServer();
+  if (server != null && server.isProcessRunning() && !server.isStopped()) {
+    return AsyncResult.<RunProfileStarter>done(new MyStarter(server,this));
+  }
+  final AsyncResult<RunProfileStarter> result=new AsyncResult<RunProfileStarter>();
+  jstdToolWindowManager.restartServer(new NullableConsumer<JstdServer>(){
+    @Override public void consume(    @Nullable JstdServer server){
+      if (server != null) {
+        result.setDone(new MyStarter(server,JstdRunProgramRunner.this));
+      }
+ else {
+        result.setDone(null);
+      }
+    }
+  }
+);
+  return result;
+}

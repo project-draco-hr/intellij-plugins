@@ -1,0 +1,23 @@
+{
+  super.initUI();
+  if (myServer == null) {
+    return;
+  }
+  TestTreeView treeView=this.getResultsViewer().getTreeView();
+  TestTreeRenderer originalRenderer=ObjectUtils.tryCast(treeView.getCellRenderer(),TestTreeRenderer.class);
+  if (originalRenderer != null) {
+    myFormatter=new JstdRootTestProxyFormatter(myServer,treeView);
+    originalRenderer.setAdditionalRootFormatter(myFormatter);
+  }
+  if (!myServer.isStopped() && myServer.getCapturedBrowsers().isEmpty()) {
+    myServer.addLifeCycleListener(new JstdServerLifeCycleAdapter(){
+      @Override public void onServerStarted(){
+        print("To capture a browser open ",ConsoleViewContentType.SYSTEM_OUTPUT);
+        String url=myServer.getServerUrl() + "/capture";
+        printHyperlink(url,new OpenUrlHyperlinkInfo(url));
+        print("\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+      }
+    }
+,this);
+  }
+}

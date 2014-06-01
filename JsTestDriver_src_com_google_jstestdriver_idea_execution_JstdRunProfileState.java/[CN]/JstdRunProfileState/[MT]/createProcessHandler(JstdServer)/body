@@ -1,0 +1,16 @@
+{
+  String serverUrl=getServerUrl(ideServer);
+  if (serverUrl != null) {
+    return createOSProcessHandler(serverUrl);
+  }
+  final NopProcessHandler nopProcessHandler=new NopProcessHandler();
+  if (ideServer != null) {
+    ideServer.addLifeCycleListener(new JstdServerLifeCycleAdapter(){
+      @Override public void onServerTerminated(){
+        nopProcessHandler.destroyProcess();
+      }
+    }
+,myProject);
+  }
+  return nopProcessHandler;
+}
