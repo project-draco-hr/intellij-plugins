@@ -1,0 +1,40 @@
+{
+  final WebBrowser browser=myDebugBrowserInfo.getBrowser();
+  final Url url;
+  if (browser.getFamily().equals(BrowserFamily.CHROME)) {
+    url=Urls.newHttpUrl("127.0.0.1:" + myDebugBrowserInfo.getServerSettings().getPort(),myDebugBrowserInfo.getPath());
+  }
+ else {
+    url=null;
+  }
+  JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
+  final ExecutionResult executionResult=state.execute(environment.getExecutor(),myRunner);
+  final RemoteDebuggingFileFinder fileFinder=new JstdDebuggableFileFinderProvider(new File(jstdState.getRunSettings().getConfigFile())).provideFileFinder();
+  XDebugSession session=XDebuggerManager.getInstance(project).startSession(myRunner,environment,contentToReuse,new XDebugProcessStarter(){
+    @Override @NotNull public XDebugProcess start(    @NotNull XDebugSession session){
+      JavaScriptDebugEngine debugEngine=myDebugBrowserInfo.getDebugEngine();
+      JSDebugProcess<?> process=debugEngine.createDebugProcess(session,browser,fileFinder,url,executionResult,false);
+      process.setElementsInspectorEnabled(false);
+      return process;
+    }
+  }
+);
+  ((JSDebugProcess)session.getDebugProcess()).getConnection().executeOnStart(new Runnable(){
+    @Override public void run(){
+      Runnable runnable=new Runnable(){
+        @Override public void run(){
+          resumeJstdClientRunning(executionResult.getProcessHandler());
+        }
+      }
+;
+      if (ApplicationManager.getApplication().isReadAccessAllowed()) {
+        ApplicationManager.getApplication().executeOnPooledThread(runnable);
+      }
+ else {
+        runnable.run();
+      }
+    }
+  }
+);
+  return session.getRunContentDescriptor();
+}

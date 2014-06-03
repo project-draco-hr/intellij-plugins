@@ -1,14 +1,27 @@
 {
-  final JstdRunConfiguration runConfiguration=(JstdRunConfiguration)environment.getRunProfile();
-  JstdRunConfigurationVerifier.checkJstdServerAndBrowserEnvironment(project,runConfiguration.getRunSettings(),true);
-  final JstdDebugBrowserInfo debugBrowserInfo=JstdDebugBrowserInfo.build(runConfiguration.getRunSettings());
-  if (debugBrowserInfo == null) {
-    throw new ExecutionException("Cannot find a browser that supports debugging.");
+  final JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
+  final JstdRunSettings runSettings=jstdState.getRunSettings();
+  if (runSettings.isExternalServerType()) {
+    throw new ExecutionException("JsTestDriver test can be debugged using local server running in IDE.");
   }
-  return JsRunners.start(project,Pair.create(debugBrowserInfo.getDebugEngine(),debugBrowserInfo.getBrowser()),new JsRunners.Starter(){
-    @Nullable @Override public RunContentDescriptor start(    @Nullable RunContentDescriptor contentToReuse) throws ExecutionException {
-      return startSession(project,contentToReuse,environment,runConfiguration,debugBrowserInfo);
+  JstdToolWindowManager jstdToolWindowManager=JstdToolWindowManager.getInstance(project);
+  jstdToolWindowManager.setAvailable(true);
+  JstdServer server=JstdServerRegistry.getInstance().getServer();
+  final AsyncResult<RunProfileStarter> result=new AsyncResult<RunProfileStarter>();
+  if (server != null && !server.isStopped()) {
+    prepareWithServer(project,result,server,jstdState);
+    return result;
+  }
+  jstdToolWindowManager.restartServer(new NullableConsumer<JstdServer>(){
+    @Override public void consume(    @Nullable JstdServer server){
+      if (server != null) {
+        prepareWithServer(project,result,server,jstdState);
+      }
+ else {
+        result.setDone(null);
+      }
     }
   }
 );
+  return result;
 }
