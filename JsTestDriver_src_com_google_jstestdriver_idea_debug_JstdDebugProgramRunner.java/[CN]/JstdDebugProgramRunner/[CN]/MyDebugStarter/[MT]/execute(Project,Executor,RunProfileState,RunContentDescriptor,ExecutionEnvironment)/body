@@ -7,9 +7,11 @@
  else {
     url=null;
   }
+  FileDocumentManager.getInstance().saveAllDocuments();
   JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
-  final ExecutionResult executionResult=state.execute(environment.getExecutor(),myRunner);
-  final RemoteDebuggingFileFinder fileFinder=new JstdDebuggableFileFinderProvider(new File(jstdState.getRunSettings().getConfigFile())).provideFileFinder();
+  final ExecutionResult executionResult=jstdState.executeWithServer(myServer);
+  File configFile=new File(jstdState.getRunSettings().getConfigFile());
+  final RemoteDebuggingFileFinder fileFinder=new JstdDebuggingFileFinderProvider(configFile,myServer).provideFileFinder();
   XDebugSession session=XDebuggerManager.getInstance(project).startSession(myRunner,environment,contentToReuse,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull XDebugSession session){
       JavaScriptDebugEngine debugEngine=myDebugBrowserInfo.getDebugEngine();

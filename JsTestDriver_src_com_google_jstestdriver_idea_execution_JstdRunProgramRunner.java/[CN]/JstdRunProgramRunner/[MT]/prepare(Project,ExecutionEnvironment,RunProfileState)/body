@@ -1,19 +1,19 @@
 {
   JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
   if (jstdState.getRunSettings().isExternalServerType()) {
-    return AsyncResult.<RunProfileStarter>done(new MyStarter(null,this));
+    return AsyncResult.<RunProfileStarter>done(new JstdRunStarter(null,this,false));
   }
   JstdToolWindowManager jstdToolWindowManager=JstdToolWindowManager.getInstance(project);
   jstdToolWindowManager.setAvailable(true);
   JstdServer server=JstdServerRegistry.getInstance().getServer();
   if (server != null && !server.isStopped()) {
-    return AsyncResult.<RunProfileStarter>done(new MyStarter(server,this));
+    return AsyncResult.<RunProfileStarter>done(new JstdRunStarter(server,this,false));
   }
   final AsyncResult<RunProfileStarter> result=new AsyncResult<RunProfileStarter>();
   jstdToolWindowManager.restartServer(new NullableConsumer<JstdServer>(){
     @Override public void consume(    @Nullable JstdServer server){
       if (server != null) {
-        result.setDone(new MyStarter(server,JstdRunProgramRunner.this));
+        result.setDone(new JstdRunStarter(server,JstdRunProgramRunner.this,false));
       }
  else {
         result.setDone(null);

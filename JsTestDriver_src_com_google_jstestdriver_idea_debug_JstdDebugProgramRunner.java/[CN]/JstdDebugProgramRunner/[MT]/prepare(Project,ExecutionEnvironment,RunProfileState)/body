@@ -1,21 +1,21 @@
 {
-  final JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
+  JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
   final JstdRunSettings runSettings=jstdState.getRunSettings();
   if (runSettings.isExternalServerType()) {
-    throw new ExecutionException("JsTestDriver test can be debugged using local server running in IDE.");
+    throw new ExecutionException("Local JsTestDriver server running in IDE required for tests debugging");
   }
   JstdToolWindowManager jstdToolWindowManager=JstdToolWindowManager.getInstance(project);
   jstdToolWindowManager.setAvailable(true);
   JstdServer server=JstdServerRegistry.getInstance().getServer();
   final AsyncResult<RunProfileStarter> result=new AsyncResult<RunProfileStarter>();
   if (server != null && !server.isStopped()) {
-    prepareWithServer(project,result,server,jstdState);
+    prepareWithServer(project,result,server,runSettings);
     return result;
   }
   jstdToolWindowManager.restartServer(new NullableConsumer<JstdServer>(){
     @Override public void consume(    @Nullable JstdServer server){
       if (server != null) {
-        prepareWithServer(project,result,server,jstdState);
+        prepareWithServer(project,result,server,runSettings);
       }
  else {
         result.setDone(null);
