@@ -1,0 +1,26 @@
+{
+  FileDocumentManager.getInstance().saveAllDocuments();
+  JstdRunConfiguration runConfiguration=(JstdRunConfiguration)environment.getRunProfile();
+  CoverageEnabledConfiguration coverageEnabledConfiguration=CoverageEnabledConfiguration.getOrCreate(runConfiguration);
+  String coverageFilePath=coverageEnabledConfiguration.getCoverageFilePath();
+  JstdRunProfileState jstdState=new JstdRunProfileState(project,environment,runConfiguration.getRunSettings(),coverageFilePath);
+  ExecutionResult executionResult=jstdState.executeWithServer(myServer);
+  RunContentBuilder contentBuilder=new RunContentBuilder(myRunner,executionResult,environment);
+  final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+  ProcessHandler processHandler=executionResult.getProcessHandler();
+  if (processHandler instanceof NopProcessHandler) {
+    if (myServer != null) {
+      myServer.addLifeCycleListener(new JstdServerLifeCycleAdapter(){
+        @Override public void onBrowserCaptured(        @NotNull JstdBrowserInfo info){
+          JstdUtil.restart(descriptor);
+          myServer.removeLifeCycleListener(this);
+        }
+      }
+,contentBuilder);
+    }
+  }
+ else {
+    CoverageHelper.attachToProcess(runConfiguration,processHandler,environment.getRunnerSettings());
+  }
+  return descriptor;
+}
