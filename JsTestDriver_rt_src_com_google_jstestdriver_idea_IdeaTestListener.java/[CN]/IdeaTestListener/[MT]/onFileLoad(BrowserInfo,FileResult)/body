@@ -1,8 +1,20 @@
 {
-  if (!fileResult.isSuccess() && !myDryRun) {
+  if (fileResult.isSuccess()) {
+    return;
+  }
 synchronized (MONITOR) {
-      FileSource jsFileSource=fileResult.getFileSource();
-      String jsFilePath=jsFileSource != null ? jsFileSource.getBasePath() : null;
+    FileSource jsFileSource=fileResult.getFileSource();
+    String jsFilePath=jsFileSource != null ? jsFileSource.getBasePath() : null;
+    FileLoadError error=new FileLoadError(browserInfo,jsFilePath,fileResult.getMessage());
+    final boolean reportError;
+    if (myDryRun) {
+      myDryRunErrors.add(error);
+      reportError=true;
+    }
+ else {
+      reportError=myDryRunErrors.contains(error);
+    }
+    if (reportError) {
       myTreeManager.onFileLoadError(browserInfo.toString(),jsFilePath,fileResult.getMessage());
     }
   }
