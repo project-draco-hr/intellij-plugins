@@ -8,16 +8,16 @@
   }
   final CssDialect dialect=CssDialectMappings.getInstance(context.getProject()).getMapping(vFile);
   if (dialect == CssDialect.CLASSIC) {
-    final CssPropertyDescriptor flexDescriptor=getPropertyDescriptor(propertyName,context);
-    if (flexDescriptor != null) {
+    final Collection<? extends CssPropertyDescriptor> flexDescriptor=getPropertyDescriptors(propertyName,context);
+    if (!flexDescriptor.isEmpty()) {
       return new LocalQuickFix[]{new SwitchToCssDialectQuickFix(FlexCSSDialect.getInstance())};
     }
   }
  else {
     final CssElementDescriptorProviderImpl classicCssDescriptorProvider=CssElementDescriptorProvider.EP_NAME.findExtension(CssElementDescriptorProviderImpl.class);
     if (classicCssDescriptorProvider != null) {
-      final CssPropertyDescriptor classicDescriptor=classicCssDescriptorProvider.getPropertyDescriptor(propertyName,context);
-      if (classicDescriptor != null) {
+      Collection<? extends CssPropertyDescriptor> classicDescriptors=classicCssDescriptorProvider.getPropertyDescriptors(propertyName,context);
+      if (!classicDescriptors.isEmpty()) {
         return new LocalQuickFix[]{new SwitchToCssDialectQuickFix(CssDialect.CLASSIC)};
       }
     }
