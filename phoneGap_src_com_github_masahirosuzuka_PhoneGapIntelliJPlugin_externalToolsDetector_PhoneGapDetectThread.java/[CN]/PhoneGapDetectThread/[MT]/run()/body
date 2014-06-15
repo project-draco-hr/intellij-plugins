@@ -1,0 +1,18 @@
+{
+  PhoneGapSettings instance=PhoneGapSettings.getInstance();
+  if (!instance.isPhoneGapAvailable()) {
+    noPhoneGap();
+    return;
+  }
+  String phoneGapExecutablePath=instance.getPhoneGapExecutablePath();
+  final GeneralCommandLine generalCommandLine=new GeneralCommandLine(phoneGapExecutablePath,"--version");
+  generalCommandLine.setWorkDirectory(myProject.getBasePath());
+  try {
+    final OSProcessHandler handler=new OSProcessHandler(generalCommandLine);
+    handler.startNotify();
+    generalCommandLine.createProcess();
+  }
+ catch (  Exception e) {
+    noPhoneGap();
+  }
+}

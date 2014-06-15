@@ -1,0 +1,22 @@
+{
+  String projectDir=this.project.getBasePath();
+  if (PhoneGapSettings.PHONEGAP_PLATFORM_RIPPLE.equals(this.phoneGapRunConfiguration.getPlatform())) {
+    try {
+      File serverScript=new File(projectDir + "/" + "server.js");
+      if (!serverScript.exists()) {
+        writeScript(serverScript);
+      }
+    }
+ catch (    Exception e) {
+      e.printStackTrace();
+    }
+    GeneralCommandLine commandLine=new GeneralCommandLine("node","server.js");
+    commandLine.setWorkDirectory(projectDir);
+    return new OSProcessHandler(commandLine);
+  }
+ else {
+    GeneralCommandLine commandLine=new GeneralCommandLine(phoneGapRunConfiguration.getExecutableType().getPath(),phoneGapRunConfiguration.getCommand(),phoneGapRunConfiguration.getPlatform());
+    commandLine.setWorkDirectory(projectDir);
+    return new OSProcessHandler(commandLine);
+  }
+}
