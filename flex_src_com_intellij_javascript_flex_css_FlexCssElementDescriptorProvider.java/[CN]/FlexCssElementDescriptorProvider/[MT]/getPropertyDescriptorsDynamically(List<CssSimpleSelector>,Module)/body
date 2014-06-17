@@ -2,12 +2,12 @@
   FileBasedIndex fileBasedIndex=FileBasedIndex.getInstance();
   GlobalSearchScope scope=module.getModuleWithDependenciesAndLibrariesScope(false);
   Set<JSClass> visited=new HashSet<JSClass>();
-  Set<String> result=new HashSet<String>();
+  Set<CssPropertyDescriptor> result=new HashSet<CssPropertyDescriptor>();
   Project project=module.getProject();
   for (  CssSimpleSelector selector : selectors) {
     final JSClass jsClass=getClassFromMxmlDescriptor(selector,module);
     if (jsClass != null) {
-      fillPropertyNamesDinamically(jsClass,visited,result);
+      fillPropertyDescriptorsDynamically(jsClass,visited,result);
       continue;
     }
     final String shortClassName=selector.getElementName();
@@ -17,16 +17,16 @@
     Collection<JSQualifiedNamedElement> candidates=JSResolveUtil.findElementsByName(shortClassName,project,scope);
     for (    JSQualifiedNamedElement candidate : candidates) {
       if (candidate instanceof JSClass) {
-        fillPropertyNamesDinamically((JSClass)candidate,visited,result);
+        fillPropertyDescriptorsDynamically((JSClass)candidate,visited,result);
       }
     }
   }
-  for (Iterator<String> iterator=result.iterator(); iterator.hasNext(); ) {
-    String propertyName=iterator.next();
-    List<Set<FlexStyleIndexInfo>> values=fileBasedIndex.getValues(FlexStyleIndex.INDEX_ID,propertyName,scope);
+  for (Iterator<CssPropertyDescriptor> iterator=result.iterator(); iterator.hasNext(); ) {
+    CssPropertyDescriptor propertyDescriptor=iterator.next();
+    List<Set<FlexStyleIndexInfo>> values=fileBasedIndex.getValues(FlexStyleIndex.INDEX_ID,propertyDescriptor.getPropertyName(),scope);
     if (values.size() == 0) {
       iterator.remove();
     }
   }
-  return ArrayUtil.toStringArray(result);
+  return result;
 }

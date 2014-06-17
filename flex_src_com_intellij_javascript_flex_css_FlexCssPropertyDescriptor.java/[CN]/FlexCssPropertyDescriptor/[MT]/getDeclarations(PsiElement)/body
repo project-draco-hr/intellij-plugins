@@ -2,10 +2,9 @@
   Map<PsiElement,PairInfo> navElement2pairInfo=new HashMap<PsiElement,PairInfo>();
   final Project project=context.getProject();
   GlobalSearchScope scope=FlexCssUtil.getResolveScope(context);
-  StubIndex stubIndex=StubIndex.getInstance();
   Set<JSClass> visited=new HashSet<JSClass>();
   for (  String className : myClassNames) {
-    Collection<JSQualifiedNamedElement> candidates=stubIndex.getElements(JSQualifiedElementIndex.KEY,className.hashCode(),project,scope,JSQualifiedNamedElement.class);
+    Collection<JSQualifiedNamedElement> candidates=StubIndex.getElements(JSQualifiedElementIndex.KEY,className.hashCode(),project,scope,JSQualifiedNamedElement.class);
     findStyleAttributes(candidates,visited,navElement2pairInfo);
     PsiElement jsClass=ActionScriptClassResolver.findClassByQNameStatic(className,scope);
     if (jsClass instanceof JSClass) {
@@ -33,10 +32,7 @@
     PairInfo pairInfo=navElement2pairInfo.get(navPair);
     String jsClassQName=pairInfo.myJsClassQName;
     PsiElement navPairInOtherClassWithSameQName=jsClassQName != null ? qName2ResultElement.get(jsClassQName) : null;
-    if (navPairInOtherClassWithSameQName == null) {
-      qName2ResultElement.put(jsClassQName,navPair);
-    }
- else     if (navPairInOtherClassWithSameQName == navElement2pairInfo.get(navPairInOtherClassWithSameQName) && pairInfo.myPair != navPair) {
+    if (navPairInOtherClassWithSameQName == null || navPairInOtherClassWithSameQName == navElement2pairInfo.get(navPairInOtherClassWithSameQName) && pairInfo.myPair != navPair) {
       qName2ResultElement.put(jsClassQName,navPair);
     }
   }

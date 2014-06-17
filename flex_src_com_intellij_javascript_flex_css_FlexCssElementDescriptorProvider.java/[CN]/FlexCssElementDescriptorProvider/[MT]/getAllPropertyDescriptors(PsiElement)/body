@@ -1,0 +1,24 @@
+{
+  if (context == null) {
+    return Collections.emptyList();
+  }
+  Module module=findModuleForPsiElement(context);
+  List<CssSimpleSelector> simpleSelectors=findSimpleSelectorsAbove(context);
+  if (simpleSelectors.size() > 0 && !containsGlobalSelectors(simpleSelectors)) {
+    if (module != null) {
+      return getPropertyDescriptorsDynamically(simpleSelectors,module);
+    }
+  }
+  FileBasedIndex index=FileBasedIndex.getInstance();
+  Collection<String> keys=index.getAllKeys(FlexStyleIndex.INDEX_ID,context.getProject());
+  List<FlexCssPropertyDescriptor> result=new ArrayList<FlexCssPropertyDescriptor>();
+  GlobalSearchScope scope=module != null ? module.getModuleWithDependenciesAndLibrariesScope(false) : GlobalSearchScope.projectScope(context.getProject());
+  for (  String key : keys) {
+    if (!isInClassicForm(key)) {
+      for (      Set<FlexStyleIndexInfo> infos : index.getValues(FlexStyleIndex.INDEX_ID,key,scope)) {
+        result.add(new FlexCssPropertyDescriptor(infos));
+      }
+    }
+  }
+  return result;
+}
