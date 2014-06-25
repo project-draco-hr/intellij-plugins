@@ -8,9 +8,14 @@
     }
   }
 ;
-  Map<FileType,String> supportedFileTypesAndDefaultFileNames=new HashMap<FileType,String>();
-  Map<FileType,PsiDirectory> fileTypeToDefaultDirectoryMap=new HashMap<FileType,PsiDirectory>();
+  Map<BDDFrameworkType,String> supportedFileTypesAndDefaultFileNames=new HashMap<BDDFrameworkType,String>();
+  Map<BDDFrameworkType,PsiDirectory> fileTypeToDefaultDirectoryMap=new HashMap<BDDFrameworkType,PsiDirectory>();
   for (  CucumberJvmExtensionPoint e : Extensions.getExtensions(CucumberJvmExtensionPoint.EP_NAME)) {
+    if (e instanceof OptionalStepDefinitionExtensionPoint) {
+      if (!((OptionalStepDefinitionExtensionPoint)e).participateInStepDefinitionCreation(step)) {
+        continue;
+      }
+    }
     supportedFileTypesAndDefaultFileNames.put(e.getStepFileType(),e.getStepDefinitionCreator().getDefaultStepFileName());
     fileTypeToDefaultDirectoryMap.put(e.getStepFileType(),e.getStepDefinitionCreator().getDefaultStepDefinitionFolder(step));
   }

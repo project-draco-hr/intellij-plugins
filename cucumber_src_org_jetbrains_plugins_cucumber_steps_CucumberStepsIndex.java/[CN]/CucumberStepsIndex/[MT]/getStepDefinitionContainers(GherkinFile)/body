@@ -1,7 +1,14 @@
 {
-  Set<PsiFile> result=new HashSet<PsiFile>();
+  Set<Pair<PsiFile,BDDFrameworkType>> result=new HashSet<Pair<PsiFile,BDDFrameworkType>>();
   for (  CucumberJvmExtensionPoint ep : myExtensionMap.values()) {
-    result.addAll(ep.getStepDefinitionContainers(featureFile));
+    if ((ep instanceof OptionalStepDefinitionExtensionPoint) && !((OptionalStepDefinitionExtensionPoint)ep).participateInStepDefinitionCreation(featureFile)) {
+      continue;
+    }
+    final Collection<? extends PsiFile> psiFiles=ep.getStepDefinitionContainers(featureFile);
+    final BDDFrameworkType frameworkType=ep.getStepFileType();
+    for (    final PsiFile psiFile : psiFiles) {
+      result.add(Pair.create(psiFile,frameworkType));
+    }
   }
   return result;
 }
