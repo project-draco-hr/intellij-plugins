@@ -36,5 +36,11 @@
   Reveal.LOG.info("Signing " + libRevealInTempDir + " with "+ signature);
   runTool(libRevealInTempDir.getParent(),"Cannot sign Reveal library.",Arrays.asList("/usr/bin/codesign","-fs",signature,libRevealInTempDir.getPath()));
   AMDeviceUtil.transferPathToApplicationBundle(device,libRevealInTempDir.getParent(),"/tmp",bundleId);
-  return new File(new File(commandLine.getExePath()).getParentFile().getParentFile(),"tmp/" + libRevealInTempDir.getParentFile().getName() + "/"+ libRevealInTempDir.getName());
+  Map<String,String> environmentVariables=commandLine.getUserData(AMDeviceUtil.APPLICATION_ENVIRONMENT_VARIABLES);
+  if (environmentVariables == null)   throw new ExecutionException(AppCodeBundle.message("device.appBundleHasNoEnvironment"));
+  String homeDir=environmentVariables.get("HOME");
+  if (homeDir == null) {
+    throw new ExecutionException(AppCodeBundle.message("device.appBundleHasNoHomeVar"));
+  }
+  return new File(new File(homeDir),"tmp/" + libRevealInTempDir.getParentFile().getName() + "/"+ libRevealInTempDir.getName());
 }
