@@ -1,0 +1,15 @@
+{
+  PsiElement element=null;
+  if (context == null)   return null;
+  final Editor editor=CommonDataKeys.EDITOR.getData(context);
+  if (editor != null) {
+    final PsiFile psiFile=CommonDataKeys.PSI_FILE.getData(context);
+    if (psiFile != null) {
+      element=psiFile.findElementAt(editor.getCaretModel().getOffset());
+    }
+  }
+  if (element == null) {
+    element=CommonDataKeys.PSI_ELEMENT.getData(context);
+  }
+  return element instanceof GherkinStep ? (GherkinStep)element : PsiTreeUtil.getParentOfType(element,GherkinStep.class);
+}

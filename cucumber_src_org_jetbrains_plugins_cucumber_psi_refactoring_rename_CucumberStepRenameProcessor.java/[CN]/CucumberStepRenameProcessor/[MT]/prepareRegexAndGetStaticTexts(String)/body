@@ -1,0 +1,53 @@
+{
+  final ArrayList<String> result=new ArrayList<String>();
+  final StringBuilder preparedRegexp=new StringBuilder();
+  final RegExpLexer lexer=new RegExpLexer(EnumSet.noneOf(RegExpCapability.class));
+  lexer.start(source);
+  IElementType previous=null;
+  final TokenSet toSkip=TokenSet.create(RegExpTT.CHARACTER,RegExpTT.CARET,RegExpTT.DOLLAR);
+  StringBuilder currentStaticText=new StringBuilder();
+  boolean insideAddedGroup=false;
+  final Stack<IElementType> elementsWaitingToClose=new Stack<IElementType>();
+  while (lexer.getTokenType() != null) {
+    if (!toSkip.contains(lexer.getTokenType())) {
+      if (!insideAddedGroup) {
+        insideAddedGroup=true;
+        preparedRegexp.append('(');
+        result.add(currentStaticText.toString());
+        currentStaticText=new StringBuilder();
+      }
+      if (lexer.getTokenType() == RegExpTT.GROUP_BEGIN || lexer.getTokenType() == RegExpTT.NON_CAPT_GROUP) {
+        elementsWaitingToClose.push(RegExpTT.GROUP_END);
+      }
+ else       if (lexer.getTokenType() == RegExpTT.CLASS_BEGIN) {
+        elementsWaitingToClose.push(RegExpTT.CLASS_END);
+      }
+ else       if (elementsWaitingToClose.size() > 0 && lexer.getTokenType() == elementsWaitingToClose.peek()) {
+        elementsWaitingToClose.pop();
+      }
+    }
+ else {
+      if (elementsWaitingToClose.size() == 0) {
+        if (previous != null && previous != RegExpTT.CHARACTER && insideAddedGroup) {
+          insideAddedGroup=false;
+          preparedRegexp.append(')');
+        }
+        if (lexer.getTokenType() == RegExpTT.CHARACTER) {
+          currentStaticText.append(lexer.getTokenText());
+        }
+      }
+    }
+    preparedRegexp.append(lexer.getTokenText());
+    if (lexer.getTokenType() == RegExpTT.GROUP_BEGIN) {
+      preparedRegexp.append("?:");
+    }
+    previous=lexer.getTokenType();
+    lexer.advance();
+  }
+  if (insideAddedGroup) {
+    preparedRegexp.append(')');
+  }
+  result.add(currentStaticText.toString());
+  result.add(0,preparedRegexp.toString());
+  return result;
+}

@@ -1,0 +1,28 @@
+{
+  final CucumberStepReference reference=getCucumberStepReference(element);
+  if (reference != null) {
+    final AbstractStepDefinition stepDefinition=reference.resolveToDefinition();
+    if (stepDefinition != null) {
+      final PsiElement elementToRename=stepDefinition.getElement();
+      final List<String> newStaticTexts=prepareRegexAndGetStaticTexts(newName);
+      final String oldStepDefPatternText=stepDefinition.getCucumberRegex();
+      if (oldStepDefPatternText != null) {
+        final Pattern oldStepDefPattern=Pattern.compile(prepareRegexAndGetStaticTexts(oldStepDefPatternText).get(0));
+        for (        UsageInfo usage : usages) {
+          final PsiElement possibleStep=usage.getElement();
+          if (possibleStep instanceof GherkinStep) {
+            final String oldStepName=((GherkinStep)possibleStep).getStepName();
+            final String newStepName=getNewStepName(oldStepName,oldStepDefPattern,newStaticTexts);
+            ((GherkinStep)possibleStep).setName(newStepName);
+          }
+        }
+        final String prefix=oldStepDefPatternText.startsWith("^") ? "^" : "";
+        final String suffix=oldStepDefPatternText.endsWith("$") ? "$" : "";
+        stepDefinition.setCucumberRegex(prefix + newName + suffix);
+        if (listener != null && elementToRename != null) {
+          listener.elementRenamed(elementToRename);
+        }
+      }
+    }
+  }
+}
