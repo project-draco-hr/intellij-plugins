@@ -1,0 +1,52 @@
+{
+  if (!(element instanceof DartComponent) && !(element.getParent() instanceof DartComponent)) {
+    return null;
+  }
+  final DartComponent namedComponent=(DartComponent)(element instanceof DartComponent ? element : element.getParent());
+  final StringBuilder builder=new StringBuilder();
+  if (namedComponent instanceof DartClass) {
+    appendClassSignature(builder,(DartClass)namedComponent);
+  }
+ else   if (namedComponent instanceof DartFunctionDeclarationWithBodyOrNative) {
+    appendFunctionSignature(builder,namedComponent,((DartFunctionDeclarationWithBodyOrNative)namedComponent).getReturnType());
+  }
+ else   if (namedComponent instanceof DartFunctionTypeAlias) {
+    builder.append("typedef ");
+    appendFunctionSignature(builder,namedComponent,((DartFunctionTypeAlias)namedComponent).getReturnType());
+  }
+ else   if (namedComponent instanceof DartMethodDeclaration) {
+    appendDeclaringClass(builder,namedComponent);
+    if (isConstructor(namedComponent)) {
+      appendConstructorSignature(builder,namedComponent,PsiTreeUtil.getParentOfType(namedComponent,DartClass.class),false);
+    }
+ else {
+      appendFunctionSignature(builder,namedComponent,((DartMethodDeclaration)namedComponent).getReturnType());
+    }
+  }
+ else   if (namedComponent instanceof DartVarAccessDeclaration) {
+    appendDeclaringClass(builder,namedComponent);
+    appendVariableSignature(builder,namedComponent,((DartVarAccessDeclaration)namedComponent).getType());
+  }
+ else   if (namedComponent instanceof DartGetterDeclaration) {
+    appendDeclaringClass(builder,namedComponent);
+    builder.append("get ");
+    appendFunctionSignature(builder,namedComponent,((DartGetterDeclaration)namedComponent).getReturnType());
+  }
+ else   if (namedComponent instanceof DartSetterDeclaration) {
+    appendDeclaringClass(builder,namedComponent);
+    builder.append("set ");
+    appendFunctionSignature(builder,namedComponent,((DartSetterDeclaration)namedComponent).getReturnType());
+  }
+ else   if (namedComponent instanceof DartNamedConstructorDeclaration) {
+    appendDeclaringClass(builder,namedComponent);
+    appendConstructorSignature(builder,namedComponent,PsiTreeUtil.getParentOfType(namedComponent,DartClass.class),true);
+  }
+  final PsiComment comment=DartResolveUtil.findDocumentation(namedComponent);
+  if (comment != null) {
+    builder.append("<br/><br/>");
+    final String commentText=DartPresentableUtil.unwrapCommentDelimiters(comment.getText());
+    final MarkdownProcessor processor=new MarkdownProcessor();
+    builder.append(processor.markdown(commentText));
+  }
+  return builder.toString();
+}
