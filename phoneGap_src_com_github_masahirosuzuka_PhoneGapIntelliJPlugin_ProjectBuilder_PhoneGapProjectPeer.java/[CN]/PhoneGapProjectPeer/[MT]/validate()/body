@@ -1,0 +1,17 @@
+{
+  String path=myExecutablePathField.getText();
+  boolean error;
+  if (myValidateCache.containsKey(path)) {
+    error=myValidateCache.get(path);
+  }
+ else {
+    try {
+      error=ExecUtil.execAndGetResult(path,"--version") > 0;
+    }
+ catch (    Exception e) {
+      error=true;
+    }
+    myValidateCache.put(path,error);
+  }
+  return error ? new ValidationInfo("Incorrect Phonegap/Cordova executable") : null;
+}
