@@ -1,0 +1,23 @@
+{
+  final DartDocComment multilineComment=PsiTreeUtil.getChildOfType(dartComponent,DartDocComment.class);
+  if (multilineComment != null)   return getMultilineDocCommentText(multilineComment);
+  final PsiComment[] childComments=PsiTreeUtil.getChildrenOfType(dartComponent,PsiComment.class);
+  if (childComments != null) {
+    final String docText=getSingleLineDocCommentsText(childComments);
+    if (docText != null)     return docText;
+  }
+  final PsiElement parent=dartComponent.getParent();
+  final PsiElement anchorElement=parent instanceof DartClassMembers && parent.getFirstChild() == dartComponent ? parent : dartComponent;
+  final List<PsiComment> siblingComments=new ArrayList<PsiComment>();
+  PsiElement previous=anchorElement;
+  while ((previous=UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(previous,true)) instanceof PsiComment) {
+    if (previous instanceof DartDocComment) {
+      return getMultilineDocCommentText((DartDocComment)previous);
+    }
+    siblingComments.add(0,(PsiComment)previous);
+  }
+  if (!siblingComments.isEmpty()) {
+    return getSingleLineDocCommentsText(siblingComments.toArray(new PsiComment[siblingComments.size()]));
+  }
+  return null;
+}
