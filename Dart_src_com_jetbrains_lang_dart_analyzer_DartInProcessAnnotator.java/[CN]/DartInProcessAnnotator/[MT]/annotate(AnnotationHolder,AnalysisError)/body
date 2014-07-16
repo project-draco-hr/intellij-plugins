@@ -1,10 +1,15 @@
 {
   final TextRange textRange=new TextRange(message.getOffset(),message.getOffset() + message.getLength());
-switch (message.getErrorCode().getErrorSeverity()) {
+  final ErrorCode errorCode=message.getErrorCode();
+switch (errorCode.getErrorSeverity()) {
 case NONE:
     return null;
 case INFO:
-  return holder.createWeakWarningAnnotation(textRange,message.getMessage());
+  final Annotation annotation=holder.createWeakWarningAnnotation(textRange,message.getMessage());
+if (errorCode == HintCode.UNUSED_IMPORT || errorCode == HintCode.DUPLICATE_IMPORT) {
+  annotation.setHighlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL);
+}
+return annotation;
 case WARNING:
 return holder.createWarningAnnotation(textRange,message.getMessage());
 case ERROR:
