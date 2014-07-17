@@ -1,0 +1,24 @@
+{
+  for (  PsiElement dartComponent : PsiTreeUtil.findChildrenOfAnyType(root,DartComponent.class,DartOperatorDeclaration.class)) {
+    final DartComponentType componentType=DartComponentType.typeOf(dartComponent);
+    if (componentType == null)     continue;
+switch (componentType) {
+case CLASS:
+      final DartClassMembers classMembers=DartResolveUtil.getBody((DartClass)dartComponent);
+    if (classMembers != null) {
+      for (      DartComponent childComponent : PsiTreeUtil.findChildrenOfType(classMembers,DartComponent.class)) {
+        foldFunctionBody(descriptors,childComponent);
+      }
+    }
+  break;
+case CONSTRUCTOR:
+case FUNCTION:
+case METHOD:
+case OPERATOR:
+foldFunctionBody(descriptors,dartComponent);
+break;
+default :
+break;
+}
+}
+}
