@@ -1,0 +1,31 @@
+{
+  for (PsiElement child=root.getFirstChild(); child != null; child=child.getNextSibling()) {
+    if (fileHeaderRange != null && fileHeaderRange.intersects(child.getTextRange())) {
+      continue;
+    }
+    if (child instanceof PsiComment) {
+      final IElementType elementType=child.getNode().getElementType();
+      if (elementType == DartTokenTypesSets.MULTI_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.MULTI_LINE_COMMENT) {
+        descriptors.add(new FoldingDescriptor(child,child.getTextRange()));
+      }
+ else       if (elementType == DartTokenTypesSets.SINGLE_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.SINGLE_LINE_COMMENT) {
+        final PsiElement firstCommentInSequence=child;
+        PsiElement lastCommentInSequence=firstCommentInSequence;
+        PsiElement nextElement=firstCommentInSequence;
+        while ((nextElement=nextElement.getNextSibling()) != null && (nextElement instanceof PsiWhiteSpace || nextElement.getNode().getElementType() == elementType)) {
+          if (nextElement.getNode().getElementType() == elementType) {
+            lastCommentInSequence=nextElement;
+          }
+        }
+        if (lastCommentInSequence != firstCommentInSequence) {
+          final TextRange range=TextRange.create(firstCommentInSequence.getTextOffset(),lastCommentInSequence.getTextRange().getEndOffset());
+          descriptors.add(new FoldingDescriptor(firstCommentInSequence,range));
+        }
+        child=lastCommentInSequence;
+      }
+    }
+ else {
+      foldComments(descriptors,child,fileHeaderRange);
+    }
+  }
+}
