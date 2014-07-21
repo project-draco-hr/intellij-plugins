@@ -1,13 +1,15 @@
 {
   if (!recursion_guard_(builder_,level_,"catchPart"))   return false;
   if (!nextTokenIs(builder_,CATCH))   return false;
-  boolean result_=false;
-  boolean pinned_=false;
+  boolean result_;
+  boolean pinned_;
   Marker marker_=enter_section_(builder_,level_,_NONE_,null);
   result_=consumeToken(builder_,CATCH);
   pinned_=result_;
-  result_=result_ && report_error_(builder_,formalParameterList(builder_,level_ + 1));
-  result_=pinned_ && block(builder_,level_ + 1) && result_;
+  result_=result_ && report_error_(builder_,consumeToken(builder_,LPAREN));
+  result_=pinned_ && report_error_(builder_,componentName(builder_,level_ + 1)) && result_;
+  result_=pinned_ && report_error_(builder_,catchPart_3(builder_,level_ + 1)) && result_;
+  result_=pinned_ && consumeToken(builder_,RPAREN) && result_;
   exit_section_(builder_,level_,marker_,CATCH_PART,result_,pinned_,null);
   return result_ || pinned_;
 }

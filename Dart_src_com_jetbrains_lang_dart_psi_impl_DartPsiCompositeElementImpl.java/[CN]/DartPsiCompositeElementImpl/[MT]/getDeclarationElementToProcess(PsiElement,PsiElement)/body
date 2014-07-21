@@ -21,6 +21,17 @@
         }
       }
     }
+    if (child instanceof DartTypeParameters) {
+      for (      DartTypeParameter typeParameter : ((DartTypeParameters)child).getTypeParameterList()) {
+        result.add(typeParameter.getComponentName());
+      }
+    }
+    if (child instanceof DartImportStatement) {
+      ContainerUtil.addIfNotNull(result,((DartImportStatement)child).getImportPrefix());
+    }
+    if (child instanceof DartCatchPart) {
+      result.addAll(((DartCatchPart)child).getComponentNameList());
+    }
   }
   if (context instanceof DartForStatement) {
     final DartForLoopPartsInBraces loopPartsInBraces=((DartForStatement)context).getForLoopPartsInBraces();
@@ -37,21 +48,6 @@
     final DartVarDeclarationList varDeclarationList=loopParts == null ? null : loopParts.getVarDeclarationList();
     if (varDeclarationList != null) {
       DartControlFlowUtil.addFromVarDeclarationList(result,varDeclarationList);
-    }
-  }
-  final DartTypeParameters typeParameters=PsiTreeUtil.getChildOfType(context,DartTypeParameters.class);
-  if (typeParameters != null) {
-    for (    DartTypeParameter typeParameter : typeParameters.getTypeParameterList()) {
-      result.add(typeParameter.getComponentName());
-    }
-  }
-  final DartImportStatement[] importStatements=PsiTreeUtil.getChildrenOfType(context,DartImportStatement.class);
-  if (importStatements != null) {
-    for (    DartImportStatement importStatement : importStatements) {
-      final DartComponentName importPrefix=importStatement.getImportPrefix();
-      if (importPrefix != null) {
-        result.add(importPrefix);
-      }
     }
   }
   return result;
