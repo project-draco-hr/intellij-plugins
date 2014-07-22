@@ -1,10 +1,15 @@
 {
   if (!recursion_guard_(builder_,level_,"mixinApplication"))   return false;
+  if (!nextTokenIs(builder_,EQ))   return false;
   boolean result_;
-  Marker marker_=enter_section_(builder_,level_,_NONE_,"<mixin application>");
-  result_=type(builder_,level_ + 1);
-  result_=result_ && mixinApplication_1(builder_,level_ + 1);
-  result_=result_ && mixinApplication_2(builder_,level_ + 1);
-  exit_section_(builder_,level_,marker_,MIXIN_APPLICATION,result_,false,null);
-  return result_;
+  boolean pinned_;
+  Marker marker_=enter_section_(builder_,level_,_NONE_,null);
+  result_=consumeToken(builder_,EQ);
+  pinned_=result_;
+  result_=result_ && report_error_(builder_,type(builder_,level_ + 1));
+  result_=pinned_ && report_error_(builder_,mixinApplication_2(builder_,level_ + 1)) && result_;
+  result_=pinned_ && report_error_(builder_,mixinApplication_3(builder_,level_ + 1)) && result_;
+  result_=pinned_ && consumeToken(builder_,SEMICOLON) && result_;
+  exit_section_(builder_,level_,marker_,MIXIN_APPLICATION,result_,pinned_,null);
+  return result_ || pinned_;
 }
