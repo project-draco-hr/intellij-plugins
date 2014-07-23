@@ -1,0 +1,19 @@
+{
+  TextFieldWithHistoryWithBrowseButton textFieldWithHistoryWithBrowseButton=new TextFieldWithHistoryWithBrowseButton();
+  final TextFieldWithHistory textFieldWithHistory=textFieldWithHistoryWithBrowseButton.getChildComponent();
+  textFieldWithHistory.setHistorySize(-1);
+  textFieldWithHistory.setMinimumAndPreferredWidth(0);
+  SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new NotNullProducer<List<String>>(){
+    @NotNull @Override public List<String> produce(){
+      return PhoneGapSettings.getDefaultPaths();
+    }
+  }
+);
+  SwingHelper.installFileCompletionAndBrowseDialog(project,textFieldWithHistoryWithBrowseButton,"Phonegap/Cordova executable path:",FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor());
+  String executablePath=PhoneGapSettings.getInstance().getExecutablePath();
+  if (StringUtil.isNotEmpty(executablePath)) {
+    textFieldWithHistory.setText(executablePath);
+    textFieldWithHistory.addCurrentTextToHistory();
+  }
+  return textFieldWithHistoryWithBrowseButton;
+}
