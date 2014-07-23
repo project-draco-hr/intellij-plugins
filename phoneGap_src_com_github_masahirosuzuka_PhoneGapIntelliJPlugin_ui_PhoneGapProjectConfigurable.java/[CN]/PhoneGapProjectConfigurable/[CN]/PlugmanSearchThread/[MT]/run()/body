@@ -1,0 +1,26 @@
+{
+  try {
+    StringBuilder out=new StringBuilder();
+    StringBuilder error=new StringBuilder();
+    final GeneralCommandLine generalCommandLine=new GeneralCommandLine("/usr/local/bin/plugman","search");
+    OSProcessHandler osProcessHandler=new OSProcessHandler(generalCommandLine);
+    OutputListener outputListener=new OutputListener(out,error);
+    osProcessHandler.addProcessListener(outputListener);
+    osProcessHandler.startNotify();
+    generalCommandLine.createProcess();
+    osProcessHandler.waitFor();
+    String plugmanSearchResult=outputListener.getOutput().getStdout();
+    String[] splitedPlugmanSearchResult=plugmanSearchResult.split("\n");
+    for (    String string : splitedPlugmanSearchResult) {
+      Matcher matcher=Pattern.compile("^[0-9a-z\\.]+").matcher(string);
+      if (matcher.find()) {
+        String phonegapPluginId=matcher.group();
+        boolean installed=false;
+        myTableModel.addRow(new Object[]{installed,phonegapPluginId});
+      }
+    }
+  }
+ catch (  Exception e) {
+    e.printStackTrace();
+  }
+}
