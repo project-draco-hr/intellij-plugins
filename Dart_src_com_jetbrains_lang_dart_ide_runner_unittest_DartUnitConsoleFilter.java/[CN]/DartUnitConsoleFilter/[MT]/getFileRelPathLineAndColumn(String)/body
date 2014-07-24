@@ -1,0 +1,17 @@
+{
+  if (text.isEmpty())   return null;
+  if (text.charAt(0) != '.' && !Character.isJavaIdentifierStart(text.charAt(0)))   return null;
+  int index=0;
+  while (text.length() > ++index) {
+    final char ch=text.charAt(index);
+    if (ch != '/' && ch != '\\' && ch != '.' && !Character.isJavaIdentifierPart(ch))     break;
+  }
+  if (text.length() <= index + 3)   return null;
+  final String relPath=text.substring(0,index);
+  if (!relPath.endsWith(".dart") || text.charAt(index) != ' ')   return null;
+  final Couple<Integer> lineAndColumn=DartPositionInfo.parseLineAndColumnInColonFormat(text.substring(index + 1));
+  final int line=lineAndColumn == null ? -1 : lineAndColumn.first >= 0 ? lineAndColumn.first - 1 : lineAndColumn.first;
+  final int column=lineAndColumn == null ? -1 : lineAndColumn.second >= 0 ? lineAndColumn.second - 1 : lineAndColumn.second;
+  if (line < 0 || column < 0)   return null;
+  return Trinity.create(relPath,line,column);
+}
