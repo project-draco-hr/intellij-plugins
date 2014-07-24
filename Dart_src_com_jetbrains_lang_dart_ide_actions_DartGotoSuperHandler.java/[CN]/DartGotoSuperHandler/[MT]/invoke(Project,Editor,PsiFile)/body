@@ -4,9 +4,12 @@
   final DartClass dartClass=PsiTreeUtil.getParentOfType(at,DartClass.class);
   if (at == null || dartClass == null || component == null)   return;
   final List<DartClass> supers=new ArrayList<DartClass>();
-  final DartClassResolveResult dartClassResolveResult=DartResolveUtil.resolveClassByType(dartClass.getSuperClass());
-  if (dartClassResolveResult.getDartClass() != null) {
-    supers.add(dartClassResolveResult.getDartClass());
+  final DartType superClass=dartClass.getSuperClass();
+  if (superClass != null && !DartResolveUtil.OBJECT.equals(superClass.getReferenceExpression().getText())) {
+    final DartClassResolveResult dartClassResolveResult=DartResolveUtil.resolveClassByType(superClass);
+    if (dartClassResolveResult.getDartClass() != null) {
+      supers.add(dartClassResolveResult.getDartClass());
+    }
   }
   List<DartClassResolveResult> implementsAndMixinsList=DartResolveUtil.resolveClassesByTypes(DartResolveUtil.getImplementsAndMixinsList(dartClass));
   for (  DartClassResolveResult resolveResult : implementsAndMixinsList) {
