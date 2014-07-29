@@ -1,11 +1,17 @@
 {
+  final Computable<ChromeSettings> currentDartiumSettingsRetriever=new Computable<ChromeSettings>(){
+    public ChromeSettings compute(){
+      return myDartiumSettingsCurrent;
+    }
+  }
+;
   final Computable<Boolean> isResettingControlsComputable=new Computable<Boolean>(){
     public Boolean compute(){
       return myInReset;
     }
   }
 ;
-  DartSdkUtil.initDartSdkAndDartiumControls(myProject,mySdkPathTextWithBrowse,myVersionLabel,myDartiumPathTextWithBrowse,isResettingControlsComputable);
+  DartSdkUtil.initDartSdkAndDartiumControls(myProject,mySdkPathTextWithBrowse,myVersionLabel,myDartiumPathTextWithBrowse,currentDartiumSettingsRetriever,myDartiumSettingsButton,myCheckedModeCheckBox,isResettingControlsComputable);
   final DocumentAdapter documentListener=new DocumentAdapter(){
     protected void textChanged(    final DocumentEvent e){
       updateErrorLabel();
@@ -14,10 +20,4 @@
 ;
   mySdkPathTextWithBrowse.getTextField().getDocument().addDocumentListener(documentListener);
   myDartiumPathTextWithBrowse.getTextField().getDocument().addDocumentListener(documentListener);
-  myDartiumSettingsButton.addActionListener(new ActionListener(){
-    @Override public void actionPerformed(    final ActionEvent e){
-      ShowSettingsUtil.getInstance().editConfigurable(myProject,myDartiumSettingsCurrent.createConfigurable());
-    }
-  }
-);
 }
