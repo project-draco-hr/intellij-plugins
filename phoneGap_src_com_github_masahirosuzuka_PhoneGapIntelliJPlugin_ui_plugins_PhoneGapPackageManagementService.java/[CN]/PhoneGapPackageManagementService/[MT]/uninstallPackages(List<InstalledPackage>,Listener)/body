@@ -1,0 +1,22 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      ContainerUtil.process(installedPackages,new Processor<InstalledPackage>(){
+        @Override public boolean process(        InstalledPackage aPackage){
+          listener.operationStarted(aPackage.getName());
+          try {
+            myCommands.pluginRemove(aPackage.getName());
+            listener.operationFinished(aPackage.getName(),null);
+          }
+ catch (          Exception e) {
+            String message=e.getMessage();
+            listener.operationFinished(aPackage.getName(),message == null ? e.toString() : message);
+          }
+          return true;
+        }
+      }
+);
+    }
+  }
+);
+}

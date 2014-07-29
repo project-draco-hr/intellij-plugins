@@ -1,0 +1,34 @@
+{
+  HttpURLConnection urlConnection=null;
+  Map<String,PhoneGapRepoPackage> result=ContainerUtil.newHashMap();
+  try {
+    urlConnection=HttpConfigurable.getInstance().openHttpConnection(PLUGINS_URL);
+    int timeout=(int)TimeUnit.SECONDS.toMillis(30);
+    urlConnection.setConnectTimeout(timeout);
+    urlConnection.setReadTimeout(timeout);
+    urlConnection.connect();
+    InputStream rawStream=urlConnection.getInputStream();
+    int contentLength=urlConnection.getContentLength();
+    final ByteArrayOutputStream out=new ByteArrayOutputStream();
+    NetUtils.copyStreamContent(null,rawStream,out,contentLength);
+    JsonParser jsonParser=new JsonParser();
+    final JsonElement jsonElement=jsonParser.parse(out.toString());
+    JsonObject object=jsonElement.getAsJsonObject();
+    for (    Map.Entry<String,JsonElement> entry : object.entrySet()) {
+      if (!isExcluded(entry.getKey())) {
+        JsonElement descriptionElement=entry.getValue().getAsJsonObject().get("description");
+        String description=descriptionElement == null ? "" : descriptionElement.getAsString();
+        result.put(entry.getKey(),new PhoneGapRepoPackage(entry.getKey(),description,PLUGINS_URL));
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e.getMessage(),e);
+  }
+ finally {
+    if (urlConnection != null) {
+      urlConnection.disconnect();
+    }
+  }
+  return result;
+}
