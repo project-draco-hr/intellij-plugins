@@ -1,0 +1,22 @@
+{
+  List<CssValueDescriptor> children=ContainerUtil.newArrayList();
+  Set<String> formats=addValuesFromFormats(children,infos);
+  addValuesFromEnumerations2(infos,children);
+  addValuesFromTypes2(infos,formats,children);
+  CssCommonDescriptorData commonDescriptorData=new CssCommonDescriptorData("","",CssContextType.EMPTY_ARRAY,BrowserVersion.EMPTY_ARRAY,CssVersion.UNKNOWN,null,"");
+  CssValueDescriptorData valueDescriptorData=new CssValueDescriptorData(true,1,shorthand ? -1 : 1,null,null,null,null);
+  CssGroupValue result=CssGroupValue.create(commonDescriptorData,valueDescriptorData,true,null,CssGroupValue.Type.OR);
+  if (!children.isEmpty()) {
+    for (    CssValueDescriptor child : children) {
+      result.addChild(CssValueDescriptorModificator.withParent(child,result));
+    }
+    if (!formats.contains(COLOR_FORMAT)) {
+      result.addChild(createCssStringValue(result));
+    }
+  }
+ else {
+    result.addChild(createCssAnyValue(result));
+  }
+  result.addChild(createCssNameValue("undefined",result));
+  return result;
+}
