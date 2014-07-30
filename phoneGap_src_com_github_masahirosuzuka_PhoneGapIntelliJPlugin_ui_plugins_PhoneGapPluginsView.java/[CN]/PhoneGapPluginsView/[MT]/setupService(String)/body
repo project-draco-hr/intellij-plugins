@@ -7,11 +7,16 @@
   packagesNotificationPanel.removeAllLinkHandlers();
   try {
     if (!StringUtil.isEmpty(path)) {
-      new PhoneGapCommands(path,myProject.getBasePath()).version();
-      service=new PhoneGapPackageManagementService(myProject,path);
+      ProcessOutput output=new PhoneGapCommands(path,myProject.getBasePath()).pluginListRaw();
+      if (StringUtil.isEmpty(output.getStderr())) {
+        service=new PhoneGapPackageManagementService(myProject,path);
+      }
+ else {
+        packagesNotificationPanel.showError("Project root directory is not phonegap/cordova project",null,null);
+      }
     }
   }
- catch (  RuntimeException e) {
+ catch (  Exception e) {
     packagesNotificationPanel.showError("Please correct path to phoneGap/cordova executable",null,null);
   }
   myCurrentPath=path;
