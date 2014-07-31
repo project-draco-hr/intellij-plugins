@@ -2,35 +2,29 @@
   if (dartClass.isAbstract()) {
     builder.append("abstract ");
   }
-  builder.append(StringUtil.join("class ",dartClass.getName()));
+  builder.append("class <b>").append(dartClass.getName()).append("</b>");
   appendTypeParams(builder,dartClass.getTypeParameters());
   final List<DartType> mixins=dartClass.getMixinsList();
+  final DartType superClass=dartClass.getSuperClass();
+  if (superClass != null) {
+    builder.append("<br/>extends ").append(StringUtil.escapeXml(superClass.getText()));
+  }
   if (!mixins.isEmpty()) {
-    builder.append(" with ");
+    builder.append("<br/>with ");
     for (Iterator<DartType> iter=mixins.iterator(); iter.hasNext(); ) {
-      builder.append(htmlify(iter.next().getText()));
+      builder.append(StringUtil.escapeXml(iter.next().getText()));
       if (iter.hasNext()) {
         builder.append(", ");
       }
-    }
-  }
- else {
-    final DartType superClass=dartClass.getSuperClass();
-    if (superClass != null) {
-      builder.append(StringUtil.join("<br/>extends ",htmlify(superClass.getText())));
     }
   }
   final List<DartType> implementsList=dartClass.getImplementsList();
   if (!implementsList.isEmpty()) {
     builder.append("<br/>implements ");
     for (Iterator<DartType> iter=implementsList.iterator(); iter.hasNext(); ) {
-      final DartType implementedType=iter.next();
-      final PsiElement resolvedReference=implementedType.resolveReference();
-      if (resolvedReference != null) {
-        builder.append(implementedType.getText());
-        if (iter.hasNext()) {
-          builder.append(", ");
-        }
+      builder.append(iter.next().getText());
+      if (iter.hasNext()) {
+        builder.append(", ");
       }
     }
   }
