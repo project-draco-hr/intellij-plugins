@@ -1,0 +1,17 @@
+{
+  try {
+    final ProcessOutput output=executeAndGetOut(command);
+    String stderr=output.getStderr();
+    if (output.getExitCode() > 0) {
+      throw new RuntimeException("Command error: " + stderr);
+    }
+    String stdout=output.getStdout();
+    if (StringUtil.isEmpty(stdout) && !StringUtil.isEmpty(stderr) && stderr.startsWith("v")) {
+      return stderr.substring(1);
+    }
+    return stdout;
+  }
+ catch (  Exception e) {
+    throw new RuntimeException(e.getMessage(),e);
+  }
+}
