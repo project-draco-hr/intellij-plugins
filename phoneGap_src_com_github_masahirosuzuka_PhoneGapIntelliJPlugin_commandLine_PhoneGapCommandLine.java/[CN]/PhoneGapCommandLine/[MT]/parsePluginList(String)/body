@@ -1,0 +1,18 @@
+{
+  if (StringUtil.isEmpty(out) || StringUtil.contains(out.toLowerCase(Locale.getDefault()),"no plugins")) {
+    return ContainerUtil.newArrayList();
+  }
+  if (out.startsWith("[") && out.endsWith("]")) {
+    out=out.substring(1,out.length() - 1);
+    return ContainerUtil.map(out.split(","),REMOVE_QUOTE_AND_TRIM);
+  }
+  if (out.startsWith("[")) {
+    out=out.replaceAll("\\[(.*?)\\]","");
+  }
+  List<String> plugins=ContainerUtil.map(out.split("\n"),StringUtil.TRIMMER);
+  String item=ContainerUtil.getFirstItem(plugins);
+  if (item != null && item.contains(INFO_PHONEGAP)) {
+    plugins=plugins.subList(1,plugins.size());
+  }
+  return plugins;
+}

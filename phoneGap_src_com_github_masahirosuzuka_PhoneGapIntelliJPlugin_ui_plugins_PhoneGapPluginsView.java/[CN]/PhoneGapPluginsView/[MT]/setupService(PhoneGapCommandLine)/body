@@ -1,0 +1,26 @@
+{
+  PhoneGapPackageManagementService service=null;
+  if (!commandLine.isCorrectExecutable()) {
+    packagesNotificationPanel.showError("Please correct path to phoneGap/cordova executable",null,null);
+    myPanel.updatePackages(null);
+    return;
+  }
+  packagesNotificationPanel.hide();
+  packagesNotificationPanel.removeAllLinkHandlers();
+  try {
+    ProcessOutput output=commandLine.pluginListRaw();
+    if (StringUtil.isEmpty(output.getStderr())) {
+      service=new PhoneGapPackageManagementService(commandLine);
+      if (commandLine.isOld()) {
+        packagesNotificationPanel.showWarning("Phonegap/Cordova version before 3.5 doesn't support plugin version management");
+      }
+    }
+ else {
+      packagesNotificationPanel.showError("Project root directory is not phonegap/cordova project",null,null);
+    }
+  }
+ catch (  Exception e) {
+    packagesNotificationPanel.showError("Please correct path to phoneGap/cordova executable",null,null);
+  }
+  myPanel.updatePackages(service);
+}

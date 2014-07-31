@@ -1,14 +1,19 @@
 {
   if (myWrapper == null) {
     myExecutablePath=PhoneGapUIUtil.createPhoneGapExecutableTextField(myProject);
+    myVersion=new JBLabel();
     myUIController=new UIController();
     myUIController.reset(mySettings.getState());
     phoneGapPluginsView=new PhoneGapPluginsView(myProject);
-    JPanel panel=FormBuilder.createFormBuilder().addLabeledComponent("PhoneGap/Cordova executable path:",myExecutablePath).addComponent(phoneGapPluginsView.getPanel()).getPanel();
+    JPanel panel=FormBuilder.createFormBuilder().addLabeledComponent("PhoneGap/Cordova executable path:",myExecutablePath).addLabeledComponent("Phonegap/Cordova version:",myVersion).addComponent(phoneGapPluginsView.getPanel()).getPanel();
     myWrapper=new JPanel(new BorderLayout());
     myWrapper.add(panel,BorderLayout.NORTH);
     setUpListener();
-    phoneGapPluginsView.setupService(myExecutablePath.getText());
+    if (!StringUtil.isEmpty(myExecutablePath.getText())) {
+      PhoneGapCommandLine line=getCommandLine();
+      phoneGapPluginsView.setupService(line);
+      setVersion(line);
+    }
   }
   return myWrapper;
 }

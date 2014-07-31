@@ -2,15 +2,24 @@
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
       listener.operationStarted(repoPackage.getName());
-      String errorMessage=null;
+      final Ref<String> errorMessage=new Ref<String>();
       try {
-        myCommands.pluginAdd(repoPackage.getName());
+        String appendVersion=version == null ? "" : "@" + version;
+        myCommands.pluginAdd(repoPackage.getName() + appendVersion);
       }
  catch (      Exception e) {
         String message=e.getMessage();
-        errorMessage=message == null ? e.toString() : message;
+        errorMessage.set(message == null ? e.toString() : message);
       }
-      listener.operationFinished(repoPackage.getName(),errorMessage);
+ finally {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            listener.operationFinished(repoPackage.getName(),errorMessage.get());
+            scheduleFileSystemRefresh();
+          }
+        }
+,ModalityState.any());
+      }
     }
   }
 );

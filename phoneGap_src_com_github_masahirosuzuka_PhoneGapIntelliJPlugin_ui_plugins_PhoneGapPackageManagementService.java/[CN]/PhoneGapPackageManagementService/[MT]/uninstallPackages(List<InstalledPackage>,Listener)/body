@@ -2,15 +2,23 @@
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
       ContainerUtil.process(installedPackages,new Processor<InstalledPackage>(){
-        @Override public boolean process(        InstalledPackage aPackage){
+        @Override public boolean process(        final InstalledPackage aPackage){
           listener.operationStarted(aPackage.getName());
+          final Ref<String> errorMessage=new Ref<String>();
           try {
             myCommands.pluginRemove(aPackage.getName());
-            listener.operationFinished(aPackage.getName(),null);
           }
  catch (          Exception e) {
-            String message=e.getMessage();
-            listener.operationFinished(aPackage.getName(),message == null ? e.toString() : message);
+            errorMessage.set(e.getMessage() == null ? e.toString() : e.getMessage());
+          }
+ finally {
+            ApplicationManager.getApplication().invokeLater(new Runnable(){
+              @Override public void run(){
+                listener.operationFinished(aPackage.getName(),errorMessage.get());
+                scheduleFileSystemRefresh();
+              }
+            }
+,ModalityState.any());
           }
           return true;
         }
