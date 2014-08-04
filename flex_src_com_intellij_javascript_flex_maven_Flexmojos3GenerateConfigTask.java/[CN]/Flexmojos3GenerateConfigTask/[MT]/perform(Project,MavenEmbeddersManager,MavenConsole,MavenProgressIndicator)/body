@@ -10,7 +10,8 @@
         temporaryFiles=mavenIdToOutputFileMapping(workspaceMap,project,myTree.getProjects());
         embedder.customizeForStrictResolve(workspaceMap,console,indicator);
         final String generateConfigGoal=FlexmojosImporter.FLEXMOJOS_GROUP_ID + ":" + FlexmojosImporter.FLEXMOJOS_ARTIFACT_ID+ ":generate-config-"+ myMavenProject.getPackaging();
-        MavenServerExecutionResult result=embedder.execute(myMavenProject.getFile(),myMavenProject.getActivatedProfilesIds(),Collections.singletonList(generateConfigGoal));
+        final MavenExplicitProfiles profilesIds=myMavenProject.getActivatedProfilesIds();
+        MavenServerExecutionResult result=embedder.execute(myMavenProject.getFile(),profilesIds.getEnabledProfiles(),profilesIds.getDisabledProfiles(),Collections.singletonList(generateConfigGoal));
         if (result.projectData == null) {
           myFlexConfigInformer.showFlexConfigWarningIfNeeded(project);
         }
