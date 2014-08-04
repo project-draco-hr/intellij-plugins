@@ -1,3 +1,9 @@
 {
-  return executeAndGetOut(new String[]{myPath,"platform","add",platform});
+  String trimmedPlatform=platform.trim();
+  ProcessOutput output=executeAndGetOut(new String[]{myPath,"platform","add",trimmedPlatform});
+  String message="Platform " + trimmedPlatform + " already added";
+  if (output.getExitCode() != 0 && (contains(output.getStderr(),message) || contains(output.getStdout(),message))) {
+    return new ProcessOutput(0);
+  }
+  return output;
 }
