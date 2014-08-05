@@ -5,16 +5,18 @@
     if (bndFile != null && bndFile.canRead()) {
       return bndFile;
     }
- else {
-      throw new OsmorcBuildException("The bnd file for the module does not exist",fileLocation);
-    }
+    throw new OsmorcBuildException("The bnd file for the module does not exist",fileLocation);
   }
   Map<String,String> buildProperties=new LinkedHashMap<String,String>();
   if (myExtension.isManifestManuallyEdited() || myExtension.isOsmorcControlsManifest()) {
     if (myExtension.isOsmorcControlsManifest()) {
-      buildProperties.putAll(myExtension.getBndFileProperties());
+      buildProperties.putAll(myExtension.getAdditionalProperties());
+      buildProperties.put(Constants.BUNDLE_SYMBOLICNAME,myExtension.getBundleSymbolicName());
+      buildProperties.put(Constants.BUNDLE_VERSION,myExtension.getBundleVersion());
+      String activator=myExtension.getBundleActivator();
+      if (!StringUtil.isEmptyOrSpaces(activator))       buildProperties.put(Constants.BUNDLE_ACTIVATOR,activator);
     }
- else     if (myExtension.isManifestManuallyEdited()) {
+ else {
       File manifestFile=myExtension.getManifestFile();
       if (manifestFile == null) {
         throw new OsmorcBuildException("Manifest file for the module does not exist or cannot be found. Check that file exists and is not excluded from the module",myExtension.getManifestLocation());
@@ -29,13 +31,9 @@
     }
     StringBuilder includedResources=new StringBuilder();
     if (!myExtension.isManifestManuallyEdited()) {
-      String resources=myExtension.getAdditionalPropertiesAsMap().get("Include-Resource");
-      if (resources != null) {
-        includedResources.append(resources).append(",").append(pathBuilder);
-      }
- else {
-        includedResources.append(pathBuilder);
-      }
+      String resources=myExtension.getAdditionalProperties().get("Include-Resource");
+      if (resources != null)       includedResources.append(resources).append(',');
+      includedResources.append(pathBuilder);
     }
  else {
       includedResources.append(pathBuilder);
