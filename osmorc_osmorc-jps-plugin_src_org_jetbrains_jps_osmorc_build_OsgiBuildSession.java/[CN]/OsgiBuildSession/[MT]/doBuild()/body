@@ -1,0 +1,37 @@
+{
+  progress("Running Bnd to build the bundle");
+  File bndFile=getBndFile();
+  if (!myExtension.isUseBundlorFile()) {
+    mySourceToReport=getSourceFileToReport(bndFile);
+    myBndWrapper.build(bndFile,myModuleOutputDir,myOutputJarFile);
+    mySourceToReport=null;
+  }
+ else {
+    File tempFile=new File(myOutputJarFile.getAbsolutePath() + ".tmp.jar");
+    mySourceToReport=getSourceFileToReport(bndFile);
+    myBndWrapper.build(bndFile,myModuleOutputDir,tempFile);
+    mySourceToReport=null;
+    progress("Running Bundlor to calculate the manifest");
+    String bundlorPath=myExtension.getBundlorFileLocation();
+    File bundlorFile=OsgiBuildUtil.findFileInModuleContentRoots(myModule,bundlorPath);
+    if (bundlorFile == null) {
+      throw new OsgiBuildException("Bnd file missing '" + bundlorPath + "' - please check OSGi facet settings.");
+    }
+    try {
+      Properties properties=OsgiBuildUtil.getMavenProjectProperties(myContext,myModule);
+      List<String> warnings=new BundlorWrapper().wrapModule(properties,tempFile,myOutputJarFile,bundlorFile);
+      for (      String warning : warnings) {
+        warning(warning,null,bundlorFile.getPath());
+      }
+    }
+  finally {
+      if (!FileUtil.delete(tempFile)) {
+        warning("Can't delete temporary file '" + tempFile + "'",null,null);
+      }
+    }
+  }
+  if (!myExtension.isUseBndFile() && !myExtension.isUseBundlorFile()) {
+    progress("Bundling non-OSGi libraries");
+    bundlifyLibraries();
+  }
+}

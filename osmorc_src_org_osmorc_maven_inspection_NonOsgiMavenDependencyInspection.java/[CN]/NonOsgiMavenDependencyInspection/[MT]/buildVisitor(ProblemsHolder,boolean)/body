@@ -12,15 +12,8 @@
         }
         MavenProjectsManager manager=MavenProjectsManager.getInstance(xmltag.getProject());
         File artifactFile=MavenArtifactUtil.getArtifactFile(manager.getLocalRepository(),dependency.getGroupId().getStringValue(),dependency.getArtifactId().getStringValue(),dependency.getVersion().getStringValue(),"jar");
-        if (artifactFile.exists()) {
-          try {
-            String url=artifactFile.toURL().toString();
-            if (!CachingBundleInfoProvider.isBundle(url)) {
-              problemsHolder.registerProblem(xmltag,"Dependency is not OSGi-ready",new FindOsgiCapableMavenDependencyQuickFix());
-            }
-          }
- catch (          MalformedURLException e) {
-          }
+        if (artifactFile.exists() && !CachingBundleInfoProvider.isBundle(artifactFile.getPath())) {
+          problemsHolder.registerProblem(xmltag,"Dependency is not OSGi-ready",new FindOsgiCapableMavenDependencyQuickFix());
         }
       }
     }

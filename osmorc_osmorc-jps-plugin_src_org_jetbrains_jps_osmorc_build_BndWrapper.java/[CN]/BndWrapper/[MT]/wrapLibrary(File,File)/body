@@ -1,0 +1,25 @@
+{
+  if (!sourceFile.isFile()) {
+    throw new OsgiBuildException("The library '" + sourceFile + "' does not exist - please check module dependencies.");
+  }
+  File targetFile=new File(outputDir,sourceFile.getName());
+  Map<String,String> additionalProperties=ContainerUtil.newHashMap();
+  long lastModified=Long.MIN_VALUE;
+  for (  LibraryBundlificationRule bundlificationRule : JpsOsmorcExtensionService.getInstance().getLibraryBundlificationRules()) {
+    if (bundlificationRule.appliesTo(sourceFile.getName())) {
+      if (bundlificationRule.isDoNotBundle()) {
+        return null;
+      }
+      additionalProperties.putAll(bundlificationRule.getAdditionalPropertiesMap());
+      lastModified=Math.max(lastModified,bundlificationRule.getLastModified());
+      if (bundlificationRule.isStopAfterThisRule()) {
+        break;
+      }
+    }
+  }
+  if (targetFile.exists() && targetFile.lastModified() >= sourceFile.lastModified() && targetFile.lastModified() >= lastModified) {
+    return targetFile;
+  }
+  doWrap(sourceFile,targetFile,additionalProperties);
+  return targetFile;
+}

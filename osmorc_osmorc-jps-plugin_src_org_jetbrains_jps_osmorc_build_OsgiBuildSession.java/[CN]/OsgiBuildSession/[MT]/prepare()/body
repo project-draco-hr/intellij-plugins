@@ -1,0 +1,20 @@
+{
+  String jarFileLocation=myExtension.getJarFileLocation();
+  if (jarFileLocation.isEmpty()) {
+    throw new OsgiBuildException("Bundle path is empty - please check OSGi facet settings.");
+  }
+  myOutputJarFile=new File(jarFileLocation);
+  if (!FileUtil.delete(myOutputJarFile)) {
+    throw new OsgiBuildException("Can't delete bundle file '" + myOutputJarFile + "'.");
+  }
+  if (!FileUtil.createParentDirs(myOutputJarFile)) {
+    throw new OsgiBuildException("Cannot create directory for bundle file '" + myOutputJarFile + "'.");
+  }
+  String moduleOutputUrl=JpsJavaExtensionService.getInstance().getOutputUrl(myModule,false);
+  if (moduleOutputUrl == null) {
+    throw new OsgiBuildException("Unable to determine the compiler output path for the module.");
+  }
+  myModuleOutputDir=JpsPathUtil.urlToFile(moduleOutputUrl);
+  myOutputDir=BndWrapper.getOutputDir(myModuleOutputDir);
+  myBndWrapper=new BndWrapper(this);
+}

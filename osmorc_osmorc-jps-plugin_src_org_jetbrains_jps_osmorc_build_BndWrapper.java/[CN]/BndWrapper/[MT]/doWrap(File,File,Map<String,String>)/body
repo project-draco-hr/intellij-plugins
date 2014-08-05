@@ -1,29 +1,36 @@
 {
+  if (!FileUtil.delete(outputJar)) {
+    throw new OsgiBuildException("Can't delete outdated bundle '" + outputJar + "'");
+  }
+  if (!FileUtil.createParentDirs(outputJar)) {
+    throw new OsgiBuildException("Can't create output directory for '" + outputJar + "'");
+  }
   try {
-    Analyzer analyzer=new ReportingAnalyzer(mySession,inputJar);
+    Analyzer analyzer=new ReportingAnalyzer(myReporter);
     analyzer.setPedantic(false);
     analyzer.setJar(inputJar);
-    Jar dot=analyzer.getJar();
     analyzer.putAll(properties,false);
     if (analyzer.getProperty(Constants.IMPORT_PACKAGE) == null) {
       analyzer.setProperty(Constants.IMPORT_PACKAGE,"*;resolution:=optional");
     }
     if (analyzer.getProperty(Constants.BUNDLE_SYMBOLICNAME) == null) {
       Pattern p=Pattern.compile("(" + Verifier.SYMBOLICNAME.pattern() + ")(-[0-9])?.*\\.jar");
-      String base=inputJar.getName();
-      Matcher m=p.matcher(base);
-      if (m.matches()) {
-        base=m.group(1);
+      Matcher m=p.matcher(inputJar.getName());
+      if (!m.matches()) {
+        throw new OsgiBuildException("Can't calculate output bundle name for '" + inputJar + "' - rename file or use -properties");
       }
- else {
-        throw new OsmorcBuildException("Can not calculate name of output bundle, rename jar or use -properties",inputJar);
-      }
-      analyzer.setProperty(Constants.BUNDLE_SYMBOLICNAME,base);
+      analyzer.setProperty(Constants.BUNDLE_SYMBOLICNAME,m.group(1));
     }
     if (analyzer.getProperty(Constants.EXPORT_PACKAGE) == null) {
       analyzer.setProperty(Constants.EXPORT_PACKAGE,"*");
     }
-    analyzer.mergeManifest(dot.getManifest());
+    JarFile jarFile=new JarFile(inputJar);
+    try {
+      analyzer.mergeManifest(jarFile.getManifest());
+    }
+  finally {
+      jarFile.close();
+    }
     String version=analyzer.getProperty(Constants.BUNDLE_VERSION);
     if (version != null) {
       version=Analyzer.cleanupVersion(version);
@@ -31,22 +38,14 @@
     }
     analyzer.calcManifest();
     Jar jar=analyzer.getJar();
-    final File f=FileUtil.createTempFile("tmp.bnd.",".jar");
-    jar.write(f);
+    jar.write(outputJar);
     jar.close();
     analyzer.close();
-    if (!FileUtil.delete(outputJar)) {
-      throw new OsmorcBuildException("Could not delete outdated generated bundle",outputJar);
-    }
-    if (!FileUtil.createParentDirs(outputJar)) {
-      throw new OsmorcBuildException("Cannot create output folder",outputJar);
-    }
-    FileUtil.rename(f,outputJar);
   }
- catch (  OsmorcBuildException e) {
+ catch (  OsgiBuildException e) {
     throw e;
   }
 catch (  Exception e) {
-    throw new OsmorcBuildException("There was an unexpected problem when trying to bundlify",e,inputJar).setWarning();
+    throw new OsgiBuildException("There was an unexpected problem when trying to bundlify",e,null);
   }
 }

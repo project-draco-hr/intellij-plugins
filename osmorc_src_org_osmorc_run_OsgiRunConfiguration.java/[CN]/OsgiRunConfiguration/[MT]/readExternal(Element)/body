@@ -6,23 +6,17 @@
   useAlternativeJre=Boolean.valueOf(element.getAttributeValue(USE_ALTERNATIVE_JRE_ATTRIBUTE,"false"));
   alternativeJrePath=element.getAttributeValue(ALTERNATIVE_JRE_PATH,"");
   generateWorkingDir=Boolean.valueOf(element.getAttributeValue(GENERATE_WORKING_DIR_ATTRIBUTE));
-  String fwsl=element.getAttributeValue(FRAMEWORK_START_LEVEL);
-  if (fwsl != null) {
-    try {
-      frameworkStartLevel=Integer.parseInt(fwsl);
-    }
- catch (    NumberFormatException e) {
-      frameworkStartLevel=1;
-    }
+  try {
+    frameworkStartLevel=Integer.parseInt(element.getAttributeValue(FRAMEWORK_START_LEVEL,"1"));
   }
-  String dfsl=element.getAttributeValue(DEFAULT_START_LEVEL);
-  if (dfsl != null) {
-    try {
-      defaultStartLevel=Integer.parseInt(dfsl);
-    }
- catch (    NumberFormatException e) {
-      defaultStartLevel=5;
-    }
+ catch (  NumberFormatException e) {
+    frameworkStartLevel=1;
+  }
+  try {
+    defaultStartLevel=Integer.parseInt(element.getAttributeValue(DEFAULT_START_LEVEL,"5"));
+  }
+ catch (  NumberFormatException e) {
+    defaultStartLevel=5;
   }
   List<Element> children=element.getChildren(BUNDLE_ELEMENT);
   bundlesToDeploy.clear();
@@ -50,15 +44,15 @@ catch (      ClassNotFoundException e) {
     try {
       type=SelectedBundle.BundleType.valueOf(typeName);
     }
- catch (    Exception e) {
+ catch (    IllegalArgumentException e) {
       type=SelectedBundle.BundleType.Module;
     }
-    SelectedBundle selectedBundle=new SelectedBundle(name,url,type);
+    SelectedBundle selectedBundle=new SelectedBundle(type,name,OsgiFileUtil.urlToPath(url));
     if (startLevel != null) {
       try {
         selectedBundle.setStartLevel(Integer.parseInt(startLevel));
       }
- catch (      NumberFormatException e) {
+ catch (      NumberFormatException ignored) {
       }
     }
     String startAfterInstallationString=child.getAttributeValue(START_AFTER_INSTALLATION_ATTRIBUTE);

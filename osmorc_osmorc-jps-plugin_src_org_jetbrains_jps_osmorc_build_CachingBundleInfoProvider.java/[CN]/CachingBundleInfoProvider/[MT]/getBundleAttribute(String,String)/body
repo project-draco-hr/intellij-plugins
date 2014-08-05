@@ -1,0 +1,45 @@
+{
+  Pair<Long,Manifest> pair=ourCache.remove(path);
+  try {
+    File bundleFile=new File(path);
+    if (bundleFile.isDirectory()) {
+      File manifestFile=new File(bundleFile,JarFile.MANIFEST_NAME);
+      if (pair == null || pair.first != manifestFile.lastModified()) {
+        pair=null;
+        FileInputStream stream=new FileInputStream(manifestFile);
+        try {
+          Manifest manifest=new Manifest(stream);
+          pair=Pair.create(manifestFile.lastModified(),manifest);
+        }
+  finally {
+          stream.close();
+        }
+      }
+    }
+ else     if (bundleFile.isFile()) {
+      if (pair == null || pair.first != bundleFile.lastModified()) {
+        pair=null;
+        JarFile jar=new JarFile(bundleFile);
+        try {
+          Manifest manifest=jar.getManifest();
+          if (manifest != null) {
+            pair=Pair.create(bundleFile.lastModified(),manifest);
+          }
+        }
+  finally {
+          jar.close();
+        }
+      }
+    }
+  }
+ catch (  IOException e) {
+    Logger.getInstance(CachingBundleInfoProvider.class).debug(e);
+  }
+  if (pair != null) {
+    ourCache.put(path,pair);
+    return pair.second.getMainAttributes().getValue(attribute);
+  }
+ else {
+    return null;
+  }
+}

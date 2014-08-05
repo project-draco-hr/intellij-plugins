@@ -1,0 +1,22 @@
+{
+  String inputPath=inputJar.getPath();
+  ManifestContents manifest;
+  try {
+    PropertiesSource propertiesSource=new PropertiesPropertiesSource(properties);
+    ManifestGenerator generator=new StandardManifestGenerator(DefaultManifestGeneratorContributorsFactory.create(propertiesSource));
+    ClassPath classPath=new StandardClassPathFactory().create(inputPath);
+    ManifestContents contents=new StandardManifestTemplateFactory().create(manifestTemplate.getPath(),null,null,null);
+    manifest=generator.generate(contents,classPath);
+    ManifestWriter manifestWriter=new StandardManifestWriterFactory().create(inputPath,outputJar.getPath());
+    try {
+      manifestWriter.write(manifest);
+    }
+  finally {
+      manifestWriter.close();
+    }
+  }
+ catch (  Exception e) {
+    throw new OsgiBuildException("Bundlor failed: error generating manifest",e,null);
+  }
+  return new StandardManifestValidator(DefaultManifestValidatorContributorsFactory.create()).validate(manifest);
+}

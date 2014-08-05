@@ -2,29 +2,20 @@
   String jarFileLocation=myProperties.myJarFileLocation;
   OutputPathType outputPathType=myProperties.myOutputPathType;
   String nullSafeLocation=jarFileLocation != null ? jarFileLocation : "";
-  if (outputPathType == null) {
-    return nullSafeLocation;
-  }
-  JpsModule module=getModule();
+  if (outputPathType == null)   return nullSafeLocation;
 switch (outputPathType) {
 case CompilerOutputPath:
-    File outputDir=JpsJavaExtensionService.getInstance().getOutputDirectory(module,false);
-  if (outputDir != null) {
-    return new File(outputDir.getParent(),nullSafeLocation).getAbsolutePath();
-  }
- else {
-    return nullSafeLocation;
-  }
+    File outputDir=JpsJavaExtensionService.getInstance().getOutputDirectory(getModule(),false);
+  return outputDir != null ? new File(outputDir.getParent(),nullSafeLocation).getAbsolutePath() : nullSafeLocation;
 case OsgiOutputPath:
-JpsProject project=module.getProject();
 JpsOsmorcProjectExtension projectExtension=getProjectExtension();
-String bundlesOutputPath=projectExtension == null ? null : projectExtension.getBundlesOutputPath();
-if (bundlesOutputPath != null && bundlesOutputPath.trim().length() != 0) {
-return bundlesOutputPath + "/" + nullSafeLocation;
+if (projectExtension != null) {
+String bundlesOutputPath=projectExtension.getBundlesOutputPath();
+if (!StringUtil.isEmptyOrSpaces(bundlesOutputPath)) {
+  return bundlesOutputPath + "/" + nullSafeLocation;
 }
- else {
-return JpsOsmorcProjectExtensionImpl.getDefaultBundlesOutputPath(project) + "/" + nullSafeLocation;
 }
+return JpsOsmorcProjectExtensionImpl.getDefaultBundlesOutputPath(getModule().getProject()) + "/" + nullSafeLocation;
 case SpecificOutputPath:
 default :
 return nullSafeLocation;
