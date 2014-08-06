@@ -1,0 +1,15 @@
+{
+  final String word=getTheBiggestWordToSearchByIndex(regexp);
+  if (StringUtil.isEmptyOrSpaces(word)) {
+    return true;
+  }
+  final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
+    @Override public SearchScope compute(){
+      return effectiveSearchScope;
+    }
+  }
+);
+  final short context=(short)(UsageSearchContext.IN_STRINGS | UsageSearchContext.IN_CODE);
+  final PsiSearchHelper instance=SERVICE.getInstance(stepDefinitionElement.getProject());
+  return instance.processElementsWithWord(processor,searchScope,word,context,true);
+}

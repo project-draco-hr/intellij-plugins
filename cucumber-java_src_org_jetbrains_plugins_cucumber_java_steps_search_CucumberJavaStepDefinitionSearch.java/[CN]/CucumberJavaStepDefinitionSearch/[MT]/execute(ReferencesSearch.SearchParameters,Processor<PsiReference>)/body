@@ -23,31 +23,5 @@
   if (regexp == null) {
     return true;
   }
-  final String word=CucumberUtil.getTheBiggestWordToSearchByIndex(regexp);
-  if (StringUtil.isEmpty(word)) {
-    return true;
-  }
-  final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
-    public SearchScope compute(){
-      return queryParameters.getEffectiveSearchScope();
-    }
-  }
-);
-  final TextOccurenceProcessor processor=new TextOccurenceProcessor(){
-    @Override public boolean execute(    @NotNull PsiElement element,    int offsetInElement){
-      PsiElement parent=element.getParent();
-      if (parent == null)       return true;
-      for (      PsiReference ref : parent.getReferences()) {
-        if (ref != null && ref.isReferenceTo(myElement)) {
-          if (!consumer.process(ref)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-  }
-;
-  short context=UsageSearchContext.IN_STRINGS | UsageSearchContext.IN_CODE;
-  return PsiSearchHelper.SERVICE.getInstance(myElement.getProject()).processElementsWithWord(processor,searchScope,word,context,true);
+  return CucumberUtil.findGherkinReferencesToElement(myElement,regexp,consumer,queryParameters.getEffectiveSearchScope());
 }
