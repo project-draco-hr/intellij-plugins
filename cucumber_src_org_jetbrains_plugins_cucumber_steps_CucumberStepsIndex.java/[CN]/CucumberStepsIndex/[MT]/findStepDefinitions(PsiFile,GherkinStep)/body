@@ -1,0 +1,15 @@
+{
+  final Module module=ModuleUtilCore.findModuleForPsiElement(featureFile);
+  if (module == null)   return null;
+  Map<Class<? extends AbstractStepDefinition>,AbstractStepDefinition> definitionsByClass=new java.util.HashMap<Class<? extends AbstractStepDefinition>,AbstractStepDefinition>();
+  List<AbstractStepDefinition> allSteps=loadStepsFor(featureFile,module);
+  for (  AbstractStepDefinition stepDefinition : allSteps) {
+    if (stepDefinition.matches(step.getSubstitutedName()) && stepDefinition.supportsStep(step)) {
+      final AbstractStepDefinition result=definitionsByClass.get(stepDefinition.getClass());
+      if (result == null || result.getPattern().getPattern().length() < stepDefinition.getPattern().getPattern().length()) {
+        definitionsByClass.put(stepDefinition.getClass(),stepDefinition);
+      }
+    }
+  }
+  return definitionsByClass.values();
+}
