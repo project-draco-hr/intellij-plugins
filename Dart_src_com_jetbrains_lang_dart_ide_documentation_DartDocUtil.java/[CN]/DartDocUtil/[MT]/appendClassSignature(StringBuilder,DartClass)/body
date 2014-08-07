@@ -3,38 +3,28 @@
     builder.append("abstract ");
   }
   builder.append("class <b>").append(dartClass.getName()).append("</b>");
-  final DartTypeParameters typeParameters=dartClass.getTypeParameters();
-  if (typeParameters != null) {
-    final List<DartTypeParameter> parameters=typeParameters.getTypeParameterList();
-    if (!parameters.isEmpty()) {
-      builder.append("&lt;");
-      for (Iterator<DartTypeParameter> iter=parameters.iterator(); iter.hasNext(); ) {
-        builder.append(iter.next().getText());
-        if (iter.hasNext()) {
-          builder.append(",");
-        }
-      }
-      builder.append("&gt;");
-    }
-  }
+  appendTypeParams(builder,dartClass.getTypeParameters());
+  final List<DartType> mixins=dartClass.getMixinsList();
   final DartType superClass=dartClass.getSuperClass();
   if (superClass != null) {
-    final PsiElement resolved=superClass.resolveReference();
-    if (resolved != null) {
-      builder.append(" extends ").append(resolved.getText());
+    builder.append("<br/>extends ").append(StringUtil.escapeXml(superClass.getText()));
+  }
+  if (!mixins.isEmpty()) {
+    builder.append(" with ");
+    for (Iterator<DartType> iter=mixins.iterator(); iter.hasNext(); ) {
+      builder.append(StringUtil.escapeXml(iter.next().getText()));
+      if (iter.hasNext()) {
+        builder.append(", ");
+      }
     }
   }
   final List<DartType> implementsList=dartClass.getImplementsList();
   if (!implementsList.isEmpty()) {
-    builder.append(" implements ");
+    builder.append("<br/>implements ");
     for (Iterator<DartType> iter=implementsList.iterator(); iter.hasNext(); ) {
-      final DartType implementedType=iter.next();
-      final PsiElement resolvedReference=implementedType.resolveReference();
-      if (resolvedReference != null) {
-        builder.append(implementedType.getText());
-        if (iter.hasNext()) {
-          builder.append(",");
-        }
+      builder.append(iter.next().getText());
+      if (iter.hasNext()) {
+        builder.append(", ");
       }
     }
   }

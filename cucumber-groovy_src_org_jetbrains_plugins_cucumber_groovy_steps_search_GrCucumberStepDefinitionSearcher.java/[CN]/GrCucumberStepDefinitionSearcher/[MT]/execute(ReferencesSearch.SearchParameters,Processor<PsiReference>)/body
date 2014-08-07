@@ -12,32 +12,5 @@
     }
   }
 );
-  if (StringUtil.isEmptyOrSpaces(regexp))   return true;
-  final String word=CucumberUtil.getTheBiggestWordToSearchByIndex(regexp);
-  if (StringUtil.isEmptyOrSpaces(word))   return true;
-  final SearchScope searchScope=CucumberStepSearchUtil.restrictScopeToGherkinFiles(new Computable<SearchScope>(){
-    public SearchScope compute(){
-      return queryParameters.getEffectiveSearchScope();
-    }
-  }
-);
-  final TextOccurenceProcessor processor=new TextOccurenceProcessor(){
-    @Override public boolean execute(    @NotNull final PsiElement occurrence,    int offsetInElement){
-      return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
-        @NotNull @Override public Boolean compute(){
-          if (!processRefs(occurrence,element,consumer))           return false;
-          PsiElement parent=occurrence.getParent();
-          if (parent != null) {
-            if (!processRefs(parent,element,consumer))             return false;
-          }
-          return true;
-        }
-      }
-);
-    }
-  }
-;
-  short context=UsageSearchContext.IN_STRINGS | UsageSearchContext.IN_CODE;
-  PsiSearchHelper instance=PsiSearchHelper.SERVICE.getInstance(element.getProject());
-  return instance.processElementsWithWord(processor,searchScope,word,context,true);
+  return CucumberUtil.findGherkinReferencesToElement(element,regexp,consumer,queryParameters.getEffectiveSearchScope());
 }

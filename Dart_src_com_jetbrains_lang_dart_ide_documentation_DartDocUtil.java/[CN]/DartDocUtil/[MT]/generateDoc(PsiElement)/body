@@ -4,6 +4,11 @@
   }
   final DartComponent namedComponent=(DartComponent)(element instanceof DartComponent ? element : element.getParent());
   final StringBuilder builder=new StringBuilder();
+  appendLibraryName(builder,element);
+  builder.append("<code>");
+  for (  DartMetadata metadata : namedComponent.getMetadataList()) {
+    builder.append(StringUtil.escapeXml(metadata.getText())).append("<br/>");
+  }
   if (namedComponent instanceof DartClass) {
     appendClassSignature(builder,(DartClass)namedComponent);
   }
@@ -36,6 +41,7 @@
     builder.append("set ");
     appendFunctionSignature(builder,namedComponent,((DartSetterDeclaration)namedComponent).getReturnType());
   }
+  builder.append("</code>");
   final String docText=getDocumentationText(namedComponent);
   if (docText != null) {
     builder.append("<br/><br/>");

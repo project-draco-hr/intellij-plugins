@@ -1,7 +1,12 @@
 {
   KarmaRunConfiguration runConfiguration=ObjectUtils.tryCast(myEnv.getRunProfile(),KarmaRunConfiguration.class);
   if (runConfiguration != null) {
-    return WEB_BROWSER_KEY.get(runConfiguration);
+    WebBrowser browser=WEB_BROWSER_KEY.get(runConfiguration);
+    if (!WebBrowserManager.getInstance().getActiveBrowsers().contains(browser)) {
+      WEB_BROWSER_KEY.set(runConfiguration,null);
+      return null;
+    }
+    return browser;
   }
   return null;
 }
