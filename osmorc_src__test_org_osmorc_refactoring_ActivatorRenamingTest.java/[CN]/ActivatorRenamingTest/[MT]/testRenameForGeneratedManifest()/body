@@ -1,6 +1,8 @@
 {
-  PsiFile activatorClassFile=TestUtil.loadPsiFile(fixture.getProject(),"t1","t1/Activator.java");
-  final OsmorcFacetConfiguration configuration=OsmorcFacet.getInstance(activatorClassFile).getConfiguration();
+  PsiFile activatorClassFile=TestUtil.loadPsiFile(myFixture.getProject(),"t1","t1/Activator.java");
+  OsmorcFacet facet=OsmorcFacet.getInstance(activatorClassFile);
+  assertNotNull(facet);
+  final OsmorcFacetConfiguration configuration=facet.getConfiguration();
   ApplicationManager.getApplication().runWriteAction(new Runnable(){
     public void run(){
       configuration.setManifestGenerationMode(OsmorcFacetConfiguration.ManifestGenerationMode.OsmorcControlled);
@@ -9,11 +11,11 @@
   }
 );
   final PsiClass activatorClass=PsiTreeUtil.getChildOfType(activatorClassFile,PsiClass.class);
-  CommandProcessor.getInstance().executeCommand(fixture.getProject(),new Runnable(){
+  CommandProcessor.getInstance().executeCommand(myFixture.getProject(),new Runnable(){
     public void run(){
       ApplicationManager.getApplication().runWriteAction(new Runnable(){
         public void run(){
-          RefactoringFactory.getInstance(fixture.getProject()).createRename(activatorClass,"RenamedActivator").run();
+          RefactoringFactory.getInstance(myFixture.getProject()).createRename(activatorClass,"RenamedActivator").run();
         }
       }
 );
