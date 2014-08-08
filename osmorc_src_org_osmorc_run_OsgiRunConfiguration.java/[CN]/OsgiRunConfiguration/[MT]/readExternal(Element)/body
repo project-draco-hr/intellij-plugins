@@ -25,26 +25,12 @@
     String url=child.getAttributeValue(URL_ATTRIBUTE);
     String startLevel=child.getAttributeValue(START_LEVEL_ATTRIBUTE);
     String typeName=child.getAttributeValue(TYPE_ATTRIBUTE);
-    if ("legacyLoader".equals(name)) {
-      try {
-        legacyOsgiRunConfigurationLoader=(LegacyOsgiRunConfigurationLoader)Class.forName(url).newInstance();
-      }
- catch (      InstantiationException e) {
-        throw new InvalidDataException(e);
-      }
-catch (      IllegalAccessException e) {
-        throw new InvalidDataException(e);
-      }
-catch (      ClassNotFoundException e) {
-        throw new InvalidDataException(e);
-      }
-      break;
-    }
     SelectedBundle.BundleType type;
     try {
       type=SelectedBundle.BundleType.valueOf(typeName);
     }
  catch (    IllegalArgumentException e) {
+      LOG.error("unexpected bundle type '" + typeName + "'");
       type=SelectedBundle.BundleType.Module;
     }
     SelectedBundle selectedBundle=new SelectedBundle(type,name,OsgiFileUtil.urlToPath(url));
