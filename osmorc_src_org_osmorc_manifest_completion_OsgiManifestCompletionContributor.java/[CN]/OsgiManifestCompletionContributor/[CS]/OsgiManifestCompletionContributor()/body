@@ -1,27 +1,5 @@
 {
-  extend(CompletionType.BASIC,PlatformPatterns.psiElement(ManifestTokenType.HEADER_VALUE_PART).withLanguage(ManifestLanguage.INSTANCE).withSuperParent(2,PlatformPatterns.psiElement(Directive.class).withName(ManifestConstants.Directives.NO_IMPORT)).withSuperParent(4,PlatformPatterns.psiElement(Header.class).withName(ManifestConstants.Headers.EXPORT_PACKAGE)),new CompletionProvider<CompletionParameters>(){
-    @Override public void addCompletions(    @NotNull CompletionParameters completionParameters,    ProcessingContext processingContext,    @NotNull CompletionResultSet completionResultSet){
-      PsiElement psiElement=completionParameters.getOriginalPosition();
-      if (psiElement != null && psiElement.getPrevSibling() == null) {
-        completionResultSet.addElement(LookupElementBuilder.create("true"));
-        completionResultSet.addElement(LookupElementBuilder.create("false"));
-      }
-    }
-  }
-);
-  extend(CompletionType.BASIC,PlatformPatterns.psiElement(ManifestTokenType.HEADER_VALUE_PART).withLanguage(ManifestLanguage.INSTANCE).withSuperParent(2,PlatformPatterns.psiElement(Directive.class).withName(ManifestConstants.Directives.SPLIT_PACKAGE)).withSuperParent(4,PlatformPatterns.psiElement(Header.class).withName(ManifestConstants.Headers.EXPORT_PACKAGE)),new CompletionProvider<CompletionParameters>(){
-    @Override public void addCompletions(    @NotNull CompletionParameters completionParameters,    ProcessingContext processingContext,    @NotNull CompletionResultSet completionResultSet){
-      PsiElement psiElement=completionParameters.getOriginalPosition();
-      if (psiElement != null && psiElement.getPrevSibling() == null) {
-        completionResultSet.addElement(LookupElementBuilder.create("merge-first"));
-        completionResultSet.addElement(LookupElementBuilder.create("merge-last"));
-        completionResultSet.addElement(LookupElementBuilder.create("first"));
-        completionResultSet.addElement(LookupElementBuilder.create("error"));
-      }
-    }
-  }
-);
-  extend(CompletionType.BASIC,PlatformPatterns.psiElement(ManifestTokenType.HEADER_VALUE_PART).withLanguage(ManifestLanguage.INSTANCE).withSuperParent(4,PlatformPatterns.psiElement(Header.class).withName(ManifestConstants.Headers.EXPORT_PACKAGE)),new ExportPackageCompletionProvider());
-  extend(CompletionType.BASIC,PlatformPatterns.psiElement(ManifestTokenType.HEADER_VALUE_PART).withLanguage(ManifestLanguage.INSTANCE).withSuperParent(3,PlatformPatterns.psiElement(Header.class).withName(ManifestConstants.Headers.EXPORT_PACKAGE)),new ExportPackageCompletionProvider());
-  extend(CompletionType.BASIC,PlatformPatterns.psiElement(ManifestTokenType.HEADER_VALUE_PART).withLanguage(ManifestLanguage.INSTANCE).withSuperParent(4,PlatformPatterns.psiElement(Header.class).withName(ManifestConstants.Headers.IMPORT_PACKAGE)),new ImportPackageCompletionProvider());
+  extend(CompletionType.BASIC,header(Constants.EXPORT_PACKAGE),new HeaderParametersProvider(Constants.VERSION_ATTRIBUTE,Constants.USES_DIRECTIVE + ':'));
+  extend(CompletionType.BASIC,header(Constants.IMPORT_PACKAGE),new HeaderParametersProvider(Constants.VERSION_ATTRIBUTE,Constants.RESOLUTION_DIRECTIVE + ':'));
+  extend(CompletionType.BASIC,directive(Constants.RESOLUTION_DIRECTIVE),new SimpleProvider("mandatory","optional"));
 }
