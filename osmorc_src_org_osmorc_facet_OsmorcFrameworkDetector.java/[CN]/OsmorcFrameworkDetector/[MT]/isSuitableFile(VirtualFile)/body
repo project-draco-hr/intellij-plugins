@@ -1,36 +1,27 @@
 {
   List<String> headersToDetect=new ArrayList<String>(Arrays.asList(DETECTION_HEADERS));
   if (file != null && file.exists() && !file.isDirectory()) {
-    BufferedReader bufferedReader=null;
     try {
-      InputStream inputStream=file.getInputStream();
-      InputStreamReader inputStreamReader=new InputStreamReader(inputStream);
-      bufferedReader=new BufferedReader(inputStreamReader);
-      String line;
-      while ((line=bufferedReader.readLine()) != null && headersToDetect.size() > 0) {
-        for (Iterator<String> headersToDetectIterator=headersToDetect.iterator(); headersToDetectIterator.hasNext(); ) {
-          String headerToDetect=headersToDetectIterator.next();
-          if (line.startsWith(headerToDetect)) {
-            headersToDetectIterator.remove();
-            break;
+      BufferedReader reader=new BufferedReader(new InputStreamReader(file.getInputStream()));
+      try {
+        String line;
+        while ((line=reader.readLine()) != null && headersToDetect.size() > 0) {
+          for (Iterator<String> iterator=headersToDetect.iterator(); iterator.hasNext(); ) {
+            String headerToDetect=iterator.next();
+            if (line.startsWith(headerToDetect)) {
+              iterator.remove();
+              break;
+            }
           }
         }
+      }
+  finally {
+        reader.close();
       }
     }
  catch (    IOException e) {
       logger.warn("There was an unexpected exception when accessing " + file.getName() + " ("+ e.getMessage()+ ")");
       return false;
-    }
- finally {
-      if (bufferedReader != null) {
-        try {
-          bufferedReader.close();
-        }
- catch (        IOException e) {
-          logger.warn("There was an unexpected exception when closing stream to " + file.getName() + " ("+ e.getMessage()+ ")");
-          return false;
-        }
-      }
     }
   }
   return headersToDetect.size() == 0;
