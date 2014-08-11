@@ -1,10 +1,16 @@
 {
+  String jarFileName=myJarFileTextField.getText();
+  if (StringUtil.isEmptyOrSpaces(jarFileName)) {
+    throw new ConfigurationException(OsmorcBundle.message("facet.editor.jar.empty.jar.name"));
+  }
   OsmorcFacetConfiguration configuration=(OsmorcFacetConfiguration)myEditorContext.getFacet().getConfiguration();
-  String fileLocation=getSelectedOutputPath();
-  String jarFileName=getJarFileName();
   OutputPathType pathType=getSelectedOutputPathType();
   if (pathType == SpecificOutputPath) {
-    String completeOutputPath=new File(fileLocation,jarFileName).getPath();
+    String location=myJarOutputPathChooser.getText();
+    if (StringUtil.isEmptyOrSpaces(location)) {
+      throw new ConfigurationException(OsmorcBundle.message("facet.editor.jar.empty.output.path"));
+    }
+    String completeOutputPath=new File(location,jarFileName).getPath();
     configuration.setJarFileLocation(completeOutputPath,pathType);
   }
  else {

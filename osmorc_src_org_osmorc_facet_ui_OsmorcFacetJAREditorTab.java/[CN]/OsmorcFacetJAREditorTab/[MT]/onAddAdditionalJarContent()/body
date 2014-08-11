@@ -1,10 +1,8 @@
 {
   Project project=myEditorContext.getProject();
-  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createAllButJarContentsDescriptor();
-  descriptor.setTitle("Choose source file or folder");
+  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createAllButJarContentsDescriptor().withTitle(OsmorcBundle.message("facet.editor.select.source.title"));
   VirtualFile rootFolder=null;
-  Module module=myEditorContext.getModule();
-  VirtualFile[] contentRoots=ModuleRootManager.getInstance(module).getContentRoots();
+  VirtualFile[] contentRoots=ModuleRootManager.getInstance(myEditorContext.getModule()).getContentRoots();
   if (contentRoots.length > 0) {
     rootFolder=contentRoots[0];
   }
@@ -13,7 +11,7 @@
   }
   VirtualFile[] files=FileChooser.chooseFiles(descriptor,project,rootFolder);
   for (  VirtualFile file : files) {
-    String destFile=determineMostLikelyLocationInJAR(file);
+    String destFile=determineMostLikelyLocationInJar(file);
     int row=myAdditionalJARContentsTableModel.addAdditionalJARContent(file.getPath(),destFile);
     myAdditionalJARContentsTable.editCellAt(row,1);
     myAdditionalJARContentsTable.getEditorComponent().requestFocus();

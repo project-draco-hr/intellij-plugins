@@ -1,0 +1,62 @@
+{
+  myEditorContext=editorContext;
+  myValidatorsManager=validatorsManager;
+  myModule=editorContext.getModule();
+  myManifestFileChooser.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      chooseFile(myManifestFileChooser);
+    }
+  }
+);
+  myBndFile.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      chooseFile(myBndFile);
+    }
+  }
+);
+  myBundlorFile.addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      chooseFile(myBundlorFile);
+    }
+  }
+);
+  myUseProjectDefaultManifestFileLocation.addChangeListener(new ChangeListener(){
+    public void stateChanged(    ChangeEvent e){
+      manifestFileLocationSelectorChanged();
+    }
+  }
+);
+  UserActivityWatcher watcher=new UserActivityWatcher();
+  watcher.addUserActivityListener(new UserActivityListener(){
+    @Override public void stateChanged(){
+      myModified=true;
+      updateGui();
+    }
+  }
+);
+  watcher.register(myRoot);
+  myValidatorsManager.registerValidator(new FacetEditorValidator(){
+    @Override public ValidationResult check(){
+      if (myManuallyEditedRadioButton.isSelected()) {
+        String location=myUseModuleSpecificManifestFileLocation.isSelected() ? myManifestFileChooser.getText() : ProjectSettings.getInstance(myModule.getProject()).getDefaultManifestFileLocation();
+        if (findFileInContentRoots(location,myModule) == null) {
+          return new ValidationResult("No manifest file '" + location + "' found in module");
+        }
+      }
+      if (myUseBndFileRadioButton.isSelected()) {
+        String location=myBndFile.getText();
+        if (findFileInContentRoots(location,myModule) == null) {
+          return new ValidationResult("No Bnd file '" + location + "' found in module");
+        }
+      }
+      if (myUseBundlorFileRadioButton.isSelected()) {
+        String location=myBundlorFile.getText();
+        if (findFileInContentRoots(location,myModule) == null) {
+          return new ValidationResult("No Bundlor file '" + location + "' found in module");
+        }
+      }
+      return null;
+    }
+  }
+);
+}

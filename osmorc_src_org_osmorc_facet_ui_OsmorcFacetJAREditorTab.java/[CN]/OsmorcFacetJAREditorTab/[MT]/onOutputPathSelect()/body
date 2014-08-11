@@ -1,30 +1,18 @@
 {
-  String currentFile=getSelectedOutputPath();
-  VirtualFile moduleCompilerOutputPath=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputPath();
-  if (moduleCompilerOutputPath == null) {
-    String outputPathUrl=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputUrl();
-    try {
-      VfsUtil.createDirectories(VfsUtil.urlToPath(outputPathUrl));
-    }
- catch (    IOException e) {
-      Messages.showErrorDialog(myRoot,OsmorcBundle.message("facet.editor.cannot.create.output.path"),CommonBundle.message("title.error"));
-      return;
-    }
-    moduleCompilerOutputPath=CompilerModuleExtension.getInstance(myEditorContext.getModule()).getCompilerOutputPath();
-    if (moduleCompilerOutputPath == null) {
-      throw new IllegalStateException("Cannot access compiler output path.");
+  String current=myJarOutputPathChooser.getText();
+  final VirtualFile moduleOutputDir=CompilerPaths.getModuleOutputDirectory(myEditorContext.getModule(),false);
+  VirtualFile toSelect=StringUtil.isNotEmpty(current) ? LocalFileSystem.getInstance().findFileByPath(current) : moduleOutputDir;
+  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle(OsmorcBundle.message("facet.editor.select.bundle.dir.title"));
+  FileChooser.chooseFile(descriptor,myEditorContext.getProject(),toSelect,new Consumer<VirtualFile>(){
+    @Override public void consume(    VirtualFile file){
+      if (moduleOutputDir != null && VfsUtilCore.isAncestor(moduleOutputDir,file,false)) {
+        Messages.showErrorDialog(myRoot,OsmorcBundle.message("facet.editor.jar.cannot.be.in.output.path"),CommonBundle.message("title.error"));
+        myJarOutputPathChooser.setText("");
+      }
+ else {
+        myJarOutputPathChooser.setText(file.getPath());
+      }
     }
   }
-  VirtualFile preselectedFile=StringUtil.isNotEmpty(currentFile) ? LocalFileSystem.getInstance().findFileByPath(currentFile) : moduleCompilerOutputPath;
-  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createSingleFolderDescriptor();
-  descriptor.setTitle("Select bundle output directory");
-  VirtualFile file=FileChooser.chooseFile(descriptor,myEditorContext.getProject(),preselectedFile);
-  if (file != null) {
-    if (VfsUtilCore.isAncestor(moduleCompilerOutputPath,file,false)) {
-      Messages.showErrorDialog(myRoot,OsmorcBundle.message("facet.editor.jar.cannot.be.in.output.path"),CommonBundle.message("title.error"));
-      myJarOutputPathChooser.setText("");
-      return;
-    }
-    myJarOutputPathChooser.setText(file.getPath());
-  }
+);
 }

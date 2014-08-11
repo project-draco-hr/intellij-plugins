@@ -1,0 +1,17 @@
+{
+  FileChooserDescriptor descriptor=FileChooserDescriptorFactory.createSingleFileNoJarsDescriptor();
+  VirtualFile toSelect=findFileInContentRoots(field.getText(),myModule);
+  VirtualFile file=FileChooser.chooseFile(descriptor,myEditorContext.getProject(),toSelect);
+  if (file != null) {
+    for (    VirtualFile root : getContentRoots(myModule)) {
+      String relativePath=VfsUtilCore.getRelativePath(file,root,File.separatorChar);
+      if (relativePath != null) {
+        if (field == myManifestFileChooser && file.isDirectory()) {
+          relativePath+="/MANIFEST.MF";
+        }
+        field.setText(relativePath);
+        break;
+      }
+    }
+  }
+}
