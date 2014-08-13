@@ -1,0 +1,28 @@
+{
+  final Ref<PhoneGapPackageManagementService> service=new Ref<PhoneGapPackageManagementService>();
+  final Ref<String> error=new Ref<String>();
+  final Ref<String> warning=new Ref<String>();
+  final Ref<String> version=new Ref<String>();
+  try {
+    PhoneGapCommandLine commandLine=checkParams(error,warning,version,path,workDir);
+    if (error.get() == null) {
+      service.set(new PhoneGapPackageManagementService(commandLine,repositoryStore));
+    }
+  }
+ catch (  Exception e) {
+    error.set(PhoneGapBundle.message("phonegap.plugins.executable.error"));
+  }
+  UIUtil.invokeLaterIfNeeded(new Runnable(){
+    @Override public void run(){
+      myPanel.updatePackages(service.get());
+      if (error.get() != null) {
+        packagesNotificationPanel.showError(error.get(),null,null);
+      }
+      if (warning.get() != null) {
+        packagesNotificationPanel.showWarning(warning.get());
+      }
+      callback.forVersion(version.get());
+    }
+  }
+);
+}

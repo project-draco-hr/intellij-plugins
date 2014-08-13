@@ -1,0 +1,26 @@
+{
+  boolean pathError=false;
+  if (!new File(workDir).exists()) {
+    pathError=true;
+    workDir=myProject.getBasePath();
+  }
+  PhoneGapCommandLine commandLine=new PhoneGapCommandLine(path,workDir);
+  if (!commandLine.isCorrectExecutable()) {
+    error.set(PhoneGapBundle.message("phonegap.plugins.executable.error"));
+    return commandLine;
+  }
+  version.set(commandLine.version());
+  if (pathError) {
+    error.set(PhoneGapBundle.message("phonegap.plugins.executable.work.path.error",commandLine.getPlatformName()));
+    return commandLine;
+  }
+  ProcessOutput output=commandLine.pluginListRaw();
+  if (!StringUtil.isEmpty(output.getStderr())) {
+    error.set(PhoneGapBundle.message("phonegap.plugins.executable.work.path.error",commandLine.getPlatformName()));
+    return commandLine;
+  }
+  if (commandLine.isOld()) {
+    warning.set(PhoneGapBundle.message("phonegap.plugins.executable.version.error"));
+  }
+  return commandLine;
+}
