@@ -3,14 +3,15 @@
   myWorkDirField=PhoneGapUtil.createPhoneGapWorkingDirectoryField(myProject);
   myPlatformField=new ComboBox();
   myCommand=new ComboBox();
-  addPlatformItems(myPlatformField);
-  addCommandItems(myCommand);
-  JBLabel label=new JBLabel("edit");
-  label.addMouseListener(new MouseAdapter(){
-    @Override public void mouseClicked(    MouseEvent e){
-      ShowSettingsUtil.getInstance().editConfigurable(myProject,new PhoneGapConfigurable(myProject));
+  myHasTarget=new JBCheckBox("Specify target");
+  myTarget=new JBTextField();
+  myHasTarget.addChangeListener(new ChangeListener(){
+    @Override public void stateChanged(    ChangeEvent e){
+      myTarget.setEnabled(myHasTarget.isSelected());
     }
   }
 );
-  return FormBuilder.createFormBuilder().addLabeledComponent(PhoneGapBundle.message("phonegap.conf.executable.name"),myExecutablePathField).addLabeledComponent(PhoneGapBundle.message("phonegap.conf.work.dir.name"),myWorkDirField).addLabeledComponent("Command:",myCommand).addLabeledComponent("Platform:",myPlatformField).addComponent(label).getPanel();
+  addPlatformItems(myPlatformField);
+  addCommandItems(myCommand);
+  return FormBuilder.createFormBuilder().addLabeledComponent(PhoneGapBundle.message("phonegap.conf.executable.name"),myExecutablePathField).addLabeledComponent(PhoneGapBundle.message("phonegap.conf.work.dir.name"),myWorkDirField).addLabeledComponent("Command:",myCommand).addLabeledComponent("Platform:",myPlatformField).addLabeledComponent(myHasTarget,myTarget).getPanel();
 }
