@@ -1,12 +1,10 @@
 {
-  List<WebBrowser> activeCapturedBrowsers=getActiveCapturedBrowsers();
-  List<DebuggableWebBrowser> debuggableActiveCapturedBrowsers=toDebuggableWebBrowsers(activeCapturedBrowsers);
-  if (debuggableActiveCapturedBrowsers.size() == 1) {
-    DebuggableWebBrowser debuggableWebBrowser=ContainerUtil.getFirstItem(debuggableActiveCapturedBrowsers);
-    if (debuggableWebBrowser != null) {
-      setWebBrowserToReuse(null);
-      return debuggableWebBrowser;
-    }
+  List<DebuggableWebBrowser> allDebuggableActiveBrowsers=toDebuggableWebBrowsers(WebBrowserManager.getInstance().getActiveBrowsers());
+  List<DebuggableWebBrowser> capturedDebuggableActiveBrowsers=filterCaptured(allDebuggableActiveBrowsers);
+  if (capturedDebuggableActiveBrowsers.size() == 1) {
+    DebuggableWebBrowser debuggableWebBrowser=capturedDebuggableActiveBrowsers.get(0);
+    setWebBrowserToReuse(null);
+    return ObjectUtils.assertNotNull(debuggableWebBrowser);
   }
   WebBrowser browserToReuse=getWebBrowserToReuse();
   if (browserToReuse != null) {
@@ -15,5 +13,9 @@
       return debuggableBrowser;
     }
   }
-  return showBrowserSelectionUiOrGetSingle(debuggableActiveCapturedBrowsers);
+  if (capturedDebuggableActiveBrowsers.isEmpty() && allDebuggableActiveBrowsers.size() == 1) {
+    return ObjectUtils.assertNotNull(allDebuggableActiveBrowsers.get(0));
+  }
+  showBrowserSelectionUi(allDebuggableActiveBrowsers,capturedDebuggableActiveBrowsers);
+  return null;
 }

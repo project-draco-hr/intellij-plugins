@@ -1,0 +1,24 @@
+{
+  final String message;
+  if (capturedDebuggableActiveBrowsers.isEmpty()) {
+    if (allDebuggableActiveBrowsers.isEmpty()) {
+      message="<html><body>" + "No supported browsers found." + "<p/>"+ "JavaScript debugging is currently supported in Chrome or Firefox"+ "</body></html>";
+    }
+ else {
+      message=formatBrowserSelectionHtml(allDebuggableActiveBrowsers);
+    }
+  }
+ else {
+    message=formatBrowserSelectionHtml(capturedDebuggableActiveBrowsers);
+  }
+  ToolWindowManager.getInstance(myEnvironment.getProject()).notifyByBalloon(myEnvironment.getExecutor().getToolWindowId(),MessageType.WARNING,message,null,new HyperlinkAdapter(){
+    @Override protected void hyperlinkActivated(    HyperlinkEvent e){
+      WebBrowser browser=WebBrowserManager.getInstance().findBrowserById(e.getDescription());
+      if (browser != null) {
+        setWebBrowserToReuse(browser);
+        ExecutionUtil.restart(myEnvironment);
+      }
+    }
+  }
+);
+}
