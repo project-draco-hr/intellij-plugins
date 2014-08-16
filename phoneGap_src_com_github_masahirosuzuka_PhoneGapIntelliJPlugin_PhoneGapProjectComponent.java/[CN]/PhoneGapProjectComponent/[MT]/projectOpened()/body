@@ -1,0 +1,28 @@
+{
+  StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable(){
+    public void run(){
+      if (PhoneGapFacade.isPhoneGapProject(myProject) && PhoneGapSettings.getInstance().isExcludePlatformFolder()) {
+        excludePlatformFolders();
+      }
+    }
+  }
+);
+  VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileAdapter(){
+    @Override public void fileCreated(    @NotNull VirtualFileEvent event){
+      if (!isProcess(event)) {
+        return;
+      }
+      updateModuleExcludeByFSEvent(event,ContainerUtil.<String>newHashSet(),ContainerUtil.newHashSet(getExcludedFolderNames(event)));
+    }
+    @Override public void beforeFileDeletion(    @NotNull VirtualFileEvent event){
+      if (!isProcess(event)) {
+        return;
+      }
+      updateModuleExcludeByFSEvent(event,getExcludedFolderNames(event),ContainerUtil.<String>newHashSet());
+    }
+    private boolean isProcess(    @NotNull VirtualFileEvent event){
+      return event.getFileName().equals(FOLDER_PLATFORMS) && PhoneGapFacade.isPhoneGapProject(myProject) && PhoneGapSettings.getInstance().isExcludePlatformFolder();
+    }
+  }
+,myProject);
+}
