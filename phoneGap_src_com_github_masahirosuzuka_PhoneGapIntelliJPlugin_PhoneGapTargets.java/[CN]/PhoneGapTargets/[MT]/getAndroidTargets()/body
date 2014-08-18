@@ -1,0 +1,19 @@
+{
+  if (androidTargets == null) {
+    androidTargets=ContainerUtil.newArrayList();
+    try {
+      File path=PathEnvironmentVariableUtil.findInPath(SystemInfo.isWindows ? "android" + ".exe" : "android");
+      if (path != null && path.exists()) {
+        androidTargets.addAll(addAndroidDevices(ContainerUtil.newArrayList(path.getPath(),"-v","list","avd","-c")));
+      }
+      File pathAdb=PathEnvironmentVariableUtil.findInPath(SystemInfo.isWindows ? "adb" + ".exe" : "adb");
+      if (pathAdb != null && pathAdb.exists()) {
+        androidTargets.addAll(splitNames(addAndroidDevices(ContainerUtil.newArrayList(pathAdb.getPath(),"devices"))));
+      }
+    }
+ catch (    ExecutionException e) {
+      LOGGER.debug(e.getMessage(),e);
+    }
+  }
+  return androidTargets;
+}

@@ -2,12 +2,18 @@
   myExecutablePathField=PhoneGapUtil.createPhoneGapExecutableTextField(myProject);
   myWorkDirField=PhoneGapUtil.createPhoneGapWorkingDirectoryField(myProject);
   myPlatformField=new ComboBox();
+  myPlatformField.addItemListener(new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      fillAsyncTarget();
+    }
+  }
+);
   myCommand=new ComboBox();
   myHasTarget=new JBCheckBox("Specify target");
-  myTarget=new JBTextField();
+  myTarget=new TextFieldWithHistory();
   myHasTarget.addChangeListener(new ChangeListener(){
     @Override public void stateChanged(    ChangeEvent e){
-      myTarget.setEnabled(myHasTarget.isSelected());
+      fillAsyncTarget();
     }
   }
 );
@@ -15,9 +21,10 @@
   addCommandItems(myCommand);
   myCommand.addItemListener(new ItemListener(){
     @Override public void itemStateChanged(    ItemEvent e){
-      setTargetEnable(!COMMAND_SERVE.equals(myCommand.getSelectedItem()));
+      fillAsyncTarget();
     }
   }
 );
+  myTarget.setMinimumAndPreferredWidth(myPlatformField.getPreferredSize().width);
   return FormBuilder.createFormBuilder().addLabeledComponent(PhoneGapBundle.message("phonegap.conf.executable.name"),myExecutablePathField).addLabeledComponent(PhoneGapBundle.message("phonegap.conf.work.dir.name"),myWorkDirField).addLabeledComponent("Command:",myCommand).addLabeledComponent("Platform:",myPlatformField).addLabeledComponent(myHasTarget,myTarget).getPanel();
 }

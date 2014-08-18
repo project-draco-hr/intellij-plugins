@@ -1,0 +1,25 @@
+{
+  setTargetEnable(!COMMAND_SERVE.equals(myCommand.getSelectedItem()));
+  if (myTarget.isEnabled()) {
+    final String platform=getPlatformAsCodeFromField();
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        final String currentText=myTarget.getText();
+        final List<String> targets=ContainerUtil.newArrayList(myTargetsProvider.getTargets(platform));
+        if (!StringUtil.isEmpty(currentText) && !targets.contains(currentText)) {
+          targets.add(currentText);
+        }
+        UIUtil.invokeLaterIfNeeded(new Runnable(){
+          @Override public void run(){
+            if (platform == getPlatformAsCodeFromField()) {
+              myTarget.setHistory(targets);
+              PhoneGapUtil.setTextFieldWithHistory(myTarget,currentText);
+            }
+          }
+        }
+);
+      }
+    }
+);
+  }
+}
