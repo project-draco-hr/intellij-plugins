@@ -1,0 +1,19 @@
+{
+  myFixture.configureByFiles("standardCompletion.html","angular.js");
+  PsiElement context=myFixture.getFile().findElementAt(myFixture.getEditor().getCaretModel().getOffset() - 1);
+  assertNotNull(context);
+  myFixture.completeBasic();
+  LookupElement[] elements=myFixture.getLookupElements();
+  assertNotNull(elements);
+  LookupElement lookupElement=ContainerUtil.find(elements,new Condition<LookupElement>(){
+    @Override public boolean value(    LookupElement element){
+      return element.getAllLookupStrings().contains("ng-controller");
+    }
+  }
+);
+  assertNotNull(lookupElement);
+  DocumentationProvider documentationProvider=DocumentationManager.getProviderFromElement(context);
+  PsiElement docElement=documentationProvider.getDocumentationElementForLookupItem(getPsiManager(),lookupElement.getObject(),context);
+  assertNotNull(docElement);
+  assertDocumentation(docElement,context);
+}
