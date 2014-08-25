@@ -5,8 +5,10 @@
   List<AbstractStepDefinition> allSteps=loadStepsFor(featureFile,module);
   for (  AbstractStepDefinition stepDefinition : allSteps) {
     if (stepDefinition.matches(step.getSubstitutedName()) && stepDefinition.supportsStep(step)) {
-      final AbstractStepDefinition result=definitionsByClass.get(stepDefinition.getClass());
-      if (result == null || result.getPattern().getPattern().length() < stepDefinition.getPattern().getPattern().length()) {
+      final Pattern currentLongestPattern=getPatternByDefinition(definitionsByClass.get(stepDefinition.getClass()));
+      final Pattern newPattern=getPatternByDefinition(stepDefinition);
+      final int newPatternLength=((newPattern != null) ? newPattern.getPattern().length() : -1);
+      if ((currentLongestPattern == null) || (currentLongestPattern.getPattern().length() < newPatternLength)) {
         definitionsByClass.put(stepDefinition.getClass(),stepDefinition);
       }
     }
