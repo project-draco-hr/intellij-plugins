@@ -12,18 +12,18 @@
   KarmaCoverageStartupStatus status=coveragePeer.getStartupStatus();
   if (status != null) {
     if (status.isSuccessful()) {
-      return executeAfterSuccessfulInitialization(project,runProfileState,contentToReuse,env,server);
+      return executeAfterSuccessfulInitialization(runProfileState,env,server);
     }
-    return showWarningConsole(status,server,env,contentToReuse);
+    return showWarningConsole(status,server,env);
   }
   coveragePeer.onCoverageInitialized(new KarmaCoverageInitializationCallback(){
     @Override public void onCoverageInitialized(    @NotNull KarmaCoverageStartupStatus startupStatus){
       RunnerAndConfigurationSettings configuration=env.getRunnerAndConfigurationSettings();
       if (configuration != null) {
-        ProgramRunnerUtil.executeConfiguration(project,configuration,env.getExecutor());
+        ProgramRunnerUtil.executeConfiguration(env,true,true);
       }
     }
   }
 );
-  return showWarningConsole(null,server,env,contentToReuse);
+  return showWarningConsole(null,server,env);
 }
