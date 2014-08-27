@@ -10,14 +10,14 @@
   final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
   if (karmaServer.areBrowsersReady()) {
     final DebuggableWebBrowser debuggableWebBrowser=new KarmaDebugBrowserSelector(karmaServer.getCapturedBrowsers(),environment).selectDebugEngine();
-    return prepareDebugger(project,debuggableWebBrowser,new RunProfileStarter(){
-      @Nullable @Override public RunContentDescriptor execute(      @NotNull Project project,      @NotNull Executor executor,      @NotNull RunProfileState state,      @Nullable RunContentDescriptor contentToReuse,      @NotNull ExecutionEnvironment env) throws ExecutionException {
+    return prepareDebugger(environment.getProject(),debuggableWebBrowser,new RunProfileStarter(){
+      @Nullable @Override public RunContentDescriptor execute(      @NotNull RunProfileState state,      @NotNull ExecutionEnvironment env) throws ExecutionException {
         if (debuggableWebBrowser == null) {
           return null;
         }
         final Url url=Urls.newFromEncoded(karmaServer.formatUrl("/debug.html"));
         final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
-        XDebugSession session=XDebuggerManager.getInstance(project).startSession(env,new XDebugProcessStarter(){
+        XDebugSession session=XDebuggerManager.getInstance(env.getProject()).startSession(env,new XDebugProcessStarter(){
           @Override @NotNull public XDebugProcess start(          @NotNull final XDebugSession session){
             JavaScriptDebugEngine debugEngine=debuggableWebBrowser.getDebugEngine();
             WebBrowser browser=debuggableWebBrowser.getWebBrowser();
@@ -35,9 +35,9 @@
   }
  else {
     return AsyncResult.<RunProfileStarter>done(new RunProfileStarter(){
-      @Nullable @Override public RunContentDescriptor execute(      @NotNull Project project,      @NotNull Executor executor,      @NotNull RunProfileState state,      @Nullable RunContentDescriptor contentToReuse,      @NotNull ExecutionEnvironment env){
+      @Nullable @Override public RunContentDescriptor execute(      @NotNull RunProfileState state,      @NotNull ExecutionEnvironment env){
         RunContentBuilder contentBuilder=new RunContentBuilder(executionResult,env);
-        final RunContentDescriptor descriptor=contentBuilder.showRunContent(contentToReuse);
+        final RunContentDescriptor descriptor=contentBuilder.showRunContent(env.getContentToReuse());
         karmaServer.onBrowsersReady(new Runnable(){
           @Override public void run(){
             ExecutionUtil.restartIfActive(descriptor);
