@@ -8,8 +8,9 @@
     final DartUrlResolver resolver=DartUrlResolver.getInstance(project,pubspecYamlFile);
     resolver.processLivePackages(new PairConsumer<String,VirtualFile>(){
       public void consume(      final @NotNull String packageName,      final @NotNull VirtualFile packageDir){
-        if (packagesDir.findChild(packageName) != null && !containsFolderNode(children,packageName)) {
-          result.add(new SymlinkToLivePackageNode(project,packageName,packageDir));
+        final AbstractTreeNode node=getFolderNode(children,packageName);
+        if (node != null) {
+          node.getPresentation().setLocationString(getLocationString(packageDir));
         }
       }
     }
