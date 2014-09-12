@@ -1,0 +1,21 @@
+{
+  final AtomicInteger attemptCounter=new AtomicInteger(1);
+  bootstrap.connect(remoteAddress).addListener(new ChannelFutureListener(){
+    @Override public void operationComplete(    ChannelFuture future) throws Exception {
+      if (future.isSuccess()) {
+        channelConsumer.consume(future.channel());
+      }
+ else {
+        int attemptCount=attemptCounter.incrementAndGet();
+        if (attemptCount > NettyUtil.DEFAULT_CONNECT_ATTEMPT_COUNT) {
+          channelConsumer.consume(null);
+        }
+ else {
+          Thread.sleep(attemptCount * NettyUtil.MIN_START_TIME);
+          bootstrap.connect(remoteAddress).addListener(this);
+        }
+      }
+    }
+  }
+);
+}

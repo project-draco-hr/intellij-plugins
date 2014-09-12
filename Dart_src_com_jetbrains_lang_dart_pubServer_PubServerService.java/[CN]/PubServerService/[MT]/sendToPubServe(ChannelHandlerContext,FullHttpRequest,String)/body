@@ -1,0 +1,19 @@
+{
+  clientRequest.retain();
+  if (processHandler.has()) {
+    sendToServer(clientContext,clientRequest,pathForPubServer);
+  }
+ else {
+    processHandler.get().doWhenDone(new Runnable(){
+      @Override public void run(){
+        sendToServer(clientContext,clientRequest,pathForPubServer);
+      }
+    }
+).doWhenRejected(new Runnable(){
+      @Override public void run(){
+        sendBadGateway(clientContext.channel());
+      }
+    }
+);
+  }
+}
