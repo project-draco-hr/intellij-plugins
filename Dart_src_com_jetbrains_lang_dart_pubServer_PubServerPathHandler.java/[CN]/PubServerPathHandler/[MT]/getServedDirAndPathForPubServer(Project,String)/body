@@ -1,0 +1,19 @@
+{
+  if (true)   return null;
+  VirtualFile servedDir=null;
+  String pubServePath=null;
+  int slashIndex=-1;
+  while ((slashIndex=path.indexOf('/',slashIndex + 1)) != -1) {
+    final String pathPart=path.substring(0,slashIndex);
+    final VirtualFile dir=WebServerPathToFileManager.getInstance(project).get(pathPart);
+    if (dir == null || !dir.isDirectory()) {
+      continue;
+    }
+    final VirtualFile parentDir=dir.getParent();
+    if (parentDir != null && parentDir.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null) {
+      servedDir=dir;
+      pubServePath=path.substring(slashIndex);
+    }
+  }
+  return servedDir != null ? Pair.create(servedDir,pubServePath) : null;
+}
