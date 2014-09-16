@@ -10,6 +10,6 @@
   if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
   if (FileUtil.isAncestor(sdk.getHomePath(),annotatedFile.getPath(),true))   return null;
   final List<VirtualFile> libraries=DartResolveUtil.findLibrary(psiFile,GlobalSearchScope.projectScope(project));
-  final VirtualFile fileToAnalyze=libraries.isEmpty() || libraries.contains(annotatedFile) ? annotatedFile : libraries.get(0);
-  return Pair.create(DartFileBasedSource.getSource(project,fileToAnalyze),DartAnalyzerService.getInstance(project).getAnalysisContext(annotatedFile,sdk.getHomePath()));
+  final VirtualFile libraryFile=libraries.isEmpty() || libraries.contains(annotatedFile) ? annotatedFile : libraries.get(0);
+  return new DartAnnotatorInfo(DartAnalyzerService.getInstance(project).getAnalysisContext(annotatedFile,sdk.getHomePath()),DartFileBasedSource.getSource(project,annotatedFile),DartFileBasedSource.getSource(project,libraryFile));
 }
