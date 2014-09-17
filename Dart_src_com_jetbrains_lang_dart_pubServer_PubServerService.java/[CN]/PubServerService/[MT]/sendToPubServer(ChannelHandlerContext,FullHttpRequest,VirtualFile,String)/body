@@ -1,0 +1,20 @@
+{
+  clientRequest.retain();
+  if (processHandler.has() && !servedDir.getParent().equals(myFirstServedDir.getParent())) {
+    final OSProcessHandler osProcessHandler=processHandler.get().getResult();
+    osProcessHandler.destroyProcess();
+    osProcessHandler.waitFor();
+  }
+  if (processHandler.has()) {
+    final PubServerProxy pubServerProxy=myServedDirToProxyMap.get(servedDir);
+    if (pubServerProxy != null) {
+      pubServerProxy.sendToServer(clientContext,clientRequest,pathForPubServer);
+    }
+ else {
+      serveDirAndSendRequest(clientContext,clientRequest,servedDir,pathForPubServer);
+    }
+  }
+ else {
+    startPubServerAndSendRequest(clientContext,clientRequest,servedDir,pathForPubServer);
+  }
+}
