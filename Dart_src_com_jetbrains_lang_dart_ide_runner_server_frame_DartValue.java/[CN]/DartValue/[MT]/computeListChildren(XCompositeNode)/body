@@ -1,0 +1,43 @@
+{
+  DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null && myVmValue.isList(),myVmValue);
+  final int childrenToShow=Math.min(myVmValue.getLength() - myListOrMapChildrenAlreadyShown,XCompositeNode.MAX_CHILDREN_TO_SHOW);
+  final AtomicInteger handledResponsesAmount=new AtomicInteger(0);
+  final List<DartValue> sortedChildren=Collections.synchronizedList(new SortedList<DartValue>(new Comparator<DartValue>(){
+    public int compare(    DartValue o1,    DartValue o2){
+      return StringUtil.naturalCompare(o1.getName(),o2.getName());
+    }
+  }
+));
+  for (int listIndex=myListOrMapChildrenAlreadyShown; listIndex < myListOrMapChildrenAlreadyShown + childrenToShow; listIndex++) {
+    final String nodeName=String.valueOf(listIndex);
+    myDebugProcess.getVmConnection().getListElements(myVmValue.getIsolate(),myVmValue.getObjectId(),listIndex,new VmCallback<VmValue>(){
+      @Override public void handleResult(      VmResult<VmValue> vmResult){
+        final int responsesAmount=handledResponsesAmount.addAndGet(1);
+        if (node.isObsolete()) {
+          return;
+        }
+        if (vmResult.isError()) {
+          node.setErrorMessage(vmResult.getError());
+          return;
+        }
+        if (vmResult.getResult() == null) {
+          node.setErrorMessage("<no response from the Dart VM>");
+          return;
+        }
+        sortedChildren.add(new DartValue(myDebugProcess,nodeName,vmResult.getResult()));
+        if (responsesAmount == childrenToShow) {
+          final XValueChildrenList resultList=new XValueChildrenList(sortedChildren.size());
+          for (          DartValue value : sortedChildren) {
+            resultList.add(value);
+          }
+          node.addChildren(resultList,true);
+          myListOrMapChildrenAlreadyShown+=childrenToShow;
+          if (myVmValue.getLength() > myListOrMapChildrenAlreadyShown) {
+            node.tooManyChildren(myVmValue.getLength() - myListOrMapChildrenAlreadyShown);
+          }
+        }
+      }
+    }
+);
+  }
+}
