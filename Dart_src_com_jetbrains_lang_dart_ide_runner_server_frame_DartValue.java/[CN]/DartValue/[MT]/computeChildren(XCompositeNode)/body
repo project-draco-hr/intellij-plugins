@@ -1,26 +1,3 @@
 {
-  if (myVmValue == null)   node.addChildren(XValueChildrenList.EMPTY,true);
-  try {
-    if (myVmValue.isList()) {
-      computeListChildren(node);
-      return;
-    }
-    myDebugProcess.getVmConnection().getObjectProperties(myVmValue.getIsolate(),myVmValue.getObjectId(),new VmCallback<VmObject>(){
-      @Override public void handleResult(      final VmResult<VmObject> result){
-        if (node.isObsolete())         return;
-        final VmObject vmObject=result == null ? null : result.getResult();
-        final List<VmVariable> fields=vmObject == null ? null : vmObject.getFields();
-        if (fields == null || result.isError())         return;
-        final XValueChildrenList childrenList=new XValueChildrenList(fields.size());
-        for (        final VmVariable field : fields) {
-          childrenList.add(new DartValue(myDebugProcess,field));
-        }
-        node.addChildren(childrenList,true);
-      }
-    }
-);
-  }
- catch (  IOException e) {
-    DartCommandLineDebugProcess.LOG.error(e);
-  }
+  computeChildren(node,myListOrMapChildrenAlreadyShown);
 }

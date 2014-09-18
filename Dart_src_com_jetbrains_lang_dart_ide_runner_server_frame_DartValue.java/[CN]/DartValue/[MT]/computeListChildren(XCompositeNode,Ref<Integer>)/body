@@ -1,6 +1,6 @@
 {
   DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null && myVmValue.isList(),myVmValue);
-  final int childrenToShow=Math.min(myVmValue.getLength() - myListOrMapChildrenAlreadyShown,XCompositeNode.MAX_CHILDREN_TO_SHOW);
+  final int childrenToShow=Math.min(myVmValue.getLength() - listChildrenAlreadyShown.get(),XCompositeNode.MAX_CHILDREN_TO_SHOW);
   if (childrenToShow == 0) {
     node.addChildren(XValueChildrenList.EMPTY,true);
     return;
@@ -12,10 +12,10 @@
     }
   }
 ));
-  for (int listIndex=myListOrMapChildrenAlreadyShown; listIndex < myListOrMapChildrenAlreadyShown + childrenToShow; listIndex++) {
+  for (int listIndex=listChildrenAlreadyShown.get(); listIndex < listChildrenAlreadyShown.get() + childrenToShow; listIndex++) {
     final String nodeName=String.valueOf(listIndex);
     myDebugProcess.getVmConnection().getListElements(myVmValue.getIsolate(),myVmValue.getObjectId(),listIndex,new VmCallback<VmValue>(){
-      @Override public void handleResult(      VmResult<VmValue> vmResult){
+      @Override public void handleResult(      final VmResult<VmValue> vmResult){
         final int responsesAmount=handledResponsesAmount.addAndGet(1);
         if (node.isObsolete()) {
           return;
@@ -25,7 +25,7 @@
           return;
         }
         if (vmResult.getResult() == null) {
-          node.setErrorMessage("<no response from the Dart VM>");
+          node.setErrorMessage(NO_RESPONSE_FROM_DART_VM);
           return;
         }
         sortedChildren.add(new DartValue(myDebugProcess,nodeName,vmResult.getResult(),false));
@@ -35,9 +35,9 @@
             resultList.add(value);
           }
           node.addChildren(resultList,true);
-          myListOrMapChildrenAlreadyShown+=childrenToShow;
-          if (myVmValue.getLength() > myListOrMapChildrenAlreadyShown) {
-            node.tooManyChildren(myVmValue.getLength() - myListOrMapChildrenAlreadyShown);
+          listChildrenAlreadyShown.set(listChildrenAlreadyShown.get() + childrenToShow);
+          if (myVmValue.getLength() > listChildrenAlreadyShown.get()) {
+            node.tooManyChildren(myVmValue.getLength() - listChildrenAlreadyShown.get());
           }
         }
       }

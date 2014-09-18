@@ -1,0 +1,25 @@
+{
+  DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null);
+  try {
+    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,"toList()",new VmCallback<VmValue>(){
+      @Override public void handleResult(      final VmResult<VmValue> result){
+        if (node.isObsolete()) {
+          return;
+        }
+        if (result.isError()) {
+          node.setErrorMessage(result.getError());
+          return;
+        }
+        if (result.getResult() == null) {
+          node.setErrorMessage(NO_RESPONSE_FROM_DART_VM);
+          return;
+        }
+        new DartValue(myDebugProcess,"fake node",result.getResult(),false).computeChildren(node,myListOrMapChildrenAlreadyShown);
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    DartCommandLineDebugProcess.LOG.error(e);
+  }
+}
