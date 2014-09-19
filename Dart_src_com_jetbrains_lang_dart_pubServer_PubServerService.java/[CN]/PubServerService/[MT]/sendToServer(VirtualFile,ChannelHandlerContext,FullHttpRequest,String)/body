@@ -1,0 +1,38 @@
+{
+  InetSocketAddress serverAddress=servedDirToSocketAddress.get(servedDir);
+  if (serverAddress == null) {
+    serveDirAndSendRequest(clientContext,clientRequest,servedDir,pathToPubServe);
+  }
+  Channel serverChannel=findActiveServerChannel(clientContext,serverAddress);
+  if (serverChannel == null) {
+    serverAddress=servedDirToSocketAddress.get(servedDir);
+    if (serverAddress == null) {
+      serveDirAndSendRequest(clientContext,clientRequest,servedDir,pathToPubServe);
+    }
+    serverChannel=findFreeServerChannel(serverAddress);
+    if (serverChannel != null) {
+      clientContextToServerChannels.putValue(clientContext,serverChannel);
+    }
+  }
+  if (serverChannel == null) {
+    connect(bootstrap,serverAddress,new Consumer<Channel>(){
+      @Override public void consume(      final Channel serverChannel){
+        if (serverChannel == null) {
+          sendBadGateway(clientContext.channel());
+        }
+ else {
+          serverChannel.closeFuture().addListener(serverChannelCloseListener);
+          ChannelHandlerContext oldClientContext=serverToClientContext.put(serverChannel,clientContext);
+          LOG.assertTrue(oldClientContext == null);
+          clientContextToServerChannels.putValue(clientContext,serverChannel);
+          clientContext.channel().pipeline().addLast(clientChannelStateHandler);
+          sendToServer(clientRequest,pathToPubServe,serverChannel);
+        }
+      }
+    }
+);
+  }
+ else {
+    sendToServer(clientRequest,pathToPubServe,serverChannel);
+  }
+}

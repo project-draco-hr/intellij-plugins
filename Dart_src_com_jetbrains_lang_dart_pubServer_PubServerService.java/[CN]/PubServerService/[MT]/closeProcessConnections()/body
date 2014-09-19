@@ -1,6 +1,21 @@
 {
-  for (  PubServerProxy pubServerProxy : myServedDirToProxyMap.values()) {
-    pubServerProxy.closeProcessConnections();
+  servedDirToSocketAddress.clear();
+  ChannelHandlerContext[] clientContexts;
+  try {
+    Collection<ChannelHandlerContext> clients=serverToClientContext.values();
+    clientContexts=clients.toArray(new ChannelHandlerContext[clients.size()]);
+    freeServerChannels.clear();
+    serverToClientContext.clear();
   }
-  myServedDirToProxyMap.clear();
+  finally {
+    serverChannelRegistrar.close();
+  }
+  for (  ChannelHandlerContext context : clientContexts) {
+    try {
+      sendBadGateway(context.channel());
+    }
+ catch (    Exception e) {
+      LOG.error(e);
+    }
+  }
 }
