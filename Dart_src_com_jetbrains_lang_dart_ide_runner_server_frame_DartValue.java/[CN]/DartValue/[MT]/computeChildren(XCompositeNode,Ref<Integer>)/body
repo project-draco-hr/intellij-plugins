@@ -5,20 +5,9 @@
       computeListChildren(node,listChildrenAlreadyShown);
       return;
     }
-    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,"this is Iterable",new VmCallback<VmValue>(){
-      public void handleResult(      final VmResult<VmValue> result){
-        if (node.isObsolete()) {
-          return;
-        }
-        if (result.isError()) {
-          node.setErrorMessage(result.getError());
-          return;
-        }
-        if (result.getResult() == null) {
-          node.setErrorMessage(NO_RESPONSE_FROM_DART_VM);
-          return;
-        }
-        if ("boolean".equals(result.getResult().getKind()) && "true".equals(result.getResult().getText())) {
+    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,"this is Iterable",new VmCallbackAdapter<VmValue>(node){
+      @Override protected void handleGoodResult(      @NotNull final VmValue result){
+        if ("boolean".equals(result.getKind()) && "true".equals(result.getText())) {
           computeIterableChildren(node);
         }
  else {

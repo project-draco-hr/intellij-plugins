@@ -14,22 +14,14 @@
 ));
   for (int listIndex=listChildrenAlreadyShown.get(); listIndex < listChildrenAlreadyShown.get() + childrenToShow; listIndex++) {
     final String nodeName=String.valueOf(listIndex);
-    myDebugProcess.getVmConnection().getListElements(myVmValue.getIsolate(),myVmValue.getObjectId(),listIndex,new VmCallback<VmValue>(){
-      @Override public void handleResult(      final VmResult<VmValue> vmResult){
-        final int responsesAmount=handledResponsesAmount.addAndGet(1);
-        if (node.isObsolete()) {
-          return;
-        }
-        if (vmResult.isError()) {
-          node.setErrorMessage(vmResult.getError());
-          return;
-        }
-        if (vmResult.getResult() == null) {
-          node.setErrorMessage(NO_RESPONSE_FROM_DART_VM);
-          return;
-        }
-        sortedChildren.add(new DartValue(myDebugProcess,nodeName,vmResult.getResult(),false));
-        if (responsesAmount == childrenToShow) {
+    myDebugProcess.getVmConnection().getListElements(myVmValue.getIsolate(),myVmValue.getObjectId(),listIndex,new VmCallbackAdapter<VmValue>(node){
+      @Override public void handleResult(      final VmResult<VmValue> result){
+        handledResponsesAmount.addAndGet(1);
+        super.handleResult(result);
+      }
+      @Override protected void handleGoodResult(      @NotNull final VmValue result){
+        sortedChildren.add(new DartValue(myDebugProcess,nodeName,result,false));
+        if (handledResponsesAmount.get() == childrenToShow) {
           final XValueChildrenList resultList=new XValueChildrenList(sortedChildren.size());
           for (          DartValue value : sortedChildren) {
             resultList.add(value);
