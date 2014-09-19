@@ -1,0 +1,31 @@
+{
+  DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null && !myVmValue.isList(),myVmValue);
+  try {
+    final String expression="(this is Iterable || this is Map) ? ('IntelliJ marker:${this.length}') : toString()";
+    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,expression,new VmCallback<VmValue>(){
+      public void handleResult(      final VmResult<VmValue> result){
+        if (node.isObsolete() || result.isError() || result.getResult() == null || !"string".equals(result.getResult().getKind())) {
+          return;
+        }
+        final String text=StringUtil.stripQuotesAroundValue(result.getResult().getText());
+        if (text.startsWith("IntelliJ marker:")) {
+          try {
+            final int collectionSize=Integer.parseInt(text.substring("IntelliJ marker:".length()));
+            if (collectionSize >= 0) {
+              node.setPresentation(AllIcons.Debugger.Db_array,objectType,"size = " + collectionSize,collectionSize > 0);
+            }
+          }
+ catch (          NumberFormatException ignore) {
+          }
+        }
+ else         if (!text.startsWith("Instance of '") || !text.endsWith("'")) {
+          node.setPresentation(getIcon(),objectType,text,true);
+        }
+      }
+    }
+);
+  }
+ catch (  IOException e) {
+    DartCommandLineDebugProcess.LOG.error(e);
+  }
+}
