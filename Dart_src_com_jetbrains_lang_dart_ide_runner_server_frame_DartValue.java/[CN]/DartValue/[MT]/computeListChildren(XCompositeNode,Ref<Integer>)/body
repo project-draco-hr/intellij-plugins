@@ -1,39 +1,23 @@
 {
   DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null && myVmValue.isList(),myVmValue);
-  final int childrenToShow=Math.min(myVmValue.getLength() - listChildrenAlreadyShown.get(),XCompositeNode.MAX_CHILDREN_TO_SHOW);
+  final Integer fromIndex=listChildrenAlreadyShown.get();
+  final int childrenToShow=Math.min(myVmValue.getLength() - fromIndex,XCompositeNode.MAX_CHILDREN_TO_SHOW);
   if (childrenToShow == 0) {
     node.addChildren(XValueChildrenList.EMPTY,true);
     return;
   }
-  final AtomicInteger handledResponsesAmount=new AtomicInteger(0);
-  final List<DartValue> sortedChildren=Collections.synchronizedList(new SortedList<DartValue>(new Comparator<DartValue>(){
-    public int compare(    DartValue o1,    DartValue o2){
-      return StringUtil.naturalCompare(o1.getName(),o2.getName());
+  computeListChildren(node,myDebugProcess,myVmValue,fromIndex,childrenToShow,new Consumer<List<DartValue>>(){
+    @Override public void consume(    final List<DartValue> listChildren){
+      final XValueChildrenList resultList=new XValueChildrenList(listChildren.size());
+      for (      DartValue value : listChildren) {
+        resultList.add(value);
+      }
+      node.addChildren(resultList,true);
+      listChildrenAlreadyShown.set(listChildrenAlreadyShown.get() + listChildren.size());
+      if (myVmValue.getLength() > listChildrenAlreadyShown.get()) {
+        node.tooManyChildren(myVmValue.getLength() - listChildrenAlreadyShown.get());
+      }
     }
   }
-));
-  for (int listIndex=listChildrenAlreadyShown.get(); listIndex < listChildrenAlreadyShown.get() + childrenToShow; listIndex++) {
-    final String nodeName=String.valueOf(listIndex);
-    myDebugProcess.getVmConnection().getListElements(myVmValue.getIsolate(),myVmValue.getObjectId(),listIndex,new VmCallbackAdapter<VmValue>(node){
-      @Override public void handleResult(      final VmResult<VmValue> result){
-        handledResponsesAmount.addAndGet(1);
-        super.handleResult(result);
-      }
-      @Override protected void handleGoodResult(      @NotNull final VmValue result){
-        sortedChildren.add(new DartValue(myDebugProcess,nodeName,result,false));
-        if (handledResponsesAmount.get() == childrenToShow) {
-          final XValueChildrenList resultList=new XValueChildrenList(sortedChildren.size());
-          for (          DartValue value : sortedChildren) {
-            resultList.add(value);
-          }
-          node.addChildren(resultList,true);
-          listChildrenAlreadyShown.set(listChildrenAlreadyShown.get() + childrenToShow);
-          if (myVmValue.getLength() > listChildrenAlreadyShown.get()) {
-            node.tooManyChildren(myVmValue.getLength() - listChildrenAlreadyShown.get());
-          }
-        }
-      }
-    }
 );
-  }
 }

@@ -1,0 +1,28 @@
+{
+  DartCommandLineDebugProcess.LOG.assertTrue(listValue.isList(),listValue);
+  final AtomicInteger handledResponsesAmount=new AtomicInteger(0);
+  final SortedList<DartValue> sortedChildren=new SortedList<DartValue>(new Comparator<DartValue>(){
+    public int compare(    DartValue o1,    DartValue o2){
+      return StringUtil.naturalCompare(o1.getName(),o2.getName());
+    }
+  }
+);
+  for (int listIndex=fromIndex; listIndex < fromIndex + childrenAmount; listIndex++) {
+    final String nodeName=String.valueOf(listIndex);
+    debugProcess.getVmConnection().getListElements(listValue.getIsolate(),listValue.getObjectId(),listIndex,new VmCallbackAdapter<VmValue>(node){
+      @Override public void handleResult(      final VmResult<VmValue> result){
+synchronized (node) {
+          handledResponsesAmount.addAndGet(1);
+          super.handleResult(result);
+        }
+      }
+      @Override protected void handleGoodResult(      @NotNull final VmValue result){
+        sortedChildren.add(new DartValue(debugProcess,nodeName,result,false));
+        if (handledResponsesAmount.get() == childrenAmount) {
+          listChildrenConsumer.consume(sortedChildren);
+        }
+      }
+    }
+);
+  }
+}

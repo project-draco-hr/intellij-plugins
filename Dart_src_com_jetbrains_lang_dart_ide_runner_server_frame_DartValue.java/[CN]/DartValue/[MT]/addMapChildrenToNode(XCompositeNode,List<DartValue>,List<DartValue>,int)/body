@@ -1,0 +1,19 @@
+{
+  if (mapKeys.size() != mapValues.size()) {
+    DartCommandLineDebugProcess.LOG.warn(mapKeys.size() + " keys, " + mapValues.size()+ " values");
+    node.setErrorMessage("failed to show Map contents");
+    return;
+  }
+  final XValueChildrenList resultList=new XValueChildrenList(mapKeys.size());
+  for (int i=0; i < mapKeys.size(); i++) {
+    final DartValue mapKey=mapKeys.get(i);
+    final DartValue mapValue=mapValues.get(i);
+    DartCommandLineDebugProcess.LOG.assertTrue(mapKey.myVmValue != null && mapValue.myVmValue != null);
+    resultList.add(new DartMapEntryValue(myDebugProcess,mapKey.getName(),mapKey.myVmValue,mapValue.myVmValue));
+  }
+  node.addChildren(resultList,true);
+  myListOrMapChildrenAlreadyShown.set(myListOrMapChildrenAlreadyShown.get() + mapKeys.size());
+  if (mapSize > myListOrMapChildrenAlreadyShown.get()) {
+    node.tooManyChildren(mapSize - myListOrMapChildrenAlreadyShown.get());
+  }
+}
