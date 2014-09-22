@@ -2,14 +2,12 @@
   FileDocumentManager.getInstance().saveAllDocuments();
   final DartRunConfigurationBase configuration=(DartRunConfigurationBase)env.getRunProfile();
   final VirtualFile mainDartFile=configuration.getRunnerParameters().getDartFile();
-  final int debuggingPort=NetUtils.tryToFindAvailableSocketPort();
-  ((DartCommandLineRunningState)state).setDebuggingPort(debuggingPort);
   final ExecutionResult executionResult=state.execute(env.getExecutor(),this);
   if (executionResult == null)   return null;
   final XDebuggerManager debuggerManager=XDebuggerManager.getInstance(env.getProject());
   final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      return new DartCommandLineDebugProcess(session,debuggingPort,executionResult,mainDartFile);
+      return new DartCommandLineDebugProcess(session,(DartCommandLineRunningState)state,executionResult,mainDartFile);
     }
   }
 );

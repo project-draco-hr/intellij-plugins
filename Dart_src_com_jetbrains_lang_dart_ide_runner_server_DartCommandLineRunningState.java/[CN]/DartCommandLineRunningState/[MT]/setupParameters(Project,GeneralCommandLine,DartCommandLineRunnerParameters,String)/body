@@ -21,9 +21,12 @@
   if (packageRoots.length > 0) {
     commandLine.addParameter("--package-root=" + packageRoots[0].getPath());
   }
-  if (debuggingPort > 0) {
-    commandLine.addParameter("--debug:" + debuggingPort);
+  if (DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId())) {
+    myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
+    commandLine.addParameter("--debug:" + myDebuggingPort);
   }
+  myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
+  commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
   commandLine.addParameter(overriddenMainFilePath == null ? dartFile.getPath() : overriddenMainFilePath);
   final String arguments=runnerParameters.getArguments();
   if (arguments != null) {
