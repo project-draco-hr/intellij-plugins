@@ -6,18 +6,21 @@
       return;
     }
     final String expression="this is Iterable ? 'Iterable' : this is Map ? 'Map' : ''";
-    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,expression,new VmCallbackAdapter<VmValue>(node){
-      @Override protected void handleGoodResult(      @NotNull final VmValue result){
-        final String text=StringUtil.stripQuotesAroundValue(result.getText());
-        if ("string".equals(result.getKind()) && "Map".equals(text)) {
-          computeMapChildren(node);
+    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,expression,new VmCallback<VmValue>(){
+      @Override public void handleResult(      @NotNull final VmResult<VmValue> result){
+        if (node.isObsolete())         return;
+        if (!result.isError() && result.getResult() != null && "string".equals(result.getResult().getKind())) {
+          final String text=StringUtil.stripQuotesAroundValue(result.getResult().getText());
+          if ("Map".equals(text)) {
+            computeMapChildren(node);
+            return;
+          }
+ else           if ("Iterable".equals(text)) {
+            computeIterableChildren(node);
+            return;
+          }
         }
- else         if ("string".equals(result.getKind()) && "Iterable".equals(text)) {
-          computeIterableChildren(node);
-        }
- else {
-          computeObjectChildren(node);
-        }
+        computeObjectChildren(node);
       }
     }
 );

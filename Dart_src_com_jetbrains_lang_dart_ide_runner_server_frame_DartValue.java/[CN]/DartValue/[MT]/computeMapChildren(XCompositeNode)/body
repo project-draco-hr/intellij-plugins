@@ -1,10 +1,11 @@
 {
   DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null);
   try {
-    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,"keys.toList()",new VmCallbackAdapter<VmValue>(node){
-      @Override protected void handleGoodResult(      @NotNull final VmValue result){
-        if (result.isList()) {
-          computeMapChildrenForKeys(node,result);
+    myDebugProcess.getVmConnection().evaluateObject(myVmValue.getIsolate(),myVmValue,"keys.toList()",new VmCallback<VmValue>(){
+      @Override public void handleResult(      @NotNull final VmResult<VmValue> result){
+        if (node.isObsolete())         return;
+        if (!result.isError() && result.getResult() != null && result.getResult().isList()) {
+          computeMapChildrenForKeys(node,result.getResult());
         }
  else {
           computeObjectChildren(node);
