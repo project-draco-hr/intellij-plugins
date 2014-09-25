@@ -1,5 +1,6 @@
 {
   myProject=project;
+  ourOpenDartProjectsCount.incrementAndGet();
   final VirtualFileAdapter listener=new VirtualFileAdapter(){
     public void beforePropertyChange(    @NotNull final VirtualFilePropertyEvent event){
       if (VirtualFile.PROP_NAME.equals(event.getPropertyName())) {
@@ -38,6 +39,10 @@
       LocalFileSystem.getInstance().removeVirtualFileListener(listener);
       if (myAnalysisContextRef != null) {
         myAnalysisContextRef.clear();
+      }
+      if (ourOpenDartProjectsCount.decrementAndGet() == 0) {
+        AnalysisEngine.getInstance().clearCaches();
+        ourDirectoryBasedDartSdk=null;
       }
     }
   }
