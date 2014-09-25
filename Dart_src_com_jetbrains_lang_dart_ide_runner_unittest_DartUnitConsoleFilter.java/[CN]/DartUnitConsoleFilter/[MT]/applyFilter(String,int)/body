@@ -1,10 +1,11 @@
 {
-  final Trinity<String,Integer,Integer> fileRelPathLineAndColumn=getFileRelPathLineAndColumn(text);
+  final String trimmedText=StringUtil.trimLeading(text);
+  final Trinity<String,Integer,Integer> fileRelPathLineAndColumn=getFileRelPathLineAndColumn(trimmedText);
   if (fileRelPathLineAndColumn == null)   return null;
   final String fileRelPath=fileRelPathLineAndColumn.first;
   final int line=fileRelPathLineAndColumn.second;
   final int column=fileRelPathLineAndColumn.third;
-  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myWorkingDir + "/" + text.substring(0,fileRelPath.length()));
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myWorkingDir + "/" + trimmedText.substring(0,fileRelPath.length()));
   if (file == null || file.isDirectory())   return null;
-  return new Result(entireLength - text.length(),entireLength - text.length() + fileRelPath.length(),new OpenFileHyperlinkInfo(myProject,file,line,column));
+  return new Result(entireLength - trimmedText.length(),entireLength - trimmedText.length() + fileRelPath.length(),new OpenFileHyperlinkInfo(myProject,file,line,column));
 }
