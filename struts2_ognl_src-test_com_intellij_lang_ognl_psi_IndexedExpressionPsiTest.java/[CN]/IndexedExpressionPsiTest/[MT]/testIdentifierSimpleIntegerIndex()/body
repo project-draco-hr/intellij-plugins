@@ -1,9 +1,11 @@
 {
   final OgnlIndexedExpression indexedExpression=parse("identifier[0]");
-  assertEquals(PsiType.INT,indexedExpression.getType());
-  final OgnlExpression ognlExpression=indexedExpression.getIndexExpression();
-  assertElementType(OgnlTypes.LITERAL_EXPRESSION,ognlExpression);
-  final OgnlLiteralExpression expression=assertInstanceOf(ognlExpression,OgnlLiteralExpression.class);
+  final OgnlExpression qualifier=indexedExpression.getReferenceQualifier();
+  assertElementType(OgnlTypes.REFERENCE_EXPRESSION,qualifier);
+  assertNull(qualifier.getType());
+  final OgnlExpression index=indexedExpression.getIndexExpression();
+  assertElementType(OgnlTypes.LITERAL_EXPRESSION,index);
+  final OgnlLiteralExpression expression=assertInstanceOf(index,OgnlLiteralExpression.class);
   assertEquals("0",expression.getText());
   assertEquals(PsiType.INT,expression.getType());
 }
