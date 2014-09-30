@@ -1,21 +1,17 @@
 {
-  VmBreakpoint breakpoint=null;
+  boolean foundBreakpoint=false;
 synchronized (breakpoints) {
-    for (    VmBreakpoint bp : breakpoints) {
-      if (bp.getBreakpointId() == breakpointId) {
-        breakpoint=bp;
-        break;
+    for (    VmBreakpoint breakpoint : breakpoints) {
+      if (breakpoint.getBreakpointId() == breakpointId) {
+        foundBreakpoint=true;
+        breakpoint.updateLocation(location);
+        notifyBreakpointResolved(isolate,breakpoint);
       }
     }
   }
-  if (breakpoint == null) {
-    breakpoint=new VmBreakpoint(isolate,location,breakpointId);
+  if (!foundBreakpoint) {
+    VmBreakpoint breakpoint=new VmBreakpoint(isolate,location,breakpointId);
     breakpoints.add(breakpoint);
-  }
- else {
-    breakpoint.updateLocation(location);
-  }
-  for (  VmListener listener : listeners) {
-    listener.breakpointResolved(isolate,breakpoint);
+    notifyBreakpointResolved(isolate,breakpoint);
   }
 }
