@@ -1,12 +1,18 @@
 {
   final Project project=error.getProject();
-  if ("CSS".equals(error.getLanguage().getID()) && PsiTreeUtil.getParentOfType(error,XmlAttribute.class) != null && AngularIndexUtil.hasAngularJS(project)) {
+  final Language language=error.getLanguage();
+  if ("CSS".equals(language.getID()) && PsiTreeUtil.getParentOfType(error,XmlAttribute.class) != null && AngularIndexUtil.hasAngularJS(project)) {
     final PsiFile file=error.getContainingFile();
     PsiErrorElement nextError=error;
     while (nextError != null) {
       if (hasAngularInjectionAt(project,file,nextError.getTextOffset()))       return false;
       nextError=PsiTreeUtil.getNextSiblingOfType(nextError,PsiErrorElement.class);
     }
+  }
+  if (HTMLLanguage.INSTANCE.is(language) && error.getErrorDescription().endsWith("not closed")) {
+    final PsiElement parent=error.getParent();
+    final XmlElementDescriptor descriptor=parent instanceof XmlTag ? ((XmlTag)parent).getDescriptor() : null;
+    return !(descriptor instanceof AngularJSTagDescriptor);
   }
   return true;
 }
