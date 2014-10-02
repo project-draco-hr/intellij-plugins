@@ -1,0 +1,18 @@
+{
+  final ConsoleView console=createConsole(project,processHandler);
+  final ActionToolbar actionToolbar=createToolWindowActionsBar(processHandler);
+  final SimpleToolWindowPanel toolWindowPanel=new SimpleToolWindowPanel(false,true);
+  toolWindowPanel.setContent(console.getComponent());
+  toolWindowPanel.setToolbar(actionToolbar.getComponent());
+  final Content content=ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel.getComponent(),tabTitle,true);
+  content.putUserData(PUB_ACTION_KEY,Boolean.TRUE);
+  Disposer.register(content,console);
+  final ContentManager contentManager=MessageView.SERVICE.getInstance(project).getContentManager();
+  removeOldTabs(contentManager);
+  contentManager.addContent(content);
+  contentManager.setSelectedContent(content);
+  final ToolWindow toolWindow=ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
+  toolWindow.activate(null,true);
+  console.attachToProcess(processHandler);
+  processHandler.startNotify();
+}
