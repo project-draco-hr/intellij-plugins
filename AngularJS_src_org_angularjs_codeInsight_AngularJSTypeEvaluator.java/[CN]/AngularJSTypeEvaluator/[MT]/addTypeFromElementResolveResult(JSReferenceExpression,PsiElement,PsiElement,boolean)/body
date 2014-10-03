@@ -2,14 +2,11 @@
   if (resolveResult instanceof JSDefinitionExpression) {
     final PsiElement resolveParent=resolveResult.getParent();
     if (resolveParent instanceof AngularJSAsExpression) {
-      final JSNamedElementProxy controller=AngularIndexUtil.resolve(parent.getProject(),AngularControllerIndex.INDEX_ID,resolveParent.getFirstChild().getText());
-      final PsiElement element=controller != null ? controller.getElement() : null;
-      final PsiElement controllerLiteral=element != null ? element.getParent() : null;
-      final JSFunction function=controllerLiteral != null ? PsiTreeUtil.getNextSiblingOfType(controllerLiteral,JSFunction.class) : null;
-      if (function != null) {
-        addType(JSFunctionImpl.getReturnTypeInContext(function,expression),resolveResult);
-        return true;
-      }
+      final String name=resolveParent.getFirstChild().getText();
+      final JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
+      final JSType type=JSNamedType.createType(name,source,JSNamedType.StaticOrInstance.INSTANCE);
+      addType(type,resolveResult);
+      return true;
     }
  else     if (resolveParent instanceof AngularJSRepeatExpression) {
       if (calculateRepeatParameterType((AngularJSRepeatExpression)resolveParent)) {
