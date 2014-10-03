@@ -1,0 +1,18 @@
+{
+  int locationLine=vmLocation == null ? 0 : vmLocation.getLineNumber(myDebugProcess.getVmConnection());
+  final Collection<? extends XLineBreakpoint<XBreakpointProperties>> dartBreakpoints=ApplicationManager.getApplication().runReadAction(new Computable<Collection<? extends XLineBreakpoint<XBreakpointProperties>>>(){
+    @Override public Collection<? extends XLineBreakpoint<XBreakpointProperties>> compute(){
+      return XDebuggerManager.getInstance(myDebugProcess.getSession().getProject()).getBreakpointManager().getBreakpoints(DartLineBreakpointType.class);
+    }
+  }
+);
+  XLineBreakpoint<?> breakpointAtLocation=null;
+  for (  XLineBreakpoint<?> xBreakpoint : dartBreakpoints) {
+    doRegisterBreakpoint(isolate,xBreakpoint);
+    final XSourcePosition sourcePosition=xBreakpoint.getSourcePosition();
+    if (sourcePosition != null && vmLocation != null && sourcePosition.getLine() == locationLine - 1 && vmLocation.getUnescapedUrl() != null && sourcePosition.getFile().equals(myDebugProcess.getDartUrlResolver().findFileByDartUrl(vmLocation.getUnescapedUrl()))) {
+      breakpointAtLocation=xBreakpoint;
+    }
+  }
+  return breakpointAtLocation;
+}
