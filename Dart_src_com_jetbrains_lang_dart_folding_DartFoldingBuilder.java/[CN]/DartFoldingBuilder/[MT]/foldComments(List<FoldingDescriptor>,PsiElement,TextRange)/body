@@ -5,19 +5,21 @@
     }
     if (child instanceof PsiComment) {
       final IElementType elementType=child.getNode().getElementType();
-      if (elementType == DartTokenTypesSets.MULTI_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.MULTI_LINE_COMMENT) {
+      if ((elementType == DartTokenTypesSets.MULTI_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.MULTI_LINE_COMMENT) && !isCustomRegionElement(child)) {
         descriptors.add(new FoldingDescriptor(child,child.getTextRange()));
       }
  else       if (elementType == DartTokenTypesSets.SINGLE_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.SINGLE_LINE_COMMENT) {
         final PsiElement firstCommentInSequence=child;
         PsiElement lastCommentInSequence=firstCommentInSequence;
         PsiElement nextElement=firstCommentInSequence;
+        boolean containsCustomRegionMarker=isCustomRegionElement(nextElement);
         while ((nextElement=nextElement.getNextSibling()) != null && (nextElement instanceof PsiWhiteSpace || nextElement.getNode().getElementType() == elementType)) {
           if (nextElement.getNode().getElementType() == elementType) {
             lastCommentInSequence=nextElement;
+            containsCustomRegionMarker|=isCustomRegionElement(nextElement);
           }
         }
-        if (lastCommentInSequence != firstCommentInSequence) {
+        if (lastCommentInSequence != firstCommentInSequence && !containsCustomRegionMarker) {
           final TextRange range=TextRange.create(firstCommentInSequence.getTextOffset(),lastCommentInSequence.getTextRange().getEndOffset());
           descriptors.add(new FoldingDescriptor(firstCommentInSequence,range));
         }

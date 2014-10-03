@@ -1,8 +1,24 @@
 {
-  final TextRange fileHeaderCommentsRange=getFileHeaderCommentsRange(dartFile);
-  if (fileHeaderCommentsRange != null && fileHeaderCommentsRange.getLength() > 1 && document.getLineNumber(fileHeaderCommentsRange.getEndOffset()) > document.getLineNumber(fileHeaderCommentsRange.getStartOffset())) {
-    descriptors.add(new FoldingDescriptor(dartFile,fileHeaderCommentsRange));
-    return fileHeaderCommentsRange;
+  PsiElement firstComment=dartFile.getFirstChild();
+  if (firstComment instanceof PsiWhiteSpace)   firstComment=firstComment.getNextSibling();
+  if (!(firstComment instanceof PsiComment))   return null;
+  boolean containsCustomRegionMarker=false;
+  PsiElement nextAfterComments=firstComment;
+  while (nextAfterComments instanceof PsiComment || nextAfterComments instanceof PsiWhiteSpace) {
+    containsCustomRegionMarker|=isCustomRegionElement(nextAfterComments);
+    nextAfterComments=nextAfterComments.getNextSibling();
+  }
+  if (nextAfterComments == null)   return null;
+  if (nextAfterComments instanceof DartLibraryStatement || nextAfterComments instanceof DartPartStatement || nextAfterComments instanceof DartPartOfStatement|| nextAfterComments instanceof DartImportOrExportStatement) {
+    if (nextAfterComments.getPrevSibling() instanceof PsiWhiteSpace)     nextAfterComments=nextAfterComments.getPrevSibling();
+    if (nextAfterComments.equals(firstComment))     return null;
+    final TextRange fileHeaderCommentsRange=new UnfairTextRange(firstComment.getTextOffset(),nextAfterComments.getTextOffset());
+    if (fileHeaderCommentsRange.getLength() > 1 && document.getLineNumber(fileHeaderCommentsRange.getEndOffset()) > document.getLineNumber(fileHeaderCommentsRange.getStartOffset())) {
+      if (!containsCustomRegionMarker) {
+        descriptors.add(new FoldingDescriptor(dartFile,fileHeaderCommentsRange));
+      }
+      return fileHeaderCommentsRange;
+    }
   }
   return null;
 }
