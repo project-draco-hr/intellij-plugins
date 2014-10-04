@@ -1,32 +1,36 @@
 {
   LOG.debug("debugger paused, reason: " + reason.name());
   final VmCallFrame topFrame=frames.isEmpty() ? null : frames.get(0);
-  if (myFirstBreak) {
-    myFirstBreak=false;
-    myDebugProcess.setMainIsolate(isolate);
-    firstIsolateInit(isolate);
-    if (PausedReason.breakpoint == reason) {
-      if (topFrame != null && topFrame.isMain() && !myDebugProcess.getDartBreakpointsHandler().hasInitialBreakpointHere(frames.get(0).getLocation())) {
-        resume(isolate);
-        return;
-      }
-    }
-  }
-  if (PausedReason.breakpoint == reason && !isStepping && topFrame != null) {
-    final XLineBreakpoint<?> breakpoint=myDebugProcess.getDartBreakpointsHandler().getBreakpointForLocation(topFrame.getLocation());
-    if (breakpoint != null) {
-      if ("false".equals(evaluateExpression(isolate,topFrame,breakpoint.getConditionExpression()))) {
-        resume(isolate);
-        return;
-      }
-      final boolean suspend=myDebugProcess.getSession().breakpointReached(breakpoint,evaluateExpression(isolate,topFrame,breakpoint.getLogExpressionObject()),new DartSuspendContext(myDebugProcess,frames,exception));
-      if (!suspend) {
-        resume(isolate);
-      }
+  final XLineBreakpoint<?> breakpoint;
+  if (isolate.isFirstBreak()) {
+    isolate.setFirstBreak(false);
+    final VmLocation vmLocation=topFrame == null ? null : topFrame.getLocation();
+    breakpoint=myBreakpointsHandler.handleIsolateCreatedAndReturnBreakpointAtPosition(isolate,vmLocation);
+    if (PausedReason.breakpoint == reason && breakpoint == null) {
+      resume(isolate);
       return;
     }
   }
-  final DartSuspendContext suspendContext=new DartSuspendContext(myDebugProcess,frames,exception);
+ else   if (PausedReason.breakpoint == reason && !isStepping && topFrame != null) {
+    breakpoint=myBreakpointsHandler.getBreakpointForLocation(topFrame.getLocation());
+  }
+ else {
+    breakpoint=null;
+  }
+  if (breakpoint != null) {
+    if ("false".equals(evaluateExpression(isolate,topFrame,breakpoint.getConditionExpression()))) {
+      resume(isolate);
+      return;
+    }
+    final boolean suspend=myDebugProcess.getSession().breakpointReached(breakpoint,evaluateExpression(isolate,topFrame,breakpoint.getLogExpressionObject()),new DartSuspendContext(myDebugProcess,isolate,frames,exception));
+    myDebugProcess.setSuspendedIsolate(isolate);
+    if (!suspend) {
+      resume(isolate);
+    }
+    return;
+  }
+  final DartSuspendContext suspendContext=new DartSuspendContext(myDebugProcess,isolate,frames,exception);
   myDebugProcess.getSession().positionReached(suspendContext);
+  myDebugProcess.setSuspendedIsolate(isolate);
   suspendContext.selectUpperNavigatableStackFrame(myDebugProcess.getSession());
 }

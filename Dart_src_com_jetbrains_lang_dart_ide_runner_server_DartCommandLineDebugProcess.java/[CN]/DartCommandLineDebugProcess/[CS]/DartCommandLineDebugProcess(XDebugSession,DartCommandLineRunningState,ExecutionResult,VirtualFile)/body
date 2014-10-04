@@ -1,10 +1,11 @@
 {
   super(session);
-  myObservatoryPort=commandLineState.getObservatoryPort();
-  myDartUrlResolver=DartUrlResolver.getInstance(session.getProject(),dartFile);
-  myBreakpointsHandler=new DartCommandLineBreakpointsHandler(this);
   myExecutionResult=executionResult;
+  myDartUrlResolver=DartUrlResolver.getInstance(session.getProject(),dartFile);
+  myObservatoryPort=commandLineState.getObservatoryPort();
+  final DartCommandLineBreakpointHandler dartBreakpointHandler=new DartCommandLineBreakpointHandler(this);
+  myBreakpointHandlers=new XBreakpointHandler[]{dartBreakpointHandler};
   myVmConnection=new VmConnection(null,commandLineState.getDebuggingPort());
-  myVmConnection.addListener(new DartVmListener(this));
+  myVmConnection.addListener(new DartVmListener(this,dartBreakpointHandler));
   connect();
 }

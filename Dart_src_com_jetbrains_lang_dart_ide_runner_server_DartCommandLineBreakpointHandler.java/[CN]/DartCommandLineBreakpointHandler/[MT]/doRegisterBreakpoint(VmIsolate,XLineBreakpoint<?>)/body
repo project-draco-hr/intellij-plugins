@@ -1,0 +1,22 @@
+{
+  final XSourcePosition position=xBreakpoint.getSourcePosition();
+  if (position == null || position.getFile().getFileType() != DartFileType.INSTANCE)   return;
+  final String dartUrl=myDebugProcess.getDartUrlResolver().getDartUrlForFile(position.getFile());
+  final int line=position.getLine() + 1;
+  suspendVmPerformActionAndResume(isolate,new ThrowableRunnable<IOException>(){
+    public void run() throws IOException {
+      myDebugProcess.getVmConnection().setBreakpoint(isolate,dartUrl,line,new VmCallback<VmBreakpoint>(){
+        @Override public void handleResult(        final VmResult<VmBreakpoint> result){
+          if (result.isError()) {
+            myDebugProcess.getSession().updateBreakpointPresentation(xBreakpoint,Db_invalid_breakpoint,result.getError());
+          }
+ else {
+            myXBreakpointToVmBreakpoints.putValue(xBreakpoint,result.getResult());
+          }
+        }
+      }
+);
+    }
+  }
+);
+}

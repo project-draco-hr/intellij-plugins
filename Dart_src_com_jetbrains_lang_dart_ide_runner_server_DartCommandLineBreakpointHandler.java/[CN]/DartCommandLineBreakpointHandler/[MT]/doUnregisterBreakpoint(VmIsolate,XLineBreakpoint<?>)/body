@@ -1,0 +1,15 @@
+{
+  final XSourcePosition position=xBreakpoint.getSourcePosition();
+  if (position == null || position.getFile().getFileType() != DartFileType.INSTANCE)   return;
+  suspendVmPerformActionAndResume(isolate,new ThrowableRunnable<IOException>(){
+    public void run() throws IOException {
+      final Collection<VmBreakpoint> vmBreakpoints=myXBreakpointToVmBreakpoints.remove(xBreakpoint);
+      if (vmBreakpoints != null) {
+        for (        VmBreakpoint vmBreakpoint : vmBreakpoints) {
+          myDebugProcess.getVmConnection().removeBreakpoint(vmBreakpoint.getIsolate(),vmBreakpoint);
+        }
+      }
+    }
+  }
+);
+}
