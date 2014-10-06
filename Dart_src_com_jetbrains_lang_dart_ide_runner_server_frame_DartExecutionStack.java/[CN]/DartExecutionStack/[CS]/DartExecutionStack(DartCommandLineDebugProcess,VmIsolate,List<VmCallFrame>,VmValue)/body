@@ -1,11 +1,15 @@
 {
-  super("Isolate id=" + isolate.getId());
-  myStackFrames=new ArrayList<DartStackFrame>(vmCallFrames.size());
-  for (  VmCallFrame vmCallFrame : vmCallFrames) {
-    final DartStackFrame frame=new DartStackFrame(debugProcess,vmCallFrame,exception);
-    myStackFrames.add(frame);
-    if (frame.getSourcePosition() != null) {
-      exception=null;
+  super(vmCallFrames != null || debugProcess.isIsolateSuspended(isolate) ? DartBundle.message("isolate.0.suspended",String.valueOf(isolate.getId())) : DartBundle.message("isolate.0.running",String.valueOf(isolate.getId())),vmCallFrames != null ? ThreadCurrent : debugProcess.isIsolateSuspended(isolate) ? ThreadAtBreakpoint : ThreadRunning);
+  myDebugProcess=debugProcess;
+  myIsolate=isolate;
+  if (vmCallFrames != null) {
+    myStackFrames=new ArrayList<DartStackFrame>(vmCallFrames.size());
+    for (    VmCallFrame vmCallFrame : vmCallFrames) {
+      final DartStackFrame frame=new DartStackFrame(debugProcess,vmCallFrame,exception);
+      myStackFrames.add(frame);
+      if (frame.getSourcePosition() != null) {
+        exception=null;
+      }
     }
   }
 }

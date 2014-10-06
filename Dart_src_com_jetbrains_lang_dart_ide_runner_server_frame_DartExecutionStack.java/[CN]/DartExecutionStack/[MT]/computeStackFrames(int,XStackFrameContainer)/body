@@ -1,4 +1,35 @@
 {
-  final List<DartStackFrame> result=firstFrameIndex == 0 ? myStackFrames : myStackFrames.subList(firstFrameIndex,myStackFrames.size());
-  container.addStackFrames(result,true);
+  if (!myDebugProcess.isIsolateSuspended(myIsolate)) {
+    container.addStackFrames(Collections.<XStackFrame>emptyList(),true);
+    return;
+  }
+  if (myStackFrames == null) {
+    myStackFrames=new ArrayList<DartStackFrame>();
+    try {
+      myDebugProcess.getVmConnection().getStackTrace(myIsolate,new VmCallback<List<VmCallFrame>>(){
+        @Override public void handleResult(        VmResult<List<VmCallFrame>> result){
+          if (result.isError()) {
+            LOG.info(result.getError());
+            container.addStackFrames(Collections.<XStackFrame>emptyList(),true);
+          }
+ else {
+            for (            VmCallFrame vmCallFrame : result.getResult()) {
+              myStackFrames.add(new DartStackFrame(myDebugProcess,vmCallFrame,null));
+            }
+            final List<DartStackFrame> subList=firstFrameIndex == 0 ? myStackFrames : myStackFrames.subList(firstFrameIndex,myStackFrames.size());
+            container.addStackFrames(subList,true);
+          }
+        }
+      }
+);
+    }
+ catch (    IOException e) {
+      container.addStackFrames(Collections.<XStackFrame>emptyList(),true);
+      LOG.info(e);
+    }
+  }
+ else {
+    final List<DartStackFrame> subList=firstFrameIndex == 0 ? myStackFrames : myStackFrames.subList(firstFrameIndex,myStackFrames.size());
+    container.addStackFrames(subList,true);
+  }
 }
