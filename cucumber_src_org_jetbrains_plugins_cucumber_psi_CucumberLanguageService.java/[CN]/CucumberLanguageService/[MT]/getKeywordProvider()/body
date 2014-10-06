@@ -1,3 +1,15 @@
 {
+  if (myKeywordProvider == null) {
+    final ClassLoader classLoader=CucumberLanguageService.class.getClassLoader();
+    if (classLoader != null) {
+      @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") final InputStream inputStream=classLoader.getResourceAsStream("i18n.json");
+      if (inputStream != null) {
+        myKeywordProvider=new JsonGherkinKeywordProvider(inputStream);
+      }
+    }
+    if (myKeywordProvider == null) {
+      myKeywordProvider=new PlainGherkinKeywordProvider();
+    }
+  }
   return myKeywordProvider;
 }
