@@ -7,5 +7,15 @@
   myBreakpointHandlers=new XBreakpointHandler[]{dartBreakpointHandler};
   myVmConnection=new VmConnection(null,commandLineState.getDebuggingPort());
   myVmConnection.addListener(new DartVmListener(this,dartBreakpointHandler));
+  session.addSessionListener(new XDebugSessionAdapter(){
+    @Override public void sessionPaused(){
+      stackFrameChanged();
+    }
+    @Override public void stackFrameChanged(){
+      final XStackFrame stackFrame=getSession().getCurrentStackFrame();
+      myLatestCurrentIsolate=stackFrame instanceof DartStackFrame ? ((DartStackFrame)stackFrame).getIsolate() : null;
+    }
+  }
+);
   connect();
 }
