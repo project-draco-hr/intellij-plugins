@@ -13,10 +13,10 @@
     File tmpDir=FileUtil.createTempDirectory("revealCodesign",null);
     try {
       Reveal.LOG.info("Reading executable signature from " + mainExecutable);
-      runTool(tmpDir.getPath(),"Cannot sign Reveal library",Arrays.asList("/usr/bin/codesign","-d","--extract-certificates",mainExecutable.getPath()));
+      AppCodeInstaller.runTool(tmpDir.getPath(),"Cannot sign Reveal library",Arrays.asList("/usr/bin/codesign","-d","--extract-certificates",mainExecutable.getPath()));
       Reveal.LOG.info("Reading fingerprint from " + new File(tmpDir,"codesign0"));
-      String fingerprint=runTool(tmpDir.getPath(),"Cannot read certificate fingerprint using openssl",Arrays.asList("/usr/bin/openssl","x509","-inform","der","-in","codesign0","-fingerprint","-noout")).getStdout();
-      signature=readFingerprint(fingerprint);
+      String fingerprint=AppCodeInstaller.runTool(tmpDir.getPath(),"Cannot read certificate fingerprint using openssl",Arrays.asList("/usr/bin/openssl","x509","-inform","der","-in","codesign0","-fingerprint","-noout")).getStdout();
+      signature=AppCodeInstaller.readFingerprint(fingerprint);
     }
   finally {
       FileUtil.delete(tmpDir);
@@ -34,7 +34,7 @@
     Reveal.LOG.warn("Executable signature not found, using the default: " + signature);
   }
   Reveal.LOG.info("Signing " + libRevealInTempDir + " with "+ signature);
-  runTool(libRevealInTempDir.getParent(),"Cannot sign Reveal library.",Arrays.asList("/usr/bin/codesign","-fs",signature,libRevealInTempDir.getPath()));
+  AppCodeInstaller.runTool(libRevealInTempDir.getParent(),"Cannot sign Reveal library.",Arrays.asList("/usr/bin/codesign","-fs",signature,libRevealInTempDir.getPath()));
   AMDeviceUtil.transferPathToApplicationBundle(device,libRevealInTempDir.getParent(),"/tmp",bundleId);
   String homeDir=AMDeviceUtil.getHomeDirFromAppEnvironment(commandLine);
   return new File(new File(homeDir),"tmp/" + libRevealInTempDir.getParentFile().getName() + "/"+ libRevealInTempDir.getName());
