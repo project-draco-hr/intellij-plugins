@@ -1,30 +1,25 @@
 {
-  if (!recursion_guard_(builder_,level_,"expression_0"))   return false;
-  boolean result_=true;
+  if (!recursion_guard_(b,l,"expression_0"))   return false;
+  boolean r=true;
   while (true) {
-    Marker left_marker_=(Marker)builder_.getLatestDoneMarker();
-    if (!invalid_left_marker_guard_(builder_,left_marker_,"expression_0"))     return false;
-    Marker marker_=builder_.mark();
-    if (priority_ < 5 && consumeTokenSmart(builder_,QUESTION)) {
-      result_=report_error_(builder_,expression(builder_,level_,5));
-      result_=report_error_(builder_,conditionalExpressionTail(builder_,level_ + 1)) && result_;
-      marker_.drop();
-      left_marker_.precede().done(CONDITIONAL_EXPRESSION);
+    Marker m=enter_section_(b,l,_LEFT_,null);
+    if (g < 5 && consumeTokenSmart(b,QUESTION)) {
+      r=report_error_(b,expression(b,l,5));
+      r=conditionalExpressionTail(b,l + 1) && r;
+      exit_section_(b,l,m,CONDITIONAL_EXPRESSION,r,true,null);
     }
- else     if (priority_ < 6 && binaryOperations(builder_,level_ + 1)) {
-      result_=report_error_(builder_,expression(builder_,level_,6));
-      marker_.drop();
-      left_marker_.precede().done(BINARY_EXPRESSION);
+ else     if (g < 6 && binaryOperations(b,l + 1)) {
+      r=expression(b,l,6);
+      exit_section_(b,l,m,BINARY_EXPRESSION,r,true,null);
     }
- else     if (priority_ < 9 && ((LighterASTNode)left_marker_).getTokenType() == REFERENCE_EXPRESSION && methodCallExpression_0(builder_,level_ + 1)) {
-      result_=true;
-      marker_.drop();
-      left_marker_.precede().done(METHOD_CALL_EXPRESSION);
+ else     if (g < 9 && leftMarkerIs(b,REFERENCE_EXPRESSION) && methodCallExpression_0(b,l + 1)) {
+      r=true;
+      exit_section_(b,l,m,METHOD_CALL_EXPRESSION,r,true,null);
     }
  else {
-      exit_section_(builder_,marker_,null,false);
+      exit_section_(b,l,m,null,false,false,null);
       break;
     }
   }
-  return result_;
+  return r;
 }
