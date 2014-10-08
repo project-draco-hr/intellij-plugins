@@ -1,0 +1,20 @@
+{
+  CucumberStepsIndex.getInstance(getProject()).reset();
+  myFixture.enableInspections(new CucumberStepInspection());
+  myFixture.copyDirectoryToProject("createStep","");
+  myFixture.configureByFile("createStep/" + getTestName(true) + ".feature");
+  myFixture.checkHighlighting(true,false,false);
+  final String fixName=createAll ? "Create All" : "Create step";
+  final IntentionAction quickFix=ContainerUtil.find(myFixture.getAvailableIntentions(),new Condition<IntentionAction>(){
+    @Override public boolean value(    final IntentionAction intentionAction){
+      return intentionAction instanceof QuickFixWrapper && intentionAction.getText().contains(fixName);
+    }
+  }
+);
+  if (quickFix != null) {
+    myFixture.launchAction(quickFix);
+    VirtualFile expectedFile=myFixture.findFileInTempDir("CreateAllStepDefs.java");
+    myFixture.openFileInEditor(expectedFile);
+    myFixture.checkResultByFile("createStep/CreateAllStepDefs_fixed.java");
+  }
+}
