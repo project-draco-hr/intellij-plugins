@@ -3,6 +3,7 @@
   if (!(probableGherkinFile instanceof GherkinFile)) {
     return;
   }
+  final Set<String> createdStepDefPatterns=new HashSet<String>();
   final GherkinFile gherkinFile=(GherkinFile)probableGherkinFile;
   for (  GherkinFeature feature : gherkinFile.getFeatures()) {
     for (    GherkinStepsHolder stepsHolder : feature.getScenarios()) {
@@ -12,7 +13,13 @@
           if (!(reference instanceof CucumberStepReference))           continue;
           final AbstractStepDefinition definition=((CucumberStepReference)reference).resolveToDefinition();
           if (definition == null) {
-            createFileOrStepDefinition(step,file);
+            String pattern=Pattern.quote(step.getStepName());
+            pattern=StringUtil.trimEnd(StringUtil.trimStart(pattern,"\\Q"),"\\E");
+            pattern=CucumberUtil.prepareStepRegexp(pattern);
+            if (!createdStepDefPatterns.contains(pattern)) {
+              createFileOrStepDefinition(step,file);
+              createdStepDefPatterns.add(pattern);
+            }
           }
         }
       }
