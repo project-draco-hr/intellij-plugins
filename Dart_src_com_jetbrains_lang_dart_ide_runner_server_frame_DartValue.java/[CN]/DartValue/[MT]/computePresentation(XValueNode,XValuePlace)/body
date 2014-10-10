@@ -1,47 +1,33 @@
 {
-  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
-    public void run(){
-      if (node.isObsolete())       return;
-      if (myVmValue == null && myVmVariable != null) {
-        myVmValue=myVmVariable.getValue();
-      }
-      if (myVmValue == null) {
-        node.setPresentation(AllIcons.Debugger.Value,null,"<no value>",false);
-        return;
-      }
-      final String value=myVmValue.isList() ? "size = " + myVmValue.getLength() : StringUtil.notNullize(myVmValue.getText(),"null");
-      final XValuePresentation presentation;
-      final int objectId=myVmValue.getObjectId();
-      final String objectIdPostfix="[id=" + objectId + "]";
-      if (myVmValue.isNull()) {
-        presentation=new XRegularValuePresentation("null",null);
-      }
- else       if (myVmValue.isString()) {
-        presentation=new XStringValuePresentation(StringUtil.stripQuotesAroundValue(value));
-      }
- else       if (myVmValue.isNumber()) {
-        presentation=new XNumericValuePresentation(value);
-      }
- else       if ("boolean".equals(myVmValue.getKind())) {
-        presentation=new XRegularValuePresentation(value,null);
-      }
- else       if (myVmValue.isList()) {
-        presentation=new XRegularValuePresentation(value,"List" + objectIdPostfix);
-      }
+  final String value=myVmValue.isList() ? "size = " + myVmValue.getLength() : StringUtil.notNullize(myVmValue.getText(),"null");
+  final String objectIdPostfix="[id=" + myVmValue.getObjectId() + "]";
+  final XValuePresentation presentation;
+  if (myVmValue.isNull()) {
+    presentation=new XRegularValuePresentation("null",null);
+  }
+ else   if (myVmValue.isString()) {
+    presentation=new XStringValuePresentation(StringUtil.stripQuotesAroundValue(value));
+  }
+ else   if (myVmValue.isNumber()) {
+    presentation=new XNumericValuePresentation(value);
+  }
+ else   if ("boolean".equals(myVmValue.getKind())) {
+    presentation=new XRegularValuePresentation(value,null);
+  }
+ else   if (myVmValue.isList()) {
+    presentation=new XRegularValuePresentation(value,"List" + objectIdPostfix);
+  }
  else {
-        if (value.startsWith(OBJECT_OF_TYPE_PREFIX)) {
-          presentation=new XRegularValuePresentation("",value.substring(OBJECT_OF_TYPE_PREFIX.length()) + objectIdPostfix);
-        }
+    if (value.startsWith(OBJECT_OF_TYPE_PREFIX)) {
+      presentation=new XRegularValuePresentation("",value.substring(OBJECT_OF_TYPE_PREFIX.length()) + objectIdPostfix);
+    }
  else {
-          presentation=new XRegularValuePresentation(value,DebuggerUtils.demangleVmName(myVmValue.getKind()) + objectIdPostfix);
-        }
-      }
-      final boolean neverHasChildren=myVmValue.isPrimitive() || myVmValue.isNull() || myVmValue.isFunction()|| myVmValue.isList() && myVmValue.getLength() == 0;
-      node.setPresentation(getIcon(),presentation,!neverHasChildren);
-      if (!myVmValue.isList() && !myVmValue.isPrimitive() && !myVmValue.isNull()&& !myVmValue.isFunction()) {
-        scheduleToStringOrCollectionSizePresentation(node,presentation.getType());
-      }
+      presentation=new XRegularValuePresentation(value,DebuggerUtils.demangleVmName(myVmValue.getKind()) + objectIdPostfix);
     }
   }
-);
+  final boolean neverHasChildren=myVmValue.isPrimitive() || myVmValue.isNull() || myVmValue.isFunction()|| myVmValue.isList() && myVmValue.getLength() == 0;
+  node.setPresentation(getIcon(),presentation,!neverHasChildren);
+  if (!myVmValue.isList() && !myVmValue.isPrimitive() && !myVmValue.isNull()&& !myVmValue.isFunction()) {
+    scheduleToStringOrCollectionSizePresentation(node,presentation.getType());
+  }
 }

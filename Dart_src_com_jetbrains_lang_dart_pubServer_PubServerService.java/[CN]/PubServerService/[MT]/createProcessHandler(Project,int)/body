@@ -2,9 +2,11 @@
   final DartSdk dartSdk=DartSdk.getGlobalDartSdk();
   if (dartSdk == null)   return null;
   final GeneralCommandLine commandLine=new GeneralCommandLine().withWorkDirectory(firstServedDir.getParent().getPath());
-  commandLine.setExePath(DartSdkUtil.getPubPath(dartSdk));
+  commandLine.setExePath(FileUtil.toSystemDependentName(DartSdkUtil.getPubPath(dartSdk)));
   commandLine.addParameter("serve");
   commandLine.addParameter(firstServedDir.getName());
   commandLine.addParameter("--port=" + String.valueOf(port));
-  return new OSProcessHandler(commandLine);
+  final OSProcessHandler processHandler=new OSProcessHandler(commandLine);
+  processHandler.addProcessListener(new PubServeOutputListener(project));
+  return processHandler;
 }

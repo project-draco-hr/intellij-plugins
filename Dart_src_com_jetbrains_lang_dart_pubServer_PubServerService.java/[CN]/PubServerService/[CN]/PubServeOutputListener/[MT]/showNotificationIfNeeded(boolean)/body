@@ -1,0 +1,23 @@
+{
+  if (ToolWindowManager.getInstance(myProject).getToolWindow(PUB_SERVE).isVisible()) {
+    return;
+  }
+  if (myNotification != null && !myNotification.isExpired()) {
+    final Balloon balloon1=myNotification.getBalloon();
+    final Balloon balloon2=ToolWindowManager.getInstance(myProject).getToolWindowBalloon(PUB_SERVE);
+    if ((balloon1 != null || balloon2 != null) && (myNotificationAboutErrors || !isError)) {
+      return;
+    }
+    myNotification.expire();
+  }
+  myNotificationAboutErrors=isError;
+  final String message=myNotificationAboutErrors ? DartBundle.message("pub.serve.output.contains.errors") : DartBundle.message("pub.serve.output.contains.warnings");
+  myNotification=NOTIFICATION_GROUP.createNotification("",message,NotificationType.WARNING,new NotificationListener.Adapter(){
+    @Override protected void hyperlinkActivated(    @NotNull final Notification notification,    @NotNull final HyperlinkEvent e){
+      notification.expire();
+      ToolWindowManager.getInstance(myProject).getToolWindow(PUB_SERVE).activate(null);
+    }
+  }
+);
+  myNotification.notify(myProject);
+}
