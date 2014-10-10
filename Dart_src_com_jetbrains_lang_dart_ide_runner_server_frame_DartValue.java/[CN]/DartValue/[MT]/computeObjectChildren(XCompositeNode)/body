@@ -1,5 +1,4 @@
 {
-  DartCommandLineDebugProcess.LOG.assertTrue(myVmValue != null);
   try {
     myDebugProcess.getVmConnection().getObjectProperties(myVmValue.getIsolate(),myVmValue.getObjectId(),new VmCallbackAdapter<VmObject>(node){
       @Override protected void handleGoodResult(      @NotNull final VmObject result){
@@ -10,7 +9,10 @@
         }
         final XValueChildrenList childrenList=new XValueChildrenList(fields.size());
         for (        final VmVariable field : fields) {
-          childrenList.add(new DartValue(myDebugProcess,field));
+          final VmValue vmValue=field.getValue();
+          if (vmValue != null) {
+            childrenList.add(new DartValue(myDebugProcess,field.getName(),vmValue,false));
+          }
         }
         node.addChildren(childrenList,true);
       }
