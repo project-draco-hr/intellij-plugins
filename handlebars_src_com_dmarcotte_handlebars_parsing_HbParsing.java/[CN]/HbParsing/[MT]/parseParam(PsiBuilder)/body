@@ -40,6 +40,17 @@
  else {
     dataMarker.rollbackTo();
   }
+  PsiBuilder.Marker sexprMarker=builder.mark();
+  if (parseLeafToken(builder,OPEN_SEXPR)) {
+    parseSexpr(builder);
+    parseLeafTokenGreedy(builder,CLOSE_SEXPR);
+    sexprMarker.drop();
+    paramMarker.done(PARAM);
+    return true;
+  }
+ else {
+    sexprMarker.rollbackTo();
+  }
   paramMarker.error(HbBundle.message("hb.parsing.expected.parameter"));
   return false;
 }
