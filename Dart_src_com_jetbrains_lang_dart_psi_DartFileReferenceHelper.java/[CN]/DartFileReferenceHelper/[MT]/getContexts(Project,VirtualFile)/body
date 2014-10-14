@@ -1,0 +1,17 @@
+{
+  final DartUrlResolver resolver=DartUrlResolver.getInstance(project,file);
+  final PsiManager psiManager=PsiManager.getInstance(project);
+  final Set<PsiFileSystemItem> result=new LinkedHashSet<PsiFileSystemItem>(ContainerUtil.mapNotNull(resolver.getPackageRoots(),new NullableFunction<VirtualFile,PsiFileSystemItem>(){
+    @Override public PsiFileSystemItem fun(    VirtualFile file){
+      return psiManager.findDirectory(file);
+    }
+  }
+));
+  final VirtualFile pubspec=resolver.getPubspecYamlFile();
+  final VirtualFile projectRoot=pubspec != null ? pubspec.getParent() : null;
+  if (projectRoot != null) {
+    final VirtualFile packages=projectRoot.findChild(PACKAGES_FOLDER_NAME);
+    ContainerUtil.addIfNotNull(result,packages != null ? psiManager.findDirectory(packages) : null);
+  }
+  return result;
+}

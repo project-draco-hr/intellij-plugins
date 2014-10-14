@@ -1,0 +1,22 @@
+{
+  final VirtualFile file=xmlFile.getUserData(IndexingDataKeys.VIRTUAL_FILE);
+  if (!hasDart(xmlFile.getProject(),file != null ? file : xmlFile.getVirtualFile()))   return FileIncludeInfo.EMPTY;
+  final List<FileIncludeInfo> result=new ArrayList<FileIncludeInfo>();
+  xmlFile.acceptChildren(new XmlRecursiveElementVisitor(){
+    @Override public void visitXmlTag(    XmlTag tag){
+      final String url;
+      url="link".equalsIgnoreCase(tag.getName()) ? cleanupPackage(tag.getAttributeValue("href")) : "script".equalsIgnoreCase(tag.getName()) ? cleanupPackage(tag.getAttributeValue("src")) : null;
+      if (!StringUtil.isEmpty(url)) {
+        result.add(new FileIncludeInfo(url));
+      }
+      super.visitXmlTag(tag);
+    }
+    @Override public void visitElement(    PsiElement element){
+      if (element.getLanguage() instanceof XMLLanguage) {
+        super.visitElement(element);
+      }
+    }
+  }
+);
+  return ContainerUtil.toArray(result,FileIncludeInfo.EMPTY);
+}
