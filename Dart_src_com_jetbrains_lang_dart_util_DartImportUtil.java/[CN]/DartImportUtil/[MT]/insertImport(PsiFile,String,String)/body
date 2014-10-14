@@ -8,14 +8,13 @@
     final DartImportStatement[] importStatements=PsiTreeUtil.getChildrenOfType(file,DartImportStatement.class);
     if (importStatements != null) {
       for (      DartImportStatement importStatement : importStatements) {
-        final PsiElement importTarget=importStatement.getLibraryExpression().resolve();
-        if (importTarget != null && !DartResolver.resolveSimpleReference(importTarget,componentName).isEmpty()) {
+        if (urlToImport.equals(importStatement.getUri())) {
           addShowOrRemoveHide(importStatement,componentName);
           continue libraryRootLoop;
         }
       }
     }
-    final PsiElement toAdd=DartElementGenerator.createTopLevelStatementFromText(file.getProject(),"import '" + libraryId + "';");
+    final PsiElement toAdd=DartElementGenerator.createTopLevelStatementFromText(file.getProject(),"import '" + urlToImport + "';");
     if (toAdd != null) {
       final PsiElement anchor=findAnchorForImportStatement(file,importStatements);
       if (anchor == null) {
