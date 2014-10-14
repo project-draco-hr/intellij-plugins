@@ -1,5 +1,5 @@
 {
-  if (getIndex() == 0 && PACKAGES_FOLDER_NAME.equals(getText())) {
+  if (PACKAGES_FOLDER_NAME.equals(getText())) {
     final VirtualFile pubspecYamlFile=myDartResolver.getPubspecYamlFile();
     final VirtualFile packagesDir=pubspecYamlFile == null ? null : pubspecYamlFile.getParent().findChild(PACKAGES_FOLDER_NAME);
     final PsiDirectory psiDirectory=packagesDir == null ? null : containingFile.getManager().findDirectory(packagesDir);
@@ -7,7 +7,8 @@
       return new ResolveResult[]{new PsiElementResolveResult(psiDirectory)};
     }
   }
-  if (getIndex() == 1 && PACKAGES_FOLDER_NAME.equals(getFileReferenceSet().getReference(0).getText())) {
+  final int index=getIndex();
+  if (index > 0 && PACKAGES_FOLDER_NAME.equals(getFileReferenceSet().getReference(index - 1).getText())) {
     final VirtualFile packageDir=myDartResolver.getPackageDirIfLivePackageOrFromPubListPackageDirs(getText());
     final PsiDirectory psiDirectory=packageDir == null ? null : containingFile.getManager().findDirectory(packageDir);
     if (psiDirectory != null) {

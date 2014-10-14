@@ -1,0 +1,23 @@
+{
+  return new ElementFilter(){
+    @Override public boolean isAcceptable(    Object _element,    PsiElement context){
+      PsiElement element=(PsiElement)_element;
+      PsiFile file=element.getContainingFile().getOriginalFile();
+      if (HtmlUtil.hasHtml(file) && DartFileReferenceHelper.hasDart(file.getProject(),file.getVirtualFile())) {
+        final PsiElement parent=element.getParent();
+        if (parent instanceof XmlAttribute) {
+          XmlAttribute xmlAttribute=(XmlAttribute)parent;
+          @NonNls final String attrName=xmlAttribute.getName();
+          XmlTag tag=xmlAttribute.getParent();
+          @NonNls final String tagName=tag.getName();
+          return isFileAttribute(attrName,tagName);
+        }
+      }
+      return false;
+    }
+    @Override public boolean isClassAcceptable(    Class hintClass){
+      return true;
+    }
+  }
+;
+}
