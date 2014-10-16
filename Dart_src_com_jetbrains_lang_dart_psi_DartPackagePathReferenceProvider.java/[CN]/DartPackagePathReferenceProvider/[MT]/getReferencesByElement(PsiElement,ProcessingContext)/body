@@ -6,8 +6,7 @@
   if (tag == null)   return PsiReference.EMPTY_ARRAY;
   final VirtualFile file=DartResolveUtil.getRealVirtualFile(psiElement.getContainingFile());
   if (file == null)   return PsiReference.EMPTY_ARRAY;
-  if (isFileAttribute(((XmlAttribute)parent).getName(),tag.getName())) {
-    return getDartPackageReferences(psiElement,DartUrlResolver.getInstance(psiElement.getProject(),file));
-  }
-  return PsiReference.EMPTY_ARRAY;
+  if (!canContainDartPackageReference(tag.getName(),((XmlAttribute)parent).getName()))   return PsiReference.EMPTY_ARRAY;
+  if (PubspecYamlUtil.findPubspecYamlFile(psiElement.getProject(),file) == null)   return PsiReference.EMPTY_ARRAY;
+  return getDartPackageReferences(psiElement,DartUrlResolver.getInstance(psiElement.getProject(),file));
 }

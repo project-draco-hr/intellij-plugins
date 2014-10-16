@@ -1,0 +1,17 @@
+{
+  final String path=getFileReferenceSet().getPathString();
+  if (path.startsWith(PACKAGES_FOLDER_NAME + "/") || path.contains("/" + PACKAGES_FOLDER_NAME + "/")) {
+    final VirtualFile contextFile=DartResolveUtil.getRealVirtualFile(getElement().getContainingFile());
+    final VirtualFile targetFile=DartResolveUtil.getRealVirtualFile(element.getContainingFile());
+    if (contextFile != null && targetFile != null) {
+      final DartUrlResolver urlResolver=DartUrlResolver.getInstance(element.getProject(),contextFile);
+      final String newUrl=urlResolver.getDartUrlForFile(targetFile);
+      if (newUrl.startsWith(PACKAGE_PREFIX)) {
+        final int index=path.startsWith(PACKAGES_FOLDER_NAME + "/") ? 0 : (path.indexOf("/" + PACKAGES_FOLDER_NAME + "/") + 1);
+        final String newName=path.substring(0,index) + PACKAGES_FOLDER_NAME + "/"+ newUrl.substring(PACKAGE_PREFIX.length());
+        return rename(newName);
+      }
+    }
+  }
+  return super.bindToElement(element,absolute);
+}

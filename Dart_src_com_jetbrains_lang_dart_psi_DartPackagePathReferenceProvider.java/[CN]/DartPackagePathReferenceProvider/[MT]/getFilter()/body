@@ -1,19 +1,12 @@
 {
   return new ElementFilter(){
     @Override public boolean isAcceptable(    Object _element,    PsiElement context){
-      PsiElement element=(PsiElement)_element;
-      PsiFile file=element.getContainingFile().getOriginalFile();
-      if (HtmlUtil.hasHtml(file) && PubspecYamlUtil.findPubspecYamlFile(file.getProject(),file.getVirtualFile()) != null) {
-        final PsiElement parent=element.getParent();
-        if (parent instanceof XmlAttribute) {
-          XmlAttribute xmlAttribute=(XmlAttribute)parent;
-          @NonNls final String attrName=xmlAttribute.getName();
-          XmlTag tag=xmlAttribute.getParent();
-          @NonNls final String tagName=tag.getName();
-          return isFileAttribute(attrName,tagName);
-        }
-      }
-      return false;
+      if (!(_element instanceof PsiElement))       return false;
+      final PsiElement element=(PsiElement)_element;
+      final PsiElement parentElement=element.getParent();
+      final PsiFile file=element.getContainingFile().getOriginalFile();
+      final VirtualFile vFile=file.getVirtualFile();
+      return vFile != null && HtmlUtil.hasHtml(file) && parentElement instanceof XmlAttribute && canContainDartPackageReference(((XmlAttribute)parentElement).getParent().getLocalName(),((XmlAttribute)parentElement).getName()) && PubspecYamlUtil.findPubspecYamlFile(element.getProject(),vFile) != null;
     }
     @Override public boolean isClassAcceptable(    Class hintClass){
       return true;
