@@ -11,7 +11,12 @@
   index.processAllKeys(projectAndIndex.second,processor,scope,null);
   return CachedValueProvider.Result.create(ContainerUtil.filter(allKeys,new Condition<String>(){
     @Override public boolean value(    String key){
-      return index.getContainingFiles(projectAndIndex.second,key,scope).size() > 0;
+      return !index.processValues(projectAndIndex.second,key,null,new FileBasedIndex.ValueProcessor<Void>(){
+        @Override public boolean process(        VirtualFile file,        Void value){
+          return false;
+        }
+      }
+,scope);
     }
   }
 ),PsiManager.getInstance(projectAndIndex.first).getModificationTracker());
