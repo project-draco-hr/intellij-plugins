@@ -1,0 +1,31 @@
+{
+  boolean changes=super.update();
+  final DartClass dartClass=getDartClass();
+  if (dartClass == null) {
+    final String invalidPrefix=IdeBundle.message("node.hierarchy.invalid");
+    if (!myHighlightedText.getText().startsWith(invalidPrefix)) {
+      myHighlightedText.getBeginning().addText(invalidPrefix,HierarchyNodeDescriptor.getInvalidPrefixAttributes());
+    }
+    return true;
+  }
+  if (changes && myIsBase) {
+    final LayeredIcon icon=new LayeredIcon(2);
+    icon.setIcon(getIcon(),0);
+    icon.setIcon(AllIcons.Hierarchy.Base,1,-AllIcons.Hierarchy.Base.getIconWidth() / 2,0);
+    setIcon(icon);
+  }
+  final CompositeAppearance oldText=myHighlightedText;
+  myHighlightedText=new CompositeAppearance();
+  TextAttributes classNameAttributes=null;
+  if (myColor != null) {
+    classNameAttributes=new TextAttributes(myColor,null,null,null,Font.PLAIN);
+  }
+  final String libraryName=DartResolveUtil.getLibraryName(dartClass.getContainingFile());
+  myHighlightedText.getEnding().addText(dartClass.getName(),classNameAttributes);
+  myHighlightedText.getEnding().addText(" (" + libraryName + ")",HierarchyNodeDescriptor.getPackageNameAttributes());
+  myName=myHighlightedText.getText();
+  if (!Comparing.equal(myHighlightedText,oldText)) {
+    changes=true;
+  }
+  return changes;
+}

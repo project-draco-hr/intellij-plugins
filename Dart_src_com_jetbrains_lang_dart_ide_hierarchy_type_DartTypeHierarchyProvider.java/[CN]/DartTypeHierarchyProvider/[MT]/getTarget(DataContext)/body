@@ -1,0 +1,12 @@
+{
+  final Project project=CommonDataKeys.PROJECT.getData(dataContext);
+  final Editor editor=CommonDataKeys.EDITOR.getData(dataContext);
+  if (project == null || editor == null)   return null;
+  final PsiFile file=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+  final PsiElement psiElement=file == null ? null : file.findElementAt(editor.getCaretModel().getOffset());
+  final DartReference dartReference=PsiTreeUtil.getParentOfType(psiElement,DartReference.class);
+  if (dartReference != null) {
+    return dartReference.resolveDartClass().getDartClass();
+  }
+  return PsiTreeUtil.getParentOfType(psiElement,DartClass.class);
+}
