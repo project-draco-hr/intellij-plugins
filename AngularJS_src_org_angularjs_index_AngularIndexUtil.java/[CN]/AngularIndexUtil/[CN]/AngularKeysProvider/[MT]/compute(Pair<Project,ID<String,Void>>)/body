@@ -1,5 +1,6 @@
 {
-  Set<String> allKeys=new THashSet<String>();
+  final Set<String> allKeys=new THashSet<String>();
+  final FileBasedIndex index=FileBasedIndex.getInstance();
   final GlobalSearchScope scope=GlobalSearchScope.allScope(projectAndIndex.first);
   final CommonProcessors.CollectProcessor<String> processor=new CommonProcessors.CollectProcessor<String>(allKeys){
     @Override protected boolean accept(    String key){
@@ -7,15 +8,10 @@
     }
   }
 ;
-  FileBasedIndex.getInstance().processAllKeys(projectAndIndex.second,processor,scope,null);
+  index.processAllKeys(projectAndIndex.second,processor,scope,null);
   return CachedValueProvider.Result.create(ContainerUtil.filter(allKeys,new Condition<String>(){
     @Override public boolean value(    String key){
-      return !FileBasedIndex.getInstance().processValues(projectAndIndex.second,key,null,new FileBasedIndex.ValueProcessor<Void>(){
-        @Override public boolean process(        VirtualFile file,        Void value){
-          return false;
-        }
-      }
-,scope);
+      return index.getContainingFiles(projectAndIndex.second,key,scope).size() > 0;
     }
   }
 ),PsiManager.getInstance(projectAndIndex.first).getModificationTracker());

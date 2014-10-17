@@ -1,18 +1,14 @@
 {
-  final Ref<JSNamedElementProxy> result=Ref.create();
+  JSNamedElementProxy result=null;
+  final JavaScriptIndex jsIndex=JavaScriptIndex.getInstance(project);
   final GlobalSearchScope scope=GlobalSearchScope.allScope(project);
   for (  VirtualFile file : FileBasedIndex.getInstance().getContainingFiles(index,lookupKey,scope)) {
-    final int id=FileBasedIndex.getFileId(file);
-    if (!FileBasedIndex.getInstance().processValues(JSEntryIndex.INDEX_ID,id,null,new FileBasedIndex.ValueProcessor<JSIndexEntry>(){
-      @Override public boolean process(      VirtualFile file,      JSIndexEntry value){
-        final JSNamedElementProxy resolve=value.resolveAdditionalData(JavaScriptIndex.getInstance(project),index.toString(),lookupKey);
-        if (resolve != null)         result.set(resolve);
-        return result.isNull();
-      }
-    }
-,scope) && result.get().canNavigate()) {
+    final JSIndexEntry value=jsIndex.getEntryForFile(file,scope);
+    final JSNamedElementProxy resolve=value != null ? value.resolveAdditionalData(jsIndex,index.toString(),lookupKey) : null;
+    result=resolve != null ? resolve : result;
+    if (result != null && result.canNavigate()) {
       break;
     }
   }
-  return result.get();
+  return result;
 }
