@@ -2,12 +2,13 @@
   final VirtualFile root=pubspecYamlFile.getParent();
   final VirtualFile contentRoot=root == null ? null : ProjectRootManager.getInstance(module.getProject()).getFileIndex().getContentRootForFile(root);
   if (contentRoot == null)   return;
-  final Collection<String> oldExcludedPackagesUrls=ContainerUtil.filter(ModuleRootManager.getInstance(module).getExcludeRootUrls(),new Condition<String>(){
+  final Collection<String> oldExcludedUrls=ContainerUtil.filter(ModuleRootManager.getInstance(module).getExcludeRootUrls(),new Condition<String>(){
     final String rootUrl=root.getUrl();
     public boolean value(    final String url){
-      if (!url.equals(rootUrl + "/build") && !url.startsWith(rootUrl + "/packages/") && !url.startsWith(rootUrl + "/bin/")&& !url.startsWith(rootUrl + "/benchmark/")&& !url.startsWith(rootUrl + "/example/")&& !url.startsWith(rootUrl + "/test/")&& !url.startsWith(rootUrl + "/tool/")&& !url.startsWith(rootUrl + "/web/")) {
+      if (!url.equals(rootUrl + "/.pub") && !url.equals(rootUrl + "/build") && !url.startsWith(rootUrl + "/packages/")&& !url.startsWith(rootUrl + "/bin/")&& !url.startsWith(rootUrl + "/benchmark/")&& !url.startsWith(rootUrl + "/example/")&& !url.startsWith(rootUrl + "/test/")&& !url.startsWith(rootUrl + "/tool/")&& !url.startsWith(rootUrl + "/web/")) {
         return false;
       }
+      if (url.equals(rootUrl + "/.pub"))       return true;
       if (url.equals(rootUrl + "/build"))       return true;
       if (url.endsWith("/packages"))       return true;
       if (url.startsWith(root + "/packages/"))       return true;
@@ -15,8 +16,8 @@
     }
   }
 );
-  final THashSet<String> newExcludedPackagesUrls=collectFoldersToExclude(module,pubspecYamlFile);
-  if (oldExcludedPackagesUrls.size() != newExcludedPackagesUrls.size() || !newExcludedPackagesUrls.containsAll(oldExcludedPackagesUrls)) {
-    ModuleRootModificationUtil.updateExcludedFolders(module,contentRoot,oldExcludedPackagesUrls,newExcludedPackagesUrls);
+  final THashSet<String> newExcludedUrls=collectFoldersToExclude(module,pubspecYamlFile);
+  if (oldExcludedUrls.size() != newExcludedUrls.size() || !newExcludedUrls.containsAll(oldExcludedUrls)) {
+    ModuleRootModificationUtil.updateExcludedFolders(module,contentRoot,oldExcludedUrls,newExcludedUrls);
   }
 }
