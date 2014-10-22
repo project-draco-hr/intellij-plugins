@@ -2,13 +2,11 @@
   if (!file.isValid()) {
     return false;
   }
-  final PsiFile psiFile=ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>(){
-    @Override public PsiFile compute(){
-      return PsiManager.getInstance(project).findFile(file);
-    }
+  final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+  if (!(psiFile instanceof XmlFile)) {
+    return false;
   }
-);
-  if (!JamCommonUtil.isPlainXmlFile(psiFile)) {
+  if (psiFile instanceof JspFile) {
     return false;
   }
   if (!StrutsManager.getInstance(project).isStruts2ConfigFile((XmlFile)psiFile)) {
