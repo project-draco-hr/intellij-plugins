@@ -1,23 +1,13 @@
 {
-  if (isLibraryRoot(psiFile)) {
-    DartLibraryStatement libraryStatement=null;
-    for (    PsiElement root : findDartRoots(psiFile)) {
-      libraryStatement=PsiTreeUtil.getChildOfType(root,DartLibraryStatement.class);
-      if (libraryStatement != null)       break;
+  for (  PsiElement root : findDartRoots(psiFile)) {
+    final DartLibraryStatement libraryStatement=PsiTreeUtil.getChildOfType(root,DartLibraryStatement.class);
+    if (libraryStatement != null) {
+      return libraryStatement.getLibraryName();
     }
-    final DartPartStatement[] sources=PsiTreeUtil.getChildrenOfType(psiFile,DartPartStatement.class);
-    if (libraryStatement == null && sources == null) {
-      return getMainFunction(psiFile) == null ? null : psiFile.getName();
+    final DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
+    if (partOfStatement != null) {
+      return partOfStatement.getLibraryName();
     }
-    return getLibraryName(psiFile,libraryStatement);
   }
- else {
-    for (    PsiElement root : findDartRoots(psiFile)) {
-      DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
-      if (partOfStatement != null) {
-        return partOfStatement.getLibraryName();
-      }
-    }
-    return null;
-  }
+  return psiFile.getName();
 }
