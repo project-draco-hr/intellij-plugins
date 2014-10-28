@@ -1,0 +1,33 @@
+{
+  PsiElement psiElement;
+  for (Iterator<PsiElement> iter=psiElements.iterator(); iter.hasNext(); ) {
+    psiElement=iter.next();
+    if (!(psiElement instanceof PsiComment)) {
+      continue;
+    }
+    if (fileHeaderRange != null && fileHeaderRange.intersects(psiElement.getTextRange())) {
+      continue;
+    }
+    final IElementType elementType=psiElement.getNode().getElementType();
+    if ((elementType == DartTokenTypesSets.MULTI_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.MULTI_LINE_COMMENT) && !isCustomRegionElement(psiElement)) {
+      descriptors.add(new FoldingDescriptor(psiElement,psiElement.getTextRange()));
+    }
+ else     if (elementType == DartTokenTypesSets.SINGLE_LINE_DOC_COMMENT || elementType == DartTokenTypesSets.SINGLE_LINE_COMMENT) {
+      final PsiElement firstCommentInSequence=psiElement;
+      PsiElement lastCommentInSequence=firstCommentInSequence;
+      PsiElement nextElement=firstCommentInSequence;
+      boolean containsCustomRegionMarker=isCustomRegionElement(nextElement);
+      while (iter.hasNext() && (nextElement=nextElement.getNextSibling()) != null && (nextElement instanceof PsiWhiteSpace || nextElement.getNode().getElementType() == elementType)) {
+        if (nextElement.getNode().getElementType() == elementType) {
+          iter.next();
+          lastCommentInSequence=nextElement;
+          containsCustomRegionMarker|=isCustomRegionElement(nextElement);
+        }
+      }
+      if (lastCommentInSequence != firstCommentInSequence && !containsCustomRegionMarker) {
+        final TextRange range=TextRange.create(firstCommentInSequence.getTextOffset(),lastCommentInSequence.getTextRange().getEndOffset());
+        descriptors.add(new FoldingDescriptor(firstCommentInSequence,range));
+      }
+    }
+  }
+}
