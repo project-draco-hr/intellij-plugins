@@ -5,13 +5,15 @@
     marker_.done(ID);
     return true;
   }
+ else   if (Boolean.TRUE == builder_.getUserData(INSIDE_SYNC_OR_ASYNC_FUNCTION) && IDENTIFIERS_FORBIDDEN_INSIDE_ASYNC_FUNCTIONS.contains(builder_.getTokenType())) {
+    marker_.rollbackTo();
+    return false;
+  }
  else   if (DartTokenTypesSets.BUILT_IN_IDENTIFIERS.contains(builder_.getTokenType())) {
     builder_.advanceLexer();
     marker_.done(ID);
     return true;
   }
- else {
-    marker_.rollbackTo();
-  }
+  marker_.rollbackTo();
   return false;
 }
