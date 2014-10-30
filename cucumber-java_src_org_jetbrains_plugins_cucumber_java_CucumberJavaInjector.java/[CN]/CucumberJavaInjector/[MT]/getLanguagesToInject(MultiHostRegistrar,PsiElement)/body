@@ -1,0 +1,12 @@
+{
+  if (element instanceof PsiLiteralExpression && element instanceof PsiLanguageInjectionHost) {
+    final PsiElement firstChild=element.getFirstChild();
+    if (firstChild != null && firstChild.getNode().getElementType() == JavaTokenType.STRING_LITERAL) {
+      PsiAnnotation annotation=PsiTreeUtil.getParentOfType(element,PsiAnnotation.class);
+      if (annotation != null && (CucumberJavaUtil.isCucumberStepAnnotation(annotation) || CucumberJavaUtil.isCucumberHookAnnotation(annotation))) {
+        final TextRange range=new TextRange(1,element.getTextLength() - 1);
+        registrar.startInjecting(regexpLanguage).addPlace(null,null,(PsiLanguageInjectionHost)element,range).doneInjecting();
+      }
+    }
+  }
+}
