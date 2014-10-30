@@ -1,21 +1,29 @@
 {
-  final CodeFoldingSettings settings=CodeFoldingSettings.getInstance();
-  final CodeFoldingSettings originalSettings=XmlSerializerUtil.createCopy(settings);
+  CodeFoldingSettings commonSettings=null;
+  CodeFoldingSettings commonOriginalSettings=null;
   DartCodeFoldingSettings dartSettings=null;
   DartCodeFoldingSettings dartOriginalSettings=null;
+  if (commonSettingsConsumer != null) {
+    commonSettings=CodeFoldingSettings.getInstance();
+    commonOriginalSettings=XmlSerializerUtil.createCopy(commonSettings);
+  }
   if (dartCodeFoldingSettingsConsumer != null) {
     dartSettings=DartCodeFoldingSettings.getInstance();
     dartOriginalSettings=XmlSerializerUtil.createCopy(dartSettings);
   }
   try {
-    settingsConsumer.consume(settings);
+    if (commonSettingsConsumer != null) {
+      commonSettingsConsumer.consume(commonSettings);
+    }
     if (dartCodeFoldingSettingsConsumer != null) {
       dartCodeFoldingSettingsConsumer.consume(dartSettings);
     }
     doTest();
   }
   finally {
-    XmlSerializerUtil.copyBean(originalSettings,settings);
+    if (commonSettingsConsumer != null) {
+      XmlSerializerUtil.copyBean(commonOriginalSettings,commonSettings);
+    }
     if (dartCodeFoldingSettingsConsumer != null) {
       XmlSerializerUtil.copyBean(dartOriginalSettings,dartSettings);
     }
