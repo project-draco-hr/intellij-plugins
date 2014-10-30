@@ -2,7 +2,9 @@
   if (!(root instanceof DartFile))   return;
   final TextRange fileHeaderRange=foldFileHeader(descriptors,(DartFile)root,document);
   foldImportExportStatements(descriptors,(DartFile)root);
-  foldComments(descriptors,root,fileHeaderRange);
+  Collection<PsiElement> psiElements=PsiTreeUtil.collectElementsOfType(root,new Class[]{DartTypeArguments.class,PsiComment.class});
+  foldComments(descriptors,psiElements,fileHeaderRange);
   foldClassBodies(descriptors,(DartFile)root);
   foldFunctionBodies(descriptors,root);
+  foldTypeArguments(descriptors,psiElements);
 }
