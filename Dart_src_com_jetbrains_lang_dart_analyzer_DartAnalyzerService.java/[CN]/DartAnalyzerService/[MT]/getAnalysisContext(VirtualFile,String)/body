@@ -24,6 +24,16 @@
     contextOptions.setEnableAsync(true);
     contextOptions.setEnableEnum(true);
     analysisContext.setAnalysisOptions(contextOptions);
+    ChangeSet changeSet=new ChangeSet();
+    Collection<VirtualFile> dartFiles=FileTypeIndex.getFiles(DartFileType.INSTANCE,GlobalSearchScope.projectScope(myProject));
+    Collection<VirtualFile> htmlFiles=FileTypeIndex.getFiles(HtmlFileType.INSTANCE,GlobalSearchScope.projectScope(myProject));
+    for (    VirtualFile file : dartFiles) {
+      changeSet.addedSource(DartFileBasedSource.getSource(myProject,file));
+    }
+    for (    VirtualFile file : htmlFiles) {
+      changeSet.addedSource(DartFileBasedSource.getSource(myProject,file));
+    }
+    analysisContext.applyChanges(changeSet);
     mySdkPath=sdkPath;
     myPubspecYamlTimestamp=pubspecYamlTimestamp;
     myDartPackageRoots=packageRoots;
