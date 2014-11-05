@@ -1,11 +1,12 @@
 {
+  List<LibraryBundlificationRule> libRules=JpsOsmorcExtensionService.getInstance().getLibraryBundlificationRules();
   Collection<File> dependencies=JpsJavaExtensionService.getInstance().enumerateDependencies(Collections.singletonList(myModule)).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().recursively().exportedOnly().satisfying(NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getRoots();
   List<String> result=ContainerUtil.newArrayList();
   for (  File dependency : dependencies) {
     String path=dependency.getPath();
     if (CachingBundleInfoProvider.canBeBundlified(path)) {
       try {
-        File bundledDependency=myBndWrapper.wrapLibrary(dependency,myOutputDir);
+        File bundledDependency=myBndWrapper.wrapLibrary(dependency,myOutputDir,libRules);
         if (bundledDependency != null) {
           result.add(bundledDependency.getPath());
         }

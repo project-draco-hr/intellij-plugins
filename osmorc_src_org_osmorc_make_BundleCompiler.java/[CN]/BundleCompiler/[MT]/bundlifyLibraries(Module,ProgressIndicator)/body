@@ -1,6 +1,7 @@
 {
   indicator.setText("Bundling non-OSGi libraries for module '" + module.getName() + "'");
   File outputDir=BndWrapper.getOutputDir(getModuleOutputDir(module));
+  List<LibraryBundlificationRule> libRules=ApplicationSettings.getInstance().getLibraryBundlificationRules();
   List<String> paths=OrderEnumerator.orderEntries(module).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().recursively().exportedOnly().satisfying(NOT_FRAMEWORK_LIBRARY_CONDITION).classes().getPathsList().getPathList();
   BndWrapper wrapper=new BndWrapper(this);
   List<String> result=ContainerUtil.newArrayList();
@@ -8,7 +9,7 @@
     if (CachingBundleInfoProvider.canBeBundlified(path)) {
       indicator.setText2(path);
       try {
-        File bundledDependency=wrapper.wrapLibrary(new File(path),outputDir);
+        File bundledDependency=wrapper.wrapLibrary(new File(path),outputDir,libRules);
         if (bundledDependency != null) {
           result.add(bundledDependency.getPath());
         }
