@@ -4,6 +4,7 @@
   ProgressManager.getInstance().run(new Task.Modal(myRunConfiguration.getProject(),"Preparing bundles...",false){
     @Override public void run(    @NotNull ProgressIndicator progressIndicator){
       progressIndicator.setIndeterminate(false);
+      AccessToken token=ApplicationManager.getApplication().acquireReadActionLock();
       try {
         Set<SelectedBundle> selectedBundles=new HashSet<SelectedBundle>();
         ModuleManager moduleManager=ModuleManager.getInstance(myRunConfiguration.getProject());
@@ -55,10 +56,15 @@
         error.set(e);
       }
 catch (      OsgiBuildException e) {
+        LOG.warn(e);
         error.set(new CantRunException(e.getMessage()));
       }
 catch (      Throwable t) {
+        LOG.error(t);
         error.set(new CantRunException("Internal error: " + t.getMessage()));
+      }
+ finally {
+        token.finish();
       }
     }
   }
