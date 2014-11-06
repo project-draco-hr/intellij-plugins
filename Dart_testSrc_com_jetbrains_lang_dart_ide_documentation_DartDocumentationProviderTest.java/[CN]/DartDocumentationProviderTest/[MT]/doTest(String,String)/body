@@ -1,0 +1,10 @@
+{
+  final int caretOffset=fileContents.indexOf("<caret>");
+  assertTrue(caretOffset != -1);
+  final String realContents=fileContents.substring(0,caretOffset) + fileContents.substring(caretOffset + "<caret>".length());
+  myFixture.configureByText("test.dart",realContents);
+  final PsiReference reference=TargetElementUtilBase.findReference(myFixture.getEditor(),caretOffset);
+  assertNotNull("No reference at offset " + caretOffset,reference);
+  final PsiElement resolvedElement=reference.resolve();
+  assertEquals(expectedDoc,myProvider.getUrlFor(resolvedElement,resolvedElement).get(0));
+}
