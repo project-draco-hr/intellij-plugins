@@ -3,8 +3,27 @@
   assertTrue(caretOffset != -1);
   final String realContents=fileContents.substring(0,caretOffset) + fileContents.substring(caretOffset + "<caret>".length());
   myFixture.configureByText("test.dart",realContents);
-  final PsiReference reference=TargetElementUtilBase.findReference(myFixture.getEditor(),caretOffset);
-  assertNotNull("No reference at offset " + caretOffset,reference);
-  final PsiElement resolvedElement=reference.resolve();
-  assertEquals(expectedDoc,myProvider.getUrlFor(resolvedElement,resolvedElement).get(0));
+  final PsiElement elementAtOffset=myFixture.getFile().findElementAt(caretOffset);
+  final PsiElement dartId=elementAtOffset == null ? null : elementAtOffset.getParent();
+  final PsiElement parent=dartId instanceof DartId ? dartId.getParent() : null;
+  final PsiElement docTarget;
+  if (parent instanceof DartReference) {
+    docTarget=((DartReference)parent).resolve();
+    assertNotNull(docTarget);
+  }
+ else   if (parent instanceof DartComponentName) {
+    docTarget=parent;
+  }
+ else {
+    fail("Element to look docs for not found");
+    return;
+  }
+  final List<String> docUrls=DocumentationManager.getProviderFromElement(docTarget).getUrlFor(docTarget,null);
+  if (expectedDocUrl == null) {
+    assertNull(docUrls);
+  }
+ else {
+    assertNotNull(docUrls);
+    assertEquals(StringUtil.join(docUrls,"; "),expectedDocUrl);
+  }
 }
