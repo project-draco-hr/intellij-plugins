@@ -1,0 +1,25 @@
+{
+  if (myTemplateCache != null) {
+    return myTemplateCache;
+  }
+  boolean doUpgradeCheck=true;
+  if (!myStagehand.isInstalled()) {
+    doUpgradeCheck=false;
+    myStagehand.install();
+  }
+  List<StagehandTuple> templates=myStagehand.getAvailableTemplates();
+  if (doUpgradeCheck) {
+    new Thread(){
+      @Override public void run(){
+        myStagehand.upgrade();
+      }
+    }
+.start();
+  }
+  myTemplateCache=new ArrayList<DartEmptyProjectGenerator>();
+  for (  StagehandTuple template : templates) {
+    myTemplateCache.add(new StagehandTemplateGenerator(myStagehand,template.myId,template.myDescription,template.myEntrypoint));
+  }
+  Collections.sort(myTemplateCache);
+  return myTemplateCache;
+}
