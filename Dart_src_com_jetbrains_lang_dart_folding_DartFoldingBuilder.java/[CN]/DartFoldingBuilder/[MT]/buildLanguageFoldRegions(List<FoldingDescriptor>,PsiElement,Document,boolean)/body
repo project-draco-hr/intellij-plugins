@@ -1,10 +1,12 @@
 {
   if (!(root instanceof DartFile))   return;
-  final TextRange fileHeaderRange=foldFileHeader(descriptors,(DartFile)root,document);
-  foldImportExportStatements(descriptors,(DartFile)root);
-  Collection<PsiElement> psiElements=PsiTreeUtil.collectElementsOfType(root,new Class[]{DartTypeArguments.class,PsiComment.class});
+  final DartFile dartFile=(DartFile)root;
+  final TextRange fileHeaderRange=foldFileHeader(descriptors,dartFile,document);
+  foldImportExportStatements(descriptors,dartFile);
+  foldPartStatements(descriptors,dartFile);
+  final Collection<PsiElement> psiElements=PsiTreeUtil.collectElementsOfType(root,new Class[]{DartTypeArguments.class,PsiComment.class});
   foldComments(descriptors,psiElements,fileHeaderRange);
-  foldClassBodies(descriptors,(DartFile)root);
+  foldClassBodies(descriptors,dartFile);
   foldFunctionBodies(descriptors,root);
   foldTypeArguments(descriptors,psiElements);
 }
