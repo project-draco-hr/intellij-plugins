@@ -10,13 +10,16 @@
     for (    String url : libModel.getUrls(OrderRootType.CLASSES)) {
       libModel.removeRoot(url,OrderRootType.CLASSES);
     }
-    for (    Set<String> packageDirs : packageMap.values()) {
-      for (      String packageDir : packageDirs) {
+    final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+    final Set<String> folders=gatherReachableFilesInProject(project,packageMap);
+    for (    String packageDir : folders) {
+      VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(packageDir);
+      if (!fileIndex.isInContent(virtualFile)) {
         libModel.addRoot(VfsUtilCore.pathToUrl(packageDir),OrderRootType.CLASSES);
       }
     }
     final DartListPackageDirsLibraryProperties libraryProperties=new DartListPackageDirsLibraryProperties();
-    libraryProperties.setPackageNameToDirsMap(packageMap);
+    libraryProperties.setPackageNameToFileDirsMap(packageMap);
     libModel.setProperties(libraryProperties);
     libModel.commit();
   }
