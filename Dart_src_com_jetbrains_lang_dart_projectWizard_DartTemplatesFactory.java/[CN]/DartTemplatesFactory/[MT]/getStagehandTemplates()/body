@@ -1,25 +1,25 @@
 {
-  if (myTemplateCache != null) {
-    return myTemplateCache;
+  if (ourTemplateCache != null) {
+    return ourTemplateCache;
   }
   boolean doUpgradeCheck=true;
-  if (!myStagehand.isInstalled()) {
+  if (!STAGEHAND.isInstalled()) {
     doUpgradeCheck=false;
-    myStagehand.install();
+    STAGEHAND.install();
   }
-  List<StagehandTuple> templates=myStagehand.getAvailableTemplates();
+  List<StagehandTuple> templates=STAGEHAND.getAvailableTemplates();
   if (doUpgradeCheck) {
     new Thread(){
       @Override public void run(){
-        myStagehand.upgrade();
+        STAGEHAND.upgrade();
       }
     }
 .start();
   }
-  myTemplateCache=new ArrayList<DartEmptyProjectGenerator>();
+  ourTemplateCache=new ArrayList<DartEmptyProjectGenerator>();
   for (  StagehandTuple template : templates) {
-    myTemplateCache.add(new StagehandTemplateGenerator(myStagehand,template.myId,template.myDescription,template.myEntrypoint));
+    ourTemplateCache.add(new StagehandTemplateGenerator(STAGEHAND,template.myId,template.myDescription,template.myEntrypoint));
   }
-  Collections.sort(myTemplateCache);
-  return myTemplateCache;
+  Collections.sort(ourTemplateCache);
+  return ourTemplateCache;
 }

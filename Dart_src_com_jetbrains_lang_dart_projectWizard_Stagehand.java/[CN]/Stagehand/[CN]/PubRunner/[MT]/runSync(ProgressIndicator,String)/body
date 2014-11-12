@@ -1,0 +1,19 @@
+{
+  final GeneralCommandLine command=new GeneralCommandLine().withWorkDirectory(myWorkingDirectory);
+  DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
+    throw new StagehandException(DartBundle.message("dart.pub.stagehand.exception.no.sdk"));
+  }
+  final File pubFile=new File(DartSdkUtil.getPubPath(sdk));
+  command.setExePath(pubFile.getPath());
+  command.addParameters(pubParameters);
+  try {
+    if (indicator != null) {
+      return new CapturingProcessHandler(command).runProcessWithProgressIndicator(indicator);
+    }
+    return new CapturingProcessHandler(command).runProcess();
+  }
+ catch (  ExecutionException e) {
+    throw new StagehandException(e);
+  }
+}
