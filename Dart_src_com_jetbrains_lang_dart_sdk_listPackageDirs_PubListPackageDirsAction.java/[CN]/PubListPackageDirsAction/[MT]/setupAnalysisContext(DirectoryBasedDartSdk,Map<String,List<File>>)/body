@@ -1,0 +1,23 @@
+{
+  final UriResolver checkCancelledUriResolver=new UriResolver(){
+    @Override public Source resolveAbsolute(    final URI uri){
+      final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.checkCanceled();
+      }
+      return null;
+    }
+  }
+;
+  final SourceFactory sourceFactory=new SourceFactory(checkCancelledUriResolver,new DartUriResolver(dirBasedSdk),new FileUriResolver(),new MyExplicitPackageUriResolverMapProvided(dirBasedSdk,packageMap));
+  final AnalysisOptionsImpl contextOptions=new AnalysisOptionsImpl();
+  contextOptions.setAnalyzeFunctionBodies(false);
+  contextOptions.setGenerateSdkErrors(false);
+  contextOptions.setEnableAsync(true);
+  contextOptions.setEnableDeferredLoading(true);
+  contextOptions.setEnableEnum(true);
+  final AnalysisContext analysisContext=AnalysisEngine.getInstance().createAnalysisContext();
+  analysisContext.setSourceFactory(sourceFactory);
+  analysisContext.setAnalysisOptions(contextOptions);
+  return analysisContext;
+}

@@ -1,0 +1,30 @@
+{
+  final AnalysisContext analysisContext=setupAnalysisContext(dirBasedSdk,packageMap);
+  final Collection<Source> sources=initSources(project,analysisContext,packageMap);
+  for (  Source source : sources) {
+    try {
+      analysisContext.computeLibraryElement(source);
+    }
+ catch (    AnalysisException e) {
+      final Throwable cause=e.getCause();
+      if (cause instanceof ProcessCanceledException) {
+        throw (ProcessCanceledException)cause;
+      }
+      LOG.warn("source=" + source.getUri(),e);
+    }
+  }
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final SortedSet<String> folderPaths=new LibraryDependencyCollector(analysisContext).collectFolderDependencies();
+  final String sdkRoot=FileUtil.toSystemIndependentName(dirBasedSdk.getDirectory().getPath()) + "/";
+  outer:   for (  String path : folderPaths) {
+    final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(path);
+    if (!path.startsWith(sdkRoot) && (vFile == null || !fileIndex.isInContent(vFile))) {
+      for (      String configuredPath : rootsToAddToLib) {
+        if (path.startsWith(configuredPath + "/")) {
+          continue outer;
+        }
+      }
+      rootsToAddToLib.add(path);
+    }
+  }
+}
