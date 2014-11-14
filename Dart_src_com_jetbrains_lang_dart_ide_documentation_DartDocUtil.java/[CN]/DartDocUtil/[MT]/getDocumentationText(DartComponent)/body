@@ -6,8 +6,11 @@
     final String docText=getSingleLineDocCommentsText(childComments);
     if (docText != null)     return docText;
   }
+  PsiElement anchorElement=dartComponent;
   final PsiElement parent=dartComponent.getParent();
-  final PsiElement anchorElement=parent instanceof DartClassMembers && parent.getFirstChild() == dartComponent ? parent : dartComponent;
+  if (parent instanceof DartClassMembers && parent.getFirstChild() == dartComponent || dartComponent instanceof DartVarAccessDeclaration) {
+    anchorElement=parent;
+  }
   final List<PsiComment> siblingComments=new ArrayList<PsiComment>();
   PsiElement previous=anchorElement;
   while ((previous=UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(previous,true)) instanceof PsiComment) {
