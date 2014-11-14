@@ -3,18 +3,18 @@
   final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
   final DartFileBasedSource source=annotatedFile == null ? null : DartFileBasedSource.getSource(psiFile.getProject(),annotatedFile);
   if (source == null)   return;
-  final AnalysisError[] messages=analysisContext.getErrors(source).getErrors();
-  if (messages == null || messages.length == 0)   return;
+  final AnalysisError[] errors=analysisContext.getErrors(source).getErrors();
+  if (errors == null || errors.length == 0)   return;
   final int fileTextLength=psiFile.getTextLength();
-  for (  AnalysisError message : messages) {
-    if (shouldIgnoreMessageFromDartAnalyzer(message))     continue;
-    if (source != message.getSource()) {
-      LOG.warn("Unexpected Source: " + message.getSource() + ",\nfile: "+ annotatedFile.getPath());
+  for (  AnalysisError error : errors) {
+    if (shouldIgnoreMessageFromDartAnalyzer(error))     continue;
+    if (source != error.getSource()) {
+      LOG.warn("Unexpected Source: " + error.getSource() + ",\nfile: "+ annotatedFile.getPath());
       continue;
     }
-    final Annotation annotation=annotate(holder,message,fileTextLength);
+    final Annotation annotation=annotate(holder,error,fileTextLength);
     if (annotation != null) {
-      registerFixes(psiFile,annotation,message);
+      registerFixes(psiFile,annotation,error);
     }
   }
 }
