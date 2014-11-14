@@ -14,12 +14,17 @@
       }
     }
   }
-  for (  String relativePathOrUrl : DartPathIndex.getPaths(context.getProject(),virtualFile)) {
-    if (fileNames != null && !fileNames.contains(PathUtil.getFileName(relativePathOrUrl))) {
+  for (  String partUrl : DartPathIndex.getPaths(context.getProject(),virtualFile)) {
+    if (fileNames != null && !fileNames.contains(PathUtil.getFileName(partUrl))) {
       continue;
     }
-    VirtualFile childFile=findRelativeFile(virtualFile,relativePathOrUrl);
-    childFile=childFile != null ? childFile : VirtualFileManager.getInstance().findFileByUrl(relativePathOrUrl);
+    final VirtualFile childFile;
+    if (partUrl.startsWith(DartUrlResolver.PACKAGE_PREFIX) || partUrl.startsWith(DartUrlResolver.FILE_PREFIX)) {
+      childFile=DartUrlResolver.getInstance(context.getProject(),virtualFile).findFileByDartUrl(partUrl);
+    }
+ else {
+      childFile=findRelativeFile(virtualFile,partUrl);
+    }
     if (childFile == null || processedFiles.contains(childFile)) {
       continue;
     }
