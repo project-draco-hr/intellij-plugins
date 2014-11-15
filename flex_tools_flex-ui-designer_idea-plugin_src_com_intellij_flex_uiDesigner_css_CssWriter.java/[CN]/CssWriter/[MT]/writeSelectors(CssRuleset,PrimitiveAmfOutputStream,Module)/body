@@ -1,2 +1,46 @@
 {
+  CssSelector[] selectors=ruleset.getSelectors();
+  out.write(selectors.length);
+  for (  CssSelector selector : selectors) {
+    CssSimpleSelector[] simpleSelectors=selector.getSimpleSelectors();
+    out.write(simpleSelectors.length);
+    for (    CssSimpleSelector simpleSelector : simpleSelectors) {
+      if (simpleSelector.isUniversalSelector()) {
+        out.write(0);
+      }
+ else {
+        XmlElementDescriptor typeSelectorDescriptor=FlexCssElementDescriptorProvider.getTypeSelectorDescriptor(simpleSelector,module);
+        final String subject=simpleSelector.getElementName();
+        if (typeSelectorDescriptor == null) {
+          if (!subject.equals("global")) {
+            LOG.warn("unqualified type selector " + simpleSelector.getText());
+          }
+          stringWriter.writeNullable(subject,out);
+          out.write(0);
+        }
+ else {
+          stringWriter.writeNullable(typeSelectorDescriptor.getQualifiedName(),out);
+          stringWriter.writeNullable(subject,out);
+          stringWriter.writeNullable(simpleSelector.getNamespaceName(),out);
+        }
+      }
+      CssSelectorSuffix[] selectorSuffixes=simpleSelector.getSelectorSuffixes();
+      out.write(selectorSuffixes.length);
+      for (      CssSelectorSuffix selectorSuffix : selectorSuffixes) {
+        if (selectorSuffix instanceof CssClass) {
+          out.write(FlexCssConditionKind.CLASS);
+        }
+ else         if (selectorSuffix instanceof CssIdSelector) {
+          out.write(FlexCssConditionKind.ID);
+        }
+ else         if (selectorSuffix instanceof CssPseudoClass) {
+          out.write(FlexCssConditionKind.PSEUDO);
+        }
+ else {
+          LOG.error("unknown selector suffix " + selectorSuffix.getText());
+        }
+        stringWriter.writeNullable(selectorSuffix.getName(),out);
+      }
+    }
+  }
 }
