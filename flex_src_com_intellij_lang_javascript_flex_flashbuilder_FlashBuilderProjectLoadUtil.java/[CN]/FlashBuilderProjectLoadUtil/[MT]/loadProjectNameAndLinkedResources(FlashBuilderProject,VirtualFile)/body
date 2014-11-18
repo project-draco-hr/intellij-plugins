@@ -1,12 +1,11 @@
 {
   try {
-    final Document dotProjectDocument=JDOMUtil.loadDocument(dotProjectFile.getInputStream());
-    final Element projectDescription=dotProjectDocument.getRootElement();
-    if (projectDescription == null || !PROJECT_DESCRIPTION_TAG.equals(projectDescription.getName()))     return;
+    final Element projectDescription=JDOMUtil.load(dotProjectFile.getInputStream());
+    if (!PROJECT_DESCRIPTION_TAG.equals(projectDescription.getName()))     return;
     final String projectName=projectDescription.getChildText(NAME_TAG,projectDescription.getNamespace());
     project.setName(StringUtil.notNullize(projectName,FlexBundle.message("unnamed")));
-    for (    final Element linkedResourcesElement : (Iterable<Element>)projectDescription.getChildren(LINKED_RESOURCES_TAG,projectDescription.getNamespace())) {
-      for (      final Element linkElement : (Iterable<Element>)linkedResourcesElement.getChildren(LINK_TAG,linkedResourcesElement.getNamespace())) {
+    for (    final Element linkedResourcesElement : projectDescription.getChildren(LINKED_RESOURCES_TAG,projectDescription.getNamespace())) {
+      for (      final Element linkElement : linkedResourcesElement.getChildren(LINK_TAG,linkedResourcesElement.getNamespace())) {
         final String linkName=linkElement.getChildText(NAME_TAG,linkElement.getNamespace());
         final String linkLocation=linkElement.getChildText(LOCATION_TAG,linkElement.getNamespace());
         if (!StringUtil.isEmptyOrSpaces(linkName) && !StringUtil.isEmptyOrSpaces(linkLocation)) {
@@ -15,8 +14,8 @@
       }
     }
   }
- catch (  JDOMException e) {
+ catch (  JDOMException ignored) {
   }
-catch (  IOException e) {
+catch (  IOException ignored) {
   }
 }
