@@ -1,0 +1,16 @@
+{
+  final int caretOffset=fileContents.indexOf("<caret>");
+  assertTrue(caretOffset != -1);
+  final String realContents=fileContents.substring(0,caretOffset) + fileContents.substring(caretOffset + "<caret>".length());
+  myFixture.configureByText("test.dart",realContents);
+  final PsiFile file=myFixture.getFile();
+  final PsiElement elementAtOffset=file.findElementAt(caretOffset);
+  final PsiElement targetId=elementAtOffset == null ? null : elementAtOffset.getParent();
+  DartTestLocationProvider provider=new DartTestLocationProvider();
+  final List<Location> locations=provider.getLocation(locationHint,file);
+  assertEquals(1,locations.size());
+  final Location location=locations.get(0);
+  final PsiElement element=location.getPsiElement();
+  final DartId foundId=PsiTreeUtil.findChildOfType(element,DartId.class);
+  assertEquals(targetId,foundId);
+}
