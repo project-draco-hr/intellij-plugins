@@ -1,8 +1,17 @@
 {
-  for (  DartClassDefinition dartClass : PsiTreeUtil.getChildrenOfTypeAsList(dartFile,DartClassDefinition.class)) {
-    final DartClassBody body=dartClass.getClassBody();
-    if (body != null && body.getTextLength() > 2) {
-      descriptors.add(new FoldingDescriptor(body,body.getTextRange()));
+  for (  DartClass dartClass : PsiTreeUtil.getChildrenOfTypeAsList(dartFile,DartClass.class)) {
+    if (dartClass instanceof DartClassDefinition) {
+      final DartClassBody body=((DartClassDefinition)dartClass).getClassBody();
+      if (body != null && body.getTextLength() > 2) {
+        descriptors.add(new FoldingDescriptor(body,body.getTextRange()));
+      }
+    }
+ else     if (dartClass instanceof DartEnumDefinition) {
+      final ASTNode lBrace=dartClass.getNode().findChildByType(DartTokenTypes.LBRACE);
+      final ASTNode rBrace=dartClass.getNode().findChildByType(DartTokenTypes.RBRACE,lBrace);
+      if (lBrace != null && rBrace != null && (rBrace.getStartOffset() - lBrace.getStartOffset() > 2)) {
+        descriptors.add(new FoldingDescriptor(dartClass,TextRange.create(lBrace.getStartOffset(),rBrace.getStartOffset() + 1)));
+      }
     }
   }
 }
