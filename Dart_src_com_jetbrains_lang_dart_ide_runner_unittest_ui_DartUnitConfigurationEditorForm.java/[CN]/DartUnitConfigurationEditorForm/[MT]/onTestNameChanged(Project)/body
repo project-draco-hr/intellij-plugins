@@ -1,0 +1,36 @@
+{
+  final Scope scope=(Scope)myScopeCombo.getSelectedItem();
+  final String testLabel=myTestNameField.getText();
+  final String filePath=myFileField.getText();
+  if (filePath != null) {
+    final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+    if (file != null) {
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+      if (psiFile != null) {
+        PsiElementProcessor.CollectElements<PsiElement> collector=new PsiElementProcessor.CollectElements<PsiElement>(){
+          @Override public boolean execute(          @NotNull final PsiElement element){
+            if (element instanceof DartCallExpression) {
+              DartCallExpression expression=(DartCallExpression)element;
+              if (scope == Scope.METHOD && DartUnitRunConfigurationProducer.isTest(expression) || DartUnitRunConfigurationProducer.isGroup(expression)) {
+                if (DartTestLocationProvider.testLabelMatches(expression,testLabel)) {
+                  super.execute(expression);
+                }
+              }
+            }
+            return getCollection().isEmpty();
+          }
+        }
+;
+        PsiTreeUtil.processElements(psiFile,collector);
+        if (collector.getCollection().isEmpty()) {
+          myTestNameField.setForeground(JBColor.RED);
+          myTestNameField.setToolTipText(DartBundle.message("config.test.unfound.label.warning",testLabel));
+        }
+ else {
+          myTestNameField.setForeground(myStandardForegroundColor);
+          myTestNameField.setToolTipText(null);
+        }
+      }
+    }
+  }
+}
