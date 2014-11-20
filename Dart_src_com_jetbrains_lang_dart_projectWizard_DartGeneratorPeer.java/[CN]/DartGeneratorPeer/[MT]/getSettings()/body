@@ -1,5 +1,12 @@
 {
   final String sdkPath=FileUtil.toSystemIndependentName(mySdkPathTextWithBrowse.getText().trim());
   final String dartiumPath=FileUtil.toSystemIndependentName(myDartiumPathTextWithBrowse.getText().trim());
-  return new DartProjectWizardData(sdkPath,dartiumPath,myDartiumSettingsCurrent);
+  final DartProjectTemplate template=myCreateSampleProjectCheckBox.isSelected() ? (DartProjectTemplate)myTemplatesList.getSelectedValue() : null;
+  if (template == null) {
+    PropertiesComponent.getInstance().unsetValue(DART_PROJECT_TEMPLATE);
+  }
+ else {
+    PropertiesComponent.getInstance().setValue(DART_PROJECT_TEMPLATE,template.getName());
+  }
+  return new DartProjectWizardData(sdkPath,dartiumPath,myDartiumSettingsCurrent,template);
 }
