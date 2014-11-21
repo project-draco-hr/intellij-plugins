@@ -1,10 +1,15 @@
 {
-  final RunManager runManager=RunManager.getInstance(module.getProject());
-  final RunnerAndConfigurationSettings settings=runManager.createRunConfiguration("",DartCommandLineRunConfigurationType.getInstance().getConfigurationFactories()[0]);
-  final DartCommandLineRunConfiguration runConfiguration=(DartCommandLineRunConfiguration)settings.getConfiguration();
-  runConfiguration.getRunnerParameters().setFilePath(mainDartFile.getPath());
-  runConfiguration.getRunnerParameters().setWorkingDirectory(mainDartFile.getParent().getPath());
-  settings.setName(runConfiguration.suggestedName());
-  runManager.addConfiguration(settings,false);
-  runManager.setSelectedConfiguration(settings);
+  DartModuleBuilder.runWhenNonModalIfModuleNotDisposed(new Runnable(){
+    @Override public void run(){
+      final RunManager runManager=RunManager.getInstance(module.getProject());
+      final RunnerAndConfigurationSettings settings=runManager.createRunConfiguration("",DartCommandLineRunConfigurationType.getInstance().getConfigurationFactories()[0]);
+      final DartCommandLineRunConfiguration runConfiguration=(DartCommandLineRunConfiguration)settings.getConfiguration();
+      runConfiguration.getRunnerParameters().setFilePath(mainDartFile.getPath());
+      runConfiguration.getRunnerParameters().setWorkingDirectory(mainDartFile.getParent().getPath());
+      settings.setName(runConfiguration.suggestedName());
+      runManager.addConfiguration(settings,false);
+      runManager.setSelectedConfiguration(settings);
+    }
+  }
+,module);
 }

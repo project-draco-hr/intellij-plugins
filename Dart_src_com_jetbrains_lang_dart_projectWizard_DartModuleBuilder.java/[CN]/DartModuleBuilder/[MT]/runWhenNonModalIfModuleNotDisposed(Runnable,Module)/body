@@ -1,0 +1,18 @@
+{
+  StartupManager.getInstance(module.getProject()).runWhenProjectIsInitialized(new Runnable(){
+    @Override public void run(){
+      if (ApplicationManager.getApplication().getCurrentModalityState() == ModalityState.NON_MODAL) {
+        runnable.run();
+      }
+ else {
+        ApplicationManager.getApplication().invokeLater(runnable,ModalityState.NON_MODAL,new Condition(){
+          @Override public boolean value(          final Object o){
+            return module.isDisposed();
+          }
+        }
+);
+      }
+    }
+  }
+);
+}
