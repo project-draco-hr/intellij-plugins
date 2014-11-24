@@ -1,15 +1,17 @@
 {
   myLoadingPanel.setVisible(true);
-  myLoadingPanel.setPreferredSize(myTemplatesListPanel.getPreferredSize());
-  myTemplatesListPanel.setVisible(false);
+  myLoadingPanel.setPreferredSize(myTemplatesPanel.getPreferredSize());
+  myTemplatesPanel.setVisible(false);
   myCreateSampleProjectCheckBox.setSelected(false);
-  myAsyncProcessIcon.resume();
+  final AsyncProcessIcon asyncProcessIcon=new AsyncProcessIcon("Dart project templates loading");
+  myLoadingPanel.add(asyncProcessIcon,new GridConstraints());
+  asyncProcessIcon.resume();
   ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
     @Override public void run(){
       DartProjectTemplate.loadTemplatesAsync(mySdkPathTextWithBrowse.getText().trim(),new Consumer<List<DartProjectTemplate>>(){
         @Override public void consume(        final List<DartProjectTemplate> templates){
-          myAsyncProcessIcon.suspend();
-          Disposer.dispose(myAsyncProcessIcon);
+          asyncProcessIcon.suspend();
+          Disposer.dispose(asyncProcessIcon);
           onTemplatesLoaded(templates);
         }
       }
