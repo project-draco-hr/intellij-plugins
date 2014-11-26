@@ -1,0 +1,32 @@
+{
+  try {
+    checkCanAddContentRoot(myModule,myContentRoot);
+  }
+ catch (  Exception e) {
+    showErrorDialog(myModule,e);
+    return;
+  }
+  final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(myModule).getModifiableModel();
+  try {
+    modifiableModel.addContentEntry(myContentRoot);
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        modifiableModel.commit();
+      }
+    }
+);
+    showSuccessNotification(myModule,myContentRoot);
+  }
+ catch (  Exception e) {
+    showErrorDialog(myModule,e);
+  }
+ finally {
+    if (!modifiableModel.isDisposed()) {
+      modifiableModel.dispose();
+    }
+  }
+  final VirtualFile yamlFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (yamlFile != null && PubspecYamlUtil.PUBSPEC_YAML.equals(yamlFile.getName())) {
+    DartProjectComponent.excludeBuildAndPackagesFolders(myModule,yamlFile);
+  }
+}
