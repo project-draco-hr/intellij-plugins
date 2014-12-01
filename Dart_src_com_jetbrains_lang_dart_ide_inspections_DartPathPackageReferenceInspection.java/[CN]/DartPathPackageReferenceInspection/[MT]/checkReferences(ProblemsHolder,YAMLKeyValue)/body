@@ -1,0 +1,18 @@
+{
+  for (  PsiReference reference : element.getReferences()) {
+    if (reference instanceof FileReference && !reference.isSoft()) {
+      final PsiFileSystemItem resolve=((FileReference)reference).resolve();
+      if (resolve == null) {
+        holder.registerProblem(reference.getElement(),((FileReference)reference).getUnresolvedMessagePattern(),ProblemHighlightType.GENERIC_ERROR,reference.getRangeInElement());
+        return null;
+      }
+ else       if (((FileReference)reference).isLast()) {
+        final VirtualFile dir=resolve.getVirtualFile();
+        if (dir != null && dir.isDirectory()) {
+          return dir;
+        }
+      }
+    }
+  }
+  return null;
+}

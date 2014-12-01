@@ -1,0 +1,34 @@
+{
+  if (!(element instanceof YAMLKeyValue) || !isPathPackageDefinition((YAMLKeyValue)element)) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final PsiElement value=((YAMLKeyValue)element).getValue();
+  if (value == null) {
+    return PsiReference.EMPTY_ARRAY;
+  }
+  final String text=FileUtil.toSystemIndependentName(value.getText());
+  final boolean quoted=StringUtil.isQuotedString(text);
+  final int startInElement=value.getStartOffsetInParent() + (quoted ? 1 : 0);
+  final FileReferenceSet fileReferenceSet=new FileReferenceSet(StringUtil.stripQuotesAroundValue(text),element,startInElement,this,SystemInfo.isFileSystemCaseSensitive,false){
+    @NotNull @Override public Collection<PsiFileSystemItem> computeDefaultContexts(){
+      if (isAbsolutePathReference()) {
+        final VirtualFile[] roots=ManagingFS.getInstance().getLocalRoots();
+        final Collection<PsiFileSystemItem> result=new SmartList<PsiFileSystemItem>();
+        for (        VirtualFile root : roots) {
+          ContainerUtil.addIfNotNull(result,element.getManager().findDirectory(root));
+        }
+        return result;
+      }
+      return super.computeDefaultContexts();
+    }
+    @Override public boolean isAbsolutePathReference(){
+      final String path=getPathString();
+      return SystemInfo.isWindows ? path.length() >= 3 && Character.isLetter(path.charAt(0)) && ':' == path.charAt(1) && '/' == path.charAt(2) : path.startsWith("/");
+    }
+    @Override protected Condition<PsiFileSystemItem> getReferenceCompletionFilter(){
+      return DIRECTORY_FILTER;
+    }
+  }
+;
+  return fileReferenceSet.getAllReferences();
+}

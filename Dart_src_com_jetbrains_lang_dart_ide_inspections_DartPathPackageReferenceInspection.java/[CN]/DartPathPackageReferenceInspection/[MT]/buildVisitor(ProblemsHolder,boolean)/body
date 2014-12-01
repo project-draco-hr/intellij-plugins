@@ -8,18 +8,26 @@
   return new PsiElementVisitor(){
     @Override public void visitElement(    final PsiElement element){
       ProgressIndicatorProvider.checkCanceled();
-      if (!(element instanceof YAMLKeyValue) || !PubspecYamlUtil.PATH.equals(((YAMLKeyValue)element).getKeyText()))       return;
+      if (!(element instanceof YAMLKeyValue) || !PubspecYamlReferenceContributor.isPathPackageDefinition((YAMLKeyValue)element)) {
+        return;
+      }
+      final VirtualFile dir=checkReferences(holder,(YAMLKeyValue)element);
+      if (dir == null) {
+        return;
+      }
+      if (dir.findChild(PubspecYamlUtil.PUBSPEC_YAML) == null) {
+        final String message=DartBundle.message("pubspec.yaml.not.found.in",FileUtil.toSystemDependentName(dir.getPath()));
+        holder.registerProblem(((YAMLKeyValue)element).getValue(),message);
+        return;
+      }
       final VirtualFile file=DartResolveUtil.getRealVirtualFile(element.getContainingFile());
+      if (file != null && dir.equals(file.getParent())) {
+        holder.registerProblem(((YAMLKeyValue)element).getValue(),DartBundle.message("path.package.reference.to.itself"));
+        return;
+      }
       final String path=((YAMLKeyValue)element).getValueText() + "/" + PubspecYamlUtil.LIB_DIR_NAME;
       final VirtualFile packageDir=file == null ? null : VfsUtilCore.findRelativeFile(path,file.getParent());
-      if (packageDir == null || !packageDir.isDirectory())       return;
-      final PsiElement parent1=element.getParent();
-      final PsiElement parent2=parent1 instanceof YAMLCompoundValue ? parent1.getParent() : null;
-      final String packageName=parent2 instanceof YAMLKeyValue ? ((YAMLKeyValue)parent2).getKeyText() : null;
-      if (packageName == null)       return;
-      final PsiElement parent3=parent2.getParent();
-      final PsiElement parent4=parent3 instanceof YAMLCompoundValue ? parent3.getParent() : null;
-      if (!(parent4 instanceof YAMLKeyValue) || !(parent4.getParent() instanceof YAMLDocument) || (!PubspecYamlUtil.DEPENDENCIES.equals(((YAMLKeyValue)parent4).getKeyText()) && !PubspecYamlUtil.DEV_DEPENDENCIES.equals(((YAMLKeyValue)parent4).getKeyText()))) {
+      if (packageDir == null || !packageDir.isDirectory()) {
         return;
       }
       if (!ProjectRootManager.getInstance(element.getProject()).getFileIndex().isInContent(packageDir)) {
