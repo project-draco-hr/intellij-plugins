@@ -9,7 +9,6 @@
       final DartStringLiteralExpression keyExpression=(DartStringLiteralExpression)expressions.get(0);
       final DartConstConstructorExpression constructorExpression=(DartConstConstructorExpression)expressions.get(1);
       final String libraryName=StringUtil.unquoteString(keyExpression.getText());
-      if (libraryName.startsWith("_"))       return;
       final DartType dartType=constructorExpression.getType();
       if (dartType == null || !"LibraryInfo".equals(dartType.getText()))       return;
       final DartArguments arguments=constructorExpression.getArguments();
@@ -17,7 +16,7 @@
       final List<DartExpression> expressionList=argumentList != null ? argumentList.getExpressionList() : null;
       final DartExpression firstExpression=expressionList == null || expressionList.isEmpty() ? null : expressionList.get(0);
       final String libraryRelativePath=firstExpression instanceof DartStringLiteralExpression ? StringUtil.unquoteString(firstExpression.getText()) : null;
-      if (libraryRelativePath != null) {
+      if (libraryRelativePath != null && !libraryRelativePath.startsWith("_")) {
         result.put(libraryName,libraryRelativePath);
       }
     }
