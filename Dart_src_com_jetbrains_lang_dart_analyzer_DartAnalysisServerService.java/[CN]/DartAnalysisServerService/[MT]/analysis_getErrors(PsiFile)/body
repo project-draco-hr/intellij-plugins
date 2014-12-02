@@ -1,0 +1,19 @@
+{
+  final AnalysisError[][] resultErrors={AnalysisError.EMPTY_ARRAY};
+  final CountDownLatch countDownLatch=new CountDownLatch(1);
+  myServer.analysis_getErrors(file.getOriginalFile().getVirtualFile().getPath(),new GetErrorsConsumer(){
+    @Override public void computedErrors(    final AnalysisError[] errors){
+      resultErrors[0]=errors;
+      countDownLatch.countDown();
+    }
+  }
+);
+  try {
+    countDownLatch.await();
+  }
+ catch (  InterruptedException e) {
+    LOG.debug(e.getMessage(),e);
+    return resultErrors[0];
+  }
+  return resultErrors[0];
+}
