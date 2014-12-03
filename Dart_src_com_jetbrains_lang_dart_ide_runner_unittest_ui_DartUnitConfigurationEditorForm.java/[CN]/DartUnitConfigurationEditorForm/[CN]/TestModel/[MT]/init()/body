@@ -1,0 +1,27 @@
+{
+  final String filePath=myFileField.getText();
+  if (filePath != null) {
+    final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+    if (file != null) {
+      final PsiFile testFile=PsiManager.getInstance(myProject).findFile(file);
+      if (testFile != null) {
+        PsiElementProcessor<PsiElement> collector=new PsiElementProcessor<PsiElement>(){
+          @Override public boolean execute(          @NotNull final PsiElement element){
+            if (element instanceof DartCallExpression) {
+              DartCallExpression expression=(DartCallExpression)element;
+              if (DartUnitRunConfigurationProducer.isTest(expression)) {
+                myTestCalls.add(expression);
+              }
+ else               if (DartUnitRunConfigurationProducer.isGroup(expression)) {
+                myGroupCalls.add(expression);
+              }
+            }
+            return true;
+          }
+        }
+;
+        PsiTreeUtil.processElements(testFile,collector);
+      }
+    }
+  }
+}
