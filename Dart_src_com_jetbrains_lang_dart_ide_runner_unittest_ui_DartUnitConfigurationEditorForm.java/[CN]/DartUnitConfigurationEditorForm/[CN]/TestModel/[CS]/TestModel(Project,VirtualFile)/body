@@ -1,0 +1,22 @@
+{
+  myFile=file;
+  final PsiFile testFile=PsiManager.getInstance(project).findFile(file);
+  if (testFile != null) {
+    PsiElementProcessor<PsiElement> collector=new PsiElementProcessor<PsiElement>(){
+      @Override public boolean execute(      @NotNull final PsiElement element){
+        if (element instanceof DartCallExpression) {
+          DartCallExpression expression=(DartCallExpression)element;
+          if (DartUnitRunConfigurationProducer.isTest(expression)) {
+            myTests.add(DartTestLocationProvider.getTestLabel(expression));
+          }
+ else           if (DartUnitRunConfigurationProducer.isGroup(expression)) {
+            myGroups.add(DartTestLocationProvider.getTestLabel(expression));
+          }
+        }
+        return true;
+      }
+    }
+;
+    PsiTreeUtil.processElements(testFile,collector);
+  }
+}
