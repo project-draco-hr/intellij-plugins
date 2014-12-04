@@ -1,0 +1,25 @@
+{
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null) {
+    LOG.error("No SDK");
+    return;
+  }
+  final String sdkPath=sdk.getHomePath();
+  final String runtimePath=sdkPath + "/bin/dart";
+  final String analysisServerPath=sdkPath + "/bin/snapshots/analysis_server.dart.snapshot";
+  final DebugPrintStream debugStream=new DebugPrintStream(){
+    @Override public void println(    String str){
+    }
+  }
+;
+  final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{"--port=10000"},false,false,0,false);
+  myServer=new RemoteAnalysisServerImpl(serverSocket);
+  try {
+    myServer.start();
+  }
+ catch (  Exception e) {
+    LOG.debug(e.getMessage(),e);
+  }
+  setAnalysisRoots(ProjectManager.getInstance().getOpenProjects());
+  myServer.addAnalysisServerListener(myListener);
+}

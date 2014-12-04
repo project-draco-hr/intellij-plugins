@@ -1,0 +1,27 @@
+{
+  final String filePath=FileUtil.toSystemIndependentName(myFileField.getText().trim());
+  if (filePath.isEmpty()) {
+    return;
+  }
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+  if (file == null || file.isDirectory()) {
+    return;
+  }
+  final Scope scope=(Scope)myScopeCombo.getSelectedItem();
+  if (scope != Scope.METHOD && scope != Scope.GROUP) {
+    return;
+  }
+  final String testLabel=myTestNameField.getText().trim();
+  if (myCachedModel == null || !myCachedModel.appliesTo(file)) {
+    myCachedModel=new TestModel(myProject,file);
+  }
+  if (!myCachedModel.includes(scope,testLabel)) {
+    myTestNameField.setForeground(JBColor.RED);
+    final String message=scope == Scope.METHOD ? DartBundle.message("test.label.not.found",testLabel) : DartBundle.message("test.group.not.found",testLabel);
+    myTestNameField.setToolTipText(message);
+  }
+ else {
+    myTestNameField.setForeground(UIUtil.getFieldForegroundColor());
+    myTestNameField.setToolTipText(null);
+  }
+}
