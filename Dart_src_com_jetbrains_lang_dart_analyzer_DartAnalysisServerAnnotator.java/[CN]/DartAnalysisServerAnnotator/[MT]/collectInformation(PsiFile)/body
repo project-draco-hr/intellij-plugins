@@ -1,3 +1,13 @@
 {
+  if (psiFile instanceof DartExpressionCodeFragment)   return null;
+  final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (annotatedFile == null)   return null;
+  final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
+  if (module == null)   return null;
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk == null)   return null;
+  if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
+  if (FileUtil.isAncestor(sdk.getHomePath(),annotatedFile.getPath(),true))   return null;
+  if (PsiDocumentManager.getInstance(psiFile.getProject()).getDocument(psiFile) == null)   return null;
   return psiFile;
 }

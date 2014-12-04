@@ -12,7 +12,21 @@
     }
   }
 ;
-  final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{"--port=10000"},false,false,0,false);
+  final StdioServerSocket serverSocket;
+  if (!ApplicationManager.getApplication().isInternal()) {
+    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,0,false);
+  }
+ else {
+    int availablePort=10000;
+    try {
+      availablePort=NetUtils.findAvailableSocketPort();
+    }
+ catch (    IOException e) {
+      LOG.error(e.getMessage(),e);
+    }
+    LOG.debug("Go to http://localhost:" + availablePort + "/status to see status of analysis server");
+    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{"--port=" + availablePort},false,false,0,false);
+  }
   myServer=new RemoteAnalysisServerImpl(serverSocket);
   try {
     myServer.start();
@@ -21,5 +35,6 @@
     LOG.debug(e.getMessage(),e);
   }
   setAnalysisRoots(ProjectManager.getInstance().getOpenProjects());
+  setOptions();
   myServer.addAnalysisServerListener(myListener);
 }

@@ -1,18 +1,15 @@
 {
   final Ref<AnalysisError[]> resultError=new Ref<AnalysisError[]>();
-  final CountDownLatch countDownLatch=new CountDownLatch(1);
-  myServer.analysis_getErrors(file.getOriginalFile().getVirtualFile().getPath(),new GetErrorsConsumer(){
+  final Semaphore semaphore=new Semaphore();
+  semaphore.down();
+  final String path=FileUtil.toSystemDependentName(file.getOriginalFile().getVirtualFile().getPath());
+  myServer.analysis_getErrors(path,new GetErrorsConsumer(){
     @Override public void computedErrors(    final AnalysisError[] errors){
       resultError.set(errors);
-      countDownLatch.countDown();
+      semaphore.up();
     }
   }
 );
-  try {
-    countDownLatch.await();
-  }
- catch (  InterruptedException e) {
-    LOG.debug(e.getMessage(),e);
-  }
+  semaphore.waitFor(10000);
   return resultError.get();
 }
