@@ -1,0 +1,34 @@
+{
+  myLoadingPanel.setVisible(false);
+  myTemplatesPanel.setVisible(true);
+  myCreateSampleProjectCheckBox.setEnabled(true);
+  myTemplatesList.setEnabled(true);
+  final String selectedTemplateName=PropertiesComponent.getInstance().getValue(DART_PROJECT_TEMPLATE);
+  myCreateSampleProjectCheckBox.setSelected(selectedTemplateName != null);
+  myTemplatesList.setEnabled(myCreateSampleProjectCheckBox.isSelected());
+  DartProjectTemplate selectedTemplate=null;
+  final DefaultListModel model=new DefaultListModel();
+  for (  DartProjectTemplate template : templates) {
+    model.addElement(template);
+    if (template.getName().equals(selectedTemplateName)) {
+      selectedTemplate=template;
+    }
+  }
+  myTemplatesList.setModel(model);
+  if (selectedTemplate != null) {
+    myTemplatesList.setSelectedValue(selectedTemplate,true);
+  }
+ else   if (templates.size() > 0) {
+    myTemplatesList.setSelectedIndex(0);
+  }
+  myTemplatesList.setCellRenderer(new DefaultListCellRenderer(){
+    @Override public Component getListCellRendererComponent(    JList list,    Object value,    int index,    boolean isSelected,    boolean cellHasFocus){
+      final JLabel component=(JLabel)super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
+      final DartProjectTemplate template=(DartProjectTemplate)value;
+      final String text=template.getDescription().isEmpty() ? template.getName() : template.getName() + " - " + StringUtil.decapitalize(template.getDescription());
+      component.setText(text);
+      return component;
+    }
+  }
+);
+}

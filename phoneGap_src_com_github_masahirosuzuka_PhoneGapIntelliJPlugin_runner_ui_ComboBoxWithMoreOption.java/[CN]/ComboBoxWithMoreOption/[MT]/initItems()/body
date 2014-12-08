@@ -1,0 +1,24 @@
+{
+  addItems(this,myStartItems);
+  this.addItem(myMoreItem);
+  this.addItemListener(new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      if (e.getStateChange() == ItemEvent.DESELECTED && myMoreItem.equals(getSelectedItem())) {
+        final Object prevItem=e.getItem();
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            if (getItemCount() != myStartItems.size() + myExtendedItems.size()) {
+              ComboBoxWithMoreOption.this.extend();
+              setSelectedItem(prevItem);
+            }
+            if (!ComboBoxWithMoreOption.this.isPopupVisible()) {
+              ComboBoxWithMoreOption.this.showPopup();
+            }
+          }
+        }
+);
+      }
+    }
+  }
+);
+}

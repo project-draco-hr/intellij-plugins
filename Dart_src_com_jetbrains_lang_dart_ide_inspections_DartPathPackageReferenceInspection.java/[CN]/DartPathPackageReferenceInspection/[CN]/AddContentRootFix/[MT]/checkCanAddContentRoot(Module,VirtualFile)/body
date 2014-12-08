@@ -1,0 +1,23 @@
+{
+  for (  final VirtualFile contentEntryFile : ModuleRootManager.getInstance(module).getContentRoots()) {
+    if (contentEntryFile.equals(contentRoot)) {
+      throw new Exception(ProjectBundle.message("module.paths.add.content.already.exists.error",contentRoot.getPresentableUrl()));
+    }
+    if (VfsUtilCore.isAncestor(contentEntryFile,contentRoot,true)) {
+      throw new Exception(ProjectBundle.message("module.paths.add.content.intersect.error",contentRoot.getPresentableUrl(),contentEntryFile.getPresentableUrl()));
+    }
+    if (VfsUtilCore.isAncestor(contentRoot,contentEntryFile,true)) {
+      throw new Exception(ProjectBundle.message("module.paths.add.content.dominate.error",contentRoot.getPresentableUrl(),contentEntryFile.getPresentableUrl()));
+    }
+  }
+  for (  final Module otherModule : ModuleManager.getInstance(module.getProject()).getModules()) {
+    if (module.equals(otherModule)) {
+      continue;
+    }
+    for (    VirtualFile moduleContentRoot : ModuleRootManager.getInstance(otherModule).getContentRoots()) {
+      if (contentRoot.equals(moduleContentRoot)) {
+        throw new Exception(ProjectBundle.message("module.paths.add.content.duplicate.error",contentRoot.getPresentableUrl(),otherModule.getName()));
+      }
+    }
+  }
+}

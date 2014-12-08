@@ -1,0 +1,40 @@
+{
+  if (!PubspecYamlUtil.PUBSPEC_YAML.equals(holder.getFile().getName()))   return super.buildVisitor(holder,isOnTheFly);
+  final Module module=ModuleUtilCore.findModuleForPsiElement(holder.getFile());
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (module == null || sdk == null || !DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+    return super.buildVisitor(holder,isOnTheFly);
+  }
+  return new PsiElementVisitor(){
+    @Override public void visitElement(    final PsiElement element){
+      ProgressIndicatorProvider.checkCanceled();
+      if (!(element instanceof YAMLKeyValue) || !PubspecYamlReferenceContributor.isPathPackageDefinition((YAMLKeyValue)element)) {
+        return;
+      }
+      final VirtualFile dir=checkReferences(holder,(YAMLKeyValue)element);
+      if (dir == null) {
+        return;
+      }
+      if (dir.findChild(PubspecYamlUtil.PUBSPEC_YAML) == null) {
+        final String message=DartBundle.message("pubspec.yaml.not.found.in",FileUtil.toSystemDependentName(dir.getPath()));
+        holder.registerProblem(((YAMLKeyValue)element).getValue(),message);
+        return;
+      }
+      final VirtualFile file=DartResolveUtil.getRealVirtualFile(element.getContainingFile());
+      if (file != null && dir.equals(file.getParent())) {
+        holder.registerProblem(((YAMLKeyValue)element).getValue(),DartBundle.message("path.package.reference.to.itself"));
+        return;
+      }
+      final String path=((YAMLKeyValue)element).getValueText() + "/" + PubspecYamlUtil.LIB_DIR_NAME;
+      final VirtualFile packageDir=file == null ? null : VfsUtilCore.findRelativeFile(path,file.getParent());
+      if (packageDir == null || !packageDir.isDirectory()) {
+        return;
+      }
+      if (!ProjectRootManager.getInstance(element.getProject()).getFileIndex().isInContent(packageDir)) {
+        final String message=DartBundle.message("folder.0.not.in.project.content",FileUtil.toSystemDependentName(packageDir.getPath()));
+        holder.registerProblem(((YAMLKeyValue)element).getValue(),message,new AddContentRootFix(module,packageDir));
+      }
+    }
+  }
+;
+}

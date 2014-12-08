@@ -1,19 +1,21 @@
 {
-  return new XmlElementVisitor(){
-    public void visitXmlTag(    XmlTag xmltag){
-      if (!OsmorcFacet.hasOsmorcFacet(xmltag)) {
-        return;
-      }
-      MavenDomDependency dependency=getDependency(xmltag);
-      if (dependency != null) {
-        String scope=dependency.getScope().getStringValue();
-        if ("test".equals(scope)) {
-          return;
-        }
-        MavenProjectsManager manager=MavenProjectsManager.getInstance(xmltag.getProject());
-        File artifactFile=MavenArtifactUtil.getArtifactFile(manager.getLocalRepository(),dependency.getGroupId().getStringValue(),dependency.getArtifactId().getStringValue(),dependency.getVersion().getStringValue(),"jar");
-        if (artifactFile.exists() && !CachingBundleInfoProvider.isBundle(artifactFile.getPath())) {
-          problemsHolder.registerProblem(xmltag,"Dependency is not OSGi-ready",new FindOsgiCapableMavenDependencyQuickFix());
+  boolean isMaven=MavenDomUtil.isMavenFile(problemsHolder.getFile());
+  return !isMaven ? PsiElementVisitor.EMPTY_VISITOR : new XmlElementVisitor(){
+    @Override public void visitXmlTag(    XmlTag tag){
+      if (OsmorcFacet.hasOsmorcFacet(tag)) {
+        MavenDomDependency dependency=getDependency(tag);
+        if (dependency != null) {
+          String scope=dependency.getScope().getStringValue();
+          if (!MavenConstants.SCOPE_TEST.equals(scope)) {
+            File repo=MavenProjectsManager.getInstance(tag.getProject()).getLocalRepository();
+            String groupId=dependency.getGroupId().getStringValue();
+            String artifactId=dependency.getArtifactId().getStringValue();
+            String version=dependency.getVersion().getStringValue();
+            File artifactFile=MavenArtifactUtil.getArtifactFile(repo,groupId,artifactId,version,MavenConstants.TYPE_JAR);
+            if (artifactFile.exists() && !CachingBundleInfoProvider.isBundle(artifactFile.getPath())) {
+              problemsHolder.registerProblem(tag,OsmorcBundle.message("NonOsgiMavenDependencyInspection.message"),new FindOsgiCapableMavenDependencyQuickFix());
+            }
+          }
         }
       }
     }

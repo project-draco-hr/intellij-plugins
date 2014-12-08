@@ -1,19 +1,29 @@
 {
+  myProject=project;
   DartCommandLineConfigurationEditorForm.initDartFileTextWithBrowse(project,myFileField);
   myWorkingDirectory.addBrowseFolderListener(ExecutionBundle.message("select.working.directory.message"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   myScopeCombo.setModel(new EnumComboBoxModel<Scope>(Scope.class));
   myScopeCombo.setRenderer(new ListCellRendererWrapper<Scope>(){
     @Override public void customize(    final JList list,    final Scope value,    final int index,    final boolean selected,    final boolean hasFocus){
-      setText(StringUtil.capitalize(value.toString().toLowerCase(Locale.US)));
+      setText(value.getPresentableName());
     }
   }
 );
   myScopeCombo.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
       onScopeChanged();
+      onTestNameChanged();
     }
   }
 );
+  final DocumentAdapter documentListener=new DocumentAdapter(){
+    @Override protected void textChanged(    final DocumentEvent e){
+      onTestNameChanged();
+    }
+  }
+;
+  myFileField.getTextField().getDocument().addDocumentListener(documentListener);
+  myTestNameField.getDocument().addDocumentListener(documentListener);
   myVMOptions.setDialogCaption(DartBundle.message("config.vmoptions.caption"));
   myArguments.setDialogCaption(DartBundle.message("config.progargs.caption"));
   myTestFileLabel.setPreferredSize(myEnvironmentVariables.getLabel().getPreferredSize());

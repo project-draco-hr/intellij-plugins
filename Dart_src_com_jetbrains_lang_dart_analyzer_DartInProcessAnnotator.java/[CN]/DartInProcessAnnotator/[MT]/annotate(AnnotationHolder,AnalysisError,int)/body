@@ -1,23 +1,22 @@
 {
-  int highlightingStart=message.getOffset();
-  int highlightingEnd=message.getOffset() + message.getLength();
+  int highlightingStart=error.getOffset();
+  int highlightingEnd=error.getOffset() + error.getLength();
   if (highlightingEnd > fileTextLength)   highlightingEnd=fileTextLength;
-  if (highlightingStart >= highlightingEnd)   highlightingStart=highlightingEnd - 1;
+  if (highlightingStart > 0 && highlightingStart >= highlightingEnd)   highlightingStart=highlightingEnd - 1;
   final TextRange textRange=new TextRange(highlightingStart,highlightingEnd);
-  final ErrorCode errorCode=message.getErrorCode();
+  final ErrorCode errorCode=error.getErrorCode();
 switch (errorCode.getErrorSeverity()) {
-case NONE:
-    return null;
 case INFO:
-  final Annotation annotation=holder.createWeakWarningAnnotation(textRange,message.getMessage());
-if (errorCode == HintCode.UNUSED_IMPORT || errorCode == HintCode.DUPLICATE_IMPORT) {
-  annotation.setHighlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL);
-}
+    final Annotation annotation=holder.createWeakWarningAnnotation(textRange,error.getMessage());
+  if (errorCode == HintCode.UNUSED_IMPORT || errorCode == HintCode.DUPLICATE_IMPORT) {
+    annotation.setHighlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL);
+  }
 return annotation;
 case WARNING:
-return holder.createWarningAnnotation(textRange,message.getMessage());
+return holder.createWarningAnnotation(textRange,error.getMessage());
 case ERROR:
-return holder.createErrorAnnotation(textRange,message.getMessage());
-}
+return holder.createErrorAnnotation(textRange,error.getMessage());
+default :
 return null;
+}
 }

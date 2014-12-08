@@ -1,0 +1,17 @@
+{
+  final T firstStatement=PsiTreeUtil.findChildOfType(dartFile,aClass);
+  if (firstStatement == null)   return;
+  PsiElement lastStatement=firstStatement;
+  PsiElement nextElement=firstStatement;
+  while (aClass.isInstance(nextElement) || nextElement instanceof PsiComment || nextElement instanceof PsiWhiteSpace) {
+    if (aClass.isInstance(nextElement)) {
+      lastStatement=nextElement;
+    }
+    nextElement=nextElement.getNextSibling();
+  }
+  if (lastStatement != firstStatement) {
+    final int startOffset=firstStatement.getTextOffset() + firstStatement.getFirstChild().getTextLength() + 1;
+    final int endOffset=lastStatement.getTextRange().getEndOffset();
+    descriptors.add(new FoldingDescriptor(firstStatement,TextRange.create(startOffset,endOffset)));
+  }
+}

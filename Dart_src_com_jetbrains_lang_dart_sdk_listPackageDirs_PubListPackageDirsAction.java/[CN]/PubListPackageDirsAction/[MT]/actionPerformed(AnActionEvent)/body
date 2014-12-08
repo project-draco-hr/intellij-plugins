@@ -3,21 +3,22 @@
   if (project == null)   return;
   final DartSdk sdk=DartSdk.getGlobalDartSdk();
   if (sdk == null)   return;
-  final DirectoryBasedDartSdk dirBasedSdk=new DirectoryBasedDartSdk(new File(sdk.getHomePath()));
+  FileDocumentManager.getInstance().saveAllDocuments();
+  final DirectoryBasedDartSdk dirBasedSdk=DartAnalyzerService.getInstance(project).getDirectoryBasedDartSdkSdk(sdk.getHomePath());
   final Set<Module> affectedModules=new THashSet<Module>();
-  final SortedMap<String,Set<String>> packageNameToDirMap=new TreeMap<String,Set<String>>();
+  final Collection<String> rootsToAddToLib=new TreeSet<String>();
+  final Map<String,List<File>> packageNameToDirMap=new TreeMap<String,List<File>>();
   final Runnable runnable=new Runnable(){
     public void run(){
+      final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.setIndeterminate(true);
+      }
       final Module[] modules=ModuleManager.getInstance(project).getModules();
-      for (int i=0; i < modules.length; i++) {
-        final Module module=modules[i];
-        final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      for (      final Module module : modules) {
         if (indicator != null) {
-          indicator.setText("pub list-package-dirs");
-          indicator.setText2("Module: " + module.getName());
-          indicator.setIndeterminate(false);
-          indicator.setFraction((i + 1.) / modules.length);
           indicator.checkCanceled();
+          indicator.setText("pub list-package-dirs");
         }
         if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
           for (          VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
@@ -31,14 +32,21 @@
           }
         }
       }
+      if (!packageNameToDirMap.isEmpty()) {
+        if (indicator != null) {
+          indicator.checkCanceled();
+          indicator.setText("Analyzing project dependencies");
+        }
+        collectRootsToAddToLib(project,dirBasedSdk,rootsToAddToLib,packageNameToDirMap);
+      }
     }
   }
 ;
   if (ProgressManager.getInstance().runProcessWithProgressSynchronously(runnable,"pub list-package-dirs",true,project)) {
-    final DartListPackageDirsDialog dialog=new DartListPackageDirsDialog(project,packageNameToDirMap);
+    final DartListPackageDirsDialog dialog=new DartListPackageDirsDialog(project,rootsToAddToLib,packageNameToDirMap);
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-      configurePubListPackageDirsLibrary(project,affectedModules,packageNameToDirMap);
+      configurePubListPackageDirsLibrary(project,affectedModules,rootsToAddToLib,packageNameToDirMap);
     }
     if (dialog.getExitCode() == DartListPackageDirsDialog.CONFIGURE_NONE_EXIT_CODE) {
       removePubListPackageDirsLibrary(project);

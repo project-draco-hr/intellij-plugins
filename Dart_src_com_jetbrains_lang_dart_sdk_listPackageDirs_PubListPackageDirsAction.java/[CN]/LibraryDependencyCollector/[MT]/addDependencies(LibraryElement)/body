@@ -1,0 +1,19 @@
+{
+  if (libraryElement == null) {
+    return;
+  }
+  if (myVisitedLibraries.add(libraryElement)) {
+    for (    CompilationUnitElement cu : libraryElement.getUnits()) {
+      final String path=cu.getSource().getFullName();
+      if (path != null) {
+        myDependencies.add(FileUtil.toSystemIndependentName(PathUtil.getParentPath(path)));
+      }
+    }
+    for (    ImportElement importElement : libraryElement.getImports()) {
+      addDependencies(importElement.getImportedLibrary());
+    }
+    for (    ExportElement exportElement : libraryElement.getExports()) {
+      addDependencies(exportElement.getExportedLibrary());
+    }
+  }
+}

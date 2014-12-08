@@ -1,0 +1,39 @@
+{
+  final DataObject dataObject=(DataObject)CucumberStepsIndex.getInstance(module.getProject()).getExtensionDataObject(this);
+  final List<PsiDirectory> notLoadedStepDefinitionsRoots=new ArrayList<PsiDirectory>();
+  try {
+    if (featureFile != null) {
+      findRelatedStepDefsRoots(module,featureFile,notLoadedStepDefinitionsRoots,dataObject.myProcessedStepDirectories);
+    }
+    loadStepDefinitionRootsFromLibraries(module,notLoadedStepDefinitionsRoots,dataObject.myProcessedStepDirectories);
+  }
+ catch (  ProcessCanceledException e) {
+    return Collections.emptyList();
+  }
+synchronized (dataObject.myStepDefinitions) {
+    final List<AbstractStepDefinition> stepDefinitions=new ArrayList<AbstractStepDefinition>();
+    for (    PsiDirectory root : notLoadedStepDefinitionsRoots) {
+      stepDefinitions.clear();
+      try {
+        dataObject.myProcessedStepDirectories.add(root.getVirtualFile().getPath());
+        final List<PsiFile> files=gatherStepDefinitionsFilesFromDirectory(root,false);
+        for (        final PsiFile file : files) {
+          removeAbstractStepDefinitionsRelatedTo(file);
+          stepDefinitions.addAll(getStepDefinitions(file));
+          createWatcher(file);
+        }
+        dataObject.myStepDefinitions.addAll(stepDefinitions);
+      }
+ catch (      ProcessCanceledException e) {
+        dataObject.myProcessedStepDirectories.remove(root.getVirtualFile().getPath());
+        if (!stepDefinitions.isEmpty()) {
+          dataObject.myStepDefinitions.removeAll(stepDefinitions);
+        }
+        throw e;
+      }
+    }
+  }
+synchronized (dataObject.myStepDefinitions) {
+    return new ArrayList<AbstractStepDefinition>(dataObject.myStepDefinitions);
+  }
+}

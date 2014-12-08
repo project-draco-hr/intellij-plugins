@@ -1,0 +1,17 @@
+{
+  String parentPath=PathUtil.getParentPath(filePath);
+  while (parentPath.length() > 0) {
+    final String packageName=packageRootToPackageNameMap.get(parentPath);
+    if (packageName != null) {
+      final String uri=DartUrlResolver.PACKAGE_PREFIX + packageName + filePath.substring(parentPath.length());
+      try {
+        return new URI(uri);
+      }
+ catch (      URISyntaxException e) {
+        LOG.warn(uri,e);
+      }
+    }
+    parentPath=PathUtil.getParentPath(parentPath);
+  }
+  return new File(filePath).toURI();
+}

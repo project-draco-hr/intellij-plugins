@@ -1,7 +1,9 @@
 {
   final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  VirtualFile parent=contextFile;
-  while ((parent=parent.getParent()) != null && fileIndex.isInContent(parent)) {
+  VirtualFile current=contextFile;
+  VirtualFile parent;
+  while ((parent=current.getParent()) != null && (LIB_DIR_NAME.equals(current.getName()) || fileIndex.isInContent(parent))) {
+    current=parent;
     final VirtualFile file=parent.findChild(PUBSPEC_YAML);
     if (file != null && !file.isDirectory())     return file;
   }

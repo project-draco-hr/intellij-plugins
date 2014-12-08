@@ -14,25 +14,19 @@
     }
   }
   if (dartClass != null) {
-    final boolean needFilterPrivateMembers=!DartResolveUtil.sameLibrary(reference,dartClass);
-    suggestedVariants.addAll(DartResolveUtil.getComponentNames(dartClass.getFields(),needFilterPrivateMembers));
-    suggestedVariants.addAll(DartResolveUtil.getComponentNames(dartClass.getMethods(),needFilterPrivateMembers));
-    suggestedVariants.addAll(DartResolveUtil.getComponentNames(ContainerUtil.filter(dartClass.getConstructors(),new Condition<DartComponent>(){
-      @Override public boolean value(      DartComponent component){
-        return component instanceof DartNamedConstructorDeclaration || component instanceof DartFactoryConstructorDeclaration;
-      }
+    if (dartClass.isEnum()) {
+      suggestedVariants.addAll(DartResolveUtil.getComponentNames(dartClass.getEnumConstantDeclarationList()));
     }
-),needFilterPrivateMembers));
-  }
  else {
-    if (leftReference != null) {
-      final PsiElement resolvedElement=leftReference.resolve();
-      if (resolvedElement != null) {
-        final PsiElement parent=resolvedElement.getParent();
-        if (parent instanceof DartEnumDefinition) {
-          suggestedVariants.addAll(DartResolveUtil.getComponentNames(((DartEnumDefinition)parent).getEnumConstantDeclarationList()));
+      final boolean needFilterPrivateMembers=!DartResolveUtil.sameLibrary(reference,dartClass);
+      suggestedVariants.addAll(DartResolveUtil.getComponentNames(dartClass.getFields(),needFilterPrivateMembers));
+      suggestedVariants.addAll(DartResolveUtil.getComponentNames(dartClass.getMethods(),needFilterPrivateMembers));
+      suggestedVariants.addAll(DartResolveUtil.getComponentNames(ContainerUtil.filter(dartClass.getConstructors(),new Condition<DartComponent>(){
+        @Override public boolean value(        DartComponent component){
+          return component instanceof DartNamedConstructorDeclaration || component instanceof DartFactoryConstructorDeclaration;
         }
       }
+),needFilterPrivateMembers));
     }
   }
   final boolean typeInNew=reference.getParent() instanceof DartType && reference.getParent().getParent() instanceof DartNewExpression;

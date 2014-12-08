@@ -2,12 +2,19 @@
   PsiBuilder.Marker partialMarker=builder.mark();
   parseLeafToken(builder,OPEN_PARTIAL);
   parsePartialName(builder);
-  PsiBuilder.Marker optionalPathMarker=builder.mark();
-  if (parsePath(builder)) {
-    optionalPathMarker.drop();
+  PsiBuilder.Marker optionalParamMarker=builder.mark();
+  if (parseParam(builder)) {
+    optionalParamMarker.drop();
   }
  else {
-    optionalPathMarker.rollbackTo();
+    optionalParamMarker.rollbackTo();
+  }
+  PsiBuilder.Marker optionalHashMarker=builder.mark();
+  if (parseHash(builder)) {
+    optionalHashMarker.drop();
+  }
+ else {
+    optionalHashMarker.rollbackTo();
   }
   parseLeafTokenGreedy(builder,CLOSE);
   partialMarker.done(PARTIAL_STACHE);

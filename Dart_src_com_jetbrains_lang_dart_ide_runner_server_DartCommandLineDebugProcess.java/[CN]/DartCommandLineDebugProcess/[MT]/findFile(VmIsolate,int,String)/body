@@ -1,0 +1,17 @@
+{
+  final String cacheKey=libraryId + ":" + url;
+  final LightVirtualFile cachedFile=DART_SDK_PATCH_FILES.get(cacheKey);
+  if (cachedFile != null) {
+    return cachedFile;
+  }
+  VirtualFile file=myDartUrlResolver.findFileByDartUrl(url);
+  if (file == null && libraryId != -1 && url.startsWith(DartUrlResolver.DART_PREFIX)) {
+    final String content=myVmConnection.getScriptSource(isolate,libraryId,url);
+    if (content != null) {
+      file=new LightVirtualFile(PathUtil.getFileName(url),content);
+      ((LightVirtualFile)file).setWritable(false);
+      DART_SDK_PATCH_FILES.put(cacheKey,(LightVirtualFile)file);
+    }
+  }
+  return file;
+}

@@ -4,15 +4,10 @@
       List<VirtualFile> sources=getLibrarySourceFiles();
       final VirtualFile fileRequestor=PsiUtilCore.getVirtualFile(file);
       DialogWrapper dialog=new ChooseScopeAndCreateLibraryDialog(project,JstdLibraryUtil.LIBRARY_NAME,sources,new ScriptingFrameworkDescriptor(JstdLibraryUtil.LIBRARY_NAME,"1.3.5"),fileRequestor,false);
-      AsyncResult<Boolean> result=dialog.showAndGetOk();
-      result.doWhenDone(new Consumer<Boolean>(){
-        @Override public void consume(        Boolean done){
-          if (done) {
-            FileContentUtil.reparseFiles(project,Collections.singletonList(fileRequestor),true);
-          }
-        }
+      boolean done=dialog.showAndGet();
+      if (done) {
+        FileContentUtil.reparseFiles(project,Collections.singletonList(fileRequestor),true);
       }
-);
     }
   }
 );
