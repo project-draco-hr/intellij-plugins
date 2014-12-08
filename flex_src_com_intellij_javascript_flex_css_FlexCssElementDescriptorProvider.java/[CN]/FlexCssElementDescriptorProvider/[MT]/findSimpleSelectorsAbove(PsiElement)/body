@@ -1,19 +1,16 @@
 {
-  List<CssSimpleSelector> result=new ArrayList<CssSimpleSelector>();
+  List<CssSimpleSelector> result=ContainerUtil.newArrayList();
   CssRuleset ruleset=PsiTreeUtil.getParentOfType(context,CssRuleset.class);
   if (ruleset != null) {
-    CssSelectorList selectorList=ruleset.getSelectorList();
-    if (selectorList != null) {
-      for (      CssSelector selector : selectorList.getSelectors()) {
-        CssSimpleSelector simpleSelector=null;
-        for (        PsiElement child : selector.getChildren()) {
-          if (child instanceof CssSimpleSelector) {
-            simpleSelector=(CssSimpleSelector)child;
-          }
+    for (    CssSelector selector : ruleset.getSelectors()) {
+      CssSimpleSelector simpleSelector=null;
+      for (      PsiElement child : selector.getChildren()) {
+        if (child instanceof CssSimpleSelector) {
+          simpleSelector=(CssSimpleSelector)child;
         }
-        if (simpleSelector != null) {
-          result.add(simpleSelector);
-        }
+      }
+      if (simpleSelector != null) {
+        result.add(simpleSelector);
       }
     }
   }

@@ -6,7 +6,7 @@
     private static final String CLASS="class";
     private String idAttr=null;
     private String classAttr=null;
-    public void attribute(    final CharSequence name,    final CharSequence value,    final int start,    final int end){
+    @Override public void attribute(    final CharSequence name,    final CharSequence value,    final int start,    final int end){
       if (ID.equals(name.toString())) {
         idAttr=value.toString().trim();
       }
@@ -14,7 +14,7 @@
         classAttr=value.toString().trim();
       }
     }
-    public void endTag(    final CharSequence localName,    final String namespace,    final int start,    final int end){
+    @Override public void endTag(    final CharSequence localName,    final String namespace,    final int start,    final int end){
       if (COMPONENT.equals(localName)) {
         if (StringUtil.isNotEmpty(classAttr)) {
           final String classFqn=classAttr.replace(":",".");
@@ -29,9 +29,9 @@
   }
 ;
   try {
-    new XmlBuilderDriver(VfsUtil.loadText(manifestFile)).build(builder);
+    new XmlBuilderDriver(VfsUtilCore.loadText(manifestFile)).build(builder);
   }
- catch (  IOException e) {
+ catch (  IOException ignored) {
   }
   return result.toArray(new ComponentFromManifest[result.size()]);
 }

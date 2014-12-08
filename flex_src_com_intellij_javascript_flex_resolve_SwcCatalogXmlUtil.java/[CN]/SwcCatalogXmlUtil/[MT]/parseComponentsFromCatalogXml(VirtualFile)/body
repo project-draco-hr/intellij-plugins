@@ -10,7 +10,7 @@
     private String myClassNameAttr=null;
     private String myUriAttr=null;
     private String myIconAttr=null;
-    public void attribute(    CharSequence name,    CharSequence value,    int start,    int end){
+    @Override public void attribute(    CharSequence name,    CharSequence value,    int start,    int end){
       if (COMPONENT_LOCATION.equals(getLocation())) {
         if (NAME.equals(name)) {
           myNameAttr=value.toString().trim();
@@ -27,7 +27,7 @@
       }
     }
     private final StringInterner myStringInterner=new StringInterner();
-    public void endTag(    CharSequence localName,    String namespace,    int start,    int end){
+    @Override public void endTag(    CharSequence localName,    String namespace,    int start,    int end){
       if (COMPONENT_LOCATION.equals(getLocation())) {
         if (StringUtil.isNotEmpty(myNameAttr) && StringUtil.isNotEmpty(myClassNameAttr) && StringUtil.isNotEmpty(myUriAttr)) {
           result.add(new ComponentFromCatalogXml(new String(myNameAttr),new String(myClassNameAttr.replace(":",".")),myStringInterner.intern(new String(myUriAttr)),myIconAttr != null ? new String(myIconAttr) : null));
@@ -42,9 +42,9 @@
   }
 ;
   try {
-    new XmlBuilderDriver(VfsUtil.loadText(catalogFile)).build(xmlBuilder);
+    new XmlBuilderDriver(VfsUtilCore.loadText(catalogFile)).build(xmlBuilder);
   }
- catch (  IOException e) {
+ catch (  IOException ignored) {
   }
   return result.toArray(new ComponentFromCatalogXml[result.size()]);
 }

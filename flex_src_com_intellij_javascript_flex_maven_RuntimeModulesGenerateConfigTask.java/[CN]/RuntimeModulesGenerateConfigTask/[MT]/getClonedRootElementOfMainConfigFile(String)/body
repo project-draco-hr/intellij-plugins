@@ -2,15 +2,14 @@
   final VirtualFile configFile=LocalFileSystem.getInstance().findFileByPath(filePath);
   if (configFile != null) {
     try {
-      final Document document=(Document)JDOMUtil.loadDocument(configFile.getInputStream()).clone();
-      final Element rootElement=document.getRootElement();
+      final Element rootElement=JDOMUtil.load(configFile.getInputStream());
       if (rootElement.getName().equals(FLEX_CONFIG)) {
-        return rootElement;
+        return rootElement.clone();
       }
     }
- catch (    JDOMException e) {
+ catch (    JDOMException ignored) {
     }
-catch (    IOException e) {
+catch (    IOException ignored) {
     }
   }
   return null;
