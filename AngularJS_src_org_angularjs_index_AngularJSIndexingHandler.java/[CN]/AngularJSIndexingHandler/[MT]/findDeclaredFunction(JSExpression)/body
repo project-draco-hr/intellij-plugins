@@ -1,3 +1,24 @@
 {
-  return null;
+  final Ref<JSFunction> result=Ref.create();
+  if (expression instanceof JSReferenceExpression) {
+    final String name=((JSReferenceExpression)expression).getReferencedName();
+    expression.getContainingFile().accept(new JSRecursiveWalkingElementVisitor(){
+      @Override public void visitJSFunctionExpression(      JSFunctionExpression node){
+        checkFunction(node);
+        super.visitJSFunctionExpression(node);
+      }
+      public void checkFunction(      JSFunction node){
+        if (StringUtil.equals(name,node.getName())) {
+          result.set(node);
+          stopWalking();
+        }
+      }
+      @Override public void visitJSFunctionDeclaration(      JSFunction node){
+        checkFunction(node);
+        super.visitJSFunctionDeclaration(node);
+      }
+    }
+);
+  }
+  return result.get();
 }
