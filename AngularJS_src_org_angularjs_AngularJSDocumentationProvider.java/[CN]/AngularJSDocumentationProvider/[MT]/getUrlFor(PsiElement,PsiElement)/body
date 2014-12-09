@@ -1,9 +1,19 @@
 {
-  if (element instanceof JSNamedElementProxy) {
-    final String name=((JSNamedElementProxy)element).getName();
-    if (AngularIndexUtil.resolve(element.getProject(),AngularDirectivesDocIndex.INDEX_ID,name) != null) {
-      final String directiveName=DirectiveUtil.attributeToDirective(name);
-      return Collections.singletonList("http://docs.angularjs.org/api/ng/directive/" + directiveName);
+  if (element instanceof JSDocComment) {
+    JSDocTag ngdocTag=null;
+    JSDocTag nameTag=null;
+    for (    JSDocTag tag : ((JSDocComment)element).getTags()) {
+      if ("ngdoc".equals(tag.getName()))       ngdocTag=tag;
+ else       if ("name".equals(tag.getName()))       nameTag=tag;
+    }
+    if (ngdocTag != null && nameTag != null) {
+      final JSDocTagValue nameValue=nameTag.getValue();
+      String name=nameValue != null ? nameValue.getText() : null;
+      if (name != null)       name=name.substring(name.indexOf(':') + 1);
+      if (name != null && AngularIndexUtil.resolve(element.getProject(),AngularDirectivesDocIndex.INDEX_ID,DirectiveUtil.getAttributeName(name)) != null) {
+        final String directiveName=DirectiveUtil.attributeToDirective(name);
+        return Collections.singletonList("http://docs.angularjs.org/api/ng/directive/" + directiveName);
+      }
     }
   }
   return null;
