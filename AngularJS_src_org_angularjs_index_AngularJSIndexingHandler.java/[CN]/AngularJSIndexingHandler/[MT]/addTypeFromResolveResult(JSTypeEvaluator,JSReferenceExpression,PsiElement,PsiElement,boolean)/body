@@ -1,24 +1,25 @@
 {
+  if (!AngularIndexUtil.hasAngularJS(expression.getProject()))   return false;
   if (resolveResult instanceof JSDefinitionExpression) {
     final PsiElement resolveParent=resolveResult.getParent();
     if (resolveParent instanceof AngularJSAsExpression) {
       final String name=resolveParent.getFirstChild().getText();
       final JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
       final JSType type=JSNamedType.createType(name,source,JSContext.INSTANCE);
-      addType(type,resolveResult);
+      evaluator.addType(type,resolveResult);
       return true;
     }
  else     if (resolveParent instanceof AngularJSRepeatExpression) {
-      if (calculateRepeatParameterType((AngularJSRepeatExpression)resolveParent)) {
+      if (calculateRepeatParameterType(evaluator,(AngularJSRepeatExpression)resolveParent)) {
         return true;
       }
     }
   }
-  if (resolveResult instanceof JSParameter && AngularJSIndexingHandler.isInjectable(resolveResult) && AngularIndexUtil.hasAngularJS(resolveResult.getProject())) {
+  if (resolveResult instanceof JSParameter && isInjectable(resolveResult)) {
     final String name=((JSParameter)resolveResult).getName();
     final JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
     final JSType type=JSNamedType.createType(name,source,JSContext.INSTANCE);
-    addType(type,resolveResult);
+    evaluator.addType(type,resolveResult);
   }
-  return super.addTypeFromElementResolveResult(expression,parent,resolveResult,hasSomeType);
+  return false;
 }
