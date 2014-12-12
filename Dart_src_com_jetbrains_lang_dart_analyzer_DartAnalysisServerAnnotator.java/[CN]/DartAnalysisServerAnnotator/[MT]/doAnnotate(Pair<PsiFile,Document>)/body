@@ -1,0 +1,14 @@
+{
+  final PsiFile psiFile=info.first;
+  final Document document=info.second;
+  final AnalysisError[] errors=DartAnalysisServerService.getInstance().analysis_getErrors(psiFile);
+  if (errors == null)   return null;
+  final ServerResult result=new ServerResult();
+  for (  AnalysisError error : errors) {
+    if (shouldIgnoreMessageFromDartAnalyzer(error))     continue;
+    final TextRange textRange=getRealTextRange(document,error.getLocation());
+    final List<AnalysisErrorFixes> fixesList=DartAnalysisServerService.getInstance().analysis_getFixes(psiFile,textRange.getStartOffset());
+    result.add(Pair.create(error,fixesList));
+  }
+  return result;
+}
