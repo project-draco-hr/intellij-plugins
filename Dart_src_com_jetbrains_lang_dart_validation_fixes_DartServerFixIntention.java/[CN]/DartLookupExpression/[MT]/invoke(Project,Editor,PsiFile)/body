@@ -1,0 +1,26 @@
+{
+  final Document document=editor.getDocument();
+  for (  SourceFileEdit fileEdit : myChange.getEdits()) {
+    for (    SourceEdit edit : fileEdit.getEdits()) {
+      if (edit.getLength() > 0) {
+        document.replaceString(edit.getOffset(),edit.getOffset() + edit.getLength(),"");
+      }
+      final TemplateManager templateManager=TemplateManager.getInstance(project);
+      Template template=templateManager.createTemplate("","");
+      template.setToReformat(true);
+      addContents(template,edit);
+      try {
+        final VirtualFile virtualFile=VfsUtil.findFileByURL(new URL("file://" + fileEdit.getFile()));
+        if (virtualFile != null) {
+          final Editor targetEditor=BaseCreateFix.navigate(project,edit.getOffset(),virtualFile);
+          if (targetEditor != null) {
+            templateManager.startTemplate(targetEditor,template);
+          }
+        }
+      }
+ catch (      MalformedURLException e) {
+        LOG.error(e);
+      }
+    }
+  }
+}
