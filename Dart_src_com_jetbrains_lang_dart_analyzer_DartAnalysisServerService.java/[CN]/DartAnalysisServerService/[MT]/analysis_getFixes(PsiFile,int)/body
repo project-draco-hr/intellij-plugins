@@ -1,0 +1,37 @@
+{
+  final VirtualFile vFile=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (vFile == null)   return null;
+  final Ref<List<AnalysisErrorFixes>> resultError=new Ref<List<AnalysisErrorFixes>>();
+  final Semaphore semaphore=new Semaphore();
+  semaphore.down();
+  try {
+    myServer.edit_getFixes(FileUtil.toSystemDependentName(vFile.getPath()),offset,new GetFixesConsumer(){
+      @Override public void computedFixes(      final List<AnalysisErrorFixes> fixes){
+        if (semaphore.tryUp()) {
+          resultError.set(fixes);
+        }
+ else {
+          ApplicationManager.getApplication().runReadAction(new Runnable(){
+            @Override public void run(){
+              final Project project=psiFile.isValid() ? psiFile.getProject() : null;
+              if (project != null && !project.isDisposed()) {
+                DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+              }
+            }
+          }
+);
+        }
+      }
+      @Override public void onError(      final RequestError requestError){
+        semaphore.up();
+        LOG.error(requestError.getMessage(),requestError.getStackTrace());
+      }
+    }
+);
+    semaphore.waitFor(5000);
+  }
+  finally {
+    semaphore.up();
+  }
+  return resultError.get();
+}
