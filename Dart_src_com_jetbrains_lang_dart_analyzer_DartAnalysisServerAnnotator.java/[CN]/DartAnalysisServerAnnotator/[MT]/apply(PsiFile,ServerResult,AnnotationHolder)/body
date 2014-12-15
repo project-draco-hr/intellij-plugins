@@ -1,0 +1,18 @@
+{
+  if (serverResult == null || serverResult.getPairs().isEmpty())   return;
+  final Document document=PsiDocumentManager.getInstance(psiFile.getProject()).getCachedDocument(psiFile);
+  if (document == null)   return;
+  for (  Pair<AnalysisError,List<AnalysisErrorFixes>> result : serverResult.getPairs()) {
+    final AnalysisError error=result.first;
+    if (shouldIgnoreMessageFromDartAnalyzer(error))     continue;
+    final List<AnalysisErrorFixes> fixes=result.second;
+    final Annotation annotation=annotate(document,holder,error);
+    if (annotation != null && fixes != null) {
+      for (      AnalysisErrorFixes fixList : fixes) {
+        for (        SourceChange change : fixList.getFixes()) {
+          annotation.registerFix(new DartServerFixIntention(change));
+        }
+      }
+    }
+  }
+}
