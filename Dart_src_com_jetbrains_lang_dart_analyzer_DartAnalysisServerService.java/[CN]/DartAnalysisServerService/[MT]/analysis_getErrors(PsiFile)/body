@@ -5,12 +5,14 @@
   final Semaphore semaphore=new Semaphore();
   semaphore.down();
   try {
-    myServer.analysis_getErrors(FileUtil.toSystemDependentName(vFile.getPath()),new GetErrorsConsumer(){
+    final String path=FileUtil.toSystemDependentName(vFile.getPath());
+    myServer.analysis_getErrors(path,new GetErrorsConsumer(){
       @Override public void computedErrors(      final AnalysisError[] errors){
         if (semaphore.tryUp()) {
           resultError.set(errors);
         }
  else {
+          LOG.info("analysis_getErrors() took too long for file " + path + ", restarting daemon");
           ApplicationManager.getApplication().runReadAction(new Runnable(){
             @Override public void run(){
               final Project project=psiFile.isValid() ? psiFile.getProject() : null;
@@ -22,9 +24,9 @@
 );
         }
       }
-      @Override public void onError(      final RequestError requestError){
+      @Override public void onError(      final RequestError error){
         semaphore.up();
-        LOG.error(requestError.getMessage(),requestError.getStackTrace());
+        LOG.error("Error from analysis_getErrors() for file " + path + ", code="+ error.getCode()+ ": "+ error.getMessage());
       }
     }
 );
