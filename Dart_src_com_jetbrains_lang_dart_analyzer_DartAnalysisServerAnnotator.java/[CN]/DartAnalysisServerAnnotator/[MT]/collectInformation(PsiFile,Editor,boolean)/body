@@ -1,13 +1,13 @@
 {
+  if (hasErrors)   return null;
   if (psiFile instanceof DartExpressionCodeFragment)   return null;
   final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
   if (annotatedFile == null)   return null;
   final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
   if (module == null)   return null;
   final DartSdk sdk=DartSdk.getGlobalDartSdk();
-  if (sdk == null)   return null;
-  if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
+  if (sdk == null || StringUtil.compareVersionNumbers(sdk.getVersion(),"1.7") < 0)   return null;
+  if (psiFile instanceof XmlFile && !DartInProcessAnnotator.containsDartEmbeddedContent((XmlFile)psiFile))   return null;
   if (FileUtil.isAncestor(sdk.getHomePath(),annotatedFile.getPath(),true))   return null;
-  if (PsiDocumentManager.getInstance(psiFile.getProject()).getCachedDocument(psiFile) == null)   return null;
-  return Pair.create(psiFile,editor.getDocument());
+  return new AnnotatorInfo(psiFile.getProject(),annotatedFile.getPath(),sdk.getHomePath());
 }

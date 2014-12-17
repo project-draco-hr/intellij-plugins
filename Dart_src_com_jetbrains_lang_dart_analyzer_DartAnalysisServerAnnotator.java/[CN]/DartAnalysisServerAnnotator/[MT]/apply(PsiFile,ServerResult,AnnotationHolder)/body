@@ -1,11 +1,10 @@
 {
-  if (serverResult == null || serverResult.getPairs().isEmpty())   return;
+  if (serverResult == null || serverResult.getErrorsAndFixes().isEmpty())   return;
   final Document document=PsiDocumentManager.getInstance(psiFile.getProject()).getCachedDocument(psiFile);
   if (document == null)   return;
-  for (  Pair<AnalysisError,List<AnalysisErrorFixes>> result : serverResult.getPairs()) {
-    final AnalysisError error=result.first;
-    if (shouldIgnoreMessageFromDartAnalyzer(error))     continue;
-    final List<AnalysisErrorFixes> fixes=result.second;
+  for (  Map.Entry<AnalysisError,List<AnalysisErrorFixes>> entry : serverResult.getErrorsAndFixes().entrySet()) {
+    final AnalysisError error=entry.getKey();
+    final List<AnalysisErrorFixes> fixes=entry.getValue();
     final Annotation annotation=annotate(document,holder,error);
     if (annotation != null && fixes != null) {
       for (      AnalysisErrorFixes fixList : fixes) {

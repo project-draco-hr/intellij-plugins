@@ -9,17 +9,12 @@
       Template template=templateManager.createTemplate("","");
       template.setToReformat(true);
       addContents(template,edit);
-      try {
-        final VirtualFile virtualFile=VfsUtil.findFileByURL(new URL("file://" + fileEdit.getFile()));
-        if (virtualFile != null) {
-          final Editor targetEditor=BaseCreateFix.navigate(project,edit.getOffset(),virtualFile);
-          if (targetEditor != null) {
-            templateManager.startTemplate(targetEditor,template);
-          }
+      final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
+      if (virtualFile != null) {
+        final Editor targetEditor=BaseCreateFix.navigate(project,edit.getOffset(),virtualFile);
+        if (targetEditor != null) {
+          templateManager.startTemplate(targetEditor,template);
         }
-      }
- catch (      MalformedURLException e) {
-        LOG.error(e);
       }
     }
   }
