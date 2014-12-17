@@ -1,0 +1,15 @@
+{
+  final ResolveProcessor resolveProcessor=(ResolveProcessor)processor;
+  if (resolveProcessor.isLocalResolve() || resolveProcessor.needPackages())   return true;
+  final String s=resolveProcessor.getName();
+  if (s != null) {
+    if (resolveProcessor.needsAllVariants()) {
+      return resolveTypeNameUsingImportsInner(resolveProcessor,parent);
+    }
+    final JSImportedElementResolveResult expression=resolveTypeNameUsingImports(s,parent);
+    return !dispatchResult(expression,processor);
+  }
+ else {
+    return importClassViaHelper(processor,parent);
+  }
+}
