@@ -1,12 +1,11 @@
 {
-  if (mySdkHome == null || !sdkHome.equals(mySdkHome)) {
-    stopServer();
-    startServer(sdkHome);
+  if (!serverReadyForRequest(info)) {
+    return null;
   }
   final Ref<List<AnalysisErrorFixes>> resultFixes=new Ref<List<AnalysisErrorFixes>>();
   final Semaphore semaphore=new Semaphore();
   semaphore.down();
-  final String path=FileUtil.toSystemDependentName(filePath);
+  final String path=FileUtil.toSystemDependentName(info.myFilePath);
   myServer.edit_getFixes(path,offset,new GetFixesConsumer(){
     @Override public void computedFixes(    final List<AnalysisErrorFixes> fixes){
       semaphore.up();
