@@ -6,7 +6,12 @@
     ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
       @Override public void run(){
         final String currentText=myTarget.getText();
-        final List<String> targets=ContainerUtil.newArrayList(myTargetsProvider.getTargets(platform,command));
+        PhoneGapTargets targetsProvider=myTargetsProvider;
+        if (targetsProvider == null || !targetsProvider.platform().equals(platform)) {
+          targetsProvider=PhoneGapTargets.createTargetsList(myProject,platform);
+          myTargetsProvider=targetsProvider;
+        }
+        final List<String> targets=ContainerUtil.newArrayList(PhoneGapTargets.listTargets(targetsProvider,command));
         if (!StringUtil.isEmpty(currentText) && !targets.contains(currentText)) {
           targets.add(currentText);
         }
