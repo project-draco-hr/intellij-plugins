@@ -1,16 +1,17 @@
 {
-  final String severity=error.getSeverity();
-  if (severity != null) {
-    final TextRange textRange=getRealTextRange(document,error.getLocation());
-    if (severity.equals(AnalysisErrorSeverity.INFO)) {
-      return holder.createWeakWarningAnnotation(textRange,error.getMessage());
+  final TextRange textRange=getRealTextRange(document,error.getLocation());
+  if (AnalysisErrorSeverity.INFO.equals(error.getSeverity())) {
+    final Annotation annotation=holder.createWeakWarningAnnotation(textRange,error.getMessage());
+    if ("Unused import".equals(error.getMessage()) || "Duplicate import".equals(error.getMessage())) {
+      annotation.setHighlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL);
     }
- else     if (severity.equals(AnalysisErrorSeverity.WARNING)) {
-      return holder.createWarningAnnotation(textRange,error.getMessage());
-    }
- else     if (severity.equals(AnalysisErrorSeverity.ERROR)) {
-      return holder.createErrorAnnotation(textRange,error.getMessage());
-    }
+    return annotation;
+  }
+ else   if (AnalysisErrorSeverity.WARNING.equals(error.getSeverity())) {
+    return holder.createWarningAnnotation(textRange,error.getMessage());
+  }
+ else   if (AnalysisErrorSeverity.ERROR.equals(error.getSeverity())) {
+    return holder.createErrorAnnotation(textRange,error.getMessage());
   }
   return null;
 }
