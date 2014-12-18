@@ -1,0 +1,31 @@
+{
+  if (element == null)   return null;
+  final DartComponent parent=PsiTreeUtil.getParentOfType(element,DartSetterDeclaration.class,DartFunctionDeclarationWithBodyOrNative.class,DartFactoryConstructorDeclaration.class,DartNamedConstructorDeclaration.class,DartMethodDeclaration.class,DartFunctionDeclarationWithBody.class);
+  if (parent == null)   return null;
+  final DartFormalParameterList parameterList=PsiTreeUtil.getChildOfType(parent,DartFormalParameterList.class);
+  if (parameterList == null)   return null;
+  List<String> results=Lists.newArrayList();
+  final List<DartNormalFormalParameter> normalFormalParameters=parameterList.getNormalFormalParameterList();
+  for (  DartNormalFormalParameter parameter : normalFormalParameters) {
+    final DartFunctionSignature signature=parameter.getFunctionSignature();
+    if (signature != null) {
+      final String name=signature.getName();
+      if (name != null) {
+        results.add(name);
+      }
+    }
+  }
+  final DartNamedFormalParameters namedFormalParameters=parameterList.getNamedFormalParameters();
+  if (namedFormalParameters != null) {
+    for (    DartDefaultFormalNamedParameter parameter : namedFormalParameters.getDefaultFormalNamedParameterList()) {
+      final DartComponentName componentName=parameter.getNormalFormalParameter().findComponentName();
+      if (componentName != null) {
+        final String name=componentName.getName();
+        if (name != null) {
+          results.add(name);
+        }
+      }
+    }
+  }
+  return results;
+}

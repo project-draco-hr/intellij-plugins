@@ -1,0 +1,35 @@
+{
+  mySdkHome=sdkHome;
+  final String runtimePath=mySdkHome + "/bin/dart";
+  final String analysisServerPath=mySdkHome + "/bin/snapshots/analysis_server.dart.snapshot";
+  final DebugPrintStream debugStream=new DebugPrintStream(){
+    @Override public void println(    String str){
+    }
+  }
+;
+  final StdioServerSocket serverSocket;
+  if (!ApplicationManager.getApplication().isInternal()) {
+    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,0,false);
+  }
+ else {
+    int availablePort=10000;
+    try {
+      availablePort=NetUtils.findAvailableSocketPort();
+    }
+ catch (    IOException e) {
+      LOG.error(e.getMessage(),e);
+    }
+    LOG.debug("Go to http://localhost:" + availablePort + "/status to see status of analysis server");
+    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{"--port=" + availablePort},false,false,0,false);
+  }
+  myServer=new RemoteAnalysisServerImpl(serverSocket);
+  try {
+    myServer.start();
+  }
+ catch (  Exception e) {
+    LOG.debug(e.getMessage(),e);
+  }
+  setAnalysisRoots(ProjectManager.getInstance().getOpenProjects());
+  myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
+  myServer.addAnalysisServerListener(myListener);
+}
