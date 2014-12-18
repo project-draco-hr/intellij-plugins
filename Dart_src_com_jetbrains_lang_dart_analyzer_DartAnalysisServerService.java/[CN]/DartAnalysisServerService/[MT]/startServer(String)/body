@@ -1,12 +1,7 @@
 {
-  final DartSdk sdk=DartSdk.getGlobalDartSdk();
-  if (sdk == null) {
-    LOG.error("No SDK");
-    return;
-  }
-  final String sdkPath=ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : sdk.getHomePath();
-  final String runtimePath=sdkPath + "/bin/dart";
-  final String analysisServerPath=sdkPath + "/bin/snapshots/analysis_server.dart.snapshot";
+  mySdkHome=sdkHome;
+  final String runtimePath=mySdkHome + "/bin/dart";
+  final String analysisServerPath=mySdkHome + "/bin/snapshots/analysis_server.dart.snapshot";
   final DebugPrintStream debugStream=new DebugPrintStream(){
     @Override public void println(    String str){
     }
@@ -35,6 +30,6 @@
     LOG.debug(e.getMessage(),e);
   }
   setAnalysisRoots(ProjectManager.getInstance().getOpenProjects());
-  setOptions();
+  myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
   myServer.addAnalysisServerListener(myListener);
 }
