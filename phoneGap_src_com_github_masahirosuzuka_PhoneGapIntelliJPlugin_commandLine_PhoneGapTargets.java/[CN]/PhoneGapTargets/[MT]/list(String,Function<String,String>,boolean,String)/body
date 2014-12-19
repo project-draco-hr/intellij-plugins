@@ -1,0 +1,27 @@
+{
+  List<String> result=ContainerUtil.newArrayList();
+  File deployExecutable=PathEnvironmentVariableUtil.findInPath(executableName);
+  if (deployExecutable == null)   return result;
+  try {
+    GeneralCommandLine line=new GeneralCommandLine(deployExecutable.getAbsolutePath());
+    line.addParameters(params);
+    ProcessOutput output=ExecUtil.execAndGetOutput(line);
+    List<String> lines=null;
+    if (errorOut) {
+      if (!StringUtil.isEmpty(output.getStderr())) {
+        lines=output.getStderrLines();
+      }
+    }
+    if (lines == null) {
+      lines=output.getStdoutLines();
+    }
+    if (output.getExitCode() != 0)     return result;
+    for (    String value : lines) {
+      ContainerUtil.addIfNotNull(result,parser.fun(value));
+    }
+  }
+ catch (  ExecutionException e) {
+    LOGGER.debug(e.getMessage(),e);
+  }
+  return result;
+}
