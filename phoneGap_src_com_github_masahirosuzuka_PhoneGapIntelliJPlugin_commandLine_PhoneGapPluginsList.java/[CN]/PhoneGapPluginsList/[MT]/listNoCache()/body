@@ -1,25 +1,19 @@
 {
-  final Map<String,PhoneGapRepoPackage> result=ContainerUtil.newHashMap();
   try {
-    HttpRequests.request(PLUGINS_URL).connect(new HttpRequests.RequestProcessor<Object>(){
-      @Override public Object process(      @NotNull HttpRequests.Request request) throws IOException {
-        ByteArrayOutputStream out=new ByteArrayOutputStream();
-        NetUtils.copyStreamContent(null,request.getInputStream(),out,request.getConnection().getContentLength());
-        JsonParser jsonParser=new JsonParser();
-        final JsonElement jsonElement=jsonParser.parse(out.toString());
-        JsonObject object=jsonElement.getAsJsonObject();
-        for (        Map.Entry<String,JsonElement> entry : object.entrySet()) {
+    return HttpRequests.request(PLUGINS_URL).connect(new HttpRequests.RequestProcessor<Map<String,PhoneGapRepoPackage>>(){
+      @Override public Map<String,PhoneGapRepoPackage> process(      @NotNull HttpRequests.Request request) throws IOException {
+        Map<String,PhoneGapRepoPackage> result=new THashMap<String,PhoneGapRepoPackage>();
+        for (        Map.Entry<String,JsonElement> entry : new JsonParser().parse(new InputStreamReader(request.getInputStream(),CharsetToolkit.UTF8_CHARSET)).getAsJsonObject().entrySet()) {
           if (!isExcludedProperty(entry.getKey())) {
             result.put(entry.getKey(),new PhoneGapRepoPackage(entry.getKey(),entry.getValue().getAsJsonObject()));
           }
         }
-        return null;
+        return result;
       }
     }
 );
   }
- catch (  Exception e) {
+ catch (  IOException e) {
     throw new RuntimeException(e.getMessage(),e);
   }
-  return result;
 }
