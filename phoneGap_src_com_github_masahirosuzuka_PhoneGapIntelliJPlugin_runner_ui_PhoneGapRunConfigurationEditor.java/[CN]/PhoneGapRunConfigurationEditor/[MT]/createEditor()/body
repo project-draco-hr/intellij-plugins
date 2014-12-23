@@ -9,20 +9,25 @@
   myCommand.setMinimumAndPreferredWidth(200);
   myPlatformField.setMinimumAndPreferredWidth(200);
   myTarget.getTargetsField().setMinimumAndPreferredWidth(myPlatformField.getPreferredSize().width);
-  myTarget.setDataProvider(new PanelWithAsyncLoad.DataProvider<String>(){
-    @Override public Set<String> getCachedValues(){
+  myTarget.setDataProvider(new ReloadableComboBoxPanel.DataProvider<String>(){
+    @NotNull @Override public Set<String> getCachedValues(){
       return ContainerUtil.newHashOrEmptySet(null);
     }
     @Override public void updateValuesAsynchronously(){
       if (!myTarget.isEnabled()) {
-        myTarget.onUpdateValues(ContainerUtil.<String>newHashOrEmptySet(null));
+        processEmpty();
+        return;
       }
       final String platform=getPlatformAsCodeFromField();
       final String command=(String)myCommand.getSelectedItem();
+      final PhoneGapTargets targetsProvider=PhoneGapTargets.createTargetsList(myProject,platform);
+      if (targetsProvider == null) {
+        processEmpty();
+        return;
+      }
       ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
         @Override public void run(){
           final String currentText=myTarget.getTargetsField().getText();
-          PhoneGapTargets targetsProvider=PhoneGapTargets.createTargetsList(myProject,platform);
           final Set<String> targets=ContainerUtil.newLinkedHashSet(PhoneGapTargets.listTargets(targetsProvider,command));
           if (!StringUtil.isEmpty(currentText) && !targets.contains(currentText)) {
             targets.add(currentText);
@@ -36,6 +41,9 @@
         }
       }
 );
+    }
+    private void processEmpty(){
+      myTarget.onUpdateValues(ContainerUtil.<String>newHashOrEmptySet(null));
     }
   }
 );
