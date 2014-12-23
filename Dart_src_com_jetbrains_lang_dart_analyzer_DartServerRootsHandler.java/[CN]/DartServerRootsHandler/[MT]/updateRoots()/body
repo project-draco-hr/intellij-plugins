@@ -1,0 +1,25 @@
+{
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  final List<String> newIncludedRoots=new SmartList<String>();
+  final List<String> newExcludedRoots=new SmartList<String>();
+  if (sdk != null) {
+    for (    Project project : myTrackedProjects) {
+      for (      Module module : DartSdkGlobalLibUtil.getModulesWithDartSdkGlobalLibAttached(project,sdk.getGlobalLibName())) {
+        for (        ContentEntry contentEntry : ModuleRootManager.getInstance(module).getContentEntries()) {
+          newIncludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(contentEntry.getUrl())));
+          for (          String excludedUrl : contentEntry.getExcludeFolderUrls()) {
+            newExcludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(excludedUrl)));
+          }
+        }
+      }
+    }
+  }
+  if (!myIncludedRoots.equals(newIncludedRoots) || !myExcludedRoots.equals(newExcludedRoots)) {
+    myIncludedRoots.clear();
+    myExcludedRoots.clear();
+    if (DartAnalysisServerService.getInstance().updateRoots(newIncludedRoots,newExcludedRoots)) {
+      myIncludedRoots.addAll(newIncludedRoots);
+      myExcludedRoots.addAll(newExcludedRoots);
+    }
+  }
+}
