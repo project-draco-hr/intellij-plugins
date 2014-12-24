@@ -1,34 +1,25 @@
 {
   mySdkHome=sdkHome;
-  final String runtimePath=mySdkHome + "/bin/dart";
-  final String analysisServerPath=mySdkHome + "/bin/snapshots/analysis_server.dart.snapshot";
+  final String runtimePath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/dart");
+  final String analysisServerPath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/snapshots/analysis_server.dart.snapshot");
   final DebugPrintStream debugStream=new DebugPrintStream(){
     @Override public void println(    String str){
     }
   }
 ;
-  final StdioServerSocket serverSocket;
-  if (!ApplicationManager.getApplication().isInternal()) {
-    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,0,false);
-  }
- else {
-    int availablePort=10000;
-    try {
-      availablePort=NetUtils.findAvailableSocketPort();
-    }
- catch (    IOException e) {
-      LOG.error(e.getMessage(),e);
-    }
-    LOG.debug("Go to http://localhost:" + availablePort + "/status to see status of analysis server");
-    serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{"--port=" + availablePort},false,false,0,false);
-  }
+  final int port=NetUtils.tryToFindAvailableSocketPort(10000);
+  final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false);
   myServer=new RemoteAnalysisServerImpl(serverSocket);
   try {
     myServer.start();
+    myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
+    myServer.addAnalysisServerListener(myListener);
+    LOG.info("Server started, see status at http://localhost:" + port + "/status");
   }
  catch (  Exception e) {
-    LOG.debug(e.getMessage(),e);
+    LOG.warn("Failed to start Dart analysis server, port=" + port,e);
+    myServer=null;
+    mySdkHome=null;
+    myRootsHandler.reset();
   }
-  myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
-  myServer.addAnalysisServerListener(myListener);
 }
