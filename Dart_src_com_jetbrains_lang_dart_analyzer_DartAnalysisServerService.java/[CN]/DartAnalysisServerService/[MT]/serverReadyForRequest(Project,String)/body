@@ -1,11 +1,13 @@
 {
-  if (myServer == null || !sdkHome.equals(mySdkHome)) {
-    stopServer();
-    startServer(sdkHome);
+synchronized (myLock) {
+    if (myServer == null || !sdkHome.equals(mySdkHome)) {
+      stopServer();
+      startServer(sdkHome);
+    }
+    if (myServer != null) {
+      myRootsHandler.ensureProjectServed(project);
+      return true;
+    }
+    return false;
   }
-  if (myServer != null) {
-    myRootsHandler.ensureProjectServed(project);
-    return true;
-  }
-  return false;
 }

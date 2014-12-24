@@ -1,23 +1,25 @@
 {
-  mySdkHome=sdkHome;
-  final String runtimePath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/dart");
-  final String analysisServerPath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/snapshots/analysis_server.dart.snapshot");
-  final DebugPrintStream debugStream=new DebugPrintStream(){
-    @Override public void println(    String str){
+synchronized (myLock) {
+    mySdkHome=sdkHome;
+    final String runtimePath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/dart");
+    final String analysisServerPath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/snapshots/analysis_server.dart.snapshot");
+    final DebugPrintStream debugStream=new DebugPrintStream(){
+      @Override public void println(      String str){
+      }
     }
-  }
 ;
-  final int port=NetUtils.tryToFindAvailableSocketPort(10000);
-  final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false);
-  myServer=new RemoteAnalysisServerImpl(serverSocket);
-  try {
-    myServer.start();
-    myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
-    myServer.addAnalysisServerListener(myListener);
-    LOG.info("Server started, see status at http://localhost:" + port + "/status");
-  }
- catch (  Exception e) {
-    LOG.warn("Failed to start Dart analysis server, port=" + port,e);
-    onServerStopped();
+    final int port=NetUtils.tryToFindAvailableSocketPort(10000);
+    final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false);
+    myServer=new RemoteAnalysisServerImpl(serverSocket);
+    try {
+      myServer.start();
+      myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true));
+      myServer.addAnalysisServerListener(myListener);
+      LOG.info("Server started, see status at http://localhost:" + port + "/status");
+    }
+ catch (    Exception e) {
+      LOG.warn("Failed to start Dart analysis server, port=" + port,e);
+      onServerStopped();
+    }
   }
 }

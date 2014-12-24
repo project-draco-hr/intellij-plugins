@@ -1,31 +1,33 @@
 {
-  if (myServer == null)   return;
   final Set<String> oldTrackedFiles=new THashSet<String>(myFilePathWithOverlaidContentToTimestamp.keySet());
   final Map<String,Object> filesToUpdate=new THashMap<String,Object>();
-  final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
-  for (  Document document : fileDocumentManager.getUnsavedDocuments()) {
-    final VirtualFile file=fileDocumentManager.getFile(document);
-    if (file != null && (file.getFileType() == DartFileType.INSTANCE || HtmlUtil.isHtmlFile(file))) {
-      oldTrackedFiles.remove(file.getPath());
-      final Long oldTimestamp=myFilePathWithOverlaidContentToTimestamp.get(file.getPath());
-      if (oldTimestamp == null || document.getModificationStamp() != oldTimestamp) {
-        filesToUpdate.put(FileUtil.toSystemDependentName(file.getPath()),new AddContentOverlay(document.getText()));
-        myFilePathWithOverlaidContentToTimestamp.put(file.getPath(),document.getModificationStamp());
+synchronized (myLock) {
+    if (myServer == null)     return;
+    final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
+    for (    Document document : fileDocumentManager.getUnsavedDocuments()) {
+      final VirtualFile file=fileDocumentManager.getFile(document);
+      if (file != null && (file.getFileType() == DartFileType.INSTANCE || HtmlUtil.isHtmlFile(file))) {
+        oldTrackedFiles.remove(file.getPath());
+        final Long oldTimestamp=myFilePathWithOverlaidContentToTimestamp.get(file.getPath());
+        if (oldTimestamp == null || document.getModificationStamp() != oldTimestamp) {
+          filesToUpdate.put(FileUtil.toSystemDependentName(file.getPath()),new AddContentOverlay(document.getText()));
+          myFilePathWithOverlaidContentToTimestamp.put(file.getPath(),document.getModificationStamp());
+        }
       }
     }
-  }
-  for (  String oldPath : oldTrackedFiles) {
-    final Long removed=myFilePathWithOverlaidContentToTimestamp.remove(oldPath);
-    LOG.assertTrue(removed != null,oldPath);
-    filesToUpdate.put(FileUtil.toSystemDependentName(oldPath),new RemoveContentOverlay());
-  }
-  if (LOG.isDebugEnabled()) {
-    if (!filesToUpdate.isEmpty()) {
-      LOG.debug("Sending overlaid content of the following files:\n" + StringUtil.join(filesToUpdate.keySet(),",\n"));
+    for (    String oldPath : oldTrackedFiles) {
+      final Long removed=myFilePathWithOverlaidContentToTimestamp.remove(oldPath);
+      LOG.assertTrue(removed != null,oldPath);
+      filesToUpdate.put(FileUtil.toSystemDependentName(oldPath),new RemoveContentOverlay());
     }
-    if (!oldTrackedFiles.isEmpty()) {
-      LOG.debug("Removing overlaid content of the following files:\n" + StringUtil.join(oldTrackedFiles,",\n"));
+    if (LOG.isDebugEnabled()) {
+      if (!filesToUpdate.isEmpty()) {
+        LOG.debug("Sending overlaid content of the following files:\n" + StringUtil.join(filesToUpdate.keySet(),",\n"));
+      }
+      if (!oldTrackedFiles.isEmpty()) {
+        LOG.debug("Removing overlaid content of the following files:\n" + StringUtil.join(oldTrackedFiles,",\n"));
+      }
     }
+    myServer.analysis_updateContent(filesToUpdate);
   }
-  myServer.analysis_updateContent(filesToUpdate);
 }

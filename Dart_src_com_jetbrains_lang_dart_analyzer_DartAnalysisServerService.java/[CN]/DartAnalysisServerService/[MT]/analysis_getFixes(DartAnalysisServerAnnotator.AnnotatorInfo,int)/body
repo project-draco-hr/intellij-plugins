@@ -1,20 +1,22 @@
 {
-  if (myServer == null)   return null;
   final Ref<List<AnalysisErrorFixes>> resultFixes=new Ref<List<AnalysisErrorFixes>>();
   final Semaphore semaphore=new Semaphore();
-  semaphore.down();
   final String path=FileUtil.toSystemDependentName(info.myFilePath);
-  myServer.edit_getFixes(path,offset,new GetFixesConsumer(){
-    @Override public void computedFixes(    final List<AnalysisErrorFixes> fixes){
-      semaphore.up();
-      resultFixes.set(fixes);
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    myServer.edit_getFixes(path,offset,new GetFixesConsumer(){
+      @Override public void computedFixes(      final List<AnalysisErrorFixes> fixes){
+        semaphore.up();
+        resultFixes.set(fixes);
+      }
+      @Override public void onError(      final RequestError error){
+        semaphore.up();
+        LOG.warn("Error from edit_getFixes() for file " + path + ", code="+ error.getCode()+ ": "+ error.getMessage());
+      }
     }
-    @Override public void onError(    final RequestError error){
-      semaphore.up();
-      LOG.warn("Error from edit_getFixes() for file " + path + ", code="+ error.getCode()+ ": "+ error.getMessage());
-    }
-  }
 );
+  }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(GET_FIXES_TIMEOUT);
   if (semaphore.tryUp()) {
