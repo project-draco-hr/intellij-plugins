@@ -1,3 +1,11 @@
 {
-  return new ErrorProneJavaCompiler();
+  if (!SystemInfo.isJavaVersionAtLeast("1.8")) {
+    throw new CannotCreateJavaCompilerException("Error-prone compiler requires JDK 1.8 to run");
+  }
+  try {
+    return (JavaCompiler)Class.forName("com.google.errorprone.ErrorProneJavaCompiler").newInstance();
+  }
+ catch (  Exception e) {
+    throw new CannotCreateJavaCompilerException(e.getMessage());
+  }
 }
