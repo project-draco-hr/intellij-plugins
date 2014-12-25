@@ -1,0 +1,25 @@
+{
+  if (!AngularIndexUtil.hasAngularJS(expression.getProject()))   return false;
+  if (resolveResult instanceof JSDefinitionExpression) {
+    final PsiElement resolveParent=resolveResult.getParent();
+    if (resolveParent instanceof AngularJSAsExpression) {
+      final String name=resolveParent.getFirstChild().getText();
+      final JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
+      final JSType type=JSNamedType.createType(name,source,JSContext.INSTANCE);
+      evaluator.addType(type,resolveResult);
+      return true;
+    }
+ else     if (resolveParent instanceof AngularJSRepeatExpression) {
+      if (calculateRepeatParameterType(evaluator,(AngularJSRepeatExpression)resolveParent)) {
+        return true;
+      }
+    }
+  }
+  if (resolveResult instanceof JSParameter && isInjectable(resolveResult)) {
+    final String name=((JSParameter)resolveResult).getName();
+    final JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
+    final JSType type=JSNamedType.createType(name,source,JSContext.INSTANCE);
+    evaluator.addType(type,resolveResult);
+  }
+  return false;
+}

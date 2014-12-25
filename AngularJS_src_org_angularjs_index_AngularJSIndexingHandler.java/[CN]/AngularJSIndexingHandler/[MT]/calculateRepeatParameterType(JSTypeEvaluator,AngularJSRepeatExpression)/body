@@ -1,0 +1,20 @@
+{
+  final PsiElement last=findReferenceExpression(resolveParent);
+  JSExpression arrayExpression=null;
+  if (last instanceof JSReferenceExpression) {
+    PsiElement resolve=((JSReferenceExpression)last).resolve();
+    if (resolve != null) {
+      resolve=JSPsiImplUtils.getAssignedExpression(resolve);
+      if (resolve != null) {
+        arrayExpression=(JSExpression)resolve;
+      }
+    }
+  }
+ else   if (last instanceof JSExpression) {
+    arrayExpression=(JSExpression)last;
+  }
+  if (last != null && arrayExpression != null) {
+    return evaluator.evalComponentTypeFromArrayExpression(resolveParent,arrayExpression) != null;
+  }
+  return false;
+}

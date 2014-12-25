@@ -1,0 +1,30 @@
+{
+  JSDocTag ngdocTag=null;
+  JSDocTag nameTag=null;
+  for (  JSDocTag tag : comment.getTags()) {
+    if ("ngdoc".equals(tag.getName()))     ngdocTag=tag;
+ else     if ("name".equals(tag.getName()))     nameTag=tag;
+  }
+  if (ngdocTag != null && nameTag != null) {
+    final JSDocTagValue nameValue=nameTag.getValue();
+    String name=nameValue != null ? nameValue.getText() : null;
+    if (name != null)     name=name.substring(name.indexOf(':') + 1);
+    String ngdocValue=null;
+    PsiElement nextSibling=ngdocTag.getNextSibling();
+    if (nextSibling instanceof PsiWhiteSpace)     nextSibling=nextSibling.getNextSibling();
+    if (nextSibling != null && nextSibling.getNode().getElementType() == JSDocTokenTypes.DOC_COMMENT_DATA) {
+      ngdocValue=nextSibling.getText();
+    }
+    if (ngdocValue != null && name != null) {
+      final String[] commentLines=StringUtil.splitByLines(comment.getText());
+      final int offset=nameTag.getTextOffset();
+      if (ngdocValue.contains(DIRECTIVE)) {
+        final String restrictions=calculateRestrictions(commentLines);
+        storeAdditionalData(builder,AngularDirectivesDocIndex.INDEX_ID,comment,DIRECTIVE,name,offset,restrictions);
+      }
+ else       if (ngdocValue.contains(FILTER)) {
+        storeAdditionalData(builder,AngularFilterIndex.INDEX_ID,comment,FILTER,name,offset,null);
+      }
+    }
+  }
+}

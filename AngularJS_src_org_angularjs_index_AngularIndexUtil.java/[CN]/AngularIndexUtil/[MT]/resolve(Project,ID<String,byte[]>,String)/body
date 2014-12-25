@@ -1,0 +1,20 @@
+{
+  final GlobalSearchScope scope=GlobalSearchScope.allScope(project);
+  final Ref<JSOffsetBasedImplicitElement> result=new Ref<JSOffsetBasedImplicitElement>(null);
+  FileBasedIndex.getInstance().processValues(index,lookupKey,null,new FileBasedIndex.ValueProcessor<byte[]>(){
+    @Override public boolean process(    VirtualFile file,    byte[] value){
+      final Trinity<Boolean,Integer,String> deserialized=AngularJSIndexingHandler.deserializeDataValue(value);
+      final JSImplicitElement.Type type=deserialized.first ? JSImplicitElement.Type.Class : JSImplicitElement.Type.Tag;
+      final JSImplicitElementImpl.Builder builder=new JSImplicitElementImpl.Builder(lookupKey,null).setType(type).setTypeString(deserialized.third);
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+      if (psiFile != null) {
+        final JSOffsetBasedImplicitElement element=new JSOffsetBasedImplicitElement(builder,deserialized.second,psiFile);
+        result.set(element);
+        if (element.canNavigate())         return false;
+      }
+      return true;
+    }
+  }
+,scope);
+  return result.get();
+}

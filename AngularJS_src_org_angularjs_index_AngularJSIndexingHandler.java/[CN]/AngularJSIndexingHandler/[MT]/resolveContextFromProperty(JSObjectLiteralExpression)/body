@@ -1,0 +1,23 @@
+{
+  if (!(objectLiteralExpression.getParent() instanceof JSReturnStatement))   return null;
+  final JSFunction function=PsiTreeUtil.getParentOfType(objectLiteralExpression,JSFunction.class);
+  final JSCallExpression call=PsiTreeUtil.getParentOfType(function,JSCallExpression.class);
+  if (call != null) {
+    final JSExpression methodExpression=call.getMethodExpression();
+    if (!(methodExpression instanceof JSReferenceExpression))     return null;
+    JSReferenceExpression callee=(JSReferenceExpression)methodExpression;
+    JSExpression qualifier=callee.getQualifier();
+    if (qualifier == null)     return null;
+    final String command=callee.getReferencedName();
+    if (INJECTABLE_METHODS.contains(command)) {
+      JSExpression[] arguments=call.getArguments();
+      if (arguments.length > 0) {
+        JSExpression argument=arguments[0];
+        if (argument instanceof JSLiteralExpression && ((JSLiteralExpression)argument).isQuotedLiteral()) {
+          return StringUtil.unquoteString(argument.getText());
+        }
+      }
+    }
+  }
+  return null;
+}
