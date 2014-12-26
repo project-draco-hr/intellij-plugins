@@ -1,0 +1,8 @@
+{
+  final DartImportOrExportStatement statement=PsiTreeUtil.getParentOfType(this,DartImportOrExportStatement.class);
+  final String uri=statement == null ? null : statement.getUriString();
+  final VirtualFile vFile=DartResolveUtil.getRealVirtualFile(getContainingFile());
+  final VirtualFile importedFile=uri == null || vFile == null ? null : DartResolveUtil.getImportedFile(getProject(),vFile,uri);
+  final PsiFile importedPsiFile=importedFile == null ? null : PsiManager.getInstance(getProject()).findFile(importedFile);
+  return importedPsiFile == null ? ResolveResult.EMPTY_ARRAY : DartResolveUtil.toCandidateInfoArray(DartResolver.resolveSimpleReference(importedPsiFile,getText()));
+}
