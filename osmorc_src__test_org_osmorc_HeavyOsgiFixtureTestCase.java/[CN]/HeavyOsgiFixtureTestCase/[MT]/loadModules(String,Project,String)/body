@@ -1,0 +1,17 @@
+{
+  final File projectDir=OsgiTestUtil.extractProject(projectName,projectDirPath);
+  new WriteAction(){
+    @Override protected void run(    @NotNull Result result) throws Throwable {
+      VirtualFile virtualDir=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(projectDir);
+      assertNotNull(projectDir.getPath(),virtualDir);
+      for (      File moduleDir : projectDir.listFiles(VISIBLE_DIR_FILTER)) {
+        File moduleFile=new File(moduleDir,moduleDir.getName() + ".iml");
+        if (moduleFile.exists()) {
+          LocalFileSystem.getInstance().refreshAndFindFileByIoFile(moduleFile);
+          ModuleManager.getInstance(project).loadModule(moduleFile.getPath());
+        }
+      }
+    }
+  }
+.execute();
+}

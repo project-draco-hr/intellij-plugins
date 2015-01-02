@@ -1,27 +1,22 @@
 {
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    public void run(){
-      try {
-        VirtualFile[] files=ModuleRootManager.getInstance(fixture.getModule()).getContentRoots();
-        VirtualFile childDirectory=files[0].createChildDirectory(this,"META-INF");
-        VirtualFile data=childDirectory.createChildData(this,"MANIFEST.MF");
-        VfsUtil.saveText(data,"Manifest-Version: 1.0\n" + "Bundle-ManifestVersion: 2\n" + "Bundle-Name: Test\n"+ "Bundle-SymbolicName: test\n"+ "Bundle-Version: 1.0.0\n");
-        PsiDocumentManager.getInstance(fixture.getProject()).commitAllDocuments();
-      }
- catch (      IOException e) {
-        throw new RuntimeException(e);
-      }
+  new WriteAction(){
+    @Override protected void run(    @NotNull Result result) throws Throwable {
+      VirtualFile[] roots=ModuleRootManager.getInstance(myModule).getContentRoots();
+      VirtualFile metaInf=roots[0].createChildDirectory(this,"META-INF");
+      VirtualFile manifest=metaInf.createChildData(this,"MANIFEST.MF");
+      VfsUtil.saveText(manifest,"Manifest-Version: 1.0\n" + "Bundle-ManifestVersion: 2\n" + "Bundle-Name: Test\n"+ "Bundle-SymbolicName: test\n"+ "Bundle-Version: 1.0.0\n");
+      PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
     }
   }
-);
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    public void run(){
-      ModifiableFacetModel modifiableFacetModel=FacetManager.getInstance(fixture.getModule()).createModifiableModel();
-      OsmorcFacet facet=new OsmorcFacet(fixture.getModule());
+.execute();
+  new WriteAction(){
+    @Override protected void run(    @NotNull Result result) throws Throwable {
+      ModifiableFacetModel model=FacetManager.getInstance(myModule).createModifiableModel();
+      OsmorcFacet facet=new OsmorcFacet(myModule);
       facet.getConfiguration().setManifestGenerationMode(ManifestGenerationMode.Manually);
-      modifiableFacetModel.addFacet(facet);
-      modifiableFacetModel.commit();
+      model.addFacet(facet);
+      model.commit();
     }
   }
-);
+.execute();
 }
