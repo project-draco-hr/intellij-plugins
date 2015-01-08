@@ -9,38 +9,7 @@
   for (  DartMetadata metadata : namedComponent.getMetadataList()) {
     builder.append(StringUtil.escapeXml(metadata.getText())).append("<br/>");
   }
-  if (namedComponent instanceof DartClass) {
-    appendClassSignature(builder,(DartClass)namedComponent);
-  }
- else   if (namedComponent instanceof DartFunctionDeclarationWithBodyOrNative) {
-    appendFunctionSignature(builder,namedComponent,((DartFunctionDeclarationWithBodyOrNative)namedComponent).getReturnType());
-  }
- else   if (namedComponent instanceof DartFunctionTypeAlias) {
-    builder.append("typedef ");
-    appendFunctionSignature(builder,namedComponent,((DartFunctionTypeAlias)namedComponent).getReturnType());
-  }
- else   if (namedComponent.isConstructor()) {
-    appendDeclaringClass(builder,namedComponent);
-    appendConstructorSignature(builder,namedComponent,PsiTreeUtil.getParentOfType(namedComponent,DartClass.class));
-  }
- else   if (namedComponent instanceof DartMethodDeclaration) {
-    appendDeclaringClass(builder,namedComponent);
-    appendFunctionSignature(builder,namedComponent,((DartMethodDeclaration)namedComponent).getReturnType());
-  }
- else   if (namedComponent instanceof DartVarAccessDeclaration) {
-    appendDeclaringClass(builder,namedComponent);
-    appendVariableSignature(builder,namedComponent,((DartVarAccessDeclaration)namedComponent).getType());
-  }
- else   if (namedComponent instanceof DartGetterDeclaration) {
-    appendDeclaringClass(builder,namedComponent);
-    builder.append("get ");
-    appendFunctionSignature(builder,namedComponent,((DartGetterDeclaration)namedComponent).getReturnType());
-  }
- else   if (namedComponent instanceof DartSetterDeclaration) {
-    appendDeclaringClass(builder,namedComponent);
-    builder.append("set ");
-    appendFunctionSignature(builder,namedComponent,((DartSetterDeclaration)namedComponent).getReturnType());
-  }
+  appendSignature(namedComponent,builder);
   builder.append("</code>");
   final String docText=getDocumentationText(namedComponent);
   if (docText != null) {
