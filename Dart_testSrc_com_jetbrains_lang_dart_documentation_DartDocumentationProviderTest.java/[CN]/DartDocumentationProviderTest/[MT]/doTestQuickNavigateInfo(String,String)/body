@@ -1,0 +1,11 @@
+{
+  final int caretOffset=fileContents.indexOf("<caret>");
+  assertTrue(caretOffset != -1);
+  final String realContents=fileContents.substring(0,caretOffset) + fileContents.substring(caretOffset + "<caret>".length());
+  final PsiFile psiFile=myFixture.addFileToProject("test.dart",realContents);
+  final DartReference reference=PsiTreeUtil.getParentOfType(psiFile.findElementAt(caretOffset),DartReference.class);
+  assertNotNull("reference not found at offset: " + caretOffset,reference);
+  final PsiElement element=reference.resolve();
+  assertNotNull("target element not found at offset " + caretOffset,element);
+  assertEquals(expectedDoc,myProvider.getQuickNavigateInfo(element,element));
+}
