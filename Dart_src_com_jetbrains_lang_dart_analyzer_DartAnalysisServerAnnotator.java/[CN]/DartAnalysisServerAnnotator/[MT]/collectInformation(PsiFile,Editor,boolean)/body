@@ -9,7 +9,7 @@
   if (sdk == null || StringUtil.compareVersionNumbers(sdk.getVersion(),DartAnalysisServerService.MIN_SDK_VERSION) < 0)   return null;
   if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName()))   return null;
   if (psiFile instanceof XmlFile && !DartInProcessAnnotator.containsDartEmbeddedContent((XmlFile)psiFile))   return null;
-  if (FileUtil.isAncestor(sdk.getHomePath(),annotatedFile.getPath(),true))   return null;
+  if (DartWritingAccessProvider.isInDartSdkOrDartPackagesFolder(psiFile))   return null;
   if (!DartAnalysisServerService.getInstance().serverReadyForRequest(module.getProject(),sdk.getHomePath()))   return null;
   DartAnalysisServerService.getInstance().updateFilesContent();
   return new AnnotatorInfo(psiFile.getProject(),annotatedFile.getPath());
