@@ -1,0 +1,11 @@
+{
+  final PsiFile file=myFixture.addFileToProject("web/" + getTestName(true) + ".dart",text);
+  myFixture.openFileInEditor(file.getVirtualFile());
+  final List<CaretPositionInfo> caretPositions=DartTestUtils.extractPositionMarkers(getProject(),myFixture.getEditor().getDocument());
+  for (  CaretPositionInfo caretPositionInfo : caretPositions) {
+    myFixture.getEditor().getCaretModel().moveToOffset(caretPositionInfo.caretOffset);
+    final LookupElement[] lookupElements=myFixture.completeBasic();
+    checkLookupElements(lookupElements,caretPositionInfo.completionEqualsList,caretPositionInfo.completionIncludesList,caretPositionInfo.completionExcludesList);
+    LookupManager.getInstance(getProject()).hideActiveLookup();
+  }
+}
