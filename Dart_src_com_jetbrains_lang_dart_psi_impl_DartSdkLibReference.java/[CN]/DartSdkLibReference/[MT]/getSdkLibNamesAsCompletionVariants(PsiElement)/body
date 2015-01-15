@@ -1,11 +1,13 @@
 {
   if (element.getParent() instanceof DartImportOrExportStatement) {
-    return ContainerUtil.map2Array(DartLibraryIndex.getAllStandardLibrariesFromSdk(element.getProject()),new Function<String,Object>(){
-      @Override public Object fun(      final String sdkLib){
-        return DartUrlResolver.DART_PREFIX + sdkLib;
+    final Collection<String> sdkLibs=DartLibraryIndex.getAllStandardLibrariesFromSdk(element.getProject());
+    final List<String> result=new ArrayList<String>(sdkLibs.size());
+    for (    String libName : sdkLibs) {
+      if (!libName.startsWith("_")) {
+        result.add(DartUrlResolver.DART_PREFIX + libName);
       }
     }
-);
+    return ArrayUtil.toStringArray(result);
   }
   return EMPTY_ARRAY;
 }
