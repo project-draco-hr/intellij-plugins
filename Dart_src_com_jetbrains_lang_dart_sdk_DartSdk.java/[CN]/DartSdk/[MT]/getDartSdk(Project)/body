@@ -1,0 +1,16 @@
+{
+  return CachedValuesManager.getManager(project).getCachedValue(project,new CachedValueProvider<DartSdk>(){
+    @Nullable @Override public Result<DartSdk> compute(){
+      final DartSdk sdk=getGlobalDartSdk();
+      if (sdk == null) {
+        return null;
+      }
+      List<Object> dependencies=new ArrayList<Object>(3);
+      dependencies.add(ProjectRootManager.getInstance(project));
+      ContainerUtil.addIfNotNull(dependencies,LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/version"));
+      ContainerUtil.addIfNotNull(dependencies,LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/lib/core/core.dart"));
+      return new Result<DartSdk>(sdk,ArrayUtil.toObjectArray(dependencies));
+    }
+  }
+);
+}
