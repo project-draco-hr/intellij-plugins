@@ -1,0 +1,16 @@
+{
+  final DartAnalysisServerAnnotator annotator=new DartAnalysisServerAnnotator();
+  final DartAnalysisServerAnnotator.AnnotatorInfo annotatorInfo=ApplicationManager.getApplication().runReadAction(new NullableComputable<DartAnalysisServerAnnotator.AnnotatorInfo>(){
+    @Nullable public DartAnalysisServerAnnotator.AnnotatorInfo compute(){
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      if (psiFile == null)       return null;
+      return annotator.collectInformation(psiFile);
+    }
+  }
+);
+  if (annotatorInfo == null)   return;
+  setIndicatorText("Analyzing " + virtualFile.getName() + "...");
+  final AnalysisError[] errors=DartAnalysisServerService.getInstance().analysis_getErrors(annotatorInfo);
+  if (errors == null || errors.length == 0)   return;
+  myVirtualFile2ErrorsMap.put(virtualFile,errors);
+}
