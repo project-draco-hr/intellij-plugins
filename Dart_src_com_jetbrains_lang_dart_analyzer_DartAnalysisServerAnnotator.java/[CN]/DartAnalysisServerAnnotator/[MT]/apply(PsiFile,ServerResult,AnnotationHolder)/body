@@ -1,11 +1,10 @@
 {
   if (serverResult == null || serverResult.getErrorsAndFixes().isEmpty())   return;
-  final Document document=PsiDocumentManager.getInstance(psiFile.getProject()).getCachedDocument(psiFile);
-  if (document == null)   return;
-  for (  Map.Entry<AnalysisError,List<AnalysisErrorFixes>> entry : serverResult.getErrorsAndFixes().entrySet()) {
+  final Map<AnalysisError,List<AnalysisErrorFixes>> errorsAndFixesMap=serverResult.getErrorsAndFixes();
+  for (  Map.Entry<AnalysisError,List<AnalysisErrorFixes>> entry : errorsAndFixesMap.entrySet()) {
     final AnalysisError error=entry.getKey();
     final List<AnalysisErrorFixes> fixes=entry.getValue();
-    final Annotation annotation=annotate(document,holder,error);
+    final Annotation annotation=annotate(holder,error);
     if (annotation != null && fixes != null) {
       for (      AnalysisErrorFixes fixList : fixes) {
         for (        SourceChange change : fixList.getFixes()) {
