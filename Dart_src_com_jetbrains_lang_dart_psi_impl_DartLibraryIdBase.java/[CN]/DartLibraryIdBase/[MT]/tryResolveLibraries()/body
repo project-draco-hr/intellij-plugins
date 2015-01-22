@@ -5,12 +5,11 @@
   for (  VirtualFile virtualFile : virtualFiles) {
     final PsiFile psiFile=getManager().findFile(virtualFile);
     for (    PsiElement root : DartResolveUtil.findDartRoots(psiFile)) {
-      DartLibraryStatement lib=PsiTreeUtil.getChildOfType(root,DartLibraryStatement.class);
-      if (lib == null) {
-        continue;
+      final DartLibraryStatement libraryStatement=PsiTreeUtil.getChildOfType(root,DartLibraryStatement.class);
+      final DartLibraryNameElement libraryNameElement=libraryStatement == null ? null : libraryStatement.getLibraryNameElement();
+      if (libraryNameElement != null) {
+        result.add(new PsiElementResolveResult(libraryNameElement));
       }
-      DartQualifiedComponentName componentName=lib.getQualifiedComponentName();
-      result.add(new PsiElementResolveResult(componentName));
     }
   }
   return result.toArray(new ResolveResult[result.size()]);
