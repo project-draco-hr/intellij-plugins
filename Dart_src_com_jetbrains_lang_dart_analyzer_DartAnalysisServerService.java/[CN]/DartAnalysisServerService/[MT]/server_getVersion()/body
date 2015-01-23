@@ -1,0 +1,25 @@
+{
+  final Ref<String> resultRef=new Ref<String>("");
+  final Semaphore semaphore=new Semaphore();
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    myServer.server_getVersion(new GetVersionConsumer(){
+      @Override public void computedVersion(      final String version){
+        resultRef.set(version);
+        semaphore.up();
+      }
+      @Override public void onError(      final RequestError requestError){
+        semaphore.up();
+        LOG.warn("Error from server_getVersion(), code=" + requestError.getCode() + ": "+ requestError.getMessage());
+      }
+    }
+);
+  }
+  final long t0=System.currentTimeMillis();
+  semaphore.waitFor(GET_VERSION_TIMEOUT);
+  if (semaphore.tryUp()) {
+    LOG.info("server_getVersion() took too long: " + (System.currentTimeMillis() - t0) + "ms");
+  }
+  return resultRef.get();
+}

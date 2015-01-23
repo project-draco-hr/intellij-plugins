@@ -1,5 +1,5 @@
 {
-  final Ref<AnalysisError[]> resultErrors=new Ref<AnalysisError[]>();
+  final Ref<AnalysisError[]> resultRef=new Ref<AnalysisError[]>();
   final Semaphore semaphore=new Semaphore();
   try {
 synchronized (myLock) {
@@ -10,7 +10,7 @@ synchronized (myLock) {
       myServer.analysis_getErrors(path,new GetErrorsConsumer(){
         @Override public void computedErrors(        final AnalysisError[] errors){
           if (semaphore.tryUp()) {
-            resultErrors.set(errors);
+            resultRef.set(errors);
           }
  else {
             LOG.info("analysis_getErrors() took too long for file " + path + ", restarting daemon");
@@ -28,7 +28,7 @@ synchronized (myLock) {
         }
         @Override public void onError(        final RequestError error){
           semaphore.up();
-          LOG.error("Error from analysis_getErrors() for file " + path + ", code="+ error.getCode()+ ": "+ error.getMessage());
+          LOG.error("Error from analysis_getErrors() for file " + path + ", server version= "+ myServerVersion+ ", code="+ error.getCode()+ ": "+ error.getMessage());
         }
       }
 );
@@ -38,5 +38,5 @@ synchronized (myLock) {
   finally {
     semaphore.up();
   }
-  return resultErrors.get();
+  return resultRef.get();
 }

@@ -6,12 +6,12 @@ synchronized (myLock) {
     semaphore.down();
     myServer.edit_format(path,selectionOffset,selectionLength,new FormatConsumer(){
       @Override public void computedFormat(      final List<SourceEdit> edits,      final int selectionOffset,      final int selectionLength){
-        semaphore.up();
         resultRef.set(new FormatResult(edits,selectionOffset,selectionLength));
+        semaphore.up();
       }
       @Override public void onError(      final RequestError error){
         semaphore.up();
-        LOG.warn("Error from edit_format() for file " + path + ", code="+ error.getCode()+ ": "+ error.getMessage());
+        LOG.error("Error from edit_format() for file " + path + ", server version= "+ myServerVersion+ ", code="+ error.getCode()+ ": "+ error.getMessage());
       }
     }
 );
