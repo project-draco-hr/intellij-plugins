@@ -1,4 +1,5 @@
 {
+  updateIndicator("Analyzing " + virtualFile.getName() + "...",progressFraction);
   final DartAnalysisServerAnnotator annotator=new DartAnalysisServerAnnotator();
   final DartAnalysisServerAnnotator.AnnotatorInfo annotatorInfo=ApplicationManager.getApplication().runReadAction(new NullableComputable<DartAnalysisServerAnnotator.AnnotatorInfo>(){
     @Nullable public DartAnalysisServerAnnotator.AnnotatorInfo compute(){
@@ -9,7 +10,7 @@
   }
 );
   if (annotatorInfo == null)   return;
-  setIndicatorText("Analyzing " + virtualFile.getName() + "...");
+  annotatorInfo.setLongerAnalysisTimeout(true);
   final AnalysisError[] errors=DartAnalysisServerService.getInstance().analysis_getErrors(annotatorInfo);
   if (errors == null || errors.length == 0)   return;
   myVirtualFile2ErrorsMap.put(virtualFile,errors);
