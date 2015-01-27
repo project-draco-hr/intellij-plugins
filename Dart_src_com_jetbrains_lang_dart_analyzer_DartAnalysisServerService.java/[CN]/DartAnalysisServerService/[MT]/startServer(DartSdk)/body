@@ -1,6 +1,6 @@
 {
 synchronized (myLock) {
-    mySdkHome=sdkHome;
+    mySdkHome=sdk.getHomePath();
     final String runtimePath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/dart");
     final String analysisServerPath=FileUtil.toSystemDependentName((ApplicationManager.getApplication().isUnitTestMode() ? System.getProperty("dart.sdk") : mySdkHome) + "/bin/snapshots/analysis_server.dart.snapshot");
     final DebugPrintStream debugStream=new DebugPrintStream(){
@@ -15,8 +15,7 @@ synchronized (myLock) {
       myServer.start();
       myServer.addAnalysisServerListener(myListener);
       myServerVersion=server_getVersion();
-      final DartSdk sdk=DartSdk.getGlobalDartSdk();
-      mySDKVersion=sdk != null ? sdk.getVersion() : "";
+      mySdkVersion=sdk.getVersion();
       myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true,false));
       LOG.info("Server started, see status at http://localhost:" + port + "/status");
     }
