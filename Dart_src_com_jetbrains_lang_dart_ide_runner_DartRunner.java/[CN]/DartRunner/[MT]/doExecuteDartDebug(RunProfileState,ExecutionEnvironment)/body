@@ -1,15 +1,23 @@
 {
   FileDocumentManager.getInstance().saveAllDocuments();
-  final DartRunConfigurationBase configuration=(DartRunConfigurationBase)env.getRunProfile();
-  final VirtualFile mainDartFile=configuration.getRunnerParameters().getDartFile();
-  final ExecutionResult executionResult=state.execute(env.getExecutor(),this);
-  if (executionResult == null)   return null;
-  final XDebuggerManager debuggerManager=XDebuggerManager.getInstance(env.getProject());
-  final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
-    @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      return new DartCommandLineDebugProcess(session,(DartCommandLineRunningState)state,executionResult,mainDartFile);
-    }
+  final RunProfile profile=env.getRunProfile();
+  if (profile instanceof DartRemoteDebugConfiguration) {
+    return null;
   }
+  if (profile instanceof DartRunConfigurationBase) {
+    final DartRunConfigurationBase configuration=(DartRunConfigurationBase)profile;
+    final VirtualFile mainDartFile=configuration.getRunnerParameters().getDartFile();
+    final ExecutionResult executionResult=state.execute(env.getExecutor(),this);
+    if (executionResult == null)     return null;
+    final XDebuggerManager debuggerManager=XDebuggerManager.getInstance(env.getProject());
+    final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
+      @Override @NotNull public XDebugProcess start(      @NotNull final XDebugSession session){
+        return new DartCommandLineDebugProcess(session,(DartCommandLineRunningState)state,executionResult,mainDartFile);
+      }
+    }
 );
-  return debugSession.getRunContentDescriptor();
+    return debugSession.getRunContentDescriptor();
+  }
+  LOG.error("Unexpected run configuration: " + profile.getClass().getName());
+  return null;
 }

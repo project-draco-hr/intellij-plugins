@@ -1,0 +1,31 @@
+{
+  myDartProjectCombo.getComboBox().setRenderer(new ListCellRendererWrapper<NameAndPath>(){
+    @Override public void customize(    final JList list,    final NameAndPath value,    final int index,    final boolean selected,    final boolean hasFocus){
+      if (value != null) {
+        setText(value.getPresentableText());
+      }
+    }
+  }
+);
+  for (  VirtualFile pubspecFile : FilenameIndex.getVirtualFilesByName(project,PUBSPEC_YAML,GlobalSearchScope.projectScope(project))) {
+    myComboItems.add(new NameAndPath(PubspecYamlUtil.getDartProjectName(pubspecFile),pubspecFile.getParent().getPath()));
+  }
+  if (myComboItems.isEmpty()) {
+    for (    VirtualFile contentRoot : ProjectRootManager.getInstance(project).getContentRoots()) {
+      if (FileTypeIndex.containsFileOfType(DartFileType.INSTANCE,GlobalSearchScopesCore.directoryScope(project,contentRoot,true))) {
+        myComboItems.add(new NameAndPath(null,contentRoot.getPath()));
+      }
+    }
+  }
+  myDartProjectCombo.getComboBox().setModel(new DefaultComboBoxModel(myComboItems.toArray()));
+  myDartProjectCombo.addBrowseFolderListener(null,null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor(),new TextComponentAccessor<JComboBox>(){
+    @Override public String getText(    final JComboBox combo){
+      final Object item=combo.getSelectedItem();
+      return item instanceof NameAndPath ? ((NameAndPath)item).myPath : "";
+    }
+    @Override public void setText(    final JComboBox combo,    @NotNull final String path){
+      setSelectedProjectPath(FileUtil.toSystemIndependentName(path));
+    }
+  }
+);
+}

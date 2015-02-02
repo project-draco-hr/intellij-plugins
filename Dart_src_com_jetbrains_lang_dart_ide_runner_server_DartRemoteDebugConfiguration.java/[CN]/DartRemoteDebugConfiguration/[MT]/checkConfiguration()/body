@@ -1,0 +1,13 @@
+{
+  final String path=myParameters.getDartProjectPath();
+  if (path.isEmpty()) {
+    throw new RuntimeConfigurationError("Dart project path is not specified");
+  }
+  final VirtualFile dir=LocalFileSystem.getInstance().findFileByPath(path);
+  if (dir == null || !dir.isDirectory()) {
+    throw new RuntimeConfigurationError("Folder not found: " + FileUtil.toSystemDependentName(path));
+  }
+  if (!ProjectRootManager.getInstance(getProject()).getFileIndex().isInContent(dir)) {
+    throw new RuntimeConfigurationError("Folder is not in project content: " + FileUtil.toSystemDependentName(path));
+  }
+}
