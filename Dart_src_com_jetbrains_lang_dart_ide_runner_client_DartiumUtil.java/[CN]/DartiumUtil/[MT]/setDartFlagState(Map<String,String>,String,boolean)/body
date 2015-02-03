@@ -1,0 +1,31 @@
+{
+  final boolean oldFlagState=hasDartFlag(envVars,dartFlag);
+  if (oldFlagState == flagState)   return;
+  final String dartFlags=envVars.get(DART_FLAGS_ENV_VAR);
+  if (flagState) {
+    if (dartFlags == null) {
+      envVars.put(DART_FLAGS_ENV_VAR,dartFlag);
+    }
+ else {
+      envVars.put(DART_FLAGS_ENV_VAR,dartFlags + " " + dartFlag);
+    }
+  }
+ else {
+    String newFlags=dartFlags;
+    if (newFlags.trim().equals(dartFlag)) {
+      newFlags="";
+    }
+    newFlags=StringUtil.trimStart(newFlags,dartFlag + " ");
+    newFlags=StringUtil.trimEnd(newFlags," " + dartFlag);
+    final int index=newFlags.indexOf(" " + dartFlag + " ");
+    if (index != -1) {
+      newFlags=newFlags.substring(0,index) + newFlags.substring(index + dartFlag.length() + 1);
+    }
+    if (StringUtil.isEmptyOrSpaces(newFlags)) {
+      envVars.remove(DART_FLAGS_ENV_VAR);
+    }
+ else {
+      envVars.put(DART_FLAGS_ENV_VAR,newFlags);
+    }
+  }
+}
