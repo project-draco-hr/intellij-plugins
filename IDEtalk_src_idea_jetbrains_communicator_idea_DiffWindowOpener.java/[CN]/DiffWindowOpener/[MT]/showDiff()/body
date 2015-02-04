@@ -1,9 +1,9 @@
 {
-  DiffTool diffTool=DiffManager.getInstance().getIdeaDiffTool();
-  SimpleDiffRequest diffRequest=new SimpleDiffRequest(myProject,"Diff for " + myVFile.getDisplayName());
-  diffRequest.addHint(DiffTool.HINT_SHOW_NOT_MODAL_DIALOG);
-  Document localDocument=FileDocumentManager.getInstance().getDocument(myVirtualFile);
-  diffRequest.setContentTitles("My Version",myRemoteUser.getDisplayName() + "'s Version");
-  diffRequest.setContents(new DocumentContent(localDocument),new SimpleContent(myRemoteText));
-  diffTool.show(diffRequest);
+  String title="Diff for " + myVFile.getDisplayName();
+  String title1="My Version";
+  String title2=myRemoteUser.getDisplayName() + "'s Version";
+  DiffContent content1=DiffContentFactory.getInstance().create(myProject,myVirtualFile);
+  DiffContent content2=DiffContentFactory.getInstance().create(myRemoteText,myVirtualFile.getFileType());
+  DiffRequest request=new SimpleDiffRequest(title,content1,content2,title1,title2);
+  DiffManagerEx.getInstance().showDiff(myProject,request,DiffDialogHints.NON_MODAL);
 }
