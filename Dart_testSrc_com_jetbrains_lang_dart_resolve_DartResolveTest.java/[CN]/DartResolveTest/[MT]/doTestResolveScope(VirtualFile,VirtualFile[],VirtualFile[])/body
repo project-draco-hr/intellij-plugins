@@ -1,0 +1,17 @@
+{
+  final GlobalSearchScope scope=new DartResolveScopeProvider().getResolveScope(contextFile,getProject());
+  if (scope == null) {
+    assertTrue("Null scope not expected for " + contextFile.getPath(),expectedInScope == null);
+    return;
+  }
+  if (expectedInScope == null) {
+    fail("Null scope expected for " + contextFile.getPath());
+    return;
+  }
+  for (  VirtualFile file : expectedInScope) {
+    assertTrue("Expected to be in scope: " + file.getPath(),scope.contains(file));
+  }
+  for (  VirtualFile file : expectedOutsideScope) {
+    assertFalse("Expected to be out of scope: " + file.getPath(),scope.contains(file));
+  }
+}

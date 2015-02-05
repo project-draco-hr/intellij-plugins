@@ -1,0 +1,23 @@
+{
+  final Project project=module.getProject();
+  final UserDataHolder dataHolder=subdir != null ? subdir : pubspecFile;
+  return CachedValuesManager.getManager(project).getCachedValue(dataHolder,new CachedValueProvider<GlobalSearchScope>(){
+    @Override public Result<GlobalSearchScope> compute(){
+      final Collection<VirtualFile> pathPackageRoots=getPathPackageRoots(pubspecFile);
+      final VirtualFile dartRoot=pubspecFile.getParent();
+      final GlobalSearchScope scope;
+      if (subdir == null || "test".equals(subdir.getName())) {
+        scope=createDirectoriesScope(project,pathPackageRoots,dartRoot);
+      }
+ else       if ("lib".equals(subdir.getName()) || PACKAGES_FOLDER_NAME.equals(subdir.getName())) {
+        scope=createDirectoriesScope(project,pathPackageRoots,dartRoot.findChild("lib"),dartRoot.findChild(PACKAGES_FOLDER_NAME));
+      }
+ else {
+        scope=createDirectoriesScope(project,pathPackageRoots,subdir,dartRoot.findChild("lib"),dartRoot.findChild(PACKAGES_FOLDER_NAME));
+      }
+      final GlobalSearchScope scopeWithLibs=scope.intersectWith(module.getModuleContentScope()).union(getModuleLibrariesClassesScope(module));
+      return new Result<GlobalSearchScope>(scopeWithLibs,PsiModificationTracker.MODIFICATION_COUNT);
+    }
+  }
+);
+}

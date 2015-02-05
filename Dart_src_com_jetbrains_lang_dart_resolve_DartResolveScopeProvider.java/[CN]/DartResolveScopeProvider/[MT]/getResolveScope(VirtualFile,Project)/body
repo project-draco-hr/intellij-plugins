@@ -1,0 +1,26 @@
+{
+  if (file.getFileType() != DartFileType.INSTANCE)   return null;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (fileIndex.isInLibraryClasses(file)) {
+    if (sdk != null && file.getPath().startsWith(sdk.getHomePath() + "/")) {
+      return getDartSdkResolveScope(project,sdk);
+    }
+    return getLibraryAndSdkScope(project,file,sdk);
+  }
+  final Module module=fileIndex.getModuleForFile(file);
+  if (module == null) {
+    return null;
+  }
+  VirtualFile subdir=null;
+  VirtualFile dir=file.getParent();
+  while (dir != null && fileIndex.isInContent(dir)) {
+    final VirtualFile pubspecFile=dir.findChild(PubspecYamlUtil.PUBSPEC_YAML);
+    if (pubspecFile != null) {
+      return getDartResolveScope(module,pubspecFile,subdir);
+    }
+    subdir=dir;
+    dir=dir.getParent();
+  }
+  return module.getModuleContentWithDependenciesScope().union(module.getModuleWithLibrariesScope());
+}

@@ -1,0 +1,14 @@
+{
+  return CachedValuesManager.getManager(module.getProject()).getCachedValue(module,new CachedValueProvider<GlobalSearchScope>(){
+    @Override public Result<GlobalSearchScope> compute(){
+      final Set<VirtualFile> roots=new THashSet<VirtualFile>();
+      for (      OrderEntry orderEntry : ModuleRootManager.getInstance(module).getOrderEntries()) {
+        if (orderEntry instanceof LibraryOrderEntry) {
+          ContainerUtil.addAll(roots,((LibraryOrderEntry)orderEntry).getRootFiles(OrderRootType.CLASSES));
+        }
+      }
+      return new Result<GlobalSearchScope>(new DartLibraryScope(module.getProject(),roots),ProjectRootManager.getInstance(module.getProject()));
+    }
+  }
+);
+}

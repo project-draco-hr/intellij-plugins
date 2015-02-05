@@ -1,0 +1,16 @@
+{
+  return CachedValuesManager.getManager(project).getCachedValue(project,new CachedValueProvider<GlobalSearchScope>(){
+    @Override public Result<GlobalSearchScope> compute(){
+      final GlobalSearchScope sdkScope=sdk == null ? null : getDartSdkResolveScope(project,sdk);
+      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+      final Set<VirtualFile> roots=new THashSet<VirtualFile>();
+      for (      OrderEntry orderEntry : fileIndex.getOrderEntriesForFile(file)) {
+        Collections.addAll(roots,orderEntry.getFiles(OrderRootType.CLASSES));
+      }
+      final LibraryScopeBase libraryScope=new DartLibraryScope(project,roots);
+      final GlobalSearchScope scope=sdkScope != null ? sdkScope.union(libraryScope) : libraryScope;
+      return new Result<GlobalSearchScope>(scope,ProjectRootManager.getInstance(project));
+    }
+  }
+);
+}

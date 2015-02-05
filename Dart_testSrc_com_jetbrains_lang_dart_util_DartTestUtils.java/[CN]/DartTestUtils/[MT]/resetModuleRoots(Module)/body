@@ -1,0 +1,35 @@
+{
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+      try {
+        final List<OrderEntry> entriesToRemove=new SmartList<OrderEntry>();
+        for (        OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+          if (orderEntry instanceof LibraryOrderEntry) {
+            entriesToRemove.add(orderEntry);
+          }
+        }
+        for (        OrderEntry orderEntry : entriesToRemove) {
+          modifiableModel.removeOrderEntry(orderEntry);
+        }
+        final ContentEntry[] contentEntries=modifiableModel.getContentEntries();
+        TestCase.assertTrue("Expected one content root, got: " + contentEntries.length,contentEntries.length == 1);
+        final ContentEntry oldContentEntry=contentEntries[0];
+        if (oldContentEntry.getSourceFolders().length != 1 || oldContentEntry.getExcludeFolderUrls().size() > 0) {
+          modifiableModel.removeContentEntry(oldContentEntry);
+          final ContentEntry newContentEntry=modifiableModel.addContentEntry(oldContentEntry.getUrl());
+          newContentEntry.addSourceFolder(newContentEntry.getUrl(),false);
+        }
+        if (modifiableModel.isChanged()) {
+          modifiableModel.commit();
+        }
+      }
+  finally {
+        if (!modifiableModel.isDisposed()) {
+          modifiableModel.dispose();
+        }
+      }
+    }
+  }
+);
+}
