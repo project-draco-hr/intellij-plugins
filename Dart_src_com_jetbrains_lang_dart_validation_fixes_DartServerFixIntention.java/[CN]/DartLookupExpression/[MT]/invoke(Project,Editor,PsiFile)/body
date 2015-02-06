@@ -1,21 +1,19 @@
 {
   final Document document=editor.getDocument();
-  for (  SourceFileEdit fileEdit : myChange.getEdits()) {
-    for (    SourceEdit edit : fileEdit.getEdits()) {
-      if (edit.getLength() > 0) {
-        document.deleteString(edit.getOffset(),edit.getOffset() + edit.getLength());
-      }
-      final TemplateManager templateManager=TemplateManager.getInstance(project);
-      Template template=templateManager.createTemplate("","");
-      template.setToReformat(true);
-      addContents(template,edit);
-      final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
-      if (virtualFile != null) {
-        final Editor targetEditor=BaseCreateFix.navigate(project,edit.getOffset(),virtualFile);
-        if (targetEditor != null) {
-          templateManager.startTemplate(targetEditor,template);
-        }
-      }
+  final SourceFileEdit fileEdit=myChange.getEdits().get(0);
+  final SourceEdit sourceEdit=fileEdit.getEdits().get(0);
+  if (sourceEdit.getLength() > 0) {
+    document.deleteString(sourceEdit.getOffset(),sourceEdit.getOffset() + sourceEdit.getLength());
+  }
+  final TemplateManager templateManager=TemplateManager.getInstance(project);
+  Template template=templateManager.createTemplate("","");
+  template.setToReformat(true);
+  addContents(template,sourceEdit);
+  final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
+  if (virtualFile != null) {
+    final Editor targetEditor=BaseCreateFix.navigate(project,sourceEdit.getOffset(),virtualFile);
+    if (targetEditor != null) {
+      templateManager.startTemplate(targetEditor,template);
     }
   }
 }
