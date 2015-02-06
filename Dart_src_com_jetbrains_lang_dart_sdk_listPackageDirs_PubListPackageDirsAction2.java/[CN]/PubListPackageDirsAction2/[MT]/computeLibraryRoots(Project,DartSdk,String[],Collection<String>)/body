@@ -1,15 +1,11 @@
 {
   @NotNull final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  @NotNull String sdkRoot=FileUtil.toSystemIndependentName(dartSdk.getHomePath());
-  if (!sdkRoot.endsWith("/")) {
-    sdkRoot+="/";
-  }
   for (  final String path : libraries) {
     if (path == null)     continue;
-    @NotNull String libPath=stripOffFileName(FileUtil.toSystemDependentName(path));
-    @Nullable final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(libPath);
-    if (!libPath.startsWith(sdkRoot) && (vFile == null || !fileIndex.isInContent(vFile))) {
-      rootsToAddToLib.add(libPath);
+    final String libRoot=PathUtil.getParentPath(FileUtil.toSystemIndependentName(path));
+    final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(libRoot);
+    if (!libRoot.startsWith(dartSdk.getHomePath() + "/") && (vFile == null || !fileIndex.isInContent(vFile))) {
+      rootsToAddToLib.add(libRoot);
     }
   }
 }
