@@ -1,15 +1,20 @@
 {
   if (!myUnitTestMode) {
-    ProgressManager.getInstance().run(new Task.Backgroundable(myProject,message("bnd.import.resolve.task"),true){
-      @Override public void run(      @NotNull ProgressIndicator indicator){
-        if (resolve(indicator)) {
-          ApplicationManager.getApplication().invokeLater(new Runnable(){
-            @Override public void run(){
-              createProjectStructure();
+    StartupManager.getInstance(myProject).registerPostStartupActivity(new Runnable(){
+      @Override public void run(){
+        ProgressManager.getInstance().run(new Task.Backgroundable(myProject,message("bnd.import.resolve.task"),true){
+          @Override public void run(          @NotNull ProgressIndicator indicator){
+            if (resolve(indicator)) {
+              ApplicationManager.getApplication().invokeLater(new Runnable(){
+                @Override public void run(){
+                  createProjectStructure();
+                }
+              }
+,ModalityState.NON_MODAL);
             }
           }
-,ModalityState.NON_MODAL);
         }
+);
       }
     }
 );
