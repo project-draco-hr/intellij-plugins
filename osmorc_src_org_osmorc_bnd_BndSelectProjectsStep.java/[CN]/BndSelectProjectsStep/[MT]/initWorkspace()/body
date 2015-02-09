@@ -1,0 +1,18 @@
+{
+  final BndProjectImportBuilder builder=(BndProjectImportBuilder)getContext();
+  Workspace workspace=builder.getWorkspace();
+  if (workspace != null)   return;
+  ProgressManager.getInstance().run(new Task.Modal(null,OsmorcBundle.message("bnd.import.progress.enumerating"),false){
+    @Override public void run(    @NotNull ProgressIndicator indicator){
+      try {
+        String directory=getWizardContext().getProjectFileDirectory();
+        Workspace workspace=Workspace.getWorkspace(new File(directory),Workspace.CNFDIR);
+        builder.setWorkspace(workspace,BndProjectImporter.getWorkspaceProjects(workspace));
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,22 @@
+{
+  List<String> warnings=ContainerUtil.newArrayList();
+  Collection<Container> boot=project.getBootclasspath();
+  Set<Container> bootSet=Collections.emptySet();
+  if (!boot.isEmpty()) {
+    setDependencies(moduleModel,libraryModel,rootModel,project,boot,false,bootSet,warnings);
+    bootSet=ContainerUtil.newHashSet(boot);
+    OrderEntry[] entries=rootModel.getOrderEntries();
+    if (entries.length > 2) {
+      Arrays.sort(entries,new Comparator<OrderEntry>(){
+        @Override public int compare(        OrderEntry o1,        OrderEntry o2){
+          return weight(o1) - weight(o2);
+        }
+      }
+);
+      rootModel.rearrangeOrderEntries(entries);
+    }
+  }
+  setDependencies(moduleModel,libraryModel,rootModel,project,project.getBuildpath(),false,bootSet,warnings);
+  setDependencies(moduleModel,libraryModel,rootModel,project,project.getTestpath(),true,bootSet,warnings);
+  checkWarnings(project,warnings);
+}
