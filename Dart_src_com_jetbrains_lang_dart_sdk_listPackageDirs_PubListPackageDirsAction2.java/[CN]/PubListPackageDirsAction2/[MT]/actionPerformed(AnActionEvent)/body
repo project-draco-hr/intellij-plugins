@@ -1,0 +1,54 @@
+{
+  final Project project=e.getProject();
+  final DartSdk sdk=project == null ? null : DartSdk.getDartSdk(project);
+  if (sdk == null || !DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk))   return;
+  FileDocumentManager.getInstance().saveAllDocuments();
+  @NotNull final Set<Module> affectedModules=new THashSet<Module>();
+  @NotNull final Collection<String> rootsToAddToLib=new THashSet<String>();
+  @NotNull final Map<String,List<File>> packageNameToDirMap=new THashMap<String,List<File>>();
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.setIndeterminate(true);
+        indicator.setText("pub list-package-dirs");
+      }
+      if (!DartAnalysisServerService.getInstance().serverReadyForRequest(project,sdk))       return;
+      DartAnalysisServerService.getInstance().updateFilesContent();
+      DartAnalysisServerService.LibraryDependenciesResult libraryDependenciesResult=DartAnalysisServerService.getInstance().analysis_getLibraryDependencies();
+      if (libraryDependenciesResult == null) {
+        libraryDependenciesResult=new DartAnalysisServerService.LibraryDependenciesResult(new String[]{},Collections.<String,Map<String,List<String>>>emptyMap());
+      }
+      String[] libraries=libraryDependenciesResult.getLibraries();
+      if (libraries == null) {
+        libraries=new String[]{};
+      }
+      Map<String,Map<String,List<String>>> packageMapMap=libraryDependenciesResult.getPackageMap();
+      if (packageMapMap == null) {
+        packageMapMap=Collections.emptyMap();
+      }
+      @NotNull final Module[] modules=ModuleManager.getInstance(project).getModules();
+      for (      @NotNull final Module module : modules) {
+        if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+          for (          @NotNull final VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
+            if (contentRoot.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null)             continue;
+            affectedModules.add(module);
+          }
+        }
+      }
+      computeLibraryRoots(project,sdk,libraries,rootsToAddToLib);
+      computePackageMap(packageMapMap,packageNameToDirMap);
+    }
+  }
+;
+  if (ProgressManager.getInstance().runProcessWithProgressSynchronously(runnable,"pub list-package-dirs",true,project)) {
+    @NotNull final DartListPackageDirsDialog dialog=new DartListPackageDirsDialog(project,rootsToAddToLib,packageNameToDirMap);
+    dialog.show();
+    if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
+      configurePubListPackageDirsLibrary(project,affectedModules,rootsToAddToLib,packageNameToDirMap);
+    }
+    if (dialog.getExitCode() == DartListPackageDirsDialog.CONFIGURE_NONE_EXIT_CODE) {
+      removePubListPackageDirsLibrary(project);
+    }
+  }
+}

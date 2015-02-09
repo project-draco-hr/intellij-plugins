@@ -1,0 +1,27 @@
+{
+  int progress=0;
+  for (  Project project : myProjects) {
+    LOG.info("resolving: " + project.getBase());
+    if (indicator != null) {
+      indicator.checkCanceled();
+      indicator.setText(project.getName());
+    }
+    try {
+      project.prepare();
+    }
+ catch (    Exception e) {
+      checkErrors(project,e);
+      return false;
+    }
+    List<String> errors=project.getErrors();
+    if (errors != null && !errors.isEmpty()) {
+      checkErrors(project,errors);
+    }
+    checkWarnings(project,project.getWarnings());
+    findSources(project);
+    if (indicator != null) {
+      indicator.setFraction((double)(++progress) / myProjects.size());
+    }
+  }
+  return true;
+}

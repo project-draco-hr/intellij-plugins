@@ -1,0 +1,27 @@
+{
+  final Ref<LibraryDependenciesResult> resultRef=new Ref<LibraryDependenciesResult>();
+  final Semaphore semaphore=new Semaphore();
+  try {
+synchronized (myLock) {
+      if (myServer == null)       return null;
+      semaphore.down();
+      LOG.debug("analysis_getLibraryDependencies()");
+      myServer.analysis_getLibraryDependencies(new GetLibraryDependenciesConsumer(){
+        @Override public void computedDependencies(        @Nullable final String[] libraries,        @Nullable final Map<String,Map<String,List<String>>> packageMap){
+          resultRef.set(new LibraryDependenciesResult(libraries,packageMap));
+          semaphore.up();
+        }
+        @Override public void onError(        final RequestError requestError){
+          LOG.error("Error from analysis_getLibraryDependencies() " + "SDK version = " + mySdkVersion + ", server version= "+ myServerVersion+ ", code="+ requestError.getCode()+ ": "+ requestError.getMessage());
+          semaphore.up();
+        }
+      }
+);
+    }
+    semaphore.waitFor(GET_LIBRARY_DEPENDENCIES_TIMEOUT);
+  }
+  finally {
+    semaphore.up();
+  }
+  return resultRef.get();
+}

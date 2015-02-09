@@ -1,0 +1,29 @@
+{
+  if (model == null) {
+    model=ModuleManager.getInstance(project).getModifiableModel();
+    try {
+      List<Module> result=commit(project,model,modulesProvider,artifactModel);
+      commitModel(model);
+      return result;
+    }
+ catch (    RuntimeException e) {
+      disposeModel(model);
+      throw e;
+    }
+catch (    Error e) {
+      disposeModel(model);
+      throw e;
+    }
+  }
+  List<Project> toImport=ContainerUtil.filter(myProjects,new Condition<Project>(){
+    @Override public boolean value(    Project project){
+      return isMarked(project);
+    }
+  }
+);
+  BndProjectImporter importer=new BndProjectImporter(project,myWorkspace,toImport);
+  Module rootModule=importer.createRootModule(model);
+  importer.setupProject();
+  importer.resolve();
+  return Collections.singletonList(rootModule);
+}
