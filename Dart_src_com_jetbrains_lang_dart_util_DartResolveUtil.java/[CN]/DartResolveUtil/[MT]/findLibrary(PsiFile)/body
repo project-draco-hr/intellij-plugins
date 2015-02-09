@@ -1,3 +1,21 @@
 {
-  return findLibrary(context,GlobalSearchScope.allScope(context.getProject()));
+  final VirtualFile contextVirtualFile=getRealVirtualFile(context);
+  if (contextVirtualFile == null)   return Collections.emptyList();
+  for (  PsiElement root : findDartRoots(context)) {
+    final DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
+    if (partOfStatement != null) {
+      final String libraryName=partOfStatement.getLibraryName();
+      return ContainerUtil.filter(DartLibraryIndex.findLibraryClass(context,libraryName),new Condition<VirtualFile>(){
+        @Override public boolean value(        VirtualFile mainLibFile){
+          for (          String partUrl : DartPathIndex.getPaths(context.getProject(),mainLibFile)) {
+            final VirtualFile partFile=getImportedFile(context.getProject(),mainLibFile,partUrl);
+            if (contextVirtualFile.equals(partFile))             return true;
+          }
+          return false;
+        }
+      }
+);
+    }
+  }
+  return Collections.singletonList(contextVirtualFile);
 }

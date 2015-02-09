@@ -18,19 +18,13 @@
     if (fileNames != null && !fileNames.contains(PathUtil.getFileName(partUrl))) {
       continue;
     }
-    final VirtualFile childFile;
-    if (partUrl.startsWith(DartUrlResolver.PACKAGE_PREFIX) || partUrl.startsWith(DartUrlResolver.FILE_PREFIX)) {
-      childFile=DartUrlResolver.getInstance(context.getProject(),virtualFile).findFileByDartUrl(partUrl);
-    }
- else {
-      childFile=findRelativeFile(virtualFile,partUrl);
-    }
-    if (childFile == null || processedFiles.contains(childFile)) {
+    final VirtualFile partFile=getImportedFile(context.getProject(),virtualFile,partUrl);
+    if (partFile == null || processedFiles.contains(partFile)) {
       continue;
     }
-    final PsiFile childPsiFile=context.getManager().findFile(childFile);
-    if (childPsiFile != null) {
-      if (!processTopLevelDeclarationsImpl(childPsiFile,processor,childFile,fileNames,processedFiles)) {
+    final PsiFile partPsiFile=context.getManager().findFile(partFile);
+    if (partPsiFile != null) {
+      if (!processTopLevelDeclarationsImpl(partPsiFile,processor,partFile,fileNames,processedFiles)) {
         return false;
       }
     }
