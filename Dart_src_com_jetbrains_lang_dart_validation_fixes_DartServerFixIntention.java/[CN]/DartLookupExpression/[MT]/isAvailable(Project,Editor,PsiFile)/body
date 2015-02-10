@@ -3,8 +3,9 @@
   if (fileEdits.size() != 1)   return false;
   final List<SourceEdit> sourceEdits=fileEdits.get(0).getEdits();
   if (sourceEdits.size() != 1)   return false;
-  @NotNull final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  @Nullable final VirtualFile vFile=DartResolveUtil.getRealVirtualFile(file);
-  if (vFile == null || !fileIndex.isInContent(vFile))   return false;
+  final SourceFileEdit fileEdit=fileEdits.get(0);
+  final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  if (virtualFile == null || !fileIndex.isInContent(virtualFile))   return false;
   return true;
 }
