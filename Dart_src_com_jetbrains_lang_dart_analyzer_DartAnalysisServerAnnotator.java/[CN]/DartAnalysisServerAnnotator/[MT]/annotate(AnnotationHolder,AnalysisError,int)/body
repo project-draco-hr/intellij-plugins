@@ -1,6 +1,10 @@
 {
   final Location location=error.getLocation();
-  final TextRange textRange=new TextRange(location.getOffset(),location.getOffset() + location.getLength());
+  int highlightingStart=location.getOffset();
+  int highlightingEnd=location.getOffset() + location.getLength();
+  if (highlightingEnd > fileTextLength)   highlightingEnd=fileTextLength;
+  if (highlightingStart > 0 && highlightingStart >= highlightingEnd)   highlightingStart=highlightingEnd - 1;
+  final TextRange textRange=new TextRange(highlightingStart,highlightingEnd);
   final String severity=error.getSeverity();
   if (AnalysisErrorSeverity.INFO.equals(severity)) {
     final Annotation annotation=holder.createWeakWarningAnnotation(textRange,error.getMessage());

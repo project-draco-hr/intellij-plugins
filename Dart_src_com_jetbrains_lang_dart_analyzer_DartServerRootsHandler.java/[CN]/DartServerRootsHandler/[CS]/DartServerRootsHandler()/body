@@ -1,6 +1,7 @@
 {
-  ProjectManager.getInstance().addProjectManagerListener(new ProjectManagerAdapter(){
-    @Override public void projectClosed(    final Project project){
+  final MessageBusConnection busConnection=ApplicationManager.getApplication().getMessageBus().connect();
+  busConnection.subscribe(ProjectLifecycleListener.TOPIC,new ProjectLifecycleListener.Adapter(){
+    @Override public void afterProjectClosed(    @NotNull final Project project){
       if (myTrackedProjects.remove(project)) {
         updateRoots();
       }
