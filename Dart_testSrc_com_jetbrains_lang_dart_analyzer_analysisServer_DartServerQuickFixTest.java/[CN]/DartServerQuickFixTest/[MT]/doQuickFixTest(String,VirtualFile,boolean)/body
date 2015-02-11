@@ -1,0 +1,17 @@
+{
+  final PsiFile initialFile=myFixture.configureByFile(getTestName(false) + ".dart");
+  final IntentionAction quickFix=myFixture.findSingleIntention(intentionStartText);
+  assertEquals(fixAvailable,quickFix.isAvailable(getProject(),getEditor(),getFile()));
+  if (!fixAvailable)   return;
+  if (fileUpdatedByFix != null) {
+    myFixture.openFileInEditor(fileUpdatedByFix);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      quickFix.invoke(getProject(),getEditor(),getFile());
+    }
+  }
+);
+  final String updatedFileName=fileUpdatedByFix == null ? getTestName(false) : fileUpdatedByFix.getNameWithoutExtension();
+  myFixture.checkResultByFile(updatedFileName + ".after.dart");
+}
