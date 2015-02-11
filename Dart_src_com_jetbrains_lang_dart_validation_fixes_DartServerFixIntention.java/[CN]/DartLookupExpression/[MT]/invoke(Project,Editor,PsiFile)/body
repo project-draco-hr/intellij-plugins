@@ -3,11 +3,9 @@
   final SourceEdit sourceEdit=fileEdit.getEdits().get(0);
   final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
   if (virtualFile == null)   return;
-  final Collection<VirtualFile> virtualFiles=new THashSet<VirtualFile>();
-  virtualFiles.add(virtualFile);
+  if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project,Collections.singletonList(virtualFile)))   return;
   final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
   if (document == null)   return;
-  if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project,virtualFiles))   return;
   if (sourceEdit.getLength() > 0) {
     document.deleteString(sourceEdit.getOffset(),sourceEdit.getOffset() + sourceEdit.getLength());
   }
