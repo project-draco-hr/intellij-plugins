@@ -1,7 +1,20 @@
 {
   return ContainerUtil.map(references,new Function<FileReference,FileReference>(){
     @Override public FileReference fun(    FileReference reference){
-      return new FileReference(reference.getFileReferenceSet(),reference.getRangeInElement().shiftRight(shift),reference.getIndex(),reference.getText());
+      return new FileReference(reference.getFileReferenceSet(),reference.getRangeInElement().shiftRight(shift),reference.getIndex(),reference.getText()){
+        @Override public PsiElement bindToElement(        @NotNull final PsiElement element,        final boolean absolute){
+          final VirtualFile contextFile=DartResolveUtil.getRealVirtualFile(getElement().getContainingFile());
+          final VirtualFile targetFile=DartResolveUtil.getRealVirtualFile(element.getContainingFile());
+          if (contextFile != null && targetFile != null) {
+            final String newUri=DartUrlResolver.getInstance(element.getProject(),contextFile).getDartUrlForFile(targetFile);
+            if (newUri.startsWith(DartUrlResolver.PACKAGE_PREFIX)) {
+              return rename(newUri);
+            }
+          }
+          return getElement();
+        }
+      }
+;
     }
   }
 ,FileReference.EMPTY);
