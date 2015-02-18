@@ -26,7 +26,9 @@
   final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(StringUtil.getQualifiedName(myPackageName,myClassName),GlobalSearchScope.projectScope(myProject));
   PsiElement toInsert=myElement instanceof JSVariable ? JSRefactoringUtil.getVarStatementCopy((JSVariable)myElement) : myElement.copy();
   final PsiElement inserted=clazz.replace(toInsert);
+  PsiFile insertedContainingFile=inserted.getContainingFile();
   JSQualifiedNamedElement newClass=inserted instanceof JSVarStatement ? ((JSVarStatement)inserted).getVariables()[0] : (JSQualifiedNamedElement)inserted;
+  SmartPsiElementPointer<JSQualifiedNamedElement> newClassPointer=SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(newClass);
   JSRefactoringUtil.handleDocCommentAndFormat(inserted,formatters);
   JSRefactoringUtil.deleteWithNoPostponedFormatting(myElement);
   if (myPackageName.length() > 0) {
@@ -39,6 +41,7 @@
   }
   JSRefactoringUtil.postProcess(sourceFile,newClass,Collections.singletonList(sourceFile),importsInTargetFile,namespacesInTargetFile,formatters,true,false);
   boolean makePublic=false;
+  newClass=newClassPointer.getElement();
   List<NonCodeUsageInfo> nonCodeUsages=new ArrayList<NonCodeUsageInfo>();
   for (  UsageInfo usage : usagesToProcess) {
     if (usage instanceof NonCodeUsageInfo) {
@@ -58,6 +61,6 @@
   if (myMoveCallback != null) {
     myMoveCallback.refactoringCompleted();
   }
-  OpenFileDescriptor descriptor=new OpenFileDescriptor(myProject,inserted.getContainingFile().getVirtualFile(),newClass.getTextOffset());
+  OpenFileDescriptor descriptor=new OpenFileDescriptor(myProject,insertedContainingFile.getVirtualFile(),newClass.getTextOffset());
   FileEditorManager.getInstance(myProject).openTextEditor(descriptor,true);
 }
