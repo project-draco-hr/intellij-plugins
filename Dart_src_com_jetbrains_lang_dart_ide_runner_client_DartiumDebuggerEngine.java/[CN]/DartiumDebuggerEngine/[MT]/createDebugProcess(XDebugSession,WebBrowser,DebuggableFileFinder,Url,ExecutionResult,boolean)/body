@@ -1,5 +1,11 @@
 {
-  final ChromeDebugProcess debugProcess=super.createDebugProcess(session,browser,fileFinder,initialUrl,executionResult,usePreliminaryPage);
+  ChromeDebugProcess debugProcess=super.createDebugProcess(session,browser,fileFinder,initialUrl,executionResult,usePreliminaryPage);
   debugProcess.setProcessBreakpointConditionsAtIdeSide(true);
+  debugProcess.setBreakpointLanguageHint(new PairFunction<XLineBreakpoint<?>,Location,String>(){
+    @Override public String fun(    XLineBreakpoint<?> breakpoint,    Location location){
+      return StringUtil.containsIgnoreCase(breakpoint == null ? location.getUrl().getPath() : breakpoint.getFileUrl(),".dart") ? "dart" : null;
+    }
+  }
+);
   return debugProcess;
 }
