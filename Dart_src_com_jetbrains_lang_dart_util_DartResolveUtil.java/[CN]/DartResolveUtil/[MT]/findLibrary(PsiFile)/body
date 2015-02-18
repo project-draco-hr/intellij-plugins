@@ -5,16 +5,7 @@
     final DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
     if (partOfStatement != null) {
       final String libraryName=partOfStatement.getLibraryName();
-      return ContainerUtil.filter(DartLibraryIndex.getFilesByLibName(context,libraryName),new Condition<VirtualFile>(){
-        @Override public boolean value(        VirtualFile mainLibFile){
-          for (          String partUrl : DartPathIndex.getPaths(context.getProject(),mainLibFile)) {
-            final VirtualFile partFile=getImportedFile(context.getProject(),mainLibFile,partUrl);
-            if (contextVirtualFile.equals(partFile))             return true;
-          }
-          return false;
-        }
-      }
-);
+      return findLibraryByName(context,libraryName);
     }
   }
   return Collections.singletonList(contextVirtualFile);

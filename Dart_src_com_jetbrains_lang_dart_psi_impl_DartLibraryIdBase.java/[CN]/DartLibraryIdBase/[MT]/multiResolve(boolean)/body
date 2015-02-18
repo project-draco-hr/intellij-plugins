@@ -1,3 +1,17 @@
 {
-  return tryResolveLibraries();
+  final String libraryName=getText();
+  final List<VirtualFile> libFiles=DartResolveUtil.findLibraryByName(this,libraryName);
+  if (libFiles.isEmpty())   return ResolveResult.EMPTY_ARRAY;
+  final List<ResolveResult> result=new SmartList<ResolveResult>();
+  for (  VirtualFile libFile : libFiles) {
+    final PsiFile psiFile=getManager().findFile(libFile);
+    for (    PsiElement root : DartResolveUtil.findDartRoots(psiFile)) {
+      final DartLibraryStatement libraryStatement=PsiTreeUtil.getChildOfType(root,DartLibraryStatement.class);
+      final DartLibraryNameElement libraryNameElement=libraryStatement == null ? null : libraryStatement.getLibraryNameElement();
+      if (libraryNameElement != null) {
+        result.add(new PsiElementResolveResult(libraryNameElement));
+      }
+    }
+  }
+  return result.toArray(new ResolveResult[result.size()]);
 }

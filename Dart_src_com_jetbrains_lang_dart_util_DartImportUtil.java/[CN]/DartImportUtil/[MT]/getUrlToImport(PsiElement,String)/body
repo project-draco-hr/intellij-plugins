@@ -2,7 +2,9 @@
   final VirtualFile contextFile=context.getContainingFile().getVirtualFile();
   if (contextFile == null)   return null;
   final DartUrlResolver urlResolver=DartUrlResolver.getInstance(context.getProject(),contextFile);
-  for (  VirtualFile libraryFile : DartLibraryIndex.getFilesByLibName(context,libraryName)) {
+  final GlobalSearchScope scope=DartResolveScopeProvider.getDartScope(context.getProject(),contextFile,true);
+  if (scope == null)   return null;
+  for (  VirtualFile libraryFile : DartLibraryIndex.getFilesByLibName(scope,libraryName)) {
     String urlToImport=urlResolver.getDartUrlForFile(libraryFile);
     if (urlToImport.startsWith(DartUrlResolver.DART_PREFIX) && urlToImport.contains("/")) {
       continue;
