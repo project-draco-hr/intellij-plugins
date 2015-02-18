@@ -3,7 +3,8 @@
   final PsiElementPattern.Capture<PsiElement> inComplexExpression=psiElement().withSuperParent(3,DartReference.class);
   final PsiElementPattern.Capture<PsiElement> inStringLiteral=psiElement().inside(DartStringLiteralExpression.class);
   final PsiElementPattern.Capture<PsiElement> inComment=psiElement().withElementType(DartTokenTypesSets.COMMENTS);
-  final PsiElementPattern.Capture<PsiElement> elementCapture=psiElement().andNot(inComment).andNot(idInExpression.and(inComplexExpression)).andNot(inStringLiteral);
+  final PsiElementPattern.Capture<PsiElement> inVarDeclaration=psiElement().inside(DartVarAccessDeclaration.class);
+  final PsiElementPattern.Capture<PsiElement> elementCapture=psiElement().andNot(inComment).andNot(idInExpression.and(inComplexExpression)).andNot(inStringLiteral).andNot(inVarDeclaration);
   extend(CompletionType.BASIC,elementCapture,new CompletionProvider<CompletionParameters>(){
     @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
       final Collection<String> suggestedKeywords=suggestKeywords(parameters.getPosition());
