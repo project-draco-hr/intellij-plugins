@@ -1,17 +1,13 @@
 {
   if (debuggableWebBrowser == null) {
-    return AsyncResult.done(starter);
+    return Promise.resolve(starter);
   }
  else {
-    final AsyncResult<RunProfileStarter> result=new AsyncResult<RunProfileStarter>();
-    JavaScriptDebugEngine debugEngine=debuggableWebBrowser.getDebugEngine();
-    WebBrowser browser=debuggableWebBrowser.getWebBrowser();
-    debugEngine.prepareDebugger(project,browser).notifyWhenRejected(result).doWhenDone(new Runnable(){
-      @Override public void run(){
-        result.setDone(starter);
+    return debuggableWebBrowser.getDebugEngine().prepareDebugger(project,debuggableWebBrowser.getWebBrowser()).then(new Function<Void,RunProfileStarter>(){
+      @Override public RunProfileStarter fun(      Void aVoid){
+        return starter;
       }
     }
 );
-    return result;
   }
 }

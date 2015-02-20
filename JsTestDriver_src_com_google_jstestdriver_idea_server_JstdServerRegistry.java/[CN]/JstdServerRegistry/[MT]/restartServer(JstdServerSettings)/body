@@ -1,16 +1,19 @@
 {
   JstdServer server=myServer;
+  final AsyncPromise<JstdServer> promise=new AsyncPromise<JstdServer>();
   if (server != null && server.isProcessRunning()) {
     server.addLifeCycleListener(new JstdServerLifeCycleAdapter(){
       @Override public void onServerStopped(){
         myServer=null;
-        doStart(settings,consumer);
+        doStart(settings,promise);
       }
     }
 ,ApplicationManager.getApplication());
     server.shutdownAsync();
+    return promise;
   }
  else {
-    doStart(settings,consumer);
+    doStart(settings,promise);
   }
+  return promise;
 }

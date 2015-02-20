@@ -2,16 +2,15 @@
   if (server.isReadyForRunningTests()) {
     final JstdDebugBrowserInfo debugBrowserInfo=JstdDebugBrowserInfo.build(server,runSettings);
     if (debugBrowserInfo != null) {
-      ActionCallback prepareDebuggerCallback=debugBrowserInfo.getDebugEngine().prepareDebugger(project,debugBrowserInfo.getBrowser());
-      prepareDebuggerCallback.notifyWhenRejected(result).doWhenDone(new Runnable(){
-        @Override public void run(){
-          result.setDone(new MyDebugStarter(server,debugBrowserInfo));
+      return debugBrowserInfo.getDebugEngine().prepareDebugger(project,debugBrowserInfo.getBrowser()).then(new Function<Void,RunProfileStarter>(){
+        @Override public RunProfileStarter fun(        Void aVoid){
+          return new MyDebugStarter(server,debugBrowserInfo);
         }
       }
 );
     }
  else {
-      result.setDone(new RunProfileStarter(){
+      return Promise.<RunProfileStarter>resolve(new RunProfileStarter(){
         @Nullable @Override public RunContentDescriptor execute(        @NotNull RunProfileState state,        @NotNull ExecutionEnvironment environment) throws ExecutionException {
           throw new ExecutionException("Please capture Chrome or Firefox and try again");
         }
@@ -20,6 +19,6 @@
     }
   }
  else {
-    result.setDone(new JstdRunProgramRunner.JstdRunStarter(server,true));
+    return Promise.<RunProfileStarter>resolve(new JstdRunProgramRunner.JstdRunStarter(server,true));
   }
 }
