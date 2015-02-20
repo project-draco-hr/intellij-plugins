@@ -1,10 +1,13 @@
 {
   if (!recursion_guard_(b,l,"switchCase"))   return false;
-  boolean r;
+  boolean r, p;
   Marker m=enter_section_(b,l,_NONE_,"<switch case>");
   r=switchCase_0(b,l + 1);
-  r=r && switchCase_1(b,l + 1);
-  r=r && statements(b,l + 1);
-  exit_section_(b,l,m,SWITCH_CASE,r,false,switch_case_recover_parser_);
-  return r;
+  r=r && consumeToken(b,CASE);
+  p=r;
+  r=r && report_error_(b,expression(b,l + 1));
+  r=p && report_error_(b,consumeToken(b,COLON)) && r;
+  r=p && statements(b,l + 1) && r;
+  exit_section_(b,l,m,SWITCH_CASE,r,p,null);
+  return r || p;
 }
