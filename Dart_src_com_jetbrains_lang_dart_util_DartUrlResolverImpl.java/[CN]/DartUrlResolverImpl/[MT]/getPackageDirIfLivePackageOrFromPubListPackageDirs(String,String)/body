@@ -3,18 +3,17 @@
   if (dir != null)   return dir;
   final Set<String> dirPaths=myPubListPackageDirsMap.get(packageName);
   if (dirPaths != null) {
-    if (pathAfterPackageName == null) {
-      pathAfterPackageName="";
-    }
- else {
-      pathAfterPackageName='/' + pathAfterPackageName;
-    }
+    VirtualFile notNullPackageDir=null;
     for (    String dirPath : dirPaths) {
-      final VirtualFile packageDir=LocalFileSystem.getInstance().findFileByPath(dirPath + pathAfterPackageName);
-      if (packageDir != null) {
-        return LocalFileSystem.getInstance().findFileByPath(dirPath);
+      final VirtualFile packageDir=ApplicationManager.getApplication().isUnitTestMode() ? TempFileSystem.getInstance().findFileByPath(dirPath) : LocalFileSystem.getInstance().findFileByPath(dirPath);
+      if (notNullPackageDir == null && packageDir != null) {
+        notNullPackageDir=packageDir;
+      }
+      if (packageDir != null && (StringUtil.isEmpty(pathRelToPackageDir) || packageDir.findFileByRelativePath(pathRelToPackageDir) != null)) {
+        return packageDir;
       }
     }
+    return notNullPackageDir;
   }
   return null;
 }
