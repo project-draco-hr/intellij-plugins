@@ -1,9 +1,18 @@
 {
   try {
-    Builder builder=new ReportingBuilder(myReporter);
-    builder.setPedantic(false);
-    builder.setProperties(bndFile);
-    builder.setClasspath(new File[]{moduleOutput});
+    Builder builder;
+    Workspace workspace=Workspace.findWorkspace(bndFile);
+    if (workspace != null) {
+      Project project=new Project(workspace,null,bndFile);
+      builder=new ReportingProjectBuilder(myReporter,project);
+    }
+ else {
+      builder=new ReportingBuilder(myReporter);
+      builder.setProperties(bndFile);
+      builder.setPedantic(false);
+      builder.setClasspath(new File[]{classPath});
+      builder.setSourcepath(srcPath);
+    }
     String manifest=builder.getProperty(aQute.bnd.osgi.Constants.MANIFEST);
     if (manifest != null) {
       File manifestFile=builder.getFile(manifest);
