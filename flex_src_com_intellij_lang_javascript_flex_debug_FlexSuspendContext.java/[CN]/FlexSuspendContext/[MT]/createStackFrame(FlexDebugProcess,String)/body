@@ -3,12 +3,18 @@
   final Trinity<String,String,Integer> fileNameAndIndexAndLine=getFileNameAndIdAndLine(frameText);
   final String fileName=fileNameAndIndexAndLine.first;
   final String fileId=fileNameAndIndexAndLine.second;
-  int line=fileNameAndIndexAndLine.third;
+  final int line=fileNameAndIndexAndLine.third;
   if (!StringUtil.isEmpty(fileName)) {
     file=flexDebugProcess.findFileByNameOrId(fileName,getPackageFromFrameText(frameText),fileId);
     if (file == null) {
     }
   }
-  final XSourcePosition sourcePosition=file == null ? null : XDebuggerUtil.getInstance().createPosition(file,line > 0 ? line - 1 : line);
+  final VirtualFile finalFile=file;
+  final XSourcePosition sourcePosition=file == null ? null : ApplicationManager.getApplication().runReadAction(new Computable<XSourcePosition>(){
+    @Override public XSourcePosition compute(){
+      return XDebuggerUtil.getInstance().createPosition(finalFile,line > 0 ? line - 1 : line);
+    }
+  }
+);
   return sourcePosition != null ? new FlexStackFrame(flexDebugProcess,sourcePosition) : new FlexStackFrame(flexDebugProcess,fileName,line);
 }
