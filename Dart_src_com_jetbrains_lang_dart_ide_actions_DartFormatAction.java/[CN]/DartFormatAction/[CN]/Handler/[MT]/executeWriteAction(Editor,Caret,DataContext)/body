@@ -1,0 +1,17 @@
+{
+  int start=editor.getDocument().getTextLength();
+  int begin=editor.getCaretModel().getOffset();
+  Project project=CommonDataKeys.PROJECT.getData(dataContext);
+  if (project == null)   return;
+  PsiFile psiFile=PsiUtilBase.getPsiFileInEditor(editor,project);
+  if (psiFile == null)   return;
+  DartAnalysisServerService.getInstance().updateFilesContent();
+  DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(psiFile.getVirtualFile().getPath(),0,1);
+  if (formatResult != null && formatResult.getEdits() != null && !formatResult.getEdits().isEmpty()) {
+    for (    SourceEdit edit : formatResult.getEdits()) {
+      editor.getDocument().replaceString(0,editor.getDocument().getTextLength(),edit.getReplacement());
+      int end=editor.getDocument().getTextLength();
+      editor.getCaretModel().moveToOffset(begin + end - start);
+    }
+  }
+}
