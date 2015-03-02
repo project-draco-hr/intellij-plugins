@@ -7,9 +7,10 @@
     }
     runnerParams.setTestName(testName);
     runnerParams.setScope(isTest((DartCallExpression)psiElement) ? Scope.METHOD : Scope.GROUP);
-    final String dartFilePath=virtualFiles.iterator().next().getPath();
+    final VirtualFile dartFile=virtualFiles.iterator().next();
+    final String dartFilePath=dartFile.getPath();
     runnerParams.setFilePath(dartFilePath);
-    runnerParams.setWorkingDirectory(PathUtil.getParentPath(dartFilePath));
+    runnerParams.setWorkingDirectory(DartProjectTemplate.getProjectDirectory(psiElement.getProject(),dartFile));
     return true;
   }
  else {
@@ -23,7 +24,7 @@
       runnerParams.setScope(Scope.ALL);
       final String dartFilePath=FileUtil.toSystemIndependentName(virtualFile.getPath());
       runnerParams.setFilePath(dartFilePath);
-      runnerParams.setWorkingDirectory(PathUtil.getParentPath(dartFilePath));
+      runnerParams.setWorkingDirectory(DartProjectTemplate.getProjectDirectory(psiElement.getProject(),virtualFile));
       return true;
     }
   }
