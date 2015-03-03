@@ -1,0 +1,26 @@
+{
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemDependentName(file));
+      if (vFile == null)       return;
+      for (      final Project project : myRootsHandler.getTrackedProjects()) {
+        final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+        if (project.isDisposed())         continue;
+        if (!fileIndex.isInContent(vFile))         continue;
+        final PsiFile psiFile=PsiManager.getInstance(project).findFile(vFile);
+        if (psiFile instanceof DartExpressionCodeFragment)         return;
+        final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
+        if (annotatedFile == null)         return;
+        final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
+        if (module == null)         return;
+        final DartSdk sdk=DartSdk.getDartSdk(module.getProject());
+        if (sdk != null && !DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName()))         return;
+        if (psiFile instanceof XmlFile && !DartInProcessAnnotator.containsDartEmbeddedContent((XmlFile)psiFile))         return;
+        if (DartWritingAccessProvider.isInDartSdkOrDartPackagesFolder(psiFile))         return;
+        final DartProblemsViewImpl problemsView=DartProblemsViewImpl.SERVICE.getInstance(project);
+        problemsView.updateErrorsForFile(vFile,errors,mySessionId);
+      }
+    }
+  }
+);
+}
