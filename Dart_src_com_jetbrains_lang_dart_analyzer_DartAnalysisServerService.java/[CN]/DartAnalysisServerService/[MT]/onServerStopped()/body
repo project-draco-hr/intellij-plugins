@@ -2,7 +2,17 @@
 synchronized (myLock) {
     myServer=null;
     mySdkHome=null;
-    myRootsHandler.reset();
     myFilePathWithOverlaidContentToTimestamp.clear();
+    ApplicationManager.getApplication().runReadAction(new Runnable(){
+      @Override public void run(){
+        for (        final Project project : myRootsHandler.getTrackedProjects()) {
+          if (!project.isDisposed()) {
+            DartProblemsViewImpl.getInstance(project).clearAll();
+          }
+        }
+      }
+    }
+);
+    myRootsHandler.reset();
   }
 }
