@@ -1,0 +1,26 @@
+{
+  ApplicationManager.getApplication().getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,new FileEditorManagerAdapter(){
+    @Override public void fileOpened(    @NotNull final FileEditorManager source,    @NotNull final VirtualFile file){
+      if (isDartOrHtmlFile(file)) {
+synchronized (myLock) {
+          final String path=FileUtil.toSystemDependentName(file.getPath());
+          if (!myPriorityFiles.contains(path)) {
+            myPriorityFiles.add(path);
+            analysis_setPriorityFiles();
+          }
+        }
+      }
+    }
+    @Override public void fileClosed(    @NotNull final FileEditorManager source,    @NotNull final VirtualFile file){
+      if (isDartOrHtmlFile(file)) {
+synchronized (myLock) {
+          final String path=FileUtil.toSystemDependentName(file.getPath());
+          if (myPriorityFiles.remove(path)) {
+            analysis_setPriorityFiles();
+          }
+        }
+      }
+    }
+  }
+);
+}
