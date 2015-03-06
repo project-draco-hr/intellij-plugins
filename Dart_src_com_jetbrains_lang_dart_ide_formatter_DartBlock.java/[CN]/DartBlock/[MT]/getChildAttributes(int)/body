@@ -1,24 +1,36 @@
 {
-  int index=newIndex;
-  ASTBlock prev=null;
-  do {
-    if (index == 0) {
-      break;
-    }
-    prev=(ASTBlock)getSubBlocks().get(index - 1);
-    index--;
-  }
- while (prev.getNode().getElementType() == DartTokenTypes.SEMICOLON || prev.getNode() instanceof PsiWhiteSpace);
   final IElementType elementType=myNode.getElementType();
-  final IElementType prevType=prev == null ? null : prev.getNode().getElementType();
-  if (prevType == DartTokenTypes.LBRACE) {
+  final DartBlock previousBlock=newIndex == 0 ? null : (DartBlock)getSubBlocks().get(newIndex - 1);
+  final IElementType previousType=previousBlock == null ? null : previousBlock.getNode().getElementType();
+  if (previousType == LBRACE) {
     return new ChildAttributes(Indent.getNormalIndent(),null);
   }
-  if (isEndsWithRPAREN(elementType,prevType)) {
+  if (previousType == RPAREN && STATEMENTS_WITH_OPTIONAL_BRACES.contains(elementType)) {
     return new ChildAttributes(Indent.getNormalIndent(),null);
   }
-  if (index == 0) {
+  if (previousType == COLON && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
+    return new ChildAttributes(Indent.getNormalIndent(),null);
+  }
+  if (previousType == SWITCH_CASE || previousType == DEFAULT_CASE) {
+    if (previousBlock != null) {
+      final List<Block> subBlocks=previousBlock.getSubBlocks();
+      if (!subBlocks.isEmpty()) {
+        final DartBlock lastChildInPrevBlock=(DartBlock)subBlocks.get(subBlocks.size() - 1);
+        final List<Block> subSubBlocks=lastChildInPrevBlock.getSubBlocks();
+        if (!subSubBlocks.isEmpty()) {
+          final DartBlock lastChildInLastChildInPrevBlock=(DartBlock)subSubBlocks.get(subSubBlocks.size() - 1);
+          final IElementType typeOfLastChildInPrevBlock=lastChildInLastChildInPrevBlock.getNode().getElementType();
+          if (LAST_TOKENS_IN_SWITCH_CASE.contains(typeOfLastChildInPrevBlock) || typeOfLastChildInPrevBlock == SEMICOLON && lastButOneIsThrowStatement(subSubBlocks)) {
+            return new ChildAttributes(Indent.getNormalIndent(),null);
+          }
+        }
+      }
+    }
+    final int indentSize=mySettings.getIndentSize(DartFileType.INSTANCE) * 2;
+    return new ChildAttributes(Indent.getIndent(Indent.Type.SPACES,indentSize,false,false),null);
+  }
+  if (previousBlock == null) {
     return new ChildAttributes(Indent.getNoneIndent(),null);
   }
-  return new ChildAttributes(prev.getIndent(),prev.getAlignment());
+  return new ChildAttributes(previousBlock.getIndent(),previousBlock.getAlignment());
 }
