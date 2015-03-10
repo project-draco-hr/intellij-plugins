@@ -1,26 +1,12 @@
 {
   final File versionFile=new File(sdkHomePath + "/version");
-  final File revisionFile=new File(sdkHomePath + "/revision");
   if (versionFile.isFile()) {
     final String cachedVersion=ourVersions.get(Pair.create(versionFile,versionFile.lastModified()));
     if (cachedVersion != null)     return cachedVersion;
   }
-  if (versionFile.isFile() && versionFile.length() < 100) {
-    final String version;
-    try {
-      version=FileUtil.loadFile(versionFile).trim();
-    }
- catch (    IOException e) {
-      return null;
-    }
-    String revision=null;
-    if (revisionFile.isFile() && revisionFile.length() < 100) {
-      try {
-        revision=FileUtil.loadFile(revisionFile).trim();
-      }
- catch (      IOException ignore) {
-      }
-    }
+  final String version=readVersionFile(sdkHomePath);
+  if (version != null) {
+    final String revision=getSdkRevision(sdkHomePath);
     final String versionWithRevision=revision == null || version.endsWith(revision) ? version : version + "_r" + revision;
     ourVersions.put(Pair.create(versionFile,versionFile.lastModified()),versionWithRevision);
     return versionWithRevision;

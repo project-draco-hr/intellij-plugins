@@ -1,0 +1,22 @@
+{
+  if (!isOnTheFly)   return ProblemDescriptor.EMPTY_ARRAY;
+  if (file.getLanguage() != DartLanguage.INSTANCE && !PubspecYamlUtil.PUBSPEC_YAML.equals(file.getName())) {
+    return ProblemDescriptor.EMPTY_ARRAY;
+  }
+  final Module module=ModuleUtilCore.findModuleForPsiElement(file);
+  if (module == null)   return ProblemDescriptor.EMPTY_ARRAY;
+  final DartSdk sdk=DartSdk.getDartSdk(file.getProject());
+  if (sdk == null) {
+    return ProblemDescriptor.EMPTY_ARRAY;
+  }
+  final String sdkHome=sdk.getHomePath();
+  if (sdkHome == null) {
+    return ProblemDescriptor.EMPTY_ARRAY;
+  }
+  final DartSdkUtil.SdkUpdateInfo updateInfo=DartSdkUtil.checkForFreshSdk(sdkHome);
+  if (updateInfo != null) {
+    final String message=DartBundle.message("new.dart.sdk.available",updateInfo.getRevision(),sdk.getVersion());
+    return createProblemDescriptors(file,manager,message,new OpenWebPageFix(DartBundle.message("download.dart.sdk"),updateInfo.getDownloadUrl()),new OpenDartSettingsQuickFix(DartBundle.message("open.dart.settings")));
+  }
+  return ProblemDescriptor.EMPTY_ARRAY;
+}
