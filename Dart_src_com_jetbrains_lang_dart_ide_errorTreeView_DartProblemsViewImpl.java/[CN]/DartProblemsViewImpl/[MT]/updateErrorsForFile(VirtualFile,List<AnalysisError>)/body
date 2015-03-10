@@ -1,8 +1,22 @@
 {
-  if (errors == null)   return;
-  clearProgress();
-  clearOldMessages(vFile);
-  if (!errors.isEmpty()) {
-    addAnalysisErrors(vFile,errors);
+  myViewUpdater.execute(new Runnable(){
+    @Override public void run(){
+      final String groupName=FileUtil.toSystemDependentName(vFile.getPath());
+      myPanel.removeGroup(groupName);
+      for (      final AnalysisError analysisError : errors) {
+        if (analysisError == null || DartAnalysisServerAnnotator.shouldIgnoreMessageFromDartAnalyzer(analysisError))         continue;
+        final Location location=analysisError.getLocation();
+        final int line=location.getStartLine() - 1;
+        final Navigatable navigatable=line >= 0 ? new OpenFileDescriptor(myProject,vFile,line,Math.max(0,location.getStartColumn() - 1)) : new OpenFileDescriptor(myProject,vFile,-1,-1);
+        final int type=translateAnalysisServerSeverity(analysisError.getSeverity());
+        final String[] text=convertMessage(analysisError.getMessage());
+        final String exportTextPrefix="line (" + location.getStartLine() + ") ";
+        final String rendererTextPrefix="(" + location.getStartLine() + ", "+ location.getStartColumn()+ ")";
+        myPanel.addMessage(type,text,groupName,navigatable,exportTextPrefix,rendererTextPrefix,null);
+      }
+      myPanel.updateTree();
+      updateIcon();
+    }
   }
+);
 }

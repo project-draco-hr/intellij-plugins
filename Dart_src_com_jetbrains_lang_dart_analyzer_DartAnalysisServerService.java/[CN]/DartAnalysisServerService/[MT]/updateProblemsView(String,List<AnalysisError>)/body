@@ -1,19 +1,14 @@
 {
   ApplicationManager.getApplication().runReadAction(new Runnable(){
     @Override public void run(){
-      final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(file));
-      if (vFile != null) {
-        for (        final Project project : myRootsHandler.getTrackedProjects()) {
-          if (!project.isDisposed() && ProjectRootManager.getInstance(project).getFileIndex().isInContent(vFile)) {
-            DartProblemsViewImpl.getInstance(project).updateErrorsForFile(vFile,errors);
-          }
+      final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(filePath);
+      for (      final Project project : myRootsHandler.getTrackedProjects()) {
+        if (project.isDisposed())         continue;
+        if (vFile != null && ProjectRootManager.getInstance(project).getFileIndex().isInContent(vFile)) {
+          DartProblemsViewImpl.getInstance(project).updateErrorsForFile(vFile,errors);
         }
-      }
  else {
-        for (        final Project project : myRootsHandler.getTrackedProjects()) {
-          if (!project.isDisposed()) {
-            DartProblemsViewImpl.getInstance(project).removeGroup(FileUtil.toSystemIndependentName(file));
-          }
+          DartProblemsViewImpl.getInstance(project).removeErrorsForFile(filePath);
         }
       }
     }
