@@ -1,12 +1,22 @@
 {
-  int offset=editor.getCaretModel().getOffset();
-  if (c == '<') {
+  myAfterTypeOrComponentName=false;
+  myAfterDollarInStringInterpolation=false;
+  if (fileType != DartFileType.INSTANCE)   return Result.CONTINUE;
+  if (c == '<' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) {
     TypedHandler.commitDocumentIfCurrentCaretIsNotTheFirstOne(editor,project);
-    myAfterTypeOrComponentName=checkAfterTypeOrComponentName(file,offset);
+    myAfterTypeOrComponentName=isAfterTypeOrComponentName(file,editor.getCaretModel().getOffset());
+    return Result.CONTINUE;
   }
- else   if (c == '{') {
+  if (c == '>' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) {
+    if (handleDartGT(editor,DartTokenTypes.LT,DartTokenTypes.GT,INVALID_INSIDE_REFERENCE)) {
+      return Result.STOP;
+    }
+    return Result.CONTINUE;
+  }
+  if (c == '{' && CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET) {
     TypedHandler.commitDocumentIfCurrentCaretIsNotTheFirstOne(editor,project);
-    myAfterDollar=checkAfterDollarInString(file,offset);
+    myAfterDollarInStringInterpolation=isAfterDollarInStringInterpolation(file,editor.getCaretModel().getOffset());
+    return Result.CONTINUE;
   }
-  return super.beforeCharTyped(c,project,editor,file,fileType);
+  return Result.CONTINUE;
 }

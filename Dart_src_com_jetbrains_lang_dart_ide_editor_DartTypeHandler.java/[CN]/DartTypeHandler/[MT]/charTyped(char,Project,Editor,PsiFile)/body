@@ -1,21 +1,18 @@
 {
-  String textToInsert=null;
   if (c == '<' && myAfterTypeOrComponentName) {
     myAfterTypeOrComponentName=false;
-    textToInsert=">";
-  }
- else   if (c == '{' && myAfterDollar) {
-    myAfterDollar=false;
-    textToInsert="}";
-  }
-  if (textToInsert != null) {
-    EditorModificationUtil.insertStringAtCaret(editor,textToInsert,false,0);
+    EditorModificationUtil.insertStringAtCaret(editor,">",false,0);
     return Result.STOP;
   }
- else   if (c == ':') {
-    if (autoIndentCase(editor,project,file)) {
+  if (c == '{' && myAfterDollarInStringInterpolation) {
+    myAfterDollarInStringInterpolation=false;
+    if (editor.getDocument().getCharsSequence().charAt(editor.getCaretModel().getOffset()) != '}') {
+      EditorModificationUtil.insertStringAtCaret(editor,"}",false,0);
       return Result.STOP;
     }
   }
-  return super.charTyped(c,project,editor,file);
+  if (c == ':' && autoIndentCase(editor,project,file)) {
+    return Result.STOP;
+  }
+  return Result.CONTINUE;
 }
