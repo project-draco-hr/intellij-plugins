@@ -1,0 +1,30 @@
+{
+  String manifest=builder.getProperty(Constants.MANIFEST);
+  if (manifest != null) {
+    File manifestFile=builder.getFile(manifest);
+    if (manifestFile != null) {
+      try {
+        FileInputStream stream=new FileInputStream(manifestFile);
+        try {
+          Properties p=new Properties();
+          p.load(stream);
+          String value=p.getProperty(Attributes.Name.MANIFEST_VERSION.toString());
+          if (StringUtil.isEmptyOrSpaces(value)) {
+            String message="Manifest misses a Manifest-Version entry. This may produce an empty manifest in the resulting bundle.";
+            myReporter.warning(message,null,manifest);
+          }
+        }
+  finally {
+          stream.close();
+        }
+      }
+ catch (      Exception e) {
+        myReporter.warning("Can't read manifest: " + e.getMessage(),e,manifest);
+      }
+    }
+  }
+  Jar jar=builder.build();
+  jar.setName(outputFile.getName());
+  jar.write(outputFile);
+  builder.close();
+}
