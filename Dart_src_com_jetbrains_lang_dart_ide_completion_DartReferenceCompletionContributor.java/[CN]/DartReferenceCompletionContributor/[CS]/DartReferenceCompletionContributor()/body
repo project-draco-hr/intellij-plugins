@@ -1,15 +1,12 @@
 {
   final PsiElementPattern.Capture<PsiElement> idInReference=psiElement().withSuperParent(1,DartId.class).withSuperParent(2,DartReference.class);
   extend(CompletionType.BASIC,idInReference.andNot(psiElement().withSuperParent(3,DartLibraryReferenceList.class)),new CompletionProvider<CompletionParameters>(){
-    @Override protected void addCompletions(    @NotNull CompletionParameters parameters,    ProcessingContext context,    @NotNull CompletionResultSet result){
+    @Override protected void addCompletions(    @NotNull final CompletionParameters parameters,    final ProcessingContext context,    @NotNull final CompletionResultSet resultSet){
       final DartReference reference=PsiTreeUtil.getParentOfType(parameters.getPosition(),DartReference.class);
       if (reference != null) {
-        final THashSet<DartComponentName> variants=new THashSet<DartComponentName>();
-        for (        LookupElement element : DartReferenceCompletionContributor.addCompletionVariants(reference,variants)) {
-          result.addElement(element);
-        }
+        final Set<String> addedNames=DartReferenceCompletionContributor.addCompletionVariants(resultSet,reference);
         if (parameters.getInvocationCount() > 1 && DartResolveUtil.aloneOrFirstInChain(reference)) {
-          DartGlobalVariantsCompletionHelper.addAdditionalGlobalVariants(result,reference,variants,null);
+          DartGlobalVariantsCompletionHelper.addAdditionalGlobalVariants(resultSet,reference,addedNames,null);
         }
       }
     }
@@ -24,9 +21,7 @@
         if (importedFile != null) {
           final Set<DartComponentName> suggestedVariants=new THashSet<DartComponentName>();
           DartResolveUtil.processTopLevelDeclarations(statement,new ComponentNameScopeProcessor(suggestedVariants),importedFile,null);
-          for (          DartLookupElement element : DartLookupElement.convert(suggestedVariants,false)) {
-            result.addElement(element);
-          }
+          DartLookupElement.appendVariantsToCompletionSet(result,suggestedVariants,false);
         }
       }
     }
