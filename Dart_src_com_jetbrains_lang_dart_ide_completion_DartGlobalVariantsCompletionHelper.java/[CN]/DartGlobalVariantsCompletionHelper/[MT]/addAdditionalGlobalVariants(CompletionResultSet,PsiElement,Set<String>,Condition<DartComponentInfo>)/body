@@ -1,15 +1,20 @@
 {
-  DartComponentIndex.processAllComponents(context,new PairProcessor<String,DartComponentInfo>(){
+  final VirtualFile vFile=DartResolveUtil.getRealVirtualFile(context.getContainingFile());
+  final GlobalSearchScope scope=vFile == null ? null : DartResolveScopeProvider.getDartScope(context.getProject(),vFile,true);
+  if (scope == null)   return;
+  final Condition<String> nameFilter=new Condition<String>(){
+    @Override public boolean value(    String componentName){
+      return !namesToSkip.contains(componentName);
+    }
+  }
+;
+  DartComponentIndex.processAllComponents(scope,nameFilter,new PairProcessor<String,DartComponentInfo>(){
     @Override public boolean process(    String componentName,    DartComponentInfo info){
-      if (infoFilter == null || !infoFilter.value(info)) {
+      final String libraryName=info.getLibraryName();
+      if ((libraryName == null || !libraryName.startsWith("dart._")) && (infoFilter == null || infoFilter.value(info))) {
         result.addElement(buildElement(componentName,info));
       }
       return true;
-    }
-  }
-,new Condition<String>(){
-    @Override public boolean value(    String componentName){
-      return namesToSkip.contains(componentName);
     }
   }
 );

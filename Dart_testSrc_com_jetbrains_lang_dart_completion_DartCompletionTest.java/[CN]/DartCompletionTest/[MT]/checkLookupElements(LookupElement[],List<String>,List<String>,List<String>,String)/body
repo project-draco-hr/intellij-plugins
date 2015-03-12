@@ -8,12 +8,16 @@
   }
   if (includesList != null) {
     for (    String s : includesList) {
-      assertTrue("Missing in completion list: " + s + "\n"+ fileTextWithCaret,lookupStrings.contains(s));
+      if (!lookupStrings.contains(s)) {
+        fail("Missing [" + s + "] in completion list:\n"+ StringUtil.join(lookupStrings,"\n")+ "\n### Caret position:\n"+ fileTextWithCaret);
+      }
     }
   }
   if (excludesList != null) {
     for (    String s : excludesList) {
-      assertFalse("Unexpected in completion list: " + s + "\n"+ fileTextWithCaret,lookupStrings.contains(s));
+      if (lookupStrings.contains(s)) {
+        fail("Unexpected variant [" + s + "] in completion list:\n"+ StringUtil.join(lookupStrings,"\n")+ "\n### Caret position:\n"+ fileTextWithCaret);
+      }
     }
   }
 }
