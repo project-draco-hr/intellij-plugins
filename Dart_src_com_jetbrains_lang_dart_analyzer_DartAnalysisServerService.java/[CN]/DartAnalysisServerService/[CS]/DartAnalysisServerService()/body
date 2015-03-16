@@ -1,8 +1,15 @@
 {
-  initListeners();
   Disposer.register(ApplicationManager.getApplication(),new Disposable(){
     public void dispose(){
       stopServer();
+    }
+  }
+);
+  ApplicationManager.getApplication().getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,new FileEditorManagerAdapter(){
+    @Override public void fileClosed(    @NotNull final FileEditorManager source,    @NotNull final VirtualFile file){
+      if (isDartOrHtmlFile(file)) {
+        removePriorityFile(file);
+      }
     }
   }
 );
