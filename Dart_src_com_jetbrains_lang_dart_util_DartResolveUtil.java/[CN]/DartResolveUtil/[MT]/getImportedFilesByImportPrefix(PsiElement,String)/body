@@ -1,0 +1,13 @@
+{
+  final Project project=context.getProject();
+  final List<VirtualFile> result=new SmartList<VirtualFile>();
+  for (  VirtualFile virtualFile : findLibrary(context.getContainingFile())) {
+    for (    DartImportOrExportInfo importOrExportInfo : DartImportAndExportIndex.getImportAndExportInfos(project,virtualFile)) {
+      final String importPrefix=importOrExportInfo.getImportPrefix();
+      if (importOrExportInfo.getKind() == Kind.Import && prefix.equals(importPrefix)) {
+        ContainerUtil.addIfNotNull(result,getImportedFile(project,virtualFile,importOrExportInfo.getUri()));
+      }
+    }
+  }
+  return result;
+}

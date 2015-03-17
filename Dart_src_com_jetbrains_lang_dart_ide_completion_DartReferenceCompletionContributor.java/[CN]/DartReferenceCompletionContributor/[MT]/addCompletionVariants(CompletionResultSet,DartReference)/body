@@ -9,9 +9,10 @@
   if (leftReference != null) {
     final DartClassResolveResult classResolveResult=leftReference.resolveDartClass();
     dartClass=classResolveResult.getDartClass();
-    if (PsiTreeUtil.getParentOfType(leftReference.resolve(),DartImportStatement.class,DartExportStatement.class) != null) {
-      final VirtualFile virtualFile=DartResolveUtil.getImportedFileByImportPrefix(reference.getContainingFile(),leftReference.getText());
-      DartResolveUtil.processTopLevelDeclarations(reference,new ComponentNameScopeProcessor(variants),virtualFile,null);
+    if (PsiTreeUtil.getParentOfType(leftReference.resolve(),DartImportStatement.class) != null) {
+      for (      VirtualFile file : DartResolveUtil.getImportedFilesByImportPrefix(reference,leftReference.getText())) {
+        DartResolveUtil.processTopLevelDeclarations(reference,new ComponentNameScopeProcessor(variants),file,null);
+      }
     }
   }
   if (dartClass != null) {
