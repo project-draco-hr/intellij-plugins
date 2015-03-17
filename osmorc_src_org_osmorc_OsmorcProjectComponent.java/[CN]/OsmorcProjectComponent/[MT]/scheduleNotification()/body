@@ -1,0 +1,24 @@
+{
+  if (myReimportNotification.getAndSet(true)) {
+    return;
+  }
+  myQueue.queue(new Update("reimport"){
+    @Override public void run(){
+      String title=OsmorcBundle.message("bnd.reimport.title");
+      String text=OsmorcBundle.message("bnd.reimport.text");
+      BndProjectImporter.NOTIFICATIONS.createNotification(title,text,NotificationType.INFORMATION,new NotificationListener.Adapter(){
+        @Override protected void hyperlinkActivated(        @NotNull Notification notification,        @NotNull HyperlinkEvent e){
+          notification.expire();
+          BndProjectImporter.reimportWorkspace(myProject);
+        }
+      }
+).whenExpired(new Runnable(){
+        @Override public void run(){
+          myReimportNotification.set(false);
+        }
+      }
+).notify(myProject);
+    }
+  }
+);
+}

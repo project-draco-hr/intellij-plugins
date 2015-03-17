@@ -1,0 +1,18 @@
+{
+  if (files == null || files.length <= 0) {
+    return Collections.emptyList();
+  }
+  Collection<String> projectDirs=ContainerUtil.newArrayListWithCapacity(files.length);
+  for (  VirtualFile file : files) {
+    if (!file.isInLocalFileSystem()) {
+      continue;
+    }
+    if (!file.isDirectory() && BndProjectImporter.BND_FILE.equals(file.getName())) {
+      projectDirs.add(file.getParent().getPath());
+    }
+ else     if (file.isDirectory() && file.findChild(BndProjectImporter.BND_FILE) != null) {
+      projectDirs.add(file.getPath());
+    }
+  }
+  return projectDirs;
+}
