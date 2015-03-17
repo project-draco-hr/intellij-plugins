@@ -1,0 +1,19 @@
+{
+  final Project project=context.getProject();
+  for (  VirtualFile virtualFile : findLibrary(context.getContainingFile())) {
+    for (    DartImportOrExportInfo importOrExportInfo : DartImportAndExportIndex.getImportAndExportInfos(project,virtualFile)) {
+      if (importOrExportInfo.getKind() == Kind.Import && importPrefix.equals(importOrExportInfo.getImportPrefix())) {
+        final VirtualFile importedFile=getImportedFile(project,virtualFile,importOrExportInfo.getUri());
+        if (importedFile != null) {
+          processor.importedFileProcessingStarted(importedFile,importOrExportInfo);
+          final boolean continueProcessing=processTopLevelDeclarations(context,processor,importedFile,componentNameHint);
+          processor.importedFileProcessingFinished(importedFile);
+          if (!continueProcessing) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
