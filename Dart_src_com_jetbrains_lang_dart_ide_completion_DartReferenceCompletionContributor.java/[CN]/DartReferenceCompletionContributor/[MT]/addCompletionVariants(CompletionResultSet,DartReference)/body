@@ -15,8 +15,14 @@
   }
   if (dartClass != null) {
     if (dartClass.isEnum()) {
-      resultSet.consume(LookupElementBuilder.create("values").withTypeText("List<" + dartClass.getName() + ">").withIcon(PUBLIC_STATIC_CONST_ICON));
-      variants.addAll(DartResolveUtil.getComponentNames(dartClass.getEnumConstantDeclarationList()));
+      if (leftReference != null && Comparing.equal(dartClass.getComponentName(),leftReference.resolve())) {
+        resultSet.consume(LookupElementBuilder.create("values").withTypeText("List<" + dartClass.getName() + ">").withIcon(PUBLIC_STATIC_CONST_ICON));
+        variants.addAll(DartResolveUtil.getComponentNames(dartClass.getEnumConstantDeclarationList()));
+      }
+ else {
+        resultSet.consume(LookupElementBuilder.create("index").withTypeText("int").withIcon(PUBLIC_FINAL_FIELD_ICON));
+        variants.addAll(DartResolveUtil.getComponentNames(dartClass.getMethods()));
+      }
     }
  else {
       final boolean needFilterPrivateMembers=!DartResolveUtil.sameLibrary(reference,dartClass);
