@@ -1,0 +1,52 @@
+{
+  final String dartSdkGlobalLibName;
+  final DartSdk sdk=DartSdk.getGlobalDartSdk();
+  if (sdk != null) {
+    dartSdkGlobalLibName=sdk.getGlobalLibName();
+  }
+ else {
+    dartSdkGlobalLibName=ApplicationManager.getApplication().runWriteAction(new Computable<String>(){
+      public String compute(){
+        return DartSdkGlobalLibUtil.createDartSdkGlobalLib(module.getProject(),SDK_HOME_PATH);
+      }
+    }
+);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkGlobalLibName);
+    }
+  }
+);
+  Disposer.register(disposable,new Disposable(){
+    @Override public void dispose(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
+          Library library=model.getLibraryByName(dartSdkGlobalLibName);
+          if (library != null) {
+            if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,dartSdkGlobalLibName)) {
+              final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+              try {
+                LibraryOrderEntry orderEntry=modifiableModel.findLibraryOrderEntry(library);
+                if (orderEntry != null) {
+                  modifiableModel.removeOrderEntry(orderEntry);
+                }
+                modifiableModel.commit();
+              }
+  finally {
+                if (!modifiableModel.isDisposed()) {
+                  modifiableModel.dispose();
+                }
+              }
+            }
+            model.removeLibrary(library);
+            model.commit();
+          }
+        }
+      }
+);
+    }
+  }
+);
+}
