@@ -25,21 +25,7 @@
           LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
           Library library=model.getLibraryByName(dartSdkGlobalLibName);
           if (library != null) {
-            if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,dartSdkGlobalLibName)) {
-              final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
-              try {
-                LibraryOrderEntry orderEntry=modifiableModel.findLibraryOrderEntry(library);
-                if (orderEntry != null) {
-                  modifiableModel.removeOrderEntry(orderEntry);
-                }
-                modifiableModel.commit();
-              }
-  finally {
-                if (!modifiableModel.isDisposed()) {
-                  modifiableModel.dispose();
-                }
-              }
-            }
+            DartSdkGlobalLibUtil.detachDartSdkGlobalLib(Collections.singletonList(module),dartSdkGlobalLibName);
             model.removeLibrary(library);
             model.commit();
           }
