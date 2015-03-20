@@ -1,16 +1,12 @@
 {
-  final PsiElement element=ApplicationManager.getApplication().runReadAction(new NullableComputable<PsiElement>(){
-    @Override public PsiElement compute(){
-      return getStepDefinition(queryParameters.getElementToSearch());
+  return ApplicationManager.getApplication().runReadAction(new NullableComputable<Boolean>(){
+    @Nullable @Override public Boolean compute(){
+      PsiElement element=getStepDefinition(queryParameters.getElementToSearch());
+      if (element == null)       return true;
+      String regexp=GrCucumberUtil.getStepDefinitionPatternText((GrMethodCall)element);
+      if (regexp == null)       return true;
+      return CucumberUtil.findGherkinReferencesToElement(element,regexp,consumer,queryParameters.getEffectiveSearchScope());
     }
   }
 );
-  if (element == null)   return true;
-  @Nullable final String regexp=ApplicationManager.getApplication().runReadAction(new NullableComputable<String>(){
-    @Nullable @Override public String compute(){
-      return GrCucumberUtil.getStepDefinitionPatternText((GrMethodCall)element);
-    }
-  }
-);
-  return CucumberUtil.findGherkinReferencesToElement(element,regexp,consumer,queryParameters.getEffectiveSearchScope());
 }
