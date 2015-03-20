@@ -5,14 +5,14 @@
       ResolveUtil.processAllDeclarations(worldType,processor,state,place);
     }
  else {
-      final PsiDirectory directory=stepFile.getContainingDirectory();
-      if (directory != null) {
-        final List<PsiFile> otherStepFiles=CucumberStepsIndex.getInstance(place.getProject()).gatherStepDefinitionsFilesFromDirectory(directory,false);
-        for (        PsiFile otherFile : otherStepFiles) {
-          if (otherFile instanceof GroovyFile) {
-            final PsiType type=getWorldType((GroovyFile)otherFile);
-            if (type != null) {
-              ResolveUtil.processAllDeclarations(type,processor,state,place);
+      GlobalSearchScope scope=GlobalSearchScope.getScopeRestrictedByFileTypes(stepFile.getResolveScope(),GroovyFileType.getGroovyEnabledFileTypes());
+      PsiFile[] files=CacheManager.SERVICE.getInstance(place.getProject()).getFilesWithWord("World",UsageSearchContext.IN_CODE,scope,true);
+      for (      PsiFile file : files) {
+        if (file instanceof GroovyFile) {
+          final PsiType type=getWorldType((GroovyFile)file);
+          if (type != null) {
+            if (!ResolveUtil.processAllDeclarations(type,processor,state,place)) {
+              return;
             }
           }
         }
