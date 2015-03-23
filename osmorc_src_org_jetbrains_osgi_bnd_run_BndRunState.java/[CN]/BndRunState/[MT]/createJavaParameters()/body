@@ -1,0 +1,29 @@
+{
+  File runFile=new File(myConfiguration.bndRunFile);
+  if (!runFile.isFile()) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile));
+  }
+  JavaParameters parameters=new JavaParameters();
+  parameters.setWorkingDirectory(myConfiguration.getProject().getBasePath());
+  String jreHome=myConfiguration.useAlternativeJre ? myConfiguration.alternativeJrePath : null;
+  JavaParametersUtil.configureProject(myConfiguration.getProject(),parameters,JavaParameters.JDK_ONLY,jreHome);
+  try {
+    Run run=Workspace.getRun(runFile);
+    String env=run.getProperty(Constants.RUNENV);
+    if (env != null) {
+      parameters.getEnv().putAll(OSGiHeader.parseProperties(env));
+    }
+    Collection<String> vmOptions=run.getRunVM();
+    if (vmOptions != null) {
+      parameters.getVMParametersList().addAll(ContainerUtil.newArrayList(vmOptions));
+    }
+  }
+ catch (  Exception e) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile),e);
+  }
+  parameters.getClassPath().add(PathManager.getJarPathForClass(Workspace.class));
+  parameters.getClassPath().add(PathManager.getJarPathForClass(Runner.class));
+  parameters.setMainClass(Runner.class.getName());
+  parameters.getProgramParametersList().add(myConfiguration.bndRunFile);
+  return parameters;
+}
