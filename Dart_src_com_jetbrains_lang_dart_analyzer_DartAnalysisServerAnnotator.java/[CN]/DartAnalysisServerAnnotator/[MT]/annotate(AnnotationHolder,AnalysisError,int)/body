@@ -6,18 +6,10 @@
   if (highlightingStart > 0 && highlightingStart >= highlightingEnd)   highlightingStart=highlightingEnd - 1;
   final TextRange textRange=new TextRange(highlightingStart,highlightingEnd);
   final String severity=error.getSeverity();
-  if (AnalysisErrorSeverity.INFO.equals(severity)) {
-    final Annotation annotation=holder.createWeakWarningAnnotation(textRange,error.getMessage());
-    if ("Unused import".equals(error.getMessage()) || "Duplicate import".equals(error.getMessage())) {
-      annotation.setHighlightType(ProblemHighlightType.LIKE_UNUSED_SYMBOL);
-    }
-    return annotation;
+  final String message=StringUtil.notNullize(error.getMessage());
+  final Annotation annotation=AnalysisErrorSeverity.INFO.equals(severity) ? holder.createWeakWarningAnnotation(textRange,message) : AnalysisErrorSeverity.WARNING.equals(severity) ? holder.createWarningAnnotation(textRange,message) : AnalysisErrorSeverity.ERROR.equals(severity) ? holder.createErrorAnnotation(textRange,message) : null;
+  if (annotation != null) {
+    setupHighlightType(annotation,message);
   }
- else   if (AnalysisErrorSeverity.WARNING.equals(severity)) {
-    return holder.createWarningAnnotation(textRange,error.getMessage());
-  }
- else   if (AnalysisErrorSeverity.ERROR.equals(severity)) {
-    return holder.createErrorAnnotation(textRange,error.getMessage());
-  }
-  return null;
+  return annotation;
 }
