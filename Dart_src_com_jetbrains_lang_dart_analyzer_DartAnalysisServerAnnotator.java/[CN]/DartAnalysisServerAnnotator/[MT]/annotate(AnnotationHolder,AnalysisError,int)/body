@@ -8,8 +8,9 @@
   final String severity=error.getSeverity();
   final String message=StringUtil.notNullize(error.getMessage());
   final Annotation annotation=AnalysisErrorSeverity.INFO.equals(severity) ? holder.createWeakWarningAnnotation(textRange,message) : AnalysisErrorSeverity.WARNING.equals(severity) ? holder.createWarningAnnotation(textRange,message) : AnalysisErrorSeverity.ERROR.equals(severity) ? holder.createErrorAnnotation(textRange,message) : null;
-  if (annotation != null) {
-    setupHighlightType(annotation,message);
+  final ProblemHighlightType specialHighlightType=annotation == null ? null : getSpecialHighlightType(message);
+  if (specialHighlightType != null) {
+    annotation.setHighlightType(specialHighlightType);
   }
   return annotation;
 }
