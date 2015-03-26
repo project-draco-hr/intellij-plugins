@@ -1,5 +1,14 @@
 {
-  JSFunction fun=PsiTreeUtil.getParentOfType(param,JSFunction.class);
+  if (!(parameterItem instanceof JSParameter)) {
+    super.findRestParameterExpectedType(parameterItem);
+    return;
+  }
+  final JSParameter param=(JSParameter)parameterItem;
+  final JSFunction fun=param.getDeclaringFunction();
+  if (fun == null) {
+    super.findRestParameterExpectedType(parameterItem);
+    return;
+  }
   PsiElement element=JSResolveUtil.findParent(fun);
   JSType classType=element instanceof JSClass ? JSNamedType.createType(((JSClass)element).getQualifiedName(),JSTypeSource.EMPTY,JSContext.INSTANCE) : null;
   if (classType != null && JSTypeUtils.isActionScriptVectorType(classType)) {
