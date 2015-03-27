@@ -6,7 +6,7 @@
     LogManager.getLogManager().readConfiguration(cmdLineFlags.getRunnerMode().getLogConfig());
     final PluginLoader pluginLoader=new PluginLoader();
     final List<Module> pluginModules=pluginLoader.load(cmdLinePlugins);
-    logger.debug("loaded plugins %s",pluginModules);
+    logger.log(Level.INFO,"loaded plugins {0}",pluginModules);
     JsTestDriverBuilder builder=new JsTestDriverBuilder();
     BasePaths basePath=cmdLineFlags.getBasePath();
     builder.addBasePaths(basePath);
@@ -28,12 +28,12 @@
   }
 catch (  UnreadableFilesException e) {
     System.out.println("Configuration Error: \n" + e.getMessage());
-    logger.debug("Details: {}",e);
+    e.printStackTrace();
     System.exit(1);
   }
 catch (  ConfigurationException e) {
     System.out.println("Configuration Error: \n" + e.getMessage());
-    logger.debug("Details: {}",e);
+    e.printStackTrace();
     System.exit(1);
   }
 catch (  RetryException e) {
@@ -49,7 +49,6 @@ catch (  BrowserPanicException e) {
     System.exit(1);
   }
 catch (  Exception e) {
-    logger.debug("Error {}",e);
     e.printStackTrace();
     System.out.println("Unexpected Runner Condition: " + e.getMessage() + "\n Use --runnerMode DEBUG for more information.");
     System.exit(1);
