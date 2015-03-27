@@ -5,8 +5,22 @@
       final List<DartLibraryComponentReferenceExpression> libraryComponents=libraryReferenceList.getLibraryComponentReferenceExpressionList();
       for (      DartLibraryComponentReferenceExpression libraryComponentReferenceExpression : libraryComponents) {
         if (componentName.equals(libraryComponentReferenceExpression.getText())) {
-          final PsiElement toRemove=libraryComponents.size() > 1 ? libraryComponentReferenceExpression : hideCombinator;
-          toRemove.delete();
+          if (libraryComponents.size() == 1) {
+            hideCombinator.delete();
+          }
+ else {
+            final PsiElement nextSibling=UsefulPsiTreeUtil.getNextSiblingSkippingWhiteSpacesAndComments(libraryComponentReferenceExpression);
+            if (nextSibling != null && nextSibling.getNode().getElementType() == DartTokenTypes.COMMA) {
+              nextSibling.delete();
+            }
+ else {
+              final PsiElement prevSibling=UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(libraryComponentReferenceExpression,true);
+              if (prevSibling != null && prevSibling.getNode().getElementType() == DartTokenTypes.COMMA) {
+                prevSibling.delete();
+              }
+            }
+            libraryComponentReferenceExpression.delete();
+          }
           return;
         }
       }
