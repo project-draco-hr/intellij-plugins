@@ -4,13 +4,13 @@
 synchronized (myLock) {
     if (myServer == null)     return null;
     semaphore.down();
-    myServer.edit_format(path,selectionOffset,selectionLength,new FormatConsumer(){
+    myServer.edit_format(filePath,selectionOffset,selectionLength,new FormatConsumer(){
       @Override public void computedFormat(      final List<SourceEdit> edits,      final int selectionOffset,      final int selectionLength){
         resultRef.set(new FormatResult(edits,selectionOffset,selectionLength));
         semaphore.up();
       }
       @Override public void onError(      final RequestError error){
-        LOG.error("Error from edit_format() for file " + path + ", SDK version = "+ mySdkVersion+ ", server version= "+ myServerVersion+ ", code="+ error.getCode()+ ": "+ error.getMessage());
+        logError("edit_format()",filePath,error);
         semaphore.up();
       }
     }
@@ -19,7 +19,7 @@ synchronized (myLock) {
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(EDIT_FORMAT_TIMEOUT);
   if (semaphore.tryUp()) {
-    LOG.info("edit_format() took too long for file " + path + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    LOG.info("edit_format() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
     return null;
   }
   return resultRef.get();

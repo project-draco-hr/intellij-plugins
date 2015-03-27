@@ -5,15 +5,15 @@
 synchronized (myLock) {
       if (myServer == null)       return null;
       semaphore.down();
-      final String path=FileUtil.toSystemDependentName(info.myFilePath);
-      LOG.debug("analysis_getErrors(" + path + ")");
-      myServer.analysis_getErrors(path,new GetErrorsConsumer(){
+      final String filePath=FileUtil.toSystemDependentName(info.myFilePath);
+      LOG.debug("analysis_getErrors(" + filePath + ")");
+      myServer.analysis_getErrors(filePath,new GetErrorsConsumer(){
         @Override public void computedErrors(        final AnalysisError[] errors){
           if (semaphore.tryUp()) {
             resultRef.set(errors);
           }
  else {
-            LOG.info("analysis_getErrors() took too long for file " + path + ", restarting daemon");
+            LOG.info("analysis_getErrors() took too long for file " + filePath + ", restarting daemon");
             ApplicationManager.getApplication().runReadAction(new Runnable(){
               @Override public void run(){
                 final VirtualFile vFile=info.myProject.isDisposed() ? null : LocalFileSystem.getInstance().findFileByPath(info.myFilePath);
@@ -27,7 +27,7 @@ synchronized (myLock) {
           }
         }
         @Override public void onError(        final RequestError error){
-          LOG.error("Error from analysis_getErrors() for file " + path + ", SDK version = "+ mySdkVersion+ ", server version= "+ myServerVersion+ ", code="+ error.getCode()+ ": "+ error.getMessage());
+          logError("analysis_getErrors()",filePath,error);
           semaphore.up();
         }
       }

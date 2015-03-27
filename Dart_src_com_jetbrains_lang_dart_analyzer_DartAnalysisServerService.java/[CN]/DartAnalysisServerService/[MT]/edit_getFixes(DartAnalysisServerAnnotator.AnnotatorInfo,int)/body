@@ -1,17 +1,17 @@
 {
   final Ref<List<AnalysisErrorFixes>> resultRef=new Ref<List<AnalysisErrorFixes>>();
   final Semaphore semaphore=new Semaphore();
-  final String path=FileUtil.toSystemDependentName(info.myFilePath);
+  final String filePath=FileUtil.toSystemDependentName(info.myFilePath);
 synchronized (myLock) {
     if (myServer == null)     return null;
     semaphore.down();
-    myServer.edit_getFixes(path,offset,new GetFixesConsumer(){
+    myServer.edit_getFixes(filePath,offset,new GetFixesConsumer(){
       @Override public void computedFixes(      final List<AnalysisErrorFixes> fixes){
         resultRef.set(fixes);
         semaphore.up();
       }
       @Override public void onError(      final RequestError error){
-        LOG.error("Error from edit_getFixes() for file " + path + ", SDK version = "+ mySdkVersion+ ", server version= "+ myServerVersion+ ", code="+ error.getCode()+ ": "+ error.getMessage());
+        logError("edit_getFixes()",filePath,error);
         semaphore.up();
       }
     }
@@ -20,7 +20,7 @@ synchronized (myLock) {
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(GET_FIXES_TIMEOUT);
   if (semaphore.tryUp()) {
-    LOG.info("edit_getFixes() took too long for file " + path + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    LOG.info("edit_getFixes() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
     return null;
   }
   return resultRef.get();
