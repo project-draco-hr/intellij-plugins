@@ -7,7 +7,18 @@
   final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
   if (document == null)   return;
   if (sourceEdit.getLength() > 0) {
-    document.deleteString(sourceEdit.getOffset(),sourceEdit.getOffset() + sourceEdit.getLength());
+    final Runnable runnable=new Runnable(){
+      public void run(){
+        document.deleteString(sourceEdit.getOffset(),sourceEdit.getOffset() + sourceEdit.getLength());
+      }
+    }
+;
+    if (CommandProcessor.getInstance().getCurrentCommand() == null) {
+      CommandProcessor.getInstance().runUndoTransparentAction(runnable);
+    }
+ else {
+      runnable.run();
+    }
   }
   final TemplateManager templateManager=TemplateManager.getInstance(project);
   final Template template=templateManager.createTemplate("","");
