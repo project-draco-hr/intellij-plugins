@@ -1,4 +1,20 @@
 {
   super(environment);
   myConfiguration=configuration;
+  myProject=myConfiguration.getProject();
+  String name=BndRunConfigurationType.getInstance().getDisplayName();
+  myNotifications=NotificationGroup.toolWindowGroup(name,environment.getExecutor().getToolWindowId());
+  File runFile=new File(myConfiguration.bndRunFile);
+  if (!runFile.isFile()) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile));
+  }
+  try {
+    myLauncher=Workspace.getRun(runFile).getProjectLauncher();
+    myLauncher.prepare();
+  }
+ catch (  Exception e) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile),e);
+  }
+  myBundleStamps=ContainerUtil.newHashMap();
+  bundlesChanged();
 }
