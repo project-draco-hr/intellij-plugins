@@ -1,15 +1,20 @@
 {
   final VirtualFile contextVirtualFile=getRealVirtualFile(context);
   if (contextVirtualFile == null)   return Collections.emptyList();
-  for (  PsiElement root : findDartRoots(context)) {
-    final DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
-    if (partOfStatement != null) {
-      final String libraryName=partOfStatement.getLibraryName();
-      final List<VirtualFile> files=findLibraryByName(context,libraryName);
-      if (!files.isEmpty()) {
-        return files;
+  return CachedValuesManager.getCachedValue(context,new CachedValueProvider<List<VirtualFile>>(){
+    @Nullable @Override public Result<List<VirtualFile>> compute(){
+      for (      PsiElement root : findDartRoots(context)) {
+        final DartPartOfStatement partOfStatement=PsiTreeUtil.getChildOfType(root,DartPartOfStatement.class);
+        if (partOfStatement != null) {
+          final String libraryName=partOfStatement.getLibraryName();
+          final List<VirtualFile> files=findLibraryByName(context,libraryName);
+          if (!files.isEmpty()) {
+            return new Result<List<VirtualFile>>(files,PsiModificationTracker.MODIFICATION_COUNT);
+          }
+        }
       }
+      return new Result<List<VirtualFile>>(Collections.singletonList(contextVirtualFile),PsiModificationTracker.MODIFICATION_COUNT);
     }
   }
-  return Collections.singletonList(contextVirtualFile);
+);
 }
