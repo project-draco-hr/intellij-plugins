@@ -1,5 +1,15 @@
 {
   IElementType tokenType=builder.getTokenType();
+  if (tokenType == OPEN_RAW_BLOCK) {
+    PsiBuilder.Marker blockMarker=builder.mark();
+    if (parseOpenRawBlock(builder)) {
+      parseRestOfBlock(builder,blockMarker,true);
+    }
+ else {
+      return false;
+    }
+    return true;
+  }
   if (atOpenInverseExpression(builder)) {
     PsiBuilder.Marker inverseBlockStartMarker=builder.mark();
     PsiBuilder.Marker lookAheadMarker=builder.mark();
@@ -14,7 +24,7 @@
     }
     PsiBuilder.Marker blockMarker=builder.mark();
     if (parseOpenInverse(builder)) {
-      parseRestOfBlock(builder,blockMarker);
+      parseRestOfBlock(builder,blockMarker,false);
     }
  else {
       return false;
@@ -24,7 +34,7 @@
   if (tokenType == OPEN_BLOCK) {
     PsiBuilder.Marker blockMarker=builder.mark();
     if (parseOpenBlock(builder)) {
-      parseRestOfBlock(builder,blockMarker);
+      parseRestOfBlock(builder,blockMarker,false);
     }
  else {
       return false;
