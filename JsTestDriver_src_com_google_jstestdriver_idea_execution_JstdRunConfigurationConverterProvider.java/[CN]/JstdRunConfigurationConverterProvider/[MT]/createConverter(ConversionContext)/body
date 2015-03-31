@@ -1,0 +1,29 @@
+{
+  return new ProjectConverter(){
+    @Override public ConversionProcessor<RunManagerSettings> createRunConfigurationsConverter(){
+      return new ConversionProcessor<RunManagerSettings>(){
+        @Override public boolean isConversionNeeded(        RunManagerSettings settings){
+          for (          Element element : settings.getRunConfigurations()) {
+            if (!"true".equals(element.getAttributeValue("default"))) {
+              String type=element.getAttributeValue(ATTR_TYPE_NAME);
+              if (OLD_JSTD_TYPE_VALUE.equals(type)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+        @Override public void process(        RunManagerSettings settings) throws CannotConvertException {
+          for (          Element element : settings.getRunConfigurations()) {
+            String type=element.getAttributeValue(ATTR_TYPE_NAME);
+            if (OLD_JSTD_TYPE_VALUE.equals(type)) {
+              element.setAttribute(ATTR_TYPE_NAME,JstdConfigurationType.ID);
+            }
+          }
+        }
+      }
+;
+    }
+  }
+;
+}
