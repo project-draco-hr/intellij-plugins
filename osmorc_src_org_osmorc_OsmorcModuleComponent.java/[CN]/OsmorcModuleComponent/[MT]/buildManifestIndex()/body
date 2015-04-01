@@ -1,12 +1,15 @@
 {
   OsmorcFacet facet=OsmorcFacet.getInstance(myModule);
   if (facet != null) {
-    ApplicationManager.getApplication().invokeLater(new Runnable(){
-      @Override public void run(){
-        if (myModule.isDisposed())         return;
-        myBundleManager.reindex(myModule);
+    new Task.Backgroundable(myModule.getProject(),OsmorcBundle.message("index.updating.task"),false){
+      @Override public void run(      @NotNull ProgressIndicator indicator){
+        if (myModule.getProject().isOpen()) {
+          indicator.setIndeterminate(true);
+          indicator.setText(OsmorcBundle.message("index.updating.task"));
+          BundleManager.getInstance(myModule.getProject()).reindex(myModule);
+        }
       }
     }
-,myModule.getDisposed());
+.queue();
   }
 }
