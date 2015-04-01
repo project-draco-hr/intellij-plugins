@@ -1,11 +1,11 @@
 {
   if (virtualFile == null)   return true;
-  if (processedFiles.contains(virtualFile)) {
+  if (alreadyProcessed.contains(virtualFile)) {
     processor.processFilteredOutElementsForImportedFile(virtualFile);
     return true;
   }
-  processedFiles.add(virtualFile);
-  boolean contains=fileNames == null || fileNames.contains(virtualFile.getName());
+  alreadyProcessed.add(virtualFile);
+  boolean contains=filesOfInterest == null || filesOfInterest.contains(virtualFile);
   if (contains) {
     final PsiFile psiFile=context.getManager().findFile(virtualFile);
     for (    PsiElement root : findDartRoots(psiFile)) {
@@ -15,16 +15,13 @@
     }
   }
   for (  String partUrl : DartPartUriIndex.getPartUris(context.getProject(),virtualFile)) {
-    if (fileNames != null && !fileNames.contains(PathUtil.getFileName(partUrl))) {
-      continue;
-    }
     final VirtualFile partFile=getImportedFile(context.getProject(),virtualFile,partUrl);
-    if (partFile == null || processedFiles.contains(partFile)) {
+    if (partFile == null || alreadyProcessed.contains(partFile) || (filesOfInterest != null && !filesOfInterest.contains(partFile))) {
       continue;
     }
     final PsiFile partPsiFile=context.getManager().findFile(partFile);
     if (partPsiFile != null) {
-      if (!processTopLevelDeclarationsImpl(partPsiFile,processor,partFile,fileNames,processedFiles,privateOnly)) {
+      if (!processTopLevelDeclarationsImpl(partPsiFile,processor,partFile,filesOfInterest,alreadyProcessed,privateOnly)) {
         return false;
       }
     }
@@ -45,7 +42,7 @@
     final VirtualFile importedFile=getImportedFile(context.getProject(),virtualFile,importOrExportInfo.getUri());
     if (importedFile != null) {
       processor.importedFileProcessingStarted(importedFile,importOrExportInfo);
-      final boolean continueProcessing=processTopLevelDeclarationsImpl(context,processor,importedFile,fileNames,processedFiles,false);
+      final boolean continueProcessing=processTopLevelDeclarationsImpl(context,processor,importedFile,filesOfInterest,alreadyProcessed,false);
       processor.importedFileProcessingFinished(importedFile);
       if (!continueProcessing) {
         return false;
@@ -57,7 +54,7 @@
     if (dartCoreLib != null) {
       final DartImportOrExportInfo implicitImportInfo=new DartImportOrExportInfo(Kind.Import,DART_CORE_URI,null,Collections.<String>emptySet(),Collections.<String>emptySet());
       processor.importedFileProcessingStarted(dartCoreLib,implicitImportInfo);
-      final boolean continueProcessing=processTopLevelDeclarationsImpl(context,processor,dartCoreLib,fileNames,processedFiles,false);
+      final boolean continueProcessing=processTopLevelDeclarationsImpl(context,processor,dartCoreLib,filesOfInterest,alreadyProcessed,false);
       processor.importedFileProcessingFinished(dartCoreLib);
       if (!continueProcessing) {
         return false;

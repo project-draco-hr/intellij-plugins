@@ -1,11 +1,6 @@
 {
-  final Set<String> fileNames=componentNameHint == null ? null : ContainerUtil.map2Set(DartComponentIndex.getAllFiles(componentNameHint,context.getResolveScope()),new Function<VirtualFile,String>(){
-    @Override public String fun(    VirtualFile file){
-      return file.getName();
-    }
-  }
-);
-  if (fileNames != null && fileNames.isEmpty())   return true;
+  final Set<VirtualFile> filesOfInterest=componentNameHint == null ? null : (Set<VirtualFile>)DartComponentIndex.getAllFiles(componentNameHint,context.getResolveScope());
+  if (filesOfInterest != null && filesOfInterest.isEmpty())   return true;
   final boolean privateOnly=componentNameHint != null && componentNameHint.startsWith("_");
-  return processTopLevelDeclarationsImpl(context,processor,rootVirtualFile,fileNames,new THashSet<VirtualFile>(),privateOnly);
+  return processTopLevelDeclarationsImpl(context,processor,rootVirtualFile,filesOfInterest,new THashSet<VirtualFile>(),privateOnly);
 }
