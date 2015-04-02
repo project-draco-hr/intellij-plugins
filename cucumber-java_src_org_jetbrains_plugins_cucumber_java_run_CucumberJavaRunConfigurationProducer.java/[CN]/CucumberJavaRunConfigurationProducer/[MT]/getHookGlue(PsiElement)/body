@@ -1,0 +1,13 @@
+{
+  final JavaPsiFacade javaPsiFacade=JavaPsiFacade.getInstance(element.getProject());
+  final Set<String> packages=ContainerUtil.newLinkedHashSet();
+  for (  final String fullyQualifiedAnnotationName : HOOK_ANNOTATION_NAMES) {
+    final PsiClass psiClass=javaPsiFacade.findClass(fullyQualifiedAnnotationName,GlobalSearchScope.allScope(element.getProject()));
+    if (psiClass != null) {
+      final Query<PsiMethod> psiMethods=AnnotatedElementsSearch.searchPsiMethods(psiClass,GlobalSearchScope.allScope(element.getProject()));
+      final Collection<PsiMethod> methods=psiMethods.findAll();
+      addPackagesOfMethods(methods,packages);
+    }
+  }
+  return packages;
+}
