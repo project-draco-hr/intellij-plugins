@@ -11,6 +11,7 @@
   final Module module=ModuleUtilCore.findModuleForFile(virtualFile,project);
   if (module == null)   return false;
   String mainClassName=null;
+  String formatterOptions=null;
   final Location location=context.getLocation();
   if (location != null) {
     if (LocationUtil.isJarAttached(location,CUCUMBER_1_0_MAIN_CLASS,new PsiDirectory[0])) {
@@ -18,6 +19,12 @@
     }
  else     if (LocationUtil.isJarAttached(location,CUCUMBER_1_1_MAIN_CLASS,new PsiDirectory[0])) {
       mainClassName=CUCUMBER_1_1_MAIN_CLASS;
+    }
+    if (LocationUtil.isJarAttached(location,CUCUMBER_1_2_PLUGIN_CLASS,new PsiDirectory[0])) {
+      formatterOptions=FORMATTER_OPTIONS_1_2;
+    }
+ else {
+      formatterOptions=FORMATTER_OPTIONS;
     }
   }
   if (mainClassName == null) {
@@ -33,7 +40,7 @@
   }
   configuration.setNameFilter(getNameFilter(context));
   configuration.setFilePath(file.getPath());
-  configuration.setProgramParameters(FORMATTER_OPTIONS);
+  configuration.setProgramParameters(formatterOptions);
   if (StringUtil.isEmpty(configuration.MAIN_CLASS_NAME)) {
     configuration.MAIN_CLASS_NAME=mainClassName;
   }
