@@ -1,48 +1,56 @@
 {
   IElementType tokenType=builder.getTokenType();
+{
+    if (atOpenInverseExpression(builder)) {
+      PsiBuilder.Marker inverseBlockStartMarker=builder.mark();
+      PsiBuilder.Marker lookAheadMarker=builder.mark();
+      boolean isSimpleInverse=parseSimpleInverse(builder);
+      lookAheadMarker.rollbackTo();
+      if (isSimpleInverse) {
+        inverseBlockStartMarker.rollbackTo();
+        return false;
+      }
+ else {
+        inverseBlockStartMarker.drop();
+      }
+      PsiBuilder.Marker blockMarker=builder.mark();
+      if (parseOpenInverse(builder)) {
+        parseProgramInverseProgramClose(builder,blockMarker,false);
+      }
+ else {
+        return false;
+      }
+      return true;
+    }
+    if (tokenType == OPEN_BLOCK) {
+      PsiBuilder.Marker blockMarker=builder.mark();
+      if (parseOpenBlock(builder)) {
+        parseProgramInverseProgramClose(builder,blockMarker,false);
+      }
+ else {
+        return false;
+      }
+      return true;
+    }
+  }
+{
+    if (tokenType == OPEN) {
+      parseMustache(builder,OPEN,CLOSE);
+      return true;
+    }
+    if (tokenType == OPEN_UNESCAPED) {
+      parseMustache(builder,OPEN_UNESCAPED,CLOSE_UNESCAPED);
+      return true;
+    }
+  }
   if (tokenType == OPEN_RAW_BLOCK) {
     PsiBuilder.Marker blockMarker=builder.mark();
     if (parseOpenRawBlock(builder)) {
-      parseRestOfBlock(builder,blockMarker,true);
+      parseProgramInverseProgramClose(builder,blockMarker,true);
     }
  else {
       return false;
     }
-    return true;
-  }
-  if (atOpenInverseExpression(builder)) {
-    PsiBuilder.Marker inverseBlockStartMarker=builder.mark();
-    PsiBuilder.Marker lookAheadMarker=builder.mark();
-    boolean isSimpleInverse=parseSimpleInverse(builder);
-    lookAheadMarker.rollbackTo();
-    if (isSimpleInverse) {
-      inverseBlockStartMarker.rollbackTo();
-      return false;
-    }
- else {
-      inverseBlockStartMarker.drop();
-    }
-    PsiBuilder.Marker blockMarker=builder.mark();
-    if (parseOpenInverse(builder)) {
-      parseRestOfBlock(builder,blockMarker,false);
-    }
- else {
-      return false;
-    }
-    return true;
-  }
-  if (tokenType == OPEN_BLOCK) {
-    PsiBuilder.Marker blockMarker=builder.mark();
-    if (parseOpenBlock(builder)) {
-      parseRestOfBlock(builder,blockMarker,false);
-    }
- else {
-      return false;
-    }
-    return true;
-  }
-  if (tokenType == OPEN || tokenType == OPEN_UNESCAPED) {
-    parseMustache(builder);
     return true;
   }
   if (tokenType == OPEN_PARTIAL) {
