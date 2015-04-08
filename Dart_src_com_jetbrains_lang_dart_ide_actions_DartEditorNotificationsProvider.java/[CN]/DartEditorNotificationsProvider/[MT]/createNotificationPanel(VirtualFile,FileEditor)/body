@@ -1,9 +1,53 @@
 {
-  if (file.isInLocalFileSystem() && PubspecYamlUtil.PUBSPEC_YAML.equalsIgnoreCase(file.getName())) {
+  if (!vFile.isInLocalFileSystem()) {
+    return null;
+  }
+  if (PubspecYamlUtil.PUBSPEC_YAML.equalsIgnoreCase(vFile.getName())) {
     final DartSdk sdk=DartSdk.getDartSdk(myProject);
-    final Module module=ModuleUtilCore.findModuleForFile(file,myProject);
+    final Module module=ModuleUtilCore.findModuleForFile(vFile,myProject);
     if (module != null && sdk != null && DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
       return new PubActionsPanel();
+    }
+  }
+ else   if (vFile.getFileType() == DartFileType.INSTANCE) {
+    final DartSdk sdk=DartSdk.getDartSdk(myProject);
+    if (sdk == null) {
+      return new SDKNotConfiguredPanel(DartBundle.message("dart.sdk.is.not.configured"));
+    }
+    final PsiFile psiFile=PsiManager.getInstance(myProject).findFile(vFile);
+    if (psiFile == null)     return null;
+    final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
+    if (module == null)     return null;
+    if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+      final String message=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? DartBundle.message("dart.support.is.not.enabled.for.module.0",module.getName()) : DartBundle.message("dart.support.is.not.enabled.for.project");
+      return new SDKNotConfiguredForModulePanel(message,module,sdk.getGlobalLibName());
+    }
+    if (StringUtil.compareVersionNumbers(sdk.getVersion(),DartAnalysisServerService.MIN_SDK_VERSION) < 0) {
+      final String message=DartBundle.message("old.dart.sdk.configured",DartAnalysisServerService.MIN_SDK_VERSION,sdk.getVersion());
+      return new OldSDKConfiguredPanel(message);
+    }
+    final PropertiesComponent propertiesComponent=PropertiesComponent.getInstance(myProject);
+    boolean checkForLatestSDK=propertiesComponent.getBoolean(DartConfigurable.DART_DO_CHECK_FOR_LATEST_SDK_KEY,DartConfigurable.DART_DO_CHECK_FOR_LATEST_SDK_DEFAULT_VALUE);
+    long currentTimeMillis=System.currentTimeMillis();
+    long lastCheck=propertiesComponent.getOrInitLong(DART_LAST_SDK_CHECK_KEY,DART_LAST_SDK_CHECK_DEFAULT_VALUE);
+    if (checkForLatestSDK && (currentTimeMillis - lastCheck) > MILLIS_IN_ONE_DAY) {
+      propertiesComponent.setValue(DART_LAST_SDK_CHECK_KEY,Long.valueOf(currentTimeMillis).toString());
+      boolean checkForStable=propertiesComponent.getBoolean(DartConfigurable.DART_CHECK_FOR_LATEST_STABLE_SDK_KEY,DartConfigurable.DART_CHECK_FOR_LATEST_STABLE_SDK_DEFAULT_VALUE);
+      if (checkForStable) {
+        final DartSdkUtil.SdkUpdateInfo updateInfoStable=DartSdkUtil.checkForNewerStableSDK(sdk.getHomePath());
+        if (updateInfoStable != null) {
+          final String message=DartBundle.message("new.dart.sdk.available",updateInfoStable.getRevision(),sdk.getVersion());
+          return new NewSDKAvailable(message,DartSdkUtil.SdkReleaseChannel.STABLE.getDownloadUrl());
+        }
+      }
+      boolean checkForDev=propertiesComponent.getBoolean(DartConfigurable.DART_CHECK_FOR_LATEST_DEV_SDK_KEY,DartConfigurable.DART_CHECK_FOR_LATEST_DEV_SDK_DEFAULT_VALUE);
+      if (checkForDev) {
+        final DartSdkUtil.SdkUpdateInfo updateInfoDev=DartSdkUtil.checkForNewerDevSDK(sdk.getHomePath());
+        if (updateInfoDev != null) {
+          final String message=DartBundle.message("new.dart.sdk.available",updateInfoDev.getRevision(),sdk.getVersion());
+          return new NewSDKAvailable(message,DartSdkUtil.SdkReleaseChannel.DEV.getDownloadUrl());
+        }
+      }
     }
   }
   return null;
