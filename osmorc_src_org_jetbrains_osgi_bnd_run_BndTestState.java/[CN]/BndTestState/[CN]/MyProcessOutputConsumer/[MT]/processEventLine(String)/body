@@ -1,0 +1,40 @@
+{
+  if (LOG.isDebugEnabled())   LOG.debug(">> " + line);
+  if (myTrace != null) {
+    if (Proto.TRACE_END.equals(line)) {
+      processTrace();
+    }
+ else {
+      myTrace.add(line);
+    }
+    return;
+  }
+  if (line.length() >= EVENT_TYPE_LEN && line.charAt(0) == '%') {
+    if (line.startsWith(Proto.INIT)) {
+      processInit(line);
+    }
+ else     if (line.startsWith(Proto.TREE)) {
+      processTreeLine(line);
+    }
+ else     if (line.startsWith(Proto.TEST)) {
+      processTestStart(line);
+    }
+ else     if (line.startsWith(Proto.FAILED)) {
+      myReason=Proto.FAILED;
+      myFailingTest=line;
+    }
+ else     if (line.startsWith(Proto.ERROR)) {
+      myReason=Proto.ERROR;
+      myFailingTest=line;
+    }
+ else     if (Proto.TRACE.equals(line)) {
+      myTrace=ContainerUtil.newArrayListWithCapacity(20);
+    }
+ else     if (line.startsWith(Proto.TEST_END)) {
+      processTestEnd(line);
+    }
+ else     if (line.startsWith(Proto.DONE)) {
+      processDone();
+    }
+  }
+}

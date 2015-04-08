@@ -1,0 +1,30 @@
+{
+  super(environment);
+  myConfiguration=configuration;
+  File runFile=new File(myConfiguration.bndRunFile);
+  if (!runFile.isFile()) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile));
+  }
+  try {
+    myTester=Workspace.getRun(runFile).getProjectTester();
+  }
+ catch (  Exception e) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile),e);
+  }
+  if (!(myTester instanceof EclipseJUnitTester)) {
+    throw new CantRunException(OsmorcBundle.message("bnd.test.runner.unsupported",myTester.getClass().getName()));
+  }
+  try {
+    mySocket=new ServerSocket(0);
+    ((EclipseJUnitTester)myTester).setPort(mySocket.getLocalPort());
+  }
+ catch (  Exception e) {
+    throw new CantRunException(OsmorcBundle.message("bnd.test.cannot.run",e.getMessage()),e);
+  }
+  try {
+    myTester.prepare();
+  }
+ catch (  Exception e) {
+    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile),e);
+  }
+}

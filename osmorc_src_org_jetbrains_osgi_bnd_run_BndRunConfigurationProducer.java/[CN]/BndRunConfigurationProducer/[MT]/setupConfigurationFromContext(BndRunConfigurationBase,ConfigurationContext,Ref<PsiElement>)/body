@@ -1,0 +1,18 @@
+{
+  Location location=context.getLocation();
+  if (location != null) {
+    VirtualFile file=location.getVirtualFile();
+    if (file != null && !file.isDirectory()) {
+      String extension=file.getExtension();
+      if (BndFileType.BND_RUN_EXT.equals(extension) || BndFileType.BND_EXT.equals(extension)) {
+        Boolean hasTestCases=BndLaunchUtil.hasTestCases(file.getPath());
+        if (hasTestCases == Boolean.FALSE && configuration instanceof BndRunConfigurationBase.Launch || hasTestCases == Boolean.TRUE && configuration instanceof BndRunConfigurationBase.Test) {
+          configuration.setName(context.getModule().getName());
+          configuration.bndRunFile=file.getPath();
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}

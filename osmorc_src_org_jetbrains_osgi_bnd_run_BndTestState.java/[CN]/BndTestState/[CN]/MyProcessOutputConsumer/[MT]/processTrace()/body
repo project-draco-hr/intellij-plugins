@@ -1,0 +1,33 @@
+{
+  if (myTrace != null) {
+    StringBuilder header=new StringBuilder();
+    StringBuilder stack=new StringBuilder();
+    boolean inStack=false;
+    for (    String line : myTrace) {
+      if (!inStack && line.startsWith("\tat ")) {
+        inStack=true;
+      }
+      (inStack ? stack : header).append(line).append('\n');
+    }
+    Pair<String,String> pair=null;
+    String message=header.toString();
+    if (message.startsWith("org.junit.") || message.startsWith("junit.framework.")) {
+      pair=matchComparison(message);
+      if (pair != null) {
+        myReason=Proto.FAILED;
+      }
+    }
+    if (myFailingTest != null) {
+      String testName=fullTestName(parseTestName(myFailingTest,false),myFailingTest);
+      boolean testError=myReason != Proto.FAILED;
+      String expected=pair != null ? pair.first : null;
+      String actual=pair != null ? pair.second : null;
+      myProcessor.onTestFailure(new TestFailedEvent(testName,message,stack.toString(),testError,actual,expected));
+    }
+ else {
+      myProcessor.onError(message,stack.toString(),false);
+    }
+  }
+  myTrace=null;
+  myReason=null;
+}

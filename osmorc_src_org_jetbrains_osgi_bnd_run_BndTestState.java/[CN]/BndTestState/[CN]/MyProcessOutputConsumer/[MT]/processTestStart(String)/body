@@ -1,0 +1,24 @@
+{
+  myTestStarted=System.currentTimeMillis();
+  Pair<String,String> names=parseTestName(line,false);
+  String testName=fullTestName(names,line);
+  if (myTestCount > 0) {
+    myProcessor.onTestsCountInSuite(myTestCount);
+    myTestCount=-1;
+  }
+  if (names != null) {
+    String suite=names.first;
+    if (!suite.equals(myCurrentSuite)) {
+      if (myCurrentSuite != null) {
+        myProcessor.onSuiteFinished(new TestSuiteFinishedEvent(myCurrentSuite));
+      }
+      myProcessor.onSuiteStarted(new TestSuiteStartedEvent(suite,null));
+      myCurrentSuite=suite;
+    }
+  }
+  GeneralTestEventsProcessor processor=myProcessor;
+synchronized (myTestLock) {
+    myCurrentTest=testName;
+    processor.onTestStarted(new TestStartedEvent(testName,null));
+  }
+}
