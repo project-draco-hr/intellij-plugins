@@ -3,7 +3,9 @@
     myDebugProcess.getVmConnection().evaluateOnCallFrame(myVmCallFrame.getIsolate(),myVmCallFrame,expression,new VmCallback<VmValue>(){
       public void handleResult(      final VmResult<VmValue> result){
         if (result.isError()) {
-          callback.errorOccurred(result.getError());
+          if (expressionPosition == null && result.getError() != null) {
+            callback.errorOccurred(getPresentableError(result.getError()));
+          }
         }
  else {
           final VmValue vmValue=result.getResult();
