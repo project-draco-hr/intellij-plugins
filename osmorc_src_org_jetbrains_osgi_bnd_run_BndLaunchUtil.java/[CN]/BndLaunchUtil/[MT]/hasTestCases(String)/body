@@ -5,6 +5,14 @@
       Processor processor=new Processor();
       processor.setProperties(file);
       if (processor.get(Constants.RUNFW) != null) {
+        if (!BndProjectImporter.BND_FILE.equals(file.getName())) {
+          File projectFile=new File(file.getParent(),BndProjectImporter.BND_FILE);
+          if (projectFile.isFile()) {
+            Processor project=new Processor();
+            project.setProperties(projectFile);
+            processor.setParent(project);
+          }
+        }
         boolean hasTestCases=processor.get(Constants.TESTCASES) != null;
         return hasTestCases ? Boolean.TRUE : Boolean.FALSE;
       }
