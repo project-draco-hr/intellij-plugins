@@ -4,7 +4,17 @@ synchronized (myLock) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("analysis_setPriorityFiles, files:\n" + StringUtil.join(myPriorityFiles,",\n"));
     }
-    myServer.analysis_setPriorityFiles(myPriorityFiles);
+    final AnalysisServer server=myServer;
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.analysis_setPriorityFiles(myPriorityFiles);
+      }
+    }
+,"analysis_setPriorityFiles(" + StringUtil.join(myPriorityFiles,", ") + ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return false;
+    }
     return true;
   }
 }

@@ -3,10 +3,17 @@ synchronized (myLock) {
     if (myServer != null) {
       LOG.debug("stopping server");
       myServer.removeAnalysisServerListener(myAnalysisServerListener);
-      try {
-        myServer.server_shutdown();
+      final AnalysisServer server=myServer;
+      final boolean ok=runInPooledThreadAndWait(new Runnable(){
+        @Override public void run(){
+          server.server_shutdown();
+        }
       }
- catch (      Exception e) {
+,"server_shutdown()",SEND_REQUEST_TIMEOUT);
+      if (!ok) {
+        if (myServerSocket != null) {
+          myServerSocket.stop();
+        }
       }
     }
     onServerStopped();

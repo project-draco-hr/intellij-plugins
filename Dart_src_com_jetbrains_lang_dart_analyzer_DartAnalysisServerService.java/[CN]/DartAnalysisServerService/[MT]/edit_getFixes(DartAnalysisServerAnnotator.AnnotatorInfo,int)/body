@@ -5,7 +5,7 @@
 synchronized (myLock) {
     if (myServer == null)     return null;
     semaphore.down();
-    myServer.edit_getFixes(filePath,offset,new GetFixesConsumer(){
+    final GetFixesConsumer consumer=new GetFixesConsumer(){
       @Override public void computedFixes(      final List<AnalysisErrorFixes> fixes){
         resultRef.set(fixes);
         semaphore.up();
@@ -15,7 +15,18 @@ synchronized (myLock) {
         semaphore.up();
       }
     }
-);
+;
+    final AnalysisServer server=myServer;
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.edit_getFixes(filePath,offset,consumer);
+      }
+    }
+,"edit_getFixes(" + filePath + ", "+ offset+ ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return null;
+    }
   }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(GET_FIXES_TIMEOUT);

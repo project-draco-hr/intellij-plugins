@@ -29,11 +29,22 @@ synchronized (myLock) {
       }
     }
     if (!filesToUpdate.isEmpty()) {
-      myServer.analysis_updateContent(filesToUpdate,new UpdateContentConsumer(){
+      final UpdateContentConsumer consumer=new UpdateContentConsumer(){
         @Override public void onResponse(){
         }
       }
-);
+;
+      final AnalysisServer server=myServer;
+      final boolean ok=runInPooledThreadAndWait(new Runnable(){
+        @Override public void run(){
+          server.analysis_updateContent(filesToUpdate,consumer);
+        }
+      }
+,"analysis_updateContent(" + StringUtil.join(filesToUpdate.keySet(),", ") + ")",SEND_REQUEST_TIMEOUT);
+      if (!ok) {
+        stopServer();
+        return;
+      }
     }
   }
 }

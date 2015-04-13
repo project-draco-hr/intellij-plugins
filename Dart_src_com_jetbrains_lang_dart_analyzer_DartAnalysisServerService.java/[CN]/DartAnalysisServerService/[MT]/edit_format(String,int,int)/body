@@ -4,7 +4,7 @@
 synchronized (myLock) {
     if (myServer == null)     return null;
     semaphore.down();
-    myServer.edit_format(filePath,selectionOffset,selectionLength,new FormatConsumer(){
+    final FormatConsumer consumer=new FormatConsumer(){
       @Override public void computedFormat(      final List<SourceEdit> edits,      final int selectionOffset,      final int selectionLength){
         resultRef.set(new FormatResult(edits,selectionOffset,selectionLength));
         semaphore.up();
@@ -14,7 +14,18 @@ synchronized (myLock) {
         semaphore.up();
       }
     }
-);
+;
+    final AnalysisServer server=myServer;
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.edit_format(filePath,selectionOffset,selectionLength,consumer);
+      }
+    }
+,"edit_format(" + filePath + ", "+ selectionOffset+ ", "+ selectionLength+ ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return null;
+    }
   }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(EDIT_FORMAT_TIMEOUT);

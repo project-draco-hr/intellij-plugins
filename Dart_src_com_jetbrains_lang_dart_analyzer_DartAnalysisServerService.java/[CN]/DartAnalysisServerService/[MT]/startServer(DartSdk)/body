@@ -11,16 +11,26 @@ synchronized (myLock) {
     }
 ;
     final int port=NetUtils.tryToFindAvailableSocketPort(10000);
-    final StdioServerSocket serverSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false,FileReadMode.NORMALIZE_EOL_ALWAYS);
-    serverSocket.setClientId(ApplicationNamesInfo.getInstance().getFullProductName().replace(' ','_'));
-    serverSocket.setClientVersion(ApplicationInfo.getInstance().getApiVersion());
-    myServer=new RemoteAnalysisServerImpl(serverSocket);
+    myServerSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false,FileReadMode.NORMALIZE_EOL_ALWAYS);
+    myServerSocket.setClientId(ApplicationNamesInfo.getInstance().getFullProductName().replace(' ','_'));
+    myServerSocket.setClientVersion(ApplicationInfo.getInstance().getApiVersion());
+    myServer=new RemoteAnalysisServerImpl(myServerSocket);
     try {
       myServer.start();
       myServer.server_setSubscriptions(SERVER_SUBSCRIPTIONS);
       myServer.addAnalysisServerListener(myAnalysisServerListener);
       mySdkVersion=sdk.getVersion();
-      myServer.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true,false));
+      final AnalysisServer server=myServer;
+      final boolean ok=runInPooledThreadAndWait(new Runnable(){
+        @Override public void run(){
+          server.analysis_updateOptions(new AnalysisOptions(true,true,true,false,true,false));
+        }
+      }
+,"analysis_updateOptions(true, true, true, false, true, false)",SEND_REQUEST_TIMEOUT);
+      if (!ok) {
+        stopServer();
+        return;
+      }
       LOG.info("Server started, see status at http://localhost:" + port + "/status");
     }
  catch (    Exception e) {
