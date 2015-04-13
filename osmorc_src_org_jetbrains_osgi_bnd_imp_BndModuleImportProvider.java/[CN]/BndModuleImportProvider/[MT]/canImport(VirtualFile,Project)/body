@@ -1,3 +1,6 @@
 {
-  return BndProjectImporter.getWorkspace(project) != null && (!fileOrDir.isDirectory() && BndProjectImporter.BND_FILE.equals(fileOrDir.getName()) || fileOrDir.isDirectory() && fileOrDir.findChild(BndProjectImporter.BND_FILE) != null);
+  Workspace ws=BndProjectImporter.getWorkspace(project);
+  if (ws == null)   return false;
+  File projectDir=fileOrDir.isDirectory() ? new File(fileOrDir.getPath()) : new File(fileOrDir.getPath()).getParentFile();
+  return FileUtil.filesEqual(ws.getBase(),projectDir.getParentFile()) && projectDir.isDirectory() && new File(projectDir,BndProjectImporter.BND_FILE).isFile();
 }
