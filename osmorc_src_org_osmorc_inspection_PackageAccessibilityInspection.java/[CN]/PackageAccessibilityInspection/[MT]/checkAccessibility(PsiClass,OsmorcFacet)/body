@@ -35,14 +35,17 @@
     Library library=((LibraryOrderEntry)entry).getLibrary();
     if (library != null) {
       BundleManifest manifest=bundleManager.getManifestByObject(library);
-      exportedPackage=manifest != null ? manifest.getExportedPackage(packageName) : null;
+      if (manifest == null || manifest.getBundleSymbolicName() == null) {
+        return Problem.weak(message("PackageAccessibilityInspection.non.osgi",packageName));
+      }
+      exportedPackage=manifest.getExportedPackage(packageName);
     }
   }
  else   if (entry instanceof JdkOrderEntry) {
     exportedPackage=packageName;
   }
   if (exportedPackage == null) {
-    return NOT_EXPORTED;
+    return Problem.error(message("PackageAccessibilityInspection.not.exported",packageName));
   }
   if (!facet.getConfiguration().isManifestManuallyEdited()) {
     return null;
@@ -59,5 +62,5 @@
       }
     }
   }
-  return exportedPackage;
+  return Problem.error(message("PackageAccessibilityInspection.not.imported",packageName),new ImportPackageFix(exportedPackage));
 }
