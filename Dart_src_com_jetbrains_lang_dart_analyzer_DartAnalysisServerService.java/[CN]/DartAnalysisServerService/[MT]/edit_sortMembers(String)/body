@@ -1,0 +1,37 @@
+{
+  final Ref<SourceFileEdit> resultRef=new Ref<SourceFileEdit>();
+  final Semaphore semaphore=new Semaphore();
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    final SortMembersConsumer consumer=new SortMembersConsumer(){
+      @Override public void computedEdit(      final SourceFileEdit edit){
+        resultRef.set(edit);
+        semaphore.up();
+      }
+      @Override public void onError(      final RequestError error){
+        logError("edit_sortMembers()",filePath,error);
+        semaphore.up();
+      }
+    }
+;
+    final AnalysisServer server=myServer;
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.edit_sortMembers(filePath,consumer);
+      }
+    }
+,"edit_format(" + filePath + ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return null;
+    }
+  }
+  final long t0=System.currentTimeMillis();
+  semaphore.waitFor(EDIT_SORT_MEMBERS_TIMEOUT);
+  if (semaphore.tryUp()) {
+    LOG.info("edit_sortMembers() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    return null;
+  }
+  return resultRef.get();
+}
