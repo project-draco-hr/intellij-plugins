@@ -1,13 +1,10 @@
 {
   KarmaRunConfiguration runConfiguration=(KarmaRunConfiguration)myEnvironment.getRunProfile();
-  TestConsoleProperties testConsoleProperties=new SMTRunnerConsoleProperties(runConfiguration,FRAMEWORK_NAME,myExecutor,false);
-  testConsoleProperties.setUsePredefinedMessageFilter(false);
-  testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_PASSED_TESTS,false);
-  testConsoleProperties.setIfUndefined(TestConsoleProperties.HIDE_IGNORED_TEST,true);
-  testConsoleProperties.setIfUndefined(TestConsoleProperties.SCROLL_TO_SOURCE,true);
-  testConsoleProperties.setIfUndefined(TestConsoleProperties.SELECT_FIRST_DEFECT,true);
-  KarmaConsoleView consoleView=new KarmaConsoleView(testConsoleProperties,myEnvironment,SMTestRunnerConnectionUtil.getSplitterPropertyName(FRAMEWORK_NAME),myKarmaServer,this);
+  TestConsoleProperties testConsoleProperties=new KarmaConsoleProperties(runConfiguration,myExecutor);
+  String propertyName=SMTestRunnerConnectionUtil.getSplitterPropertyName(FRAMEWORK_NAME);
+  KarmaTestProxyFilterProvider filterProvider=new KarmaTestProxyFilterProvider(myProject,myKarmaServer);
+  KarmaConsoleView consoleView=new KarmaConsoleView(testConsoleProperties,myEnvironment,propertyName,myKarmaServer,this);
   Disposer.register(myProject,consoleView);
-  SMTestRunnerConnectionUtil.initConsoleView(consoleView,FRAMEWORK_NAME,new KarmaTestLocationProvider(myProject),true,new KarmaTestProxyFilterProvider(myProject,myKarmaServer));
+  SMTestRunnerConnectionUtil.initConsoleView(consoleView,FRAMEWORK_NAME,null,true,filterProvider);
   return consoleView;
 }

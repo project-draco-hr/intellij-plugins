@@ -1,0 +1,17 @@
+{
+  String key=JsTestFileByTestNameIndex.createJasmineKey(suiteNames);
+  GlobalSearchScope scope=GlobalSearchScope.projectScope(project);
+  List<VirtualFile> jsTestVirtualFiles=JsTestFileByTestNameIndex.findJsTestFilesByNameInScope(key,scope);
+  JasmineFileStructureBuilder builder=JasmineFileStructureBuilder.getInstance();
+  for (  VirtualFile file : jsTestVirtualFiles) {
+    PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+    if (psiFile instanceof JSFile) {
+      JasmineFileStructure jasmineFileStructure=builder.fetchCachedTestFileStructure((JSFile)psiFile);
+      PsiElement element=jasmineFileStructure.findPsiElement(suiteNames,testName);
+      if (element != null && element.isValid()) {
+        return element;
+      }
+    }
+  }
+  return null;
+}

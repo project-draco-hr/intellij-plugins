@@ -1,0 +1,17 @@
+{
+  String key=JsTestFileByTestNameIndex.createQUnitKey(moduleName,testName);
+  GlobalSearchScope scope=GlobalSearchScope.projectScope(project);
+  List<VirtualFile> jsTestVirtualFiles=JsTestFileByTestNameIndex.findJsTestFilesByNameInScope(key,scope);
+  QUnitFileStructureBuilder builder=QUnitFileStructureBuilder.getInstance();
+  for (  VirtualFile file : jsTestVirtualFiles) {
+    PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
+    if (psiFile instanceof JSFile) {
+      QUnitFileStructure qunitFileStructure=builder.fetchCachedTestFileStructure((JSFile)psiFile);
+      PsiElement element=qunitFileStructure.findPsiElement(moduleName,testName);
+      if (element != null && element.isValid()) {
+        return element;
+      }
+    }
+  }
+  return null;
+}
