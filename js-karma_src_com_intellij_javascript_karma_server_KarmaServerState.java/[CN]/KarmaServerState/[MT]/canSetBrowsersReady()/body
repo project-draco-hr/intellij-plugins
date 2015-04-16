@@ -1,5 +1,5 @@
 {
-  List<String> expectedBrowsers=myOverridenBrowsers;
+  List<String> expectedBrowsers=myOverriddenBrowsers;
   if (expectedBrowsers == null) {
     KarmaConfig config=myConfig;
     if (config == null) {
@@ -7,6 +7,8 @@
     }
     expectedBrowsers=config.getBrowsers();
   }
-  int autoCapturedBrowsers=getAutoCapturedBrowserCount();
-  return autoCapturedBrowsers == expectedBrowsers.size();
+  Set<String> expectedBrowserSet=ContainerUtil.newHashSet(expectedBrowsers);
+  expectedBrowserSet.removeAll(myFailedToStartBrowsers);
+  int autoCapturedBrowserCount=getAutoCapturedBrowserCount();
+  return autoCapturedBrowserCount > 0 && expectedBrowserSet.size() <= autoCapturedBrowserCount;
 }

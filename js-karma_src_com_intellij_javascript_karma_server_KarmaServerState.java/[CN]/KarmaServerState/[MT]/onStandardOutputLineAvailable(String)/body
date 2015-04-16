@@ -1,0 +1,22 @@
+{
+  int serverPort=myBoundServerPort.get();
+  if (serverPort == -1) {
+    serverPort=parseServerPort(line);
+    if (serverPort != -1 && myBoundServerPort.compareAndSet(-1,serverPort)) {
+      myServer.fireOnPortBound();
+    }
+  }
+  if (!myBrowsersReady.get()) {
+    String failedToStartBrowser=getInnerSubstring(line,UNREGISTERED_LAUNCHER_PREFIX,UNREGISTERED_LAUNCHER_SUFFIX);
+    if (failedToStartBrowser == null) {
+      failedToStartBrowser=getInnerSubstring(line,NO_BINARY_PREFIX,NO_BINARY_SUFFIX);
+    }
+    if (failedToStartBrowser != null) {
+      LOG.info("Browser " + failedToStartBrowser + " failed to start: "+ line);
+      myFailedToStartBrowsers.add(failedToStartBrowser);
+      if (canSetBrowsersReady()) {
+        setBrowsersReady();
+      }
+    }
+  }
+}

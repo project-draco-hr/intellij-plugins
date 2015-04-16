@@ -3,15 +3,10 @@
     @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
       String text=event.getText();
       if (outputType != ProcessOutputTypes.SYSTEM && outputType != ProcessOutputTypes.STDERR) {
-        if (handleLineAsEvent(text)) {
-          return;
-        }
+        processStandardOutput(text,outputType);
       }
-synchronized (myTexts) {
-        myTexts.add(Pair.create(text,outputType));
-        for (        ArchivedOutputListener listener : myOutputListeners) {
-          listener.onOutputAvailable(event.getText(),outputType,false);
-        }
+ else {
+        addText(text,outputType);
       }
     }
   }
