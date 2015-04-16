@@ -1,9 +1,10 @@
 {
-  final PsiFile psiFile=PsiUtilBase.getPsiFileInEditor(editor,project);
-  if (psiFile == null)   return;
+  final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+  if (psiFile == null || psiFile.getVirtualFile() == null || psiFile.getFileType() != DartFileType.INSTANCE)   return;
+  final Document document=editor.getDocument();
+  if (!ReadonlyStatusHandler.ensureDocumentWritable(project,document))   return;
   final Runnable runnable=new Runnable(){
     public void run(){
-      final Document document=editor.getDocument();
       final String path=FileUtil.toSystemDependentName(psiFile.getVirtualFile().getPath());
       int caretOffset=editor.getCaretModel().getOffset();
       DartAnalysisServerService.getInstance().updateFilesContent();
