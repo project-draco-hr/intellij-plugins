@@ -1,0 +1,21 @@
+{
+  final List<VirtualFile> dartFiles=new ArrayList<VirtualFile>();
+  if (files == null)   return dartFiles;
+  for (  VirtualFile virtualFile : files) {
+    VfsUtilCore.visitChildrenRecursively(virtualFile,new VirtualFileVisitor(){
+      @NotNull @Override public Result visitFileEx(      @NotNull VirtualFile file){
+        if (file.isDirectory() || file.getFileType() != DartFileType.INSTANCE)         return CONTINUE;
+        final Module module=ModuleUtilCore.findModuleForFile(file,project);
+        if (module == null)         return CONTINUE;
+        final DartSdk sdk=DartSdk.getDartSdk(project);
+        if (sdk == null || !DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk))         return CONTINUE;
+        if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName()))         return CONTINUE;
+        if (DartWritingAccessProvider.isInDartSdkOrDartPackagesFolder(project,file))         return CONTINUE;
+        dartFiles.add(file);
+        return CONTINUE;
+      }
+    }
+);
+  }
+  return dartFiles;
+}
