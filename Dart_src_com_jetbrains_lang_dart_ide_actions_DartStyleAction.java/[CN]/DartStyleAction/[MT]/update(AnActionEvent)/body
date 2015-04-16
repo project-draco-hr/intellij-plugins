@@ -1,25 +1,17 @@
 {
-  super.update(event);
   final Presentation presentation=event.getPresentation();
-  final DataContext dataContext=event.getDataContext();
-  final Project project=CommonDataKeys.PROJECT.getData(dataContext);
+  final Project project=event.getProject();
   if (project == null) {
     presentation.setVisible(false);
     presentation.setEnabled(false);
     return;
   }
-  presentation.setVisible(FileTypeIndex.containsFileOfType(DartFileType.INSTANCE,GlobalSearchScope.projectScope(project)));
-  final Editor editor=CommonDataKeys.EDITOR.getData(dataContext);
+  final Editor editor=event.getData(CommonDataKeys.EDITOR);
   if (editor != null) {
-    PsiFile file=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
-    if (file == null || file.getVirtualFile() == null || file.getFileType() != DartFileType.INSTANCE) {
-      presentation.setEnabled(false);
-      return;
-    }
- else {
-      presentation.setEnabled(true);
-      return;
-    }
+    final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    presentation.setVisible(psiFile != null && psiFile.getFileType() == DartFileType.INSTANCE);
+    presentation.setEnabled(isApplicableFile(psiFile));
+    return;
   }
-  presentation.setEnabled(false);
+  presentation.setEnabledAndVisible(false);
 }
