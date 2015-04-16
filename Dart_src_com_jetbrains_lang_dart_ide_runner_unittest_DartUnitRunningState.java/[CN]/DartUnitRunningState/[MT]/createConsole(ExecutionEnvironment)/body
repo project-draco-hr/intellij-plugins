@@ -3,16 +3,16 @@
   final DartUnitRunConfiguration runConfiguration=(DartUnitRunConfiguration)env.getRunProfile();
   final DartUnitRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
   final TestConsoleProperties testConsoleProperties=new DartConsoleProperties(runConfiguration,env);
-  final SMTRunnerConsoleView smtConsoleView=SMTestRunnerConnectionUtil.createConsoleWithCustomLocator(DART_FRAMEWORK_NAME,testConsoleProperties,env,null,true,null);
+  final ConsoleView consoleView=SMTestRunnerConnectionUtil.createConsole(DART_FRAMEWORK_NAME,testConsoleProperties,env);
   try {
     final VirtualFile dartFile=runnerParameters.getDartFile();
-    smtConsoleView.addMessageFilter(new DartConsoleFilter(project,dartFile));
+    consoleView.addMessageFilter(new DartConsoleFilter(project,dartFile));
     final String workingDir=StringUtil.isEmptyOrSpaces(runnerParameters.getWorkingDirectory()) ? dartFile.getParent().getPath() : runnerParameters.getWorkingDirectory();
-    smtConsoleView.addMessageFilter(new DartRelativePathsConsoleFilter(project,workingDir));
-    smtConsoleView.addMessageFilter(new UrlFilter());
+    consoleView.addMessageFilter(new DartRelativePathsConsoleFilter(project,workingDir));
+    consoleView.addMessageFilter(new UrlFilter());
   }
  catch (  RuntimeConfigurationError ignore) {
   }
-  Disposer.register(project,smtConsoleView);
-  return smtConsoleView;
+  Disposer.register(project,consoleView);
+  return consoleView;
 }
