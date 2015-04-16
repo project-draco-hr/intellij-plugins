@@ -5,8 +5,13 @@
   KillableColoredProcessHandler processHandler=startServer(serverSettings);
   myProcessHashCode=System.identityHashCode(processHandler.getProcess());
   File configurationFile=myServerSettings.getConfigurationFile();
-  myState=new KarmaServerState(this,processHandler,configurationFile);
-  myProcessOutputArchive=new ProcessOutputArchive(processHandler);
+  myState=new KarmaServerState(this,configurationFile);
+  myProcessOutputArchive=new ProcessOutputArchive(processHandler){
+    @Override protected void onStandardOutputLineAvailable(    @NotNull String line){
+      myState.onStandardOutputLineAvailable(line);
+    }
+  }
+;
   myWatcher=new KarmaWatcher(this);
   registerStreamEventHandlers();
   myProcessOutputArchive.startNotify();
