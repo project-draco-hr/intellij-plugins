@@ -1,0 +1,35 @@
+{
+  if (dartFiles.isEmpty()) {
+    Messages.showInfoMessage(project,DartBundle.message("dart.style.files.no.dart.files"),DartBundle.message("dart.style.action.name"));
+    return;
+  }
+  if (Messages.showOkCancelDialog(project,DartBundle.message("dart.style.files.dialog.question",StringUtil.join(dartFiles,", ")),DartBundle.message("dart.style.action.name"),DartIcons.Dart_16) != Messages.OK) {
+    return;
+  }
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+      DartAnalysisServerService.getInstance().updateFilesContent();
+      for (      final VirtualFile virtualFile : dartFiles) {
+        final String path=FileUtil.toSystemDependentName(virtualFile.getPath());
+        final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
+        if (document == null)         continue;
+        int textLength=document.getTextLength();
+        if (textLength == 0)         continue;
+        DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(path,0,1);
+        if (formatResult != null && formatResult.getEdits() != null && formatResult.getEdits().size() == 1) {
+          final SourceEdit sourceEdit=formatResult.getEdits().get(0);
+          document.setText(sourceEdit.getReplacement());
+        }
+      }
+      FileDocumentManager.getInstance().saveAllDocuments();
+    }
+  }
+;
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      CommandProcessor.getInstance().executeCommand(project,runnable,DartBundle.message("dart.style.action.name"),null);
+    }
+  }
+);
+}
