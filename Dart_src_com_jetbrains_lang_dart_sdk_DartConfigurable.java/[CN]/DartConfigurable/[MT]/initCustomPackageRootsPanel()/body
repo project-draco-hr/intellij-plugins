@@ -1,32 +1,32 @@
 {
   if (DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport()) {
     myCustomPackageRootsCheckBox.setVisible(false);
-    myCustomPackageRootsTextWithBrowse.setVisible(false);
+    myCustomPackageRootTextWithBrowse.setVisible(false);
     return;
   }
   myCustomPackageRootsCheckBox.addActionListener(new ActionListener(){
     public void actionPerformed(    final ActionEvent e){
       final boolean enabled=myCustomPackageRootsCheckBox.isSelected() && myCustomPackageRootsCheckBox.isEnabled();
-      myCustomPackageRootsTextWithBrowse.setEnabled(enabled);
+      myCustomPackageRootTextWithBrowse.setEnabled(enabled);
       updateErrorLabel();
       if (enabled) {
-        IdeFocusManager.getInstance(myProject).requestFocus(myCustomPackageRootsTextWithBrowse.getTextField(),true);
+        IdeFocusManager.getInstance(myProject).requestFocus(myCustomPackageRootTextWithBrowse.getTextField(),true);
       }
     }
   }
 );
-  final ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> bfListener=new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(DartBundle.message("select.custom.package.roots"),null,myCustomPackageRootsTextWithBrowse,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor(),TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT){
+  final ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> bfListener=new ComponentWithBrowseButton.BrowseFolderActionListener<JTextField>(DartBundle.message("select.custom.package.roots"),null,myCustomPackageRootTextWithBrowse,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor(),TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT){
     public void actionPerformed(    final ActionEvent e){
-      selectCustomPackageRoots(myCustomPackageRootsTextWithBrowse.getTextField());
+      selectCustomPackageRoots(myCustomPackageRootTextWithBrowse.getTextField());
     }
   }
 ;
-  myCustomPackageRootsTextWithBrowse.addBrowseFolderListener(myProject,bfListener);
-  myCustomPackageRootsTextWithBrowse.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+  myCustomPackageRootTextWithBrowse.addBrowseFolderListener(myProject,bfListener);
+  myCustomPackageRootTextWithBrowse.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
     protected void textChanged(    final DocumentEvent e){
-      final Module module=myModuleToCustomPackageRootsCurrent.keySet().iterator().next();
-      final String customPackageRoots=FileUtil.toSystemIndependentName(myCustomPackageRootsTextWithBrowse.getText().trim());
-      myModuleToCustomPackageRootsCurrent.put(module,StringUtil.split(customPackageRoots,SEMICOLON));
+      final Module module=myModuleToCustomPackageRootCurrent.keySet().iterator().next();
+      final String customPackageRoot=FileUtil.toSystemIndependentName(myCustomPackageRootTextWithBrowse.getText().trim());
+      myModuleToCustomPackageRootCurrent.put(module,customPackageRoot);
       updateErrorLabel();
     }
   }

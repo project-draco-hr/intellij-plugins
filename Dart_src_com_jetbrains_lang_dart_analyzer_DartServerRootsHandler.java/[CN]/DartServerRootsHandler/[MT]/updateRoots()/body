@@ -2,9 +2,11 @@
   final DartSdk sdk=DartSdk.getGlobalDartSdk();
   final List<String> newIncludedRoots=new SmartList<String>();
   final List<String> newExcludedRoots=new SmartList<String>();
+  final Map<String,String> newPackageRoots=new SmartHashMap<String,String>();
   if (sdk != null) {
     for (    Project project : myTrackedProjects) {
       for (      Module module : DartSdkGlobalLibUtil.getModulesWithDartSdkGlobalLibAttached(project,sdk.getGlobalLibName())) {
+        newPackageRoots.putAll(DartConfigurable.getModulePathAndPackageRoot(module));
         for (        ContentEntry contentEntry : ModuleRootManager.getInstance(module).getContentEntries()) {
           newIncludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(contentEntry.getUrl())));
           for (          String excludedUrl : contentEntry.getExcludeFolderUrls()) {
@@ -14,12 +16,14 @@
       }
     }
   }
-  if (!myIncludedRoots.equals(newIncludedRoots) || !myExcludedRoots.equals(newExcludedRoots)) {
+  if (!myIncludedRoots.equals(newIncludedRoots) || !myExcludedRoots.equals(newExcludedRoots) || !myPackageRoots.equals(newPackageRoots)) {
     myIncludedRoots.clear();
     myExcludedRoots.clear();
-    if (DartAnalysisServerService.getInstance().updateRoots(newIncludedRoots,newExcludedRoots)) {
+    myPackageRoots.clear();
+    if (DartAnalysisServerService.getInstance().updateRoots(newIncludedRoots,newExcludedRoots,newPackageRoots)) {
       myIncludedRoots.addAll(newIncludedRoots);
       myExcludedRoots.addAll(newExcludedRoots);
+      myPackageRoots.putAll(newPackageRoots);
     }
   }
 }

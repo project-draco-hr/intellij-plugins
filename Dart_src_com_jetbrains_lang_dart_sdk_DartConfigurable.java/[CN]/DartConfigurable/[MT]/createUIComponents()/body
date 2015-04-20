@@ -31,13 +31,7 @@
 ;
     public Component getTableCellRendererComponent(    final JTable table,    final Object value,    final boolean isSelected,    final boolean hasFocus,    final int row,    final int column){
       if (value instanceof List) {
-        final List<String> paths=(List<String>)value;
-        final String text=StringUtil.join(paths,new Function<String,String>(){
-          public String fun(          final String s){
-            return FileUtil.toSystemDependentName(s);
-          }
-        }
-,SEMICOLON);
+        final String text=value != null ? FileUtil.toSystemDependentName((String)value) : null;
         if (isSelected) {
           myTextWithBrowse.setText(text);
           return myTextWithBrowse;
@@ -58,14 +52,9 @@
     public Object getCellEditorValue(){
       return StringUtil.split(FileUtil.toSystemIndependentName(myComponent.getChildComponent().getText()),SEMICOLON);
     }
-    @Override public Component getTableCellEditorComponent(    final JTable table,    Object value,    boolean isSelected,    final int row,    int column){
+    @Override public Component getTableCellEditorComponent(    final JTable table,    @Nullable Object value,    boolean isSelected,    final int row,    int column){
       myComponent=new CellEditorComponentWithBrowseButton<JTextField>(new TextFieldWithBrowseButton(createActionListener(table)),this);
-      final String text=StringUtil.join((List<String>)value,new Function<String,String>(){
-        public String fun(        final String s){
-          return FileUtil.toSystemDependentName(s);
-        }
-      }
-,SEMICOLON);
+      final String text=value != null ? FileUtil.toSystemDependentName((String)value) : "";
       myComponent.getChildComponent().setText(text);
       return myComponent;
     }
@@ -80,11 +69,11 @@
   }
 ;
   final String columnName=DartBundle.message("custom.package.roots");
-  final ColumnInfo<CheckedTreeNode,List<String>> CUSTOM_PACKAGE_ROOTS_COLUMN=new ColumnInfo<CheckedTreeNode,List<String>>(columnName){
-    @Nullable public List<String> valueOf(    final CheckedTreeNode node){
+  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGE_ROOTS_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
+    @Nullable public String valueOf(    final CheckedTreeNode node){
       final Object userObject=node.getUserObject();
       if (node.isChecked() && userObject instanceof Module) {
-        return myModuleToCustomPackageRootsCurrent.get(userObject);
+        return myModuleToCustomPackageRootCurrent.get(userObject);
       }
       return null;
     }
@@ -97,10 +86,10 @@
     @Nullable public TableCellEditor getEditor(    final CheckedTreeNode node){
       return customPackageRootsEditor;
     }
-    public void setValue(    final CheckedTreeNode node,    final List<String> value){
+    public void setValue(    final CheckedTreeNode node,    final String value){
       final Object userObject=node.getUserObject();
       if (userObject instanceof Module) {
-        myModuleToCustomPackageRootsCurrent.put((Module)userObject,value);
+        myModuleToCustomPackageRootCurrent.put((Module)userObject,value);
         updateErrorLabel();
       }
     }
