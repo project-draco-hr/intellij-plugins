@@ -1,22 +1,18 @@
 {
-  PsiFileSystemItem fileItem=resolve(ref);
-  if (fileItem == null) {
-    if (!ref.isPatternUsed()) {
-      holder.registerProblemForReference(ref,ProblemHighlightType.GENERIC_ERROR_OR_WARNING,ref.getUnresolvedMessagePattern());
+  if (ref.isLast()) {
+    PsiFileSystemItem fileItem=resolve(ref);
+    if (fileItem == null) {
+      return;
     }
-  }
- else {
-    if (ref.isLast()) {
-      KarmaConfigFileReference.FileType fileType=ref.getExpectedFileType();
-      if (fileType == KarmaConfigFileReference.FileType.DIRECTORY) {
-        if (!fileItem.isDirectory()) {
-          holder.registerProblemForReference(ref,ProblemHighlightType.GENERIC_ERROR_OR_WARNING,"Directory expected");
-        }
+    KarmaConfigFileReference.FileType fileType=ref.getExpectedFileType();
+    if (fileType == KarmaConfigFileReference.FileType.DIRECTORY) {
+      if (!fileItem.isDirectory()) {
+        holder.registerProblemForReference(ref,ProblemHighlightType.GENERIC_ERROR_OR_WARNING,"Directory expected");
       }
-      if (fileType == KarmaConfigFileReference.FileType.FILE) {
-        if (fileItem.isDirectory()) {
-          holder.registerProblemForReference(ref,ProblemHighlightType.GENERIC_ERROR_OR_WARNING,"File/Pattern expected");
-        }
+    }
+    if (fileType == KarmaConfigFileReference.FileType.FILE) {
+      if (fileItem.isDirectory()) {
+        holder.registerProblemForReference(ref,ProblemHighlightType.GENERIC_ERROR_OR_WARNING,"File/Pattern expected");
       }
     }
   }
