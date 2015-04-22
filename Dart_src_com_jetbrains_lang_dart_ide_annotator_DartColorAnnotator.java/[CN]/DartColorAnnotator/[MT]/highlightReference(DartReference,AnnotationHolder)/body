@@ -6,8 +6,13 @@
     final PsiElement resolved=element.resolve();
     if (resolved != null) {
       final PsiElement parent=resolved.getParent();
+      final DartComponent parentComponent=parent instanceof DartComponent ? (DartComponent)parent : null;
       if (parent instanceof DartFunctionDeclarationWithBodyOrNative) {
         createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_FUNCTION_CALL);
+      }
+ else       if (parent instanceof DartGetterDeclaration || parent instanceof DartSetterDeclaration) {
+        final String key=parentComponent.isUnitMember() ? DartSyntaxHighlighterColors.DART_TOP_LEVEL_VARIABLE_ACCESS : parentComponent.isStatic() ? DartSyntaxHighlighterColors.DART_STATIC_MEMBER_VARIABLE_ACCESS : DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_VARIABLE_ACCESS;
+        createInfoAnnotation(holder,element,key);
       }
  else       if (parent instanceof DartMethodDeclaration) {
         final String callType=getCallKind((DartMethodDeclaration)parent,element);
@@ -16,21 +21,12 @@
  else       if (parent instanceof DartVarAccessDeclaration) {
         final DartComponentType type=DartComponentType.typeOf(parent);
         if (type == DartComponentType.VARIABLE) {
-          final PsiElement varParent=parent.getParent().getParent();
-          if (varParent instanceof DartFile) {
-            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TOP_LEVEL_VARIABLE_ACCESS);
-          }
- else {
-            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_LOCAL_VARIABLE_ACCESS);
-          }
+          final String key=parentComponent.isUnitMember() ? DartSyntaxHighlighterColors.DART_TOP_LEVEL_VARIABLE_ACCESS : DartSyntaxHighlighterColors.DART_LOCAL_VARIABLE_ACCESS;
+          createInfoAnnotation(holder,element,key);
         }
  else {
-          if (((DartVarAccessDeclaration)parent).isStatic()) {
-            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_STATIC_MEMBER_VARIABLE_ACCESS);
-          }
- else {
-            createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_VARIABLE_ACCESS);
-          }
+          final String key=parentComponent.isStatic() ? DartSyntaxHighlighterColors.DART_STATIC_MEMBER_VARIABLE_ACCESS : DartSyntaxHighlighterColors.DART_INSTANCE_MEMBER_VARIABLE_ACCESS;
+          createInfoAnnotation(holder,element,key);
         }
       }
  else       if (resolved instanceof DartComponentName)       componentName=(DartComponentName)resolved;
