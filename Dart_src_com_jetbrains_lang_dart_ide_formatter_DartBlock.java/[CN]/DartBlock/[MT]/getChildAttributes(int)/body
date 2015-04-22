@@ -1,6 +1,6 @@
 {
   final IElementType elementType=myNode.getElementType();
-  final DartBlock previousBlock=newIndex == 0 ? null : (DartBlock)getSubBlocks().get(newIndex - 1);
+  final DartBlock previousBlock=newIndex == 0 ? null : getSubDartBlocks().get(newIndex - 1);
   final IElementType previousType=previousBlock == null ? null : previousBlock.getNode().getElementType();
   if (previousType == LBRACE || previousType == LBRACKET) {
     return new ChildAttributes(Indent.getNormalIndent(),null);
@@ -13,16 +13,12 @@
   }
   if (previousType == SWITCH_CASE || previousType == DEFAULT_CASE) {
     if (previousBlock != null) {
-      final List<Block> subBlocks=previousBlock.getSubBlocks();
+      final List<DartBlock> subBlocks=previousBlock.getSubDartBlocks();
       if (!subBlocks.isEmpty()) {
-        final DartBlock lastChildInPrevBlock=(DartBlock)subBlocks.get(subBlocks.size() - 1);
-        final List<Block> subSubBlocks=lastChildInPrevBlock.getSubBlocks();
-        if (!subSubBlocks.isEmpty()) {
-          final DartBlock lastChildInLastChildInPrevBlock=(DartBlock)subSubBlocks.get(subSubBlocks.size() - 1);
-          final IElementType typeOfLastChildInPrevBlock=lastChildInLastChildInPrevBlock.getNode().getElementType();
-          if (LAST_TOKENS_IN_SWITCH_CASE.contains(typeOfLastChildInPrevBlock) || typeOfLastChildInPrevBlock == SEMICOLON && lastButOneIsThrowStatement(subSubBlocks)) {
-            return new ChildAttributes(Indent.getNormalIndent(),null);
-          }
+        final DartBlock lastChildInPrevBlock=subBlocks.get(subBlocks.size() - 1);
+        final List<DartBlock> subSubBlocks=lastChildInPrevBlock.getSubDartBlocks();
+        if (isLastTokenInSwitchCase(subSubBlocks)) {
+          return new ChildAttributes(Indent.getNormalIndent(),null);
         }
       }
     }
