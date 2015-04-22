@@ -1,8 +1,20 @@
 {
-  final PsiElement target=((DartReference)callExpression.getExpression()).resolve();
-  final PsiElement targetParent=target == null ? null : target.getParent();
+  final DartReference expression=(DartReference)callExpression.getExpression();
+  PsiElement target=expression.resolve();
+  PsiElement targetParent=target == null ? null : target.getParent();
+  if (target == null || targetParent instanceof DartVarAccessDeclaration || targetParent instanceof DartGetterDeclaration) {
+    DartClassResolveResult resolveResult=expression.resolveDartClass();
+    DartClass dartClass=resolveResult.getDartClass();
+    if (dartClass != null) {
+      DartComponent callMethod=dartClass.findMethodByName("call");
+      if (callMethod != null) {
+        target=callMethod.getComponentName();
+        targetParent=callMethod;
+      }
+    }
+  }
   if (target instanceof DartComponentName && targetParent instanceof DartComponent) {
-    final DartReference[] references=PsiTreeUtil.getChildrenOfType(callExpression.getExpression(),DartReference.class);
+    final DartReference[] references=PsiTreeUtil.getChildrenOfType(expression,DartReference.class);
     final DartClassResolveResult resolveResult=(references != null && references.length == 2) ? references[0].resolveDartClass() : DartClassResolveResult.create(PsiTreeUtil.getParentOfType(callExpression,DartClass.class));
     return createDescription((DartComponent)targetParent,resolveResult);
   }
