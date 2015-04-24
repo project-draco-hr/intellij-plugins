@@ -1,21 +1,16 @@
 {
   IElementType tokenType=builder.getTokenType();
 {
-    if (atOpenInverseExpression(builder)) {
-      PsiBuilder.Marker inverseBlockStartMarker=builder.mark();
-      PsiBuilder.Marker lookAheadMarker=builder.mark();
-      boolean isSimpleInverse=parseSimpleInverse(builder);
-      lookAheadMarker.rollbackTo();
-      if (isSimpleInverse) {
-        inverseBlockStartMarker.rollbackTo();
+    if (builder.getTokenType() == OPEN_INVERSE) {
+      if (builder.lookAhead(1) == CLOSE) {
         return false;
-      }
- else {
-        inverseBlockStartMarker.drop();
       }
       PsiBuilder.Marker blockMarker=builder.mark();
       if (parseOpenInverse(builder)) {
-        parseProgramInverseProgramClose(builder,blockMarker);
+        parseProgram(builder);
+        parseInverseAndProgram(builder);
+        parseCloseBlock(builder);
+        blockMarker.done(HbTokenTypes.BLOCK_WRAPPER);
       }
  else {
         return false;
@@ -25,7 +20,10 @@
     if (tokenType == OPEN_BLOCK) {
       PsiBuilder.Marker blockMarker=builder.mark();
       if (parseOpenBlock(builder)) {
-        parseProgramInverseProgramClose(builder,blockMarker);
+        parseProgram(builder);
+        parseInverseChain(builder);
+        parseCloseBlock(builder);
+        blockMarker.done(HbTokenTypes.BLOCK_WRAPPER);
       }
  else {
         return false;
@@ -35,6 +33,9 @@
   }
 {
     if (tokenType == OPEN) {
+      if (builder.lookAhead(1) == ELSE) {
+        return false;
+      }
       parseMustache(builder,OPEN,CLOSE);
       return true;
     }
