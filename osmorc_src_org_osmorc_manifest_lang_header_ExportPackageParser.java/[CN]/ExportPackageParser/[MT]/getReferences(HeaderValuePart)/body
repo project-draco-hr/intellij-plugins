@@ -1,15 +1,16 @@
 {
-  if (headerValuePart.getParent() instanceof Clause) {
-    final PsiElement element=headerValuePart.getOriginalElement();
+  PsiElement parent=headerValuePart.getParent();
+  if (parent instanceof Clause) {
+    PsiElement element=headerValuePart.getOriginalElement();
     if (isPackageRef(element.getPrevSibling())) {
       return getPackageReferences(headerValuePart);
     }
   }
- else   if (headerValuePart.getParent() instanceof Attribute) {
-    Attribute attribute=(Attribute)headerValuePart.getParent();
-    if (USES_DIRECTIVE.equals(attribute.getName()) && !USES_DIRECTIVE.equals(headerValuePart.getUnwrappedText())) {
-      List<PsiReference> references=ContainerUtil.newArrayList();
-      for (      ASTNode astNode : headerValuePart.getNode().getChildren(TokenSet.create(ManifestTokenType.HEADER_VALUE_PART))) {
+ else   if (parent instanceof Attribute) {
+    Attribute attribute=(Attribute)parent;
+    if (Constants.USES_DIRECTIVE.equals(attribute.getName())) {
+      List<PsiReference> references=ContainerUtil.newSmartList();
+      for (      ASTNode astNode : headerValuePart.getNode().getChildren(TOKEN_FILTER)) {
         if (astNode instanceof ManifestToken) {
           ManifestToken manifestToken=(ManifestToken)astNode;
           ContainerUtil.addAll(references,getPackageReferences(manifestToken));
