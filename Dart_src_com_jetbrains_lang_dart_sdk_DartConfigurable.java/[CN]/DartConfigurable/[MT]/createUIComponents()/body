@@ -22,7 +22,7 @@
     }
   }
 ;
-  final TableCellRenderer customPackageRootsCellRenderer=new TableCellRenderer(){
+  final TableCellRenderer customPackageRootCellRenderer=new TableCellRenderer(){
     private final JBLabel myLabel=new JBLabel();
     private final TextFieldWithBrowseButton myTextWithBrowse=new TextFieldWithBrowseButton(){
       public void setOpaque(      final boolean isOpaque){
@@ -30,8 +30,8 @@
     }
 ;
     public Component getTableCellRendererComponent(    final JTable table,    final Object value,    final boolean isSelected,    final boolean hasFocus,    final int row,    final int column){
-      if (value instanceof List) {
-        final String text=value != null ? FileUtil.toSystemDependentName((String)value) : null;
+      if (value instanceof String) {
+        final String text=FileUtil.toSystemDependentName((String)value);
         if (isSelected) {
           myTextWithBrowse.setText(text);
           return myTextWithBrowse;
@@ -48,28 +48,22 @@
     }
   }
 ;
-  final LocalPathCellEditor customPackageRootsEditor=new LocalPathCellEditor(myProject){
+  final LocalPathCellEditor customPackageRootEditor=new LocalPathCellEditor(myProject){
     public Object getCellEditorValue(){
-      return StringUtil.split(FileUtil.toSystemIndependentName(myComponent.getChildComponent().getText()),SEMICOLON);
+      return FileUtil.toSystemIndependentName(myComponent.getChildComponent().getText().trim());
     }
     @Override public Component getTableCellEditorComponent(    final JTable table,    @Nullable final Object value,    final boolean isSelected,    final int row,    final int column){
-      myComponent=new CellEditorComponentWithBrowseButton<JTextField>(new TextFieldWithBrowseButton(createActionListener(table)),this);
+      final TextFieldWithBrowseButton fieldWithBrowse=new TextFieldWithBrowseButton();
+      fieldWithBrowse.addBrowseFolderListener(DartBundle.message("select.custom.package.root"),null,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+      myComponent=new CellEditorComponentWithBrowseButton<JTextField>(fieldWithBrowse,this);
       final String text=value != null ? FileUtil.toSystemDependentName((String)value) : "";
       myComponent.getChildComponent().setText(text);
       return myComponent;
     }
-    protected ActionListener createActionListener(    final JTable table){
-      return new ActionListener(){
-        public void actionPerformed(        ActionEvent e){
-          selectCustomPackageRoots(myComponent.getChildComponent());
-        }
-      }
-;
-    }
   }
 ;
-  final String columnName=DartBundle.message("custom.package.roots");
-  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGE_ROOTS_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
+  final String columnName=DartBundle.message("custom.package.root");
+  final ColumnInfo<CheckedTreeNode,String> CUSTOM_PACKAGE_ROOT_COLUMN=new ColumnInfo<CheckedTreeNode,String>(columnName){
     @Nullable public String valueOf(    final CheckedTreeNode node){
       final Object userObject=node.getUserObject();
       if (node.isChecked() && userObject instanceof Module) {
@@ -81,10 +75,10 @@
       return node.isChecked() && node.getUserObject() instanceof Module;
     }
     @Nullable public TableCellRenderer getRenderer(    final CheckedTreeNode node){
-      return customPackageRootsCellRenderer;
+      return customPackageRootCellRenderer;
     }
     @Nullable public TableCellEditor getEditor(    final CheckedTreeNode node){
-      return customPackageRootsEditor;
+      return customPackageRootEditor;
     }
     public void setValue(    final CheckedTreeNode node,    final String value){
       final Object userObject=node.getUserObject();
@@ -98,7 +92,7 @@
     }
   }
 ;
-  myModulesCheckboxTreeTable=new CheckboxTreeTable(null,checkboxTreeCellRenderer,new ColumnInfo[]{new TreeColumnInfo(""),CUSTOM_PACKAGE_ROOTS_COLUMN});
+  myModulesCheckboxTreeTable=new CheckboxTreeTable(null,checkboxTreeCellRenderer,new ColumnInfo[]{new TreeColumnInfo(""),CUSTOM_PACKAGE_ROOT_COLUMN});
   myModulesCheckboxTreeTable.addCheckboxTreeListener(new CheckboxTreeAdapter(){
     @Override public void nodeStateChanged(    @NotNull CheckedTreeNode node){
       updateErrorLabel();
@@ -115,6 +109,6 @@
   }
 );
   final DefaultActionGroup group=new DefaultActionGroup();
-  group.add(new RemoveCustomPackageRootsAction(myModulesCheckboxTreeTable));
+  group.add(new RemoveCustomPackageRootAction(myModulesCheckboxTreeTable));
   PopupHandler.installPopupHandler(myModulesCheckboxTreeTable,group,ActionPlaces.UNKNOWN,ActionManager.getInstance());
 }
