@@ -1,0 +1,23 @@
+{
+  final Collection<String> docDirectives=AngularIndexUtil.getAllKeys(AngularDirectivesDocIndex.KEY,project);
+  for (  String directiveName : docDirectives) {
+    final JSImplicitElement directive=getTagDirective(project,directiveName,AngularDirectivesDocIndex.KEY);
+    if (directive != null) {
+      if (!processor.process(directive)) {
+        return false;
+      }
+    }
+  }
+  final Collection<String> directives=AngularIndexUtil.getAllKeys(AngularDirectivesIndex.KEY,project);
+  for (  String directiveName : directives) {
+    if (!docDirectives.contains(directiveName)) {
+      final JSImplicitElement directive=getTagDirective(project,directiveName,AngularDirectivesIndex.KEY);
+      if (directive != null) {
+        if (!processor.process(directive)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
