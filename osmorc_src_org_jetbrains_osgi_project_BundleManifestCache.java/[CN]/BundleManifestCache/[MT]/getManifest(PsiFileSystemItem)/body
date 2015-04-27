@@ -1,0 +1,18 @@
+{
+  VirtualFile file=item.getVirtualFile();
+  if (file != null) {
+    List<OrderEntry> entries=myIndex.getOrderEntriesForFile(file);
+    if (entries.size() == 1 && entries.get(0) instanceof JdkOrderEntry) {
+      return new JdkBundleManifest();
+    }
+    Module module=myIndex.getModuleForFile(file);
+    if (module != null) {
+      return getManifest(module);
+    }
+    VirtualFile libRoot=myIndex.getClassRootForFile(file);
+    if (libRoot != null) {
+      return getManifest(libRoot);
+    }
+  }
+  return null;
+}

@@ -1,0 +1,16 @@
+{
+  CachedValue<BundleManifest> value=myCache.get(libRoot);
+  if (value == null) {
+    value=myManager.createCachedValue(new CachedValueProvider<BundleManifest>(){
+      @Nullable @Override public Result<BundleManifest> compute(){
+        VirtualFile manifestFile=libRoot.findFileByRelativePath(JarFile.MANIFEST_NAME);
+        PsiFile psiFile=manifestFile != null ? PsiManager.getInstance(myProject).findFile(manifestFile) : null;
+        BundleManifest manifest=manifestFile != null ? readManifest(psiFile) : null;
+        return Result.createSingleDependency(manifest,libRoot);
+      }
+    }
+,false);
+    myCache.put(libRoot,value);
+  }
+  return value.getValue();
+}

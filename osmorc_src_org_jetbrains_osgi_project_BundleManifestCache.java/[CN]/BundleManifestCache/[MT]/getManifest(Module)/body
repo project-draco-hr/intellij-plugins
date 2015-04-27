@@ -1,0 +1,55 @@
+{
+  final OsmorcFacet facet=OsmorcFacet.getInstance(module);
+  if (facet == null)   return null;
+  CachedValue<BundleManifest> value=myCache.get(facet);
+  if (value == null) {
+    value=myManager.createCachedValue(new CachedValueProvider<BundleManifest>(){
+      @Nullable @Override public Result<BundleManifest> compute(){
+        OsmorcFacetConfiguration configuration=facet.getConfiguration();
+        BundleManifest manifest=null;
+        List<Object> dependencies=ContainerUtil.<Object>newSmartList(configuration);
+switch (configuration.getManifestGenerationMode()) {
+case Manually:
+{
+            PsiFile manifestFile=findInModuleRoots(facet.getModule(),configuration.getManifestLocation());
+            if (manifestFile != null) {
+              manifest=readManifest(manifestFile);
+              dependencies.add(manifestFile);
+            }
+ else {
+              dependencies.add(PsiModificationTracker.MODIFICATION_COUNT);
+            }
+            break;
+          }
+case OsmorcControlled:
+{
+          Map<String,String> map=ContainerUtil.newHashMap(configuration.getAdditionalPropertiesAsMap());
+          map.put(Constants.BUNDLE_SYMBOLICNAME,configuration.getBundleSymbolicName());
+          map.put(Constants.BUNDLE_VERSION,configuration.getBundleVersion());
+          map.put(Constants.BUNDLE_ACTIVATOR,configuration.getBundleActivator());
+          manifest=new BundleManifest(map);
+          break;
+        }
+case Bnd:
+{
+        PsiFile bndFile=findInModuleRoots(facet.getModule(),configuration.getBndFileLocation());
+        if (bndFile != null) {
+          manifest=readProperties(bndFile);
+          dependencies.add(bndFile);
+        }
+ else {
+          dependencies.add(PsiModificationTracker.MODIFICATION_COUNT);
+        }
+        break;
+      }
+case Bundlor:
+    break;
+}
+return Result.create(manifest,dependencies);
+}
+}
+,false);
+myCache.put(facet,value);
+}
+return value.getValue();
+}

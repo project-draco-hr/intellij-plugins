@@ -13,53 +13,33 @@
   if (packageName.isEmpty() || packageName.startsWith("java.")) {
     return null;
   }
+  Project project=targetClass.getProject();
   Module requestorModule=facet.getModule();
   Module targetModule=ModuleUtilCore.findModuleForPsiElement(targetClass);
   if (targetModule == requestorModule) {
     return null;
   }
-  String exportedPackage=null;
-  BundleManager bundleManager=BundleManager.getInstance(targetClass.getProject());
-  ModuleFileIndex index=ModuleRootManager.getInstance(requestorModule).getFileIndex();
-  List<OrderEntry> entries=index.getOrderEntriesForFile(targetFile.getVirtualFile());
-  OrderEntry entry=!entries.isEmpty() ? entries.get(0) : null;
-  if (entry instanceof ModuleOrderEntry) {
-    Module module=((ModuleOrderEntry)entry).getModule();
-    if (module != null) {
-      BundleManifest manifest=bundleManager.getManifestByObject(module);
-      if (manifest == null)       return null;
-      exportedPackage=manifest.getExportedPackage(packageName);
-    }
+  BundleManifest manifest=BundleManifestCache.getInstance(project).getManifest(requestorModule);
+  if (manifest != null && manifest.isPrivatePackage(packageName)) {
+    return null;
   }
- else   if (entry instanceof LibraryOrderEntry) {
-    Library library=((LibraryOrderEntry)entry).getLibrary();
-    if (library != null) {
-      BundleManifest manifest=bundleManager.getManifestByObject(library);
-      if (manifest == null || manifest.getBundleSymbolicName() == null) {
-        return Problem.weak(message("PackageAccessibilityInspection.non.osgi",packageName));
-      }
-      exportedPackage=manifest.getExportedPackage(packageName);
-    }
+  BundleManifest exporter=BundleManifestCache.getInstance(project).getManifest(targetClass);
+  if (exporter == null || exporter.getBundleSymbolicName() == null) {
+    return Problem.weak(message("PackageAccessibilityInspection.non.osgi",packageName));
   }
- else   if (entry instanceof JdkOrderEntry) {
-    exportedPackage=packageName;
-  }
+  String exportedPackage=exporter.getExportedPackage(packageName);
   if (exportedPackage == null) {
     return Problem.error(message("PackageAccessibilityInspection.not.exported",packageName));
   }
   if (!facet.getConfiguration().isManifestManuallyEdited()) {
     return null;
   }
-  BundleManifest manifest=bundleManager.getManifestByObject(requestorModule);
   if (manifest != null) {
     if (manifest.isPackageImported(packageName)) {
       return null;
     }
-    for (    String bundleSpec : manifest.getRequiredBundles()) {
-      BundleManifest bundle=bundleManager.getManifestByBundleSpec(bundleSpec);
-      if (bundle != null && bundle.getExportedPackage(packageName) != null) {
-        return null;
-      }
+    if (manifest.isBundleRequired(exporter.getBundleSymbolicName())) {
+      return null;
     }
   }
   return Problem.error(message("PackageAccessibilityInspection.not.imported",packageName),new ImportPackageFix(exportedPackage));
