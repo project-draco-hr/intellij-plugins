@@ -1,0 +1,21 @@
+{
+synchronized (myLock) {
+    if (myServer == null)     return false;
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("analysis_setAnalysisRoots, included:\n" + StringUtil.join(includedRoots,",\n") + "\nexcluded:\n"+ StringUtil.join(excludedRoots,",\n"));
+    }
+    final AnalysisServer server=myServer;
+    final String runnableInfo="analysis_setAnalysisRoots(" + StringUtil.join(includedRoots,", ") + "; "+ StringUtil.join(excludedRoots,", ")+ ")";
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.analysis_setAnalysisRoots(includedRoots,excludedRoots,packageRoots);
+      }
+    }
+,runnableInfo,SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return false;
+    }
+    return true;
+  }
+}

@@ -1,0 +1,44 @@
+{
+  return new JSLiteralImplicitElementProvider(){
+    @Override public void fillIndexingData(    @NotNull JSLiteralExpression argument,    @NotNull JSCallExpression callExpression,    @NotNull JSElementIndexingData outIndexingData){
+      JSExpression[] arguments=callExpression.getArguments();
+      if (arguments.length == 0 || arguments[0] != argument)       return;
+      final JSExpression methodExpression=callExpression.getMethodExpression();
+      if (!(methodExpression instanceof JSReferenceExpression))       return;
+      JSExpression qualifier=((JSReferenceExpression)methodExpression).getQualifier();
+      if (qualifier == null)       return;
+      final StubIndexKey<String,JSImplicitElementProvider> index=INDEXERS.get(command);
+      if (index != null) {
+        if (argument.isQuotedLiteral()) {
+          final Function<PsiElement,String> calculator=DATA_CALCULATORS.get(command);
+          final String data=calculator != null ? calculator.fun(argument) : null;
+          final String argumentText=StringUtil.unquoteString(argument.getText());
+          addImplicitElements(argument,command,index,argumentText,data,outIndexingData);
+        }
+      }
+      if (INJECTABLE_METHODS.contains(command)) {
+        if (argument.isQuotedLiteral()) {
+          generateNamespace(argument,command,outIndexingData);
+        }
+      }
+      if (START_SYMBOL.equals(command) || END_SYMBOL.equals(command)) {
+        while (qualifier != null) {
+          if (qualifier instanceof JSReferenceExpression) {
+            if ("$interpolateProvider".equals(((JSReferenceExpression)qualifier).getReferenceName())) {
+              if (argument.isQuotedLiteral()) {
+                String interpolation=StringUtil.unquoteString(argument.getText());
+                if ("//".equals(interpolation))                 return;
+                addImplicitElements(argument,null,AngularInjectionDelimiterIndex.KEY,command,interpolation,outIndexingData);
+              }
+            }
+            qualifier=((JSReferenceExpression)qualifier).getQualifier();
+          }
+ else {
+            qualifier=qualifier instanceof JSCallExpression ? ((JSCallExpression)qualifier).getMethodExpression() : null;
+          }
+        }
+      }
+    }
+  }
+;
+}
