@@ -4,10 +4,11 @@
   final SourceEdit sourceEdit=fileEdit.getEdits().get(0);
   if (fileEdit.getFileStamp() == -1) {
     try {
-      final File ioFile=new File(filePath);
-      if (!ioFile.exists()) {
-        FileUtil.writeToFile(ioFile,"");
-        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile);
+      final String directoryPath=VfsUtil.getParentDir(filePath);
+      final VirtualFile directory=VfsUtil.createDirectoryIfMissing(directoryPath);
+      if (directory != null) {
+        final String fileName=VfsUtil.extractFileName(filePath);
+        directory.createChildData(this,fileName);
       }
     }
  catch (    IOException e) {
