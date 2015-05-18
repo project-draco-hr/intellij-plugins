@@ -1,0 +1,45 @@
+{
+  Pattern indentPattern=Pattern.compile("^\\(indent (\\d+)\\)\\s*");
+  File dir=new File(new File(getTestDataPath(),getBasePath()),name);
+  for (  File entry : dir.listFiles()) {
+    if (!entry.getName().endsWith(".stmt") && !entry.getName().endsWith(".unit")) {
+      continue;
+    }
+    String[] lines=FileUtil.loadLines(entry).toArray(new String[0]);
+    int pageWidth=0;
+    int i=0;
+    if (lines[0].endsWith("|")) {
+      pageWidth=lines[0].indexOf("|");
+      i=1;
+    }
+    while (i < lines.length) {
+      String description=lines[i++].replaceAll(">>>","").trim();
+      int leadingIndent=0;
+      Matcher matcher=indentPattern.matcher(description);
+      if (matcher.matches()) {
+        leadingIndent=Integer.parseInt(matcher.group(1)) / 2;
+        description=description.substring(matcher.end());
+      }
+      if (description == "") {
+        description="line " + (i + 1);
+      }
+ else {
+        description="line " + (i + 1) + ": "+ description;
+      }
+      String input="";
+      while (!lines[i].startsWith("<<<")) {
+        input+=lines[i++] + "\n";
+      }
+      String expectedOutput="";
+      while (++i < lines.length && !lines[i].startsWith(">>>")) {
+        expectedOutput+=lines[i] + "\n";
+      }
+      boolean isCompilationUnit=entry.getName().endsWith(".unit");
+      SourceCode inputCode=extractSelection(input,isCompilationUnit);
+      SourceCode expected=extractSelection(expectedOutput,isCompilationUnit);
+      final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
+      settings.RIGHT_MARGIN=pageWidth;
+      doTextTest(inputCode.text,expected.text);
+    }
+  }
+}
