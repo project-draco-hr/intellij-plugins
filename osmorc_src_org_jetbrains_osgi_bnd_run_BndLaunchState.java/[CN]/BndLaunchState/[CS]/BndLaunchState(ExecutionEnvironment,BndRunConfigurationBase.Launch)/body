@@ -2,8 +2,14 @@
   super(environment);
   myConfiguration=configuration;
   myProject=myConfiguration.getProject();
-  String name=BndRunConfigurationType.getInstance().getDisplayName();
-  myNotifications=NotificationGroup.toolWindowGroup(name,environment.getExecutor().getToolWindowId());
+  String toolWindowId=environment.getExecutor().getToolWindowId();
+  NotificationGroup notificationGroup=ourNotificationGroups.get(toolWindowId);
+  if (notificationGroup == null) {
+    String name=BndRunConfigurationType.getInstance().getDisplayName() + " (" + toolWindowId+ ")";
+    notificationGroup=NotificationGroup.toolWindowGroup(name,toolWindowId);
+    ourNotificationGroups.put(toolWindowId,notificationGroup);
+  }
+  myNotifications=notificationGroup;
   File runFile=new File(myConfiguration.bndRunFile);
   if (!runFile.isFile()) {
     throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile));
