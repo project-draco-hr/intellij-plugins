@@ -1,10 +1,14 @@
 {
   Pattern indentPattern=Pattern.compile("^\\(indent (\\d+)\\)\\s*");
-  File dir=new File(new File(getTestDataPath(),getBasePath()),name);
-  for (  File entry : dir.listFiles()) {
-    if (!entry.getName().endsWith(".stmt") && !entry.getName().endsWith(".unit")) {
+  String testName=getTestName(true);
+  File dir=new File(new File(getTestDataPath(),getBasePath()),dirName);
+  boolean found=false;
+  for (  String ext : new String[]{".stmt",".unit"}) {
+    File entry=new File(dir,testName + ext);
+    if (!entry.exists()) {
       continue;
     }
+    found=true;
     String[] lines=FileUtil.loadLines(entry).toArray(new String[0]);
     int pageWidth=0;
     int i=0;
@@ -41,5 +45,8 @@
       settings.RIGHT_MARGIN=pageWidth;
       doTextTest(inputCode.text,expected.text);
     }
+  }
+  if (!found) {
+    fail("No test data for " + testName);
   }
 }
