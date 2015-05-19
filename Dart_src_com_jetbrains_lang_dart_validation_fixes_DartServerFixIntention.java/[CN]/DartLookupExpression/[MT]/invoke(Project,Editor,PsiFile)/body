@@ -1,7 +1,20 @@
 {
   final SourceFileEdit fileEdit=myChange.getEdits().get(0);
+  final String filePath=fileEdit.getFile();
   final SourceEdit sourceEdit=fileEdit.getEdits().get(0);
-  final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(fileEdit.getFile()));
+  if (fileEdit.getFileStamp() == -1) {
+    try {
+      final String directoryPath=VfsUtil.getParentDir(filePath);
+      final VirtualFile directory=VfsUtil.createDirectoryIfMissing(directoryPath);
+      if (directory != null) {
+        final String fileName=VfsUtil.extractFileName(filePath);
+        directory.createChildData(this,fileName);
+      }
+    }
+ catch (    IOException e) {
+    }
+  }
+  final VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(filePath));
   if (virtualFile == null)   return;
   if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project,Collections.singletonList(virtualFile)))   return;
   final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
