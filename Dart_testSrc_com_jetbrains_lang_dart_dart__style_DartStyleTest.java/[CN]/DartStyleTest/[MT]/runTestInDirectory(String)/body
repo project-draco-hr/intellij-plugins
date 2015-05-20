@@ -6,9 +6,8 @@
   }
   File dir=new File(new File(getTestDataPath(),getBasePath()),dirName);
   boolean found=false;
-  int rightMargin=0, count=0;
-  List<Error> errors=new ArrayList<Error>();
-  List<String> descriptions=new ArrayList<String>();
+  final StringBuilder combinedActualResult=new StringBuilder();
+  final StringBuilder combinedExpectedResult=new StringBuilder();
   for (  String ext : new String[]{".stmt",".unit"}) {
     File entry=new File(dir,testName + ext);
     if (!entry.exists()) {
@@ -23,7 +22,9 @@
       pageWidth=lines[0].indexOf("|");
       i=1;
     }
-    rightMargin=pageWidth;
+    System.out.println("Right margin: " + pageWidth);
+    final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
+    settings.RIGHT_MARGIN=pageWidth;
     while (i < lines.length) {
       String description=lines[i++].replaceAll(">>>","").trim();
       int leadingIndent=0;
@@ -53,34 +54,19 @@
       if (!isCompilationUnit)       expectedOutput+="}\n";
       SourceCode inputCode=extractSelection(input,isCompilationUnit);
       SourceCode expected=extractSelection(expectedOutput,isCompilationUnit);
-      final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
-      settings.RIGHT_MARGIN=pageWidth;
       myTextRange=new TextRange(inputCode.selectionStart,inputCode.selectionEnd());
       try {
-        count++;
         doTextTest(inputCode.text,expected.text);
+        System.out.println("TEST PASSED: " + (description.isEmpty() ? "(unnamed)" : description));
       }
- catch (      AssertionFailedError failure) {
-        errors.add(failure);
-        descriptions.add(description);
+ catch (      ComparisonFailure failure) {
+        combinedExpectedResult.append("TEST: ").append(description).append("\n").append(failure.getExpected()).append("\n");
+        combinedActualResult.append("TEST: ").append(description).append("\n").append(failure.getActual()).append("\n");
       }
     }
   }
   if (!found) {
     fail("No test data for " + testName);
   }
-  if (!errors.isEmpty()) {
-    StringBuilder buf=new StringBuilder();
-    String test=dirName + "/" + testName;
-    buf.append("Found ").append(errors.size()).append(" failures of ").append(count).append(" tests in ").append(test).append(". Right margin is ").append(rightMargin).append(".\n");
-    int n=0;
-    for (    Error ex : errors) {
-      String msg=ex.getMessage();
-      buf.append("\nTEST: ");
-      buf.append(descriptions.get(n++)).append('\n');
-      buf.append(msg).append('\n');
-    }
-    System.out.println(buf.toString());
-    throw errors.get(0);
-  }
+  assertEquals(combinedExpectedResult.toString(),combinedActualResult.toString());
 }
