@@ -7,15 +7,15 @@
   File dir=new File(new File(getTestDataPath(),getBasePath()),dirName);
   boolean found=false;
   int rightMargin=0, count=0;
-  List<Error> errors=new ArrayList();
-  List<String> descriptions=new ArrayList();
+  List<Error> errors=new ArrayList<Error>();
+  List<String> descriptions=new ArrayList<String>();
   for (  String ext : new String[]{".stmt",".unit"}) {
     File entry=new File(dir,testName + ext);
     if (!entry.exists()) {
       continue;
     }
     found=true;
-    String[] lines=FileUtil.loadLines(entry).toArray(new String[0]);
+    String[] lines=ArrayUtil.toStringArray(FileUtil.loadLines(entry));
     boolean isCompilationUnit=entry.getName().endsWith(".unit");
     int pageWidth=80;
     int i=0;
@@ -70,9 +70,9 @@
     fail("No test data for " + testName);
   }
   if (!errors.isEmpty()) {
-    StringBuffer buf=new StringBuffer();
+    StringBuilder buf=new StringBuilder();
     String test=dirName + "/" + testName;
-    buf.append("Found " + errors.size() + " failures of "+ count+ " tests in "+ test+ ". Right margin is "+ rightMargin+ ".\n");
+    buf.append("Found ").append(errors.size()).append(" failures of ").append(count).append(" tests in ").append(test).append(". Right margin is ").append(rightMargin).append(".\n");
     int n=0;
     for (    Error ex : errors) {
       String msg=ex.getMessage();
