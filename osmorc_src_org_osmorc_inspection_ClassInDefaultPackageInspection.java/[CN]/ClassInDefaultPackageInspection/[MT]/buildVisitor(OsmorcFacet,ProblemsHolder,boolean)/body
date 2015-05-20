@@ -1,0 +1,16 @@
+{
+  return new PsiElementVisitor(){
+    @Override public void visitFile(    PsiFile file){
+      if (file instanceof PsiClassOwner && ((PsiClassOwner)file).getPackageName().isEmpty()) {
+        PsiClass[] classes=((PsiClassOwner)file).getClasses();
+        if (classes.length > 0) {
+          PsiElement identifier=unwrap(classes[0].getNameIdentifier());
+          if (identifier != null && identifier.isPhysical()) {
+            holder.registerProblem(identifier,OsmorcBundle.message("ClassInDefaultPackageInspection.message"));
+          }
+        }
+      }
+    }
+  }
+;
+}
