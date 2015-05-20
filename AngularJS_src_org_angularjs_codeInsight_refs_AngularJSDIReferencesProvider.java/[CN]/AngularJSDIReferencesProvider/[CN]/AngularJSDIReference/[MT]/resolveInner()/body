@@ -1,0 +1,11 @@
+{
+  final JSImplicitElement resolve=AngularIndexUtil.resolve(getElement().getProject(),AngularSymbolIndex.KEY,getCanonicalText());
+  if (resolve != null)   return resolve;
+  final String name=getCanonicalText();
+  final PsiFile psiFile=getElement().getContainingFile();
+  final WalkUpResolveProcessor processor=new WalkUpResolveProcessor(name,BaseJSSymbolProcessor.EMPTY_CONTEXT,psiFile,getElement(),BaseJSSymbolProcessor.MatchMode.Any);
+  processor.allowPartialResults();
+  JSReferenceExpressionResolver.processAllSymbols(processor);
+  final ResolveResult[] results=processor.getResults();
+  return results.length == 1 ? results[0].getElement() : null;
+}
