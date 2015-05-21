@@ -1,6 +1,9 @@
 {
   final Project project=module.getProject();
-  final UserDataHolder dataHolder=contextSubdir != null ? contextSubdir : pubspecFile;
+  final UserDataHolder dataHolder=contextSubdir != null ? PsiManager.getInstance(project).findDirectory(contextSubdir) : PsiManager.getInstance(project).findFile(pubspecFile);
+  if (dataHolder == null) {
+    return null;
+  }
   return CachedValuesManager.getManager(project).getCachedValue(dataHolder,new CachedValueProvider<GlobalSearchScope>(){
     @Override public Result<GlobalSearchScope> compute(){
       final Collection<VirtualFile> pathPackageRoots=getPathPackageRoots(pubspecFile);
