@@ -7,9 +7,18 @@
   try {
     prepare();
     doBuild();
-    context.processMessage(DoneSomethingNotification.INSTANCE);
   }
  catch (  OsgiBuildException e) {
     error(e.getMessage(),e.getCause(),e.getSourcePath());
+    return;
   }
+  if (!myOutputJarFile.exists()) {
+    error("Bundle was not built",null,null);
+    return;
+  }
+  ProjectBuilderLogger logger=context.getLoggingManager().getProjectBuilderLogger();
+  if (logger.isEnabled()) {
+    logger.logCompiledFiles(Collections.singleton(myOutputJarFile),OsmorcBuilder.ID,"Built OSGi bundles:");
+  }
+  context.processMessage(DoneSomethingNotification.INSTANCE);
 }
