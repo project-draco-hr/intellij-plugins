@@ -3,7 +3,12 @@
   if (analysisScope == null)   return;
   final GlobalSearchScope scope=GlobalSearchScope.EMPTY_SCOPE.union(analysisScope.toSearchScope());
   updateIndicator("Looking for Dart files...",-1);
-  final Collection<VirtualFile> dartFiles=FileTypeIndex.getFiles(DartFileType.INSTANCE,scope);
+  final Collection<VirtualFile> dartFiles=ApplicationManager.getApplication().runReadAction(new Computable<Collection<VirtualFile>>(){
+    @Override public Collection<VirtualFile> compute(){
+      return FileTypeIndex.getFiles(DartFileType.INSTANCE,scope);
+    }
+  }
+);
   double index=0.0;
   final int size=dartFiles.size();
   for (  final VirtualFile dartFile : dartFiles) {
