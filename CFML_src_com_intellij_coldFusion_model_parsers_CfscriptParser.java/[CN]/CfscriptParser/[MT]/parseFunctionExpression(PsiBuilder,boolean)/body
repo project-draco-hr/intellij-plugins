@@ -1,10 +1,12 @@
 {
   PsiBuilder.Marker functionMarker=myBuilder.mark();
-  if (CfscriptTokenTypes.ACCESS_KEYWORDS.contains(myBuilder.getTokenType())) {
-    myBuilder.advanceLexer();
-  }
-  if (myBuilder.getTokenType() != FUNCTION_KEYWORD) {
-    parseType(myBuilder);
+  if (!anonymous) {
+    if (ACCESS_KEYWORDS.contains(myBuilder.getTokenType())) {
+      myBuilder.advanceLexer();
+    }
+    if (myBuilder.getTokenType() != FUNCTION_KEYWORD) {
+      parseType(myBuilder);
+    }
   }
   if (myBuilder.getTokenType() != FUNCTION_KEYWORD) {
     myBuilder.error(CfmlBundle.message("cfml.parsing.function.expected"));
@@ -12,14 +14,14 @@
     return;
   }
   myBuilder.advanceLexer();
-  if (myBuilder.getTokenType() != IDENTIFIER && !(myBuilder.getTokenType() == DEFAULT_KEYWORD)) {
+  if (myBuilder.getTokenType() != IDENTIFIER && !(myBuilder.getTokenType() == DEFAULT_KEYWORD) && !anonymous) {
     myBuilder.error(CfmlBundle.message("cfml.parsing.identifier.expected"));
   }
  else {
-    myBuilder.advanceLexer();
+    if (!anonymous)     myBuilder.advanceLexer();
   }
   parseParametersListInBrackets(myBuilder);
-  CfmlParser.parseAttributes(myBuilder,"cffunction",CfscriptTokenTypes.IDENTIFIER,true);
+  CfmlParser.parseAttributes(myBuilder,"cffunction",IDENTIFIER,true);
   parseFunctionBody(myBuilder);
   functionMarker.done(CfmlElementTypes.FUNCTION_DEFINITION);
 }

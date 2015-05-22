@@ -1,0 +1,24 @@
+{
+  PsiBuilder.Marker startMarker=myBuilder.mark();
+  if (myBuilder.getTokenType() == VAR_KEYWORD) {
+    myBuilder.advanceLexer();
+  }
+  PsiBuilder.Marker definitionMarker=myBuilder.mark();
+  if (!(new CfmlExpressionParser(myBuilder)).parseReference(false)) {
+    startMarker.rollbackTo();
+    return false;
+  }
+ else {
+    definitionMarker.done(CfmlElementTypes.FORVARIABLE);
+  }
+  if (myBuilder.getTokenType() != IN_L) {
+    startMarker.rollbackTo();
+    return false;
+  }
+  myBuilder.advanceLexer();
+  if (!(new CfmlExpressionParser(myBuilder)).parseReference(false)) {
+    (new CfmlExpressionParser(myBuilder)).parseArrayDefinition();
+  }
+  startMarker.drop();
+  return true;
+}

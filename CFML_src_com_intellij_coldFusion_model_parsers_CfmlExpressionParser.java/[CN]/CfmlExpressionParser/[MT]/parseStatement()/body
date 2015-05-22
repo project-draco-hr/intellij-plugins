@@ -3,13 +3,13 @@
     return;
   }
   int offset=myBuilder.getCurrentOffset();
-  if (CfscriptTokenTypes.PREFIX_OPERATIONS.contains(getTokenType())) {
+  if (PREFIX_OPERATIONS.contains(getTokenType())) {
     parsePrefixOperationExpression();
     return;
   }
   PsiBuilder.Marker statementMarker=myBuilder.mark();
   if (getTokenType() == VAR_KEYWORD) {
-    parseAssignmentExpression();
+    parseAssignmentExpression(false);
     statementMarker.drop();
     return;
   }
@@ -19,14 +19,14 @@
   }
   boolean isClearAssign=false;
   boolean isProbableVariableDef=false;
-  if (CfscriptTokenTypes.POSTFIX_OPERATIONS.contains(getTokenType())) {
+  if (POSTFIX_OPERATIONS.contains(getTokenType())) {
     advance();
     statementMarker.done(CfmlElementTypes.NONE);
     return;
   }
- else   if (!CfscriptTokenTypes.ASSIGN_OPERATORS.contains(getTokenType())) {
+ else   if (!ASSIGN_OPERATORS.contains(getTokenType())) {
     myBuilder.error(CfmlBundle.message("cfml.parsing.statement.expected"));
-    if (CfscriptTokenTypes.OPERATIONS.contains(getTokenType())) {
+    if (OPERATIONS.contains(getTokenType())) {
       advance();
       myBuilder.error(CfmlBundle.message("cfml.parsing.assignment.expected"));
       isClearAssign=true;

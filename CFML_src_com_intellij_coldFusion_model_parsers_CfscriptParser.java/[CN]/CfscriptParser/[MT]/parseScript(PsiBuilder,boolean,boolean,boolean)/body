@@ -16,12 +16,12 @@
  else     if (myBuilder.getTokenType() == COMPONENT_KEYWORD || myBuilder.getTokenType() == INTERFACE_KEYWORD) {
       parseComponentOrInterface(myBuilder);
     }
- else     if (CfscriptTokenTypes.ACCESS_KEYWORDS.contains(myBuilder.getTokenType()) || myBuilder.getTokenType() == FUNCTION_KEYWORD) {
-      parseFunctionExpression(myBuilder);
+ else     if (ACCESS_KEYWORDS.contains(myBuilder.getTokenType()) || myBuilder.getTokenType() == FUNCTION_KEYWORD) {
+      parseFunctionExpression(myBuilder,false);
     }
- else     if (CfscriptTokenTypes.TYPE_KEYWORDS.contains(myBuilder.getTokenType())) {
+ else     if (TYPE_KEYWORDS.contains(myBuilder.getTokenType())) {
       if (!tryParseStatement(myBuilder)) {
-        parseFunctionExpression(myBuilder);
+        parseFunctionExpression(myBuilder,false);
       }
     }
  else     if (myBuilder.getTokenType() == VAR_KEYWORD) {
@@ -38,9 +38,6 @@
     }
  else     if (myBuilder.getTokenType() == FOR_KEYWORD) {
       parseForExpression(myBuilder);
-    }
- else     if (myBuilder.getTokenType() == FOR_IN_KEYWORD) {
-      parseForInExpression(myBuilder);
     }
  else     if (myBuilder.getTokenType() == SWITCH_KEYWORD) {
       parseSwitchExpression(myBuilder);
@@ -84,7 +81,7 @@
  else     if (myBuilder.getTokenType() == TRY_KEYWORD) {
       parseTryCatchExpression(myBuilder);
     }
- else     if (CfscriptTokenTypes.KEYWORDS.contains(myBuilder.getTokenType())) {
+ else     if (KEYWORDS.contains(myBuilder.getTokenType())) {
       if (myBuilder.getTokenType() == VAR_KEYWORD || myBuilder.getTokenType() == SCOPE_KEYWORD) {
         parseStatement(myBuilder);
       }
@@ -102,7 +99,7 @@
       PsiBuilder.Marker marker=myBuilder.mark();
       if (parseType(myBuilder) && myBuilder.getTokenType() == FUNCTION_KEYWORD) {
         marker.rollbackTo();
-        parseFunctionExpression(myBuilder);
+        parseFunctionExpression(myBuilder,false);
       }
  else {
         marker.rollbackTo();

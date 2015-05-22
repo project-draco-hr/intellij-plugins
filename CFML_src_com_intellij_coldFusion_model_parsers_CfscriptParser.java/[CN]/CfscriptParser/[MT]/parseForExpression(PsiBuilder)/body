@@ -10,10 +10,12 @@
     return;
   }
   myBuilder.advanceLexer();
-  parseStatement(myBuilder);
-  parseCondition(myBuilder);
-  eatSemicolon(myBuilder);
-  (new CfmlExpressionParser(myBuilder)).parseStatement();
+  if (!tryParseForIn(myBuilder)) {
+    parseStatement(myBuilder);
+    parseCondition(myBuilder);
+    eatSemicolon(myBuilder);
+    (new CfmlExpressionParser(myBuilder)).parseStatement();
+  }
   if (myBuilder.getTokenType() != R_BRACKET) {
     myBuilder.error(CfmlBundle.message("cfml.parsing.close.bracket.expected"));
     forExpressionMarker.done(CfmlElementTypes.FOREXPRESSION);
