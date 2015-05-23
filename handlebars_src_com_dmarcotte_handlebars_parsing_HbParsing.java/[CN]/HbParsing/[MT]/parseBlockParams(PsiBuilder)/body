@@ -1,0 +1,23 @@
+{
+  PsiBuilder.Marker blockParamsMarker=builder.mark();
+  if (parseLeafToken(builder,OPEN_BLOCK_PARAMS)) {
+    blockParamsMarker.drop();
+    parseLeafToken(builder,ID);
+    while (true) {
+      PsiBuilder.Marker optionalIdMarker=builder.mark();
+      if (parseLeafToken(builder,ID)) {
+        optionalIdMarker.drop();
+      }
+ else {
+        optionalIdMarker.rollbackTo();
+        break;
+      }
+    }
+    parseLeafToken(builder,CLOSE_BLOCK_PARAMS);
+    return true;
+  }
+ else {
+    blockParamsMarker.rollbackTo();
+    return false;
+  }
+}
