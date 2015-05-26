@@ -230,6 +230,21 @@
     return addSingleSpaceIf(true);
   }
   if (elementType == VALUE_EXPRESSION && type2 == CASCADE_REFERENCE_EXPRESSION) {
+    if (type1 == CASCADE_REFERENCE_EXPRESSION) {
+      ASTNode call1=((AbstractBlock)child1).getNode().getLastChildNode();
+      if (call1.getElementType() == CALL_EXPRESSION) {
+        ASTNode call2=((AbstractBlock)child2).getNode().getLastChildNode();
+        if (call2.getElementType() == CALL_EXPRESSION) {
+          String name1=getImmediateCallName(call1);
+          if (name1 != null) {
+            String name2=getImmediateCallName(call2);
+            if (name1.equals(name2)) {
+              return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+            }
+          }
+        }
+      }
+    }
     return addLineBreak();
   }
   return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
