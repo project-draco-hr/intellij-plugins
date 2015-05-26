@@ -43,7 +43,7 @@
       }
     }
   }
- else {
+ else   if (myExtension.isManifestManuallyEdited() || myExtension.isOsmorcControlsManifest()) {
     Map<String,String> buildProperties=getBuildProperties();
     if (LOG.isDebugEnabled()) {
       LOG.debug("build properties: " + buildProperties);
@@ -58,5 +58,9 @@
     mySourceToReport=null;
     progress("Bundling non-OSGi libraries");
     bundlifyLibraries();
+  }
+ else {
+    ManifestGenerationMode mode=((JpsOsmorcModuleExtensionImpl)myExtension).getProperties().myManifestGenerationMode;
+    throw new OsgiBuildException("Internal error: unknown build method: " + mode);
   }
 }
