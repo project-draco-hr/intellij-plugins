@@ -1,0 +1,16 @@
+{
+  if (!myFile.isValid() || myBrowser == null || myDocument == null) {
+    return;
+  }
+  String text=myDocument.getText();
+  final TokensCache tokensCache=new LexerBasedTokensCache(new MarkdownLexer(text));
+  final ASTNode parsedTree=new MarkdownParser(CommonMarkMarkerProcessor.Factory.INSTANCE$).parse(MarkdownElementTypes.MARKDOWN_FILE,tokensCache);
+  final String html=new HtmlGenerator(text,parsedTree).generateHtml();
+  Platform.runLater(new Runnable(){
+    @Override public void run(){
+      myBrowser.getEngine().getLoadWorker().cancel();
+      myBrowser.getEngine().loadContent("<html>" + html + "</html>");
+    }
+  }
+);
+}

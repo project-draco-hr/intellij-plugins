@@ -1,0 +1,32 @@
+{
+  myFile=file;
+  myDocument=FileDocumentManager.getInstance().getDocument(myFile);
+  if (myDocument != null) {
+    myDocument.addDocumentListener(new DocumentAdapter(){
+      @Override public void documentChanged(      DocumentEvent e){
+        myAlarm.cancelAllRequests();
+        myAlarm.addRequest(new Runnable(){
+          @Override public void run(){
+            updateHtml();
+          }
+        }
+,PARSING_CALL_TIMEOUT_MS);
+      }
+    }
+,this);
+  }
+  myPanel=new JFXPanel();
+  myPanel.addComponentListener(new ComponentAdapter(){
+    @Override public void componentResized(    ComponentEvent e){
+      adjustBrowserSize();
+    }
+  }
+);
+  Platform.setImplicitExit(false);
+  Platform.runLater(new Runnable(){
+    @Override public void run(){
+      initWebViewInComponent(myPanel);
+    }
+  }
+);
+}
