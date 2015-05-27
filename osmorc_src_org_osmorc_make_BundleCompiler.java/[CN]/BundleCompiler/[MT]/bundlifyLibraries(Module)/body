@@ -1,0 +1,13 @@
+{
+  myIndicator.setText("Bundling non-OSGi libraries for module '" + module.getName() + "'");
+  File outputDir=BndWrapper.getOutputDir(getModuleOutputDir(module));
+  List<LibraryBundlificationRule> libRules=ApplicationSettings.getInstance().getLibraryBundlificationRules();
+  List<String> paths=OrderEnumerator.orderEntries(module).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().recursively().exportedOnly().classes().getPathsList().getPathList();
+  List<File> files=ContainerUtil.map(paths,new Function<String,File>(){
+    @Override public File fun(    String path){
+      return new File(path);
+    }
+  }
+);
+  return new BndWrapper(this).bundlifyLibraries(files,outputDir,libRules);
+}

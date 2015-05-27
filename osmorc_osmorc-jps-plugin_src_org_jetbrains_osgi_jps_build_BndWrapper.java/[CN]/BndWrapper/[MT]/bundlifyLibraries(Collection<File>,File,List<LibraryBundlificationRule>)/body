@@ -1,0 +1,22 @@
+{
+  List<String> result=ContainerUtil.newArrayListWithCapacity(dependencies.size());
+  for (  File dependency : dependencies) {
+    String path=dependency.getPath();
+    if (CachingBundleInfoProvider.canBeBundlified(path)) {
+      myReporter.progress(path);
+      try {
+        File bundledDependency=wrap(dependency,outputDir,rules);
+        if (bundledDependency != null) {
+          result.add(bundledDependency.getPath());
+        }
+      }
+ catch (      OsgiBuildException e) {
+        myReporter.warning(e.getMessage(),e.getCause(),e.getSourcePath());
+      }
+    }
+ else     if (CachingBundleInfoProvider.isBundle(path)) {
+      result.add(path);
+    }
+  }
+  return result;
+}
