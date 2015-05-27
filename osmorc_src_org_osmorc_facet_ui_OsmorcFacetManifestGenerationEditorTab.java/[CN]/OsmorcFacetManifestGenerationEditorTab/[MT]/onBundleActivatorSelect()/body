@@ -1,11 +1,12 @@
 {
-  Project project=_editorContext.getProject();
-  GlobalSearchScope searchScope=GlobalSearchScope.moduleWithDependenciesScope(_editorContext.getModule());
-  PsiClass psiClass=JavaPsiFacade.getInstance(project).findClass("org.osgi.framework.BundleActivator",GlobalSearchScope.allScope(project));
-  TreeJavaClassChooserDialog dialog=new TreeJavaClassChooserDialog(OsmorcBundle.message("facet.editor.select.bundle.activator"),project,searchScope,new TreeJavaClassChooserDialog.InheritanceJavaClassFilterImpl(psiClass,false,true,null),null);
+  Project project=myEditorContext.getProject();
+  PsiClass activatorClass=OsgiPsiUtil.getActivatorClass(project);
+  ClassFilter filter=new TreeJavaClassChooserDialog.InheritanceJavaClassFilterImpl(activatorClass,false,true,null);
+  GlobalSearchScope scope=GlobalSearchScope.moduleWithDependenciesScope(myEditorContext.getModule());
+  TreeJavaClassChooserDialog dialog=new TreeJavaClassChooserDialog(OsmorcBundle.message("facet.editor.select.bundle.activator"),project,scope,filter,null);
   dialog.showDialog();
-  PsiClass clazz=dialog.getSelected();
-  if (clazz != null) {
-    _bundleActivator.setText(clazz.getQualifiedName());
+  PsiClass psiClass=dialog.getSelected();
+  if (psiClass != null) {
+    myBundleActivator.setText(psiClass.getQualifiedName());
   }
 }
