@@ -1,11 +1,12 @@
 {
+  Set<SelectedBundle> selected=ContainerUtil.newHashSet(selectedList);
   DefaultMutableTreeNode root=new DefaultMutableTreeNode();
   DefaultMutableTreeNode moduleNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.modules"));
   Module[] modules=ModuleManager.getInstance(project).getModules();
   for (  Module module : modules) {
     if (OsmorcFacet.hasOsmorcFacet(module)) {
       SelectedBundle bundle=new SelectedBundle(SelectedBundle.BundleType.Module,module.getName(),null);
-      if (!toHide.contains(bundle)) {
+      if (!selected.contains(bundle)) {
         moduleNode.add(new DefaultMutableTreeNode(bundle));
       }
     }
@@ -16,7 +17,7 @@
     if (integrator != null) {
       DefaultMutableTreeNode frameworkNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.framework"));
       for (      SelectedBundle bundle : integrator.getFrameworkInstanceManager().getFrameworkBundles(instance,FrameworkBundleType.OTHER)) {
-        if (!toHide.contains(bundle)) {
+        if (!selected.contains(bundle)) {
           frameworkNode.add(new DefaultMutableTreeNode(bundle));
         }
       }
@@ -24,12 +25,12 @@
     }
   }
   DefaultMutableTreeNode libraryNode=new DefaultMutableTreeNode(OsmorcBundle.message("bundle.selector.group.libraries"));
-  List<String> paths=OrderEnumerator.orderEntries(project).withoutSdk().withoutModuleSourceEntries().withoutDepModules().productionOnly().runtimeOnly().classes().getPathsList().getPathList();
+  List<String> paths=OrderEnumerator.orderEntries(project).librariesOnly().productionOnly().runtimeOnly().classes().getPathsList().getPathList();
   for (  String path : paths) {
     String displayName=CachingBundleInfoProvider.getBundleSymbolicName(path);
     if (displayName != null) {
       SelectedBundle bundle=new SelectedBundle(SelectedBundle.BundleType.StartLibrary,displayName,path);
-      if (!toHide.contains(bundle)) {
+      if (!selected.contains(bundle)) {
         libraryNode.add(new DefaultMutableTreeNode(bundle));
       }
     }
