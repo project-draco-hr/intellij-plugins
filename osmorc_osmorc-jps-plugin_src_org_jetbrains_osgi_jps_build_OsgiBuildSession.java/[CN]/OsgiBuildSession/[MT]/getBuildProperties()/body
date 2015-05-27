@@ -1,5 +1,6 @@
 {
   Map<String,String> properties=ContainerUtil.newHashMap();
+  boolean isMaven=OsgiBuildUtil.getMavenProjectPath(myContext,myModule) != null;
   properties.put(Constants.IMPORT_PACKAGE,"*");
   properties.put(Constants.REMOVEHEADERS,Constants.INCLUDE_RESOURCE + ',' + Constants.PRIVATE_PACKAGE);
   properties.put(Constants.CREATED_BY,"IntelliJ IDEA / OSGi Plugin");
@@ -19,21 +20,22 @@
     }
     properties.put(Constants.MANIFEST,manifestFile.getAbsolutePath());
   }
-  StringBuilder pathBuilder=new StringBuilder(myModuleOutputDir.getPath());
-  for (  OsmorcJarContentEntry contentEntry : myExtension.getAdditionalJarContents()) {
-    pathBuilder.append(',').append(contentEntry.myDestination).append('=').append(contentEntry.mySource);
-  }
-  StringBuilder includedResources;
+  List<String> resources=ContainerUtil.newSmartList();
   if (myExtension.isOsmorcControlsManifest()) {
-    includedResources=new StringBuilder();
-    String resources=properties.get(Constants.INCLUDE_RESOURCE);
-    if (resources != null)     includedResources.append(resources).append(',');
-    includedResources.append(pathBuilder);
+    String custom=properties.get(Constants.INCLUDE_RESOURCE);
+    if (custom != null) {
+      resources.add(custom);
+    }
   }
- else {
-    includedResources=pathBuilder;
+  for (  OsmorcJarContentEntry contentEntry : myExtension.getAdditionalJarContents()) {
+    resources.add(contentEntry.myDestination + '=' + contentEntry.mySource);
   }
-  properties.put(Constants.INCLUDE_RESOURCE,includedResources.toString());
+  if (isMaven && myExtension.isOsmorcControlsManifest()) {
+    resources.add(myModuleOutputDir.getPath());
+  }
+  if (!resources.isEmpty()) {
+    properties.put(Constants.INCLUDE_RESOURCE,StringUtil.join(resources,","));
+  }
   String pattern=myExtension.getIgnoreFilePattern();
   if (!StringUtil.isEmptyOrSpaces(pattern)) {
     try {
@@ -44,7 +46,7 @@
     }
     properties.put(Constants.DONOTCOPY,pattern);
   }
-  if (myExtension.isOsmorcControlsManifest()) {
+  if (isMaven && myExtension.isOsmorcControlsManifest()) {
     progress("Calculating local packages");
     LocalPackageCollector.addLocalPackages(myModuleOutputDir,properties);
   }
