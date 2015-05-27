@@ -3,42 +3,11 @@
     return EMPTY;
   }
   final ArrayList<Block> tlChildren=new ArrayList<Block>();
-  ASTNode parent=getNode();
-  if (parent.getElementType() == VALUE_EXPRESSION) {
-    DartBlock receiverBlock=null;
-    for (ASTNode childNode=parent.getFirstChildNode(); childNode != null; childNode=childNode.getTreeNext()) {
-      if (FormatterUtil.containsWhiteSpacesOnly(childNode))       continue;
-      DartBlock childBlock;
-      if (childNode.getElementType() == CASCADE_REFERENCE_EXPRESSION) {
-        childBlock=new DartCascadeBlock(childNode,createChildWrap(childNode),createChildAlignment(childNode),mySettings);
-        childNode.putUserData(DART_CASCADE_KEY,childBlock);
-        childNode.putUserData(DART_RECEIVER_KEY,receiverBlock);
-      }
- else {
-        childBlock=new DartReceiverBlock(childNode,createChildWrap(childNode),createChildAlignment(childNode),mySettings);
-        receiverBlock=childBlock;
-        childBlock.setParent(this);
-      }
-      tlChildren.add(childBlock);
-    }
-  }
- else {
-    if (parent.getElementType() == CASCADE_REFERENCE_EXPRESSION) {
-      DartBlock receiver=parent.getUserData(DART_RECEIVER_KEY);
-      DartBlock cascade=parent.getUserData(DART_CASCADE_KEY);
-      if (receiver != null && cascade != null) {
-        cascade.setParent(receiver);
-        receiver.getSubBlocks().add(cascade);
-      }
-      parent.putUserData(DART_RECEIVER_KEY,null);
-      parent.putUserData(DART_CASCADE_KEY,null);
-    }
-    for (ASTNode childNode=parent.getFirstChildNode(); childNode != null; childNode=childNode.getTreeNext()) {
-      if (FormatterUtil.containsWhiteSpacesOnly(childNode))       continue;
-      final DartBlock childBlock=new DartBlock(childNode,createChildWrap(childNode),createChildAlignment(childNode),mySettings);
-      childBlock.setParent(this);
-      tlChildren.add(childBlock);
-    }
+  for (ASTNode childNode=getNode().getFirstChildNode(); childNode != null; childNode=childNode.getTreeNext()) {
+    if (FormatterUtil.containsWhiteSpacesOnly(childNode))     continue;
+    final DartBlock childBlock=new DartBlock(childNode,createChildWrap(childNode),createChildAlignment(childNode),mySettings);
+    childBlock.setParent(this);
+    tlChildren.add(childBlock);
   }
   return tlChildren;
 }
