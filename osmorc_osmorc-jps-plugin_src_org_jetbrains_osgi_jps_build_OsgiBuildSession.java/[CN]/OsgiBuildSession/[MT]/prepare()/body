@@ -14,6 +14,19 @@
   if (!FileUtil.createParentDirs(myOutputJarFile)) {
     throw new OsgiBuildException("Cannot create directory for bundle file '" + myOutputJarFile + "'.");
   }
+  List<File> classes=ContainerUtil.newSmartList(myModuleOutputDir);
+  for (  JpsDependencyElement dependency : myModule.getDependenciesList().getDependencies()) {
+    if (dependency instanceof JpsModuleDependency) {
+      JpsModule module=((JpsModuleDependency)dependency).getModule();
+      if (module != null && JpsOsmorcExtensionService.getExtension(module) == null) {
+        File outputDir=JpsJavaExtensionService.getInstance().getOutputDirectory(module,false);
+        if (outputDir != null) {
+          classes.add(outputDir);
+        }
+      }
+    }
+  }
+  myClasses=classes.toArray(new File[classes.size()]);
   mySources=ContainerUtil.map2Array(myModule.getSourceRoots(),File.class,new Function<JpsModuleSourceRoot,File>(){
     @Override public File fun(    JpsModuleSourceRoot root){
       return root.getFile();
