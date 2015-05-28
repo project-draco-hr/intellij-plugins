@@ -230,7 +230,35 @@
     return addSingleSpaceIf(true);
   }
   if (elementType == VALUE_EXPRESSION && type2 == CASCADE_REFERENCE_EXPRESSION) {
+    if (type1 == CASCADE_REFERENCE_EXPRESSION) {
+      if (cascadesAreSameMethod(((AbstractBlock)child1).getNode(),((AbstractBlock)child2).getNode())) {
+        return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+      }
+    }
+ else     if (type1 == REFERENCE_EXPRESSION) {
+      CompositeElement elem=(CompositeElement)myNode;
+      ASTNode[] childs=elem.getChildren(CASCADE_REFERENCE_EXPRESSION_SET);
+      if (childs.length == 1 || allCascadesAreSameMethod(childs)) {
+        return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+      }
+    }
     return addLineBreak();
+  }
+  if (type1 == CLOSING_QUOTE && type2 == OPEN_QUOTE && elementType == STRING_LITERAL_EXPRESSION) {
+    ASTNode sib=node1;
+    int preserveNewline=0;
+    while ((sib=sib.getTreeNext()) != null) {
+      if (sib.getElementType() == WHITE_SPACE) {
+        String ws=sib.getText();
+        if (ws.contains("\n") || ws.contains("\r")) {
+          preserveNewline++;
+          break;
+        }
+        continue;
+      }
+      break;
+    }
+    return Spacing.createSpacing(0,1,preserveNewline,true,0);
   }
   return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
 }
