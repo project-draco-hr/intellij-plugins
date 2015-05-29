@@ -26,7 +26,7 @@
     final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
     settings.RIGHT_MARGIN=pageWidth;
     while (i < lines.length) {
-      String description=lines[i++].replaceAll(">>>","").trim();
+      String description=(dirName + "/" + testName+ ":"+ (i + 1)+ " "+ lines[i++].replaceAll(">>>","")).trim();
       int leadingIndent=0;
       Matcher matcher=indentPattern.matcher(description);
       if (matcher.matches()) {
@@ -57,11 +57,16 @@
       myTextRange=new TextRange(inputCode.selectionStart,inputCode.selectionEnd());
       try {
         doTextTest(inputCode.text,expected.text);
+        if (KNOWN_TO_FAIL.contains(description)) {
+          fail("The test passed, but was expected to fail: " + description);
+        }
         System.out.println("TEST PASSED: " + (description.isEmpty() ? "(unnamed)" : description));
       }
  catch (      ComparisonFailure failure) {
-        combinedExpectedResult.append("TEST: ").append(description).append("\n").append(failure.getExpected()).append("\n");
-        combinedActualResult.append("TEST: ").append(description).append("\n").append(failure.getActual()).append("\n");
+        if (!KNOWN_TO_FAIL.contains(description)) {
+          combinedExpectedResult.append("TEST: ").append(description).append("\n").append(failure.getExpected()).append("\n");
+          combinedActualResult.append("TEST: ").append(description).append("\n").append(failure.getActual()).append("\n");
+        }
       }
     }
   }
