@@ -8,7 +8,15 @@
   final IElementType type1=node1.getElementType();
   final ASTNode node2=((AbstractBlock)child2).getNode();
   final IElementType type2=node2.getElementType();
-  if (SEMICOLON == type2)   return Spacing.createSpacing(0,0,0,true,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  if (type1 == SINGLE_LINE_COMMENT) {
+    return addSingleSpaceIf(false,true);
+  }
+  if (SEMICOLON == type2) {
+    if (type1 == SEMICOLON && elementType == STATEMENTS) {
+      return addSingleSpaceIf(false,true);
+    }
+    return Spacing.createSpacing(0,0,0,true,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
   if (AT == type1)   return Spacing.createSpacing(0,0,0,false,0);
   if (METADATA == type1)   return Spacing.createSpacing(1,1,0,true,0);
   if (FUNCTION_DEFINITION.contains(type2)) {
@@ -183,6 +191,12 @@
   if (type1 == MULTIPLICATIVE_OPERATOR || type2 == MULTIPLICATIVE_OPERATOR) {
     return addSingleSpaceIf(mySettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
   }
+  if (type1 == PREFIX_OPERATOR && type2 == PREFIX_EXPRESSION) {
+    ASTNode[] childs=node2.getChildren(PREFIX_OPERATOR_SET);
+    if (childs.length > 0) {
+      return addSingleSpaceIf(isSpaceNeededBetweenPrefixOps(node1,childs[0]));
+    }
+  }
   if (type1 == PREFIX_OPERATOR || type2 == PREFIX_OPERATOR) {
     return addSingleSpaceIf(mySettings.SPACE_AROUND_UNARY_OPERATOR);
   }
@@ -271,8 +285,10 @@
       return noSpace();
     }
   }
-  if (elementType == TYPE_ARGUMENTS && type1 == LT || type2 == GT) {
-    return noSpace();
+  if (elementType == TYPE_ARGUMENTS) {
+    if (type1 == LT || type2 == GT) {
+      return noSpace();
+    }
   }
   if (elementType == IS_EXPRESSION) {
     if (type1 == NOT) {
@@ -281,6 +297,12 @@
     if (type2 == NOT) {
       return noSpace();
     }
+  }
+  if (type1 == LBRACE && type2 == RBRACE) {
+    return noSpace();
+  }
+  if (type1 == TYPE_ARGUMENTS && (type2 == LBRACKET || type2 == LBRACE)) {
+    return noSpace();
   }
   return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
 }
