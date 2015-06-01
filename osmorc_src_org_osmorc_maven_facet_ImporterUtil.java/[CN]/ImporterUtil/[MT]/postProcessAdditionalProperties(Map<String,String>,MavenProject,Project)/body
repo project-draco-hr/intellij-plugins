@@ -1,0 +1,14 @@
+{
+  Analyzer myFakeAnalyzer=new FakeAnalyzer(props);
+  Collection<MavenArtifact> dependencies=collectDependencies(props,mavenProject);
+  DependencyEmbedder embedder=new DependencyEmbedder(dependencies);
+  try {
+    embedder.processHeaders(myFakeAnalyzer);
+  }
+ catch (  DependencyEmbedderException e) {
+    String message=OsmorcBundle.message("maven.import.embed.error",mavenProject.getPath(),e.getMessage());
+    OsmorcProjectComponent.IMPORTANT_NOTIFICATIONS.createNotification(message,NotificationType.ERROR).notify(project);
+  }
+  ResourceCollector.includeMavenResources(mavenProject,myFakeAnalyzer);
+  sanitizeIncludedResources(props,mavenProject);
+}
