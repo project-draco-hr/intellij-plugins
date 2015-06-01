@@ -1,0 +1,25 @@
+{
+  final List<VirtualFile> result=new SmartList<VirtualFile>();
+  GlobalSearchScope dirScope=null;
+  for (  VirtualFile fileOrDir : filesAndDirs) {
+    if (fileOrDir.isDirectory()) {
+      if (dirScope == null) {
+        dirScope=GlobalSearchScopesCore.directoryScope(project,fileOrDir,true);
+      }
+ else {
+        dirScope=dirScope.union(GlobalSearchScopesCore.directoryScope(project,fileOrDir,true));
+      }
+    }
+ else     if (isApplicableFile(project,dartSdk,fileOrDir)) {
+      result.add(fileOrDir);
+    }
+  }
+  if (dirScope != null) {
+    for (    VirtualFile file : FileTypeIndex.getFiles(DartFileType.INSTANCE,GlobalSearchScope.projectScope(project).intersectWith(dirScope))) {
+      if (isApplicableFile(project,dartSdk,file)) {
+        result.add(file);
+      }
+    }
+  }
+  return result;
+}

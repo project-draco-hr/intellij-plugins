@@ -9,8 +9,10 @@
     runDartStyleOverEditor(project,editor);
   }
  else {
-    final VirtualFile[] files=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
-    final List<VirtualFile> vFiles=getApplicableVirtualFiles(project,files);
+    final DartSdk sdk=DartSdk.getDartSdk(project);
+    final VirtualFile[] filesAndDirs=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
+    if (sdk == null || !DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk) || filesAndDirs == null)     return;
+    final List<VirtualFile> vFiles=getApplicableVirtualFiles(project,sdk,filesAndDirs);
     runDartStyleOverVirtualFiles(project,vFiles);
   }
 }

@@ -12,15 +12,11 @@
     presentation.setEnabled(isApplicableFile(psiFile));
     return;
   }
-  final VirtualFile[] files=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
-  if (files == null) {
+  final VirtualFile[] filesAndDirs=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
+  if (filesAndDirs == null) {
     presentation.setEnabledAndVisible(false);
     return;
   }
   final DartSdk sdk=DartSdk.getDartSdk(project);
-  if (sdk == null || !DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk) || !mayHaveApplicableVirtualFiles(files)) {
-    presentation.setEnabledAndVisible(false);
-    return;
-  }
-  presentation.setEnabledAndVisible(true);
+  presentation.setEnabledAndVisible(sdk != null && DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk) && mayHaveApplicableDartFiles(project,sdk,filesAndDirs));
 }
