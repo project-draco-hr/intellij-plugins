@@ -2,7 +2,8 @@
   String annotationPackage=new AnnotationPackageProvider().getAnnotationPackageFor(step);
   String methodAnnotation=String.format("@%s.",annotationPackage);
   final Step cucumberStep=new Step(new ArrayList<Comment>(),step.getKeyword().getText(),step.getStepName(),0,null,null);
-  final String snippet=new SnippetGenerator(new JavaSnippet()).getSnippet(cucumberStep).replace("PendingException",CucumberJavaUtil.getCucumberPendingExceptionFqn(step)).replaceFirst("@",methodAnnotation).replaceAll("\\\\\\\\","\\\\").replaceAll("\\\\d","\\\\\\\\d");
+  final SnippetGenerator generator=new SnippetGenerator(new JavaSnippet());
+  final String snippet=generator.getSnippet(cucumberStep,new FunctionNameGenerator(new CamelCaseConcatenator())).replace("PendingException",CucumberJavaUtil.getCucumberPendingExceptionFqn(step)).replaceFirst("@",methodAnnotation).replaceAll("\\\\\\\\","\\\\").replaceAll("\\\\d","\\\\\\\\d");
   JVMElementFactory factory=JVMElementFactories.requireFactory(language,step.getProject());
   return factory.createMethodFromText(snippet,step);
 }
