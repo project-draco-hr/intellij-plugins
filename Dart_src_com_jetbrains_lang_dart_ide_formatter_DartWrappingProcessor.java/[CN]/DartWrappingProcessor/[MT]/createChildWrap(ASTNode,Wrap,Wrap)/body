@@ -10,7 +10,7 @@
       if (!mySettings.PREFER_PARAMETERS_WRAP && childWrap != null) {
         return Wrap.createChildWrap(childWrap,WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),true);
       }
-      return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),true);
+      return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),false);
     }
   }
   if (elementType == FORMAL_PARAMETER_LIST) {
@@ -24,7 +24,15 @@
       return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.METHOD_PARAMETERS_WRAP),true);
     }
   }
-  if (elementType == CALL_EXPRESSION) {
+  if (elementType == FUNCTION_BODY) {
+    if (FormatterUtil.isPrecededBy(child,EXPRESSION_BODY_DEF)) {
+      return createWrap(true);
+    }
+  }
+  if (childType == CALL_EXPRESSION) {
+    if (FormatterUtil.isPrecededBy(child,EXPRESSION_BODY_DEF)) {
+      return createWrap(true);
+    }
     if (mySettings.CALL_PARAMETERS_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
       if (childType == RPAREN) {
         return createWrap(mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE);
@@ -62,6 +70,9 @@
       }
     }
     return Wrap.createWrap(WrapType.NONE,true);
+  }
+  if (childType == HIDE_COMBINATOR || childType == SHOW_COMBINATOR) {
+    return createWrap(true);
   }
   return defaultWrap;
 }

@@ -1,5 +1,5 @@
 {
-  Pattern indentPattern=Pattern.compile("^\\(indent (\\d+)\\)\\s*");
+  Pattern indentPattern=Pattern.compile("^.*\\s\\(indent (\\d+)\\)\\s*");
   String testName=getTestName(true);
   if (Character.isLetter(testName.charAt(0)) && Character.isDigit(testName.charAt(testName.length() - 1))) {
     testName=testName.substring(0,testName.length() - 1);
@@ -23,7 +23,7 @@
       pageWidth=lines[0].indexOf("|");
       i=1;
     }
-    System.out.println("\nTest: " + dirName + "/"+ testFileName+ ext+ ", Right margin: "+ pageWidth);
+    System.out.println("\nTest: " + dirName + "/"+ testFileName+ ", Right margin: "+ pageWidth);
     final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
     settings.RIGHT_MARGIN=pageWidth;
     settings.KEEP_LINE_BREAKS=false;
@@ -33,7 +33,7 @@
       Matcher matcher=indentPattern.matcher(description);
       if (matcher.matches()) {
         leadingIndent=Integer.parseInt(matcher.group(1));
-        description=description.substring(matcher.end());
+        settings.RIGHT_MARGIN=pageWidth - leadingIndent;
       }
       String input="";
       if (!isCompilationUnit)       input+="m() {\n";
