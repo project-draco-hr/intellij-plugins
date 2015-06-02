@@ -7,10 +7,13 @@
     for (    Project project : myTrackedProjects) {
       for (      Module module : DartSdkGlobalLibUtil.getModulesWithDartSdkGlobalLibAttached(project,sdk.getGlobalLibName())) {
         newPackageRoots.putAll(DartConfigurable.getContentRootPathToCustomPackageRootMap(module));
+        final Set<String> excludedPackageSymlinkUrls=getExcludedPackageSymlinkUrls(module);
         for (        ContentEntry contentEntry : ModuleRootManager.getInstance(module).getContentEntries()) {
           newIncludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(contentEntry.getUrl())));
           for (          String excludedUrl : contentEntry.getExcludeFolderUrls()) {
-            newExcludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(excludedUrl)));
+            if (!excludedPackageSymlinkUrls.contains(excludedUrl)) {
+              newExcludedRoots.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(excludedUrl)));
+            }
           }
         }
       }
