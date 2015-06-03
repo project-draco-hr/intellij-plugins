@@ -35,6 +35,7 @@
     @Override public void actionPerformed(    ActionEvent e){
       final boolean enabled=myCheckSdkUpdateCheckBox.isSelected() && myCheckSdkUpdateCheckBox.isEnabled();
       mySdkUpdateChannelCombo.setEnabled(enabled);
+      myCheckSdkUpdateButton.setEnabled(enabled);
       if (enabled) {
         IdeFocusManager.getInstance(myProject).requestFocus(mySdkUpdateChannelCombo,true);
       }
@@ -45,6 +46,18 @@
   mySdkUpdateChannelCombo.setRenderer(new ListCellRendererWrapper<DartSdkUpdateOption>(){
     @Override public void customize(    JList list,    DartSdkUpdateOption value,    int index,    boolean selected,    boolean hasFocus){
       setText(value.getPresentableName());
+    }
+  }
+);
+  myCheckSdkUpdateButton.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      final Runnable runnable=new Runnable(){
+        @Override public void run(){
+          checkSdkUpdate();
+        }
+      }
+;
+      ApplicationManagerEx.getApplicationEx().runProcessWithProgressSynchronously(runnable,DartBundle.message("checking.dart.sdk.update"),true,myProject,myMainPanel);
     }
   }
 );

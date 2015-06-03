@@ -1,0 +1,32 @@
+{
+  final String sdkHomePath=mySdkPathTextWithBrowse.getText().trim();
+  final String currentSdkVersion=myVersionLabel.getText();
+  final String currentRevisionString=sdkHomePath.isEmpty() ? "" : DartSdkUtil.readSdkRevision(sdkHomePath);
+  int currentRevision=0;
+  if (currentRevisionString != null) {
+    try {
+      currentRevision=Integer.parseInt(currentRevisionString);
+    }
+ catch (    NumberFormatException e) {
+    }
+  }
+  final DartSdkUpdateChecker.SdkUpdateInfo sdkUpdateInfo=DartSdkUpdateChecker.getSdkUpdateInfo((DartSdkUpdateOption)mySdkUpdateChannelCombo.getSelectedItem());
+  final int finalCurrentRevision=currentRevision;
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      if (sdkUpdateInfo == null) {
+        Messages.showErrorDialog(myProject,DartBundle.message("dart.sdk.update.check.failed"),DartBundle.message("dart.sdk.update.title"));
+      }
+ else       if (finalCurrentRevision > sdkUpdateInfo.myRevision) {
+        Messages.showInfoMessage(myProject,DartBundle.message("dart.sdk.current.is.later.than.latest",currentSdkVersion),DartBundle.message("dart.sdk.update.title"));
+      }
+ else       if (finalCurrentRevision == sdkUpdateInfo.myRevision) {
+        Messages.showInfoMessage(myProject,DartBundle.message("dart.sdk.current.is.latest",currentSdkVersion),DartBundle.message("dart.sdk.update.title"));
+      }
+ else {
+        Messages.showInfoMessage(myProject,DartBundle.message("new.dart.sdk.available.for.dialog",sdkUpdateInfo.myPresentableVersion,sdkUpdateInfo.myDownloadUrl),DartBundle.message("dart.sdk.update.title"));
+      }
+    }
+  }
+,ModalityState.defaultModalityState(),myProject.getDisposed());
+}
