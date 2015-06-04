@@ -1,10 +1,9 @@
 {
   try {
     final String versionFileContents=HttpRequests.request(updateCheckUrl).readString(null);
-    final String revisionString=parseRevisionNumberFromJSON(versionFileContents);
-    final String presentableVersion=parsePresentableVersionFromJSON(versionFileContents);
-    if (revisionString != null && presentableVersion != null) {
-      return new SdkUpdateInfo(sdkDownloadUrl,presentableVersion,Integer.parseInt(revisionString));
+    final String version=new JSONObject(versionFileContents).optString("version",null);
+    if (version != null) {
+      return new SdkUpdateInfo(sdkDownloadUrl,version);
     }
   }
  catch (  Exception e) {
