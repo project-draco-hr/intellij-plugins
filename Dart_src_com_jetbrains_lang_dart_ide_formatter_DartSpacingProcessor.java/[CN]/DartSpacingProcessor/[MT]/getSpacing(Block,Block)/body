@@ -40,6 +40,28 @@
         lineFeeds=2;
       }
     }
+ else     if (type1 == LBRACE && type2 == RBRACE) {
+      if (parentType == ON_PART && mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
+        lineFeeds=0;
+      }
+ else       if (parentType == FUNCTION_BODY) {
+        if ((myNode.getTreeParent().getTreeParent() != null) && (myNode.getTreeParent().getTreeParent().getElementType() == METHOD_DECLARATION) && mySettings.KEEP_SIMPLE_METHODS_IN_ONE_LINE) {
+          lineFeeds=0;
+        }
+ else         if (mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
+          lineFeeds=0;
+        }
+      }
+ else       if (parentType == IF_STATEMENT && mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
+        lineFeeds=0;
+      }
+ else       if (parentType == FOR_STATEMENT && mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
+        lineFeeds=0;
+      }
+ else       if (parentType == WHILE_STATEMENT && mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
+        lineFeeds=0;
+      }
+    }
     return Spacing.createSpacing(0,0,lineFeeds,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
   if (elementType == STATEMENTS && (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
@@ -215,6 +237,10 @@
   if (type1 == ELSE && type2 == IF_STATEMENT) {
     return Spacing.createSpacing(1,1,mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
+  if (type1 == LBRACE && type2 == RBRACE) {
+    if (elementType == CLASS_BODY && mySettings.KEEP_SIMPLE_CLASSES_IN_ONE_LINE)     return noSpace();
+    if (mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE)     return noSpace();
+  }
   boolean isBraces=type1 == LBRACE || type2 == RBRACE;
   if ((isBraces && elementType != NAMED_FORMAL_PARAMETERS && elementType != MAP_LITERAL_EXPRESSION) || BLOCKS.contains(type1) || FUNCTION_DEFINITION.contains(type1)|| COMMENTS.contains(type1)) {
     return addLineBreak();
@@ -297,9 +323,6 @@
     if (type2 == NOT) {
       return noSpace();
     }
-  }
-  if (type1 == LBRACE && type2 == RBRACE) {
-    return noSpace();
   }
   if (type1 == TYPE_ARGUMENTS && (type2 == LBRACKET || type2 == LBRACE)) {
     return noSpace();
