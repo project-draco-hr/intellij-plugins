@@ -27,5 +27,19 @@
       }
     }
   }
+  if (this instanceof DartAwaitExpression) {
+    final DartExpression expression=((DartAwaitExpression)this).getExpression();
+    if (expression instanceof DartReference) {
+      final DartClassResolveResult result=((DartReference)expression).resolveDartClass();
+      final DartClass resolvedClass=result.getDartClass();
+      if (resolvedClass != null && "Future".equals(resolvedClass.getName())) {
+        final DartClassResolveResult unwrappedFuture=result.getSpecialization().get(resolvedClass,"T");
+        return unwrappedFuture == null ? DartClassResolveResult.EMPTY : unwrappedFuture;
+      }
+ else {
+        return result;
+      }
+    }
+  }
   return DartResolveUtil.getDartClassResolveResult(resolve(),tryGetLeftResolveResult(this).getSpecialization());
 }
