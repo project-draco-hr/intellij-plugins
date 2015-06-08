@@ -27,6 +27,7 @@
     final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
     settings.RIGHT_MARGIN=pageWidth;
     settings.KEEP_LINE_BREAKS=false;
+    settings.KEEP_BLANK_LINES_IN_CODE=1;
     while (i < lines.length) {
       String description=(dirName + "/" + testFileName+ ":"+ (i + 1)+ " "+ lines[i++].replaceAll(">>>","")).trim();
       int leadingIndent=0;
@@ -40,7 +41,7 @@
       while (!lines[i].startsWith("<<<")) {
         String line=lines[i++];
         if (leadingIndent > 0)         line=line.substring(leadingIndent);
-        if (!isCompilationUnit)         line="  " + line;
+        if (!isCompilationUnit && !line.isEmpty())         line="  " + line;
         input+=line + "\n";
       }
       if (!isCompilationUnit)       input+="}\n";
@@ -50,7 +51,7 @@
       while (i < lines.length && !lines[i].startsWith(">>>")) {
         String line=lines[i++];
         if (leadingIndent > 0)         line=line.substring(leadingIndent);
-        if (!isCompilationUnit)         line="  " + line;
+        if (!isCompilationUnit && !line.isEmpty())         line="  " + line;
         expectedOutput+=line + "\n";
       }
       if (!isCompilationUnit)       expectedOutput+="}\n";
