@@ -6,29 +6,49 @@
   if (Messages.showOkCancelDialog(project,DartBundle.message("dart.style.files.dialog.question",dartFiles.size()),DartBundle.message("dart.style.action.name"),null) != Messages.OK) {
     return;
   }
+  final Map<VirtualFile,String> fileToNewContentMap=new THashMap<VirtualFile,String>();
   final Runnable runnable=new Runnable(){
     public void run(){
-      CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
-      DartAnalysisServerService.getInstance().updateFilesContent();
+      double fraction=0.0;
       for (      final VirtualFile virtualFile : dartFiles) {
+        fraction+=1.0;
+        final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+        if (indicator != null) {
+          indicator.checkCanceled();
+          indicator.setFraction(fraction / dartFiles.size());
+          indicator.setText2(FileUtil.toSystemDependentName(virtualFile.getPath()));
+        }
         final String path=FileUtil.toSystemDependentName(virtualFile.getPath());
-        final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
-        if (document == null)         continue;
-        int textLength=document.getTextLength();
-        if (textLength == 0)         continue;
-        DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(path,0,1);
+        final DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(path,0,0);
         if (formatResult != null && formatResult.getEdits() != null && formatResult.getEdits().size() == 1) {
-          final SourceEdit sourceEdit=formatResult.getEdits().get(0);
-          document.setText(sourceEdit.getReplacement());
+          fileToNewContentMap.put(virtualFile,formatResult.getEdits().get(0).getReplacement());
         }
       }
     }
   }
 ;
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    @Override public void run(){
-      CommandProcessor.getInstance().executeCommand(project,runnable,DartBundle.message("dart.style.action.name"),null);
+  DartAnalysisServerService.getInstance().updateFilesContent();
+  final boolean ok=ApplicationManagerEx.getApplicationEx().runProcessWithProgressSynchronously(runnable,DartBundle.message("dart.style.action.name"),true,project);
+  if (ok) {
+    final Runnable onSuccessRunnable=new Runnable(){
+      @Override public void run(){
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        for (        Map.Entry<VirtualFile,String> entry : fileToNewContentMap.entrySet()) {
+          final VirtualFile file=entry.getKey();
+          final Document document=FileDocumentManager.getInstance().getDocument(file);
+          final String newContent=entry.getValue();
+          if (document != null && newContent != null) {
+            document.setText(newContent);
+          }
+        }
+      }
     }
-  }
+;
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        CommandProcessor.getInstance().executeCommand(project,onSuccessRunnable,DartBundle.message("dart.style.action.name"),null);
+      }
+    }
 );
+  }
 }
