@@ -1,0 +1,22 @@
+{
+  myUpdateListener=new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      myCssURI.setEnabled(myCssFromURIEnabled.isSelected());
+      if (myEditor != null && !myEditor.isDisposed()) {
+        final boolean canEditCss=myApplyCustomCssText.isSelected();
+        myEditor.getDocument().setReadOnly(!canEditCss);
+        myEditor.getSettings().setCaretRowShown(canEditCss);
+        Color baseColor=myEditor.getColorsScheme().getDefaultBackground();
+        if (canEditCss) {
+          ((EditorEx)myEditor).setBackgroundColor(baseColor);
+        }
+ else {
+          ((EditorEx)myEditor).setBackgroundColor(ColorUtil.isDark(baseColor) ? ColorUtil.brighter(baseColor,1) : ColorUtil.darker(baseColor,1));
+        }
+      }
+    }
+  }
+;
+  myCssFromURIEnabled.addActionListener(myUpdateListener);
+  myApplyCustomCssText.addActionListener(myUpdateListener);
+}
