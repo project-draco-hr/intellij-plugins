@@ -74,5 +74,27 @@
   if (childType == HIDE_COMBINATOR || childType == SHOW_COMBINATOR) {
     return createWrap(true);
   }
+  if (childType == VAR_DECLARATION_LIST && elementType != FOR_LOOP_PARTS) {
+    if (varDeclListContainsVarInit(child)) {
+      return Wrap.createWrap(WrapType.ALWAYS,true);
+    }
+ else {
+      return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+    }
+  }
+  if (childType == VAR_DECLARATION_LIST_PART) {
+    ASTNode parent=myNode.getTreeParent();
+    if (parent != null && parent.getElementType() == FOR_LOOP_PARTS) {
+      return Wrap.createWrap(WrapType.NORMAL,true);
+    }
+ else {
+      if (varDeclListContainsVarInit(myNode)) {
+        return Wrap.createWrap(WrapType.ALWAYS,true);
+      }
+ else {
+        return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+      }
+    }
+  }
   return defaultWrap;
 }
