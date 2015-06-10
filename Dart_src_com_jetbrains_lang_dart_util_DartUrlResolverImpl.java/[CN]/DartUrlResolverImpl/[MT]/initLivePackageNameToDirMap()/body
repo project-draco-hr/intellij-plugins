@@ -6,12 +6,9 @@
   if (name != null && libFolder != null && libFolder.isDirectory()) {
     myLivePackageNameToDirMap.put(name,libFolder);
   }
-  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(myProject).getFileIndex();
-  PubspecYamlUtil.processPathPackages(myPubspecYamlFile,new PairConsumer<String,VirtualFile>(){
+  PubspecYamlUtil.processInProjectPathPackagesRecursively(myProject,myPubspecYamlFile,new PairConsumer<String,VirtualFile>(){
     @Override public void consume(    @NotNull final String packageName,    @NotNull final VirtualFile packageDir){
-      if (fileIndex.isInContent(packageDir)) {
-        myLivePackageNameToDirMap.put(packageName,packageDir);
-      }
+      myLivePackageNameToDirMap.put(packageName,packageDir);
     }
   }
 );
