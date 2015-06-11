@@ -9,7 +9,18 @@
   final ASTNode node2=((AbstractBlock)child2).getNode();
   final IElementType type2=node2.getElementType();
   if (type1 == SINGLE_LINE_COMMENT) {
-    return addSingleSpaceIf(false,true);
+    int spaces=0;
+    int lines=1;
+    if (elementType == DART_FILE && !isScriptTag(child1) && !directlyPreceededByNewline(child1)) {
+      lines=2;
+    }
+    return Spacing.createSpacing(spaces,spaces,lines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
+  if (type1 == IMPORT_STATEMENT && type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !embeddedComment(type2,child2)) {
+    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
+  if (type1 == LIBRARY_STATEMENT && !embeddedComment(type2,child2)) {
+    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
   if (SEMICOLON == type2) {
     if (type1 == SEMICOLON && elementType == STATEMENTS) {
@@ -30,6 +41,9 @@
   if (BLOCKS.contains(elementType)) {
     boolean topLevel=elementType == DART_FILE || elementType == EMBEDDED_CONTENT;
     int lineFeeds=1;
+    int spaces=0;
+    int blanks=mySettings.KEEP_BLANK_LINES_IN_CODE;
+    boolean keepBreaks=false;
     if (!COMMENTS.contains(type1) && (elementType == CLASS_MEMBERS || topLevel && DECLARATIONS.contains(type2))) {
       if (type1 == SEMICOLON && type2 == VAR_DECLARATION_LIST) {
         final ASTNode node1TreePrev=node1.getTreePrev();
@@ -78,7 +92,17 @@
         lineFeeds=0;
       }
     }
-    return Spacing.createSpacing(0,0,lineFeeds,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
+ else     if (topLevel && COMMENTS.contains(type2)) {
+      lineFeeds=0;
+      spaces=1;
+      keepBreaks=true;
+    }
+ else     if ((type1 == LBRACE && type2 == STATEMENTS) || (type2 == RBRACE && type1 == STATEMENTS)) {
+      lineFeeds=1;
+      keepBreaks=false;
+      blanks=0;
+    }
+    return Spacing.createSpacing(spaces,spaces,lineFeeds,keepBreaks,blanks);
   }
   if (elementType == STATEMENTS && (parentType == SWITCH_CASE || parentType == DEFAULT_CASE)) {
     return Spacing.createSpacing(0,0,1,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
@@ -264,8 +288,16 @@
     if (mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE)     return noSpace();
   }
   boolean isBraces=type1 == LBRACE || type2 == RBRACE;
-  if ((isBraces && elementType != NAMED_FORMAL_PARAMETERS && elementType != MAP_LITERAL_EXPRESSION) || BLOCKS.contains(type1) || FUNCTION_DEFINITION.contains(type1)|| COMMENTS.contains(type1)) {
+  if ((isBraces && elementType != NAMED_FORMAL_PARAMETERS && elementType != MAP_LITERAL_EXPRESSION) || BLOCKS.contains(type1) || FUNCTION_DEFINITION.contains(type1)) {
     return addLineBreak();
+  }
+  if (COMMENTS.contains(type1)) {
+    if (isBraces || parentType == DART_FILE || type2 == SEMICOLON) {
+      return addLineBreak();
+    }
+    if (type2 == RBRACKET && elementType != NAMED_FORMAL_PARAMETERS) {
+      return addLineBreak();
+    }
   }
   if (type1 == LBRACKET && type2 == RBRACKET) {
     return noSpace();
@@ -289,7 +321,7 @@
     return addLineBreak();
   }
   if (COMMENTS.contains(type2)) {
-    return Spacing.createSpacing(0,1,0,true,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    return Spacing.createSpacing(1,1,0,true,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
   if (TOKENS_WITH_SPACE_AFTER.contains(type1) || KEYWORDS_WITH_SPACE_BEFORE.contains(type2)) {
     return addSingleSpaceIf(true);
