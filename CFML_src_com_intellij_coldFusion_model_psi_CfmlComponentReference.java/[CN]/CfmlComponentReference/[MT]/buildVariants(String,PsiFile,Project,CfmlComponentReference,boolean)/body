@@ -1,0 +1,72 @@
+{
+  Collection<Object> variants=new THashSet<Object>();
+  String directoryName="";
+  if (text.contains(".")) {
+    int i=text.lastIndexOf(".");
+    directoryName=text.substring(0,i);
+  }
+  CfmlProjectConfiguration.State state=CfmlProjectConfiguration.getInstance(project).getState();
+  CfmlMappingsConfig mappings=state != null ? state.getMapps().clone() : new CfmlMappingsConfig();
+  adjustMappingsIfEmpty(mappings,project);
+  if (reference != null)   addFakeMappingsForImports(reference,mappings);
+  List<String> realPossiblePaths=mappings.mapVirtualToReal(directoryName);
+  for (  String realPath : realPossiblePaths) {
+    addVariantsFromPath(variants,directoryName,realPath);
+  }
+  for (  String value : mappings.getServerMappings().keySet()) {
+    if (value.startsWith(directoryName) && !value.isEmpty() && (StringUtil.startsWithChar(value,'/') || StringUtil.startsWithChar(value,'\\'))) {
+      variants.add(value.replace('\\','.').replace('/','.').substring(1));
+    }
+  }
+  containingFile=containingFile == null ? null : containingFile.getOriginalFile();
+  if (containingFile != null && containingFile instanceof CfmlFile) {
+    CfmlFile cfmlContainingFile=(CfmlFile)containingFile;
+    if (directoryName.length() == 0) {
+      PsiDirectory directory=cfmlContainingFile.getParent();
+      if (directory != null) {
+        addVariantsFromPath(variants,"",directory.getVirtualFile().getPresentableUrl());
+      }
+    }
+ else {
+      String dirPath=cfmlContainingFile.getParent().getVirtualFile().getPath() + "/" + directoryName.replaceAll("[./]+","/");
+      addVariantsFromPath(variants,directoryName,dirPath);
+    }
+  }
+  final String finalDirectoryName=directoryName;
+  return ContainerUtil.map2Array(variants,new Function<Object,Object>(){
+class DotInsertHandler implements InsertHandler<LookupElement> {
+      @Override public void handleInsert(      InsertionContext context,      LookupElement item){
+        Document document=context.getDocument();
+        int offset=context.getEditor().getCaretModel().getOffset();
+        document.insertString(offset,".");
+        context.getEditor().getCaretModel().moveToOffset(offset + 1);
+      }
+    }
+    public Object fun(    final Object object){
+      if (object instanceof VirtualFile) {
+        VirtualFile element=(VirtualFile)object;
+        String elementNameWithoutExtension=element.getNameWithoutExtension();
+        String name=forceQualify ? finalDirectoryName + (finalDirectoryName.length() == 0 ? "" : ".") + elementNameWithoutExtension : elementNameWithoutExtension;
+        if (name.length() == 0)         name=element.getName();
+        if (element.isDirectory()) {
+          return LookupElementBuilder.create(name).withIcon(DIRECTORY_CLOSED_ICON).withInsertHandler(new DotInsertHandler()).withCaseSensitivity(false);
+        }
+ else {
+          Icon icon=CLASS_ICON;
+          if (CfmlIndex.getInstance(project).getComponentsByNameInScope(elementNameWithoutExtension,GlobalSearchScope.fileScope(project,element)).size() == 1) {
+            icon=CLASS_ICON;
+          }
+ else           if (CfmlIndex.getInstance(project).getInterfacesByNameInScope(elementNameWithoutExtension,GlobalSearchScope.fileScope(project,element)).size() == 1) {
+            icon=INTERFACE_ICON;
+          }
+          return LookupElementBuilder.create(name).withIcon(icon).withCaseSensitivity(false);
+        }
+      }
+ else       if (object instanceof String) {
+        return LookupElementBuilder.create((String)object).withInsertHandler(new DotInsertHandler()).withCaseSensitivity(false);
+      }
+      return object;
+    }
+  }
+);
+}
