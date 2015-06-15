@@ -22,6 +22,9 @@
   if (type1 == LIBRARY_STATEMENT && !embeddedComment(type2,child2)) {
     return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
+  if (parentType == LIBRARY_STATEMENT) {
+    return noSpace();
+  }
   if (SEMICOLON == type2) {
     if (type1 == SEMICOLON && elementType == STATEMENTS) {
       return addSingleSpaceIf(false,true);
@@ -114,7 +117,12 @@
     return addLineBreak();
   }
   if (type1 == CLASS_MEMBERS || type2 == CLASS_MEMBERS) {
-    return addSingleSpaceIf(false,true);
+    if (type1 == MULTI_LINE_COMMENT) {
+      return addSingleSpaceIf(true,false);
+    }
+ else {
+      return addSingleSpaceIf(false,true);
+    }
   }
   if (type1 == CLASS_MEMBERS) {
     return addLineBreak();
@@ -177,8 +185,14 @@
   if (elementType == FUNCTION_EXPRESSION && type2 == FUNCTION_EXPRESSION_BODY) {
     return setBraceSpace(mySettings.SPACE_BEFORE_METHOD_LBRACE,mySettings.METHOD_BRACE_STYLE,child1.getTextRange());
   }
-  if (elementType == CLASS_DEFINITION && type2 == CLASS_BODY) {
-    return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
+  if (elementType == CLASS_DEFINITION) {
+    if (type2 == CLASS_BODY) {
+      return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
+    }
+    return Spacing.createSpacing(1,1,0,false,0);
+  }
+  if (elementType == MIXIN_APPLICATION) {
+    return Spacing.createSpacing(1,1,0,false,0);
   }
   if (elementType == ENUM_DEFINITION && type2 == LBRACE) {
     return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
@@ -326,6 +340,9 @@
   if (TOKENS_WITH_SPACE_AFTER.contains(type1) || KEYWORDS_WITH_SPACE_BEFORE.contains(type2)) {
     return addSingleSpaceIf(true);
   }
+  if (elementType == FOR_LOOP_PARTS && type1 == SEMICOLON) {
+    return addSingleSpaceIf(true);
+  }
   if (elementType == VALUE_EXPRESSION && type2 == CASCADE_REFERENCE_EXPRESSION) {
     if (type1 == CASCADE_REFERENCE_EXPRESSION) {
       if (cascadesAreSameMethod(((AbstractBlock)child1).getNode(),((AbstractBlock)child2).getNode())) {
@@ -356,6 +373,14 @@
       break;
     }
     return Spacing.createSpacing(0,1,preserveNewline,true,0);
+  }
+  if (type2 == INITIALIZERS) {
+    if (hasMultipleInitializers(node2)) {
+      return addSingleSpaceIf(false,true);
+    }
+ else {
+      return addSingleSpaceIf(true,false);
+    }
   }
   if (elementType == NAMED_ARGUMENT) {
     if (type1 == COLON) {

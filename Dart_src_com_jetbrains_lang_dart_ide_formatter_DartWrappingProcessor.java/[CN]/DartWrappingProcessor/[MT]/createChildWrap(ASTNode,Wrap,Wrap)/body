@@ -21,6 +21,14 @@
       return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.METHOD_PARAMETERS_WRAP),true);
     }
   }
+  if (elementType == INITIALIZERS) {
+    if (childType != COLON && isNotFirstInitializer(child)) {
+      return Wrap.createWrap(WrapType.ALWAYS,true);
+    }
+    if (childType == COLON && !DartSpacingProcessor.hasMultipleInitializers(child)) {
+      return Wrap.createWrap(WrapType.NORMAL,true);
+    }
+  }
   if (elementType == FUNCTION_BODY) {
     if (FormatterUtil.isPrecededBy(child,EXPRESSION_BODY_DEF)) {
       return createWrap(true);
@@ -92,6 +100,14 @@
         return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
       }
     }
+  }
+  if (elementType == CLASS_DEFINITION) {
+    if (childType == SUPERCLASS || childType == INTERFACES || childType == MIXINS) {
+      return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+    }
+  }
+  if (elementType == MIXIN_APPLICATION && childType == MIXINS) {
+    return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
   }
   return defaultWrap;
 }
