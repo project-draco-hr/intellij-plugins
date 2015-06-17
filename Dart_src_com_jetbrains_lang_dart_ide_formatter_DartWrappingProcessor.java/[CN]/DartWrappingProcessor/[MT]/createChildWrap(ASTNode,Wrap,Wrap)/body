@@ -66,8 +66,15 @@
   if (elementType == TERNARY_EXPRESSION) {
     if (myNode.getFirstChildNode() != child) {
       if (mySettings.TERNARY_OPERATION_SIGNS_ON_NEXT_LINE) {
-        if (childType == QUEST || childType == COLON) {
-          return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP),true);
+        if (childType == QUEST) {
+          final Wrap wrap=Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP),true);
+          myNode.putUserData(DART_TERNARY_EXPRESSION_WRAP_KEY,wrap);
+          return wrap;
+        }
+        if (childType == COLON) {
+          final Wrap wrap=myNode.getUserData(DART_TERNARY_EXPRESSION_WRAP_KEY);
+          myNode.putUserData(DART_TERNARY_EXPRESSION_WRAP_KEY,null);
+          return wrap != null ? wrap : Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP),true);
         }
       }
  else       if (childType != QUEST && childType != COLON) {
