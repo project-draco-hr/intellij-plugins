@@ -1,0 +1,17 @@
+{
+  while (true) {
+    ProgressManager.checkCanceled();
+synchronized (myCompletionInfos) {
+      CompletionInfo completionInfo;
+      while ((completionInfo=myCompletionInfos.poll()) != null) {
+        if (!completionInfo.myCompletionId.equals(completionId))         continue;
+        for (        CompletionSuggestion completion : completionInfo.myCompletions) {
+          final LookupElement lookup=LookupElementBuilder.create(completion.getCompletion());
+          resultSet.consume(lookup);
+        }
+        if (completionInfo.isLast)         return;
+      }
+    }
+    TimeoutUtil.sleep(100);
+  }
+}
