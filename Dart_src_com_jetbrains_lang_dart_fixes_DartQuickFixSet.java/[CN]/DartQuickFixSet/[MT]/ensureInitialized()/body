@@ -1,0 +1,15 @@
+{
+  if (myInitialized)   return;
+  myInitialized=true;
+  final List<AnalysisErrorFixes> fixes=DartAnalysisServerService.getInstance().edit_getFixes(myFilePath,myOffset);
+  if (fixes != null) {
+    int index=0;
+    for (    AnalysisErrorFixes fix : fixes) {
+      for (      SourceChange sourceChange : fix.getFixes()) {
+        myQuickFixes.get(index).setSourceChange(sourceChange);
+        index++;
+        if (index == MAX_QUICK_FIXES)         return;
+      }
+    }
+  }
+}
