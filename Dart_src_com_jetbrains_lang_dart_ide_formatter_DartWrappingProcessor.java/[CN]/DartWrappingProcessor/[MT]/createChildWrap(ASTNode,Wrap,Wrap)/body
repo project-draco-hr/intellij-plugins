@@ -29,6 +29,53 @@
       return Wrap.createWrap(WrapType.NORMAL,true);
     }
   }
+  if (elementType == EXPRESSION_LIST) {
+    Wrap wrap=null;
+    if (myNode.getFirstChildNode() == child) {
+      wrap=Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+      if (myNode.getLastChildNode() != child) {
+        myNode.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,wrap);
+      }
+    }
+ else {
+      wrap=myNode.getUserData(DART_EXPRESSION_LIST_WRAP_KEY);
+    }
+    if (childType == MULTI_LINE_COMMENT || childType == CONST) {
+      return Wrap.createWrap(WrapType.NONE,false);
+    }
+    return wrap != null ? wrap : Wrap.createWrap(WrapType.NORMAL,true);
+  }
+ else   if (elementType == LIST_LITERAL_EXPRESSION && childType == RBRACKET) {
+    ASTNode exprList=FormatterUtil.getPreviousNonWhitespaceSibling(child);
+    Wrap wrap=null;
+    if (exprList != null && exprList.getElementType() == EXPRESSION_LIST) {
+      wrap=exprList.getUserData(DART_EXPRESSION_LIST_WRAP_KEY);
+      exprList.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,null);
+    }
+    return wrap != null ? wrap : Wrap.createWrap(WrapType.NORMAL,true);
+  }
+  if (elementType == MAP_LITERAL_EXPRESSION) {
+    Wrap wrap=null;
+    if (myNode.getFirstChildNode() == child) {
+      wrap=Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+      if (myNode.getLastChildNode() != child) {
+        myNode.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,wrap);
+      }
+    }
+ else {
+      wrap=myNode.getUserData(DART_EXPRESSION_LIST_WRAP_KEY);
+      if (myNode.getLastChildNode() == child) {
+        myNode.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,null);
+      }
+    }
+    if (childType == LBRACE || childType == LBRACKET) {
+      return Wrap.createWrap(WrapType.NONE,false);
+    }
+    if (childType == MULTI_LINE_COMMENT || childType == CONST) {
+      return Wrap.createWrap(WrapType.NONE,false);
+    }
+    return wrap != null ? wrap : Wrap.createWrap(WrapType.NORMAL,true);
+  }
   if (elementType == FUNCTION_BODY) {
     if (FormatterUtil.isPrecededBy(child,EXPRESSION_BODY_DEF)) {
       return createWrap(true);
@@ -95,7 +142,7 @@
     }
   }
   if (childType == VAR_DECLARATION_LIST_PART) {
-    ASTNode parent=myNode.getTreeParent();
+    ASTNode parent=getParent();
     if (parent != null && parent.getElementType() == FOR_LOOP_PARTS) {
       return Wrap.createWrap(WrapType.NORMAL,true);
     }
