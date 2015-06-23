@@ -5,13 +5,11 @@
   textFieldWithHistory.setMinimumAndPreferredWidth(0);
   SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new NotNullProducer<List<String>>(){
     @NotNull @Override public List<String> produce(){
-      NodePathSettings nodeSettings=KarmaGlobalSettingsUtil.getNodeSettings();
-      if (nodeSettings != null) {
-        nodeSettings.initGlobalNodeModulesDir();
-      }
+      String nodeInterpreterPath=myNodeInterpreterPathTextFieldWithBrowseButton.getText();
+      NodePathSettings nodeSettings=StringUtil.isEmpty(nodeInterpreterPath) ? null : new NodePathSettings(nodeInterpreterPath);
       List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
-      VirtualFile requester=KarmaGlobalSettingsUtil.getRequester(myProject,myConfigPathTextFieldWithBrowseButton.getChildComponent().getText());
-      NodeModuleSearchUtil.findModulesWithName(modules,KarmaGlobalSettingsUtil.NODE_PACKAGE_NAME,requester,nodeSettings,true);
+      VirtualFile requester=KarmaUtil.getRequester(myProject,myConfigPathTextFieldWithBrowseButton.getChildComponent().getText());
+      NodeModuleSearchUtil.findModulesWithName(modules,KarmaUtil.NODE_PACKAGE_NAME,requester,nodeSettings,true);
       List<String> moduleDirs=ContainerUtil.newArrayListWithCapacity(modules.size());
       for (      CompletionModuleInfo module : modules) {
         VirtualFile dir=module.getVirtualFile();

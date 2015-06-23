@@ -1,0 +1,25 @@
+{
+  KarmaRunSettings.Builder builder=new KarmaRunSettings.Builder();
+  String configFilePath=getAttrValue(element,CONFIG_FILE);
+  if (configFilePath == null) {
+    configFilePath=JDOMExternalizerUtil.getFirstChildValueAttribute(element,CONFIG_FILE);
+  }
+  builder.setConfigPath(FileUtil.toSystemDependentName(StringUtil.notNullize(configFilePath)));
+  String browsers=getAttrValue(element,BROWSERS);
+  if (browsers == null) {
+    browsers=JDOMExternalizerUtil.getFirstChildValueAttribute(element,BROWSERS);
+  }
+  if (browsers != null) {
+    builder.setBrowsers(browsers);
+  }
+  String karmaPackageDir=JDOMExternalizerUtil.getFirstChildValueAttribute(element,KARMA_PACKAGE_DIR);
+  builder.setKarmaPackageDir(FileUtil.toSystemDependentName(StringUtil.notNullize(karmaPackageDir)));
+  Map<String,String> envVars=new LinkedHashMap<String,String>();
+  EnvironmentVariablesComponent.readExternal(element,envVars);
+  builder.setEnvVars(envVars);
+  String passParentEnvVarsStr=getAttrValue(element,PASS_PARENT_ENV_VAR);
+  if (passParentEnvVarsStr != null) {
+    builder.setPassParentEnvVars(Boolean.parseBoolean(passParentEnvVarsStr));
+  }
+  return builder.build();
+}

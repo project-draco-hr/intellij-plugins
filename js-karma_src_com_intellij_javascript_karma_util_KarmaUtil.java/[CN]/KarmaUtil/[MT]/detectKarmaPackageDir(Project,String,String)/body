@@ -1,0 +1,13 @@
+{
+  List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
+  VirtualFile requester=getRequester(project,configFilePath);
+  NodePathSettings nodeSettings=StringUtil.isEmptyOrSpaces(nodeInterpreterPath) ? null : new NodePathSettings(nodeInterpreterPath);
+  NodeModuleSearchUtil.findModulesWithName(modules,NODE_PACKAGE_NAME,requester,nodeSettings,true);
+  for (  CompletionModuleInfo module : modules) {
+    VirtualFile moduleRoot=module.getVirtualFile();
+    if (moduleRoot != null && moduleRoot.isValid() && moduleRoot.isDirectory()) {
+      return FileUtil.toSystemDependentName(moduleRoot.getPath());
+    }
+  }
+  return null;
+}
