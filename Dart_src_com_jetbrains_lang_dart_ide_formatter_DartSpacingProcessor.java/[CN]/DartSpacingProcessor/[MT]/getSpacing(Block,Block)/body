@@ -113,6 +113,15 @@
   if (!COMMENTS.contains(type2) && parentType == BLOCK) {
     return addLineBreak();
   }
+  if (type2 == RBRACE && (type1 == SWITCH_CASE || type1 == DEFAULT_CASE)) {
+    return Spacing.createSpacing(0,0,1,false,0);
+  }
+  if (type1 == COLON && (elementType == SWITCH_CASE || elementType == DEFAULT_CASE)) {
+    return Spacing.createSpacing(0,0,1,false,0);
+  }
+  if (elementType == SWITCH_STATEMENT && type1 == LBRACE) {
+    return Spacing.createSpacing(0,0,1,false,0);
+  }
   if (type1 == STATEMENTS || type2 == STATEMENTS) {
     return addLineBreak();
   }
@@ -142,6 +151,15 @@
     }
  else     if (elementType == ON_PART || elementType == CATCH_PART) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_CATCH_PARENTHESES);
+    }
+  }
+  if (elementType == IF_STATEMENT) {
+    if (type1 == RPAREN && mySettings.BRACE_STYLE == CommonCodeStyleSettings.END_OF_LINE) {
+      int nsp=mySettings.SPACE_BEFORE_IF_LBRACE ? 1 : 0;
+      return Spacing.createSpacing(nsp,nsp,0,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
+    }
+    if (type1 == SEMICOLON && type2 == ELSE) {
+      return Spacing.createSpacing(0,0,1,false,0);
     }
   }
   if (type2 == FOR_LOOP_PARTS_IN_BRACES) {
@@ -188,6 +206,9 @@
   if (elementType == CLASS_DEFINITION) {
     if (type2 == CLASS_BODY) {
       return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
+    }
+    if (type2 == TYPE_PARAMETERS) {
+      return noSpace();
     }
     return Spacing.createSpacing(1,1,0,false,0);
   }
@@ -294,8 +315,13 @@
   if (type2 == FINALLY_PART) {
     return addSingleSpaceIf(mySettings.SPACE_BEFORE_FINALLY_KEYWORD,mySettings.CATCH_ON_NEW_LINE);
   }
-  if (type1 == ELSE && type2 == IF_STATEMENT) {
-    return Spacing.createSpacing(1,1,mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  if (type1 == ELSE) {
+    if (type2 == IF_STATEMENT) {
+      return Spacing.createSpacing(1,1,mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+    if (type2 != LBRACE) {
+      return Spacing.createSpacing(1,1,0,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
+    }
   }
   if (type1 == LBRACE && type2 == RBRACE) {
     if (elementType == CLASS_BODY && mySettings.KEEP_SIMPLE_CLASSES_IN_ONE_LINE)     return noSpace();
@@ -397,8 +423,8 @@
       return noSpace();
     }
   }
-  if (elementType == TYPE_ARGUMENTS) {
-    if (type1 == LT || type2 == GT) {
+  if (elementType == TYPE_ARGUMENTS || elementType == TYPE_PARAMETERS) {
+    if (type1 == LT || type2 == GT || type2 == LT || type1 == GT) {
       return noSpace();
     }
   }
