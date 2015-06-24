@@ -2,16 +2,11 @@
   if (configuration == null) {
     return false;
   }
-  JSFile jsFile=getConfigJsFile(context.getLocation());
-  if (jsFile == null) {
+  VirtualFile contextConfigVirtualFile=getConfigFileFromContext(context);
+  if (contextConfigVirtualFile == null) {
     return false;
   }
-  VirtualFile configVirtualFile=jsFile.getVirtualFile();
-  if (configVirtualFile == null) {
-    return false;
-  }
-  String path=FileUtil.toSystemDependentName(configVirtualFile.getPath());
-  KarmaRunSettings runSettingsPattern=new KarmaRunSettings.Builder().setConfigPath(path).build();
-  KarmaRunSettings runSettingsCandidate=configuration.getRunSettings();
-  return runSettingsCandidate.getConfigPath().equals(runSettingsPattern.getConfigPath());
+  String contextConfigFilePath=FileUtil.toSystemDependentName(contextConfigVirtualFile.getPath());
+  String candidateConfigFilePath=FileUtil.toSystemDependentName(configuration.getRunSettings().getConfigPath());
+  return contextConfigFilePath.equals(candidateConfigFilePath);
 }
