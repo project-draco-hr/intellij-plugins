@@ -61,6 +61,12 @@
   }
   if (FUNCTION_DEFINITION.contains(type2)) {
     boolean needsBlank=needsBlankLineBeforeFunction(elementType);
+    if (needsBlank && !mySettings.KEEP_LINE_BREAKS) {
+      if (parentType == CLASS_BODY || elementType == DART_FILE) {
+        if (type1 == SEMICOLON)         needsBlank=false;
+ else         if (hasEmptyBlock(node1))         needsBlank=false;
+      }
+    }
     final int lineFeeds=COMMENTS.contains(type1) || !needsBlank ? 1 : 2;
     return Spacing.createSpacing(0,0,lineFeeds,needsBlank,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
@@ -81,7 +87,8 @@
         }
       }
  else {
-        lineFeeds=2;
+        if (type2 == VAR_DECLARATION_LIST && hasEmptyBlock(node1))         lineFeeds=1;
+ else         lineFeeds=2;
       }
     }
  else     if (type1 == LBRACE && type2 == RBRACE) {
