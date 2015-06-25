@@ -1,0 +1,17 @@
+{
+  if (myRunSettings.getKarmaPackageDir() == null) {
+    Project project=getProject();
+    KarmaProjectSettings projectSettings=KarmaProjectSettings.get(project);
+    String karmaPackageDir=KarmaUtil.detectKarmaPackageDir(project,myRunSettings.getConfigPath(),projectSettings.getNodeInterpreterPath());
+    karmaPackageDir=StringUtil.notNullize(karmaPackageDir);
+    if (StringUtil.isNotEmpty(karmaPackageDir) && !KarmaUtil.isPathUnderContentRoots(project,karmaPackageDir)) {
+      String projectKarmaPackageDir=KarmaProjectSettings.getKarmaPackageDir(project);
+      if (StringUtil.isEmpty(projectKarmaPackageDir)) {
+        KarmaProjectSettings.setKarmaPackageDir(project,karmaPackageDir);
+      }
+      karmaPackageDir="";
+    }
+    myRunSettings=new KarmaRunSettings.Builder(myRunSettings).setKarmaPackageDir(karmaPackageDir).build();
+  }
+  return ObjectUtils.assertNotNull(myRunSettings.getKarmaPackageDir());
+}

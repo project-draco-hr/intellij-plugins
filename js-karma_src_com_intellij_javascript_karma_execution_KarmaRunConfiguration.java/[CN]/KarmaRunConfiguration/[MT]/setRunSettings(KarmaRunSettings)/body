@@ -1,3 +1,14 @@
 {
-  myRunSettings=runSettings;
+  String newKarmaPackageDir=StringUtil.notNullize(runSettings.getKarmaPackageDir());
+  String oldKarmaPackageDir=FileUtil.toSystemDependentName(StringUtil.notNullize(myRunSettings.getKarmaPackageDir()));
+  if (FileUtil.toSystemDependentName(newKarmaPackageDir).equals(oldKarmaPackageDir)) {
+    myRunSettings=runSettings;
+    return;
+  }
+  Project project=getProject();
+  if (!KarmaUtil.isPathUnderContentRoots(project,newKarmaPackageDir)) {
+    KarmaProjectSettings.setKarmaPackageDir(project,newKarmaPackageDir);
+    newKarmaPackageDir="";
+  }
+  myRunSettings=new KarmaRunSettings.Builder(runSettings).setKarmaPackageDir(newKarmaPackageDir).build();
 }
