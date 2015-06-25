@@ -16,11 +16,33 @@
     }
     return Spacing.createSpacing(spaces,spaces,lines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
-  if (type1 == IMPORT_STATEMENT && type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !embeddedComment(type2,child2)) {
+  if (type2 == SINGLE_LINE_DOC_COMMENT) {
+    int nsp=2;
+    if (type1 == SINGLE_LINE_DOC_COMMENT || (elementType != DART_FILE && type1 == LBRACE))     nsp=1;
+    return Spacing.createSpacing(0,0,nsp,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
+  if (type1 == IMPORT_STATEMENT) {
+    if (type2 == MULTI_LINE_COMMENT) {
+      ASTNode next=FormatterUtil.getNextNonWhitespaceSibling(node2);
+      if (next != null && next.getElementType() == IMPORT_STATEMENT && embeddedComment(type2,child2) && !directlyPreceededByNewline(next)) {
+        return Spacing.createSpacing(0,0,1,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+      }
+    }
+    if (type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !embeddedComment(type2,child2)) {
+      int numNewlines=COMMENTS.contains(type2) && isBlankLineAfterComment(node2) ? 1 : 2;
+      return Spacing.createSpacing(0,0,numNewlines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+  }
+  if (type1 == LIBRARY_STATEMENT) {
     return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
-  if (type1 == LIBRARY_STATEMENT && !embeddedComment(type2,child2)) {
-    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  if (elementType == LIBRARY_STATEMENT || parentType == LIBRARY_STATEMENT) {
+    if (embeddedComment(type2,child2)) {
+      return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+    if (type1 == MULTI_LINE_COMMENT && embeddedComment(type1,child1)) {
+      return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
   }
   if (parentType == LIBRARY_STATEMENT) {
     return noSpace();
