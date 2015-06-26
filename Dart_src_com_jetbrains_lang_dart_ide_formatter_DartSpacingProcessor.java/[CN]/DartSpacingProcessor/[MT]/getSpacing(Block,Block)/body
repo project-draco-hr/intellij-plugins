@@ -11,7 +11,7 @@
   if (type1 == SINGLE_LINE_COMMENT) {
     int spaces=0;
     int lines=1;
-    if (elementType == DART_FILE && !isScriptTag(child1) && !directlyPreceededByNewline(child1)) {
+    if (elementType == DART_FILE && !isScriptTag(child1) && !isDirectlyPrecededByNewline(child1)) {
       lines=2;
     }
     return Spacing.createSpacing(spaces,spaces,lines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
@@ -24,23 +24,24 @@
   if (type1 == IMPORT_STATEMENT) {
     if (type2 == MULTI_LINE_COMMENT) {
       ASTNode next=FormatterUtil.getNextNonWhitespaceSibling(node2);
-      if (next != null && next.getElementType() == IMPORT_STATEMENT && embeddedComment(type2,child2) && !directlyPreceededByNewline(next)) {
+      if (next != null && next.getElementType() == IMPORT_STATEMENT && isEmbeddedComment(type2,child2) && !isDirectlyPrecededByNewline(next)) {
         return Spacing.createSpacing(0,0,1,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
       }
     }
-    if (type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !embeddedComment(type2,child2)) {
+    if (type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !isEmbeddedComment(type2,child2)) {
       int numNewlines=COMMENTS.contains(type2) && isBlankLineAfterComment(node2) ? 1 : 2;
       return Spacing.createSpacing(0,0,numNewlines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
   }
   if (type1 == LIBRARY_STATEMENT) {
-    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    int newlines=COMMENTS.contains(type2) && isBlankLineAfterComment(node2) ? 1 : 2;
+    return Spacing.createSpacing(0,0,newlines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
   if (elementType == LIBRARY_STATEMENT || parentType == LIBRARY_STATEMENT) {
-    if (embeddedComment(type2,child2)) {
+    if (isEmbeddedComment(type2,child2)) {
       return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
-    if (type1 == MULTI_LINE_COMMENT && embeddedComment(type1,child1)) {
+    if (type1 == MULTI_LINE_COMMENT && isEmbeddedComment(type1,child1)) {
       return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
   }
@@ -159,7 +160,17 @@
       spaces=1;
       keepBreaks=true;
     }
+ else     if (type1 != LBRACE && isEmbeddedComment(type2,child2)) {
+      lineFeeds=0;
+      spaces=1;
+      keepBreaks=false;
+    }
  else     if ((type1 == LBRACE && type2 == STATEMENTS) || (type2 == RBRACE && type1 == STATEMENTS)) {
+      lineFeeds=1;
+      keepBreaks=false;
+      blanks=0;
+    }
+ else     if (type1 == LBRACE && type2 == SINGLE_LINE_COMMENT) {
       lineFeeds=1;
       keepBreaks=false;
       blanks=0;
@@ -414,6 +425,9 @@
       return addLineBreak();
     }
     if (type2 == RBRACKET && elementType != NAMED_FORMAL_PARAMETERS) {
+      return addLineBreak();
+    }
+    if (type2 == ARGUMENT_LIST) {
       return addLineBreak();
     }
   }
