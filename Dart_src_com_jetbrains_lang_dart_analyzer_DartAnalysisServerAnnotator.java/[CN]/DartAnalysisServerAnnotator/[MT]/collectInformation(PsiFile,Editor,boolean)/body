@@ -1,15 +1,7 @@
 {
-  if (psiFile instanceof DartExpressionCodeFragment)   return null;
   final VirtualFile annotatedFile=DartResolveUtil.getRealVirtualFile(psiFile);
   if (annotatedFile == null)   return null;
-  final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
-  if (module == null)   return null;
-  final DartSdk sdk=DartSdk.getDartSdk(module.getProject());
-  if (sdk == null || !isDartSDKVersionSufficient(sdk))   return null;
-  if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName()))   return null;
-  if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
-  if (DartWritingAccessProvider.isInDartSdkOrDartPackagesFolder(psiFile))   return null;
-  if (!DartAnalysisServerService.getInstance().serverReadyForRequest(module.getProject(),sdk))   return null;
+  if (!serverReadyForRequest(psiFile))   return null;
   if (editor != null) {
     DartAnalysisServerService.getInstance().addPriorityFile(annotatedFile);
   }
