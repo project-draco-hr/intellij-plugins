@@ -7,7 +7,48 @@
       if (!mySettings.PREFER_PARAMETERS_WRAP && childWrap != null) {
         return Wrap.createChildWrap(childWrap,WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),true);
       }
-      return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),false);
+      Wrap wrap=null;
+      if (myNode.getFirstChildNode() == child && childType != NAMED_ARGUMENT) {
+        ASTNode[] childs=myNode.getChildren(DartIndentProcessor.EXPRESSIONS);
+        if (childs.length >= 7) {
+          wrap=Wrap.createWrap(WrapType.ALWAYS,true);
+        }
+ else {
+          wrap=Wrap.createWrap(WrapType.NORMAL,true);
+        }
+        if (myNode.getLastChildNode() != child) {
+          myNode.putUserData(DART_ARGUMENT_LIST_WRAP_KEY,wrap);
+        }
+      }
+ else {
+        if (childType == NAMED_ARGUMENT) {
+          ASTNode[] named=myNode.getChildren(NAMED_ARGUMENTS);
+          wrap=myNode.getUserData(DART_ARGUMENT_LIST_WRAP_KEY);
+          if (child == named[0]) {
+            if (named.length > 1) {
+              ASTNode[] childs=myNode.getChildren(DartIndentProcessor.EXPRESSIONS);
+              Wrap namedWrap;
+              if (childs.length >= 7 || named.length > 4) {
+                namedWrap=Wrap.createWrap(WrapType.ALWAYS,true);
+              }
+ else {
+                namedWrap=Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+              }
+              myNode.putUserData(DART_ARGUMENT_LIST_WRAP_KEY,namedWrap);
+            }
+          }
+        }
+ else {
+          wrap=myNode.getUserData(DART_ARGUMENT_LIST_WRAP_KEY);
+        }
+        if (myNode.getLastChildNode() == child) {
+          myNode.putUserData(DART_ARGUMENT_LIST_WRAP_KEY,null);
+        }
+      }
+      if (childType == MULTI_LINE_COMMENT || childType == FUNCTION_EXPRESSION) {
+        return Wrap.createWrap(WrapType.NONE,false);
+      }
+      return wrap != null ? wrap : Wrap.createWrap(WrappingUtil.getWrapType(mySettings.CALL_PARAMETERS_WRAP),false);
     }
   }
   if (elementType == FORMAL_PARAMETER_LIST) {
