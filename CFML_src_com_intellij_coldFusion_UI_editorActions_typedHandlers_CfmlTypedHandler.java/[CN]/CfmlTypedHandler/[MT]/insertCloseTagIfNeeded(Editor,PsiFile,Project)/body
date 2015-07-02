@@ -61,8 +61,12 @@
       iterator.advance();
     }
   }
-  if (doInsertion && CfmlUtil.isEndTagRequired(((CfmlTag)tagElement).getTagName(),project)) {
-    EditorModificationUtil.insertStringAtCaret(editor,"</" + ((CfmlTag)tagElement).getTagName() + ">",true,0);
+  String tagNameFromPsi=((CfmlTag)tagElement).getTagName();
+  if (doInsertion && CfmlUtil.isEndTagRequired(tagNameFromPsi,project)) {
+    if (!Comparing.equal(tagNameFromPsi,tagName,false)) {
+      tagName=tagNameFromPsi;
+    }
+    EditorModificationUtil.insertStringAtCaret(editor,"</" + tagName + ">",true,0);
     return true;
   }
   return false;
