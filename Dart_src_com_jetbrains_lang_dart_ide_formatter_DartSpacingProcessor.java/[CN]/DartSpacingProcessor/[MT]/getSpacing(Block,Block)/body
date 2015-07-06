@@ -11,16 +11,39 @@
   if (type1 == SINGLE_LINE_COMMENT) {
     int spaces=0;
     int lines=1;
-    if (elementType == DART_FILE && !isScriptTag(child1) && !directlyPreceededByNewline(child1)) {
+    if (elementType == DART_FILE && !isScriptTag(child1) && !isDirectlyPrecededByNewline(child1)) {
       lines=2;
     }
     return Spacing.createSpacing(spaces,spaces,lines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
-  if (type1 == IMPORT_STATEMENT && type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !embeddedComment(type2,child2)) {
-    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  if (type2 == SINGLE_LINE_DOC_COMMENT) {
+    int nsp=2;
+    if (type1 == SINGLE_LINE_DOC_COMMENT || (elementType != DART_FILE && type1 == LBRACE))     nsp=1;
+    return Spacing.createSpacing(0,0,nsp,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
-  if (type1 == LIBRARY_STATEMENT && !embeddedComment(type2,child2)) {
-    return Spacing.createSpacing(0,0,2,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  if (type1 == IMPORT_STATEMENT) {
+    if (type2 == MULTI_LINE_COMMENT) {
+      ASTNode next=FormatterUtil.getNextNonWhitespaceSibling(node2);
+      if (next != null && next.getElementType() == IMPORT_STATEMENT && isEmbeddedComment(type2,child2) && !isDirectlyPrecededByNewline(next)) {
+        return Spacing.createSpacing(0,0,1,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+      }
+    }
+    if (type2 != IMPORT_STATEMENT && type2 != EXPORT_STATEMENT && !isEmbeddedComment(type2,child2)) {
+      int numNewlines=COMMENTS.contains(type2) && isBlankLineAfterComment(node2) ? 1 : 2;
+      return Spacing.createSpacing(0,0,numNewlines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+  }
+  if (type1 == LIBRARY_STATEMENT) {
+    int newlines=COMMENTS.contains(type2) && isBlankLineAfterComment(node2) ? 1 : 2;
+    return Spacing.createSpacing(0,0,newlines,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
+  if (elementType == LIBRARY_STATEMENT || parentType == LIBRARY_STATEMENT) {
+    if (isEmbeddedComment(type2,child2)) {
+      return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+    if (type1 == MULTI_LINE_COMMENT && isEmbeddedComment(type1,child1)) {
+      return Spacing.createSpacing(1,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
   }
   if (parentType == LIBRARY_STATEMENT) {
     return noSpace();
@@ -32,9 +55,41 @@
     return Spacing.createSpacing(0,0,0,true,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
   if (AT == type1)   return Spacing.createSpacing(0,0,0,false,0);
-  if (METADATA == type1)   return Spacing.createSpacing(1,1,0,true,0);
+  if (METADATA == type1) {
+    if (parentType == TYPE_PARAMETERS || COMMENTS.contains(type2)) {
+      return Spacing.createSpacing(1,1,0,false,0);
+    }
+    if (parentType == DART_FILE && elementType != FUNCTION_DECLARATION_WITH_BODY_OR_NATIVE) {
+      return Spacing.createSpacing(0,0,1,false,0);
+    }
+    if (parentType == CLASS_MEMBERS) {
+      if (type2 == METADATA || FormatterUtil.hasPrecedingSiblingOfType(node1,METADATA,WHITE_SPACE)) {
+        return Spacing.createSpacing(0,0,1,false,0);
+      }
+      return Spacing.createSpacing(1,1,0,true,0);
+    }
+    if (parentType == VAR_DECLARATION_LIST) {
+      if (myNode.getTreeParent().getTreeParent().getElementType() == STATEMENTS) {
+        return Spacing.createSpacing(0,0,1,false,0);
+      }
+      if (type2 == METADATA || FormatterUtil.hasPrecedingSiblingOfType(node1,METADATA,WHITE_SPACE)) {
+        return Spacing.createSpacing(0,0,1,false,0);
+      }
+      return Spacing.createSpacing(1,1,0,true,0);
+    }
+    if (parentType == NORMAL_FORMAL_PARAMETER) {
+      return Spacing.createSpacing(1,1,0,false,0);
+    }
+    return Spacing.createSpacing(1,1,0,true,0);
+  }
   if (FUNCTION_DEFINITION.contains(type2)) {
     boolean needsBlank=needsBlankLineBeforeFunction(elementType);
+    if (needsBlank && !mySettings.KEEP_LINE_BREAKS) {
+      if (parentType == CLASS_BODY || elementType == DART_FILE) {
+        if (type1 == SEMICOLON)         needsBlank=false;
+ else         if (hasEmptyBlock(node1))         needsBlank=false;
+      }
+    }
     final int lineFeeds=COMMENTS.contains(type1) || !needsBlank ? 1 : 2;
     return Spacing.createSpacing(0,0,lineFeeds,needsBlank,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
@@ -55,7 +110,8 @@
         }
       }
  else {
-        lineFeeds=2;
+        if (type2 == VAR_DECLARATION_LIST && hasEmptyBlock(node1))         lineFeeds=1;
+ else         lineFeeds=2;
       }
     }
  else     if (type1 == LBRACE && type2 == RBRACE) {
@@ -65,9 +121,13 @@
  else       if (parentType == FUNCTION_BODY) {
         if ((myNode.getTreeParent().getTreeParent() != null) && (myNode.getTreeParent().getTreeParent().getElementType() == METHOD_DECLARATION) && mySettings.KEEP_SIMPLE_METHODS_IN_ONE_LINE) {
           lineFeeds=0;
+          keepBreaks=mySettings.KEEP_LINE_BREAKS;
+          blanks=keepBreaks ? mySettings.KEEP_BLANK_LINES_IN_CODE : 0;
         }
  else         if (mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
           lineFeeds=0;
+          keepBreaks=mySettings.KEEP_LINE_BREAKS;
+          blanks=keepBreaks ? mySettings.KEEP_BLANK_LINES_IN_CODE : 0;
         }
       }
  else       if (parentType == IF_STATEMENT && mySettings.KEEP_SIMPLE_BLOCKS_IN_ONE_LINE) {
@@ -100,7 +160,17 @@
       spaces=1;
       keepBreaks=true;
     }
+ else     if (type1 != LBRACE && isEmbeddedComment(type2,child2)) {
+      lineFeeds=0;
+      spaces=1;
+      keepBreaks=false;
+    }
  else     if ((type1 == LBRACE && type2 == STATEMENTS) || (type2 == RBRACE && type1 == STATEMENTS)) {
+      lineFeeds=1;
+      keepBreaks=false;
+      blanks=0;
+    }
+ else     if (type1 == LBRACE && type2 == SINGLE_LINE_COMMENT) {
       lineFeeds=1;
       keepBreaks=false;
       blanks=0;
@@ -168,6 +238,9 @@
   if (type2 == FORMAL_PARAMETER_LIST && (FUNCTION_DEFINITION.contains(elementType) || elementType == FUNCTION_EXPRESSION)) {
     return addSingleSpaceIf(mySettings.SPACE_BEFORE_METHOD_PARENTHESES);
   }
+  if (elementType == DEFAULT_FORMAL_NAMED_PARAMETER && (type1 == EQ || type2 == EQ)) {
+    return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+  }
   if (type2 == ARGUMENTS && elementType == CALL_EXPRESSION) {
     return addSingleSpaceIf(mySettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES);
   }
@@ -215,8 +288,21 @@
   if (elementType == MIXIN_APPLICATION) {
     return Spacing.createSpacing(1,1,0,false,0);
   }
-  if (elementType == ENUM_DEFINITION && type2 == LBRACE) {
-    return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
+  if (elementType == ENUM_DEFINITION) {
+    if (mySettings.BRACE_STYLE == CommonCodeStyleSettings.END_OF_LINE) {
+      if (type1 == LBRACE && type2 == RBRACE) {
+        return noSpace();
+      }
+      if (type1 == LBRACE || type2 == RBRACE) {
+        return Spacing.createDependentLFSpacing(1,1,textRangeFollowingMetadata(),false,0);
+      }
+      if (type2 == ENUM_CONSTANT_DECLARATION) {
+        return Spacing.createDependentLFSpacing(1,1,textRangeFollowingMetadata(),false,0);
+      }
+    }
+    if (type2 == LBRACE) {
+      return setBraceSpace(mySettings.SPACE_BEFORE_CLASS_LBRACE,mySettings.BRACE_STYLE,child1.getTextRange());
+    }
   }
   if (type1 == LPAREN || type2 == RPAREN) {
     if (elementType == IF_STATEMENT) {
@@ -239,7 +325,10 @@
     }
  else     if (elementType == FORMAL_PARAMETER_LIST) {
       final boolean newLineNeeded=type1 == LPAREN ? mySettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE : mySettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE;
-      return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_PARENTHESES,newLineNeeded);
+      if (newLineNeeded || mySettings.SPACE_WITHIN_METHOD_PARENTHESES) {
+        return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_PARENTHESES,newLineNeeded);
+      }
+      return Spacing.createSpacing(0,0,0,false,0);
     }
  else     if (elementType == ARGUMENTS) {
       final boolean newLineNeeded=type1 == LPAREN ? mySettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE : mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE;
@@ -338,12 +427,15 @@
     if (type2 == RBRACKET && elementType != NAMED_FORMAL_PARAMETERS) {
       return addLineBreak();
     }
+    if (type2 == ARGUMENT_LIST) {
+      return addLineBreak();
+    }
   }
   if (type1 == LBRACKET && type2 == RBRACKET) {
     return noSpace();
   }
-  if (type1 == COMMA && (elementType == FORMAL_PARAMETER_LIST || elementType == ARGUMENT_LIST || elementType == NORMAL_FORMAL_PARAMETER)) {
-    return addSingleSpaceIf(mySettings.SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS);
+  if (type1 == COMMA && (elementType == FORMAL_PARAMETER_LIST || elementType == ARGUMENT_LIST)) {
+    return addSingleSpaceIf(mySettings.SPACE_AFTER_COMMA);
   }
   if (type1 == COMMA) {
     if (type2 == RBRACKET) {
@@ -376,14 +468,17 @@
   if (elementType == VALUE_EXPRESSION && type2 == CASCADE_REFERENCE_EXPRESSION) {
     if (type1 == CASCADE_REFERENCE_EXPRESSION) {
       if (cascadesAreSameMethod(((AbstractBlock)child1).getNode(),((AbstractBlock)child2).getNode())) {
-        return Spacing.createSpacing(0,0,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+        return Spacing.createSpacing(0,0,0,false,0);
       }
     }
  else     if (type1 == REFERENCE_EXPRESSION || isSimpleLiteral(type1)) {
       CompositeElement elem=(CompositeElement)myNode;
       ASTNode[] childs=elem.getChildren(CASCADE_REFERENCE_EXPRESSION_SET);
-      if (childs.length == 1 || allCascadesAreSameMethod(childs)) {
-        return Spacing.createSpacing(0,0,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
+      if (childs.length == 1) {
+        return Spacing.createDependentLFSpacing(0,0,myNode.getTextRange(),true,0);
+      }
+      if (allCascadesAreSameMethod(childs)) {
+        return Spacing.createSpacing(0,0,0,false,0);
       }
     }
     return addLineBreak();
@@ -415,7 +510,7 @@
   if (elementType == LIST_LITERAL_EXPRESSION && type2 == RBRACKET) {
     return Spacing.createDependentLFSpacing(0,0,node1.getTextRange(),mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
-  if (elementType == NAMED_ARGUMENT) {
+  if (elementType == NAMED_ARGUMENT || elementType == DEFAULT_FORMAL_NAMED_PARAMETER) {
     if (type1 == COLON) {
       return addSingleSpaceIf(true);
     }
@@ -447,6 +542,13 @@
   }
   if (type2 == RBRACKET && type1 == EXPRESSION_LIST) {
     return noSpace();
+  }
+  if (elementType == FUNCTION_BODY || elementType == FUNCTION_EXPRESSION_BODY) {
+    if (type1 == ASYNC || type1 == SYNC) {
+      if (type2 == MUL)       return noSpace();
+      return addSingleSpaceIf(true);
+    }
+    if (type1 == MUL)     return addSingleSpaceIf(true);
   }
   return Spacing.createSpacing(0,1,0,mySettings.KEEP_LINE_BREAKS,mySettings.KEEP_BLANK_LINES_IN_CODE);
 }
