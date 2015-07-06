@@ -1,4 +1,26 @@
 {
+  if (USE_SERVER) {
+    final PsiFile refPsiFile=reference.getContainingFile();
+    final VirtualFile refVirtualFile=refPsiFile.getVirtualFile();
+    if (refVirtualFile != null) {
+      if (isIdentifier(reference)) {
+        Project project=reference.getProject();
+        final int refOffset=reference.getTextOffset();
+        final String refPath=refVirtualFile.getPath();
+        final List<NavigationRegion> regions=DartAnalysisServerService.getInstance().getNavigation(refPath);
+        for (        NavigationRegion region : regions) {
+          if (region.containsInclusive(refOffset)) {
+            NavigationTarget target=region.getTargetObjects().get(0);
+            return getResultForNavigationTarget(project,target);
+          }
+          if (region.getOffset() + region.getLength() > refOffset) {
+            break;
+          }
+        }
+      }
+    }
+    return null;
+  }
   if (reference instanceof DartThisExpression) {
     return toResult(PsiTreeUtil.getParentOfType(reference,DartClass.class));
   }

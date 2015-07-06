@@ -1,0 +1,13 @@
+{
+  if (psiFile instanceof DartExpressionCodeFragment)   return false;
+  final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
+  if (module == null)   return true;
+  final Project project=module.getProject();
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !isDartSDKVersionSufficient(sdk))   return false;
+  if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName()))   return false;
+  if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return false;
+  if (DartWritingAccessProvider.isInDartSdkOrDartPackagesFolder(psiFile))   return false;
+  if (!DartAnalysisServerService.getInstance().serverReadyForRequest(project,sdk))   return false;
+  return true;
+}
