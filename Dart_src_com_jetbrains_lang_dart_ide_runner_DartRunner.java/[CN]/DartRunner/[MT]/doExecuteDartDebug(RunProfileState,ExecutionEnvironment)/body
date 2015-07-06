@@ -2,6 +2,7 @@
   final RunProfile runConfiguration=env.getRunProfile();
   final VirtualFile contextFileOrDir;
   final ExecutionResult executionResult;
+  final String debuggingHost;
   final int debuggingPort;
   final int observatoryPort;
   if (runConfiguration instanceof DartRunConfigurationBase) {
@@ -10,6 +11,7 @@
     if (executionResult == null) {
       return null;
     }
+    debuggingHost=null;
     debuggingPort=((DartCommandLineRunningState)state).getDebuggingPort();
     observatoryPort=((DartCommandLineRunningState)state).getObservatoryPort();
   }
@@ -20,6 +22,7 @@
       throw new RuntimeConfigurationError("Folder not found: " + FileUtil.toSystemDependentName(path));
     }
     executionResult=null;
+    debuggingHost=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getHost();
     debuggingPort=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getPort();
     observatoryPort=-1;
   }
@@ -32,7 +35,7 @@
   final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
       final DartUrlResolver dartUrlResolver=DartUrlResolver.getInstance(env.getProject(),contextFileOrDir);
-      return new DartCommandLineDebugProcess(session,debuggingPort,observatoryPort,executionResult,dartUrlResolver);
+      return new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver);
     }
   }
 );
