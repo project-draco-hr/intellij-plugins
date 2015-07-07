@@ -4,15 +4,24 @@
     final VirtualFile refVirtualFile=refPsiFile.getVirtualFile();
     if (refVirtualFile != null) {
       if (isIdentifier(reference)) {
-        Project project=reference.getProject();
+        final Project project=reference.getProject();
         final int refOffset=reference.getTextOffset();
-        final List<NavigationRegion> regions=DartAnalysisServerService.getInstance().getNavigation(refVirtualFile);
-        for (        NavigationRegion region : regions) {
-          if (region.containsInclusive(refOffset)) {
-            NavigationTarget target=region.getTargetObjects().get(0);
-            return getResultForNavigationTarget(project,target);
+        final int refLength=reference.getTextLength();
+        final List<PluginNavigationRegion> regions=DartAnalysisServerService.getInstance().getNavigation(refVirtualFile);
+        for (        PluginNavigationRegion region : regions) {
+          final int regionOffset=region.getOffset();
+          final int regionLength=region.getLength();
+          if (regionOffset == refOffset && regionLength == refLength) {
+            final List<PsiElement> result=new SmartList<PsiElement>();
+            for (            PluginNavigationTarget target : region.getTargets()) {
+              final PsiElement targetElement=getElementForNavigationTarget(project,target);
+              if (targetElement != null) {
+                result.add(targetElement);
+              }
+            }
+            return result;
           }
-          if (region.getOffset() + region.getLength() > refOffset) {
+          if (regionOffset + regionLength > refOffset) {
             break;
           }
         }
