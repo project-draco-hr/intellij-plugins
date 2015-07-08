@@ -5,14 +5,33 @@
   if (relPathFromContextFileToPackagesFolder == null)   return PsiReference.EMPTY_ARRAY;
   relPathFromContextFileToPackagesFolder+="/";
   final String str=relPathFromContextFileToPackagesFolder + relPathFromPackagesFolderToReferencedFile;
+  final int nestedLevel=StringUtil.countChars(relPathFromContextFileToPackagesFolder,'/');
+  final int shift=startOffset - relPathFromContextFileToPackagesFolder.length();
   final FileReferenceSet referenceSet=new FileReferenceSet(str,this,0,null,false,true,new FileType[]{DartFileType.INSTANCE}){
     @Override protected Condition<PsiFileSystemItem> getReferenceCompletionFilter(){
       return DART_FILE_OR_DIR_FILTER;
     }
+    @Override public FileReference createFileReference(    TextRange range,    int index,    String text){
+      if (index < nestedLevel) {
+        return super.createFileReference(range,index,text);
+      }
+      return new FileReference(this,range.shiftRight(shift),index,text){
+        @Override public PsiElement bindToElement(        @NotNull final PsiElement element,        final boolean absolute){
+          final VirtualFile contextFile=DartResolveUtil.getRealVirtualFile(getElement().getContainingFile());
+          final VirtualFile targetFile=DartResolveUtil.getRealVirtualFile(element.getContainingFile());
+          if (contextFile != null && targetFile != null) {
+            final String newUri=DartUrlResolver.getInstance(element.getProject(),contextFile).getDartUrlForFile(targetFile);
+            if (newUri.startsWith(DartUrlResolver.PACKAGE_PREFIX)) {
+              return rename(newUri);
+            }
+          }
+          return getElement();
+        }
+      }
+;
+    }
   }
 ;
   final FileReference[] references=referenceSet.getAllReferences();
-  final int nestedLevel=StringUtil.countChars(relPathFromContextFileToPackagesFolder,'/');
-  final int shift=startOffset - relPathFromContextFileToPackagesFolder.length();
-  return references.length < nestedLevel ? PsiReference.EMPTY_ARRAY : shiftReferences(Arrays.copyOfRange(references,nestedLevel,references.length),shift);
+  return references.length < nestedLevel ? PsiReference.EMPTY_ARRAY : Arrays.copyOfRange(references,nestedLevel,references.length);
 }
