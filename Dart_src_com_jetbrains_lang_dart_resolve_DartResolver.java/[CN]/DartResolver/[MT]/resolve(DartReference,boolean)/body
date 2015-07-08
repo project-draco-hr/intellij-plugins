@@ -8,7 +8,8 @@
         final int refOffset=reference.getTextOffset();
         final int refLength=reference.getTextLength();
         final List<PluginNavigationRegion> regions=DartAnalysisServerService.getInstance().getNavigation(refVirtualFile);
-        for (        PluginNavigationRegion region : regions) {
+        PluginNavigationRegion region=findRegionAtOffset(regions,refOffset);
+        if (region != null) {
           final int regionOffset=region.getOffset();
           final int regionLength=region.getLength();
           if (regionOffset == refOffset && regionLength == refLength) {
@@ -20,9 +21,6 @@
               }
             }
             return result;
-          }
-          if (regionOffset + regionLength > refOffset) {
-            break;
           }
         }
       }
