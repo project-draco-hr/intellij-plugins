@@ -1,6 +1,13 @@
 {
   PsiBuilder.Marker expr=builder.mark();
-  buildTokenElement(JSElementTypes.REFERENCE_EXPRESSION);
+  if (!parseQualifiedTypeName(false)) {
+    expr.rollbackTo();
+    return false;
+  }
+  if (builder.getTokenType() != JSTokenTypes.AS_KEYWORD) {
+    expr.rollbackTo();
+    return false;
+  }
   builder.advanceLexer();
   parseExplicitIdentifierWithError();
   expr.done(AngularJSElementTypes.AS_EXPRESSION);
