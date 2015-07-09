@@ -16,6 +16,11 @@
   if (karmaPackageDir != null) {
     builder.setKarmaPackageDir(FileUtil.toSystemDependentName(karmaPackageDir));
   }
-  builder.setEnvData(EnvironmentVariablesData.readExternal(element));
+  EnvironmentVariablesData envData=EnvironmentVariablesData.readExternal(element);
+  String passParentEnvVarsStr=getAttrValue(element,OLD_PASS_PARENT_ENV_VAR);
+  if (passParentEnvVarsStr != null) {
+    envData=EnvironmentVariablesData.create(envData.getEnvs(),Boolean.parseBoolean(passParentEnvVarsStr));
+  }
+  builder.setEnvData(envData);
   return builder.build();
 }
