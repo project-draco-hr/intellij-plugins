@@ -1,45 +1,29 @@
 {
-  final boolean stripQuotes;
-  if (node.getElementType() == CssElementTypes.CSS_STRING) {
-    stripQuotes=true;
+  boolean stripQuotes=node.getElementType() == CssElementTypes.CSS_STRING;
+  if (stripQuotes) {
     node=node.getFirstChildNode();
-  }
- else {
-    stripQuotes=false;
   }
   final CharSequence chars=node.getChars();
   if (info == null || info.getEnumeration() == null) {
     if (stripQuotes) {
-      if (writeCssTypeMarker) {
-        propertyOut.write(Amf3Types.STRING);
-      }
+      propertyOut.write(Amf3Types.STRING);
       writeCssStringToken(chars);
     }
  else {
       if (StringUtil.equals(chars,"true")) {
-        if (writeCssTypeMarker) {
-          propertyOut.write(CssPropertyType.BOOL);
-        }
         propertyOut.write(Amf3Types.TRUE);
       }
  else       if (StringUtil.equals(chars,"false")) {
-        if (writeCssTypeMarker) {
-          propertyOut.write(CssPropertyType.BOOL);
-        }
         propertyOut.write(Amf3Types.FALSE);
       }
  else {
-        if (writeCssTypeMarker) {
-          propertyOut.write(Amf3Types.STRING);
-        }
+        propertyOut.write(Amf3Types.STRING);
         propertyOut.writeAmfUtf(chars);
       }
     }
   }
  else {
-    if (writeCssTypeMarker) {
-      propertyOut.write(AmfExtendedTypes.STRING_REFERENCE);
-    }
+    propertyOut.write(AmfExtendedTypes.STRING_REFERENCE);
     stringWriter.write(stripQuotes ? chars.subSequence(1,chars.length() - 1).toString() : chars.toString(),propertyOut);
   }
 }

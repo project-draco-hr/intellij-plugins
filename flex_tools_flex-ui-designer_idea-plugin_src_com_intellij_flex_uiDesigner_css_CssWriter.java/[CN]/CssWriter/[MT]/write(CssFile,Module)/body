@@ -1,7 +1,12 @@
 {
   problemsHolder.setCurrentFile(cssFile.getVirtualFile());
   try {
-    return write(cssFile,PsiDocumentManager.getInstance(module.getProject()).getDocument(cssFile),module);
+    Document document=PsiDocumentManager.getInstance(module.getProject()).getDocument(cssFile);
+    if (document == null) {
+      LOG.warn("Document is null for " + cssFile.getName());
+      return null;
+    }
+    return write(cssFile,document,module);
   }
   finally {
     problemsHolder.setCurrentFile(null);

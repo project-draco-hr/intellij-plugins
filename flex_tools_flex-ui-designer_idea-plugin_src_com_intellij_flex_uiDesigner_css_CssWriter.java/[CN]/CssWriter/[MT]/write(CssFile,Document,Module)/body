@@ -1,21 +1,24 @@
 {
-  rulesetVectorWriter.prepareIteration();
   CssStylesheet stylesheet=cssFile.getStylesheet();
-  CssRuleset[] rulesets=stylesheet != null ? stylesheet.getRulesets() : CssRuleset.EMPTY_ARRAY;
-  final DocumentWindow documentWindow=document instanceof DocumentWindow ? (DocumentWindow)document : null;
-  for (  CssRuleset ruleset : rulesets) {
-    final CssBlock block=ruleset.getBlock();
+  if (stylesheet == null) {
+    LOG.warn("Stylesheet is null for " + cssFile.getName());
+    return null;
+  }
+  rulesetVectorWriter.prepareIteration();
+  DocumentWindow documentWindow=document instanceof DocumentWindow ? (DocumentWindow)document : null;
+  for (  CssRuleset ruleset : stylesheet.getRulesets()) {
+    CssBlock block=ruleset.getBlock();
     if (block == null) {
       continue;
     }
     PrimitiveAmfOutputStream rulesetOut=rulesetVectorWriter.getOutputForIteration();
     int textOffset=ruleset.getTextOffset();
-    if (documentWindow != null) {
-      rulesetOut.writeUInt29(documentWindow.injectedToHostLine(document.getLineNumber(textOffset)) + 1);
-      textOffset=documentWindow.injectedToHost(textOffset);
+    if (documentWindow == null) {
+      rulesetOut.writeUInt29(document.getLineNumber(textOffset) + 1);
     }
  else {
-      rulesetOut.writeUInt29(document.getLineNumber(textOffset) + 1);
+      rulesetOut.writeUInt29(documentWindow.injectedToHostLine(document.getLineNumber(textOffset)) + 1);
+      textOffset=documentWindow.injectedToHost(textOffset);
     }
     rulesetOut.writeUInt29(textOffset);
     writeSelectors(ruleset,rulesetOut,module);
@@ -30,7 +33,7 @@
         stringWriter.write(declaration.getPropertyName(),propertyOut);
         textOffset=declaration.getTextOffset();
         propertyOut.writeUInt29(documentWindow == null ? textOffset : documentWindow.injectedToHost(textOffset));
-        CssPropertyDescriptor propertyDescriptor=declaration.getDescriptor();
+        CssPropertyDescriptor propertyDescriptor=ContainerUtil.getFirstItem(declaration.getDescriptors());
         writePropertyValue(value,propertyDescriptor != null && propertyDescriptor instanceof FlexCssPropertyDescriptor ? ((FlexCssPropertyDescriptor)propertyDescriptor).getStyleInfo() : null);
         continue;
       }

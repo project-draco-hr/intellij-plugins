@@ -1,2 +1,15 @@
 {
+  Document document=FileDocumentManager.getInstance().getDocument(file);
+  CssFile cssFile=document == null ? null : (CssFile)PsiDocumentManager.getInstance(module.getProject()).getPsiFile(document);
+  if (cssFile == null) {
+    LOG.warn("CSS file is null for " + file.getName());
+    return null;
+  }
+  problemsHolder.setCurrentFile(file);
+  try {
+    return write(cssFile,document,module);
+  }
+  finally {
+    problemsHolder.setCurrentFile(null);
+  }
 }

@@ -24,6 +24,30 @@
           }
         }
       }
+ else       if (firstChild instanceof CssTermList) {
+        CssTerm[] terms=((CssTermList)firstChild).getTerms();
+        if (terms.length == 2) {
+          CharSequence name=terms[0].getNode().getChars();
+          if (StringUtil.equals(name,"source")) {
+            source=InjectionUtil.getReferencedFile(terms[1].getFirstChild());
+          }
+ else {
+            String value=((CssString)terms[1].getFirstChild()).getValue();
+            if (StringUtil.equals(name,"symbol")) {
+              symbol=value;
+            }
+ else             if (StringUtil.equals(name,"mimeType")) {
+              mimeType=value;
+            }
+ else {
+              LOG.warn("unsupported embed param: " + name + "="+ value);
+            }
+          }
+        }
+ else {
+          LOG.warn("unsupported embed: " + firstChild.getText());
+        }
+      }
  else       if (firstChild instanceof CssString) {
         source=InjectionUtil.getReferencedFile(firstChild);
       }

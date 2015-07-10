@@ -1,15 +1,18 @@
 {
   final String functionName=cssFunction.getName();
-  ASTNode termListNode=cssFunction.getNode().findChildByType(CssElementTypes.CSS_TERM_LIST);
+  CssTermList termList=cssFunction.getValue();
+  if (termList == null) {
+    throw new InvalidPropertyException("termList is null: " + functionName);
+  }
 switch (functionName.charAt(0)) {
 case 'C':
-    writeClassReference(info,termListNode.getFirstChildNode().getFirstChildNode());
+    writeClassReference(info,termList.getNode().getFirstChildNode().getFirstChildNode());
   break;
 case 'E':
-writeEmbed(cssFunction,(CssTermList)termListNode.getPsi());
+writeEmbed(cssFunction,termList);
 break;
 case 'P':
-writePropertyReference(termListNode.getFirstChildNode().getFirstChildNode());
+writePropertyReference(termList.getNode().getFirstChildNode().getFirstChildNode());
 break;
 default :
 throw new IllegalArgumentException("unknown function: " + functionName);
