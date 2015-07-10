@@ -3,8 +3,6 @@
   CoverageEnabledConfiguration coverageEnabledConfiguration=CoverageEnabledConfiguration.getOrCreate(runConfiguration);
   CoverageHelper.resetCoverageSuit(runConfiguration);
   final String coverageFilePath=coverageEnabledConfiguration.getCoverageFilePath();
-  RunContentBuilder contentBuilder=new RunContentBuilder(executionResult,env);
-  final RunContentDescriptor descriptor=contentBuilder.showRunContent(env.getContentToReuse());
   if (coverageFilePath != null) {
     KarmaCoveragePeer coveragePeer=getCoveragePeer(server);
     coveragePeer.startCoverageSession(new KarmaCoverageSession(){
@@ -31,5 +29,7 @@
     }
 );
   }
-  return descriptor;
+  ExecutionResult executionResult=state.executeWithServer(env.getExecutor(),server);
+  RunContentBuilder contentBuilder=new RunContentBuilder(executionResult,env);
+  return contentBuilder.showRunContent(env.getContentToReuse());
 }
