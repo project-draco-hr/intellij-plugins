@@ -7,6 +7,7 @@
     return;
   }
   final Map<VirtualFile,String> fileToNewContentMap=new THashMap<VirtualFile,String>();
+  final int lineLength=getRightMargin(project);
   final Runnable runnable=new Runnable(){
     public void run(){
       double fraction=0.0;
@@ -19,7 +20,7 @@
           indicator.setText2(FileUtil.toSystemDependentName(virtualFile.getPath()));
         }
         final String path=FileUtil.toSystemDependentName(virtualFile.getPath());
-        final DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(path,0,0);
+        final DartAnalysisServerService.FormatResult formatResult=DartAnalysisServerService.getInstance().edit_format(path,0,0,lineLength);
         if (formatResult != null && formatResult.getEdits() != null && formatResult.getEdits().size() == 1) {
           fileToNewContentMap.put(virtualFile,formatResult.getEdits().get(0).getReplacement());
         }
