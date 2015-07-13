@@ -11,7 +11,14 @@ synchronized (myLock) {
     }
 ;
     final int port=NetUtils.tryToFindAvailableSocketPort(10000);
-    myServerSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,new String[]{},false,false,port,false,FileReadMode.NORMALIZE_EOL_ALWAYS);
+    String argsRaw;
+    try {
+      argsRaw=Registry.stringValue("dart.server.additional.arguments");
+    }
+ catch (    MissingResourceException e) {
+      argsRaw="";
+    }
+    myServerSocket=new StdioServerSocket(runtimePath,analysisServerPath,null,debugStream,ArrayUtil.toStringArray(StringUtil.split(argsRaw," ")),false,false,port,false,FileReadMode.NORMALIZE_EOL_ALWAYS);
     myServerSocket.setClientId(ApplicationNamesInfo.getInstance().getFullProductName().replace(' ','_'));
     myServerSocket.setClientVersion(ApplicationInfo.getInstance().getApiVersion());
     myServer=new RemoteAnalysisServerImpl(myServerSocket);
