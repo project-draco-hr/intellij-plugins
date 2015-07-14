@@ -1,0 +1,15 @@
+{
+  Pair<Long,Map<String,String>> data=dotPackagesFile.getUserData(MOD_STAMP_TO_PACKAGES_MAP);
+  final Long currentTimestamp=dotPackagesFile.getModificationCount();
+  final Long cachedTimestamp=data == null ? null : data.first;
+  if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+    data=null;
+    dotPackagesFile.putUserData(MOD_STAMP_TO_PACKAGES_MAP,null);
+    final Map<String,String> packagesMap=loadPackagesMap(dotPackagesFile);
+    if (packagesMap != null) {
+      data=Pair.create(currentTimestamp,packagesMap);
+      dotPackagesFile.putUserData(MOD_STAMP_TO_PACKAGES_MAP,data);
+    }
+  }
+  return data == null ? null : data.second;
+}

@@ -1,0 +1,17 @@
+{
+  if (uri.startsWith("file:/")) {
+    final String pathAfterSlashes=StringUtil.trimEnd(StringUtil.trimLeading(StringUtil.trimStart(uri,"file:/"),'/'),"/");
+    if (SystemInfo.isWindows) {
+      if (pathAfterSlashes.length() > 2 && Character.isLetter(pathAfterSlashes.charAt(0)) && ':' == pathAfterSlashes.charAt(1)) {
+        return pathAfterSlashes;
+      }
+    }
+ else {
+      return "/" + pathAfterSlashes;
+    }
+  }
+ else   if (uri.startsWith("./") || uri.startsWith("../")) {
+    return FileUtil.toCanonicalPath(baseDir.getPath() + "/" + uri);
+  }
+  return null;
+}

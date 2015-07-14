@@ -1,0 +1,20 @@
+{
+  final SortedSet<String> libRootUrls=new TreeSet<String>();
+  final Collection<VirtualFile> pubspecYamlFiles=FilenameIndex.getVirtualFilesByName(project,PUBSPEC_YAML,GlobalSearchScope.projectScope(project));
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  for (  VirtualFile pubspecFile : pubspecYamlFiles) {
+    final VirtualFile dotPackagesFile=pubspecFile.getParent().findChild(DotPackagesFileUtil.DOT_PACKAGES);
+    final Module module=dotPackagesFile == null ? null : fileIndex.getModuleForFile(dotPackagesFile);
+    if (dotPackagesFile != null && !dotPackagesFile.isDirectory() && module != null && DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+      final Map<String,String> packagesMap=DotPackagesFileUtil.getPackagesMap(dotPackagesFile);
+      if (packagesMap != null) {
+        for (        String path : packagesMap.values()) {
+          if (isPathOutsideProjectContent(fileIndex,path)) {
+            libRootUrls.add(VfsUtilCore.pathToUrl(path));
+          }
+        }
+      }
+    }
+  }
+  return libRootUrls;
+}

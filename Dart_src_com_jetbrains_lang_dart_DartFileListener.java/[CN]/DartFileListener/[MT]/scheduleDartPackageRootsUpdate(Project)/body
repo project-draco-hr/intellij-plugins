@@ -1,0 +1,24 @@
+{
+  if (project.getUserData(DART_PACKAGE_ROOTS_UPDATE_SCHEDULED_OR_IN_PROGRESS) == Boolean.TRUE) {
+    return;
+  }
+  project.putUserData(DART_PACKAGE_ROOTS_UPDATE_SCHEDULED_OR_IN_PROGRESS,Boolean.TRUE);
+  DumbService.getInstance(project).smartInvokeLater(new Runnable(){
+    @Override public void run(){
+      try {
+        final DartSdk sdk=DartSdk.getDartSdk(project);
+        final Library library=actualizePackagesLibrary(project,sdk);
+        if (library == null) {
+          removeDartPackagesLibraryAndDependencies(project);
+        }
+ else {
+          updateDependenciesOnDartPackagesLibrary(project,sdk,library);
+        }
+      }
+  finally {
+        project.putUserData(DART_PACKAGE_ROOTS_UPDATE_SCHEDULED_OR_IN_PROGRESS,null);
+      }
+    }
+  }
+,ModalityState.NON_MODAL);
+}

@@ -1,0 +1,21 @@
+{
+  try {
+    final List<String> lines=FileUtil.loadLines(dotPackagesFile.getPath(),"UTF-8");
+    final Map<String,String> result=new THashMap<String,String>();
+    for (    String line : lines) {
+      if (line.trim().isEmpty() || line.startsWith("#"))       continue;
+      final int colonIndex=line.indexOf(':');
+      if (colonIndex > 0 && colonIndex < line.length() - 1) {
+        final String packageName=line.substring(0,colonIndex).trim();
+        final String packageUri=getAbsolutePackageRootPath(dotPackagesFile.getParent(),line.substring(colonIndex + 1).trim());
+        if (!packageName.isEmpty() && packageUri != null) {
+          result.put(packageName,packageUri);
+        }
+      }
+    }
+    return result;
+  }
+ catch (  IOException e) {
+    return null;
+  }
+}

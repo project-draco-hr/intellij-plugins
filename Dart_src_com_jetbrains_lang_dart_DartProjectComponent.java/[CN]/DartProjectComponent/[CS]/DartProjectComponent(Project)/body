@@ -1,3 +1,10 @@
 {
   super(project);
+  VirtualFileManager.getInstance().addVirtualFileListener(new DartFileListener(project),project);
+  project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
+    @Override public void rootsChanged(    ModuleRootEvent event){
+      DartFileListener.scheduleDartPackageRootsUpdate(myProject);
+    }
+  }
+);
 }
