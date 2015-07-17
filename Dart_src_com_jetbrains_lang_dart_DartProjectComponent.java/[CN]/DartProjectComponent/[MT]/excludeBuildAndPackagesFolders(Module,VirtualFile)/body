@@ -1,22 +1,24 @@
 {
+  final DartSdk sdk=DartSdk.getDartSdk(module.getProject());
+  final boolean excludeRootPackagesFolder=sdk != null && StringUtil.compareVersionNumbers(sdk.getVersion(),"1.12") >= 0;
   final VirtualFile root=pubspecYamlFile.getParent();
   final VirtualFile contentRoot=root == null ? null : ProjectRootManager.getInstance(module.getProject()).getFileIndex().getContentRootForFile(root);
   if (contentRoot == null)   return;
   final Collection<String> oldExcludedUrls=ContainerUtil.filter(ModuleRootManager.getInstance(module).getExcludeRootUrls(),new Condition<String>(){
     final String rootUrl=root.getUrl();
     public boolean value(    final String url){
-      if (!url.equals(rootUrl + "/.pub") && !url.equals(rootUrl + "/build") && !url.startsWith(rootUrl + "/packages/")&& !url.startsWith(rootUrl + "/bin/")&& !url.startsWith(rootUrl + "/benchmark/")&& !url.startsWith(rootUrl + "/example/")&& !url.startsWith(rootUrl + "/test/")&& !url.startsWith(rootUrl + "/tool/")&& !url.startsWith(rootUrl + "/web/")) {
-        return false;
-      }
       if (url.equals(rootUrl + "/.pub"))       return true;
       if (url.equals(rootUrl + "/build"))       return true;
-      if (url.endsWith("/packages"))       return true;
+      if (url.equals(rootUrl + "/packages"))       return true;
       if (url.startsWith(root + "/packages/"))       return true;
+      if (url.endsWith("/packages") && (url.startsWith(rootUrl + "/bin/") || url.startsWith(rootUrl + "/benchmark/") || url.startsWith(rootUrl + "/example/")|| url.startsWith(rootUrl + "/test/")|| url.startsWith(rootUrl + "/tool/") | url.startsWith(rootUrl + "/web/"))) {
+        return true;
+      }
       return false;
     }
   }
 );
-  final Set<String> newExcludedUrls=collectFolderUrlsToExclude(module,pubspecYamlFile,true);
+  final Set<String> newExcludedUrls=collectFolderUrlsToExclude(module,pubspecYamlFile,true,excludeRootPackagesFolder);
   if (oldExcludedUrls.size() != newExcludedUrls.size() || !newExcludedUrls.containsAll(oldExcludedUrls)) {
     ModuleRootModificationUtil.updateExcludedFolders(module,contentRoot,oldExcludedUrls,newExcludedUrls);
   }
