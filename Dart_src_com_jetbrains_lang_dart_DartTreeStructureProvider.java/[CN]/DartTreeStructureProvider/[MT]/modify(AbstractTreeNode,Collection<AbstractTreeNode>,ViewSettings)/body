@@ -1,4 +1,27 @@
 {
+  if (parentNode instanceof ExternalLibrariesNode) {
+    return ContainerUtil.map(children,new Function<AbstractTreeNode,AbstractTreeNode>(){
+      @Override public AbstractTreeNode fun(      AbstractTreeNode node){
+        if (node instanceof NamedLibraryElementNode && (DartPackagesLibraryType.DART_PACKAGES_LIBRARY_NAME.equals(node.getName()) || DartSdk.DART_SDK_GLOBAL_LIB_NAME.equals(node.getName()))) {
+          final boolean isSdkRoot=DartSdk.DART_SDK_GLOBAL_LIB_NAME.equals(node.getName());
+          return new NamedLibraryElementNode(node.getProject(),((NamedLibraryElementNode)node).getValue(),settings){
+            @Override public boolean canNavigate(){
+              return isSdkRoot;
+            }
+            @Override public void navigate(            boolean requestFocus){
+              final Project project=getProject();
+              if (project != null) {
+                DartConfigurable.openDartSettings(project);
+              }
+            }
+          }
+;
+        }
+        return node;
+      }
+    }
+);
+  }
   if (parentNode instanceof NamedLibraryElementNode && (DartPackagesLibraryType.DART_PACKAGES_LIBRARY_NAME.equals(parentNode.getName()) || DartSdk.DART_SDK_GLOBAL_LIB_NAME.equals(parentNode.getName()))) {
     final boolean isSdkRoot=DartSdk.DART_SDK_GLOBAL_LIB_NAME.equals(parentNode.getName());
     return ContainerUtil.map(children,new Function<AbstractTreeNode,AbstractTreeNode>(){
