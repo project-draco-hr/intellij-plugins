@@ -6,22 +6,10 @@ synchronized (myCompletionInfos) {
       while ((completionInfo=myCompletionInfos.poll()) != null) {
         if (!completionInfo.myCompletionId.equals(completionId))         continue;
         for (        final CompletionSuggestion completion : completionInfo.myCompletions) {
-          final ResolveResult psiElementFinder=new ResolveResult(){
-            @Nullable @Override public PsiElement getElement(){
-              final Element element=completion.getElement();
-              final Location location=element == null ? null : element.getLocation();
-              final String filePath=location == null ? null : FileUtil.toSystemIndependentName(location.getFile());
-              final VirtualFile vFile=filePath == null ? null : LocalFileSystem.getInstance().findFileByPath(filePath);
-              final PsiFile psiFile=vFile == null ? null : PsiManager.getInstance(project).findFile(vFile);
-              final PsiElement elementAtOffset=psiFile == null ? null : psiFile.findElementAt(location.getOffset());
-              return PsiTreeUtil.getParentOfType(elementAtOffset,DartComponentName.class);
-            }
-            @Override public boolean isValidResult(){
-              return true;
-            }
-          }
-;
-          final LookupElement lookup=LookupElementBuilder.create(psiElementFinder,completion.getCompletion());
+          final Element element=completion.getElement();
+          final Location location=element == null ? null : element.getLocation();
+          final DartLookupObject lookupObject=new DartLookupObject(project,location,completion.getRelevance());
+          final LookupElement lookup=LookupElementBuilder.create(lookupObject,completion.getCompletion());
           resultSet.consume(lookup);
         }
         if (completionInfo.isLast)         return;
