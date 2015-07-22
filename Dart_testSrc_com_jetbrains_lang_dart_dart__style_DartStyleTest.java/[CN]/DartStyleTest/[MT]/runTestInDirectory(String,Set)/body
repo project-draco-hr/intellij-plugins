@@ -1,0 +1,81 @@
+{
+  Pattern indentPattern=Pattern.compile("^.*\\s\\(indent (\\d+)\\)\\s*");
+  String testName=getTestName(true);
+  if (Character.isLetter(testName.charAt(0)) && Character.isDigit(testName.charAt(testName.length() - 1))) {
+    testName=testName.substring(0,testName.length() - 1);
+  }
+  File dir=new File(new File(getTestDataPath(),getBasePath()),dirName);
+  boolean found=false;
+  final StringBuilder combinedActualResult=new StringBuilder();
+  final StringBuilder combinedExpectedResult=new StringBuilder();
+  for (  String ext : new String[]{".stmt",".unit"}) {
+    String testFileName=testName + ext;
+    File entry=new File(dir,testFileName);
+    if (!entry.exists()) {
+      continue;
+    }
+    found=true;
+    String[] lines=ArrayUtil.toStringArray(FileUtil.loadLines(entry,"UTF-8"));
+    boolean isCompilationUnit=entry.getName().endsWith(".unit");
+    int pageWidth=80;
+    int i=0;
+    if (lines[0].endsWith("|")) {
+      pageWidth=lines[0].indexOf("|");
+      i=1;
+    }
+    if (!isCompilationUnit)     pageWidth+=2;
+    System.out.println("\nTest: " + dirName + "/"+ testFileName+ ", Right margin: "+ pageWidth);
+    final CommonCodeStyleSettings settings=getSettings(DartLanguage.INSTANCE);
+    settings.RIGHT_MARGIN=pageWidth;
+    settings.KEEP_LINE_BREAKS=false;
+    settings.KEEP_BLANK_LINES_IN_CODE=1;
+    while (i < lines.length) {
+      String description=(dirName + "/" + testFileName+ ":"+ (i + 1)+ " "+ lines[i++].replaceAll(">>>","")).trim();
+      int leadingIndent=0;
+      Matcher matcher=indentPattern.matcher(description);
+      if (matcher.matches()) {
+        leadingIndent=Integer.parseInt(matcher.group(1));
+        settings.RIGHT_MARGIN=pageWidth - leadingIndent;
+      }
+      String input="";
+      if (!isCompilationUnit)       input+="m() {\n";
+      while (!lines[i].startsWith("<<<")) {
+        String line=lines[i++];
+        if (leadingIndent > 0 && leadingIndent < line.length())         line=line.substring(leadingIndent);
+        if (!isCompilationUnit && !line.isEmpty())         line="  " + line;
+        input+=line + "\n";
+      }
+      if (!isCompilationUnit)       input+="}\n";
+      String expectedOutput="";
+      if (!isCompilationUnit)       expectedOutput+="m() {\n";
+      i++;
+      while (i < lines.length && !lines[i].startsWith(">>>")) {
+        String line=lines[i++];
+        if (leadingIndent > 0 && leadingIndent < line.length())         line=line.substring(leadingIndent);
+        if (!isCompilationUnit && !line.isEmpty())         line="  " + line;
+        expectedOutput+=line + "\n";
+      }
+      if (!isCompilationUnit)       expectedOutput+="}\n";
+      SourceCode inputCode=extractSourceSelection(input,expectedOutput,isCompilationUnit);
+      SourceCode expected=extractSelection(expectedOutput,isCompilationUnit);
+      myTextRange=new TextRange(inputCode.selectionStart,inputCode.selectionEnd());
+      try {
+        doTextTest(inputCode.text,expected.text);
+        if (knownFailures.contains(description)) {
+          fail("The test passed, but was expected to fail: " + description);
+        }
+        System.out.println("TEST PASSED: " + (description.isEmpty() ? "(unnamed)" : description));
+      }
+ catch (      ComparisonFailure failure) {
+        if (!knownFailures.contains(description.replace('"','\''))) {
+          combinedExpectedResult.append("TEST: ").append(description).append("\n").append(failure.getExpected()).append("\n");
+          combinedActualResult.append("TEST: ").append(description).append("\n").append(failure.getActual()).append("\n");
+        }
+      }
+    }
+  }
+  if (!found) {
+    fail("No test data for " + testName);
+  }
+  assertEquals(combinedExpectedResult.toString(),combinedActualResult.toString());
+}
