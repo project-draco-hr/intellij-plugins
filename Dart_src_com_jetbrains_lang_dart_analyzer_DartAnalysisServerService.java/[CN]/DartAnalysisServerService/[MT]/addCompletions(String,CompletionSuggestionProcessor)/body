@@ -6,11 +6,7 @@ synchronized (myCompletionInfos) {
       while ((completionInfo=myCompletionInfos.poll()) != null) {
         if (!completionInfo.myCompletionId.equals(completionId))         continue;
         for (        final CompletionSuggestion completion : completionInfo.myCompletions) {
-          final Element element=completion.getElement();
-          final Location location=element == null ? null : element.getLocation();
-          final DartLookupObject lookupObject=new DartLookupObject(project,location,completion.getRelevance());
-          final LookupElement lookup=LookupElementBuilder.create(lookupObject,completion.getCompletion());
-          resultSet.consume(lookup);
+          processor.process(completion);
         }
         if (completionInfo.isLast)         return;
       }
