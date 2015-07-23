@@ -1,0 +1,58 @@
+{
+  final String searchId;
+synchronized (myLock) {
+    if (myServer == null)     return;
+    final AnalysisServer server=myServer;
+    final Ref<String> searchIdRef=new Ref<String>();
+    final Semaphore semaphore=new Semaphore();
+    semaphore.down();
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.search_findElementReferences(filePath,offset,true,new FindElementReferencesConsumer(){
+          @Override public void computedElementReferences(          String searchId,          Element element){
+            searchIdRef.set(searchId);
+            semaphore.up();
+          }
+          @Override public void onError(          RequestError requestError){
+            semaphore.up();
+          }
+        }
+);
+      }
+    }
+,"search_findElementReferences(" + filePath + ", "+ offset+ ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return;
+    }
+    final long t0=System.currentTimeMillis();
+    semaphore.waitFor(FIND_ELEMENT_REFERENCES_TIMEOUT);
+    if (semaphore.tryUp()) {
+      LOG.info("search_findElementReferences() took too long for file " + filePath + "@"+ offset+ ": "+ (System.currentTimeMillis() - t0)+ "ms");
+      return;
+    }
+    searchId=searchIdRef.get();
+    if (searchId == null) {
+      return;
+    }
+  }
+  while (true) {
+    ProgressManager.checkCanceled();
+synchronized (mySearchResultSets) {
+      SearchResultsSet resultSet;
+      while ((resultSet=mySearchResultSets.poll()) != null) {
+        if (!resultSet.id.equals(searchId))         continue;
+        for (        final SearchResult searchResult : resultSet.results) {
+          processor.process(searchResult);
+        }
+        if (resultSet.isLast)         return;
+      }
+      try {
+        mySearchResultSets.wait();
+      }
+ catch (      InterruptedException e) {
+        return;
+      }
+    }
+  }
+}

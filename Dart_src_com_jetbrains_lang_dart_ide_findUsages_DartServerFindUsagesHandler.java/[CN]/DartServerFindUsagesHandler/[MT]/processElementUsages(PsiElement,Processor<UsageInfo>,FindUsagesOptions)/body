@@ -1,0 +1,20 @@
+{
+  final ReadActionProcessor<SearchResult> searchResultProcessor=new ReadActionProcessor<SearchResult>(){
+    @Override public boolean processInReadAction(    SearchResult result){
+      final Location location=result.getLocation();
+      final String filePath=location.getFile();
+      final PsiFile psiFile=findPsiFile(element,filePath);
+      if (psiFile != null) {
+        final int offset=location.getOffset();
+        final int length=location.getLength();
+        processor.process(new UsageInfo(psiFile,offset,offset + length));
+      }
+      return true;
+    }
+  }
+;
+  final String elementFilePath=readEnclosingFilePath(element);
+  final int elementOffset=element.getTextOffset();
+  DartAnalysisServerService.getInstance().search_findElementReferences(elementFilePath,elementOffset,searchResultProcessor);
+  return true;
+}
