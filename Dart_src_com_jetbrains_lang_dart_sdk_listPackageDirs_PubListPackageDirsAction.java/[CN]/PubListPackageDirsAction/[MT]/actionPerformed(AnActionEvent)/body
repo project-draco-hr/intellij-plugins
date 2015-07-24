@@ -33,6 +33,7 @@
           for (          final VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
             if (contentRoot.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null)             continue;
             affectedModules.add(module);
+            break;
           }
         }
       }
@@ -45,10 +46,22 @@
     @NotNull final DartListPackageDirsDialog dialog=new DartListPackageDirsDialog(project,rootsToAddToLib,packageNameToDirMap);
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
-      configurePubListPackageDirsLibrary(project,affectedModules,rootsToAddToLib,packageNameToDirMap);
+      DartFileListener.setDartPackageRootUpdateScheduledOrInProgress(project,true);
+      try {
+        configurePubListPackageDirsLibrary(project,affectedModules,rootsToAddToLib,packageNameToDirMap);
+      }
+  finally {
+        DartFileListener.setDartPackageRootUpdateScheduledOrInProgress(project,false);
+      }
     }
     if (dialog.getExitCode() == DartListPackageDirsDialog.CONFIGURE_NONE_EXIT_CODE) {
-      removePubListPackageDirsLibrary(project);
+      DartFileListener.setDartPackageRootUpdateScheduledOrInProgress(project,true);
+      try {
+        removePubListPackageDirsLibrary(project);
+      }
+  finally {
+        DartFileListener.setDartPackageRootUpdateScheduledOrInProgress(project,false);
+      }
     }
   }
 }
