@@ -1,18 +1,18 @@
 {
   final Project project=event.getProject();
-  if (project == null) {
-    return;
-  }
+  if (project == null)   return;
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk))   return;
   PsiDocumentManager.getInstance(project).commitAllDocuments();
   final Editor editor=event.getData(CommonDataKeys.EDITOR);
   if (editor != null) {
-    runDartStyleOverEditor(project,editor);
+    runDartStyleOverEditor(project,editor,sdk);
   }
  else {
-    final DartSdk sdk=DartSdk.getDartSdk(project);
     final VirtualFile[] filesAndDirs=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
-    if (sdk == null || !DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk) || filesAndDirs == null)     return;
-    final List<VirtualFile> vFiles=getApplicableVirtualFiles(project,sdk,filesAndDirs);
-    runDartStyleOverVirtualFiles(project,vFiles);
+    if (filesAndDirs != null) {
+      final List<VirtualFile> vFiles=getApplicableVirtualFiles(project,sdk,filesAndDirs);
+      runDartStyleOverVirtualFiles(project,vFiles);
+    }
   }
 }

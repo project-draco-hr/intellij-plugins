@@ -3,11 +3,13 @@
     @Override protected void addCompletions(    @NotNull final CompletionParameters parameters,    @NotNull final ProcessingContext context,    @NotNull final CompletionResultSet result){
       final VirtualFile file=DartResolveUtil.getRealVirtualFile(parameters.getOriginalFile());
       if (file == null)       return;
+      final Project project=parameters.getOriginalFile().getProject();
+      final DartSdk sdk=DartSdk.getDartSdk(project);
+      if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk))       return;
       DartAnalysisServerService.getInstance().updateFilesContent();
       final String filePath=FileUtil.toSystemDependentName(file.getPath());
       final String completionId=DartAnalysisServerService.getInstance().completion_getSuggestions(filePath,parameters.getOffset());
       if (completionId == null)       return;
-      final Project project=parameters.getOriginalFile().getProject();
       DartAnalysisServerService.getInstance().addCompletions(completionId,new DartAnalysisServerService.CompletionSuggestionProcessor(){
         @Override public void process(        CompletionSuggestion suggestion){
           final LookupElement lookupElement=createLookupElement(project,suggestion);

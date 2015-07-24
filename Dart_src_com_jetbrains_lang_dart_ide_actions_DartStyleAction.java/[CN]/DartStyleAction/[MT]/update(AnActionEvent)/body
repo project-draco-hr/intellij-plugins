@@ -5,12 +5,17 @@
     presentation.setEnabledAndVisible(false);
     return;
   }
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk)) {
+    presentation.setEnabledAndVisible(false);
+    return;
+  }
   final Editor editor=event.getData(CommonDataKeys.EDITOR);
   if (editor != null) {
     final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
     presentation.setText(DartBundle.message("dart.style.action.name"));
     presentation.setVisible(psiFile != null && psiFile.getFileType() == DartFileType.INSTANCE);
-    presentation.setEnabled(isApplicableFile(psiFile));
+    presentation.setEnabled(isApplicableFile(psiFile,sdk));
     return;
   }
   final VirtualFile[] filesAndDirs=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
@@ -19,6 +24,5 @@
     return;
   }
   presentation.setText(DartBundle.message("dart.style.action.name.ellipsis"));
-  final DartSdk sdk=DartSdk.getDartSdk(project);
-  presentation.setEnabledAndVisible(sdk != null && DartAnalysisServerAnnotator.isDartSDKVersionSufficient(sdk) && mayHaveApplicableDartFiles(project,sdk,filesAndDirs));
+  presentation.setEnabledAndVisible(mayHaveApplicableDartFiles(project,sdk,filesAndDirs));
 }
