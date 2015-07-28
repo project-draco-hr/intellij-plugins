@@ -1,0 +1,21 @@
+{
+  final Sdk sdk=JSTestUtils.createSdk(JSTestUtils.getPathToCompleteFlexSdk("4.5"),null,true);
+  AccessToken writeAction=WriteAction.start();
+  try {
+    JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+      @Override public void consume(      final FlexProjectConfigurationEditor editor){
+        final ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+        JSTestUtils.setSdk(bc1,sdk);
+        final ModifiableFlexBuildConfiguration bc2=editor.createConfiguration(myModule);
+        bc2.setNature(new BuildConfigurationNature(TargetPlatform.Desktop,false,OutputType.Application));
+        bc2.setName("2");
+        JSTestUtils.setSdk(bc2,sdk);
+      }
+    }
+);
+  }
+  finally {
+    writeAction.finish();
+  }
+  doTestFor(true,getTestName(false) + ".mxml");
+}

@@ -1,0 +1,21 @@
+{
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      VirtualFile file=ModuleRootManager.getInstance(myModule).getContentEntries()[0].getFile();
+      VirtualFile fakeClassFile=getVirtualFile(BASE_PATH + "/" + getTestName(false)+ "_2.js2");
+      try {
+        VirtualFile classesDir=file.createChildDirectory(this,"classes");
+        VfsUtilCore.copyFile(this,fakeClassFile,classesDir);
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+      JSTestUtils.addFlexLibrary(true,myModule,"lib",true,file.getPath(),"classes","",null);
+      ModifiableRootModel model=ModuleRootManager.getInstance(myModule).getModifiableModel();
+      model.removeContentEntry(model.getContentEntries()[0]);
+      model.commit();
+    }
+  }
+;
+  doTestFor(true,getTestName(false) + ".js2");
+}

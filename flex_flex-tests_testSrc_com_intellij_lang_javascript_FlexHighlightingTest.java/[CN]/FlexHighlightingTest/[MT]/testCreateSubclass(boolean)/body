@@ -1,0 +1,9 @@
+{
+  JSTestUtils.disableFileHeadersInTemplates(getProject());
+  final String testName=getTestName(false);
+  findAndInvokeIntentionAction(doTestFor(true,testName + ".as"),subclass ? "Create subclass" : "Implement interface",myEditor,myFile);
+  VirtualFile subclassFile=myFile.getVirtualFile().getParent().findFileByRelativePath("foo/" + testName + "Impl.as");
+  myEditor=FileEditorManager.getInstance(myProject).openTextEditor(new OpenFileDescriptor(myProject,subclassFile),true);
+  myFile=PsiDocumentManager.getInstance(myProject).getPsiFile(myEditor.getDocument());
+  checkResultByFile(getBasePath() + "/" + testName+ (subclass ? "_subclass.as" : "_implementation.as"));
+}

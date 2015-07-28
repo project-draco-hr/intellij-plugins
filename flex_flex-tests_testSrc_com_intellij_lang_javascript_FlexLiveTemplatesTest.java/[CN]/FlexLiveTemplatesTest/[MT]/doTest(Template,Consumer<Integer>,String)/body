@@ -1,0 +1,20 @@
+{
+  configureByFiles(null,files);
+  TemplateManager.getInstance(getProject()).startTemplate(myEditor,template);
+  final TemplateState state=TemplateManagerImpl.getTemplateState(myEditor);
+  int segmentIndex=0;
+  while (state != null && !state.isFinished()) {
+    final int finalSegmentIndex=segmentIndex;
+    WriteCommandAction.runWriteCommandAction(null,new Runnable(){
+      @Override public void run(){
+        segmentHandler.consume(finalSegmentIndex);
+        state.nextTab();
+      }
+    }
+);
+    segmentIndex++;
+  }
+  final String name=FileUtil.getNameWithoutExtension(files[0]);
+  final String ext=files[0].substring(files[0].lastIndexOf('.') + 1);
+  checkResultByFile(name + "_after." + ext);
+}

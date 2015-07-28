@@ -1,0 +1,40 @@
+{
+  final Module module2=doCreateRealModuleIn("module2",myProject,FlexModuleType.getInstance());
+  final Ref<VirtualFile> fileFromModule2=new Ref<VirtualFile>();
+  final Ref<Sdk> sdk1=new Ref<Sdk>();
+  final Ref<Sdk> sdk2=new Ref<Sdk>();
+  myAfterCommitRunnable=new Runnable(){
+    public void run(){
+      sdk1.set(JSTestUtils.createSdk(getTestDataPath() + BASE_PATH + "fake_sdk","4.0.0"));
+{
+        SdkModificator m=sdk1.get().getSdkModificator();
+        m.removeAllRoots();
+        m.addRoot(sdk1.get().getHomeDirectory().findChild("common_root"),OrderRootType.CLASSES);
+        m.addRoot(sdk1.get().getHomeDirectory().findChild("flex_root"),OrderRootType.CLASSES);
+        m.commitChanges();
+      }
+      sdk2.set(JSTestUtils.createSdk(getTestDataPath() + BASE_PATH + "fake_sdk","4.0.0"));
+{
+        SdkModificator m=sdk2.get().getSdkModificator();
+        m.removeAllRoots();
+        m.addRoot(sdk2.get().getHomeDirectory().findChild("common_root"),OrderRootType.CLASSES);
+        m.addRoot(sdk2.get().getHomeDirectory().findChild("air_root"),OrderRootType.CLASSES);
+        m.commitChanges();
+      }
+      fileFromModule2.set(copyFileToModule(module2,getTestDataPath() + BASE_PATH + getTestName(false)+ "2.as"));
+    }
+  }
+;
+  configureByFile(BASE_PATH + getTestName(false) + "1.as");
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor e){
+      JSTestUtils.setSdk(e.getConfigurations(myModule)[0],sdk1.get());
+      JSTestUtils.setSdk(e.getConfigurations(module2)[0],sdk2.get());
+    }
+  }
+);
+  checkHighlighting(new ExpectedHighlightingData(myEditor.getDocument(),true,true,false,myFile));
+  myFile=PsiManager.getInstance(myProject).findFile(fileFromModule2.get());
+  myEditor=createEditor(fileFromModule2.get());
+  checkHighlighting(new ExpectedHighlightingData(myEditor.getDocument(),true,true,false,myFile));
+}

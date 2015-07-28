@@ -1,0 +1,14 @@
+{
+  configureByFile(getBasePath() + "/afterRename.xml");
+  XmlNSDescriptor nsDescriptor=((XmlFile)getFile()).getDocument().getRootTagNSDescriptor();
+  assertTrue(nsDescriptor.toString(),nsDescriptor instanceof XmlNSDescriptorImpl);
+  doDoTest(true,true);
+  new RenameProcessor(getProject(),getFile(),"afterRename.mxml",false,false).run();
+  assertEquals("afterRename.mxml",getFile().getName());
+  assertFalse(myFile.isValid());
+  myFile=myPsiManager.findFile(getFile().getVirtualFile().getParent().findChild("afterRename.mxml"));
+  assertTrue(myFile.isValid());
+  nsDescriptor=((XmlFile)getFile()).getDocument().getRootTagNSDescriptor();
+  assertTrue(nsDescriptor.toString(),nsDescriptor instanceof FlexMxmlNSDescriptor);
+  doDoTest(true,true);
+}

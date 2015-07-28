@@ -1,0 +1,16 @@
+{
+  final String fileName=getTestName(false) + ".js2";
+  doTestFor(true,new Runnable(){
+    @Override public void run(){
+      PsiElement at=myFile.findElementAt(myEditor.getCaretModel().getOffset());
+      invokeShowImplemenationsForLineMarker(at,1);
+      PsiElement elt=invokeShowImplementations(JSClass.class,at,1,false);
+      assertNull(ActionScriptClassResolver.findClassByQNameStatic("BaseType",elt));
+      PsiElement byQName=JSClassResolver.findClassFromNamespace("BaseType",elt);
+      assertEquals(fileName,byQName.getContainingFile().getName());
+      byQName=JSClassResolver.findClassFromNamespace("DerivedType",elt);
+      assertEquals(fileName,byQName.getContainingFile().getName());
+    }
+  }
+,fileName,getTestName(false) + "_2.js2");
+}

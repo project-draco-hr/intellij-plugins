@@ -1,0 +1,18 @@
+{
+  doHighlightingTest("_1");
+  JSTestUtils.addFlexLibrary(false,myModule,"moduleLib",true,getTestDataPath() + getBasePath(),"Lib",null,null);
+  doHighlightingTest("_2");
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor e){
+      final ModifiableFlexBuildConfiguration bc=e.createConfiguration(myModule);
+      bc.setName("Second");
+    }
+  }
+);
+  doHighlightingTest("_2");
+  final FlexBuildConfigurationManager bcManager=FlexBuildConfigurationManager.getInstance(myModule);
+  bcManager.setActiveBuildConfiguration(bcManager.findConfigurationByName("Second"));
+  doHighlightingTest("_1");
+  bcManager.setActiveBuildConfiguration(bcManager.findConfigurationByName("Unnamed"));
+  doHighlightingTest("_2");
+}

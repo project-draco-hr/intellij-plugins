@@ -1,0 +1,27 @@
+{
+  final Collection<Library> libraries=new ArrayList<Library>();
+  final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(myModule).getActiveConfiguration();
+  for (  DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry instanceof SharedLibraryEntry) {
+      fail("Unexpected " + ((SharedLibraryEntry)entry).getLibraryLevel() + "library: "+ ((SharedLibraryEntry)entry).getLibraryName());
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      assertEquals(LinkageType.Merged,entry.getDependencyType().getLinkageType());
+      libraries.add(findLibrary(((ModuleLibraryEntry)entry).getLibraryId()));
+    }
+  }
+  assertEquals(libraryInfos.length,libraries.size());
+  final Iterator<Library> libraryIterator=libraries.iterator();
+  for (  final LibraryInfo libraryInfo : libraryInfos) {
+    final Library library=libraryIterator.next();
+    assertNotNull(MessageFormat.format("Library ''{0}'' not found",libraryInfo.libraryName),library);
+    if (libraryInfo.jarFolderPath != null) {
+      assertTrue(MessageFormat.format("JAR directory ''{0}'' not set for library ''{1}''",libraryInfo.jarFolderPath,libraryInfo.libraryName),library.isJarDirectory(VfsUtilCore.pathToUrl(libraryInfo.jarFolderPath)));
+    }
+    if (libraryInfo.swcPath != null) {
+      final String[] swcRoots=library.getRootProvider().getUrls(OrderRootType.CLASSES);
+      assertEquals(1,swcRoots.length);
+      assertEquals(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL,libraryInfo.swcPath) + JarFileSystem.JAR_SEPARATOR,swcRoots[0]);
+    }
+  }
+}

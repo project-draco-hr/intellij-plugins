@@ -1,0 +1,16 @@
+{
+  String testName=getTestName(false);
+  String prefix=testName + "/";
+  String secondFilePath=prefix + "foo/" + testName+ "_2.as";
+  final Collection<HighlightInfo> infoCollection=doTestFor(true,new File(getTestDataPath() + BASE_PATH + "/"+ prefix),(Runnable)null,prefix + "foo/" + testName+ ".mxml",secondFilePath);
+  findAndInvokeIntentionAction(infoCollection,"Make interface INonPublic public",myEditor,myFile);
+  FileDocumentManager.getInstance().saveAllDocuments();
+  VirtualFile f=ContainerUtil.find(FileEditorManager.getInstance(myProject).getOpenFiles(),new Condition<VirtualFile>(){
+    public boolean value(    final VirtualFile virtualFile){
+      return virtualFile.getName().endsWith("as");
+    }
+  }
+);
+  VirtualFile expectedFile=getVirtualFile(BASE_PATH + "/" + testName+ "_2_after.as");
+  assertEquals(StringUtil.convertLineSeparators(VfsUtilCore.loadText(expectedFile)),StringUtil.convertLineSeparators(VfsUtilCore.loadText(f)));
+}

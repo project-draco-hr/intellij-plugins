@@ -1,0 +1,15 @@
+{
+  final RunManagerEx runManager=RunManagerEx.getInstanceEx(myProject);
+  JSTestUtils.createFlexUnitRunConfig(runManager,"SomeTest.testSomething()",myModule,FlexUnitRunnerParameters.Scope.Method,"","SomeTest","testSomething",true);
+  JSTestUtils.createFlashRunConfig(runManager,myModule,"SomeClass","foo.bar.SomeClass",true);
+  final String newBcName="Abcde";
+  JSTestUtils.modifyBuildConfiguration(myModule,new Consumer<ModifiableFlexBuildConfiguration>(){
+    @Override public void consume(    final ModifiableFlexBuildConfiguration configuration){
+      configuration.setName(newBcName);
+    }
+  }
+);
+  assertEquals(newBcName,FlexBuildConfigurationManager.getInstance(myModule).getActiveConfiguration().getName());
+  JSTestUtils.checkFlexUnitRunConfig(runManager,myModule,"SomeTest.testSomething()","","SomeTest","testSomething");
+  JSTestUtils.checkFlashRunConfig(runManager,myModule,"SomeClass","foo.bar.SomeClass");
+}

@@ -1,0 +1,36 @@
+{
+  PsiElement clazz=TargetElementUtil.findTargetElement(editor,TargetElementUtil.ELEMENT_NAME_ACCEPTED | TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED);
+  Collection<PsiElement> elementsToCheck;
+  GlobalSearchScope scope;
+  if (clazz == null) {
+    PsiReference reference=TargetElementUtil.findReference(editor);
+    assertNotNull(reference);
+    elementsToCheck=TargetElementUtil.getInstance().getTargetCandidates(reference);
+    scope=null;
+  }
+ else {
+    elementsToCheck=Arrays.asList(clazz);
+    final PsiFile file=PsiDocumentManager.getInstance(editor.getProject()).getPsiFile(editor.getDocument());
+    final PsiElement elementAt=file.findElementAt(editor.getCaretModel().getOffset());
+    scope=JSResolveUtil.getResolveScope(elementAt);
+  }
+  assertTrue("Target elements not found",elementsToCheck.size() > 0);
+  for (  PsiElement element : elementsToCheck) {
+    if (element instanceof JSQualifiedNamedElement) {
+      String qName=((JSQualifiedNamedElement)element).getQualifiedName();
+      GlobalSearchScope searchScope=scope != null ? scope : JSResolveUtil.getResolveScope(element);
+      final Collection<JSQualifiedNamedElement> candidates=StubIndex.getElements(JSQualifiedElementIndex.KEY,qName.hashCode(),editor.getProject(),searchScope,JSQualifiedNamedElement.class);
+      for (      JSQualifiedNamedElement candidate : candidates) {
+        if (!qName.equals(candidate.getQualifiedName())) {
+          continue;
+        }
+        doCheck(candidate,expectedForSource,expectedForDoc,customCheck);
+        checkClassName(expectedClassName,candidate);
+      }
+    }
+ else {
+      doCheck(element,expectedForSource,expectedForDoc,customCheck);
+      checkClassName(expectedClassName,element);
+    }
+  }
+}

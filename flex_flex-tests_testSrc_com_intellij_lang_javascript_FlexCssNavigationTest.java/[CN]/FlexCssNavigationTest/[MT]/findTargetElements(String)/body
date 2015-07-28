@@ -1,0 +1,24 @@
+{
+  String[] fileNamesWithBasePath=new String[filenames.length];
+  for (int i=0, filenamesLength=filenames.length; i < filenamesLength; i++) {
+    fileNamesWithBasePath[i]=BASE_PATH + filenames[i];
+  }
+  configureByFiles(null,fileNamesWithBasePath);
+  Collection<PsiElement> targets;
+  PsiReference reference=TargetElementUtil.findReference(myEditor);
+  if (reference == null) {
+    reference=JSTestUtils.findReferenceFromInjected(myEditor,myFile);
+  }
+  assertNotNull(reference);
+  if (reference instanceof PsiMultiReference) {
+    targets=new ArrayList<PsiElement>();
+    for (    PsiReference ref : ((PsiMultiReference)reference).getReferences()) {
+      targets.addAll(TargetElementUtil.getInstance().getTargetCandidates(ref));
+    }
+  }
+ else {
+    targets=TargetElementUtil.getInstance().getTargetCandidates(reference);
+  }
+  assertTrue("Target elements not found",targets.size() > 0);
+  return PsiUtilCore.toPsiElementArray(targets);
+}

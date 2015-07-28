@@ -1,0 +1,18 @@
+{
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"lib",getTestDataPath() + getBasePath() + "/",getTestName(false) + ".swc",null,null);
+    }
+  }
+;
+  configureByFiles((String)null);
+  VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ getTestName(false)+ ".swc");
+  vFile=JarFileSystem.getInstance().getJarRootForLocalFile(vFile).findChild("library.swf");
+  myEditor=FileEditorManager.getInstance(myProject).openTextEditor(new OpenFileDescriptor(myProject,vFile,0),false);
+  PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+  myFile=myPsiManager.findFile(vFile);
+  ((EditorImpl)myEditor).setCaretActive();
+  vFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ getTestName(false)+ ".as");
+  myFile=myPsiManager.findFile(vFile);
+  checkHighlighting(new ExpectedHighlightingData(new DocumentImpl(StreamUtil.convertSeparators(VfsUtil.loadText(vFile))),false,false,true,myFile));
+}

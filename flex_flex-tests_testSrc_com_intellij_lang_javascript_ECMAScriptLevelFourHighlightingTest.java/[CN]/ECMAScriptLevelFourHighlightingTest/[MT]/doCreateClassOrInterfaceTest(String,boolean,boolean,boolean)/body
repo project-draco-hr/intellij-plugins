@@ -1,0 +1,26 @@
+{
+  final Collection<HighlightInfo> infoCollection=doTestFor(true,getTestName(false) + ".js2");
+  String classIntentionName="Create class '" + name + "'";
+  String interfaceIntentionName="Create interface '" + name + "'";
+  String actionName=classNotInterface ? classIntentionName : interfaceIntentionName;
+  final IntentionAction action=findIntentionAction(infoCollection,actionName,myEditor,myFile);
+  assertNotNull(actionName,action);
+  String complementaryActionName=classNotInterface ? interfaceIntentionName : classIntentionName;
+  IntentionAction complementaryAction=findIntentionAction(infoCollection,complementaryActionName,myEditor,myFile);
+  if (complementaryAvailable) {
+    assertNotNull(complementaryActionName,complementaryAction);
+  }
+ else {
+    assertNull(complementaryActionName,complementaryAction);
+  }
+  WriteCommandAction.runWriteCommandAction(null,new Runnable(){
+    @Override public void run(){
+      action.invoke(myProject,myEditor,myFile);
+    }
+  }
+);
+  JSTestUtils.initJSIndexes(getProject());
+  if (assertNoErrors) {
+    assertEquals(0,JSDaemonAnalyzerTestCase.filterUnwantedInfos(doHighlighting(),this).size());
+  }
+}

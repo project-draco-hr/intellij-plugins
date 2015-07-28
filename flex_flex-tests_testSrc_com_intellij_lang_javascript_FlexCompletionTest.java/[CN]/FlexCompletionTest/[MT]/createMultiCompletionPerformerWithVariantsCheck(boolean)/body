@@ -1,0 +1,37 @@
+{
+  return new Runnable(){
+    @Override public void run(){
+      final LinkedHashMap<Integer,String> map=JSTestUtils.extractPositionMarkers(myProject,getEditor().getDocument());
+      for (      Map.Entry<Integer,String> entry : map.entrySet()) {
+        myItems=null;
+        getEditor().getCaretModel().moveToOffset(entry.getKey());
+        Editor savedEditor=myEditor;
+        PsiFile savedFile=myFile;
+        PsiFile injectedPsi=InjectedLanguageUtil.findInjectedPsiNoCommit(myFile,myEditor.getCaretModel().getOffset());
+        if (injectedPsi != null) {
+          myEditor=InjectedLanguageUtil.getEditorForInjectedLanguageNoCommit(myEditor,myFile);
+          myFile=injectedPsi;
+        }
+        FlexCompletionTest.super.complete();
+        myEditor=savedEditor;
+        myFile=savedFile;
+        final String[] expected=entry.getValue().length() == 0 ? new String[]{} : entry.getValue().split(",");
+        final String[] variants=new String[myItems == null ? 0 : myItems.length];
+        if (myItems != null && myItems.length > 0) {
+          for (int i=0; i < myItems.length; i++) {
+            variants[i]=myItems[i].getLookupString();
+          }
+        }
+        if (strict || expected.length == 0) {
+          assertSameElements(variants,expected);
+        }
+ else {
+          for (          final String variant : expected) {
+            assertTrue("Missing from completion list: " + variant,ArrayUtil.contains(variant,variants));
+          }
+        }
+      }
+    }
+  }
+;
+}

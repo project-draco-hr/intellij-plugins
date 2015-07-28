@@ -1,0 +1,42 @@
+{
+  final Sdk sdk=JSTestUtils.createSdk(JSTestUtils.getPathToCompleteFlexSdk("4.6"),null,true);
+  final Module module2;
+  AccessToken writeAction=WriteAction.start();
+  try {
+    final ModifiableModuleModel m1=ModuleManager.getInstance(myProject).getModifiableModel();
+    final VirtualFile moduleDir=myProject.getBaseDir().createChildDirectory(this,"module2");
+    module2=m1.newModule(moduleDir.getPath(),FlexModuleType.getInstance().getId());
+    m1.commit();
+    PsiTestUtil.addSourceRoot(module2,moduleDir);
+  }
+  finally {
+    writeAction.finish();
+  }
+  writeAction=WriteAction.start();
+  try {
+    JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+      @Override public void consume(      final FlexProjectConfigurationEditor editor){
+        final ModifiableFlexBuildConfiguration app1=editor.getConfigurations(myModule)[0];
+        app1.setName("app1");
+        JSTestUtils.setSdk(app1,sdk);
+        final ModifiableFlexBuildConfiguration lib1=editor.getConfigurations(module2)[0];
+        lib1.setNature(new BuildConfigurationNature(TargetPlatform.Web,false,OutputType.Library));
+        app1.setName("lib1");
+        JSTestUtils.setSdk(lib1,sdk);
+        final ModifiableFlexBuildConfiguration lib2=editor.createConfiguration(myModule);
+        lib2.setName("lib2");
+        lib2.setNature(new BuildConfigurationNature(TargetPlatform.Web,false,OutputType.Library));
+        JSTestUtils.setSdk(lib2,sdk);
+        final ModifiableBuildConfigurationEntry dep1=editor.createBcEntry(app1.getDependencies(),lib1,null);
+        app1.getDependencies().getModifiableEntries().add(dep1);
+        final ModifiableBuildConfigurationEntry dep2=editor.createBcEntry(lib1.getDependencies(),lib2,null);
+        lib1.getDependencies().getModifiableEntries().add(dep2);
+      }
+    }
+);
+  }
+  finally {
+    writeAction.finish();
+  }
+  doHighlightingTest("");
+}

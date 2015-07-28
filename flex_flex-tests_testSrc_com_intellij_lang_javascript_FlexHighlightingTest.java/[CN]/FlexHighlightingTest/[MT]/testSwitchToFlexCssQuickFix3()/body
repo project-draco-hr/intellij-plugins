@@ -1,0 +1,15 @@
+{
+  enableInspectionTool(new CssInvalidHtmlTagReferenceInspection());
+  try {
+    CssDialectMappings.getInstance(getProject()).setMapping(null,CssDialect.CLASSIC);
+    configureByFile(BASE_PATH + '/' + getTestName(false)+ '.'+ "html");
+    doHighlighting();
+    final List<IntentionAction> actions=CodeInsightTestFixtureImpl.getAvailableIntentions(myEditor,myFile);
+    final String text=CssBundle.message("switch.to.css.dialect.quickfix.name",FlexCSSDialect.getInstance().getDisplayName());
+    final IntentionAction action=CodeInsightTestUtil.findIntentionByText(actions,text);
+    assertNull(action);
+  }
+  finally {
+    CssDialectMappings.getInstance(getProject()).cleanupForNextTest();
+  }
+}

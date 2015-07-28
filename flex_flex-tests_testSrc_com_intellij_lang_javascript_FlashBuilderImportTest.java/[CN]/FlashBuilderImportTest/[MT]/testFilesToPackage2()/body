@@ -1,0 +1,15 @@
+{
+  final VirtualFile srcDir=myFlashBuilderProjectDir.createChildDirectory(this,"src");
+  FlexUtils.addFileWithContent("asset1","",srcDir);
+  final VirtualFile packDir=srcDir.createChildDirectory(this,"pack");
+  FlexUtils.addFileWithContent("App1.as","",packDir);
+  FlexUtils.addFileWithContent("App1-app.xml","",packDir);
+  FlexUtils.addFileWithContent("App2.mxml","",packDir);
+  FlexUtils.addFileWithContent("App2-app.xml","",packDir);
+  FlexUtils.addFileWithContent("asset2","",packDir);
+  importProject("<actionScriptProperties  mainApplicationPath=\"pack/App1.as\">\n" + "  <compiler sourceFolderPath=\"src\" useApolloConfig='true'/>" + "  <applications>\n"+ "    <application path='pack/App1.as'/>\n"+ "    <application path='pack/App2.mxml'/>\n"+ "  </applications>\n"+ "  <buildTargets>\n"+ "    <buildTarget buildTargetName=\"default\" platformId=\"default\"/>\n"+ "  </buildTargets>\n"+ "</actionScriptProperties>",myFlashBuilderProjectDir.getPath() + "/Flash_Builder_workspace");
+  final FlexBuildConfiguration bc1=getBC("App1",2);
+  final FlexBuildConfiguration bc2=getBC("App2",2);
+  assertSameElements(bc1.getAirDesktopPackagingOptions().getFilesToPackage(),getExpectedPaths("src/asset1","src/pack/asset2"));
+  assertSameElements(bc2.getAirDesktopPackagingOptions().getFilesToPackage(),getExpectedPaths("src/asset1","src/pack/asset2"));
+}

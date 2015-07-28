@@ -1,0 +1,16 @@
+{
+  assertEquals(1,FlexBuildConfigurationManager.getInstance(myModule).getBuildConfigurations().length);
+  final String libraryId=createModuleLibrary();
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    FlexProjectConfigurationEditor configEditor){
+      ModifiableFlexBuildConfiguration[] configurations=configEditor.getConfigurations(myModule);
+      assertEquals(1,configurations.length);
+      ModifiableFlexBuildConfiguration c=configurations[0];
+      final ModifiableModuleLibraryEntry e=configEditor.createModuleLibraryEntry(c.getDependencies(),libraryId);
+      c.getDependencies().getModifiableEntries().add(e);
+    }
+  }
+);
+  OrderEntry libraryEntry=findLibraryEntry(myModule,libraryId);
+  assertNotNull(libraryEntry);
+}

@@ -1,0 +1,21 @@
+{
+  final Sdk sdk=JSTestUtils.createSdk(JSTestUtils.getPathToCompleteFlexSdk("4.5"),null,true);
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    public void consume(    final FlexProjectConfigurationEditor editor){
+      final ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+      bc1.setName("1");
+      JSTestUtils.setSdk(bc1,sdk);
+      final ModifiableFlexBuildConfiguration bc2=editor.createConfiguration(myModule);
+      bc2.setName("2");
+      bc2.getDependencies().setSdkEntry(null);
+    }
+  }
+);
+  final FlexBuildConfigurationManager m=FlexBuildConfigurationManager.getInstance(myModule);
+  m.setActiveBuildConfiguration(m.findConfigurationByName("1"));
+  doHighlightingTest("_1");
+  m.setActiveBuildConfiguration(m.findConfigurationByName("2"));
+  doHighlightingTest("_2");
+  m.setActiveBuildConfiguration(m.findConfigurationByName("1"));
+  doHighlightingTest("_1");
+}

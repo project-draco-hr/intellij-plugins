@@ -1,0 +1,25 @@
+{
+  enableInspectionTool(new CssInvalidPropertyValueInspection());
+  final String libFileName="CssInside.zip";
+  final String basePath=getTestDataPath() + getBasePath() + "/";
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"lib",basePath,libFileName,null,null);
+    }
+  }
+;
+  configureByFile(getBasePath() + "/FlexWithCss7.css");
+  VirtualFile libRoot=null;
+  for (  OrderEntry entry : ModuleRootManager.getInstance(myModule).getOrderEntries()) {
+    if (entry instanceof LibraryOrderEntry) {
+      final LibraryOrderEntry libraryOrderEntry=(LibraryOrderEntry)entry;
+      if ("lib".equals(libraryOrderEntry.getLibraryName())) {
+        VirtualFile[] files=libraryOrderEntry.getRootFiles(OrderRootType.CLASSES);
+        libRoot=files[0];
+      }
+    }
+  }
+  VirtualFile file=libRoot.findFileByRelativePath("dir/default.css");
+  configureByExistingFile(file);
+  doHighlighting();
+}

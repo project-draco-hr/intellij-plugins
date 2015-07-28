@@ -1,0 +1,18 @@
+{
+  final String testName=getTestName(false);
+  myAfterCommitRunnable=new Runnable(){
+    public void run(){
+      JSTestUtils.addFlexLibrary(false,myModule,"foo",true,getTestDataPath() + BASE_PATH,testName + ".swc",testName + ".zip",null);
+    }
+  }
+;
+  configureByFiles(null,BASE_PATH + testName + ".as");
+  final VirtualFile sourcesZip=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + BASE_PATH + testName+ ".zip");
+  VirtualFile expectedForSource=JarFileSystem.getInstance().getJarRootForLocalFile(sourcesZip).findChild("MyClass3.as");
+  assertNotNull(expectedForSource);
+  final PsiReference reference=TargetElementUtil.findReference(myEditor);
+  assertNotNull(reference);
+  final Collection<PsiElement> candidates=TargetElementUtil.getInstance().getTargetCandidates(reference);
+  assertEquals(1,candidates.size());
+  doCheck(candidates.iterator().next(),expectedForSource,null,null);
+}

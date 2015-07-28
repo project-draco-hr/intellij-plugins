@@ -1,0 +1,19 @@
+{
+  final String testName=getTestName(false);
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      try {
+        final VirtualFile testSrcRoot=ModuleRootManager.getInstance(myModule).getContentRoots()[0].createChildDirectory(this,"testSrc");
+        final VirtualFile testClassFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "Test.as");
+        assertNotNull(testClassFile);
+        testClassFile.copy(this,testSrcRoot,testClassFile.getName());
+        PsiTestUtil.addSourceRoot(myModule,testSrcRoot,true);
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+;
+  doTestFor(true,testName + ".as");
+}

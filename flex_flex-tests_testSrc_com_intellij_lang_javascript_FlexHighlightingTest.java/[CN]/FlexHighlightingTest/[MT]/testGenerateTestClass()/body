@@ -1,0 +1,12 @@
+{
+  JSTestUtils.disableFileHeadersInTemplates(getProject());
+  final String testName=getTestName(false);
+  configureByFiles(BASE_PATH + "/" + testName,BASE_PATH + "/" + testName+ "/pack/"+ testName+ ".mxml");
+  final FlexUnitTestCreator testCreator=new FlexUnitTestCreator();
+  assertTrue(testCreator.isAvailable(myProject,myEditor,myFile));
+  testCreator.createTest(myProject,myEditor,myFile);
+  final VirtualFile testClassFile=ModuleRootManager.getInstance(myModule).getSourceRoots()[0].findFileByRelativePath("pack/" + testName + "Test.as");
+  myEditor=FileEditorManager.getInstance(myProject).openTextEditor(new OpenFileDescriptor(myProject,testClassFile),true);
+  myFile=PsiDocumentManager.getInstance(myProject).getPsiFile(myEditor.getDocument());
+  checkResultByFile(BASE_PATH + "/" + testName+ "/pack/"+ testName+ "_after.as");
+}

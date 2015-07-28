@@ -1,0 +1,22 @@
+{
+  final String dotFlexLibPropertiesContent="<flexLibProperties>" + "  <includeResources>" + "    <resourceEntry destPath='foo/a.txt' sourcePath='foo/a.txt'/>"+ "  </includeResources>"+ "  <namespaceManifests>"+ "    <namespaceManifestEntry manifest=\"path\\manifest.xml\" namespace=\"http://MyNamespace\"/>"+ "  </namespaceManifests>"+ "</flexLibProperties>";
+  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_FLEX_LIB_PROPERTIES,dotFlexLibPropertiesContent,myFlashBuilderProjectDir);
+  final VirtualFile dir=VfsUtil.createDirectories(myFlashBuilderProjectDir.getPath() + "/src/foo");
+  FlexUtils.addFileWithContent("a.txt","",dir);
+  importProject("<actionScriptProperties mainApplicationPath='does not matter'>\n" + "  <compiler outputFolderPath='bin' targetPlayerVersion='9.0.124' sourceFolderPath=\"src\"/>\n" + "</actionScriptProperties>");
+  final String fbProjectName=getTestName(true);
+  final FlexBuildConfiguration bc=getBC();
+  assertEquals(TargetPlatform.Web,bc.getTargetPlatform());
+  assertFalse(bc.isPureAs());
+  assertEquals(OutputType.Library,bc.getOutputType());
+  assertEquals("",bc.getMainClass());
+  assertEquals(fbProjectName + ".swc",bc.getOutputFileName());
+  assertEquals(myFlashBuilderProjectDir.getPath() + "/bin",bc.getOutputFolder());
+  checkContentRoots(myFlashBuilderProjectDir.getUrl());
+  checkSourceRoots(myFlashBuilderProjectDir.getUrl() + "/src");
+  assertEquals(2,bc.getCompilerOptions().getAllOptions().size());
+  assertEquals("",bc.getCompilerOptions().getOption("compiler.locale"));
+  final String nsValue=bc.getCompilerOptions().getOption("compiler.namespaces.namespace");
+  assertEquals("http://MyNamespace\t" + myFlashBuilderProjectDir.getPath() + "/path/manifest.xml",nsValue);
+  assertSameElements(bc.getCompilerOptions().getFilesToIncludeInSWC(),myFlashBuilderProjectDir.getPath() + "/src/foo/a.txt");
+}

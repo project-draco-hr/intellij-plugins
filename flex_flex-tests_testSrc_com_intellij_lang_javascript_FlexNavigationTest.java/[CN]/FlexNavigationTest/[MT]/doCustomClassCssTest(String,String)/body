@@ -1,0 +1,18 @@
+{
+  if (testName == null) {
+    testName=getTestName(false);
+  }
+  final String sources="StyleableLibSources.zip";
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"Lib",getTestDataPath() + BASE_PATH,"StyleableLib.swc",sources,null);
+    }
+  }
+;
+  final VirtualFile includedFile=getFile(sources + expectedSourceClass);
+  doTest(testName + ".css",includedFile,null);
+  PsiFile file=PsiManager.getInstance(myProject).findFile(includedFile);
+  if (file instanceof PsiFileImpl) {
+    assertNull("File should not be parsed",((PsiFileImpl)file).getTreeElement());
+  }
+}

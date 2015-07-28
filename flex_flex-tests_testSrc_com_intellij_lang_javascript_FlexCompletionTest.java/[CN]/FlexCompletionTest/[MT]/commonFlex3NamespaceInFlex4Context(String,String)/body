@@ -1,0 +1,23 @@
+{
+  configureByFile(BASE_PATH + getTestName(false) + ".mxml");
+  complete();
+  final String[] expectedNamespaces=ArrayUtil.mergeArrays(new String[]{namespaceToSelect},otherExpectedNamespaces);
+  assertEquals(expectedNamespaces.length,myItems.length);
+  final String[] namespaces=new String[myItems.length];
+  LookupElement selectedElement=null;
+  for (int i=0; i < myItems.length; i++) {
+    final LookupElement lookupElement=myItems[i];
+    final LookupElementPresentation presentation=new LookupElementPresentation();
+    lookupElement.renderElement(presentation);
+    assertEquals("Accordion",presentation.getItemText());
+    final String namespace=presentation.getTypeText();
+    namespaces[i]=namespace;
+    if (namespace.equals(namespaceToSelect)) {
+      selectedElement=lookupElement;
+    }
+  }
+  assertSameElements(namespaces,expectedNamespaces);
+  assertNotNull(selectedElement);
+  selectItem(selectedElement,Lookup.REPLACE_SELECT_CHAR);
+  checkResultByFile(BASE_PATH + getTestName(false) + "_after.mxml");
+}

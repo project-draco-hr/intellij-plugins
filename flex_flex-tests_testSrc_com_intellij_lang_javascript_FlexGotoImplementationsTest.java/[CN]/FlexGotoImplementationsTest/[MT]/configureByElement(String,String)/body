@@ -1,0 +1,33 @@
+{
+  myFile=null;
+  myEditor=null;
+  final ModuleRootManager rootManager=ModuleRootManager.getInstance(myModule);
+  final ModifiableRootModel rootModel=rootManager.getModifiableModel();
+  if (clearModelBeforeConfiguring()) {
+    rootModel.clear();
+  }
+  File toDirIO=createTempDirectory();
+  VirtualFile toDir=LocalFileSystem.getInstance().refreshAndFindFileByPath(toDirIO.getCanonicalPath().replace(File.separatorChar,'/'));
+  boolean sourceRootAdded=false;
+  if (isAddDirToContentRoot()) {
+    final ContentEntry contentEntry=rootModel.addContentEntry(toDir);
+    if (isAddDirToSource()) {
+      sourceRootAdded=true;
+      contentEntry.addSourceFolder(toDir,false);
+    }
+  }
+  doCommitModel(rootModel);
+  if (sourceRootAdded) {
+    sourceRootAdded(toDir);
+  }
+  PsiElement element=JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver().findClassByQName(classQName,GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(getModule()));
+  assertTrue("Class " + classQName + " not found",element instanceof JSClass);
+  if (methodName != null) {
+    element=((JSClass)element).findFunctionByName(methodName);
+    assertTrue("Class " + classQName + " has not have method "+ methodName,element instanceof JSFunction);
+  }
+  PsiElement navElement=element.getNavigationElement();
+  final VirtualFile virtualFile=navElement.getContainingFile().getVirtualFile();
+  setActiveEditor(createEditor(virtualFile));
+  myEditor.getCaretModel().moveToOffset(navElement.getTextOffset());
+}
