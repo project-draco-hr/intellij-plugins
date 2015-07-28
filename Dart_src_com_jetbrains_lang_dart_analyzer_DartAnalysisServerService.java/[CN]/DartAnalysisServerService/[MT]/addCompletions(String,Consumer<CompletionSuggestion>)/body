@@ -5,10 +5,11 @@ synchronized (myCompletionInfos) {
       CompletionInfo completionInfo;
       while ((completionInfo=myCompletionInfos.poll()) != null) {
         if (!completionInfo.myCompletionId.equals(completionId))         continue;
+        if (!completionInfo.isLast)         continue;
         for (        final CompletionSuggestion completion : completionInfo.myCompletions) {
           consumer.consume(completion);
         }
-        if (completionInfo.isLast)         return;
+        return;
       }
       try {
         myCompletionInfos.wait(CHECK_CANCELLED_PERIOD);
