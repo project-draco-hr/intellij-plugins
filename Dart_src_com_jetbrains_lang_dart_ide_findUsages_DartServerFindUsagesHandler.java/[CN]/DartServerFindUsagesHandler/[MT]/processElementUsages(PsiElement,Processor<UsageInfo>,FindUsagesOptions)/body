@@ -1,15 +1,14 @@
 {
-  final ReadActionProcessor<SearchResult> searchResultProcessor=new ReadActionProcessor<SearchResult>(){
-    @Override public boolean processInReadAction(    SearchResult result){
+  final ReadActionConsumer<SearchResult> searchResultProcessor=new ReadActionConsumer<SearchResult>(){
+    @Override public void consumeInReadAction(    SearchResult result){
       final Location location=result.getLocation();
-      final String filePath=location.getFile();
-      final PsiFile psiFile=findPsiFile(element,filePath);
-      if (psiFile != null) {
-        final int offset=location.getOffset();
-        final int length=location.getLength();
-        processor.process(new UsageInfo(psiFile,offset,offset + length));
+      final PsiElement locationPsiElement=findPsiElement(element,location);
+      if (locationPsiElement != null) {
+        int offset=location.getOffset();
+        int length=location.getLength();
+        offset-=locationPsiElement.getTextOffset();
+        processor.process(new UsageInfo(locationPsiElement,offset,offset + length));
       }
-      return true;
     }
   }
 ;
