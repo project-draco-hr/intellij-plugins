@@ -1,0 +1,19 @@
+{
+  final PsiElement element=CommonDataKeys.PSI_ELEMENT.getData(context);
+  if (element == null) {
+    return;
+  }
+  final DartElementLocation elementLocation=DartElementLocation.of(element);
+  final ServerRenameRefactoring refactoring=new ServerRenameRefactoring(elementLocation.file,elementLocation.offset,0);
+{
+    final RefactoringStatus initialStatus=refactoring.checkInitialConditions();
+    if (initialStatus == null) {
+      return;
+    }
+    if (initialStatus.hasError()) {
+      Messages.showErrorDialog(project,initialStatus.getMessage(),"Error");
+      return;
+    }
+  }
+  RenameDialog.showRenameDialog(context,new DartRenameDialog(project,element,editor,refactoring));
+}

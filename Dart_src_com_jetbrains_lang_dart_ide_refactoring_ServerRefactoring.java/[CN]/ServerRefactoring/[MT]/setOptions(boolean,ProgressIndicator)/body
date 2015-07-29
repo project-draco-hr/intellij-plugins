@@ -1,0 +1,52 @@
+{
+  final int id;
+synchronized (pendingRequestIds) {
+    id=++lastId;
+    pendingRequestIds.add(id);
+  }
+  serverErrorStatus=null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  RefactoringOptions options=getOptions();
+  final boolean success=DartAnalysisServerService.getInstance().edit_getRefactoring(kind,file,offset,length,validateOnly,options,new GetRefactoringConsumer(){
+    @Override public void computedRefactorings(    List<RefactoringProblem> initialProblems,    List<RefactoringProblem> optionsProblems,    List<RefactoringProblem> finalProblems,    RefactoringFeedback feedback,    SourceChange _change,    List<String> potentialEdits){
+      if (feedback != null) {
+        setFeedback(feedback);
+      }
+      initialStatus=toRefactoringStatus(initialProblems);
+      optionsStatus=toRefactoringStatus(optionsProblems);
+      finalStatus=toRefactoringStatus(finalProblems);
+      change=_change;
+      latch.countDown();
+      requestDone(id);
+    }
+    @Override public void onError(    RequestError requestError){
+      String message="Server error: " + requestError.getMessage();
+      serverErrorStatus=RefactoringStatus.createFatalErrorStatus(message);
+      latch.countDown();
+      requestDone(id);
+    }
+    private void requestDone(    final int id){
+synchronized (pendingRequestIds) {
+        pendingRequestIds.remove(id);
+        notifyListener();
+      }
+    }
+  }
+);
+  if (!success)   return;
+  if (indicator != null) {
+    while (true) {
+      if (indicator.isCanceled()) {
+        throw new ProcessCanceledException();
+      }
+      boolean done=Uninterruptibles.awaitUninterruptibly(latch,10,TimeUnit.MILLISECONDS);
+      if (done) {
+        return;
+      }
+    }
+  }
+ else {
+    Uninterruptibles.awaitUninterruptibly(latch,10,TimeUnit.MILLISECONDS);
+    notifyListener();
+  }
+}
