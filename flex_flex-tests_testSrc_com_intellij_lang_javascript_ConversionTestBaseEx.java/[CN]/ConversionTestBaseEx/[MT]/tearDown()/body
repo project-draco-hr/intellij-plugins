@@ -1,0 +1,19 @@
+{
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      ApplicationLibraryTable.getApplicationTable().loadState(myOriginalGlobalLibraries);
+      if (checkJdk()) {
+        ((ProjectJdkTableImpl)ProjectJdkTable.getInstance()).loadState(myOriginalSkds);
+      }
+    }
+  }
+);
+  if (checkJdk()) {
+    PathMacros.getInstance().removeMacro(SDK_HOME_VAR);
+    PathMacros.getInstance().removeMacro(SDK_HOME_VAR_2);
+  }
+  if (PathMacros.getInstance().getAllMacroNames().contains(PROJECT_VAR)) {
+    PathMacros.getInstance().removeMacro(PROJECT_VAR);
+  }
+  super.tearDown();
+}
