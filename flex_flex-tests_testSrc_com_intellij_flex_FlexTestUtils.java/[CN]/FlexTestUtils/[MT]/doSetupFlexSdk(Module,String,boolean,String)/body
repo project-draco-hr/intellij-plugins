@@ -1,0 +1,31 @@
+{
+  AccessToken l=WriteAction.start();
+  try {
+    final Sdk sdk=createSdk(flexSdkRootPath,sdkVersion);
+    if (ModuleType.get(module) == FlexModuleType.getInstance()) {
+      JSTestUtils.modifyBuildConfiguration(module,new Consumer<ModifiableFlexBuildConfiguration>(){
+        public void consume(        final ModifiableFlexBuildConfiguration bc){
+          bc.setNature(new BuildConfigurationNature(air ? TargetPlatform.Desktop : TargetPlatform.Web,false,OutputType.Application));
+          bc.getDependencies().setSdkEntry(Factory.createSdkEntry(sdk.getName()));
+        }
+      }
+);
+    }
+    Disposer.register(module,new Disposable(){
+      @Override public void dispose(){
+        AccessToken l=WriteAction.start();
+        try {
+          final ProjectJdkTable projectJdkTable=ProjectJdkTable.getInstance();
+          projectJdkTable.removeJdk(sdk);
+        }
+  finally {
+          l.finish();
+        }
+      }
+    }
+);
+  }
+  finally {
+    l.finish();
+  }
+}
