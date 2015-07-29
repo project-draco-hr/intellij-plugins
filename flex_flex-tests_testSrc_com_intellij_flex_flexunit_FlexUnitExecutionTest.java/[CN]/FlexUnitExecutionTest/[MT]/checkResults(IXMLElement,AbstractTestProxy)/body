@@ -1,0 +1,25 @@
+{
+  assertEquals("Wrong tests run status",expectedRoot.getAttribute("status",null),getStatusTitle(actualRoot.getMagnitude()));
+  assertEquals("Wrong tests suites count",expectedRoot.getChildrenCount(),actualRoot.getChildren().size());
+  for (int i=0; i < actualRoot.getChildren().size(); i++) {
+    final AbstractTestProxy actualSuite=actualRoot.getChildren().get(i);
+    IXMLElement expectedSuite=getChild(expectedRoot,actualSuite.getName());
+    if (expectedSuite == null) {
+      fail("Unexpected suite: " + actualSuite.getName());
+    }
+    assertEquals("Wrong expected node","suite",expectedSuite.getName());
+    assertEquals("Wrong test suite status",expectedSuite.getAttribute("status",null),getStatusTitle(actualSuite.getMagnitude()));
+    assertEquals("Wrong tests count in suite " + actualSuite.getName(),expectedSuite.getChildrenCount(),actualSuite.getChildren().size());
+    for (int j=0; j < actualSuite.getChildren().size(); j++) {
+      final AbstractTestProxy actualTest=actualSuite.getChildren().get(j);
+      IXMLElement expectedTest=getChild(expectedSuite,actualTest.getName());
+      if (expectedTest == null) {
+        fail("Unexpected test: " + actualTest.getName());
+      }
+      assertEquals("Wrong expected node","test",expectedTest.getName());
+      assertEquals("Wrong test " + actualSuite.getName() + "."+ actualTest.getName()+ "() status",expectedTest.getAttribute("status",null),getStatusTitle(actualTest.getMagnitude()));
+      assertEquals("Test children not allowed",0,expectedTest.getChildrenCount());
+      assertEmpty("Test children not expected",actualTest.getChildren());
+    }
+  }
+}

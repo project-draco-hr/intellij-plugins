@@ -1,0 +1,26 @@
+{
+  final Project project=env.getProject();
+  final RunProfileState state=env.getState();
+  if (state == null) {
+    return;
+  }
+  Runnable startRunnable=new Runnable(){
+    @Override public void run(){
+      try {
+        if (project.isDisposed())         return;
+        final RunContentDescriptor descriptor=doExecute(state,env);
+        if (callback != null)         callback.processStarted(descriptor);
+        if (descriptor != null) {
+          ExecutionManager.getInstance(project).getContentManager().showRunContent(env.getExecutor(),descriptor);
+          final ProcessHandler processHandler=descriptor.getProcessHandler();
+          if (processHandler != null)           processHandler.startNotify();
+        }
+      }
+ catch (      ExecutionException e) {
+        ExecutionUtil.handleExecutionError(env,e);
+      }
+    }
+  }
+;
+  ExecutionManager.getInstance(project).compileAndRun(startRunnable,env,state,null);
+}
