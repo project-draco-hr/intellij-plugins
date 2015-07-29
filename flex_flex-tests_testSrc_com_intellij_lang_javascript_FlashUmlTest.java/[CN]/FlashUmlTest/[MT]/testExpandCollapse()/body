@@ -1,0 +1,14 @@
+{
+  File projectRoot=new File(getVirtualFile(BASE_PATH + getTestName(false)).getPath());
+  String[] files={getTestName(false) + "/Classes.as",getTestName(false) + "/com/test/MyButton.mxml",getTestName(false) + "/com/test/MyButton2.mxml"};
+  DiagramBuilder builder=doTestImpl(projectRoot,files,new String[]{"com.test.Bar","Root","com.test.MyButton"},moduleScopeProvider(),EnumSet.allOf(FlashUmlDependenciesSettingsOption.class),null);
+  String originQName="com.test.Foo";
+  DiagramProvider<Object> provider=DiagramProvider.findByID(FlashUmlProvider.ID);
+  FlashUmlDataModel model=(FlashUmlDataModel)builder.getDataModel();
+  collapseNode(model,JSTestUtils.findClassByQName("com.test.Bar",myModule.getModuleScope()));
+  assertModel("2",provider,originQName,model);
+  expandNode(model,"com.test");
+  assertModel("3",provider,originQName,model);
+  collapseNode(model,JSTestUtils.findClassByQName("Root",myModule.getModuleScope()));
+  assertModel("3",provider,originQName,model);
+}
