@@ -1,0 +1,67 @@
+{
+  for (  final Project project : myRootsHandler.getTrackedProjects()) {
+    if (project == null)     continue;
+    final DartSdk sdk=DartSdk.getDartSdk(project);
+    if (sdk == null)     continue;
+    final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+    final SortedSet<String> folderPaths=new TreeSet<String>();
+    final Collection<String> rootsToAddToLib=new THashSet<String>();
+    for (    final String path : libraries) {
+      if (path != null) {
+        folderPaths.add(PathUtil.getParentPath(FileUtil.toSystemIndependentName(path)));
+      }
+    }
+    outer:     for (    final String path : folderPaths) {
+      final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(path);
+      if (!path.startsWith(sdk.getHomePath() + "/") && (vFile == null || !fileIndex.isInContent(vFile))) {
+        for (        String configuredPath : rootsToAddToLib) {
+          if (path.startsWith(configuredPath + "/")) {
+            continue outer;
+          }
+        }
+        rootsToAddToLib.add(path);
+      }
+    }
+    final Set<Module> affectedModules=new THashSet<Module>();
+    final Module[] modules=ModuleManager.getInstance(project).getModules();
+    for (    final Module module : modules) {
+      if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+        for (        final VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
+          if (contentRoot.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null)           continue;
+          affectedModules.add(module);
+        }
+      }
+    }
+    final Library library=createDartPackagesLibrary(project,rootsToAddToLib);
+    for (    final Module module : affectedModules) {
+      final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+      try {
+        OrderEntry existingEntry=null;
+        for (        final OrderEntry entry : modifiableModel.getOrderEntries()) {
+          if (entry instanceof LibraryOrderEntry && LibraryTablesRegistrar.PROJECT_LEVEL.equals(((LibraryOrderEntry)entry).getLibraryLevel()) && DartPackagesLibraryType.DART_PACKAGES_LIBRARY_NAME.equals(((LibraryOrderEntry)entry).getLibraryName())) {
+            existingEntry=entry;
+            break;
+          }
+        }
+        final boolean contains=existingEntry != null;
+        final boolean mustContain=affectedModules.contains(module);
+        if (contains != mustContain) {
+          if (mustContain) {
+            modifiableModel.addLibraryEntry(library);
+          }
+ else {
+            modifiableModel.removeOrderEntry(existingEntry);
+          }
+        }
+        if (modifiableModel.isChanged()) {
+          modifiableModel.commit();
+        }
+      }
+  finally {
+        if (!modifiableModel.isDisposed()) {
+          modifiableModel.dispose();
+        }
+      }
+    }
+  }
+}
