@@ -4,7 +4,7 @@
   final String filePath=FileUtil.toSystemDependentName(_filePath);
 synchronized (myLock) {
     final AnalysisServer server=myServer;
-    if (server == null)     return null;
+    if (server == null)     return results;
     final GetAssistsConsumer consumer=new GetAssistsConsumer(){
       @Override public void computedSourceChanges(      List<SourceChange> sourceChanges){
         results.addAll(sourceChanges);
@@ -25,11 +25,9 @@ synchronized (myLock) {
 ,"edit_getAssists(" + filePath + ", "+ offset+ ", "+ length+ ")",SEND_REQUEST_TIMEOUT);
     if (!ok) {
       stopServer();
-      return null;
+      return results;
     }
   }
-  final long t0=System.currentTimeMillis();
   semaphore.waitFor(GET_ASSISTS_TIMEOUT);
-  semaphore.up();
   return results;
 }
