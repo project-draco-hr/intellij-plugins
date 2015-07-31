@@ -10,7 +10,12 @@ synchronized (myLock) {
         semaphore.up();
       }
       @Override public void onError(      final RequestError error){
-        logError("edit_sortMembers()",filePath,error);
+        if (RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS.equals(error.getCode()) || RequestErrorCode.SORT_MEMBERS_INVALID_FILE.equals(error.getCode())) {
+          LOG.info(getShortErrorMessage("edit_sortMembers()",filePath,error));
+        }
+ else {
+          logError("edit_sortMembers()",filePath,error);
+        }
         semaphore.up();
       }
     }

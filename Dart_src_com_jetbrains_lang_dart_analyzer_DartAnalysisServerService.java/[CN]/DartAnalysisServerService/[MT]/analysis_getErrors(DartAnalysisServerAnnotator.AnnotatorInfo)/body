@@ -27,7 +27,12 @@ synchronized (myLock) {
           }
         }
         @Override public void onError(        final RequestError error){
-          logError("analysis_getErrors()",filePath,error);
+          if (RequestErrorCode.GET_ERRORS_INVALID_FILE.equals(error.getCode())) {
+            LOG.info(getShortErrorMessage("analysis_getErrors()",filePath,error));
+          }
+ else {
+            logError("analysis_getErrors()",filePath,error);
+          }
           semaphore.up();
         }
       }
