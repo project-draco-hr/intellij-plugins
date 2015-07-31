@@ -6,13 +6,15 @@
   PsiDocumentManager.getInstance(project).commitAllDocuments();
   final Editor editor=event.getData(CommonDataKeys.EDITOR);
   if (editor != null) {
-    runDartStyleOverEditor(project,editor,sdk);
+    final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+    if (!isApplicableFile(psiFile,sdk))     return;
+    runOverEditor(project,editor,psiFile,sdk);
   }
  else {
     final VirtualFile[] filesAndDirs=CommonDataKeys.VIRTUAL_FILE_ARRAY.getData(event.getDataContext());
     if (filesAndDirs != null) {
-      final List<VirtualFile> vFiles=getApplicableVirtualFiles(project,sdk,filesAndDirs);
-      runDartStyleOverVirtualFiles(project,vFiles);
+      final List<VirtualFile> files=getApplicableVirtualFiles(project,sdk,filesAndDirs);
+      runOverFiles(project,files);
     }
   }
 }

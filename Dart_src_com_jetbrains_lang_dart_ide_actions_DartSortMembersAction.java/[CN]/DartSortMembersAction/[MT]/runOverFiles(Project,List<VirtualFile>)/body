@@ -1,0 +1,52 @@
+{
+  if (dartFiles.isEmpty()) {
+    Messages.showInfoMessage(project,DartBundle.message("dart.sort.members.files.no.dart.files"),DartBundle.message("dart.sort.members.action.name"));
+    return;
+  }
+  if (Messages.showOkCancelDialog(project,DartBundle.message("dart.sort.members.files.dialog.question",dartFiles.size()),DartBundle.message("dart.sort.members.action.name"),null) != Messages.OK) {
+    return;
+  }
+  final Map<VirtualFile,SourceFileEdit> fileToFileEditMap=Maps.newHashMap();
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      double fraction=0.0;
+      for (      final VirtualFile virtualFile : dartFiles) {
+        fraction+=1.0;
+        final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+        if (indicator != null) {
+          indicator.checkCanceled();
+          indicator.setFraction(fraction / dartFiles.size());
+          indicator.setText2(FileUtil.toSystemDependentName(virtualFile.getPath()));
+        }
+        final String path=FileUtil.toSystemDependentName(virtualFile.getPath());
+        final SourceFileEdit fileEdit=DartAnalysisServerService.getInstance().edit_sortMembers(path);
+        if (fileEdit != null) {
+          fileToFileEditMap.put(virtualFile,fileEdit);
+        }
+      }
+    }
+  }
+;
+  DartAnalysisServerService.getInstance().updateFilesContent();
+  final boolean ok=ApplicationManagerEx.getApplicationEx().runProcessWithProgressSynchronously(runnable,DartBundle.message("dart.sort.members.action.name"),true,project);
+  if (ok) {
+    final Runnable onSuccessRunnable=new Runnable(){
+      @Override public void run(){
+        CommandProcessor.getInstance().markCurrentCommandAsGlobal(project);
+        for (        Map.Entry<VirtualFile,SourceFileEdit> entry : fileToFileEditMap.entrySet()) {
+          final VirtualFile file=entry.getKey();
+          final Document document=FileDocumentManager.getInstance().getDocument(file);
+          final SourceFileEdit fileEdit=entry.getValue();
+          applySourceEdits(document,fileEdit.getEdits());
+        }
+      }
+    }
+;
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        CommandProcessor.getInstance().executeCommand(project,onSuccessRunnable,DartBundle.message("dart.sort.members.action.name"),null);
+      }
+    }
+);
+  }
+}
