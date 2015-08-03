@@ -5,6 +5,10 @@
   final Map<String,String> newPackageRoots=new SmartHashMap<String,String>();
   if (sdk != null) {
     for (    Project project : myTrackedProjects) {
+      final String dotIdeaPath=PathUtil.getParentPath(project.getProjectFilePath());
+      if (dotIdeaPath.endsWith("/.idea")) {
+        newExcludedRoots.add(FileUtil.toSystemDependentName(dotIdeaPath));
+      }
       for (      Module module : DartSdkGlobalLibUtil.getModulesWithDartSdkGlobalLibAttached(project,sdk.getGlobalLibName())) {
         newPackageRoots.putAll(DartConfigurable.getContentRootPathToCustomPackageRootMap(module));
         final Set<String> excludedPackageSymlinkUrls=getExcludedPackageSymlinkUrls(module);
