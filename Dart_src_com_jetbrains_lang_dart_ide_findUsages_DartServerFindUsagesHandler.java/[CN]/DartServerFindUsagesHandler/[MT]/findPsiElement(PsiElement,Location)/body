@@ -2,8 +2,39 @@
   final String locationFilePath=location.getFile();
   final PsiFile psiFile=findPsiFile(context,locationFilePath);
   if (psiFile != null) {
+    final TextRange locationRange=TextRange.create(location.getOffset(),location.getOffset() + location.getLength());
     final int offset=location.getOffset();
-    return psiFile.findElementAt(offset);
+    PsiElement element=psiFile.findElementAt(offset);
+    if (element == null)     return null;
+    boolean rangeOk=element.getTextRange().contains(locationRange);
+    if (rangeOk && element instanceof DartReference)     return element;
+    TextRange previousRange=element.getTextRange();
+    PsiElement parent;
+    while ((parent=element.getParent()) != null) {
+      final TextRange parentRange=parent.getTextRange();
+      if (rangeOk) {
+        if (!parentRange.equals(previousRange)) {
+          return element;
+        }
+        if (parent instanceof DartReference) {
+          return parent;
+        }
+ else {
+          previousRange=parentRange;
+          element=parent;
+        }
+      }
+ else {
+        rangeOk=parent.getTextRange().contains(locationRange);
+        if (rangeOk && parent instanceof DartReference) {
+          return parent;
+        }
+ else {
+          previousRange=parentRange;
+          element=parent;
+        }
+      }
+    }
   }
   return null;
 }
