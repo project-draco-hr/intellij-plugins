@@ -1,0 +1,18 @@
+{
+  final long psiModificationCount=psiFile.getManager().getModificationTracker().getModificationCount();
+  final String filePath=psiFile.getVirtualFile().getPath();
+  final Caret currentCaret=editor.getCaretModel().getPrimaryCaret();
+  final int offset=currentCaret.getSelectionStart();
+  final int length=currentCaret.getSelectionEnd() - offset;
+  if (lastPsiModificationCount == psiModificationCount && ObjectUtilities.equals(lastFilePath,filePath) && lastOffset == offset && lastLength == length) {
+    return lastSourceChanges;
+  }
+  lastFilePath=filePath;
+  lastOffset=offset;
+  lastLength=length;
+  lastPsiModificationCount=psiModificationCount;
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  service.updateFilesContent();
+  lastSourceChanges=service.edit_getAssists(filePath,offset,length);
+  return lastSourceChanges;
+}
