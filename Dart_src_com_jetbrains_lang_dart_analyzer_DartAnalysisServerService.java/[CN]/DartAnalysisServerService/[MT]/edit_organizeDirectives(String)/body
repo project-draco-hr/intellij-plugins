@@ -1,0 +1,42 @@
+{
+  final Ref<SourceFileEdit> resultRef=new Ref<SourceFileEdit>();
+  final Semaphore semaphore=new Semaphore();
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    final OrganizeDirectivesConsumer consumer=new OrganizeDirectivesConsumer(){
+      @Override public void computedEdit(      final SourceFileEdit edit){
+        resultRef.set(edit);
+        semaphore.up();
+      }
+      @Override public void onError(      final RequestError error){
+        if (RequestErrorCode.FILE_NOT_ANALYZED.equals(error.getCode()) || RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR.equals(error.getCode())) {
+          LOG.info(getShortErrorMessage("edit_organizeDirectives()",filePath,error));
+        }
+ else {
+          logError("edit_organizeDirectives()",filePath,error);
+        }
+        semaphore.up();
+      }
+    }
+;
+    final AnalysisServer server=myServer;
+    final boolean ok=runInPooledThreadAndWait(new Runnable(){
+      @Override public void run(){
+        server.edit_organizeDirectives(filePath,consumer);
+      }
+    }
+,"edit_organizeDirectives(" + filePath + ")",SEND_REQUEST_TIMEOUT);
+    if (!ok) {
+      stopServer();
+      return null;
+    }
+  }
+  final long t0=System.currentTimeMillis();
+  semaphore.waitFor(EDIT_ORGANIZE_DIRECTIVES_TIMEOUT);
+  if (semaphore.tryUp()) {
+    LOG.info("edit_organizeDirectives() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    return null;
+  }
+  return resultRef.get();
+}
