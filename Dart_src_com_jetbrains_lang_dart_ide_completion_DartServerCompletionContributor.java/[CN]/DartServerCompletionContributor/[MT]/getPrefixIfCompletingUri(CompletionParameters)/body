@@ -1,0 +1,13 @@
+{
+  final PsiElement psiElement=parameters.getOriginalPosition();
+  final PsiElement parent=psiElement != null ? psiElement.getParent() : null;
+  final PsiElement parentParent=parent instanceof DartStringLiteralExpression ? parent.getParent() : null;
+  final PsiElement parentParentParent=parentParent instanceof DartUriElement ? parentParent.getParent() : null;
+  if (parentParentParent instanceof DartUriBasedDirective) {
+    final int uriStringOffset=((DartUriBasedDirective)parentParentParent).getUriStringOffset();
+    if (parameters.getOffset() >= parentParent.getTextOffset() + uriStringOffset) {
+      return parentParent.getText().substring(uriStringOffset,parameters.getOffset() - parentParent.getTextOffset());
+    }
+  }
+  return null;
+}

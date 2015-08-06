@@ -1,0 +1,13 @@
+{
+  final String testName=getTestName(false);
+  myFixture.copyDirectoryToProject(testName,testName);
+  final VirtualFile root=ModuleRootManager.getInstance(myModule).getContentRoots()[0];
+  final VirtualFile file=VfsUtilCore.findRelativeFile(testName + "/web/foo.dart",root);
+  assertNotNull(file);
+  myFixture.openFileInEditor(file);
+  final EditorTestUtil.CaretAndSelectionState markers=EditorTestUtil.extractCaretAndSelectionMarkers(getEditor().getDocument());
+  getEditor().getCaretModel().moveToOffset(markers.carets.get(0).getCaretOffset(getEditor().getDocument()));
+  myFixture.complete(CompletionType.BASIC);
+  selectLookup("package:projectName/libFile.dart",Lookup.REPLACE_SELECT_CHAR);
+  myFixture.checkResultByFile(testName + ".after.dart");
+}
