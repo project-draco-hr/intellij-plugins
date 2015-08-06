@@ -26,42 +26,14 @@
     final Module[] modules=ModuleManager.getInstance(project).getModules();
     for (    final Module module : modules) {
       if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
-        for (        final VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-          if (contentRoot.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null)           continue;
-          affectedModules.add(module);
+        if (!FilenameIndex.getVirtualFilesByName(project,PubspecYamlUtil.PUBSPEC_YAML,module.getModuleContentScope()).isEmpty()) {
+          continue;
         }
+        affectedModules.add(module);
       }
     }
     final Library library=createDartPackagesLibrary(project,rootsToAddToLib);
-    for (    final Module module : affectedModules) {
-      final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
-      try {
-        OrderEntry existingEntry=null;
-        for (        final OrderEntry entry : modifiableModel.getOrderEntries()) {
-          if (entry instanceof LibraryOrderEntry && LibraryTablesRegistrar.PROJECT_LEVEL.equals(((LibraryOrderEntry)entry).getLibraryLevel()) && DartPackagesLibraryType.DART_PACKAGES_LIBRARY_NAME.equals(((LibraryOrderEntry)entry).getLibraryName())) {
-            existingEntry=entry;
-            break;
-          }
-        }
-        final boolean contains=existingEntry != null;
-        final boolean mustContain=affectedModules.contains(module);
-        if (contains != mustContain) {
-          if (mustContain) {
-            modifiableModel.addLibraryEntry(library);
-          }
- else {
-            modifiableModel.removeOrderEntry(existingEntry);
-          }
-        }
-        if (modifiableModel.isChanged()) {
-          modifiableModel.commit();
-        }
-      }
-  finally {
-        if (!modifiableModel.isDisposed()) {
-          modifiableModel.dispose();
-        }
-      }
-    }
+    final Module[] affectedModulesArray=affectedModules.toArray(new Module[affectedModules.size()]);
+    DartFileListener.updateDependenciesOnDartPackagesLibrary(affectedModulesArray,sdk,library);
   }
 }
