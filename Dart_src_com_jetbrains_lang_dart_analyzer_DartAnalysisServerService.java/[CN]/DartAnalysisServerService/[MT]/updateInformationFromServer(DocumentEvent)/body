@@ -10,11 +10,11 @@ synchronized (myNavigationData) {
       final int eventOffset=e.getOffset();
       final int deltaLength=e.getNewLength() - e.getOldLength();
       for (      PluginNavigationRegion region : regions) {
-        if (region.offset <= eventOffset && eventOffset <= region.offset + region.length) {
-          region.length+=deltaLength;
-        }
- else         if (region.offset >= eventOffset) {
+        if (eventOffset <= region.offset) {
           region.offset+=deltaLength;
+        }
+ else         if (region.offset < eventOffset && eventOffset <= region.offset + region.length) {
+          region.length+=deltaLength;
         }
         for (        PluginNavigationTarget target : region.getTargets()) {
           if (target.file.equals(filePath) && target.offset >= eventOffset) {
