@@ -20,14 +20,19 @@
       rootsToAddToLib.add(path);
     }
   }
+  final Processor<? super PsiFileSystemItem> falseProcessor=new Processor<PsiFileSystemItem>(){
+    @Override public boolean process(    final PsiFileSystemItem item){
+      return false;
+    }
+  }
+;
   final Set<Module> affectedModules=new THashSet<Module>();
   final Module[] modules=ModuleManager.getInstance(project).getModules();
   for (  final Module module : modules) {
     if (DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
-      if (!FilenameIndex.getVirtualFilesByName(project,PubspecYamlUtil.PUBSPEC_YAML,module.getModuleContentScope()).isEmpty()) {
-        continue;
+      if (FilenameIndex.processFilesByName(PubspecYamlUtil.PUBSPEC_YAML,false,falseProcessor,module.getModuleContentScope(),project,null)) {
+        affectedModules.add(module);
       }
-      affectedModules.add(module);
     }
   }
   final Library library=createDartPackagesLibrary(project,rootsToAddToLib);
