@@ -1,14 +1,10 @@
 {
   final Set<Project> projects=myRootsHandler.getTrackedProjects();
   if (projects.size() != 1)   return;
-  runInEventDispatchThread(new Runnable(){
+  final Project project=projects.iterator().next();
+  DumbService.getInstance(project).smartInvokeLater(new Runnable(){
     @Override public void run(){
-      ApplicationManager.getApplication().runWriteAction(new Runnable(){
-        public void run(){
-          doConfigureImportedLibraries(rootsToAddToLib);
-        }
-      }
-);
+      doConfigureImportedLibraries(project,filePaths);
     }
   }
 );
