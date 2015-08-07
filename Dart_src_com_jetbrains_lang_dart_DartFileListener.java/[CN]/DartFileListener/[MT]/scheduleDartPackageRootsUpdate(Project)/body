@@ -12,7 +12,13 @@
           removeDartPackagesLibraryAndDependencies(project);
         }
  else {
-          updateDependenciesOnDartPackagesLibrary(ModuleManager.getInstance(project).getModules(),sdk,library);
+          final Condition<Module> moduleFilter=new Condition<Module>(){
+            @Override public boolean value(            final Module module){
+              return DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName());
+            }
+          }
+;
+          updateDependenciesOnDartPackagesLibrary(project,moduleFilter,library);
         }
       }
   finally {
