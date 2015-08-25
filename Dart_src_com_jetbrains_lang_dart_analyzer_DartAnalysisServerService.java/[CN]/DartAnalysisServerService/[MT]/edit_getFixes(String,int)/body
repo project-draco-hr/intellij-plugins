@@ -16,17 +16,7 @@ synchronized (myLock) {
       }
     }
 ;
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.edit_getFixes(filePath,offset,consumer);
-      }
-    }
-,"edit_getFixes(" + filePath + ", "+ offset+ ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return null;
-    }
+    myServer.edit_getFixes(filePath,offset,consumer);
   }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(GET_FIXES_TIMEOUT);

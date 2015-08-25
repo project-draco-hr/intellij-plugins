@@ -1,8 +1,11 @@
 {
+  AnalysisServer server=myServer;
+  if (server == null) {
+    return;
+  }
+  final Map<String,Object> filesToUpdate=new THashMap<String,Object>();
 synchronized (myLock) {
-    if (myServer == null)     return;
     final Set<String> oldTrackedFiles=new THashSet<String>(myFilePathWithOverlaidContentToTimestamp.keySet());
-    final Map<String,Object> filesToUpdate=new THashMap<String,Object>();
     final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
     for (    Document document : fileDocumentManager.getUnsavedDocuments()) {
       final VirtualFile file=fileDocumentManager.getFile(document);
@@ -28,24 +31,13 @@ synchronized (myLock) {
         LOG.debug("Removing overlaid content of the following files:\n" + StringUtil.join(oldTrackedFiles,",\n"));
       }
     }
-    if (!filesToUpdate.isEmpty()) {
-      final UpdateContentConsumer consumer=new UpdateContentConsumer(){
-        @Override public void onResponse(){
-          myFilePathsWithUnsentChanges.clear();
-        }
-      }
-;
-      final AnalysisServer server=myServer;
-      final boolean ok=runInPooledThreadAndWait(new Runnable(){
-        @Override public void run(){
-          server.analysis_updateContent(filesToUpdate,consumer);
-        }
-      }
-,"analysis_updateContent(" + StringUtil.join(filesToUpdate.keySet(),", ") + ")",SEND_REQUEST_TIMEOUT);
-      if (!ok) {
-        stopServer();
-        return;
+  }
+  if (!filesToUpdate.isEmpty()) {
+    server.analysis_updateContent(filesToUpdate,new UpdateContentConsumer(){
+      @Override public void onResponse(){
+        myFilePathsWithUnsentChanges.clear();
       }
     }
+);
   }
 }

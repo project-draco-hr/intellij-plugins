@@ -1,19 +1,8 @@
 {
 synchronized (myLock) {
-    if (myServer == null)     return false;
+    if (myServer == null)     return;
     String rootsStr=roots != null ? StringUtil.join(roots,",\n") : "all roots";
     LOG.debug("analysis_reanalyze, roots: " + rootsStr);
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.analysis_reanalyze(roots);
-      }
-    }
-,"analysis_reanalyze(" + rootsStr + ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return false;
-    }
-    return true;
+    myServer.analysis_reanalyze(roots);
   }
 }

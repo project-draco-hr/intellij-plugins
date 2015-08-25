@@ -1,0 +1,15 @@
+{
+  long startTime=System.currentTimeMillis();
+  while (true) {
+    ProgressManager.checkCanceled();
+    if (!server.isSocketOpen()) {
+      return false;
+    }
+    if (timeoutInMillis != -1 && System.currentTimeMillis() > startTime + timeoutInMillis) {
+      return false;
+    }
+    if (Uninterruptibles.awaitUninterruptibly(latch,5,TimeUnit.MILLISECONDS)) {
+      return true;
+    }
+  }
+}
