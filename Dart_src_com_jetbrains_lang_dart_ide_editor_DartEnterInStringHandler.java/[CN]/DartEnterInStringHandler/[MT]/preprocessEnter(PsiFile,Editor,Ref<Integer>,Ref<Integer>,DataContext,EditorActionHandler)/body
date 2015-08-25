@@ -1,0 +1,28 @@
+{
+  int caretOffset=caretOffsetRef.get().intValue();
+  int caretAdvance=caretAdvanceRef.get().intValue();
+  PsiElement psiAtOffset=file.findElementAt(caretOffset);
+  if (psiAtOffset == null || psiAtOffset.getTextOffset() > caretOffset) {
+    return Result.Continue;
+  }
+  Document document=editor.getDocument();
+  ASTNode token=psiAtOffset.getNode();
+  IElementType type=token.getElementType();
+  if (type == DartTokenTypes.REGULAR_STRING_PART) {
+    token=token.getTreeNext();
+    type=token.getElementType();
+  }
+  if (type == DartTokenTypes.CLOSING_QUOTE) {
+    char literalStart=token.getText().charAt(0);
+    StringBuilder quotes=new StringBuilder();
+    quotes.append(literalStart);
+    quotes.append(literalStart);
+    document.insertString(caretOffset,quotes.toString());
+    caretOffset++;
+    caretAdvance++;
+    caretOffsetRef.set(caretOffset);
+    caretAdvanceRef.set(caretAdvance);
+    return Result.Default;
+  }
+  return Result.Continue;
+}
