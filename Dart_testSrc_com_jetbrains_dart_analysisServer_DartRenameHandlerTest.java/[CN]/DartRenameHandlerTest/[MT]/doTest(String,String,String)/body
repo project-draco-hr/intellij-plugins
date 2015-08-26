@@ -1,0 +1,23 @@
+{
+  final PsiFile psiFile=myFixture.configureByFile(filePath);
+  myFixture.doHighlighting();
+  final Document document=myFixture.getDocument(psiFile);
+  final int offset=document.getText().indexOf(atString);
+  final PsiElement element=PsiTreeUtil.findElementOfClassAtOffset(psiFile,offset,PsiElement.class,true);
+  assertNotNull(element);
+  final ServerRenameRefactoring refactoring=DartRenameHandler.createServerRenameRefactoring(element);
+  final RefactoringStatus initialConditions=refactoring.checkInitialConditions();
+  assertTrue(initialConditions.isOK());
+  refactoring.setNewName(newName);
+  final RefactoringStatus finalConditions=refactoring.checkFinalConditions();
+  assertTrue(finalConditions.isOK());
+  final SourceChange change=refactoring.getChange();
+  assertNotNull(change);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      AssistUtils.applySourceChange(myFixture.getProject(),change);
+    }
+  }
+);
+  myFixture.checkResultByFile(getTestName(false) + ".after.dart");
+}
