@@ -1,0 +1,32 @@
+{
+  final Project project=module.getProject();
+  final String applicationHomePath=dir.getPath();
+  final File tempDirectory;
+  try {
+    tempDirectory=FileUtil.createTempDirectory("RubyMotion",".RubyMine");
+  }
+ catch (  IOException e) {
+    throw new Error(e);
+  }
+  final File generatedApp=new File(tempDirectory,module.getName());
+  final Filter[] filters=null;
+  final ProcessAdapter processListener=new ProcessAdapter(){
+    public void processTerminated(    ProcessEvent event){
+      FileUtil.moveDirWithContent(generatedApp,VfsUtilCore.virtualToIoFile(dir));
+      tempDirectory.delete();
+      if (module.isDisposed()) {
+        return;
+      }
+      RModuleUtil.getInstance().refreshRubyModuleTypeContent(module);
+      GeneratorsUtil.openFileInEditor(project,"app/app_delegate.rb",applicationHomePath);
+      GeneratorsUtil.openFileInEditor(project,RakeUtilBase.RAKE_FILE,applicationHomePath);
+      GeneratorsUtil.openFileInEditor(project,BundlerUtil.GEMFILE,applicationHomePath);
+      if (useCalabash && projectType == ProjectType.IOS) {
+        MotionCalabashUtil.addCalabashSupport(project,module,applicationHomePath);
+      }
+    }
+  }
+;
+  final MergingCommandLineArgumentsProvider resultProvider=new MergingCommandLineArgumentsProvider(new String[]{getRubyMotionPath() + "/bin/motion","create","--template=" + projectType.name().toLowerCase(Locale.US),module.getName()},null,null,null,sdk);
+  ConsoleRunner.run(module,null,processListener,filters,null,ConsoleRunner.ProcessLaunchMode.BACKGROUND_TASK_WITH_PROGRESS,"Generating RubyMotion Application '" + module.getName() + "'...",tempDirectory.getAbsolutePath(),resultProvider,null,false);
+}

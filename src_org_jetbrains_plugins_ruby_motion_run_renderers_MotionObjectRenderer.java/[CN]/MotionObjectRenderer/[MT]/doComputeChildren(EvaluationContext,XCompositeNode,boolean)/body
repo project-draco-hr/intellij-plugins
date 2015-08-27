@@ -1,0 +1,16 @@
+{
+  final Collection<CidrValue> children=new ArrayList<CidrValue>();
+  final LLValue names=getInstanceVariablesNames(context);
+  final int count=count(context,names);
+  for (int i=0; i < count; i++) {
+    final String selName=EvaluationContext.cast("sel_registerName(\"objectAtIndex:\")","id");
+    final String nameExpr=EvaluationContext.cast("objc_msgSend(" + getSelf(names) + ", "+ selName+ ", "+ i+ ")","id");
+    final LLValue name=context.evaluate(nameExpr);
+    final String namePointer="(char *)[[" + name.getPointer() + " description] UTF8String]";
+    final String ivarName=TextUtil.removeQuoting(context.evaluate(namePointer).getReadableValue());
+    final String ivarExpr=getChildEvaluationExpression(ivarName);
+    final LLValue ivar=context.evaluate(ivarExpr);
+    children.add(new MotionMemberValue(myValue.getProcess(),context,myValue.getSourcePosition(),myValue.getFrame(),ivar,ivarName,myValue));
+  }
+  CidrValue.addAllTo(children,container);
+}

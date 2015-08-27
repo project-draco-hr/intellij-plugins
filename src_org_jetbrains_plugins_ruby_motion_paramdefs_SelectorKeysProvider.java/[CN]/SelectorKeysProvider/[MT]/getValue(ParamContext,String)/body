@@ -1,0 +1,15 @@
+{
+  final Collection<Function> functions=getFunctions(context);
+  if (functions == null)   return null;
+  final Pair<Integer,List<String>> pair=determineArgNumberAndPath(context);
+  final int argument=pair.first;
+  if (argument < 1)   return null;
+  for (  Function function : functions) {
+    final List<Pair<String,String>> arguments=function.getArguments();
+    final String[] namedArguments=function.getName().split(":");
+    if (pathMatches(argument,namedArguments,pair.second) && "SEL".equals(arguments.get(argument).second)) {
+      return new ParamDefLeaf(METHOD_REF_PARAM);
+    }
+  }
+  return null;
+}

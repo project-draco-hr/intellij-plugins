@@ -1,0 +1,18 @@
+{
+  for (  VirtualFile root : ModuleRootManager.getInstance(module).getContentRoots()) {
+    for (    final VirtualFile file : root.getChildren()) {
+      if (RakeUtilBase.isRakeFileByNamingConventions(file)) {
+        final PsiFile psiFile=ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>(){
+          @Override public PsiFile compute(){
+            return PsiManager.getInstance(module.getProject()).findFile(file);
+          }
+        }
+);
+        if (psiFile instanceof RFile) {
+          return doCalculateSdkAndFrameworks((RFile)psiFile);
+        }
+      }
+    }
+  }
+  return Trinity.create(getDefaultSdkVersion(ProjectType.IOS),DEFAULT_IOS_FRAMEWORKS,ProjectType.IOS);
+}

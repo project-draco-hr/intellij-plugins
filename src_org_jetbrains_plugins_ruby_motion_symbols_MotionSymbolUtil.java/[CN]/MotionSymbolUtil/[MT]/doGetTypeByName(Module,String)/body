@@ -1,0 +1,24 @@
+{
+  if (module == null) {
+    return REmptyType.INSTANCE;
+  }
+  final Project project=module.getProject();
+  if (typeName.endsWith("*")) {
+    final RType type=doGetTypeByName(module,typeName.substring(0,typeName.length() - 1));
+    if (type != REmptyType.INSTANCE || "void".equals(typeName.substring(0,typeName.length() - 1))) {
+      return new RArrayType(project,type);
+    }
+  }
+  final RType primitiveType=getPrimitiveType(project,typeName);
+  if (primitiveType != null) {
+    return primitiveType;
+  }
+  final Collection<Framework> frameworks=((RubyMotionUtilImpl)RubyMotionUtil.getInstance()).getFrameworks(module);
+  if (!typeName.endsWith("*")) {
+    final Symbol symbol=RubyMotionSymbolProvider.findClassOrStruct(module,frameworks,RNameUtilCore.getPath(typeName));
+    return symbol instanceof StructSymbol || (symbol != null && RubyMotionUtil.getInstance().isAndroid(module)) ? new RSymbolTypeImpl(symbol,Context.INSTANCE) : REmptyType.INSTANCE;
+  }
+  typeName=typeName.substring(0,typeName.length() - 1);
+  final Symbol symbol=RubyMotionSymbolProvider.findClassOrStruct(module,frameworks,Collections.singletonList(typeName));
+  return symbol != null ? new RSymbolTypeImpl(symbol,Context.INSTANCE) : REmptyType.INSTANCE;
+}

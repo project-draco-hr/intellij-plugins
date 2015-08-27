@@ -1,0 +1,34 @@
+{
+  final RubyMotionFacet existingFacet=RubyMotionFacet.getInstance(module);
+  if (existingFacet != null) {
+    return;
+  }
+  FacetManager facetManager=FacetManager.getInstance(module);
+  final ModifiableFacetModel model=facetManager.createModifiableModel();
+  RubyMotionFacetType facetType=RubyMotionFacetType.getInstance();
+  RubyMotionFacetConfiguration configuration=ProjectFacetManager.getInstance(module.getProject()).createDefaultConfiguration(facetType);
+  VirtualFile testFolder=baseDir.findChild("spec");
+  final ModifiableRootModel rootModel=ModuleRootManager.getInstance(module).getModifiableModel();
+  if (testFolder != null) {
+    addTestSources(testFolder,rootModel);
+  }
+  VirtualFile libFolder=baseDir.findChild("app");
+  if (libFolder != null) {
+  }
+  RubyMotionFacet.updateMotionLibrary(rootModel);
+  IdeaInternalUtil.runInsideWriteAction(new ActionRunner.InterruptibleRunnable(){
+    public void run() throws Exception {
+      rootModel.commit();
+    }
+  }
+);
+  RubyMotionFacet facet=facetManager.createFacet(facetType,facetType.getDefaultFacetName(),configuration,null);
+  model.addFacet(facet);
+  new WriteAction(){
+    protected void run(    @NotNull final Result result) throws Throwable {
+      model.commit();
+    }
+  }
+.execute();
+  RubyMotionUtilExt.createMotionRunConfiguration(module);
+}

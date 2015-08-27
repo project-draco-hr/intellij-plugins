@@ -1,0 +1,20 @@
+{
+  final String version=framework.getVersion();
+  for (  Class clazz : framework.getClasses()) {
+    for (    Function function : clazz.getFunctions()) {
+      if (!canHaveParamdef(function))       continue;
+      final String name=clazz.getName() + "::" + MotionSymbolUtil.getSelectorNames(function).get(0);
+      Map<String,Collection<Function>> allFunctions=mergedFunctions.get(name);
+      if (allFunctions == null) {
+        allFunctions=new HashMap<String,Collection<Function>>();
+        mergedFunctions.put(name,allFunctions);
+      }
+      Collection<Function> frameworkFunctions=allFunctions.get(version);
+      if (frameworkFunctions == null) {
+        frameworkFunctions=new ArrayList<Function>();
+        allFunctions.put(version,frameworkFunctions);
+      }
+      frameworkFunctions.add(function);
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  final Symbol controller=SymbolUtil.findSymbol(getProject(),Type.CLASS,"TestController",null);
+  assertNotNull(controller);
+  final List<ClassMember> list=RubyOverrideHandler.createOverrideMembers(controller,myFixture.getFile());
+  final StringBuilder namesInClass=new StringBuilder();
+  for (  ClassMember classMember : list) {
+    MemberChooserObjectBase methodMember=(MemberChooserObjectBase)classMember;
+    if (name.equals(methodMember.getText())) {
+      final PsiElement element=OverriddenMethodGenerator.generate(classMember,LanguageLevel.RUBY19);
+      assertNotNull(element);
+      namesInClass.append(element.getText()).append("\n");
+    }
+  }
+  assertEquals(result,namesInClass.toString().trim());
+}

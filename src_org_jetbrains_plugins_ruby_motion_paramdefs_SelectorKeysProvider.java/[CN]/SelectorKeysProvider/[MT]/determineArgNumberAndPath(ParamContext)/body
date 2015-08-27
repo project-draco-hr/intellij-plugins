@@ -1,0 +1,16 @@
+{
+  final RPsiElement element=context.getValueElement();
+  final PsiElement parent=element.getParent();
+  final PsiElement argument=parent instanceof RAssoc ? parent : element;
+  final RListOfExpressions expressions=RListOfExpressionsNavigator.getByPsiElement(argument);
+  if (expressions == null)   return Pair.create(-1,null);
+  final List<String> path=new ArrayList<String>();
+  for (int i=1; i < expressions.getElements().size(); i++) {
+    PsiElement arg=expressions.getElements().get(i);
+    if (arg == argument)     return Pair.create(i,path);
+    if (arg instanceof RAssoc) {
+      path.add(((RAssoc)arg).getKeyText());
+    }
+  }
+  return Pair.create(-1,null);
+}

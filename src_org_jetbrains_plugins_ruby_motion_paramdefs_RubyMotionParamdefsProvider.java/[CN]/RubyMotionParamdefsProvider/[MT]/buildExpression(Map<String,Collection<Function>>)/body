@@ -1,0 +1,17 @@
+{
+  boolean hadOneArg=false;
+  boolean hadMoreArg=false;
+  for (  Collection<Function> collection : functions.values()) {
+    for (    Function function : collection) {
+      hadOneArg|=function.getArguments().size() == 1;
+      hadMoreArg|=function.getArguments().size() > 1;
+    }
+  }
+  if (hadOneArg && !hadMoreArg) {
+    return new ParamDefLeaf(SelectorKeysProvider.METHOD_REF_PARAM);
+  }
+  final ParamDefHash hash=new ParamDefHash(false,true,null);
+  final SelectorKeysProvider provider=new SelectorKeysProvider(functions);
+  hash.addKey(provider,new ParamDefLeaf(AnyParamDef.getInstance()));
+  return new ParamDefSeq(new ParamDefLeaf(hadOneArg ? SelectorKeysProvider.METHOD_REF_PARAM : AnyParamDef.getInstance()),hash);
+}

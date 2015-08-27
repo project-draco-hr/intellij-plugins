@@ -1,0 +1,23 @@
+{
+  final String sdkVersion=RubyMotionUtil.getInstance().getSdkVersion(module);
+  final String[] frameworks=RubyMotionUtil.getInstance().getRequiredFrameworks(module);
+  final Map<String,List<String>> dependencyInfo=myDependencyInfo.get(sdkVersion);
+  if (dependencyInfo == null) {
+    LOG.warn("Could not find dependency info for version: '" + sdkVersion + "'");
+  }
+  final Set<Framework> result=new HashSet<Framework>();
+  final Queue<String> unsatisfied=new LinkedList<String>();
+  final Set<String> processed=new HashSet<String>();
+  Collections.addAll(unsatisfied,frameworks);
+  while (!unsatisfied.isEmpty()) {
+    final String name=unsatisfied.poll();
+    if (processed.contains(name))     continue;
+    ContainerUtil.addIfNotNull(result,myLoader.getFramework(sdkVersion,name));
+    final List<String> deps=dependencyInfo != null ? dependencyInfo.get(name) : null;
+    if (deps != null) {
+      unsatisfied.addAll(deps);
+    }
+    processed.add(name);
+  }
+  return result;
+}

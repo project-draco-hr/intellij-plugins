@@ -1,0 +1,36 @@
+{
+  final RMethod method=PsiTreeUtil.getParentOfType(expression,RMethod.class);
+  final Symbol symbol=SymbolUtil.getSymbolByContainer(method);
+  if (symbol == null)   return null;
+  List<RArgument> arguments=method.getArguments();
+  final String rubyName=method.getName();
+  final String objCName=calculateObjCName(rubyName,arguments);
+  final String sdkVersion=RubyMotionUtil.getInstance().getSdkVersion(module);
+  final String[] frameworks=RubyMotionUtil.getInstance().getRequiredFrameworks(module);
+  boolean isSelector=false;
+  for (  String framework : frameworks) {
+    if (BridgeSupportLoader.getInstance().isSelector(objCName,sdkVersion,framework)) {
+      isSelector=true;
+      break;
+    }
+  }
+  if (!isSelector)   return null;
+  Symbol classSymbol=symbol.getParentSymbol();
+  while (classSymbol != null && classSymbol instanceof ClassModuleSymbol) {
+    classSymbol=((ClassModuleSymbol)classSymbol).getSuperClassSymbol(expression);
+  }
+  if (classSymbol instanceof MotionClassSymbol) {
+    final List<Symbol> candidates=classSymbol.getChildren().getSymbolsByNameAndTypes(rubyName,symbol.getType().asSet(),expression);
+    for (    Symbol candidate : candidates) {
+      final Function function=((FunctionSymbol)candidate).getFunction();
+      if (objCName.equals(function.getName())) {
+        int argIndex=0;
+        while (argIndex < arguments.size() && !arguments.get(argIndex).getName().equals(expression.getName()))         argIndex++;
+        if (argIndex < arguments.size()) {
+          return MotionSymbolUtil.getTypeByName(module,function.getArguments().get(argIndex).second);
+        }
+      }
+    }
+  }
+  return null;
+}

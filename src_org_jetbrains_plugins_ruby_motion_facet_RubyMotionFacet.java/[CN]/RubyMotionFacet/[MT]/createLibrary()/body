@@ -1,0 +1,16 @@
+{
+  final VirtualFile motion=VirtualFileUtil.findFileBy(RubyMotionUtil.getInstance().getRubyMotionPath());
+  if (motion == null)   return null;
+  final LibraryTable.ModifiableModel model=GemModificationUtil.getLibraryTableModifiableModel();
+  final Library library=model.createLibrary(RubyMotionUtil.RUBY_MOTION_LIBRARY);
+  final Library.ModifiableModel libModel=library.getModifiableModel();
+  for (  VirtualFile child : motion.getChildren()) {
+    if (child != null) {
+      libModel.addRoot(child,OrderRootType.CLASSES);
+      libModel.addRoot(child,OrderRootType.SOURCES);
+    }
+  }
+  libModel.commit();
+  model.commit();
+  return library;
+}

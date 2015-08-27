@@ -1,0 +1,28 @@
+{
+  if (!RubyMotionUtil.getInstance().hasMacRubySupport(expression))   return null;
+  Module module=ModuleUtilCore.findModuleForPsiElement(expression.getContainingFile());
+  if (module == null)   return null;
+  if (expression instanceof RReference) {
+    return createTypeForRef((RReference)expression,module);
+  }
+ else   if (expression instanceof RCall) {
+    final PsiElement psiCommand=((RCall)expression).getPsiCommand();
+    if (psiCommand instanceof RReference) {
+      return createTypeForRef((RReference)psiCommand,module);
+    }
+  }
+ else   if (expression instanceof RConstant) {
+    return createTypeForConstant(expression,module);
+  }
+ else   if (expression instanceof RIdentifier) {
+    final ScopeVariable variable=((RIdentifier)expression).getScopeVariable();
+    if (variable != null) {
+      for (      RPsiElement element : variable.getDeclarations()) {
+        if (element instanceof RIdentifier && ((RIdentifier)element).isParameterDeclaration()) {
+          return createTypeForMethodParameter((RIdentifier)element,module);
+        }
+      }
+    }
+  }
+  return null;
+}

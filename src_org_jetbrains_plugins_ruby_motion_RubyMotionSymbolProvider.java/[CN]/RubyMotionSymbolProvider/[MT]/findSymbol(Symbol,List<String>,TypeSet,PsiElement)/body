@@ -1,0 +1,35 @@
+{
+  if (!RubyMotionUtil.getInstance().hasMacRubySupport(invocationPoint))   return null;
+  final Module module=getModule(invocationPoint);
+  if (module == null)   return null;
+  final Collection<Framework> frameworks=((RubyMotionUtilImpl)RubyMotionUtil.getInstance()).getFrameworks(module);
+  final String name=path.get(0);
+  if (name.isEmpty())   return null;
+  if (types.contains(Type.CLASS)) {
+    Symbol result=findClassOrStruct(module,frameworks,path);
+    if (result != null) {
+      return result;
+    }
+  }
+  if (types.contains(Type.CLASS_METHOD)) {
+    for (    Framework framework : frameworks) {
+      Function function=framework.getFunction(name);
+      final String original=framework.getOriginalFunctionName(name);
+      if (original != null) {
+        function=framework.getFunction(original);
+      }
+      if (function != null) {
+        return MotionSymbolUtil.createFunctionSymbol(module,null,function);
+      }
+    }
+  }
+  if (types.contains(Type.CONSTANT)) {
+    for (    Framework framework : frameworks) {
+      Constant constant=findConstant(name,framework);
+      if (constant != null) {
+        return MotionSymbolUtil.createConstantSymbol(module,constant);
+      }
+    }
+  }
+  return null;
+}

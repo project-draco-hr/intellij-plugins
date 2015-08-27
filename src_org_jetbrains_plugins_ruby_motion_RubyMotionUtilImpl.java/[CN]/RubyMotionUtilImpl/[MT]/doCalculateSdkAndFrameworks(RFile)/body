@@ -1,0 +1,52 @@
+{
+  final ProjectType projectType=calculateProjectType(file);
+  final Ref<String> sdkVersion=new Ref<String>(getDefaultSdkVersion(projectType));
+  final Set<String> frameworks=new HashSet<String>();
+  Collections.addAll(frameworks,projectType == ProjectType.OSX ? DEFAULT_OSX_FRAMEWORKS : projectType == ProjectType.ANDROID ? DEFAULT_ANDROID_FRAMEWORKS : DEFAULT_IOS_FRAMEWORKS);
+  final RubyPsiInterpreter interpreter=new RubyPsiInterpreter(true);
+  final PsiCallable callable=new PsiCallable(){
+    @Override public void processCall(    RCallArguments arguments){
+      final String command=arguments.getCommand();
+      RAssignmentExpression assign=RAssignmentExpressionNavigator.getAssignmentByLeftPart(arguments.getCallElement());
+      assign=assign == null ? RSelfAssignmentExpressionNavigator.getSelfAssignmentByLeftPart(arguments.getCallElement()) : assign;
+      RBinaryExpression shift=assign == null ? RShiftExpressionNavigator.getShiftExpressionByLeftPart(arguments.getCallElement()) : null;
+      final RPsiElement value=assign != null ? assign.getValue() : shift != null ? shift.getRightOperand() : null;
+      if (value == null) {
+        return;
+      }
+      final IElementType type=assign != null ? assign.getOperationType() : shift.getOperationType();
+      if ("sdk_version".equals(command)) {
+        sdkVersion.set(TextUtil.removeQuoting(value.getText()));
+      }
+ else       if ("frameworks".equals(command)) {
+        if (value instanceof RArray) {
+          final String[] array=TextUtil.arrayToString((RArray)value).split(", ");
+          if (type == RubyTokenTypes.tASSGN) {
+            frameworks.clear();
+            Collections.addAll(frameworks,array);
+          }
+ else           if (type == RubyTokenTypes.tMINUS_OP_ASGN) {
+            for (            String s : array) {
+              frameworks.remove(s);
+            }
+          }
+ else {
+            Collections.addAll(frameworks,array);
+          }
+        }
+ else {
+          frameworks.add(TextUtil.removeQuoting(value.getText()));
+        }
+      }
+    }
+  }
+;
+  interpreter.registerCallable(new PsiCallable(){
+    @Override public void processCall(    RCallArguments arguments){
+      arguments.interpretBlock(callable);
+    }
+  }
+,"Motion::Project::App.setup");
+  interpreter.interpret(file,callable);
+  return Trinity.create(sdkVersion.get(),ArrayUtil.toStringArray(frameworks),projectType);
+}
