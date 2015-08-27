@@ -1,16 +1,11 @@
 {
-  ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
-  final PsiFile psiFile=myFixture.configureByFile(filePath);
-  myFixture.doHighlighting();
-  final Document document=myFixture.getDocument(psiFile);
-  final int offset=document.getText().indexOf(atString);
-  final PsiElement element=PsiTreeUtil.findElementOfClassAtOffset(psiFile,offset,PsiElement.class,true);
-  assertNotNull(element);
-  final ServerRenameRefactoring refactoring=DartRenameHandler.createServerRenameRefactoring(element);
+  final ServerRenameRefactoring refactoring=createRenameRefactoring(filePath,atString);
   final RefactoringStatus initialConditions=refactoring.checkInitialConditions();
+  assertNotNull(initialConditions);
   assertTrue(initialConditions.isOK());
   refactoring.setNewName(newName);
   final RefactoringStatus finalConditions=refactoring.checkFinalConditions();
+  assertNotNull(finalConditions);
   assertTrue(finalConditions.isOK());
   final SourceChange change=refactoring.getChange();
   assertNotNull(change);
