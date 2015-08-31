@@ -1,17 +1,16 @@
 {
   myProject=project;
   myToolbar=createActionToolbar();
-  myTabs=new JBRunnerTabs(project,ActionManager.getInstance(),IdeFocusManager.getInstance(project),myProject);
-  myTabs.getPresentation().setInnerInsets(new Insets(0,0,0,0)).setPaintBorder(0,0,0,0).setPaintFocus(false).setRequestFocusOnLastFocusedComponent(true);
-  myTabs.setTabDraggingEnabled(false);
+  myTabs=new TabbedPaneWrapper(myProject);
   myTabs.getComponent().setBorder(IdeBorderFactory.createEmptyBorder(0,2,0,0));
   mySettingsTab=new JstdServerSettingsTab(myProject);
-  myTabs.addTab(mySettingsTab.getTabInfo());
+  addTab(mySettingsTab.getTabInfo());
   JstdServer server=JstdServerRegistry.getInstance().getServer();
   if (server != null && server.isProcessRunning()) {
     attachToServer(server);
   }
   myRootPanel=new JPanel(new BorderLayout(0,0));
+  myToolbar.getComponent().setBorder(new CustomLineBorder(JBColor.border(),0,0,0,1));
   myRootPanel.add(myToolbar.getComponent(),BorderLayout.WEST);
-  myRootPanel.add(myTabs,BorderLayout.CENTER);
+  myRootPanel.add(myTabs.getComponent(),BorderLayout.CENTER);
 }
