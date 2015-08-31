@@ -1,36 +1,20 @@
 {
   final Ref<String> resultRef=new Ref<String>();
-  final Semaphore semaphore=new Semaphore();
-synchronized (myLock) {
-    if (myServer == null)     return null;
-    semaphore.down();
-    final GetSuggestionsConsumer consumer=new GetSuggestionsConsumer(){
-      @Override public void computedCompletionId(      @NotNull final String completionId){
-        resultRef.set(completionId);
-        semaphore.up();
-      }
-      @Override public void onError(      @NotNull final RequestError error){
-        semaphore.up();
-      }
-    }
-;
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.completion_getSuggestions(filePath,offset,consumer);
-      }
-    }
-,"completion_getSuggestions(" + filePath + ", "+ offset+ ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return null;
-    }
-  }
-  final long t0=System.currentTimeMillis();
-  semaphore.waitFor(GET_SUGGESTIONS_TIMEOUT);
-  if (semaphore.tryUp()) {
-    LOG.info("completion_getSuggestions() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+  final AnalysisServer server=myServer;
+  if (server == null) {
     return null;
   }
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.completion_getSuggestions(filePath,offset,new GetSuggestionsConsumer(){
+    @Override public void computedCompletionId(    @NotNull final String completionId){
+      resultRef.set(completionId);
+      latch.countDown();
+    }
+    @Override public void onError(    @NotNull final RequestError error){
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_SUGGESTIONS_TIMEOUT);
   return resultRef.get();
 }

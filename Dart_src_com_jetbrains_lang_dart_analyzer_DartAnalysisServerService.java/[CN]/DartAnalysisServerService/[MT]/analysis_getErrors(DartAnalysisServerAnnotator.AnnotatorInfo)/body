@@ -37,17 +37,7 @@ synchronized (myLock) {
         }
       }
 ;
-      final AnalysisServer server=myServer;
-      final boolean ok=runInPooledThreadAndWait(new Runnable(){
-        @Override public void run(){
-          server.analysis_getErrors(filePath,consumer);
-        }
-      }
-,"analysis_getErrors(" + filePath + ")",SEND_REQUEST_TIMEOUT);
-      if (!ok) {
-        stopServer();
-        return null;
-      }
+      myServer.analysis_getErrors(filePath,consumer);
     }
     final long timeout=info.isLongerAnalysisTimeout() || ApplicationManager.getApplication().isUnitTestMode() ? GET_ERRORS_LONGER_TIMEOUT : GET_ERRORS_TIMEOUT;
     semaphore.waitFor(timeout);

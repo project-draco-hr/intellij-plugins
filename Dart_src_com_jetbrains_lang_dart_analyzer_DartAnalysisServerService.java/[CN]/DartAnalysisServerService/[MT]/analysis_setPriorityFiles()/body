@@ -1,20 +1,9 @@
 {
 synchronized (myLock) {
-    if (myServer == null)     return false;
+    if (myServer == null)     return;
     if (LOG.isDebugEnabled()) {
       LOG.debug("analysis_setPriorityFiles, files:\n" + StringUtil.join(myVisibleFiles,",\n"));
     }
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.analysis_setPriorityFiles(myVisibleFiles);
-      }
-    }
-,"analysis_setPriorityFiles(" + StringUtil.join(myVisibleFiles,", ") + ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return false;
-    }
-    return true;
+    myServer.analysis_setPriorityFiles(myVisibleFiles);
   }
 }

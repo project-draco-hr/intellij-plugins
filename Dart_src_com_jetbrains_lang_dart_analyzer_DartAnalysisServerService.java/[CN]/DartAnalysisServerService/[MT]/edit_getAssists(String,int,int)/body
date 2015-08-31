@@ -1,33 +1,22 @@
 {
   final List<SourceChange> results=Lists.newArrayList();
-  final Semaphore semaphore=new Semaphore();
   final String filePath=FileUtil.toSystemDependentName(_filePath);
-synchronized (myLock) {
-    final AnalysisServer server=myServer;
-    if (server == null)     return results;
-    final GetAssistsConsumer consumer=new GetAssistsConsumer(){
-      @Override public void computedSourceChanges(      List<SourceChange> sourceChanges){
-        results.addAll(sourceChanges);
-        semaphore.up();
-      }
-      @Override public void onError(      final RequestError error){
-        logError("edit_getAssists()",filePath,error);
-        semaphore.up();
-      }
+  final AnalysisServer server=myServer;
+  if (server == null) {
+    return results;
+  }
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.edit_getAssists(filePath,offset,length,new GetAssistsConsumer(){
+    @Override public void computedSourceChanges(    List<SourceChange> sourceChanges){
+      results.addAll(sourceChanges);
+      latch.countDown();
     }
-;
-    semaphore.down();
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.edit_getAssists(filePath,offset,length,consumer);
-      }
-    }
-,"edit_getAssists(" + filePath + ", "+ offset+ ", "+ length+ ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return results;
+    @Override public void onError(    final RequestError error){
+      logError("edit_getAssists()",filePath,error);
+      latch.countDown();
     }
   }
-  semaphore.waitFor(GET_ASSISTS_TIMEOUT);
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_ASSISTS_TIMEOUT);
   return results;
 }

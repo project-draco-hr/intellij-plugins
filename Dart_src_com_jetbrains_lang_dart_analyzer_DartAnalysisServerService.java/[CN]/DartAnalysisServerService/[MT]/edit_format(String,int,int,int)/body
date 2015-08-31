@@ -20,17 +20,7 @@ synchronized (myLock) {
       }
     }
 ;
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.edit_format(filePath,selectionOffset,selectionLength,lineLength,consumer);
-      }
-    }
-,"edit_format(" + filePath + ", "+ selectionOffset+ ", "+ selectionLength+ ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return null;
-    }
+    myServer.edit_format(filePath,selectionOffset,selectionLength,lineLength,consumer);
   }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(EDIT_FORMAT_TIMEOUT);

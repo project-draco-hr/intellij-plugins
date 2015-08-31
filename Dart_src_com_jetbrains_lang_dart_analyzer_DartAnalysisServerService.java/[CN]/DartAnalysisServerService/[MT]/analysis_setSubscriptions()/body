@@ -1,6 +1,6 @@
 {
 synchronized (myLock) {
-    if (myServer == null)     return false;
+    if (myServer == null)     return;
     final Map<String,List<String>> subscriptions=new THashMap<String,List<String>>();
     subscriptions.put(AnalysisService.HIGHLIGHTS,myVisibleFiles);
     subscriptions.put(AnalysisService.NAVIGATION,myVisibleFiles);
@@ -8,17 +8,6 @@ synchronized (myLock) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("analysis_setSubscriptions, subscriptions:\n" + subscriptions);
     }
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.analysis_setSubscriptions(subscriptions);
-      }
-    }
-,"analysis_setSubscriptions(" + subscriptions + ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return false;
-    }
-    return true;
+    myServer.analysis_setSubscriptions(subscriptions);
   }
 }

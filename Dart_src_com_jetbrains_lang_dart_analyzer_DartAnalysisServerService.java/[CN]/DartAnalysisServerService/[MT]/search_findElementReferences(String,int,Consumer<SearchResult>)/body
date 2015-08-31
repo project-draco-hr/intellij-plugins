@@ -6,25 +6,16 @@ synchronized (myLock) {
     final Ref<String> searchIdRef=new Ref<String>();
     final Semaphore semaphore=new Semaphore();
     semaphore.down();
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.search_findElementReferences(filePath,offset,true,new FindElementReferencesConsumer(){
-          @Override public void computedElementReferences(          String searchId,          Element element){
-            searchIdRef.set(searchId);
-            semaphore.up();
-          }
-          @Override public void onError(          RequestError requestError){
-            semaphore.up();
-          }
-        }
-);
+    server.search_findElementReferences(filePath,offset,true,new FindElementReferencesConsumer(){
+      @Override public void computedElementReferences(      String searchId,      Element element){
+        searchIdRef.set(searchId);
+        semaphore.up();
+      }
+      @Override public void onError(      RequestError requestError){
+        semaphore.up();
       }
     }
-,"search_findElementReferences(" + filePath + ", "+ offset+ ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return;
-    }
+);
     final long t0=System.currentTimeMillis();
     semaphore.waitFor(FIND_ELEMENT_REFERENCES_TIMEOUT);
     if (semaphore.tryUp()) {
