@@ -1,0 +1,28 @@
+{
+  if (mySourceChange == null)   return;
+  final SourceFileEdit fileEdit=mySourceChange.getEdits().get(0);
+  final String filePath=FileUtil.toSystemIndependentName(fileEdit.getFile());
+  final VirtualFile virtualFile;
+  if (fileEdit.getFileStamp() == -1) {
+    try {
+      final String directoryPath=PathUtil.getParentPath(filePath);
+      if (directoryPath.isEmpty())       throw new IOException("empty folder path");
+      final VirtualFile directory=VfsUtil.createDirectoryIfMissing(directoryPath);
+      if (directory == null)       throw new IOException("failed to create folder " + FileUtil.toSystemDependentName(directoryPath));
+      virtualFile=directory.createChildData(this,PathUtil.getFileName(filePath));
+    }
+ catch (    IOException e) {
+      final String message=DartBundle.message("failed.to.create.file.0.1",FileUtil.toSystemDependentName(filePath),e.getMessage());
+      CommonRefactoringUtil.showErrorHint(project,editor,message,CommonBundle.getErrorTitle(),null);
+      return;
+    }
+  }
+ else {
+    virtualFile=LocalFileSystem.getInstance().findFileByPath(filePath);
+  }
+  if (virtualFile == null)   return;
+  if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project,Collections.singletonList(virtualFile)))   return;
+  final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
+  if (document == null)   return;
+  AssistUtils.applySourceChange(project,mySourceChange);
+}

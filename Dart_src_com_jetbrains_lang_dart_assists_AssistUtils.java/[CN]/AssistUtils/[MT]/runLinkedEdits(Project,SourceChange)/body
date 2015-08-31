@@ -1,0 +1,40 @@
+{
+  final ChangeTarget target=findChangeTarget(project,sourceChange);
+  if (target == null) {
+    return;
+  }
+  final Editor editor=navigate(project,target.virtualFile,target.offset);
+  if (editor == null) {
+    return;
+  }
+  PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
+  final TemplateBuilderImpl builder=(TemplateBuilderImpl)TemplateBuilderFactory.getInstance().createTemplateBuilder(target.psiFile);
+  boolean hasTextRanges=false;
+  int groupIndex=0;
+  for (  LinkedEditGroup group : sourceChange.getLinkedEditGroups()) {
+    String mainVar="group_" + groupIndex++;
+    boolean firstPosition=true;
+    groupIndex++;
+    for (    Position position : group.getPositions()) {
+      if (position.getFile().equals(target.path)) {
+        hasTextRanges=true;
+        final int offset=position.getOffset();
+        final int end=offset + group.getLength();
+        final TextRange range=new TextRange(offset,end);
+        if (firstPosition) {
+          firstPosition=false;
+          final String text=editor.getDocument().getText(range);
+          DartLookupExpression expression=new DartLookupExpression(text,group.getSuggestions());
+          builder.replaceRange(range,mainVar,expression,true);
+        }
+ else {
+          final String positionVar=mainVar + "_" + offset;
+          builder.replaceElement(range,positionVar,mainVar,false);
+        }
+      }
+    }
+  }
+  if (hasTextRanges) {
+    builder.run(editor,true);
+  }
+}
