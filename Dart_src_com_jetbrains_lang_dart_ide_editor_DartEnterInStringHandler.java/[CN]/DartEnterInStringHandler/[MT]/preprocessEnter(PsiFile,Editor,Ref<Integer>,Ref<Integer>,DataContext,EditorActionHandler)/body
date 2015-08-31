@@ -8,21 +8,33 @@
   Document document=editor.getDocument();
   ASTNode token=psiAtOffset.getNode();
   IElementType type=token.getElementType();
+  if (type == DartTokenTypes.RAW_SINGLE_QUOTED_STRING) {
+    char quote=token.getText().charAt(1);
+    breakString("r" + quote,String.valueOf(quote),caretOffsetRef,caretAdvanceRef,document);
+    return Result.Default;
+  }
   if (type == DartTokenTypes.REGULAR_STRING_PART) {
     token=token.getTreeNext();
+    if (token == null)     return Result.Continue;
     type=token.getElementType();
+    if (type == DartTokenTypes.SHORT_TEMPLATE_ENTRY) {
+      token=psiAtOffset.getNode().getTreePrev();
+      if (token == null)       return Result.Continue;
+      if (token.getElementType() == DartTokenTypes.OPEN_QUOTE) {
+        String quote=token.getText().trim();
+        if (quote.length() == 1) {
+          breakString(quote,quote,caretOffsetRef,caretAdvanceRef,document);
+          return Result.Default;
+        }
+      }
+    }
   }
   if (type == DartTokenTypes.CLOSING_QUOTE) {
-    char literalStart=token.getText().charAt(0);
-    StringBuilder quotes=new StringBuilder();
-    quotes.append(literalStart);
-    quotes.append(literalStart);
-    document.insertString(caretOffset,quotes.toString());
-    caretOffset++;
-    caretAdvance++;
-    caretOffsetRef.set(caretOffset);
-    caretAdvanceRef.set(caretAdvance);
-    return Result.Default;
+    String quote=token.getText().trim();
+    if (quote.length() == 1) {
+      breakString(quote,quote,caretOffsetRef,caretAdvanceRef,document);
+      return Result.Default;
+    }
   }
   return Result.Continue;
 }
