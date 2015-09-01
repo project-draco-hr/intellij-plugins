@@ -1,24 +1,12 @@
 {
-  final Ref<JSFunction> result=Ref.create();
-  if (expression instanceof JSReferenceExpression) {
-    final String name=((JSReferenceExpression)expression).getReferenceName();
-    expression.getContainingFile().accept(new JSRecursiveWalkingElementVisitor(){
-      @Override public void visitJSFunctionExpression(      JSFunctionExpression node){
-        checkFunction(node);
-        super.visitJSFunctionExpression(node);
-      }
-      public void checkFunction(      JSFunction node){
-        if (StringUtil.equals(name,node.getName())) {
-          result.set(node);
-          stopWalking();
-        }
-      }
-      @Override public void visitJSFunctionDeclaration(      JSFunction node){
-        checkFunction(node);
-        super.visitJSFunctionDeclaration(node);
-      }
+  final String name=expression instanceof JSReferenceExpression ? ((JSReferenceExpression)expression).getReferenceName() : null;
+  if (name != null) {
+    ASTNode node=expression.getNode();
+    final JSTreeUtil.JSScopeDeclarationsAndAssignments declaration=JSTreeUtil.getDeclarationsAndAssignmentsInScopeAndUp(name,node);
+    CompositeElement definition=declaration != null ? declaration.findNearestDefinition(node) : null;
+    if (definition != null && JSElementTypes.FUNCTION_DECLARATIONS.contains(definition.getElementType())) {
+      return (JSFunction)definition.getPsi();
     }
-);
   }
-  return result.get();
+  return null;
 }
