@@ -1,7 +1,21 @@
 {
-  for (  String suffix : FILE_NAME_SUFFIXES) {
-    if (StringUtil.endsWith(filename,suffix)) {
-      return true;
+  int len=filename.length();
+  int extensionInd=StringUtil.lastIndexOf(filename,'.',0,len);
+  if (extensionInd == -1) {
+    return false;
+  }
+  boolean extMatched=false;
+  for (  String ext : EXTENSIONS) {
+    if (ext.length() == len - extensionInd - 1 && StringUtil.endsWith(filename,ext)) {
+      extMatched=true;
+      break;
+    }
+  }
+  if (extMatched) {
+    for (    String beforeExt : BEFORE_EXT_PARTS) {
+      if (CharArrayUtil.regionMatches(filename,extensionInd - beforeExt.length(),beforeExt)) {
+        return true;
+      }
     }
   }
   return false;

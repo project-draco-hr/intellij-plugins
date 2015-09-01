@@ -1,0 +1,17 @@
+{
+  GlobalSearchScope contentScope=ProjectScope.getContentScope(project);
+  GlobalSearchScope scope=contentScope.intersectWith(GlobalSearchScope.notScope(ProjectScope.getLibrariesScope(project)));
+  List<VirtualFile> result=ContainerUtil.newArrayList();
+  List<FileType> fileTypes=JavaScriptFileType.getFileTypesCompilableToJavaScript();
+  for (  FileType type : fileTypes) {
+    Collection<VirtualFile> files=FileTypeIndex.getFiles(type,scope);
+    for (    VirtualFile file : files) {
+      if (file != null && file.isValid() && !file.isDirectory() && isKarmaConfigFile(file.getNameSequence())) {
+        if (!JSLibraryUtil.isProbableLibraryFile(file)) {
+          result.add(file);
+        }
+      }
+    }
+  }
+  return result;
+}
