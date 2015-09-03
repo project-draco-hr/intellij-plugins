@@ -1,0 +1,43 @@
+{
+  if (!haveIncorrectModuleDependencies())   return;
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      final Collection<ModifiableRootModel> modelsToCommit=new SmartList<ModifiableRootModel>();
+      for (      final Module module : ModuleManager.getInstance(myProject).getModules()) {
+        boolean hasCorrectDependency=false;
+        boolean needsCorrectDependency=false;
+        final List<OrderEntry> orderEntriesToRemove=new SmartList<OrderEntry>();
+        final ModifiableRootModel model=ModuleRootManager.getInstance(module).getModifiableModel();
+        for (        final OrderEntry orderEntry : model.getOrderEntries()) {
+          if (orderEntry instanceof LibraryOrderEntry && LibraryTablesRegistrar.APPLICATION_LEVEL.equals(((LibraryOrderEntry)orderEntry).getLibraryLevel())) {
+            final String libraryName=((LibraryOrderEntry)orderEntry).getLibraryName();
+            if (libraryName == null)             continue;
+            if (libraryName.equals(DartSdk.DART_SDK_GLOBAL_LIB_NAME)) {
+              hasCorrectDependency=true;
+            }
+ else             if (isDartSdkLibName(libraryName)) {
+              needsCorrectDependency=true;
+              orderEntriesToRemove.add(orderEntry);
+            }
+          }
+        }
+        if (needsCorrectDependency && !hasCorrectDependency || !orderEntriesToRemove.isEmpty()) {
+          if (needsCorrectDependency && !hasCorrectDependency) {
+            model.addInvalidLibrary(DartSdk.DART_SDK_GLOBAL_LIB_NAME,LibraryTablesRegistrar.APPLICATION_LEVEL);
+          }
+          for (          OrderEntry entry : orderEntriesToRemove) {
+            model.removeOrderEntry(entry);
+          }
+          modelsToCommit.add(model);
+        }
+ else {
+          model.dispose();
+        }
+      }
+      if (!modelsToCommit.isEmpty()) {
+        ModifiableModelCommitter.multiCommit(modelsToCommit,ModuleManager.getInstance(myProject).getModifiableModel());
+      }
+    }
+  }
+);
+}
