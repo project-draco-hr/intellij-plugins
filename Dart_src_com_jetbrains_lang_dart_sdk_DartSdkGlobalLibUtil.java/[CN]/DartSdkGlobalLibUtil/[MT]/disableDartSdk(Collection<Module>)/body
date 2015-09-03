@@ -1,0 +1,14 @@
+{
+  if (modules.isEmpty())   return;
+  final List<ModifiableRootModel> models=new SmartList<ModifiableRootModel>();
+  for (  final Module module : modules) {
+    final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    for (    final OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+      if (isDartSdkOrderEntry(orderEntry)) {
+        modifiableModel.removeOrderEntry(orderEntry);
+      }
+    }
+    models.add(modifiableModel);
+  }
+  DartProjectComponent.commitModifiableModels(modules.iterator().next().getProject(),models);
+}

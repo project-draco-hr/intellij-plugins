@@ -13,28 +13,10 @@
  else {
     sdkHome=SDK_HOME_PATH;
   }
-  final String dartSdkGlobalLibName;
-  final DartSdk sdk=DartSdk.getGlobalDartSdk();
-  if (sdk != null && sdk.getHomePath().equals(sdkHome)) {
-    dartSdkGlobalLibName=sdk.getGlobalLibName();
-  }
- else {
-    dartSdkGlobalLibName=ApplicationManager.getApplication().runWriteAction(new Computable<String>(){
-      public String compute(){
-        if (sdk != null) {
-          DartSdkGlobalLibUtil.updateDartSdkGlobalLib(module.getProject(),sdk.getGlobalLibName(),sdkHome);
-          return sdk.getGlobalLibName();
-        }
- else {
-          return DartSdkGlobalLibUtil.createDartSdkGlobalLib(module.getProject(),sdkHome);
-        }
-      }
-    }
-);
-  }
   ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    public void run(){
-      DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkGlobalLibName);
+    @Override public void run(){
+      DartSdkGlobalLibUtil.ensureDartSdkConfigured(sdkHome);
+      DartSdkGlobalLibUtil.enableDartSdk(module);
     }
   }
 );
@@ -43,10 +25,10 @@
       ApplicationManager.getApplication().runWriteAction(new Runnable(){
         @Override public void run(){
           if (!module.isDisposed()) {
-            DartSdkGlobalLibUtil.detachDartSdkGlobalLib(Collections.singletonList(module),dartSdkGlobalLibName);
+            DartSdkGlobalLibUtil.disableDartSdk(Collections.singletonList(module));
           }
-          LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
-          Library library=model.getLibraryByName(dartSdkGlobalLibName);
+          final LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
+          final Library library=model.getLibraryByName(DartSdk.DART_SDK_GLOBAL_LIB_NAME);
           if (library != null) {
             model.removeLibrary(library);
             model.commit();
