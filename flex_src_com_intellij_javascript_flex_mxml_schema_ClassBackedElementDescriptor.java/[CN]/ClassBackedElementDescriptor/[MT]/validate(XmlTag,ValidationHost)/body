@@ -40,13 +40,12 @@
     final MxmlErrorReportingClient reportingClient=new MxmlErrorReportingClient(host);
     if (list != null) {
       ActionScriptAnnotatingVisitor.checkActionScriptImplementedMethods(jsClass,reportingClient);
-      for (      JSReferenceExpression expr : list.getExpressions()) {
-        PsiElement element=expr.resolve();
+      for (      JSClass element : list.getReferencedClasses()) {
         if (element == jsClass) {
           reportingClient.reportError(refToImplementsNode(tag),JSBundle.message("javascript.validation.message.circular.dependency"),JSAnnotatingVisitor.ErrorReportingClient.ProblemKind.ERROR);
           continue;
         }
-        if (element instanceof JSClass && !((JSClass)element).isInterface()) {
+        if (element != null && !element.isInterface()) {
           reportingClient.reportError(refToImplementsNode(tag),JSBundle.message("javascript.validation.message.interface.name.expected.here"),JSAnnotatingVisitor.ErrorReportingClient.ProblemKind.ERROR);
         }
       }
