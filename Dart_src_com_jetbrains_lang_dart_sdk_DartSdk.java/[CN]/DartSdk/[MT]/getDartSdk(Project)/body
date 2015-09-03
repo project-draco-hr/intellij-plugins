@@ -5,10 +5,10 @@
       @NotNull @Override public Result<DartSdk> compute(){
         final DartSdk sdk=getGlobalDartSdk();
         if (sdk == null) {
-          return new Result<DartSdk>(null,ProjectRootManager.getInstance(project));
+          return new Result<DartSdk>(null,DartProjectComponent.getProjectRootsModificationTracker(project));
         }
         List<Object> dependencies=new ArrayList<Object>(3);
-        dependencies.add(ProjectRootManager.getInstance(project));
+        dependencies.add(DartProjectComponent.getProjectRootsModificationTracker(project));
         ContainerUtil.addIfNotNull(dependencies,LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/version"));
         ContainerUtil.addIfNotNull(dependencies,LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/lib/core/core.dart"));
         return new Result<DartSdk>(sdk,ArrayUtil.toObjectArray(dependencies));
