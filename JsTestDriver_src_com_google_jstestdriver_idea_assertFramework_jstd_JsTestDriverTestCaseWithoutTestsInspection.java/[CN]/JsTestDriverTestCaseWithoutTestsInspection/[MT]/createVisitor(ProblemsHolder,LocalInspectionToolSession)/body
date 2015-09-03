@@ -3,9 +3,15 @@
   if (jsFile == null) {
     return JSElementVisitor.NOP_ELEMENT_VISITOR;
   }
+  Project project=holder.getProject();
+  if (!ApplicationManager.getApplication().isUnitTestMode()) {
+    if (!JstdSettingsUtil.areJstdConfigFilesInProjectCached(project)) {
+      return JSElementVisitor.NOP_ELEMENT_VISITOR;
+    }
+  }
   VirtualFile virtualFile=jsFile.getVirtualFile();
   if (virtualFile != null) {
-    boolean inScope=JstdLibraryUtil.isFileInJstdLibScope(holder.getProject(),virtualFile);
+    boolean inScope=JstdLibraryUtil.isFileInJstdLibScope(project,virtualFile);
     if (!inScope) {
       return JSElementVisitor.NOP_ELEMENT_VISITOR;
     }
