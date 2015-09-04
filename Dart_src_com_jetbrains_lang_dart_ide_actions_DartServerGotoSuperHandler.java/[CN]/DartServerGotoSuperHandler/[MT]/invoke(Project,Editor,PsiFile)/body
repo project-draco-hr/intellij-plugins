@@ -5,38 +5,27 @@
   if (inClass == null || inComponent == null || inComponent.getComponentName() == null) {
     return;
   }
-  final DartComponentType inComponentType=DartComponentType.typeOf(inComponent);
+  final boolean isInClass=inComponent instanceof DartClass;
   final String filePath=file.getVirtualFile().getPath();
   final int offset=inComponent.getComponentName().getTextOffset();
   final List<TypeHierarchyItem> items=DartAnalysisServerService.getInstance().search_getTypeHierarchy(filePath,offset,true);
   final List<DartComponent> supers=Lists.newArrayList();
-  boolean first=true;
-  for (  TypeHierarchyItem item : items) {
-    if (first) {
-      first=false;
-      continue;
-    }
-    final Element itemElement;
-    if (inComponentType == DartComponentType.CLASS) {
-      itemElement=item.getClassElement();
-      if (itemElement != null && "Object".equals(itemElement.getName())) {
-        continue;
+  if (!items.isEmpty()) {
+    TypeHierarchyItem seed=items.get(0);
+{
+      final Integer superIndex=seed.getSuperclass();
+      if (superIndex != null) {
+        final TypeHierarchyItem superItem=items.get(superIndex);
+        addSuperComponent(project,supers,isInClass,superItem);
       }
     }
- else {
-      itemElement=item.getMemberElement();
-    }
-    if (itemElement == null) {
-      continue;
-    }
-    final Location itemLocation=itemElement.getLocation();
-    final DartComponent itemComponent=DartServerOverrideMarkerProvider.findDartComponent(project,itemLocation.getFile(),itemLocation.getOffset());
-    if (itemComponent != null) {
-      supers.add(itemComponent);
+    for (    int superIndex : seed.getInterfaces()) {
+      final TypeHierarchyItem superItem=items.get(superIndex);
+      addSuperComponent(project,supers,isInClass,superItem);
     }
   }
   final String title;
-  if (inComponentType == DartComponentType.CLASS) {
+  if (isInClass) {
     title=DartBundle.message("goto.super.class.chooser.title");
   }
  else {
