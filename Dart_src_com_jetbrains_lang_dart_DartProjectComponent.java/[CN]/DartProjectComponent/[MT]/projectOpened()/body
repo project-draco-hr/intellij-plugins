@@ -1,24 +1,16 @@
 {
   StartupManager.getInstance(myProject).runWhenProjectIsInitialized(new Runnable(){
     public void run(){
+      deleteDartSdkGlobalLibConfiguredInVeryOldIde();
+      ensureCorrectDartSdkLibName();
+      updateDependenciesOnDartSdkLib();
       removeJSBreakpointsInDartFiles(myProject);
-      final boolean dartSdkWasEnabledInOldModel=hasJSLibraryMappingToOldDartSdkGlobalLib(myProject);
-      deleteDartSdkGlobalLibConfiguredInOldIde();
-      final String dartSdkGlobalLibName=importKnowledgeAboutOldDartSdkAndReturnGlobalLibName(myProject);
       DartiumUtil.removeUnsupportedAsyncFlag();
       final Collection<VirtualFile> pubspecYamlFiles=FilenameIndex.getVirtualFilesByName(myProject,PUBSPEC_YAML,GlobalSearchScope.projectScope(myProject));
       for (      VirtualFile pubspecYamlFile : pubspecYamlFiles) {
         final Module module=ModuleUtilCore.findModuleForFile(pubspecYamlFile,myProject);
         if (module != null && FileTypeIndex.containsFileOfType(DartFileType.INSTANCE,module.getModuleContentScope())) {
           excludeBuildAndPackagesFolders(module,pubspecYamlFile);
-          if (dartSdkGlobalLibName != null && dartSdkWasEnabledInOldModel && ModuleType.get(module) instanceof WebModuleTypeBase && !DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,dartSdkGlobalLibName)) {
-            ApplicationManager.getApplication().runWriteAction(new Runnable(){
-              public void run(){
-                DartSdkGlobalLibUtil.configureDependencyOnGlobalLib(module,dartSdkGlobalLibName);
-              }
-            }
-);
-          }
         }
       }
     }

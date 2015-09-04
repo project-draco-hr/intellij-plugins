@@ -1,0 +1,14 @@
+{
+  final Library library=ApplicationLibraryTable.getApplicationTable().getLibraryByName(DartSdk.DART_SDK_GLOBAL_LIB_NAME);
+  if (library == null) {
+    final LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
+    createDartSdkGlobalLib(model,sdkHomePath);
+    model.commit();
+  }
+ else {
+    final DartSdk sdk=DartSdk.getSdkByLibrary(library);
+    if (sdk == null || !sdkHomePath.equals(sdk.getHomePath())) {
+      setupDartSdkRoots(library,sdkHomePath);
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  final List<ModifiableRootModel> modelsToCommit=new SmartList<ModifiableRootModel>();
+  for (  final Module module : ModuleManager.getInstance(project).getModules()) {
+    final boolean mustHaveDart=ArrayUtil.contains(module,modulesWithDart);
+    boolean hasDart=false;
+    final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    for (    final OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+      if (isDartSdkOrderEntry(orderEntry)) {
+        hasDart=true;
+        if (!mustHaveDart) {
+          modifiableModel.removeOrderEntry(orderEntry);
+        }
+      }
+    }
+    if (mustHaveDart && !hasDart) {
+      modifiableModel.addInvalidLibrary(DartSdk.DART_SDK_GLOBAL_LIB_NAME,LibraryTablesRegistrar.APPLICATION_LEVEL);
+    }
+    if (modifiableModel.isChanged()) {
+      modelsToCommit.add(modifiableModel);
+    }
+ else {
+      modifiableModel.dispose();
+    }
+  }
+  DartProjectComponent.commitModifiableModels(project,modelsToCommit);
+}

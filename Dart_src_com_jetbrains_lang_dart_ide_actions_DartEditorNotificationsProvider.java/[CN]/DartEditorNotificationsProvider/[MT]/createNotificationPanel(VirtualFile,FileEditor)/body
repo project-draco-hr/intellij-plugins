@@ -5,7 +5,7 @@
   if (PubspecYamlUtil.PUBSPEC_YAML.equalsIgnoreCase(vFile.getName())) {
     final DartSdk sdk=DartSdk.getDartSdk(myProject);
     final Module module=ModuleUtilCore.findModuleForFile(vFile,myProject);
-    if (module != null && sdk != null && DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+    if (module != null && sdk != null && DartSdkGlobalLibUtil.isDartSdkEnabled(module)) {
       return new PubActionsPanel();
     }
   }
@@ -23,10 +23,10 @@
     if (psiFile == null)     return null;
     final Module module=ModuleUtilCore.findModuleForPsiElement(psiFile);
     if (module == null)     return null;
-    if (!DartSdkGlobalLibUtil.isDartSdkGlobalLibAttached(module,sdk.getGlobalLibName())) {
+    if (!DartSdkGlobalLibUtil.isDartSdkEnabled(module)) {
       final String message=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? DartBundle.message("dart.support.is.not.enabled.for.module.0",module.getName()) : DartBundle.message("dart.support.is.not.enabled.for.project");
       final EditorNotificationPanel panel=new EditorNotificationPanel().icon(DartIcons.Dart_16).text(message);
-      panel.createActionLabel(DartBundle.message("enable.dart.support"),new EnableDartSupportForModule(module,sdk.getGlobalLibName()));
+      panel.createActionLabel(DartBundle.message("enable.dart.support"),new EnableDartSupportForModule(module));
       panel.createActionLabel(DartBundle.message("open.dart.settings"),new OpenDartSettingsRunnable(myProject));
       return panel;
     }
