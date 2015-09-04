@@ -1,0 +1,23 @@
+{
+  final Map<String,Class> result=new HashMap<String,Class>();
+  for (  Class clazz : classes) {
+    final String name=clazz.getName();
+    final int i=name.indexOf(RNameUtilCore.SYMBOL_DELIMITER);
+    if (i < 0) {
+      result.put(name,clazz);
+      continue;
+    }
+    final String containerName=name.substring(0,i);
+    Class container=result.get(containerName);
+    if (container == null) {
+      container=new Class(containerName);
+      result.put(containerName,container);
+    }
+    clazz.myName=name.substring(i + 2);
+    container.mySubClasses.put(clazz.getName(),clazz);
+  }
+  for (  Class container : result.values()) {
+    container.mySubClasses=mergeClasses(container.mySubClasses.values());
+  }
+  return result;
+}

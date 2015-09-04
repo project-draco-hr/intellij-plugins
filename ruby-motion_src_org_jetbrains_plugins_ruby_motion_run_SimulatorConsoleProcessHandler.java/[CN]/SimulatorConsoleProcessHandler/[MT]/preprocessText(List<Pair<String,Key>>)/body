@@ -1,0 +1,29 @@
+{
+  final List<Pair<String,Key>> textToProcess=ContainerUtil.newArrayList();
+  for (  final Pair<String,Key> chunk : textChunks) {
+    final String text=chunk.getFirst();
+    final Key attributes=chunk.getSecond();
+    mySimulateStarted|=text.contains(isOSX ? "Run" : "Simulate");
+    final String[] lines=text.split("\r");
+    findPid(lines,mySimulateStarted,myPIDResult);
+    if (attributes != ProcessOutputTypes.STDOUT) {
+      textToProcess.add(Pair.create(text,attributes));
+      continue;
+    }
+    for (    final String line : lines) {
+      if (StringUtil.isEmpty(line.trim()))       continue;
+      if (StringUtil.equals(myLastMatched,line))       continue;
+      final Matcher matcher=PROMPT.matcher(line);
+      if (matcher.matches()) {
+        final String prompt=matcher.group(1);
+        getConsole().setPrompt(prompt);
+        myLastMatched=line;
+      }
+ else {
+        textToProcess.add(Pair.create(line,attributes));
+        myLastMatched=null;
+      }
+    }
+  }
+  return textToProcess;
+}

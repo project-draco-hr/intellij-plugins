@@ -1,0 +1,21 @@
+{
+  if (super.hasStructType(value,context)) {
+    return true;
+  }
+  final CidrStackFrame.CachedTypeInfo typeInfo=value.getFrame().getTypeInfo(value.getType());
+  if (typeInfo.isStruct() != null) {
+    return typeInfo.isStruct();
+  }
+  final String type=value.getType();
+  final Module module=RubyMotionUtil.getInstance().getModuleWithMotionSupport(myProcess.getProject());
+  if (module == null)   return false;
+  final Symbol symbol=ApplicationManager.getApplication().runReadAction(new Computable<Symbol>(){
+    @Override public Symbol compute(){
+      return RubyMotionSymbolProvider.findClassOrStruct(module,((RubyMotionUtilImpl)RubyMotionUtil.getInstance()).getFrameworks(module),Collections.singletonList(type));
+    }
+  }
+);
+  final boolean isStruct=symbol instanceof StructSymbol;
+  typeInfo.setStruct(isStruct);
+  return isStruct;
+}

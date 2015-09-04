@@ -1,0 +1,29 @@
+{
+  if (ApplicationManager.getApplication().isUnitTestMode() || !SystemInfo.isMac) {
+    return "6.0";
+  }
+  if (projectType == ProjectType.ANDROID) {
+    return "9";
+  }
+  final boolean osx=projectType == ProjectType.OSX;
+  if ((osx && DEFAULT_OSX_SDK_VERSION == null) || DEFAULT_IOS_SDK_VERSION == null) {
+    final File sdks=Xcode.getSubFile("Platforms/" + (osx ? "" : "iPhoneOS") + ".platform/Developer/SDKs/");
+    final String[] list=sdks.list();
+    String version=osx ? "10.7" : "4.3";
+    final String prefix=osx ? OSX_SDK_PREFIX : IOS_SDK_PREFIX;
+    if (list != null) {
+      for (      String sdk : list) {
+        if (sdk.startsWith(prefix) && sdk.endsWith(SDK_SUFFIX)) {
+          version=VersionComparatorUtil.max(version,sdk.substring(prefix.length()).substring(0,sdk.length() - prefix.length() - SDK_SUFFIX.length()));
+        }
+      }
+    }
+    if (osx) {
+      DEFAULT_OSX_SDK_VERSION=version;
+    }
+ else {
+      DEFAULT_IOS_SDK_VERSION=version;
+    }
+  }
+  return osx ? DEFAULT_OSX_SDK_VERSION : DEFAULT_IOS_SDK_VERSION;
+}

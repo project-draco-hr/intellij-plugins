@@ -1,0 +1,17 @@
+{
+  if (!RubyMotionUtil.getInstance().hasMacRubySupport(file))   return Collections.emptySet();
+  final VirtualFile vFile=file.getVirtualFile();
+  final boolean isTestFile=vFile != null && vFile.getPath().contains("/spec/");
+  final LinkedHashSet<VirtualFile> result=new LinkedHashSet<VirtualFile>();
+  final Collection<VirtualFile> loadPath=getLoadPath(module,file);
+  for (  VirtualFile path : loadPath) {
+    if (path.getPath().startsWith(RubyMotionUtil.getInstance().getRubyMotionPath())) {
+      if (isTestFile) {
+        addIfNotNull(result,path.findFileByRelativePath("motion/spec.rb"));
+      }
+      continue;
+    }
+    RubyVirtualFileScanner.addRubyFiles(path,result);
+  }
+  return result;
+}

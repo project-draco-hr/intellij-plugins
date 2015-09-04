@@ -1,0 +1,20 @@
+{
+  final StringBuilder text=new StringBuilder();
+  text.append("def ");
+  text.append(MotionSymbolUtil.getSelectorNames(function).get(0));
+  final List<Pair<String,String>> arguments=function.getArguments();
+  if (arguments.size() > 0) {
+    final CodeStyleSettings settings=CodeStyleSettingsManager.getSettings(project);
+    final boolean generateParenthesesAroundArguments=settings.PARENTHESES_AROUND_METHOD_ARGUMENTS;
+    text.append(generateParenthesesAroundArguments ? "(" : " ");
+    text.append(arguments.get(0).first);
+    final String[] namedArguments=function.getName().split(":");
+    for (int i=1; i < namedArguments.length; i++) {
+      String argument=namedArguments[i];
+      text.append(", ").append(argument).append(":").append(arguments.get(i).first);
+    }
+    text.append(generateParenthesesAroundArguments ? ")" : "");
+  }
+  text.append("\n").append("  super\nend\n");
+  return RubyElementFactory.createElementFromText(project,text.toString(),languageLevel);
+}
