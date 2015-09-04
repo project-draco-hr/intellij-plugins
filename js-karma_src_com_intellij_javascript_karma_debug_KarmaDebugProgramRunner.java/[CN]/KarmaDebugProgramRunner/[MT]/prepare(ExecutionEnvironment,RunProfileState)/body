@@ -5,6 +5,9 @@
     return Promise.resolve(null);
   }
   final KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult,state);
+  if (consoleView == null) {
+    return Promise.resolve(KarmaUtil.createDefaultRunProfileStarter(executionResult));
+  }
   final KarmaServer karmaServer=consoleView.getKarmaExecutionSession().getKarmaServer();
   if (karmaServer.areBrowsersReady()) {
     KarmaDebugBrowserSelector browserSelector=new KarmaDebugBrowserSelector(karmaServer.getCapturedBrowsers(),environment,consoleView);
@@ -35,8 +38,7 @@
  else {
     return Promise.<RunProfileStarter>resolve(new RunProfileStarter(){
       @Nullable @Override public RunContentDescriptor execute(      @NotNull RunProfileState state,      @NotNull ExecutionEnvironment env){
-        RunContentBuilder contentBuilder=new RunContentBuilder(executionResult,env);
-        final RunContentDescriptor descriptor=contentBuilder.showRunContent(env.getContentToReuse());
+        final RunContentDescriptor descriptor=KarmaUtil.createDefaultDescriptor(executionResult,env);
         karmaServer.onBrowsersReady(new Runnable(){
           @Override public void run(){
             ExecutionUtil.restartIfActive(descriptor);
