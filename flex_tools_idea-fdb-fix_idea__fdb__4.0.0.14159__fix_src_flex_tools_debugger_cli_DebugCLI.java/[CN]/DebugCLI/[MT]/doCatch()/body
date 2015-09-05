@@ -1,0 +1,42 @@
+{
+  waitTilHalted();
+  String typeToCatch=null;
+  if (!hasMoreTokens()) {
+    err("Catch requires an exception name.");
+    return;
+  }
+  typeToCatch=nextToken();
+  if (typeToCatch == null || typeToCatch.length() == 0) {
+    err("Illegal argument");
+    return;
+  }
+  Value type=null;
+  if (typeToCatch.equals("*")) {
+    typeToCatch=null;
+  }
+ else {
+    type=getSession().getGlobal(typeToCatch);
+    if (type == null) {
+      err("Type not found.");
+      return;
+    }
+    String typeName=type.getTypeName();
+    int at=typeName.indexOf('@');
+    if (at != -1)     typeName=typeName.substring(0,at);
+    if (!typeName.endsWith("$")) {
+      err("Not a type: " + type);
+      return;
+    }
+  }
+  CatchAction c;
+  try {
+    c=addCatch(typeToCatch);
+  }
+ catch (  NotSupportedException e) {
+    e.printStackTrace();
+    return;
+  }
+  Map<String,Object> args=new HashMap<String,Object>();
+  args.put("id",c.getId());
+  c.getId();
+}

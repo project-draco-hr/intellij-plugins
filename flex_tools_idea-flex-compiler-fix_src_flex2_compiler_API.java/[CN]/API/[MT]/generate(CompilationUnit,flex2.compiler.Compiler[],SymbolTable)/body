@@ -1,0 +1,22 @@
+{
+  Source s=u.getSource();
+  if (!s.isCompiled()) {
+    flex2.compiler.Compiler c=getCompiler(s,compilers);
+    if (c != null) {
+      Logger original=ThreadLocalToolkit.getLogger(), local=s.getLogger();
+      ThreadLocalToolkit.setLogger(local);
+      c.generate(u,symbolTable);
+      if (u.bytes.size() > 0) {
+        u.setState(CompilationUnit.abc);
+      }
+      ThreadLocalToolkit.setLogger(original);
+      if (local.errorCount() > 0) {
+        return false;
+      }
+    }
+ else {
+      return false;
+    }
+  }
+  return true;
+}

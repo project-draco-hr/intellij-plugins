@@ -1,0 +1,13 @@
+{
+  if (StringUtil.isEmpty(className)) {
+    throw new RuntimeConfigurationError(FlexBundle.message("test.class.not.specified"));
+  }
+  final PsiElement classToTest=ActionScriptClassResolver.findClassByQNameStatic(className,searchScope);
+  if (!(classToTest instanceof JSClass)) {
+    throw new RuntimeConfigurationError(FlexBundle.message("class.not.found",className));
+  }
+  if (!flexUnitSupport.isTestClass((JSClass)classToTest,allowSuite)) {
+    throw new RuntimeConfigurationError(FlexBundle.message("class.contains.no.tests",className));
+  }
+  return (JSClass)classToTest;
+}

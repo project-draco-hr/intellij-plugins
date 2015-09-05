@@ -1,0 +1,21 @@
+{
+  for (  VirtualFile libFile : libClassRoots) {
+    libFile=FlexCompilerHandler.getRealFile(libFile);
+    if (libFile == null)     continue;
+    if (libFile.isDirectory()) {
+      addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,libFile.getPath());
+    }
+ else {
+      if ("ane".equalsIgnoreCase(libFile.getExtension())) {
+        addLib(rootElement,libFile.getPath(),LinkageType.External);
+      }
+ else       if ("swc".equalsIgnoreCase(libFile.getExtension())) {
+        final String libFileName=libFile.getName().toLowerCase();
+        if (libFileName.startsWith("airglobal") && !libFileName.equals("airglobal.swc") || libFileName.startsWith("playerglobal") && !libFileName.equals("playerglobal.swc")) {
+          continue;
+        }
+        addLib(rootElement,libFile.getPath(),linkageType);
+      }
+    }
+  }
+}

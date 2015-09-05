@@ -1,0 +1,11 @@
+{
+  Pair<Long,ComponentFromCatalogXml[]> modStampAndComponents=catalogFile.getUserData(MOD_STAMP_AND_COMPONENTS_FROM_CATALOG_XML);
+  if (modStampAndComponents == null || modStampAndComponents.first != catalogFile.getModificationStamp()) {
+    final ComponentFromCatalogXml[] componentsFromCatalogXml=parseComponentsFromCatalogXml(catalogFile);
+    modStampAndComponents=Pair.create(catalogFile.getModificationStamp(),componentsFromCatalogXml);
+    catalogFile.putUserData(MOD_STAMP_AND_COMPONENTS_FROM_CATALOG_XML,modStampAndComponents);
+  }
+  for (  final ComponentFromCatalogXml componentFromCatalogXml : modStampAndComponents.second) {
+    consumer.consume(componentFromCatalogXml);
+  }
+}

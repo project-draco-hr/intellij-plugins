@@ -1,0 +1,24 @@
+{
+  Map<Key,Object> cachesMap=processingContext != null ? (Map<Key,Object>)processingContext.get(this) : null;
+  PsiElement type=ourResolvedTypeKey.get(cachesMap);
+  JSClass clazz=null;
+  if (type == null) {
+    type=lOpType.resolveClass();
+    ourResolvedTypeKey.set(cachesMap,type != null ? type : PsiUtilCore.NULL_PSI_ELEMENT);
+  }
+ else   if (type == PsiUtilCore.NULL_PSI_ELEMENT) {
+    type=null;
+  }
+  if (type instanceof JSClass)   clazz=(JSClass)type;
+  JSClass jsClass=rOpType.resolveClass();
+  if (jsClass == null && rOpType instanceof JSTypeImpl || rOpType instanceof JSSpecialNamedTypeImpl) {
+    return areNamedTypesAssignable(lOpType,(JSNamedType)rOpType,processingContext);
+  }
+  if (jsClass != null && clazz != null) {
+    return JSInheritanceUtil.isParentClass(jsClass,clazz,false,jsClass);
+  }
+  if (clazz == null) {
+    return false;
+  }
+  return true;
+}

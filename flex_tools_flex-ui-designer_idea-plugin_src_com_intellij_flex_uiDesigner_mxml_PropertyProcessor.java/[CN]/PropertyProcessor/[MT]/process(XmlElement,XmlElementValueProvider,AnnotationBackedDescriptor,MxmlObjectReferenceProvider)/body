@@ -1,0 +1,54 @@
+{
+  if (descriptor.isPredefined()) {
+    LOG.error("unknown language element " + descriptor.getName());
+    return null;
+  }
+  name=descriptor.getName();
+  isStyle=descriptor.isStyle();
+  isEffect=false;
+  final @Nullable String type=descriptor.getType();
+  final String typeName=descriptor.getTypeName();
+  if (type == null) {
+    if (typeName.equals(FlexAnnotationNames.EFFECT)) {
+      isStyle=true;
+      isEffect=true;
+    }
+ else {
+      if (!typeName.equals(FlexAnnotationNames.BINDABLE) && !typeName.equals(FlexAnnotationNames.EVENT)) {
+        LOG.error("unsupported element: " + element.getText());
+      }
+      return null;
+    }
+  }
+ else   if (type.equals(JSCommonTypeNames.FUNCTION_CLASS_NAME)) {
+    if (name.equals("itemRendererFunction")) {
+      if (MxmlUtil.isPropertyOfSparkDataGroup(descriptor)) {
+        name="itemRenderer";
+        return new ValueWriter(){
+          @Override public PropertyKind write(          AnnotationBackedDescriptor descriptor,          XmlElementValueProvider valueProvider,          PrimitiveAmfOutputStream out,          BaseWriter writer,          boolean isStyle,          Context parentContext){
+            writeNonProjectClassFactory(MxmlUtil.UNKNOWN_ITEM_RENDERER_CLASS_NAME);
+            return PRIMITIVE;
+          }
+        }
+;
+      }
+    }
+  }
+ else   if (typeName.equals(FlexAnnotationNames.EVENT)) {
+    return null;
+  }
+  ValueWriter valueWriter=processInjected(valueProvider,descriptor,isStyle,objectReferenceProvider);
+  if (valueWriter != null) {
+    return valueWriter == InjectedASWriter.IGNORE ? null : valueWriter;
+  }
+ else   if (descriptor.isAllowsPercentage()) {
+    return processPercentable(valueProvider,descriptor);
+  }
+ else   if (isSkinClass(descriptor)) {
+    valueWriter=getSkinProjectClassValueWriter(getSkinProjectClassDocumentFactoryId(valueProvider));
+    if (valueWriter != null) {
+      return valueWriter;
+    }
+  }
+  return this;
+}

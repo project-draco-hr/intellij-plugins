@@ -1,0 +1,39 @@
+{
+  final XmlAttribute xmlAttribute=getXmlAttribute(psiFile,editor);
+  final String eventType=xmlAttribute == null ? null : getEventType(xmlAttribute);
+  if (eventType != null) {
+    inMxmlEventAttributeValue=true;
+    prepareForMxmlEventAttributeValue(xmlAttribute,eventType);
+    return;
+  }
+  final JSCallExpression callExpression=getEventListenerCallExpression(psiFile,editor);
+  if (callExpression != null) {
+    inEventListenerCall=true;
+    prepareForEventListenerCall(callExpression);
+    return;
+  }
+  final Trinity<JSExpressionStatement,String,String> eventConstantInfo=getEventConstantInfo(psiFile,editor);
+  if (eventConstantInfo != null) {
+    inEventConstantExpression=true;
+    eventConstantExpression=eventConstantInfo.first;
+    eventClassFqn=eventConstantInfo.second;
+    final String eventName=eventConstantInfo.third;
+    eventHandlerName=eventName + "Handler";
+    eventHandlerName2="on" + (eventName.isEmpty() ? "Event" : Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1));
+    return;
+  }
+  final Module module=ModuleUtil.findModuleForPsiElement(psiFile);
+  if (module != null && !ApplicationManager.getApplication().isUnitTestMode()) {
+    final GlobalSearchScope scope=GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
+    final JSClassChooserDialog dialog=new JSClassChooserDialog(module.getProject(),FlexBundle.message("choose.event.class.title"),scope,getEventBaseClass(),new PublicInheritorFilter(module.getProject(),FlexCommonTypeNames.FLASH_EVENT_FQN,scope,false));
+    if (dialog.showDialog()) {
+      final JSClass selectedClass=dialog.getSelectedClass();
+      if (selectedClass != null) {
+        eventClassFqn=selectedClass.getQualifiedName();
+      }
+    }
+ else {
+      userCancelled=true;
+    }
+  }
+}

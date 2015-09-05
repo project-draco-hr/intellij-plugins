@@ -1,0 +1,16 @@
+{
+  if (descriptor instanceof ClassBackedElementDescriptor) {
+    PsiElement declaration=descriptor.getDeclaration();
+    PsiFile psiFile=declaration.getContainingFile();
+    VirtualFile virtualFile=psiFile.getVirtualFile();
+    MxmlWriter.LOG.assertTrue(virtualFile != null);
+    if (JavaScriptSupportLoader.isFxgFile(virtualFile)) {
+      out.write(AmfExtendedTypes.REFERABLE);
+      mxmlWriter.processIdAttributeOfFxTag(tag,parentContext,allowIncludeInExcludeFrom);
+      out.write(AmfExtendedTypes.SWF);
+      out.writeUInt29(EmbedSwfManager.getInstance().add(virtualFile,EmbedSwfManager.FXG_MARKER,writer.getAssetCounter()));
+      return true;
+    }
+  }
+  return false;
+}

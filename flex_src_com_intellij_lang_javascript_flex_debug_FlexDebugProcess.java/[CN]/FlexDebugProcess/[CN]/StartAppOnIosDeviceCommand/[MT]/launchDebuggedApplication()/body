@@ -1,0 +1,23 @@
+{
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      final String adtVersion=AirPackageUtil.getAdtVersion(myModule.getProject(),myBC.getSdk());
+      if (StringUtil.compareVersionNumbers(adtVersion,"3.4") >= 0) {
+        final String message=FlexBundle.message("ios.application.installed.to.debug",myAppName);
+        ToolWindowManager.getInstance(myModule.getProject()).notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,message);
+      }
+ else {
+        final String ipaName=myBC.getIosPackagingOptions().getPackageFileName() + ".ipa";
+        final String outputFolder=PathUtil.getParentPath(myBC.getActualOutputFilePath());
+        final String message=FlexBundle.message("ios.application.packaged.to.debug",ipaName);
+        ToolWindowManager.getInstance(myModule.getProject()).notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,message,null,new HyperlinkAdapter(){
+          @Override protected void hyperlinkActivated(          final HyperlinkEvent e){
+            ShowFilePathAction.openFile(new File(outputFolder + "/" + ipaName));
+          }
+        }
+);
+      }
+    }
+  }
+);
+}

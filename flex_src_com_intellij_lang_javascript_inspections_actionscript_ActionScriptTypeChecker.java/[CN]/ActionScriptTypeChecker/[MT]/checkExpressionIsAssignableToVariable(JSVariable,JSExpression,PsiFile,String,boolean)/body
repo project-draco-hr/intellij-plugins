@@ -1,0 +1,59 @@
+{
+  final JSType type=p.getType();
+  Pair<Annotation,String> annotationAndExprType=checkExpressionIsAssignableToType(expr,type,problemKey,allowChangeVariableTypeFix ? p : null);
+  if (annotationAndExprType != null && p.getParent() instanceof JSParameterList && expr.getParent() instanceof JSArgumentList && !JSCommonTypeNames.VOID_TYPE_NAME.equals(annotationAndExprType.second)) {
+    JSFunction method=(JSFunction)p.getParent().getParent();
+    JSFunction topMethod=JSInheritanceUtil.findTopMethods(method).iterator().next();
+    annotationAndExprType.first.registerFix(new ChangeSignatureFix(topMethod,((JSArgumentList)expr.getParent()).getArguments()));
+  }
+  PsiElement _fun;
+  if (annotationAndExprType == null && type != null && FUNCTION_CLASS_NAME.equals(type.getResolvedTypeText()) && p instanceof JSParameter && "addEventListener".equals(((JSFunction)p.getParent().getParent()).getName()) && ((expr instanceof JSReferenceExpression && (_fun=((JSReferenceExpression)expr).resolve()) instanceof JSFunction) || (expr instanceof JSFunctionExpression && (_fun=expr) != null))) {
+    JSFunction fun=(JSFunction)_fun;
+    JSParameterList parameterList=fun.getParameterList();
+    if (parameterList != null) {
+      JSParameter[] parameters=parameterList.getParameters();
+      boolean invalidArgs=parameters.length == 0;
+      if (!invalidArgs && parameters.length > 1) {
+        for (int i=parameters.length - 1; i > 0; --i) {
+          if (!parameters[i].isRest() && parameters[i].getInitializer() == null) {
+            invalidArgs=true;
+            break;
+          }
+        }
+      }
+      Computable.NotNullCachedComputable<JSParameterList> expectedParameterListForEventListener=new Computable.NotNullCachedComputable<JSParameterList>(){
+        @NotNull @Override protected JSParameterList internalCompute(){
+          JSClass jsClass=calcNontrivialExpectedEventType(expr);
+          ASTNode treeFromText=JSChangeUtil.createJSTreeFromText(expr.getProject(),"function f(event:" + (jsClass != null ? jsClass.getQualifiedName() : FlexCommonTypeNames.FLASH_EVENT_FQN) + ") {}",JavaScriptSupportLoader.ECMA_SCRIPT_L4);
+          return ((JSFunction)treeFromText.getPsi()).getParameterList();
+        }
+      }
+;
+      if (invalidArgs) {
+        PsiElement expr_;
+        if (expr instanceof JSFunctionExpression) {
+          expr_=((JSFunctionExpression)expr).getParameterList();
+        }
+ else {
+          expr_=expr;
+        }
+        registerProblem(expr_,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.WEAK_WARNING,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+      }
+ else {
+        final JSClass expectedEventClass=calcNontrivialExpectedEventType(expr);
+        JSType paramType=parameters[0].getType();
+        final String actualParameterType=paramType != null ? paramType.getResolvedTypeText() : null;
+        if (expectedEventClass == null) {
+          if (!JSResolveUtil.isAssignableType(FlexCommonTypeNames.FLASH_EVENT_FQN,actualParameterType,parameters[0]) && !JSResolveUtil.isAssignableType(FlexCommonTypeNames.STARLING_EVENT_FQN,actualParameterType,parameters[0])) {
+            registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch"),ProblemHighlightType.WEAK_WARNING,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+          }
+        }
+ else {
+          if (!JSResolveUtil.isAssignableType(actualParameterType,expectedEventClass.getQualifiedName(),parameters[0])) {
+            registerProblem(expr instanceof JSFunctionExpression ? parameters[0] : expr,JSBundle.message("javascript.callback.signature.mismatch.event.class",expectedEventClass.getQualifiedName()),ProblemHighlightType.WEAK_WARNING,new ChangeSignatureFix(fun,expectedParameterListForEventListener));
+          }
+        }
+      }
+    }
+  }
+}

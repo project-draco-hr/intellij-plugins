@@ -1,0 +1,23 @@
+{
+  if (!visited.add(root))   return null;
+  String qName=root.getQualifiedName();
+  if (qName != null && possibleQNames.contains(qName)) {
+    return qName;
+  }
+  Set<String> includes=ContainerUtil.newLinkedHashSet();
+  FlexCssUtil.collectAllIncludes(root,includes);
+  String fileName=null;
+  for (  String include : includes) {
+    if (possibleQNames.contains(include)) {
+      fileName=include;
+    }
+  }
+  if (fileName != null) {
+    return fileName;
+  }
+  for (  JSClass jsSuper : root.getSupers()) {
+    String result=findJsClassOrFile(jsSuper,visited,possibleQNames);
+    if (result != null)     return result;
+  }
+  return null;
+}

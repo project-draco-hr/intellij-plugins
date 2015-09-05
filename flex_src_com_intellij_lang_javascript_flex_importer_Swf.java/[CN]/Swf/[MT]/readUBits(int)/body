@@ -1,0 +1,24 @@
+{
+  if (numBits == 0)   return 0;
+  int bitsLeft=numBits;
+  int result=0;
+  if (bitPos == 0) {
+    bitBuf=data.readUnsignedByte();
+    bitPos=8;
+  }
+  while (true) {
+    int shift=bitsLeft - bitPos;
+    if (shift > 0) {
+      result|=bitBuf << shift;
+      bitsLeft-=bitPos;
+      bitBuf=data.readUnsignedByte();
+      bitPos=8;
+    }
+ else {
+      result|=bitBuf >> -shift;
+      bitPos-=bitsLeft;
+      bitBuf&=0xff >> (8 - bitPos);
+      return result;
+    }
+  }
+}

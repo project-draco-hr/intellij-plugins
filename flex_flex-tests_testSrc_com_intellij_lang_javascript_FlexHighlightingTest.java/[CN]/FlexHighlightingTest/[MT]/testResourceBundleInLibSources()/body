@@ -1,0 +1,14 @@
+{
+  final String testName=getTestName(false);
+  final VirtualFile srcZipFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ ".zip");
+  final VirtualFile srcFile=JarFileSystem.getInstance().getJarRootForLocalFile(srcZipFile).findChild(testName + "_sdk_src.as");
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"library",getTestDataPath() + getBasePath() + "/",testName + ".swc",testName + ".zip",null);
+    }
+  }
+;
+  configureByFile(getBasePath() + "/" + testName+ ".as");
+  setActiveEditor(createEditor(srcFile));
+  doDoTest(true,false,true);
+}

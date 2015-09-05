@@ -1,0 +1,40 @@
+{
+  if (!FlexCommonUtils.isRLMTemporaryBC(myBC) && !FlexCommonUtils.isRuntimeStyleSheetBC(myBC) && FlexCommonUtils.canHaveRLMsAndRuntimeStylesheets(myBC)&& myBC.getRLMs().size() > 0) {
+    addOption(rootElement,CompilerOptionInfo.LINK_REPORT_INFO,getLinkReportFilePath(myBC));
+  }
+  if (FlexCommonUtils.isRLMTemporaryBC(myBC) && !myBC.getOptimizeFor().isEmpty()) {
+    final String customLinkReportPath=getCustomLinkReportPath(myBC);
+    final String linkReportPath=StringUtil.notNullize(customLinkReportPath,getLinkReportFilePath(myBC));
+    addOption(rootElement,CompilerOptionInfo.LOAD_EXTERNS_INFO,linkReportPath);
+  }
+  addOption(rootElement,CompilerOptionInfo.WARN_NO_CONSTRUCTOR_INFO,"false");
+  if (myFlexmojos)   return;
+  final BuildConfigurationNature nature=myBC.getNature();
+  final String targetPlayer=nature.isWebPlatform() ? myBC.getDependencies().getTargetPlayer() : FlexCommonUtils.getMaximumTargetPlayer(mySdk.getHomePath());
+  addOption(rootElement,CompilerOptionInfo.TARGET_PLAYER_INFO,targetPlayer);
+  if (FlexCommonUtils.isAirSdkWithoutFlex(mySdk) || StringUtil.compareVersionNumbers(mySdk.getVersionString(),"4.5") >= 0) {
+    final String swfVersion;
+    if (nature.isWebPlatform()) {
+      swfVersion=FlexCommonUtils.getSwfVersionForTargetPlayer(targetPlayer);
+    }
+ else {
+      String airVersion=getAirVersionIfCustomDescriptor(myBC);
+      if (airVersion == null) {
+        airVersion=FlexCommonUtils.getAirVersion(mySdk.getHomePath(),mySdk.getVersionString());
+      }
+      swfVersion=airVersion != null ? FlexCommonUtils.getSwfVersionForAirVersion(airVersion) : FlexCommonUtils.getSwfVersionForSdk_THE_WORST_WAY(mySdk.getVersionString());
+    }
+    addOption(rootElement,CompilerOptionInfo.SWF_VERSION_INFO,swfVersion);
+  }
+  if (nature.isMobilePlatform()) {
+    addOption(rootElement,CompilerOptionInfo.MOBILE_INFO,"true");
+    addOption(rootElement,CompilerOptionInfo.PRELOADER_INFO,"spark.preloaders.SplashScreen");
+  }
+  if (!FlexCommonUtils.isAirSdkWithoutFlex(mySdk)) {
+    final String accessible=nature.isMobilePlatform() ? "false" : StringUtil.compareVersionNumbers(mySdk.getVersionString(),"4") >= 0 ? "true" : "false";
+    addOption(rootElement,CompilerOptionInfo.ACCESSIBLE_INFO,accessible);
+    final String fontManagers=StringUtil.compareVersionNumbers(mySdk.getVersionString(),"4") >= 0 ? "flash.fonts.JREFontManager" + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + "flash.fonts.BatikFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.AFEFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.CFFFontManager" : "flash.fonts.JREFontManager" + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + "flash.fonts.AFEFontManager"+ CompilerOptionInfo.LIST_ENTRIES_SEPARATOR+ "flash.fonts.BatikFontManager";
+    addOption(rootElement,CompilerOptionInfo.FONT_MANAGERS_INFO,fontManagers);
+    addOption(rootElement,CompilerOptionInfo.STATIC_RSLS_INFO,"false");
+  }
+}

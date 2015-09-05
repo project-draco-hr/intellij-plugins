@@ -1,0 +1,41 @@
+{
+  final List<Library> libraries=isSdk ? collector.sdkLibraries : collector.externalLibraries;
+  try {
+    final int id=data.librarySets.enumerate(key);
+    SortResult result=data.librarySets.get(key);
+    if (result == null) {
+      result=sorter.sort(libraries,new File(appDir,LibrariesData.NAME_PREFIX + Integer.toString(id) + SWF_EXTENSION),isExternal,isSdk);
+      data.librarySets.put(key,result);
+    }
+ else {
+      final String[] libraryPaths=result.libraryPaths;
+      final List<Library> filteredLibraries=new ArrayList<Library>(libraryPaths.length);
+      for (      Library library : libraries) {
+        if (ArrayUtil.indexOf(libraryPaths,library.getFile().getPath()) != -1) {
+          filteredLibraries.add(library);
+        }
+      }
+      result=new SortResult(result.definitionMap,filteredLibraries);
+    }
+    result.id=id;
+    return result;
+  }
+ catch (  ClosedByInterruptException e) {
+    throw new InitException(e);
+  }
+catch (  Throwable e) {
+    String technicalMessage="Flex SDK " + collector.getFlexSdkVersion();
+    final Attachment[] attachments=new Attachment[libraries.size()];
+    try {
+      for (int i=0, librariesSize=libraries.size(); i < librariesSize; i++) {
+        Library library=libraries.get(i);
+        technicalMessage+=" " + library.getFile().getPath();
+        attachments[i]=AttachmentFactory.createAttachment(library.getFile());
+      }
+    }
+ catch (    Throwable innerE) {
+      technicalMessage+=" Cannot collect library catalog files due to " + ExceptionUtil.getThrowableText(innerE);
+    }
+    throw new InitException(e,"error.sort.libraries",attachments,technicalMessage);
+  }
+}

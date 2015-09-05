@@ -1,0 +1,38 @@
+{
+  final File sdksDir=new File(fbInstallationPath,SDKS_FOLDER);
+  if (!sdksDir.isDirectory())   return;
+  String maxVersion="0";
+  for (  File sdkDir : sdksDir.listFiles()) {
+    if (!sdkDir.isDirectory())     continue;
+    final File descriptionFile=new File(sdkDir,"flex-sdk-description.xml");
+    if (!descriptionFile.isFile())     return;
+    final String nameElement="<flex-sdk-description><name>";
+    final String versionElement="<flex-sdk-description><version>";
+    FileInputStream is=null;
+    try {
+      is=new FileInputStream(descriptionFile);
+      final Map<String,List<String>> info=FlexUtils.findXMLElements(is,Arrays.asList(nameElement,versionElement));
+      final List<String> nameInfo=info.get(nameElement);
+      if (nameInfo.isEmpty())       continue;
+      mySdkNameToRootPath.put(nameInfo.get(0),FileUtil.toSystemIndependentName(sdkDir.getPath()));
+      final List<String> versionInfo=info.get(versionElement);
+      if (versionInfo.isEmpty())       continue;
+      final String version=versionInfo.get(0);
+      if (StringUtil.compareVersionNumbers(version,maxVersion) > 0) {
+        maxVersion=version;
+        mySdkNameToRootPath.put(DEFAULT_SDK_NAME,FileUtil.toSystemIndependentName(sdkDir.getPath()));
+      }
+    }
+ catch (    IOException ignore) {
+    }
+ finally {
+      if (is != null) {
+        try {
+          is.close();
+        }
+ catch (        IOException ignore) {
+        }
+      }
+    }
+  }
+}

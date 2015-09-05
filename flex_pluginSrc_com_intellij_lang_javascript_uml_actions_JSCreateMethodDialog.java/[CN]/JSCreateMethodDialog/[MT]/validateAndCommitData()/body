@@ -1,0 +1,15 @@
+{
+  String error=super.validateAndCommitData();
+  if (error != null) {
+    return error;
+  }
+  JSFunction existingMethod=JSInheritanceUtil.findMethodInClass(createMethod(),myTargetClass,true);
+  if (existingMethod != null && existingMethod.getAttributeList().hasModifier(JSAttributeList.ModifierType.STATIC) == (myStaticCb != null && myStaticCb.isSelected())) {
+    boolean contains=existingMethod.getParent() == myTargetClass;
+    String message=JSBundle.message("class.already.contains.method.warning",myTargetClass.getQualifiedName(),Integer.valueOf(contains ? 1 : 2),getMethodName());
+    if (Messages.showYesNoDialog(myProject,message,getTitle(),Messages.getQuestionIcon()) != Messages.YES) {
+      return EXIT_SILENTLY;
+    }
+  }
+  return null;
+}

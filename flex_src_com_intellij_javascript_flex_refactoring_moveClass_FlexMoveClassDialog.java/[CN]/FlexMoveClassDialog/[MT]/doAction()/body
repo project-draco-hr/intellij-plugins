@@ -1,0 +1,35 @@
+{
+  myTargetPackageField.updateRecents();
+  PsiElement firstElement=myElements.iterator().next();
+  PsiDirectory baseDir;
+  if (myTargetContainer instanceof PsiDirectory) {
+    baseDir=(PsiDirectory)myTargetContainer;
+  }
+ else {
+    baseDir=PlatformPackageUtil.getDirectory(firstElement);
+  }
+  String nameToCheck=myFileLocal ? myClassNameField.getText() : null;
+  PsiDirectory targetDirectory=JSRefactoringUtil.chooseOrCreateDirectoryForClass(myProject,ModuleUtil.findModuleForPsiElement(firstElement),GlobalSearchScope.projectScope(myProject),myTargetPackageField.getText(),nameToCheck,baseDir,myCbMoveToAnotherSourceFolder.isSelected() ? ThreeState.YES : ThreeState.NO);
+  if (targetDirectory == null) {
+    return;
+  }
+  if (!myFileLocal) {
+    try {
+      for (      PsiElement element : myElements) {
+        MoveFilesOrDirectoriesUtil.checkMove(element.getContainingFile(),targetDirectory);
+      }
+    }
+ catch (    IncorrectOperationException e) {
+      CommonRefactoringUtil.showErrorMessage(RefactoringBundle.message("error.title"),e.getMessage(),getHelpId(),myProject);
+      return;
+    }
+  }
+  BaseRefactoringProcessor processor;
+  if (myFileLocal) {
+    processor=new FlexMoveInnerClassProcessor(myElements.iterator().next(),targetDirectory,myClassNameField.getText(),myTargetPackageField.getText(),myCbSearchInComments.isSelected(),myCbSearchTextOccurences.isSelected(),myCallback);
+  }
+ else {
+    processor=new FlexMoveClassProcessor(myElements,targetDirectory,myTargetPackageField.getText(),myCbSearchInComments.isSelected(),myCbSearchTextOccurences.isSelected(),myCallback);
+  }
+  invokeRefactoring(processor);
+}

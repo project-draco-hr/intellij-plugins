@@ -1,0 +1,12 @@
+{
+  enableInspectionTool(new CssInvalidElementInspection());
+  JSTestUtils.disableFileHeadersInTemplates(getProject());
+  final String testName=getTestName(false);
+  doHighlightingWithInvokeFixAndCheckResult("Create class 'MyZuperClass'","mxml");
+  final VirtualFile expectedFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "_2.as");
+  final VirtualFile createdFile=VfsUtilCore.findRelativeFile("/foo/MyZuperClass.as",ModuleRootManager.getInstance(myModule).getSourceRoots()[0]);
+  assertNotNull(expectedFile);
+  assertNotNull(createdFile);
+  FileDocumentManager.getInstance().saveAllDocuments();
+  assertEquals(StringUtil.convertLineSeparators(VfsUtilCore.loadText(expectedFile)),StringUtil.convertLineSeparators(VfsUtilCore.loadText(createdFile)));
+}

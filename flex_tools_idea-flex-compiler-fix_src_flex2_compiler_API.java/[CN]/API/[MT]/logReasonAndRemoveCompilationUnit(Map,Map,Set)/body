@@ -1,0 +1,14 @@
+{
+  for (Iterator i=map.keySet().iterator(); i.hasNext(); ) {
+    String name=(String)i.next();
+    Source s=(Source)map.get(name);
+    for (Iterator j=s.getFileIncludes(); j.hasNext(); ) {
+      VirtualFile f=(VirtualFile)j.next();
+      if (!includeUpdated.contains(f.getNameForReporting())) {
+        ThreadLocalToolkit.getLogger().includedFileAffected(f.getNameForReporting());
+      }
+    }
+    s.removeCompilationUnit();
+    ThreadLocalToolkit.getLogger().needsCompilation(s.getName(),(String)reasons.get(s.getName()));
+  }
+}

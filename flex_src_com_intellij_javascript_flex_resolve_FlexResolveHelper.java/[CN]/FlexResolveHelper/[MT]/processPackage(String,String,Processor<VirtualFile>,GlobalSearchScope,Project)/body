@@ -1,0 +1,26 @@
+{
+  for (  VirtualFile vfile : DirectoryIndex.getInstance(project).getDirectoriesByPackageName(packageQualifierText,globalSearchScope.isSearchInLibraries())) {
+    if (!globalSearchScope.contains(vfile))     continue;
+    if (vfile.getFileSystem() instanceof JarFileSystem) {
+      VirtualFile fileForJar=JarFileSystem.getInstance().getVirtualFileForJar(vfile);
+      if (fileForJar != null && !("swc".equalsIgnoreCase(fileForJar.getExtension()) || "ane".equalsIgnoreCase(fileForJar.getExtension()))) {
+        continue;
+      }
+    }
+    if (resolvedName != null) {
+      VirtualFile child=vfile.findChild(resolvedName);
+      if (child == null) {
+        child=vfile.findChild(resolvedName + JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT);
+        if (child == null)         child=vfile.findChild(resolvedName + JavaScriptSupportLoader.FXG_FILE_EXTENSION_DOT);
+      }
+      if (child != null)       if (!processor.process(child))       return false;
+    }
+ else {
+      ProjectFileIndex index=ProjectRootManager.getInstance(project).getFileIndex();
+      for (      VirtualFile child : vfile.getChildren()) {
+        if (!index.isExcluded(child) && !processor.process(child))         return false;
+      }
+    }
+  }
+  return true;
+}

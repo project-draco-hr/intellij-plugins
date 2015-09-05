@@ -1,0 +1,48 @@
+{
+  final MavenProject project=maven.readProject(data.file,logger);
+  if (project == null) {
+    getLogger().warn("Cannot read project while resolve output file for " + data.toString());
+    return;
+  }
+  final MavenProject oldProject=session.getCurrentProject();
+  MojoExecution flexmojosMojoExecution=null;
+  try {
+    session.setCurrentProject(project);
+    for (    Plugin plugin : project.getBuildPlugins()) {
+      final String pluginGroupId=plugin.getGroupId();
+      if ((pluginGroupId.equals("org.sonatype.flexmojos") || pluginGroupId.equals("net.flexmojos.oss")) && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
+        flexmojosMojoExecution=maven.createMojoExecution(plugin,getCompileGoalName(project),project);
+        break;
+      }
+    }
+    if (flexmojosMojoExecution == null) {
+      return;
+    }
+    maven.getPluginRealm(flexmojosMojoExecution);
+    Mojo mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
+    try {
+      data.outputFile=new File(Flexmojos.getOutput(mojo));
+      String[] localesRuntime=(String[])Flexmojos.invokePublicMethod(mojo,"getLocalesRuntime");
+      data.linkReport=Flexmojos.getLinkReport(mojo);
+      if (localesRuntime != null && localesRuntime.length > 0) {
+        final Class<?> superclass=mojo.getClass().getSuperclass();
+        Mojo localeMojo=(Mojo)Flexmojos.invokePublicMethod(mojo,"clone");
+        final Method m=superclass.getDeclaredMethod("configureResourceBundle",String.class,superclass);
+        m.setAccessible(true);
+        String firstLocale=localesRuntime[0];
+        m.invoke(mojo,firstLocale,localeMojo);
+        ((Map<String,String>)Flexmojos.invokePublicMethod(localeMojo,"getCache")).put("getProjectType","rb.swc");
+        data.localeOutputFilepathPattern=Flexmojos.getOutput(localeMojo).replace(firstLocale,"{_locale_}");
+      }
+    }
+  finally {
+      plexusContainer.release(mojo);
+    }
+  }
+  finally {
+    session.setCurrentProject(oldProject);
+    if (flexmojosMojoExecution != null) {
+      maven.releaseMojoExecution(flexmojosMojoExecution);
+    }
+  }
+}

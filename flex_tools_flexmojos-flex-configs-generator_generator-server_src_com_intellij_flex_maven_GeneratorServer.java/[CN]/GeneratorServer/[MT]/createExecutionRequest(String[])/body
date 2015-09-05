@@ -1,0 +1,23 @@
+{
+  MavenExecutionRequest request=new DefaultMavenExecutionRequest();
+  request.setGlobalSettingsFile(new File(args[0]));
+  if (!args[1].equals(" ")) {
+    request.setUserSettingsFile(new File(args[1]));
+  }
+  request.setLocalRepository(plexusContainer.lookup(RepositorySystem.class).createLocalRepository(new File(args[2])));
+  Properties systemProperties=new Properties();
+  EnvironmentUtils.addEnvVars(systemProperties);
+  systemProperties.putAll(System.getProperties());
+  request.setSystemProperties(systemProperties);
+  request.setOffline(args[3].equals("t")).setUpdateSnapshots(false).setCacheNotFound(true).setCacheTransferError(true);
+  plexusContainer.lookup(MavenExecutionRequestPopulator.class).populateFromSettings(request,createSettings(request));
+  final List<String> activeProfiles=request.getActiveProfiles();
+  int profilesLength=in.readShort();
+  if (profilesLength > 0) {
+    while (profilesLength-- > 0) {
+      activeProfiles.add(in.readUTF());
+    }
+  }
+  request.setWorkspaceReader(new WorkspaceReaderImpl(in,this));
+  return request;
+}

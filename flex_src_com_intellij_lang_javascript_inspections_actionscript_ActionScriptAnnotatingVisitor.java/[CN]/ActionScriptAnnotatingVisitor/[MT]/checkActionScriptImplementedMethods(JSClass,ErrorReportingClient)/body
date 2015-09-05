@@ -1,0 +1,56 @@
+{
+  final JSResolveUtil.CollectMethodsToImplementProcessor implementedMethodProcessor=new ImplementedMethodProcessor(jsClass){
+    ImplementMethodsFix implementMethodsFix=null;
+    protected void addNonimplementedFunction(    final JSFunction function){
+      final ASTNode node=myJsClass.findNameIdentifier();
+      if (node == null)       return;
+      if (implementMethodsFix == null)       implementMethodsFix=new ImplementMethodsFix(myJsClass);
+      implementMethodsFix.addElementToProcess(function);
+      String messageId=function.isGetProperty() ? "javascript.validation.message.interface.method.not.implemented2" : function.isSetProperty() ? "javascript.validation.message.interface.method.not.implemented3" : "javascript.validation.message.interface.method.not.implemented";
+      String message=JSBundle.message(messageId,function.getName(),((JSClass)JSResolveUtil.findParent(function)).getQualifiedName());
+      reportingClient.reportError(node,message,ErrorReportingClient.ProblemKind.ERROR,implementMethodsFix);
+    }
+    protected void addImplementedFunction(    final JSFunction interfaceFunction,    final JSFunction implementationFunction){
+      final JSAttributeList attributeList=implementationFunction.getAttributeList();
+      if (attributeList == null || attributeList.getAccessType() != JSAttributeList.AccessType.PUBLIC) {
+        final ASTNode node=findElementForAccessModifierError(implementationFunction,attributeList);
+        reportingClient.reportError(node,JSBundle.message("javascript.validation.message.interface.method.invalid.access.modifier"),ErrorReportingClient.ProblemKind.ERROR,new SetElementVisibilityFix(implementationFunction,JSAttributeList.AccessType.PUBLIC));
+      }
+      final SignatureMatchResult incompatibleSignature=checkCompatibleSignature(implementationFunction,interfaceFunction);
+      if (incompatibleSignature != SignatureMatchResult.COMPATIBLE_SIGNATURE) {
+        PsiElement parent=JSResolveUtil.findParent(implementationFunction);
+        if (parent instanceof JSFile) {
+          parent=JSResolveUtil.getClassReferenceForXmlFromContext(parent);
+        }
+        if (parent != myJsClass) {
+          addNonimplementedFunction(interfaceFunction);
+          return;
+        }
+        if (incompatibleSignature == SignatureMatchResult.PARAMETERS_DIFFERS) {
+          final JSParameterList parameterList=implementationFunction.getParameterList();
+          final JSParameterList expectedParameterList=interfaceFunction.getParameterList();
+          ChangeSignatureFix changeSignatureFix=new ChangeSignatureFix(interfaceFunction,parameterList,true);
+          reportingClient.reportError(parameterList.getNode(),JSBundle.message("javascript.validation.message.interface.method.invalid.signature",expectedParameterList != null ? expectedParameterList.getText() : "()"),ErrorReportingClient.ProblemKind.ERROR,new ChangeSignatureFix(implementationFunction,expectedParameterList,false){
+            @NotNull public String getText(){
+              return JSBundle.message("javascript.fix.message.change.parameters.to.expected");
+            }
+          }
+,changeSignatureFix);
+        }
+ else         if (incompatibleSignature == SignatureMatchResult.RETURN_TYPE_DIFFERS) {
+          PsiElement implementationReturnTypeExpr=implementationFunction.getReturnTypeElement();
+          JSType type=interfaceFunction.getReturnType();
+          final String interfaceReturnType=type != null ? type.getResolvedTypeText() : null;
+          String msg=JSBundle.message("javascript.validation.message.interface.method.invalid.signature2",StringUtil.notNullize(interfaceReturnType));
+          reportingClient.reportError(implementationReturnTypeExpr != null ? implementationReturnTypeExpr.getNode() : implementationFunction.findNameIdentifier(),msg,ErrorReportingClient.ProblemKind.ERROR,new ChangeTypeFix(implementationFunction,interfaceReturnType,"javascript.fix.message.change.return.type.to.expected"),createChangeBaseMethodSignatureFix(interfaceFunction,implementationFunction));
+        }
+ else         if (incompatibleSignature == SignatureMatchResult.FUNCTION_KIND_DIFFERS) {
+          String msg=JSBundle.message("javascript.validation.message.interface.method.invalid.signature3",interfaceFunction.getKind());
+          reportingClient.reportError(implementationFunction.findNameIdentifier(),msg,ErrorReportingClient.ProblemKind.ERROR);
+        }
+      }
+    }
+  }
+;
+  JSResolveUtil.processInterfaceMethods(jsClass,implementedMethodProcessor);
+}

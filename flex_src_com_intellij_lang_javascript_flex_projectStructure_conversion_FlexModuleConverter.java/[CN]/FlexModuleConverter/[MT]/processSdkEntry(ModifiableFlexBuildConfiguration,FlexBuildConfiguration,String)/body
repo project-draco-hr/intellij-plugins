@@ -1,0 +1,41 @@
+{
+  if (ideaSdkName == null) {
+    bc.setTargetPlatform(TargetPlatform.Web);
+    return null;
+  }
+  Sdk oldSdk=ProjectJdkTable.getInstance().findJdk(ideaSdkName);
+  final String sdkTypeName;
+  if (oldSdk == null || oldSdk.getHomePath() == null || !ArrayUtil.contains((sdkTypeName=oldSdk.getSdkType().getName()),ConversionParams.OLD_SDKS_TYPES)) {
+    bc.setTargetPlatform(TargetPlatform.Web);
+    return null;
+  }
+  if (ConversionParams.OLD_AIR_MOBIE_SDK_TYPE_NAME.equals(sdkTypeName)) {
+    bc.setTargetPlatform(TargetPlatform.Mobile);
+    if (bc.getOutputType() == OutputType.Application) {
+      bc.getAndroidPackagingOptions().setEnabled(true);
+      final String fileName=FileUtil.getNameWithoutExtension(bc.getOutputFileName());
+      bc.getAndroidPackagingOptions().setPackageFileName(fileName);
+      bc.getIosPackagingOptions().setPackageFileName(fileName);
+    }
+  }
+ else   if (ConversionParams.OLD_AIR_SDK_TYPE_NAME.equals(sdkTypeName)) {
+    bc.setTargetPlatform(TargetPlatform.Desktop);
+    if (bc.getOutputType() == OutputType.Application) {
+      bc.getAirDesktopPackagingOptions().setPackageFileName(FileUtil.getNameWithoutExtension(bc.getOutputFileName()));
+    }
+  }
+ else {
+    bc.setTargetPlatform(TargetPlatform.Web);
+    final String targetPlayer=FlexSdkUtils.getTargetPlayer(oldConfiguration == null ? null : oldConfiguration.TARGET_PLAYER_VERSION,oldSdk.getHomePath());
+    bc.getDependencies().setTargetPlayer(targetPlayer);
+  }
+  Sdk sdk=ConversionParams.findNewSdk(oldSdk.getHomePath());
+  if (sdk != null) {
+    SdkEntry sdkEntry=Factory.createSdkEntry(sdk.getName());
+    bc.getDependencies().setSdkEntry(sdkEntry);
+    return sdk.getName();
+  }
+ else {
+    return null;
+  }
+}

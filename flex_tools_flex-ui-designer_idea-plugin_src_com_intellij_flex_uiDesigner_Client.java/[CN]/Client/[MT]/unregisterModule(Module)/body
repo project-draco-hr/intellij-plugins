@@ -1,0 +1,28 @@
+{
+  boolean hasError=true;
+  final ActionCallback callback=new ActionCallback("renderDocumentAndDependents");
+  try {
+    hasError=false;
+    beginMessage(ClientMethod.unregisterModule,callback,null,new Runnable(){
+      @Override public void run(){
+        try {
+          SocketInputHandler.getInstance().unregisterDocumentFactories();
+        }
+ catch (        IOException e) {
+          LogMessageUtil.LOG.error(e);
+        }
+      }
+    }
+);
+    writeId(module);
+  }
+  finally {
+    try {
+      registeredModules.remove(module);
+    }
+  finally {
+      finalizeMessageAndFlush(hasError,callback);
+    }
+  }
+  return callback;
+}

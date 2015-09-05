@@ -1,0 +1,15 @@
+{
+  if (StringUtil.isEmpty(mainClassFqn))   return "";
+  final String s=mainClassFqn.replace('.','/');
+  final String[] classFileRelPaths={"/" + s + ".mxml","/" + s + ".as"};
+  for (  JpsModuleSourceRoot srcRoot : module.getSourceRoots()) {
+    final String srcRootPath=JpsPathUtil.urlToPath(srcRoot.getUrl());
+    for (    final String classFileRelPath : classFileRelPaths) {
+      final String pathToMainClassFile=srcRootPath + classFileRelPath;
+      if (new File(pathToMainClassFile).isFile()) {
+        return pathToMainClassFile;
+      }
+    }
+  }
+  return "";
+}

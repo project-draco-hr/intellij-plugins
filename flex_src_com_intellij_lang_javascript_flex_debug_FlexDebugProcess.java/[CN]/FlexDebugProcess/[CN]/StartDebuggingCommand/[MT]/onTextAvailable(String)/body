@@ -1,0 +1,67 @@
+{
+  StringBuilder builder=new StringBuilder(s.length());
+  StringTokenizer tokenizer=new StringTokenizer(s,"\r\n");
+  while (tokenizer.hasMoreTokens()) {
+    String next=tokenizer.nextToken();
+    if (!next.contains("type 'continue'")) {
+      builder.append(next).append("\n");
+    }
+  }
+  s=builder.toString();
+  final int unexpectedVersionIndex=s.indexOf("Unexpected version of the Flash Player");
+  if (unexpectedVersionIndex >= 0) {
+    s=s.substring(0,unexpectedVersionIndex) + "Session timed out or u" + s.substring(unexpectedVersionIndex + 1);
+  }
+  final ResponseLineIterator iterator=new ResponseLineIterator(s);
+  while (iterator.hasNext()) {
+    final String line=iterator.next();
+    if (line.startsWith("[SWF]") || line.startsWith("[UnloadSWF]")) {
+      if (!FilterSwfLoadUnloadMessagesAction.isFilterEnabled(getSession().getProject())) {
+        myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+      }
+    }
+ else {
+      myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    }
+  }
+  if (s.contains("Another Flash debugger is probably running")) {
+    reportProblem(s);
+    getProcessHandler().detachProcess();
+    return CommandOutputProcessingMode.DONE;
+  }
+  if (s.contains("Failed to connect") || s.contains("unexpected version of the Flash Player") || s.contains("Connection refused")) {
+    reportProblem(s);
+    handleProbablyUnexpectedStop(s);
+    return CommandOutputProcessingMode.DONE;
+  }
+  if (s.contains(WAITING_PLAYER_MARKER_1) || s.contains(WAITING_PLAYER_MARKER_2)) {
+    fdbWaitingForPlayerStateReached=true;
+    getSession().rebuildViews();
+    notifyFdbWaitingForPlayerStateReached();
+    try {
+      launchDebuggedApplication();
+    }
+ catch (    IOException e) {
+      reportProblem(s);
+      handleProbablyUnexpectedStop(s);
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+ else {
+    startupDone=(s.contains("Player connected; session starting."));
+    if (startupDone) {
+      final Balloon balloon=ToolWindowManager.getInstance(getSession().getProject()).getToolWindowBalloon(ToolWindowId.DEBUG);
+      if (balloon != null) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          public void run(){
+            balloon.hide();
+          }
+        }
+);
+      }
+      getSession().rebuildViews();
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+  return CommandOutputProcessingMode.PROCEEDING;
+}

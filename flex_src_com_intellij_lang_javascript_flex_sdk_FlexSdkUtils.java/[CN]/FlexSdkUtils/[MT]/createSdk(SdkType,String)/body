@@ -1,0 +1,15 @@
+{
+  if (ApplicationManager.getApplication().isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode()) {
+    return doCreateSdk(sdkType,sdkHomePath);
+  }
+ else {
+    final Ref<Sdk> sdkRef=new Ref<Sdk>();
+    ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+      public void run(){
+        sdkRef.set(doCreateSdk(sdkType,sdkHomePath));
+      }
+    }
+,ModalityState.defaultModalityState());
+    return sdkRef.get();
+  }
+}

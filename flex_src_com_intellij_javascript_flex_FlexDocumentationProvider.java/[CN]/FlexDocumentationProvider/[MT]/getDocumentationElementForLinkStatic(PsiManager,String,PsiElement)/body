@@ -1,0 +1,72 @@
+{
+  final int delimiterIndex=link.lastIndexOf(':');
+  final JavaScriptIndex index=JavaScriptIndex.getInstance(psiManager.getProject());
+  String attributeType=null;
+  String attributeName=null;
+  for (  Map.Entry<String,String> e : DOCUMENTED_ATTRIBUTES.entrySet()) {
+    final String pattern="." + e.getValue();
+    if (link.contains(pattern)) {
+      attributeType=e.getKey();
+      attributeName=StringUtil.substringAfter(link,pattern);
+      link=link.substring(0,link.indexOf(pattern));
+      break;
+    }
+  }
+  if (delimiterIndex != -1 && attributeType == null) {
+    return resolveDocumentLink(psiManager,link,delimiterIndex);
+  }
+ else   if (attributeType != null) {
+    PsiElement clazz=ActionScriptClassResolver.findClassByQName(link,index,context != null ? ModuleUtilCore.findModuleForPsiElement(context) : null);
+    if (!(clazz instanceof JSClass)) {
+      return null;
+    }
+    return findNamedAttribute((JSClass)clazz,attributeType,attributeName);
+  }
+ else {
+    PsiElement clazz=ActionScriptClassResolver.findClassByQName(link,index,context != null ? ModuleUtilCore.findModuleForPsiElement(context) : null);
+    if (clazz == null && link.contains(".")) {
+      String qname=link.substring(0,link.lastIndexOf('.'));
+      clazz=ActionScriptClassResolver.findClassByQName(qname,index,context != null ? ModuleUtilCore.findModuleForPsiElement(context) : null);
+      if (clazz instanceof JSClass) {
+        JSClass jsClass=(JSClass)clazz;
+        String member=link.substring(link.lastIndexOf('.') + 1);
+        if (member.endsWith("()")) {
+          member=member.substring(0,member.length() - 2);
+          PsiElement result=findMethod(jsClass,member);
+          if (result == null) {
+            result=findProperty(jsClass,member);
+          }
+          return result;
+        }
+ else {
+          PsiElement result=jsClass.findFieldByName(member);
+          if (result == null) {
+            result=findProperty(jsClass,member);
+          }
+          if (result == null) {
+            result=findMethod(jsClass,member);
+          }
+          return result;
+        }
+      }
+    }
+    if (clazz instanceof JSVariable) {
+      return clazz;
+    }
+    if (link.endsWith("()")) {
+      link=link.substring(0,link.length() - 2);
+      clazz=ActionScriptClassResolver.findClassByQName(link,index,context != null ? ModuleUtilCore.findModuleForPsiElement(context) : null);
+      if (clazz instanceof JSFunction) {
+        return clazz;
+      }
+    }
+    if (clazz == null && context != null) {
+      final PsiReference[] references=new JSDocReferenceSet(context,link,0,false).getReferences();
+      if (references.length > 0) {
+        final PsiElement resolve=references[references.length - 1].resolve();
+        if (resolve != null)         return resolve;
+      }
+    }
+    return clazz;
+  }
+}

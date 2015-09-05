@@ -1,0 +1,33 @@
+{
+  if (opcodePass == 1) {
+    if (opat(1) == OP_convert_b) {
+      rewind(1);
+    }
+    if (opat(2) == OP_strictequals && opat(1) == OP_not) {
+      rewind(2);
+      OP_ifstricteq(offset,pos);
+      return;
+    }
+    if (opat(2) == OP_equals && opat(1) == OP_not) {
+      rewind(2);
+      OP_ifeq(offset,pos);
+      return;
+    }
+    if (opat(1) == OP_not) {
+      rewind(1);
+      OP_iftrue(offset,pos);
+      return;
+    }
+    if (opat(1) == OP_pushfalse) {
+      rewind(1);
+      OP_jump(offset,pos);
+      return;
+    }
+    beginop(OP_iffalse);
+    opcodes.writeS24(offset);
+    opcodes.mapOffsets(pos);
+  }
+ else   if (opcodePass == 2) {
+    opcodes.updateOffset(pos + offset);
+  }
+}

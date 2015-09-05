@@ -1,0 +1,22 @@
+{
+  if (!isNew) {
+    assetCounter.append(library.assetCounter);
+    return;
+  }
+  try {
+    library.inheritingStyles=collectInherited(library.getFile());
+  }
+  finally {
+    bytes.reset();
+  }
+  VirtualFile defaultsCssVirtualFile=library.getDefaultsCssFile();
+  if (defaultsCssVirtualFile != null) {
+    AssetCounter libAssetCounter=new AssetCounter();
+    byte[] data=new CssWriter(stringWriter,problemsHolder,libAssetCounter).write(defaultsCssVirtualFile,module);
+    if (data != null) {
+      library.defaultsStyle=data;
+      library.assetCounter=libAssetCounter;
+      assetCounter.append(libAssetCounter);
+    }
+  }
+}

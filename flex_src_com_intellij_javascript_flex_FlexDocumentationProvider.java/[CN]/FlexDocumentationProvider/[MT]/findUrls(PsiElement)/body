@@ -1,0 +1,38 @@
+{
+  JSQualifiedNamedElement clazz=findParentQualifiedElement(element);
+  if (clazz == null) {
+    return Collections.emptyList();
+  }
+  String anchor=null;
+  if (element instanceof JSFunction || element instanceof JSVariable) {
+    anchor=((JSNamedElement)element).getName();
+    if (element instanceof JSFunction && !((JSFunction)element).isGetProperty() && !((JSFunction)element).isSetProperty()) {
+      anchor+="()";
+    }
+  }
+ else   if (element instanceof JSAttributeNameValuePair) {
+    String type=((JSAttribute)element.getParent()).getName();
+    final JSAttributeNameValuePair namePair=((JSAttribute)element.getParent()).getValueByName("name");
+    if (namePair != null) {
+      anchor=DOCUMENTED_ATTRIBUTES.get(type) + namePair.getSimpleValue();
+    }
+  }
+ else   if (element instanceof JSAttribute) {
+    final JSAttributeNameValuePair namePair=((JSAttribute)element).getValueByName("name");
+    if (namePair != null) {
+      String type=((JSAttribute)element).getName();
+      anchor=DOCUMENTED_ATTRIBUTES.get(type) + namePair.getSimpleValue();
+    }
+  }
+  List<String> urls=findUrlsForClass(clazz);
+  if (anchor != null) {
+    List<String> anchored=new ArrayList<String>(urls.size());
+    for (    String url : urls) {
+      anchored.add(url + "#" + anchor);
+    }
+    return anchored;
+  }
+ else {
+    return urls;
+  }
+}

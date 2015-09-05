@@ -1,0 +1,19 @@
+{
+  return ExternalTask.runWithProgress(new AdtTask(project,flexSdk){
+    protected void appendAdtOptions(    final List<String> command){
+      command.add("-uninstallApp");
+      command.add("-platform");
+      command.add("android");
+      if (device != null) {
+        command.add("-device");
+        command.add(device.DEVICE_ID);
+      }
+      command.add("-appid");
+      command.add(applicationId);
+    }
+    protected boolean checkMessages(){
+      return myMessages.isEmpty() || (myMessages.size() == 1 && myMessages.get(0).equals("Failed to find package " + applicationId));
+    }
+  }
+,FlexBundle.message("uninstalling.0",applicationId),FlexBundle.message("uninstall.android.application.title"));
+}

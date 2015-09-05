@@ -1,0 +1,25 @@
+{
+  Collection<String> projectLibrariesNames=getProjectLibrariesNames(projectLibrariesSettings);
+  try {
+    for (    File moduleFile : myContext.getModuleFiles()) {
+      ModuleSettings moduleSettings;
+      if (!moduleFile.exists() || !FlexModuleConverter.isConversionNeededStatic(moduleSettings=myContext.getModuleSettings(moduleFile))) {
+        continue;
+      }
+      for (      Element orderEntry : moduleSettings.getOrderEntries()) {
+        String orderEntryType=orderEntry.getAttributeValue(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR);
+        if ("library".equals(orderEntryType)) {
+          String libraryName=orderEntry.getAttributeValue("name");
+          String libraryLevel=orderEntry.getAttributeValue("level");
+          if (LibraryTablesRegistrar.PROJECT_LEVEL.equals(libraryLevel) && projectLibrariesNames.contains(libraryName)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+ catch (  CannotConvertException e) {
+    return false;
+  }
+}

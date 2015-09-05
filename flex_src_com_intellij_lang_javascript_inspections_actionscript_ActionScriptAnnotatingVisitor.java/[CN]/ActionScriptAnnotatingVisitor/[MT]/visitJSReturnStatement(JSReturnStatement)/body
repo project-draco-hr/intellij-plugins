@@ -1,0 +1,11 @@
+{
+  super.visitJSReturnStatement(node);
+  final PsiElement element=PsiTreeUtil.getParentOfType(node,JSFunction.class,XmlTagChild.class,XmlAttributeValue.class,JSFile.class);
+  if (element instanceof JSFunction) {
+    JSExpression returnedExpr=node.getExpression();
+    if (returnedExpr != null && ((JSFunction)element).isConstructor() && JSResolveUtil.findParent(element) instanceof JSClass) {
+      final String message=FlexBundle.message("javascript.validation.message.no.return.value.required.for.constructor");
+      myHolder.createErrorAnnotation(returnedExpr,message);
+    }
+  }
+}

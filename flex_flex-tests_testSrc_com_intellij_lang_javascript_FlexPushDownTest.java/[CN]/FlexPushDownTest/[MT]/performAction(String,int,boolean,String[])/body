@@ -1,0 +1,22 @@
+{
+  final JSClass sourceClass=(JSClass)JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver().findClassByQName(from,GlobalSearchScope.projectScope(getProject()));
+  assertNotNull("source class not found: " + from,sourceClass);
+  assertTrue(sourceClass.getQualifiedName() + " has no inheritors",!JSInheritanceUtil.findDirectSubClasses(sourceClass,false).isEmpty());
+  final List<JSMemberInfo> memberInfos=FlexPullUpTest.getMemberInfos(toPushDown,sourceClass,makeAbstract);
+  JSMemberInfo[] infosArray=JSMemberInfo.getSelected(memberInfos,sourceClass,Conditions.<JSMemberInfo>alwaysTrue());
+  new JSPushDownProcessor(myProject,infosArray,sourceClass,docCommentPolicy){
+    @Override @NotNull protected UsageInfo[] findUsages(){
+      final UsageInfo[] usages=super.findUsages();
+      Arrays.sort(usages,new Comparator<UsageInfo>(){
+        @Override @SuppressWarnings({"ConstantConditions"}) public int compare(        UsageInfo o1,        UsageInfo o2){
+          return ((JSClass)o1.getElement()).getQualifiedName().compareTo(((JSClass)o2.getElement()).getQualifiedName());
+        }
+      }
+);
+      return usages;
+    }
+  }
+.run();
+  myProject.getComponent(PostprocessReformattingAspect.class).doPostponedFormatting();
+  FileDocumentManager.getInstance().saveAllDocuments();
+}

@@ -1,0 +1,54 @@
+{
+  int[] selectedRows=keepSelection ? myTable.getSelectedRows() : new int[0];
+  DefaultMutableTreeNode root=myTable.getRoot();
+  root.removeAllChildren();
+  if (sdkEntry != null) {
+    Sdk flexSdk=FlexSdkUtils.findFlexOrFlexmojosSdk(sdkEntry.getName());
+    if (flexSdk != null) {
+      DefaultMutableTreeNode sdkNode=new DefaultMutableTreeNode(new SdkItem(flexSdk),true);
+      myTable.getRoot().insert(sdkNode,0);
+      updateSdkEntries(sdkNode,flexSdk);
+    }
+  }
+  FlexBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
+  for (  DependencyEntry entry : myDependencies.getEntries()) {
+    MyTableItem item=null;
+    if (entry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+      Module module=bcEntry.findModule();
+      CompositeConfigurable configurable=module != null ? ContainerUtil.find(configurator.getBCConfigurables(module),new Condition<CompositeConfigurable>(){
+        @Override public boolean value(        CompositeConfigurable configurable){
+          return configurable.getDisplayName().equals(bcEntry.getBcName());
+        }
+      }
+) : null;
+      if (configurable == null) {
+        item=new BCItem(bcEntry.getModuleName(),bcEntry.getBcName());
+      }
+ else {
+        item=new BCItem(FlexBCConfigurable.unwrap(configurable));
+      }
+      ((BCItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
+ else     if (entry instanceof ModuleLibraryEntry) {
+      ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)entry;
+      item=new ModuleLibraryItem(moduleLibraryEntry.getLibraryId(),myConfigEditor.findLibraryOrderEntry(myDependencies,moduleLibraryEntry),myProject);
+      ((ModuleLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      SharedLibraryEntry sharedLibraryEntry=(SharedLibraryEntry)entry;
+      LibrariesModifiableModel model=ProjectStructureConfigurable.getInstance(myProject).getContext().createModifiableModelProvider(sharedLibraryEntry.getLibraryLevel()).getModifiableModel();
+      LibraryEx library=(LibraryEx)model.getLibraryByName(sharedLibraryEntry.getLibraryName());
+      item=new SharedLibraryItem(sharedLibraryEntry.getLibraryName(),sharedLibraryEntry.getLibraryLevel(),library,myProject);
+      ((SharedLibraryItem)item).dependencyType.copyFrom(entry.getDependencyType());
+    }
+    if (item != null) {
+      root.add(new DefaultMutableTreeNode(item,false));
+    }
+  }
+  myTable.refresh();
+  myTable.clearSelection();
+  for (  int row : selectedRows) {
+    myTable.getSelectionModel().addSelectionInterval(row,row);
+  }
+}

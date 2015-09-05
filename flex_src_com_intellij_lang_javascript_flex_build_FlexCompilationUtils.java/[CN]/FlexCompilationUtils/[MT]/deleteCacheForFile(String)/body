@@ -1,0 +1,27 @@
+{
+  final VirtualFile cacheFile=LocalFileSystem.getInstance().findFileByPath(filePath + ".cache");
+  if (cacheFile != null) {
+    final Ref<IOException> exceptionRef=new Ref<IOException>();
+    ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+      @Override public void run(){
+        ApplicationManager.getApplication().runWriteAction(new Runnable(){
+          @Override public void run(){
+            if (cacheFile.exists()) {
+              try {
+                cacheFile.delete(this);
+              }
+ catch (              IOException e) {
+                exceptionRef.set(e);
+              }
+            }
+          }
+        }
+);
+      }
+    }
+,ProgressManager.getInstance().getProgressIndicator().getModalityState());
+    if (!exceptionRef.isNull()) {
+      throw exceptionRef.get();
+    }
+  }
+}

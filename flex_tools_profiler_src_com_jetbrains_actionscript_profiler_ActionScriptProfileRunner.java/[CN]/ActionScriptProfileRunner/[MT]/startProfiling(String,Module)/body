@@ -1,0 +1,53 @@
+{
+  if (!initProfilingAgent(module)) {
+    return;
+  }
+  final ToolWindowManager toolWindowManager=ToolWindowManager.getInstance(module.getProject());
+  if (toolWindowManager == null) {
+    return;
+  }
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      ToolWindow toolWindow=toolWindowManager.getToolWindow(TOOLWINDOW_ID);
+      if (toolWindow == null) {
+        toolWindow=toolWindowManager.registerToolWindow(TOOLWINDOW_ID,true,ToolWindowAnchor.BOTTOM,module.getProject());
+        final ContentManager contentManager=toolWindow.getContentManager();
+        contentManager.addContentManagerListener(new ContentManagerAdapter(){
+          @Override public void contentRemoved(          ContentManagerEvent event){
+            super.contentRemoved(event);
+            if (contentManager.getContentCount() == 0) {
+              toolWindowManager.unregisterToolWindow(TOOLWINDOW_ID);
+            }
+          }
+        }
+);
+      }
+      final ActionScriptProfileControlPanel profileControlPanel=new ActionScriptProfileControlPanel(runConfigurationName,module);
+      final SimpleToolWindowPanel toolWindowPanel=new SimpleToolWindowPanel(false,true);
+      toolWindowPanel.setContent(profileControlPanel.getMainPanel());
+      final Content content=ContentFactory.SERVICE.getInstance().createContent(toolWindowPanel,runConfigurationName,false);
+      toolWindow.getContentManager().addContent(content);
+      toolWindow.getContentManager().setSelectedContent(content);
+      content.setDisposer(profileControlPanel);
+      final DefaultActionGroup actionGroup=profileControlPanel.createProfilerActionGroup();
+      actionGroup.addSeparator();
+      final AnAction closeTabAction=new TabbedContentAction.CloseAction(content);
+      closeTabAction.getTemplatePresentation().setIcon(AllIcons.Actions.Cancel);
+      actionGroup.add(closeTabAction);
+      ActionToolbar toolbar=ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,actionGroup,false);
+      toolbar.setTargetComponent(toolWindowPanel);
+      toolWindowPanel.setToolbar(toolbar.getComponent());
+      final ToolWindow finalToolWindow=toolWindow;
+      profileControlPanel.setConnectionCallback(new Runnable(){
+        @Override public void run(){
+          finalToolWindow.show(null);
+          removePreloadingOfProfilerSwf();
+        }
+      }
+);
+      toolWindow.hide(null);
+      profileControlPanel.startProfiling();
+    }
+  }
+);
+}

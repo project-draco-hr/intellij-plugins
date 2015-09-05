@@ -1,0 +1,67 @@
+{
+  if (!abcModifierApplicable || !abcModifier.slotTraitName(name,traitKind,in,this)) {
+    currentBuffer.writeU32(history.getIndex(IndexHistory.MULTINAME,name));
+  }
+  TIntArrayList newMetadata=trimMetadata(metadata);
+  if (((traitKind >> 4) & TRAIT_FLAG_metadata) != 0 && newMetadata == null) {
+    traitKind&=~(TRAIT_FLAG_metadata << 4);
+  }
+  currentBuffer.writeU8(traitKind);
+  currentBuffer.writeU32(slotId);
+  currentBuffer.writeU32(history.getIndex(IndexHistory.MULTINAME,type));
+  int kind=-1;
+switch (valueKind) {
+case CONSTANT_Utf8:
+    kind=IndexHistory.STRING;
+  break;
+case CONSTANT_Integer:
+kind=IndexHistory.INT;
+break;
+case CONSTANT_UInteger:
+kind=IndexHistory.UINT;
+break;
+case CONSTANT_Double:
+kind=IndexHistory.DOUBLE;
+break;
+case CONSTANT_Namespace:
+case CONSTANT_PrivateNamespace:
+case CONSTANT_PackageNamespace:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNamespace:
+case CONSTANT_ExplicitNamespace:
+case CONSTANT_StaticProtectedNs:
+kind=IndexHistory.NS;
+break;
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+case CONSTANT_TypeName:
+kind=IndexHistory.MULTINAME;
+break;
+case CONSTANT_Namespace_Set:
+kind=IndexHistory.NS_SET;
+break;
+}
+int newIndex;
+switch (valueKind) {
+case 0:
+case CONSTANT_False:
+case CONSTANT_True:
+case CONSTANT_Null:
+newIndex=value;
+break;
+default :
+{
+if (kind == -1) {
+throw new DecoderException("writing slotTrait: don't know what constant type it is... " + valueKind + ","+ value);
+}
+newIndex=history.getIndex(kind,value);
+}
+}
+currentBuffer.writeU32(newIndex);
+if (value != 0) {
+currentBuffer.writeU8(valueKind);
+}
+encodeMetaData(newMetadata);
+}

@@ -1,0 +1,43 @@
+{
+  try {
+    final Pair<Module,FlexBuildConfiguration> moduleAndBC=super.checkAndGetModuleAndBC(project);
+    final Module module=moduleAndBC.first;
+    final FlexBuildConfiguration bc=moduleAndBC.second;
+    final Ref<String> errorMessageRef=new Ref<String>(null);
+    final Consumer<FlashProjectStructureProblem> consumer=new Consumer<FlashProjectStructureProblem>(){
+      public void consume(      final FlashProjectStructureProblem problem){
+        errorMessageRef.set(problem.errorMessage);
+      }
+    }
+;
+    if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+      checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAirDesktopPackagingOptions(),consumer,true,getBCName());
+    }
+ else     if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+switch (myMobileRunTarget) {
+case Emulator:
+switch (myAppDescriptorForEmulator) {
+case Android:
+          checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAndroidPackagingOptions(),consumer,true,getBCName());
+        break;
+case IOS:
+      checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getIosPackagingOptions(),consumer,true,getBCName());
+    break;
+}
+break;
+case AndroidDevice:
+checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getAndroidPackagingOptions(),consumer,true,getBCName());
+break;
+case iOSSimulator:
+case iOSDevice:
+checkAirVersionIfCustomDescriptor(module,bc.getSdk(),bc.getIosPackagingOptions(),consumer,true,getBCName());
+break;
+}
+}
+if (!errorMessageRef.isNull()) {
+throw new RuntimeConfigurationWarning(errorMessageRef.get());
+}
+}
+ catch (RuntimeConfigurationError e) {
+}
+}

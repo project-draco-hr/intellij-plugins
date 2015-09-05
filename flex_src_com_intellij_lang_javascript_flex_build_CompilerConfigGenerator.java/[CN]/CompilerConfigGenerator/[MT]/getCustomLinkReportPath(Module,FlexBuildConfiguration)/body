@@ -1,0 +1,34 @@
+{
+  final FlexBuildConfiguration appBC=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(rlmBC.getName());
+  if (appBC != null) {
+    final List<String> linkReports=FlexCommonUtils.getOptionValues(appBC.getCompilerOptions().getAdditionalOptions(),"link-report");
+    if (!linkReports.isEmpty()) {
+      final String path=linkReports.get(0);
+      if (new File(path).isFile())       return path;
+      final String absPath=FlexUtils.getFlexCompilerWorkDirPath(module.getProject(),null) + "/" + path;
+      if (new File(absPath).isFile())       return absPath;
+    }
+ else {
+      final String configFilePath=appBC.getCompilerOptions().getAdditionalConfigFilePath();
+      if (!configFilePath.isEmpty()) {
+        final VirtualFile configFile=LocalFileSystem.getInstance().findFileByPath(configFilePath);
+        if (configFile != null) {
+          try {
+            String path=FlexUtils.findXMLElement(configFile.getInputStream(),"<flex-config><link-report>");
+            if (path != null) {
+              path=path.trim();
+              if (new File(path).isFile())               return path;
+              for (              VirtualFile srcRoot : ModuleRootManager.getInstance(module).getSourceRoots()) {
+                final String absPath=srcRoot.getPath() + "/" + path;
+                if (new File(absPath).isFile())                 return absPath;
+              }
+            }
+          }
+ catch (          IOException ignore) {
+          }
+        }
+      }
+    }
+  }
+  return null;
+}

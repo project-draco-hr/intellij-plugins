@@ -1,0 +1,24 @@
+{
+  if (!JavaScriptSupportLoader.isFlexMxmFile(attribute.getContainingFile()))   return null;
+  final String name=attribute.getName();
+  if (!JSRefactoringUtil.isValidIdentifier(name,attribute.getProject())) {
+    return IntentionAction.EMPTY_ARRAY;
+  }
+  final XmlElementDescriptor descriptor=attribute.getParent().getDescriptor();
+  final PsiElement declaration=descriptor instanceof ClassBackedElementDescriptor ? descriptor.getDeclaration() : null;
+  final VirtualFile virtualFile=declaration == null ? null : declaration.getContainingFile().getVirtualFile();
+  if (virtualFile == null || ProjectRootManager.getInstance(declaration.getProject()).getFileIndex().getSourceRootForFile(virtualFile) == null) {
+    return IntentionAction.EMPTY_ARRAY;
+  }
+  if (declaration instanceof JSClass || declaration instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((XmlFile)declaration)) {
+    final String attributeValue=attribute.getValue();
+    final FixAndIntentionAction fix1=new CreateFieldByMxmlAttributeFix(name,attributeValue);
+    fix1.registerElementRefForFix(attribute,null);
+    final FixAndIntentionAction fix2=new CreateSetterByMxmlAttributeFix(name,attributeValue);
+    fix2.registerElementRefForFix(attribute,null);
+    final FixAndIntentionAction fix3=new CreateEventMetadataByMxmlAttributeFix(name);
+    fix3.registerElementRefForFix(attribute,null);
+    return new IntentionAction[]{fix1,fix2,fix3};
+  }
+  return IntentionAction.EMPTY_ARRAY;
+}

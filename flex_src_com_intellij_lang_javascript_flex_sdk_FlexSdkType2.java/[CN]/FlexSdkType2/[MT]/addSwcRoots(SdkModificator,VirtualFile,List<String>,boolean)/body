@@ -1,0 +1,21 @@
+{
+  for (  String libRelativePath : libRelativePaths) {
+    final VirtualFile libFileOrDir=baseDir.findFileByRelativePath(libRelativePath);
+    if (libFileOrDir != null) {
+      if (libFileOrDir.isDirectory()) {
+        for (        final VirtualFile libCandidate : libFileOrDir.getChildren()) {
+          if (!libCandidate.isDirectory() && "swc".equalsIgnoreCase(libCandidate.getExtension())) {
+            if (!skipAirglobalSwc || !libCandidate.getPath().endsWith("frameworks/libs/air/airglobal.swc")) {
+              addSwcRoot(sdkModificator,libCandidate);
+            }
+          }
+        }
+      }
+ else       if ("swc".equalsIgnoreCase(libFileOrDir.getExtension())) {
+        if (!skipAirglobalSwc || !libFileOrDir.getPath().endsWith("frameworks/libs/air/airglobal.swc")) {
+          addSwcRoot(sdkModificator,libFileOrDir);
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  int utfLen=0;
+  int c;
+  for (int i=beginIndex; i < endIndex; i++) {
+    c=s.charAt(i);
+    if (c >= 0x0001 && c <= 0x007F) {
+      utfLen++;
+    }
+ else     if (c > 0x07FF) {
+      utfLen+=3;
+    }
+ else {
+      utfLen+=2;
+    }
+  }
+  writeUInt29(shiftLength ? ((utfLen << 1) | 1) : utfLen);
+  int count=out.size();
+  final byte[] bytes=out.getBuffer(utfLen);
+  for (int i=beginIndex; i < endIndex; i++) {
+    c=s.charAt(i);
+    if (c <= 0x007F) {
+      bytes[count++]=(byte)c;
+    }
+ else     if (c > 0x07FF) {
+      bytes[count++]=(byte)(0xE0 | ((c >> 12) & 0x0F));
+      bytes[count++]=(byte)(0x80 | ((c >> 6) & 0x3F));
+      bytes[count++]=(byte)(0x80 | (c & 0x3F));
+    }
+ else {
+      bytes[count++]=(byte)(0xC0 | ((c >> 6) & 0x1F));
+      bytes[count++]=(byte)(0x80 | (c & 0x3F));
+    }
+  }
+}

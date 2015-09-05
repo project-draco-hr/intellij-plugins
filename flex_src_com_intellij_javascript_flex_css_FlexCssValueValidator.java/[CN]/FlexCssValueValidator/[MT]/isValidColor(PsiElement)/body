@@ -1,0 +1,22 @@
+{
+  String text=element.getText().trim();
+  if (isInteger(text)) {
+    return true;
+  }
+  if (!(element instanceof CssTerm) || ((CssTerm)element).getTermType() != CssTermTypes.COLOR) {
+    if (FlexCssUtil.inQuotes(text)) {
+      text=StringUtil.unquoteString(text,'"');
+      if (text.startsWith("0x")) {
+        return isInteger(text.substring(2));
+      }
+ else       if (containsOnlyLetters(text)) {
+        return ColorMap.isStandardColor(text.toLowerCase(Locale.US));
+      }
+    }
+    return false;
+  }
+  if (containsOnlyLetters(text)) {
+    return ColorMap.isStandardColor(text.toLowerCase(Locale.US));
+  }
+  return true;
+}

@@ -1,0 +1,10 @@
+{
+  Collection<JSClass> all=query.findAll();
+  String packageName=place != null ? JSResolveUtil.getPackageNameFromPlace(place) : "";
+  for (  JSClass result : all) {
+    if (JSResolveUtil.hasExcludeClassMetadata(result))     continue;
+    if (!JSResolveUtil.isAccessibleFromCurrentPackage(result,packageName,place))     continue;
+    if (!processedCandidateNames.add(result.getQualifiedName()))     continue;
+    variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(result,result.getName(),VariantsProcessor.LookupPriority.SMART_PROPRITY,false,true));
+  }
+}

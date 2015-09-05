@@ -1,0 +1,23 @@
+{
+  if (findNode(element) != null)   return null;
+  if (element instanceof JSClass) {
+    if (!isAllowedToShow((JSClass)element)) {
+      return null;
+    }
+    JSClass psiClass=(JSClass)element;
+    if (psiClass.getQualifiedName() == null)     return null;
+    final SmartPsiElementPointer<JSClass> pointer=spManager.createSmartPsiElementPointer(psiClass);
+    final String fqn=psiClass.getQualifiedName();
+    classesAddedByUser.put(fqn,pointer);
+    classesRemovedByUser.remove(fqn);
+    setupScopeManager(psiClass,true);
+    return new FlashUmlClassNode((JSClass)element,getProvider());
+  }
+ else   if (element instanceof String) {
+    String aPackage=(String)element;
+    packages.add(aPackage);
+    packagesRemovedByUser.remove(aPackage);
+    return new FlashUmlPackageNode(aPackage,getProvider());
+  }
+  return null;
+}

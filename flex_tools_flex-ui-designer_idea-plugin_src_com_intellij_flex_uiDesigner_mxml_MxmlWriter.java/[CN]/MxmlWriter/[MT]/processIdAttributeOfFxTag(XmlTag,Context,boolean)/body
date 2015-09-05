@@ -1,0 +1,21 @@
+{
+  final StaticObjectContext context;
+  final int referencePosition=out.allocateClearShort();
+  if (hasStates) {
+    context=stateWriter.createContextForStaticBackSibling(allowIncludeInExcludeFrom,referencePosition,parentContext);
+  }
+ else {
+    context=writer.createStaticContext(parentContext,referencePosition);
+  }
+  XmlAttribute idAttribute=tag.getAttribute("id");
+  if (idAttribute != null) {
+    String id=idAttribute.getDisplayValue();
+    if (StringUtil.isEmpty(id)) {
+      LOG.warn("Skip id attribute of " + tag + ", id is empty");
+    }
+ else {
+      injectedASWriter.putMxmlObjectReference(id,context.getMxmlObjectReference());
+    }
+  }
+  return context;
+}

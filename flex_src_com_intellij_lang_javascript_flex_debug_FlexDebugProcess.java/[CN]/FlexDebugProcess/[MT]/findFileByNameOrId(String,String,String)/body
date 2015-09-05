@@ -1,0 +1,26 @@
+{
+  if (id != null) {
+    final String path=myKnownFilesInfo.getFilePathById(myCurrentWorker,id);
+    if (path != null) {
+      final VirtualFile fileById=LocalFileFinder.findFile(path);
+      if (packageName == null) {
+        final String mavenStyleSrc="/src/main/flex/";
+        int srcIndex=path.indexOf(mavenStyleSrc);
+        if (srcIndex > 0) {
+          packageName=StringUtil.getPackageName(path.substring(srcIndex + mavenStyleSrc.length()),'/').replace('/','.');
+        }
+ else {
+          srcIndex=path.indexOf(SRC_PATH_ELEMENT);
+          if (srcIndex > 0) {
+            packageName=StringUtil.getPackageName(path.substring(srcIndex + SRC_PATH_ELEMENT.length()),'/').replace('/','.');
+          }
+        }
+      }
+      if (fileById != null) {
+        return getThisOrSimilarFileInProject(fileById,packageName);
+      }
+    }
+  }
+  if ("<null>".equals(fileName))   return null;
+  return packageName == null ? findFile(fileName) : findFile(fileName,packageName);
+}

@@ -1,0 +1,19 @@
+{
+  final Ref<String> versionRef=new Ref<String>();
+  ExternalTask.runWithProgress(new AdtTask(project,sdk){
+    protected void appendAdtOptions(    final List<String> command){
+      command.add("-version");
+    }
+    protected boolean checkMessages(){
+      if (myMessages.size() == 1) {
+        FlexCommonUtils.parseAirVersionFromAdtOutput(myMessages.get(0),versionRef);
+        if (!versionRef.isNull()) {
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+,FlexBundle.message("checking.air.version"),FlexBundle.message("check.air.version.title"));
+  return versionRef.get();
+}

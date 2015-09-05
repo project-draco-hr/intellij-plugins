@@ -1,0 +1,63 @@
+{
+  int offset=host instanceof XmlText ? 0 : 1;
+  if (descriptor instanceof AnnotationBackedDescriptor && ((XmlElementDescriptorWithCDataContent)descriptor).requiresCdataBracesInContext(tag)) {
+    final int length=host.getTextLength();
+    if (length < 2 * offset)     return;
+    String type=((AnnotationBackedDescriptor)descriptor).getType();
+    if (type == null)     type="*";
+    @NonNls String prefix="(function (event:" + type + ") {";
+    @NonNls String suffix="})(null);";
+    if (host instanceof XmlText) {
+      JSLanguageInjector.injectToXmlText(registrar,host,JavaScriptSupportLoader.ECMA_SCRIPT_L4,prefix,suffix);
+    }
+ else {
+      if (JSCommonTypeNames.FUNCTION_CLASS_NAME.equals(type) && host.textContains('{')) {
+        final String text=StringUtil.stripQuotesAroundValue(host.getText());
+        if (text.startsWith("{") && text.endsWith("}")) {
+          prefix=FUNCTION_CALL_PREFIX;
+          suffix=FUNCTION_CALL_SUFFIX;
+          offset++;
+        }
+      }
+      TextRange range=new TextRange(offset,length - offset);
+      registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace(prefix,(host instanceof XmlAttributeValue ? "\n" : "") + suffix,(PsiLanguageInjectionHost)host,range).doneInjecting();
+    }
+  }
+ else   if (!(host instanceof XmlText) || !hasCDATA((XmlText)host)) {
+    final String text=StringUtil.stripQuotesAroundValue(host.getText());
+    int openedBraces=0;
+    int start=-1;
+    boolean addedSomething=false;
+    boolean quoted=false;
+    for (int i=0; i < text.length(); ++i) {
+      final char ch=text.charAt(i);
+      if (quoted) {
+        quoted=false;
+        continue;
+      }
+      if (ch == '\\') {
+        quoted=true;
+      }
+ else       if (ch == '{') {
+        if (openedBraces == 0)         start=i + 1;
+        openedBraces++;
+      }
+ else       if (ch == '}') {
+        openedBraces--;
+        if (openedBraces == 0 && start != -1) {
+          registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace(FUNCTION_CALL_PREFIX,FUNCTION_CALL_SUFFIX,(PsiLanguageInjectionHost)host,new TextRange(offset + start,i + offset)).doneInjecting();
+          addedSomething=true;
+          start=-1;
+        }
+      }
+    }
+    if (!addedSomething) {
+      final String trimmedText=text.trim();
+      start=trimmedText.indexOf("@");
+      if (start == 0 && trimmedText.length() > 1 && Character.isUpperCase(trimmedText.charAt(1))) {
+        offset+=text.indexOf(trimmedText);
+        registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace(null,null,(PsiLanguageInjectionHost)host,new TextRange(offset,trimmedText.length() + offset)).doneInjecting();
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  final JSClassResolver resolver=JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver();
+  final JSClass sourceClass=(JSClass)resolver.findClassByQName(sourceClassName,JSMoveMembersDialog.getScope(myProject));
+  assertNotNull("Class " + sourceClassName + " not found",sourceClass);
+  JSClass targetClass=(JSClass)resolver.findClassByQName(targetClassName,JSMoveMembersDialog.getScope(myProject));
+  assertNotNull("Class " + targetClassName + " not found",targetClass);
+  final List<JSMemberInfo> memberInfos=new ArrayList<JSMemberInfo>();
+  JSMemberInfo.extractStaticMembers(sourceClass,memberInfos,new MemberInfoBase.Filter<JSAttributeListOwner>(){
+    @Override public boolean includeMember(    JSAttributeListOwner member){
+      return memberNames.length == 0 || ArrayUtil.contains(member.getName(),memberNames);
+    }
+  }
+);
+  JSMemberInfo.sortByOffset(memberInfos);
+  for (  JSMemberInfo memberInfo : memberInfos) {
+    memberInfo.setChecked(true);
+  }
+  new JSMoveMembersProcessor(myProject,null,sourceClass,JSMoveMembersDialog.getScope(myProject),new JSMoveMembersOptions(){
+    @Override public JSAttributeListOwner[] getSelectedMembers(){
+      final JSMemberInfo[] selected=JSMemberInfo.getSelected(memberInfos,sourceClass,Conditions.<JSMemberInfo>alwaysTrue());
+      JSAttributeListOwner[] result=new JSAttributeListOwner[selected.length];
+      for (int i=0; i < result.length; i++) {
+        result[i]=selected[i].getMember();
+      }
+      return result;
+    }
+    @Override public String getTargetClassName(){
+      return targetClassName;
+    }
+    @Override public String getMemberVisibility(){
+      return visibility;
+    }
+  }
+).run();
+  myProject.getComponent(PostprocessReformattingAspect.class).doPostponedFormatting();
+  FileDocumentManager.getInstance().saveAllDocuments();
+}

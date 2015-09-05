@@ -1,0 +1,30 @@
+{
+  ByteBuffer data=new ByteBuffer();
+  data.read(in);
+  data.setLittleEndian();
+  if (data.bytesSize() == 0)   return;
+  int version=data.readUnsignedInt();
+  if (version == ABC_VER || version == ABC_VER2 || version == ABC_VER3) {
+    Abc abc=new Abc(data,processor);
+    abc.dump("");
+  }
+ else   if ((version & SWF_MAGIC) == SWF_MAGIC) {
+    final int delta=8;
+    data.setPosition(delta);
+    ByteBuffer udata=new ByteBuffer();
+    udata.setLittleEndian();
+    data.readBytes(udata,data.bytesSize() - delta);
+    int csize=udata.bytesSize();
+    udata.uncompress();
+    processor.dumpStat("decompressed swf " + csize + " -> "+ udata.bytesSize()+ "\n");
+    udata.setPosition(0);
+    new Swf(udata,processor);
+  }
+ else   if ((version & SWF_MAGIC2) == SWF_MAGIC2) {
+    data.setPosition(8);
+    new Swf(data,processor);
+  }
+ else {
+    processor.hasError("unknown format " + version + ", swf version: "+ (version >> 24)+ "\n");
+  }
+}

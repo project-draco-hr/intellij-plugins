@@ -1,0 +1,35 @@
+{
+  final File adtFile=new File(flexSdkHomePath + "/lib/adt.jar");
+  if (!adtFile.isFile()) {
+    return null;
+  }
+  String version=ourAdtJarPathAndTimestampToVersion.get(Pair.create(adtFile.getPath(),adtFile.lastModified()));
+  if (version != null) {
+    return version;
+  }
+  try {
+    final Ref<String> versionRef=Ref.create();
+    final String javaExecutable=FileUtil.toSystemDependentName((SystemProperties.getJavaHome() + "/bin/java" + (SystemInfo.isWindows ? ".exe" : "")));
+    final Process process=Runtime.getRuntime().exec(new String[]{javaExecutable,"-jar",adtFile.getPath(),"-version"});
+    final BaseOSProcessHandler handler=new BaseOSProcessHandler(process,"doesn't matter",Charset.defaultCharset());
+    handler.addProcessListener(new ProcessAdapter(){
+      public void onTextAvailable(      ProcessEvent event,      Key outputType){
+        if (outputType != ProcessOutputTypes.SYSTEM) {
+          parseAirVersionFromAdtOutput(event.getText().trim(),versionRef);
+        }
+      }
+    }
+);
+    handler.startNotify();
+    handler.waitFor(3000);
+    if (!handler.isProcessTerminated()) {
+      handler.destroyProcess();
+    }
+    version=versionRef.get();
+    ourAdtJarPathAndTimestampToVersion.put(Pair.create(adtFile.getPath(),adtFile.lastModified()),version);
+    return version;
+  }
+ catch (  IOException e) {
+  }
+  return null;
+}

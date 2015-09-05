@@ -1,0 +1,23 @@
+{
+  JSTestUtils.initJSIndexes(getProject());
+  JSEditorTextField editorTextField=null;
+  try {
+    myFile=fragment;
+    Document document=PsiDocumentManager.getInstance(myProject).getDocument(fragment);
+    editorTextField=new JSEditorTextField(myProject,document);
+    final String text=StringUtil.convertLineSeparators(VfsUtil.loadText(getVirtualFile(file)));
+    EditorInfo editorInfo=new EditorInfo(text);
+    editorTextField.addNotify();
+    myEditor=editorTextField.getEditor();
+    myEditorsToRelease.add(myEditor);
+    editorTextField.setText(editorInfo.getNewFileText());
+    editorInfo.applyToEditor(myEditor);
+    if (myNeedImportReferenceAtCursor) {
+      DaemonCodeAnalyzer.getInstance(myProject).autoImportReferenceAtCursor(myEditor,myFile);
+    }
+    complete();
+  }
+  finally {
+    if (editorTextField != null)     editorTextField.removeNotify();
+  }
+}

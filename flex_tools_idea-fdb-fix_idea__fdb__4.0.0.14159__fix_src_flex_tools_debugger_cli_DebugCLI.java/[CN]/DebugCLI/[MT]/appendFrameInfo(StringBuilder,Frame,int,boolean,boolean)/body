@@ -1,0 +1,46 @@
+{
+  boolean validFrame=true;
+  int i=frameNumber;
+  Location loc=ctx.getLocation();
+  SourceFile file=loc.getFile();
+  int line=loc.getLine();
+  String name=(file == null) ? "<null>" : file.getName();
+  String sig=ctx.getCallSignature();
+  String func=extractFunctionName(sig);
+  if (file == null && line < 0) {
+    validFrame=false;
+  }
+ else {
+    Variable[] var=ctx.getArguments(m_session);
+    Variable dis=ctx.getThis(m_session);
+    boolean displayArgs=(func != null) || (var != null);
+    sb.append('#');
+    FieldFormat.formatLong(sb,i,3);
+    sb.append(' ');
+    if (showThis && dis != null) {
+      ExpressionCache.appendVariable(sb,dis);
+      sb.append(".");
+    }
+    if (func != null)     sb.append(func);
+    if (displayArgs) {
+      sb.append('(');
+      for (int j=0; j < var.length; j++) {
+        Variable v=var[j];
+        sb.append(v.getName());
+        sb.append('=');
+        ExpressionCache.appendVariableValue(sb,v.getValue());
+        if ((j + 1) < var.length)         sb.append(", ");
+      }
+      sb.append(")");
+      sb.append(getLocalizationManager().getLocalizedTextString("atFilename"));
+    }
+    sb.append(name);
+    if (file != null && (showFileId || !m_fileInfo.inFileList(file))) {
+      sb.append('#');
+      sb.append(file.getId());
+    }
+    sb.append(':');
+    sb.append(line);
+  }
+  return validFrame;
+}

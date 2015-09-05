@@ -1,0 +1,24 @@
+{
+  final String baseClassFqn=attributeDescriptor == null ? null : attributeDescriptor.getDefaultValue();
+  if (baseClassFqn != null) {
+    return getClassRefs(element,baseClassFqn);
+  }
+  final @NonNls String parentName=((JSAttribute)element.getParent()).getName();
+  if ("ResourceBundle".equals(parentName)) {
+    return FlexPropertiesSupport.getResourceBundleReference(element,ourBundleInfoProvider);
+  }
+  if (FlexAnnotationNames.EMBED.equals(parentName))   return getPathRefs(element);
+  if ("DefaultProperty".equals(parentName)) {
+    final ASTNode valueNode=element.findValueNode();
+    if (valueNode != null) {
+      JSReferenceSet referenceSet=element.getUserData(METADATA_REFERENCE_KEY);
+      if (referenceSet == null) {
+        referenceSet=new JSReferenceSet(element,false);
+        element.putUserData(METADATA_REFERENCE_KEY,referenceSet);
+      }
+      referenceSet.update(valueNode.getText(),valueNode.getPsi().getStartOffsetInParent());
+      return referenceSet.getReferences();
+    }
+  }
+  return PsiReference.EMPTY_ARRAY;
+}

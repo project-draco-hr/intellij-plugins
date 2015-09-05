@@ -1,0 +1,27 @@
+{
+  final VirtualFile file=element.getContainingFile().getVirtualFile();
+  final JSClass jsClass=findSourceElement(element);
+  final String className=jsClass == null ? null : jsClass.getName();
+  final Pair<Module,FlexUnitSupport> moduleAndSupport=FlexUnitSupport.getModuleAndSupport(element);
+  final Module module=moduleAndSupport == null ? null : moduleAndSupport.first;
+  final FlexUnitSupport flexUnitSupport=moduleAndSupport == null ? null : moduleAndSupport.second;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+  if (className == null || module == null || flexUnitSupport == null || (file != null && fileIndex.isInTestSourceContent(file))) {
+    return Collections.emptyList();
+  }
+  final Collection<String> allNames=StubIndex.getInstance().getAllKeys(JSNameIndex.KEY,element.getProject());
+  final GlobalSearchScope scope=GlobalSearchScope.moduleWithDependentsScope(module);
+  final List<Pair<? extends PsiNamedElement,Integer>> classesWithProximity=new ArrayList<Pair<? extends PsiNamedElement,Integer>>();
+  for (  final String possibleTestName : allNames) {
+    if (possibleTestName.contains(className)) {
+      for (      final JSQualifiedNamedElement jsElement : JSResolveUtil.findElementsByName(possibleTestName,element.getProject(),scope)) {
+        final VirtualFile f=jsElement.getContainingFile().getVirtualFile();
+        final boolean inTestSource=f != null && fileIndex.isInTestSourceContent(f);
+        if (jsElement instanceof JSClass && jsElement != jsClass && ((inTestSource && possibleTestName.contains("Test")) || flexUnitSupport.isTestClass((JSClass)jsElement,true))) {
+          classesWithProximity.add(Pair.create(jsElement,TestFinderHelper.calcTestNameProximity(className,jsElement.getName())));
+        }
+      }
+    }
+  }
+  return TestFinderHelper.getSortedElements(classesWithProximity,true);
+}

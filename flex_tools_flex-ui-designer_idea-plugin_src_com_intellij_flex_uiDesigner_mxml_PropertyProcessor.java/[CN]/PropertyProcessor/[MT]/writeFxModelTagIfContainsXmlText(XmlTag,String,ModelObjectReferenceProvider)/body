@@ -1,0 +1,30 @@
+{
+  for (  XmlTagChild child : parent.getValue().getChildren()) {
+    if (child instanceof XmlText && !MxmlUtil.containsOnlyWhitespace(child)) {
+      final ValueWriter valueWriter;
+      try {
+        valueWriter=injectedASWriter.processProperty(child,tagLocalName,null,false,objectReferenceProvider);
+      }
+ catch (      InvalidPropertyException e) {
+        mxmlWriter.problemsHolder.add(e);
+        return -1;
+      }
+      if (valueWriter != InjectedASWriter.IGNORE) {
+        if (valueWriter != null) {
+          throw new IllegalStateException("What?");
+        }
+ else {
+          if (tagLocalName != null) {
+            writer.property(tagLocalName);
+          }
+          writeUntypedPrimitiveValue(writer.getOut(),((XmlText)child).getValue());
+        }
+      }
+      return 1;
+    }
+ else     if (child instanceof XmlTag) {
+      return 0;
+    }
+  }
+  return 0;
+}

@@ -1,0 +1,30 @@
+{
+  final Sdk sdk46=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.6"),null,true);
+  final Module module2=JSTestUtils.createModule(myProject,"module2",getVirtualFile(getBasePath() + "m2"));
+  final Module module3=JSTestUtils.createModule(myProject,"module3",getVirtualFile(getBasePath() + "m3"));
+  JSTestUtils.addFlexLibrary(false,myModule,"Lib",true,getTestDataPath() + getBasePath(),"Lib",null,null,LinkageType.Test);
+  JSTestUtils.addFlexLibrary(false,myModule,"Lib2",true,getTestDataPath() + getBasePath(),"Lib2",null,null);
+  JSTestUtils.addFlexLibrary(true,myModule,"Lib3",true,getTestDataPath() + getBasePath(),"Lib3",null,null,LinkageType.Test);
+  JSTestUtils.addFlexLibrary(true,myModule,"Lib4",true,getTestDataPath() + getBasePath(),"Lib4",null,null);
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor editor){
+      ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+      JSTestUtils.setSdk(bc1,sdk46);
+      ModifiableFlexBuildConfiguration bc2=editor.getConfigurations(module2)[0];
+      bc2.setOutputType(OutputType.Library);
+      ModifiableFlexBuildConfiguration bc3=editor.getConfigurations(module3)[0];
+      bc3.setOutputType(OutputType.Library);
+      ModifiableBuildConfigurationEntry entry1=editor.createBcEntry(bc1.getDependencies(),bc2,null);
+      entry1.getDependencyType().setLinkageType(LinkageType.Test);
+      bc1.getDependencies().getModifiableEntries().add(entry1);
+      ModifiableBuildConfigurationEntry entry2=editor.createBcEntry(bc2.getDependencies(),bc3,null);
+      entry2.getDependencyType().setLinkageType(LinkageType.Test);
+      bc2.getDependencies().getModifiableEntries().add(entry2);
+    }
+  }
+);
+  doHighlightingTest("_1","as",false);
+  doHighlightingTest("_1","mxml",false);
+  doHighlightingTest("_2","as",true);
+  doHighlightingTest("_2","mxml",true);
+}

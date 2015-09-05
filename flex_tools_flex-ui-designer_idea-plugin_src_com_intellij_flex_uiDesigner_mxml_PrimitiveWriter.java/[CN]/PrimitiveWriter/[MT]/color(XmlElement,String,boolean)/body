@@ -1,0 +1,57 @@
+{
+  out.write(AmfExtendedTypes.COLOR_STYLE);
+  if (value.charAt(0) == '#') {
+    if (isPrimitiveStyle) {
+      out.write(CssPropertyType.COLOR_INT);
+    }
+    value=value.substring(1);
+  }
+ else   if (value.charAt(0) == '0' && value.length() > 2 && value.charAt(1) == 'x') {
+    if (isPrimitiveStyle) {
+      out.write(CssPropertyType.COLOR_INT);
+    }
+    value=value.substring(2);
+  }
+ else {
+    final String colorName=value.toLowerCase(Locale.ENGLISH);
+    String hexCodeForColorName=ColorMap.getHexCodeForColorName(colorName);
+    if (hexCodeForColorName == null) {
+      try {
+        long v=Long.parseLong(colorName);
+        if (isPrimitiveStyle) {
+          out.write(CssPropertyType.COLOR_INT);
+        }
+        out.writeAmfUInt(v);
+        return;
+      }
+ catch (      NumberFormatException ignored) {
+        if (colorName.equalsIgnoreCase("halogreen")) {
+          hexCodeForColorName="#80FF4D";
+        }
+ else         if (colorName.equalsIgnoreCase("haloblue")) {
+          hexCodeForColorName="#009DFF";
+        }
+ else         if (colorName.equalsIgnoreCase("haloorange")) {
+          hexCodeForColorName="#FFB600";
+        }
+ else         if (colorName.equalsIgnoreCase("halosilver")) {
+          hexCodeForColorName="#AECAD9";
+        }
+ else {
+          throw new InvalidPropertyException(element,"invalid.color.name",colorName);
+        }
+      }
+    }
+    if (isPrimitiveStyle) {
+      out.write(CssPropertyType.COLOR_STRING);
+      stringWriter.writeNullable(colorName,out);
+    }
+    value=hexCodeForColorName.substring(1);
+  }
+  if (value.length() > 6) {
+    out.writeAmfUInt(Long.parseLong(value,16));
+  }
+ else {
+    out.writeAmfUInt(Integer.parseInt(value,16));
+  }
+}

@@ -1,0 +1,11 @@
+{
+  if (method.getKind() == JSFunction.FunctionKind.CONSTRUCTOR)   return false;
+  PsiElement parent=method.getParent();
+  if (parent instanceof JSClass && (isFlunitSubclass((JSClass)parent) || isFlexUnit1Subclass((JSClass)parent))) {
+    if (method.getName() != null && method.getName().startsWith("test"))     return true;
+  }
+  if (method.getAttributeList() != null && method.getAttributeList().getAttributesByName(TEST_ATTRIBUTE).length > 0 && method.getAttributeList().getAttributesByName(IGNORE_ATTRIBUTE).length == 0) {
+    return true;
+  }
+  return false;
+}

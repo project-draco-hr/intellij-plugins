@@ -1,0 +1,17 @@
+{
+  setProgressMessage(context,bc);
+  final String compilerName=FlexBuilderUtils.getCompilerName(bc);
+  try {
+    final List<File> configFiles=createConfigFiles(bc,context.getProjectDescriptor());
+    final String outputFilePath=bc.getActualOutputFilePath();
+    if (!ensureCanCreateFile(new File(outputFilePath))) {
+      context.processMessage(new CompilerMessage(compilerName,BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.create.file",bc.getActualOutputFilePath())));
+      return Status.Failed;
+    }
+    return doCompile(context,bc,configFiles,compilerName,builtInCompilerHandler);
+  }
+ catch (  IOException e) {
+    context.processMessage(new CompilerMessage(compilerName,BuildMessage.Kind.ERROR,e.getMessage()));
+    return Status.Failed;
+  }
+}

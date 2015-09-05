@@ -1,0 +1,23 @@
+{
+  initEmulatorRelatedControls();
+  if (!SystemInfo.isMac) {
+    myOnIOSSimulatorRadioButton.setEnabled(false);
+    myOnIOSSimulatorRadioButton.setText(FlexBundle.message("ios.simulator.on.mac.only.button.text"));
+    myIOSSimulatorSdkTextWithBrowse.setVisible(false);
+  }
+  myIOSSimulatorSdkTextWithBrowse.addBrowseFolderListener(null,null,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  final ActionListener debugTransportListener=new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateDebugTransportRelatedControls();
+    }
+  }
+;
+  myDebugOverNetworkRadioButton.addActionListener(debugTransportListener);
+  myDebugOverUSBRadioButton.addActionListener(debugTransportListener);
+  initAppDescriptorForEmulatorCombo(myAppDescriptorForEmulatorCombo,new NullableComputable<FlexBuildConfiguration>(){
+    @Nullable public FlexBuildConfiguration compute(){
+      return myBCCombo.getBC();
+    }
+  }
+);
+}

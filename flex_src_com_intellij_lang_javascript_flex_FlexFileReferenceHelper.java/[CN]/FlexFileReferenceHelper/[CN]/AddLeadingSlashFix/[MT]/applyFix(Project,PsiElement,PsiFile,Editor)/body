@@ -1,0 +1,11 @@
+{
+  final ASTNode oldValueNode=((JSAttributeNameValuePair)psiElement).getValueNode();
+  final String oldText=oldValueNode.getText();
+  char quoteChar=oldText.length() > 0 ? oldText.charAt(0) : '"';
+  if (quoteChar != '\'' && quoteChar != '"') {
+    quoteChar='"';
+  }
+  final String newText=quoteChar + "/" + StringUtil.stripQuotesAroundValue(oldText)+ quoteChar;
+  final ASTNode newNode=JSChangeUtil.createExpressionFromText(project,newText);
+  psiElement.getNode().replaceChild(oldValueNode,newNode.getFirstChildNode());
+}

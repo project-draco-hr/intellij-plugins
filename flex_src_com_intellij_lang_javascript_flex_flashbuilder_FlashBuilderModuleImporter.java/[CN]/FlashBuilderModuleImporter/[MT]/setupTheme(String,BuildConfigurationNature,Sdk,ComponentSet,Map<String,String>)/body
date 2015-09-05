@@ -1,0 +1,35 @@
+{
+  String themeDirPath=null;
+  if (themeDirPathRaw.startsWith(EXTERNAL_THEME_DIR_MACRO)) {
+    themeDirPath=SystemProperties.getUserHome() + EXTERNAL_THEME_DIR_REL_PATH + themeDirPathRaw.substring(EXTERNAL_THEME_DIR_MACRO.length());
+  }
+ else   if (themeDirPathRaw.startsWith(SDK_THEMES_DIR_MACRO)) {
+    themeDirPath=sdk.getHomePath() + themeDirPathRaw.substring(SDK_THEMES_DIR_MACRO.length());
+  }
+  if (themeDirPath != null) {
+    final File themeDir=new File(themeDirPath);
+    if (themeDir.isDirectory()) {
+      final String themeFilePath=findThemeFilePath(themeDir);
+      if (themeFilePath != null) {
+        final String themePathWithMacro=themeFilePath.replace(sdk.getHomePath(),CompilerOptionInfo.FLEX_SDK_MACRO);
+        if ("${SDK_THEMES_DIR}/frameworks/themes/Halo".equals(themeDirPathRaw)) {
+          compilerOptions.put("compiler.theme",themePathWithMacro);
+        }
+ else         if ("${SDK_THEMES_DIR}/frameworks/themes/AeonGraphical".equals(themeDirPathRaw)) {
+          final String haloTheme=CompilerOptionInfo.FLEX_SDK_MACRO + "/frameworks/themes/Halo/halo.swc";
+          compilerOptions.put("compiler.theme",haloTheme + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + themePathWithMacro);
+        }
+ else {
+          final CompilerOptionInfo themeInfo=CompilerOptionInfo.getOptionInfo("compiler.theme");
+          final String defaultTheme=themeInfo.getDefaultValue(sdk.getVersionString(),nature,componentSet);
+          if (defaultTheme.isEmpty()) {
+            compilerOptions.put("compiler.theme",themePathWithMacro);
+          }
+ else {
+            compilerOptions.put("compiler.theme",defaultTheme + CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + themePathWithMacro);
+          }
+        }
+      }
+    }
+  }
+}

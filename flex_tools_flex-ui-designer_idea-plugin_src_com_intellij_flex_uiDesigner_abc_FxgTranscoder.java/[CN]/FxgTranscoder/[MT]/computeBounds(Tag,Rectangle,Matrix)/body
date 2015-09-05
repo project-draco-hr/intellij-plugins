@@ -1,0 +1,30 @@
+{
+  if (tag instanceof PlaceObject) {
+    PlaceObject placeTag=(PlaceObject)tag;
+    computedBounds=computeBounds(placeTag.ref,computedBounds,placeTag.hasMatrix() ? placeTag.matrix : null);
+  }
+ else   if (tag instanceof DefineShape) {
+    Rect shapeBounds=((DefineShape)tag).bounds;
+    Rectangle rectangle=new Rectangle(shapeBounds.xMin,shapeBounds.yMin,shapeBounds.getWidth(),shapeBounds.getHeight());
+    if (matrix != null) {
+      rectangle.x+=matrix.translateX;
+      rectangle.y+=matrix.translateY;
+      if (matrix.hasScale) {
+        rectangle.width*=matrix.scaleX / 65536;
+        rectangle.height*=matrix.scaleY / 65536;
+      }
+    }
+    if (computedBounds == null) {
+      computedBounds=rectangle;
+    }
+ else {
+      computedBounds=computedBounds.union(rectangle);
+    }
+  }
+ else   if (tag instanceof DefineSprite) {
+    for (    Tag subTag : ((DefineSprite)tag).tagList.tags) {
+      computedBounds=computeBounds(subTag,computedBounds,null);
+    }
+  }
+  return computedBounds;
+}

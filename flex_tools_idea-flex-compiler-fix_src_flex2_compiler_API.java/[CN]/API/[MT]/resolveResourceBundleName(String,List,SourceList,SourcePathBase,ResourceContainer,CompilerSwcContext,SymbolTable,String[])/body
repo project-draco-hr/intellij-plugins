@@ -1,0 +1,28 @@
+{
+  QName[] qNames=symbolTable.isResourceBundleResolved(rbName);
+  if (qNames != null) {
+    return qNames;
+  }
+  Source source=symbolTable.findSourceByResourceBundleName(rbName);
+  if (source == null) {
+    int where=-1;
+    QName bundleName=new QName(rbName);
+    String namespaceURI=bundleName.getNamespace();
+    String localPart=bundleName.getLocalPart();
+    try {
+      where=findResourceBundle(sources,sourceList,sourcePath,swcContext,locales,namespaceURI,localPart);
+    }
+ catch (    CompilerException ex) {
+      ThreadLocalToolkit.logError(ex.getMessage());
+    }
+    if (where != -1) {
+      source=(Source)sources.get(where);
+      qNames=new QName[locales == null ? 0 : locales.length];
+      for (int i=0, length=qNames.length; i < length; i++) {
+        qNames[i]=new QName(namespaceURI,locales[i] + "$" + localPart+ I18nUtils.CLASS_SUFFIX);
+      }
+    }
+  }
+  symbolTable.register(rbName,qNames,source);
+  return qNames;
+}

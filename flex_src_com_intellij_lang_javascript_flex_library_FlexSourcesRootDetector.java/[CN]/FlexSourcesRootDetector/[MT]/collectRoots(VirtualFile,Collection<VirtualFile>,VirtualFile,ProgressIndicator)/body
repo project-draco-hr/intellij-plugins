@@ -1,0 +1,25 @@
+{
+  VfsUtilCore.visitChildrenRecursively(startFile,new VirtualFileVisitor(){
+    @NotNull @Override public Result visitFileEx(    @NotNull VirtualFile file){
+      progressIndicator.checkCanceled();
+      progressIndicator.setText2(file.getPresentableUrl());
+      if (!file.isDirectory()) {
+        if (file.getFileType() == ActionScriptFileType.INSTANCE) {
+          Pair<VirtualFile,String> root=CommonSourceRootDetectionUtil.VIRTUAL_FILE.suggestRootForFileWithPackageStatement(file,topmostRoot,FlexProjectStructureDetector.PACKAGE_NAME_FETCHER,false);
+          if (root != null) {
+            final VirtualFile detectedRoot=root.first;
+            result.add(detectedRoot);
+            if (VfsUtilCore.isAncestor(detectedRoot,startFile,false)) {
+              return skipTo(detectedRoot);
+            }
+          }
+        }
+ else         if (myDetectMxml && JavaScriptSupportLoader.isFlexMxmFile(file.getName())) {
+          result.add(file.getParent());
+        }
+      }
+      return CONTINUE;
+    }
+  }
+);
+}

@@ -1,0 +1,29 @@
+{
+  FileBasedIndex fileBasedIndex=FileBasedIndex.getInstance();
+  GlobalSearchScope scope=module.getModuleWithDependenciesAndLibrariesScope(false);
+  Set<JSClass> visited=ContainerUtil.newLinkedHashSet();
+  Set<CssPropertyDescriptor> result=ContainerUtil.newLinkedHashSet();
+  Project project=module.getProject();
+  for (  CssSimpleSelector selector : selectors) {
+    final JSClass jsClass=getClassFromMxmlDescriptor(selector,module);
+    if (jsClass != null) {
+      fillPropertyDescriptorsDynamically(jsClass,visited,result);
+      continue;
+    }
+    final String shortClassName=selector.getElementName();
+    Collection<JSQualifiedNamedElement> candidates=JSResolveUtil.findElementsByName(shortClassName,project,scope);
+    for (    JSQualifiedNamedElement candidate : candidates) {
+      if (candidate instanceof JSClass) {
+        fillPropertyDescriptorsDynamically((JSClass)candidate,visited,result);
+      }
+    }
+  }
+  for (Iterator<CssPropertyDescriptor> iterator=result.iterator(); iterator.hasNext(); ) {
+    CssPropertyDescriptor propertyDescriptor=iterator.next();
+    List<Set<FlexStyleIndexInfo>> values=fileBasedIndex.getValues(FlexStyleIndex.INDEX_ID,propertyDescriptor.getPropertyName(),scope);
+    if (values.size() == 0) {
+      iterator.remove();
+    }
+  }
+  return result;
+}

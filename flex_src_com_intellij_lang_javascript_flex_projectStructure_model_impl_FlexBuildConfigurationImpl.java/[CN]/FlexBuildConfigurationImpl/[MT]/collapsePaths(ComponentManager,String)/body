@@ -1,0 +1,17 @@
+{
+  if (componentManager == null)   return value;
+  if (!value.contains(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR) && !value.contains(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR)) {
+    return value;
+  }
+  final StringBuilder result=new StringBuilder();
+  final PathMacroManager pathMacroManager=PathMacroManager.getInstance(componentManager);
+  final String delimiters=CompilerOptionInfo.LIST_ENTRIES_SEPARATOR + CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR;
+  for (StringTokenizer tokenizer=new StringTokenizer(value,delimiters,true); tokenizer.hasMoreTokens(); ) {
+    String token=tokenizer.nextToken();
+    if (token.length() > 1) {
+      token=pathMacroManager.collapsePath(token);
+    }
+    result.append(token);
+  }
+  return result.toString();
+}

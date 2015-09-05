@@ -1,0 +1,15 @@
+{
+  final PasswordStore passwordStore=getInstance(project);
+  final String keystorePassword=passwordStore.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=signingOptions.getKeyAlias().isEmpty() ? "" : passwordStore.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  if (keystorePassword == null || keyPassword == null) {
+    return false;
+  }
+  try {
+    checkPassword(signingOptions,keystorePassword,keyPassword);
+  }
+ catch (  SigningOptionsException e) {
+    return false;
+  }
+  return true;
+}

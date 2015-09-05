@@ -1,0 +1,53 @@
+{
+  final Map<String,String> replacementMap=new THashMap<String,String>();
+  replacementMap.put(FlexCommonUtils.SWF_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.TITLE_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.APPLICATION_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.BG_COLOR_MACRO,"#ffffff");
+  replacementMap.put(FlexCommonUtils.WIDTH_MACRO,"100%");
+  replacementMap.put(FlexCommonUtils.HEIGHT_MACRO,"100%");
+  final List<String> versionParts=StringUtil.split(targetPlayer,".");
+  replacementMap.put(FlexCommonUtils.VERSION_MAJOR_MACRO,versionParts.size() >= 1 ? versionParts.get(0) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_MINOR_MACRO,versionParts.size() >= 2 ? versionParts.get(1) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_REVISION_MACRO,versionParts.size() >= 3 ? versionParts.get(2) : "0");
+  final Ref<JSAttribute> swfMetadataRef=new Ref<JSAttribute>();
+  final PsiFile psiFile=mainClass == null ? null : mainClass.getContainingFile();
+  if (psiFile instanceof XmlFile) {
+    final XmlTag rootTag=((XmlFile)psiFile).getRootTag();
+    if (rootTag != null) {
+      final String ns=rootTag.getPrefixByNamespace(JavaScriptSupportLoader.MXML_URI3) == null ? JavaScriptSupportLoader.MXML_URI : JavaScriptSupportLoader.MXML_URI3;
+      for (      XmlTag tag : rootTag.findSubTags(FlexPredefinedTagNames.METADATA,ns)) {
+        JSResolveUtil.processInjectedFileForTag(tag,new JSResolveUtil.JSInjectedFilesVisitor(){
+          @Override protected void process(          final JSFile file){
+            for (            PsiElement elt : file.getChildren()) {
+              if (elt instanceof JSAttributeList) {
+                final JSAttribute swfMetadata=((JSAttributeList)elt).findAttributeByName("SWF");
+                if (swfMetadataRef.isNull() && swfMetadata != null) {
+                  swfMetadataRef.set(swfMetadata);
+                  return;
+                }
+              }
+            }
+          }
+        }
+);
+      }
+    }
+  }
+ else {
+    final JSAttributeList attributeList=mainClass == null ? null : mainClass.getAttributeList();
+    swfMetadataRef.set(attributeList == null ? null : attributeList.findAttributeByName("SWF"));
+  }
+  if (!swfMetadataRef.isNull()) {
+    final JSAttribute swfMetadata=swfMetadataRef.get();
+    final JSAttributeNameValuePair titleAttr=swfMetadata.getValueByName(FlexCommonUtils.TITLE_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.TITLE_MACRO,titleAttr == null ? null : titleAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair bgColorAttr=swfMetadata.getValueByName(FlexCommonUtils.BG_COLOR_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.BG_COLOR_MACRO,bgColorAttr == null ? null : bgColorAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair widthAttr=swfMetadata.getValueByName(FlexCommonUtils.WIDTH_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.WIDTH_MACRO,widthAttr == null ? null : widthAttr.getSimpleValue(),replacementMap);
+    final JSAttributeNameValuePair heightAttr=swfMetadata.getValueByName(FlexCommonUtils.HEIGHT_ATTR);
+    ContainerUtil.putIfNotNull(FlexCommonUtils.HEIGHT_MACRO,heightAttr == null ? null : heightAttr.getSimpleValue(),replacementMap);
+  }
+  return FlexCommonUtils.replace(wrapperText,replacementMap);
+}

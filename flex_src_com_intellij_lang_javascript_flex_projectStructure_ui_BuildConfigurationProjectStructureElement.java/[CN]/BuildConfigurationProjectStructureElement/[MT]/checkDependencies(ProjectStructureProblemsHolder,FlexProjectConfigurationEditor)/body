@@ -1,0 +1,27 @@
+{
+  final ModulesConfigurator modulesConfigurator=myContext.getModulesConfigurator();
+  for (  DependencyEntry entry : myBc.getDependencies().getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      final String moduleName=((BuildConfigurationEntry)entry).getModuleName();
+      final String bcName=((BuildConfigurationEntry)entry).getBcName();
+      final Module module=modulesConfigurator.getModule(moduleName);
+      String errorMessage=null;
+      if (module == null) {
+        errorMessage=FlexBundle.message("bc.problem.dependency.module.not.found",moduleName);
+      }
+ else       if (ContainerUtil.find(editor.getConfigurations(module),new Condition<ModifiableFlexBuildConfiguration>(){
+        @Override public boolean value(        final ModifiableFlexBuildConfiguration configuration){
+          return bcName.equals(configuration.getName());
+        }
+      }
+) == null) {
+        errorMessage=FlexBundle.message("bc.problem.dependency.bc.not.found",bcName,moduleName);
+      }
+      if (errorMessage != null) {
+        Object location=DependenciesConfigurable.Location.TableEntry.forBc(moduleName,bcName);
+        PlaceInProjectStructure place=new PlaceInBuildConfiguration(this,DependenciesConfigurable.TAB_NAME,location);
+        problemsHolder.registerProblem(errorMessage,null,ProjectStructureProblemType.error("flex-bc-dependency-bc"),place,null);
+      }
+    }
+  }
+}

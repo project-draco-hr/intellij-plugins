@@ -1,0 +1,19 @@
+{
+  doTestFor(true,getTestName(false) + "_MyInterface.as",getTestName(false) + "_A.mxml",getTestName(false) + "_B.mxml");
+  int offset=myEditor.getCaretModel().getOffset();
+  PsiElement source=myFile.findElementAt(offset);
+  source=PsiTreeUtil.getParentOfType(source,JSFunction.class);
+  PsiElement[] functions=new ImplementationSearcher().searchImplementations(source,myEditor,offset,true,true);
+  assertEquals(2,functions.length);
+  Collection<String> classNames=new ArrayList<String>();
+  for (  PsiElement function : functions) {
+    assertEquals("bar",((JSFunction)function).getName());
+    PsiElement clazz=function.getParent();
+    if (clazz instanceof JSFile) {
+      clazz=JSResolveUtil.getXmlBackedClass((JSFile)clazz);
+    }
+    classNames.add(((JSClass)clazz).getName());
+  }
+  assertTrue(classNames.contains(getTestName(false) + "_MyInterface"));
+  assertTrue(classNames.contains(getTestName(false) + "_A"));
+}

@@ -1,0 +1,50 @@
+{
+  return new Sdk(){
+    @NotNull public SdkType getSdkType(){
+      return FlexSdkType2.getInstance();
+    }
+    @NotNull public String getName(){
+      return TEST_FLEX_SDK_NAME;
+    }
+    public String getVersionString(){
+      return sdkVersion;
+    }
+    public String getHomePath(){
+      return getTestDataPath() + (sdkVersion.startsWith("AIR SDK ") ? "air_sdk" : "flex_sdk_" + sdkVersion.substring(0,"0.0.0".length()));
+    }
+    public VirtualFile getHomeDirectory(){
+      return null;
+    }
+    @NotNull public RootProvider getRootProvider(){
+      return new RootProviderBaseImpl(){
+        @NotNull public String[] getUrls(        @NotNull final OrderRootType rootType){
+          final String[] relPaths=sdkVersion.startsWith("AIR SDK ") ? AIR_SDK_ROOTS : sdkVersion.startsWith("4.6") ? SDK_46_ROOTS : sdkVersion.startsWith("4.5") ? SDK_45_ROOTS : sdkVersion.startsWith("4") ? SDK_40_ROOTS : SDK_3_ROOTS;
+          final String[] urls=new String[relPaths.length];
+          for (int i=0; i < relPaths.length; i++) {
+            urls[i]=getHomePath() + relPaths[i];
+          }
+          return urls;
+        }
+        @NotNull public VirtualFile[] getFiles(        @NotNull final OrderRootType rootType){
+          return new VirtualFile[0];
+        }
+      }
+;
+    }
+    @NotNull public SdkModificator getSdkModificator(){
+      return null;
+    }
+    public SdkAdditionalData getSdkAdditionalData(){
+      return null;
+    }
+    public <T>T getUserData(    @NotNull final Key<T> key){
+      return null;
+    }
+    public <T>void putUserData(    @NotNull final Key<T> key,    @Nullable final T value){
+    }
+    @NotNull public Object clone() throws CloneNotSupportedException {
+      return super.clone();
+    }
+  }
+;
+}

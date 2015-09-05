@@ -1,0 +1,25 @@
+{
+  if (dataRange.getOwnLength() != -1) {
+    return dataRange.getOwnLength();
+  }
+  Marker possibleChild=dataRange;
+  int start=dataRange.getStart();
+  final int ownEnd=dataRange.getEnd();
+  int ownLength=0;
+  while (true) {
+    possibleChild=(Marker)possibleChild.getNext();
+    if (possibleChild == null || possibleChild.getEnd() > ownEnd) {
+      ownLength+=ownEnd - start;
+      break;
+    }
+ else {
+      int length=possibleChild.getStart() - start;
+      if (length > -1) {
+        ownLength+=length;
+        start=possibleChild.getEnd();
+      }
+    }
+  }
+  dataRange.setOwnLength(ownLength);
+  return ownLength;
+}

@@ -1,0 +1,36 @@
+{
+  final AirDesktopPackagingOptions packagingOptions=bc.getAirDesktopPackagingOptions();
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final boolean tempCertificate=signingOptions.isUseTempCertificate();
+  final String keystorePassword=tempCertificate ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=tempCertificate || signingOptions.getKeyAlias().isEmpty() ? "" : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+  final String packageFilePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ packageType.getFileExtension();
+  return new AdtPackageTask(module.getProject(),bc.getSdk(),packageFilePath){
+    protected void appendAdtOptions(    List<String> command){
+switch (packageType) {
+case AirInstaller:
+        command.add("-package");
+      appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+    break;
+case NativeInstaller:
+  command.add("-package");
+appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+command.add("-target");
+command.add("native");
+break;
+case CaptiveRuntimeBundle:
+command.add("-package");
+appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+command.add("-target");
+command.add("bundle");
+break;
+case Airi:
+command.add("-prepare");
+break;
+}
+appendPaths(command,module,bc,packagingOptions,null,packageType.getFileExtension());
+}
+}
+;
+}

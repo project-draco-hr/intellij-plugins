@@ -1,0 +1,15 @@
+{
+  DataInputStream dataInputStream=new DataInputStream(inputStream);
+  String line;
+  while (!isStopped() && !StringUtil.isEmpty(line=dataInputStream.readUTF())) {
+    LOG.debug(line);
+    if (TERMINATE_MARKER.equals(line)) {
+      close();
+      myDispatcher.getMulticaster().onFinish();
+      return;
+    }
+ else {
+      myDispatcher.getMulticaster().onData(line);
+    }
+  }
+}

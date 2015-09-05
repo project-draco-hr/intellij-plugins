@@ -1,0 +1,26 @@
+{
+  final File[] result=new File[unexpandedPaths.length];
+  for (int i=0, j=0; i < unexpandedPaths.length; i++) {
+    final String unexpandedPath=unexpandedPaths[i].getPath();
+    if (unexpandedPath.contains(LOCALE)) {
+      final String resultPath=getExpandedPathWithLocaleToken(unexpandedPath,expandedPaths,j,locales);
+      if (resultPath == null) {
+        error(unexpandedPaths,expandedPaths,locales);
+      }
+      result[i]=new File(resultPath);
+      final int numberOfMatches=getNumberOfMatches(unexpandedPath,LOCALE);
+      for (      final String locale : locales) {
+        final String expandedPath=expandedPaths[j].getPath();
+        if (numberOfMatches == getNumberOfMatches(expandedPath,locale) && !resultPath.equals(expandedPath.replace(locale,LOCALE))) {
+          return error(unexpandedPaths,expandedPaths,locales);
+        }
+        j++;
+      }
+    }
+ else {
+      result[i]=expandedPaths[j];
+      j++;
+    }
+  }
+  return result;
+}

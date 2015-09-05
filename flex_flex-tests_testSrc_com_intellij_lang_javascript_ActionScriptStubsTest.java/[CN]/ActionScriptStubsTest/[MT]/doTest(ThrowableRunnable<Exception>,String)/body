@@ -1,0 +1,25 @@
+{
+  Runnable r=runnable != null ? new Runnable(){
+    @Override public void run(){
+      try {
+        runnable.run();
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+ : null;
+  doTestFor(true,r,files);
+  assertNotParsed(myPsiFiles.subList(1,myPsiFiles.size()));
+  assertNotParsed(ContainerUtil.mapNotNull(FileEditorManager.getInstance(myProject).getOpenFiles(),new Function<VirtualFile,PsiFile>(){
+    @Override public PsiFile fun(    VirtualFile virtualFile){
+      if (Comparing.equal(virtualFile,myFile.getVirtualFile())) {
+        return null;
+      }
+      Document document=((TextEditor)FileEditorManager.getInstance(myProject).getSelectedEditor(virtualFile)).getEditor().getDocument();
+      return PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+    }
+  }
+));
+}

@@ -1,0 +1,45 @@
+{
+  this.frameInfo=frameInfo;
+  this.scope=scope;
+  PsiElement element=ResolveUtil.findClassByQName(frameInfo.getQName(),scope);
+  if (element instanceof XmlBackedJSClassImpl) {
+    final PsiElement candidateElement=frameInfo.findFunctionOrField((XmlBackedJSClassImpl)element);
+    if (candidateElement != null)     element=candidateElement;
+  }
+ else {
+    if (element != null)     element=element.getNavigationElement();
+    if (element instanceof JSClass) {
+      final PsiElement candidateElement=frameInfo.findFunctionOrField((JSClass)element);
+      if (candidateElement != null)       element=candidateElement;
+    }
+  }
+  if (element instanceof Navigatable) {
+    resolvedElement=element;
+  }
+  final boolean resolved=resolvedFile != null || resolvedElement != null;
+  if (!resolved && frameInfo.getFileName() != null) {
+    String dir=frameInfo.getFileDirectory();
+    String packageName=frameInfo.getPackageName();
+    String filename=frameInfo.getFileName();
+    if (packageName != null && packageName.length() > 0) {
+      dir+=File.separatorChar + packageName.replace('.',File.separatorChar);
+    }
+    dir+=File.separatorChar;
+    final int endIndex=filename != null ? filename.indexOf(':') : -1;
+    dir+=endIndex != -1 ? filename.substring(0,endIndex) : filename;
+    VirtualFile relativeFile=VfsUtil.findRelativeFile(dir,null);
+    if (relativeFile == null && packageName != null && filename != null) {
+      String className=packageName.replace('\\','.').replace('/','.');
+      if (className.length() > 0)       className+=".";
+      className+=filename.substring(0,filename.indexOf('.'));
+      PsiElement classElement=ResolveUtil.findClassByQName(className,scope);
+      if (classElement != null)       classElement=classElement.getNavigationElement();
+      if (classElement != null && classElement.isWritable()) {
+        relativeFile=classElement.getContainingFile().getVirtualFile();
+      }
+    }
+    if (relativeFile != null) {
+      resolvedFile=relativeFile;
+    }
+  }
+}

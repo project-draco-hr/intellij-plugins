@@ -1,0 +1,32 @@
+{
+  final JSAttributeList attributeList=attributeListOwner != null ? attributeListOwner.getAttributeList() : null;
+  JSAttribute[] attrs=attributeList != null ? attributeList.getAttributesByName(name) : null;
+  final JSAttribute attribute=attrs != null && attrs.length > 0 ? attrs[0] : null;
+  if (attribute == null && attributeList != null) {
+    if (attributeListOwner instanceof JSFunction && ((JSFunction)attributeListOwner).isSetProperty()) {
+      final PsiElement grandParent=attributeListOwner.getParent();
+      String propName=attributeListOwner.getName();
+      if (grandParent instanceof JSClass && propName != null) {
+        final SinkResolveProcessor processor=new SinkResolveProcessor(propName,new ResolveResultSink(null,propName));
+        processor.setToProcessHierarchy(false);
+        grandParent.processDeclarations(processor,ResolveState.initial(),grandParent,attributeListOwner);
+        final List<PsiElement> elementList=processor.getResults();
+        if (elementList != null && elementList.size() == 2) {
+          final PsiElement firstElement=elementList.get(0);
+          final PsiElement secondElement=elementList.get(1);
+          JSAttributeListOwner chosedElement=null;
+          if (firstElement instanceof JSFunction && ((JSFunction)firstElement).isGetProperty()) {
+            chosedElement=(JSAttributeListOwner)firstElement;
+          }
+ else           if (secondElement instanceof JSFunction && ((JSFunction)secondElement).isGetProperty()) {
+            chosedElement=(JSAttributeListOwner)secondElement;
+          }
+          if (chosedElement != null) {
+            return findAttr(chosedElement,name);
+          }
+        }
+      }
+    }
+  }
+  return attribute;
+}

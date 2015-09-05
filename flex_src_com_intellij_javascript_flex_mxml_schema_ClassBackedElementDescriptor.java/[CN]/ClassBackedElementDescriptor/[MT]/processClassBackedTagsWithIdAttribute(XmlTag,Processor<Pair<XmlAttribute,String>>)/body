@@ -1,0 +1,18 @@
+{
+  boolean toContinue=true;
+  final XmlElementDescriptor tagDescriptor=tag.getDescriptor();
+  if (tagDescriptor instanceof ClassBackedElementDescriptor) {
+    final XmlAttribute idAttribute=tag.getAttribute(FlexMxmlLanguageAttributeNames.ID);
+    if (idAttribute != null && !StringUtil.isEmpty(idAttribute.getValue())) {
+      toContinue=processor.process(Pair.create(idAttribute,tagDescriptor.getQualifiedName()));
+    }
+    if (toContinue) {
+      for (      final XmlTag childTag : tag.getSubTags()) {
+        if (toContinue) {
+          toContinue=processClassBackedTagsWithIdAttribute(childTag,processor);
+        }
+      }
+    }
+  }
+  return toContinue;
+}

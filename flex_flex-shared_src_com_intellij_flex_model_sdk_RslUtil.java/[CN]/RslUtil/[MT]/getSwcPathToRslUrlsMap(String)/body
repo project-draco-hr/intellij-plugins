@@ -1,0 +1,43 @@
+{
+  final String configFilePath=sdkHome + "/frameworks/flex-config.xml";
+  final File configFile=new File(configFilePath);
+  if (!configFile.isFile()) {
+    LOG.warn("File not found: " + configFilePath);
+    ourConfigFilePathToTimestampAndSwcPathToRslUrls.remove(configFilePath);
+    return Collections.emptyMap();
+  }
+  Pair<Long,Map<String,List<String>>> data=ourConfigFilePathToTimestampAndSwcPathToRslUrls.get(configFilePath);
+  final Long currentTimestamp=configFile.lastModified();
+  final Long cachedTimestamp=data == null ? null : data.first;
+  if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+    ourConfigFilePathToTimestampAndSwcPathToRslUrls.remove(configFilePath);
+    final Map<String,List<String>> swcPathToRslMap=new THashMap<String,List<String>>();
+    try {
+      final Document document=JDOMUtil.loadDocument(configFile);
+      final Element rootElement=document.getRootElement();
+      if (rootElement != null) {
+        for (        Element rslElement : ((Iterable<Element>)rootElement.getChildren("runtime-shared-library-path",rootElement.getNamespace()))) {
+          final Element swcPathElement=rslElement.getChild("path-element",rslElement.getNamespace());
+          if (swcPathElement != null) {
+            final List<String> rslUrls=new ArrayList<String>(2);
+            for (            Element rslUrlElement : ((Iterable<Element>)rslElement.getChildren("rsl-url",rootElement.getNamespace()))) {
+              final String rslUrl=rslUrlElement.getTextNormalize();
+              rslUrls.add(rslUrl);
+            }
+            final String swcPath=PathUtilRt.getParentPath(configFilePath) + "/" + swcPathElement.getTextNormalize();
+            swcPathToRslMap.put(SystemInfo.isFileSystemCaseSensitive ? swcPath : swcPath.toLowerCase(),rslUrls);
+          }
+        }
+      }
+    }
+ catch (    IOException e) {
+      LOG.warn(configFilePath,e);
+    }
+catch (    JDOMException e) {
+      LOG.warn(configFilePath,e);
+    }
+    data=Pair.create(currentTimestamp,swcPathToRslMap);
+    ourConfigFilePathToTimestampAndSwcPathToRslUrls.put(configFilePath,data);
+  }
+  return data.second;
+}

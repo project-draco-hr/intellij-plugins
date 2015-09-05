@@ -1,0 +1,27 @@
+{
+  try {
+    myPolicyFileConnection=new SwfPolicyFileConnection();
+    myPolicyFileConnection.open(socketPolicyPort);
+    myFlexUnitConnection=new FlexUnitConnection();
+    myFlexUnitConnection.addListener(new FlexUnitConnection.Listener(){
+      @Override public void statusChanged(      FlexUnitConnection.ConnectionStatus status){
+        if (status == FlexUnitConnection.ConnectionStatus.CONNECTION_FAILED) {
+          getSession().stop();
+        }
+      }
+      @Override public void onData(      String line){
+        getProcessHandler().notifyTextAvailable(line + "\n",ProcessOutputTypes.STDOUT);
+      }
+      @Override public void onFinish(){
+        getProcessHandler().detachProcess();
+      }
+    }
+);
+    myFlexUnitConnection.open(port);
+  }
+ catch (  ExecutionException e) {
+    Notifications.Bus.notify(new Notification(DEBUGGER_GROUP_ID,FlexBundle.message("flex.debugger.startup.error"),FlexBundle.message("flexunit.startup.error",e.getMessage()),NotificationType.ERROR),getSession().getProject());
+    myFlexUnitConnection=null;
+    myPolicyFileConnection=null;
+  }
+}

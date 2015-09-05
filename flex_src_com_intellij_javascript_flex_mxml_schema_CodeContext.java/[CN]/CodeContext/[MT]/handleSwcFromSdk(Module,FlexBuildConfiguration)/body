@@ -1,0 +1,15 @@
+{
+  final Sdk sdk=bc.getSdk();
+  if (sdk == null)   return;
+  final Map<String,CodeContext> contextsOfModule=new THashMap<String,CodeContext>();
+  for (  final VirtualFile file : sdk.getRootProvider().getFiles(OrderRootType.CLASSES)) {
+    final String swcPath=VirtualFileManager.extractPath(StringUtil.trimEnd(file.getUrl(),JarFileSystem.JAR_SEPARATOR));
+    if (BCUtils.getSdkEntryLinkageType(swcPath,bc) != null) {
+      handleFileDependency(module,contextsOfModule,file);
+    }
+  }
+  final CodeContextHolder contextHolder=CodeContextHolder.getInstance(module.getProject());
+  for (  final Map.Entry<String,CodeContext> entry : contextsOfModule.entrySet()) {
+    contextHolder.putCodeContext(entry.getKey(),module,entry.getValue());
+  }
+}

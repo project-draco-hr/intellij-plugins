@@ -1,0 +1,43 @@
+{
+  final VirtualFile dir=FlexUtils.createDirIfMissing(project,interactive,PathUtil.getParentPath(descriptorPath),TITLE);
+  if (dir == null)   return null;
+  final String fileName=PathUtil.getFileName(descriptorPath);
+  final VirtualFile file=dir.findChild(fileName);
+  if (file != null) {
+    if (file.isDirectory()) {
+      if (interactive) {
+        Messages.showErrorDialog(project,"Can't create AIR descriptor file.\nFolder with such name exists.",TITLE);
+      }
+      return null;
+    }
+    final int choice=interactive ? Messages.showYesNoDialog(project,FlexBundle.message("file.exists.replace.question",fileName),TITLE,Messages.getQuestionIcon()) : Messages.YES;
+    if (choice != Messages.YES) {
+      return null;
+    }
+  }
+  try {
+    final Ref<VirtualFile> fileRef=new Ref<VirtualFile>();
+    final IOException exception=ApplicationManager.getApplication().runWriteAction(new NullableComputable<IOException>(){
+      public IOException compute(){
+        try {
+          fileRef.set(FlexUtils.addFileWithContent(fileName,options.getAirDescriptorText(),dir));
+        }
+ catch (        IOException e) {
+          return e;
+        }
+        return null;
+      }
+    }
+);
+    if (exception != null) {
+      throw exception;
+    }
+    return fileRef.get();
+  }
+ catch (  IOException e) {
+    if (interactive) {
+      Messages.showErrorDialog(project,"Failed to create AIR descriptor file: " + e.getMessage(),TITLE);
+    }
+    return null;
+  }
+}

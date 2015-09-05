@@ -1,0 +1,24 @@
+{
+  final List<String> elementNames=StringUtil.split(StringUtil.replace(xmlElement,">",""),"<");
+  if (elementNames.isEmpty())   return null;
+  try {
+    final Element root=JDOMUtil.load(is);
+    if (!root.getName().equals(elementNames.get(0))) {
+      return null;
+    }
+    Element element=root;
+    int depth=0;
+    while (elementNames.size() > ++depth) {
+      element=element.getChild(elementNames.get(depth),element.getNamespace());
+      if (element == null) {
+        return null;
+      }
+    }
+    return element.getTextNormalize();
+  }
+ catch (  JDOMException ignore) {
+  }
+catch (  IOException ignore) {
+  }
+  return null;
+}

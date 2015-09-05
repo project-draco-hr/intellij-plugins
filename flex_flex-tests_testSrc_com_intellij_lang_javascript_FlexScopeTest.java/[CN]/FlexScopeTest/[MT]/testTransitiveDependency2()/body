@@ -1,0 +1,34 @@
+{
+  final Module module2=JSTestUtils.createModule(myProject,"module2",getVirtualFile(getBasePath() + "m2"));
+  final Module module3=JSTestUtils.createModule(myProject,"module3",getVirtualFile(getBasePath() + "m3"));
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    public void consume(    final FlexProjectConfigurationEditor editor){
+      final ModifiableFlexBuildConfiguration bc1a=editor.getConfigurations(myModule)[0];
+      bc1a.setName("1");
+      final ModifiableFlexBuildConfiguration bc1b=editor.createConfiguration(myModule);
+      bc1b.setName("2");
+      final ModifiableFlexBuildConfiguration bc2a=editor.getConfigurations(module2)[0];
+      bc2a.setOutputType(OutputType.Library);
+      bc2a.setName("1");
+      final ModifiableFlexBuildConfiguration bc2b=editor.createConfiguration(module2);
+      bc2b.setOutputType(OutputType.Library);
+      bc2b.setName("2");
+      final ModifiableFlexBuildConfiguration bc3=editor.getConfigurations(module3)[0];
+      bc3.setOutputType(OutputType.Library);
+      bc1a.getDependencies().getModifiableEntries().add(editor.createBcEntry(bc1a.getDependencies(),bc2a,null));
+      bc1b.getDependencies().getModifiableEntries().add(editor.createBcEntry(bc1b.getDependencies(),bc2b,null));
+      final ModifiableBuildConfigurationEntry entry1=editor.createBcEntry(bc2a.getDependencies(),bc3,null);
+      bc2a.getDependencies().getModifiableEntries().add(entry1);
+      entry1.getDependencyType().setLinkageType(LinkageType.Include);
+      final ModifiableBuildConfigurationEntry entry2=editor.createBcEntry(bc2b.getDependencies(),bc3,null);
+      bc2b.getDependencies().getModifiableEntries().add(entry2);
+      entry2.getDependencyType().setLinkageType(LinkageType.Merged);
+    }
+  }
+);
+  final FlexBuildConfigurationManager m=FlexBuildConfigurationManager.getInstance(myModule);
+  m.setActiveBuildConfiguration(m.findConfigurationByName("1"));
+  doHighlightingTest("_1");
+  m.setActiveBuildConfiguration(m.findConfigurationByName("2"));
+  doHighlightingTest("_2");
+}

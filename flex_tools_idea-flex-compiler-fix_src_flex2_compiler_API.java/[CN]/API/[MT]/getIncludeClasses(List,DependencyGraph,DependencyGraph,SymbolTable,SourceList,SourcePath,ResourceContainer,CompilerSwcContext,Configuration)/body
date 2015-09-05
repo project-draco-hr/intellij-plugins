@@ -1,0 +1,20 @@
+{
+  Set includes=new HashSet();
+  includes.addAll(configuration.getIncludes());
+  for (Iterator it=configuration.getFrameList().iterator(); it.hasNext(); ) {
+    FramesConfiguration.FrameInfo f=(FramesConfiguration.FrameInfo)it.next();
+    includes.addAll(f.frameClasses);
+  }
+  for (Iterator it=includes.iterator(); it.hasNext(); ) {
+    String className=(String)it.next();
+    MultiName mName=new MultiName(className);
+    QName qName=resolveMultiName("configuration",mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+    if (qName != null) {
+      Source tailSource=symbolTable.findSourceByQName(qName);
+      addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+    }
+ else {
+      ThreadLocalToolkit.log(new UnableToResolveClass("include",className));
+    }
+  }
+}

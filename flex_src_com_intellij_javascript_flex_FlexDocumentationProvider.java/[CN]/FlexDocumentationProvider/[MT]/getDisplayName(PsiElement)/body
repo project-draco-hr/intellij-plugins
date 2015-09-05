@@ -1,0 +1,34 @@
+{
+  if (element instanceof JSClass) {
+    return ((JSClass)element).getQualifiedName();
+  }
+  if (element instanceof JSFunction || element instanceof JSVariable) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    String result;
+    if (parent instanceof JSClass) {
+      result=((JSClass)parent).getQualifiedName() + "." + ((JSNamedElement)element).getName();
+    }
+ else {
+      result=((JSQualifiedNamedElement)element).getQualifiedName();
+    }
+    if (element instanceof JSFunction && !((JSFunction)element).isGetProperty() && !((JSFunction)element).isSetProperty()) {
+      result+="()";
+    }
+    return result;
+  }
+  JSAttribute attribute=null;
+  if (element instanceof JSAttributeNameValuePair) {
+    attribute=(JSAttribute)element.getParent();
+  }
+  if (element instanceof JSAttribute) {
+    attribute=(JSAttribute)element;
+  }
+  if (attribute != null && DOCUMENTED_ATTRIBUTES.containsKey(attribute.getName())) {
+    final JSClass jsClass=PsiTreeUtil.getParentOfType(element,JSClass.class);
+    JSAttributeNameValuePair namePair=attribute.getValueByName("name");
+    if (jsClass != null && namePair != null) {
+      return attribute.getName() + " " + jsClass.getQualifiedName()+ "."+ namePair.getSimpleValue();
+    }
+  }
+  return null;
+}

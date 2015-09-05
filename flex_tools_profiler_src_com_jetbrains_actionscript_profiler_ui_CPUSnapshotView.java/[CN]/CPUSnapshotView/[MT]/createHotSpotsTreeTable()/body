@@ -1,0 +1,26 @@
+{
+  myHotSpotsTreeTable=new CallTreeTable(getProject());
+  myHotSpotsTreeTable.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+    public void valueChanged(    ListSelectionEvent e){
+      final Object node=myHotSpotsTreeTable.getSelectedValue();
+      if (!(node instanceof MergedCallNode))       return;
+      myAlarm.cancelAllRequests();
+      final MergedCallNode mergedCallNode=(MergedCallNode)node;
+      myAlarm.addRequest(new Runnable(){
+        public void run(){
+          FrameInfo[] frames=new FrameInfo[]{mergedCallNode.getFrameInfo()};
+          final Pair<Map<FrameInfo,Long>,Map<FrameInfo,Long>> countMaps=mergedCallNode.getCallTree().getCalleesTimeMaps(frames);
+          final Map<FrameInfo,Long> countMap=countMaps.getFirst();
+          final Map<FrameInfo,Long> selfCountMap=countMaps.getSecond();
+          DefaultMutableTreeNode tracesRoot=(DefaultMutableTreeNode)myTracesTreeTable.getSortableTreeTableModel().getRoot();
+          JTreeUtil.removeChildren(tracesRoot,myTracesTreeTable.getSortableTreeTableModel());
+          fillTreeModelRoot(tracesRoot,mergedCallNode.getCallTree(),countMap,selfCountMap,false,frames);
+          myTracesTreeTable.reload();
+          TreeUtil.expand(myTracesTreeTable.getTree(),1);
+        }
+      }
+,500);
+    }
+  }
+);
+}

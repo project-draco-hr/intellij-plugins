@@ -1,0 +1,20 @@
+{
+  sdkNode.removeAllChildren();
+  ComponentSet componentSet=(ComponentSet)myComponentSetCombo.getSelectedItem();
+  String targetPlayer=(String)myTargetPlayerCombo.getSelectedItem();
+  for (  String url : sdk.getRootProvider().getUrls(OrderRootType.CLASSES)) {
+    final String swcPath=VirtualFileManager.extractPath(StringUtil.trimEnd(url,JarFileSystem.JAR_SEPARATOR));
+    LinkageType linkageType=FlexCommonUtils.getSdkEntryLinkageType(sdk.getHomePath(),swcPath,myNature,targetPlayer,componentSet);
+    if (linkageType == null) {
+      continue;
+    }
+    if (linkageType == LinkageType.Default) {
+      linkageType=(LinkageType)myFrameworkLinkageCombo.getSelectedItem();
+      if (linkageType == LinkageType.Default) {
+        linkageType=FlexCommonUtils.getDefaultFrameworkLinkage(sdk.getVersionString(),myNature);
+      }
+    }
+    SdkEntryItem item=new SdkEntryItem(FileUtil.toSystemDependentName(swcPath),linkageType);
+    sdkNode.add(new DefaultMutableTreeNode(item,false));
+  }
+}

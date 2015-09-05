@@ -1,0 +1,23 @@
+{
+  final File flashPlayerTrustDir=getFlashPlayerTrustDir(project,isDebug,runTrusted);
+  if (flashPlayerTrustDir == null) {
+    return null;
+  }
+  final File ideaTrustedCfgFile=new File(flashPlayerTrustDir,INTELLIJ_IDEA_CFG);
+  if (ideaTrustedCfgFile.isFile() && ideaTrustedCfgFile.length() > 102400) {
+    FileUtil.delete(ideaTrustedCfgFile);
+  }
+  if (!ideaTrustedCfgFile.exists() && runTrusted) {
+    try {
+      final boolean ok=ideaTrustedCfgFile.createNewFile();
+      if (!ok) {
+        showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,flashPlayerTrustDir.getPath()));
+      }
+    }
+ catch (    IOException e) {
+      showWarningBalloonIfNeeded(project,isDebug,runTrusted,FlexBundle.message("error.creating.idea.trust.cfg.file",INTELLIJ_IDEA_CFG,e.getMessage()));
+      return null;
+    }
+  }
+  return ideaTrustedCfgFile;
+}

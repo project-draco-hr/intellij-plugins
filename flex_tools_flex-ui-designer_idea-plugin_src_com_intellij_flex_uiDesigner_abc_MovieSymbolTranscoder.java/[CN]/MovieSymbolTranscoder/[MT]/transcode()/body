@@ -1,0 +1,46 @@
+{
+  placedObjects=new TIntObjectHashMap<PlacedObject>();
+  int spriteId=-1;
+  int tagStart;
+  analyze:   while ((tagStart=buffer.position()) < buffer.limit()) {
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+    final int position=buffer.position();
+switch (type) {
+case TagTypes.End:
+      break analyze;
+case TagTypes.DefineShape:
+case TagTypes.DefineShape2:
+case TagTypes.DefineShape3:
+case TagTypes.DefineShape4:
+case TagTypes.DefineSprite:
+    placedObjects.put(buffer.getShort(),new PlacedObject(position,length,type,tagStart));
+  break;
+case TagTypes.ExportAssets:
+case TagTypes.SymbolClass:
+spriteId=processExportAssetsOrSymbolClass();
+if (spriteId == -1) {
+break;
+}
+ else {
+break analyze;
+}
+}
+buffer.position(position + length);
+}
+if (spriteId == -1) {
+throw new IOException("Can't find symbol");
+}
+usedPlacedObjects=new ArrayList<PlacedObject>(placedObjects.size());
+bounds=null;
+final PlacedObject exportedSymbol=placedObjects.get(spriteId);
+exportedSymbol.used=true;
+processDefineSprite(exportedSymbol);
+exportedSymbol.newId=usedPlacedObjects.size() + 1;
+fileLength+=exportedSymbol.fileLength();
+return exportedSymbol;
+}

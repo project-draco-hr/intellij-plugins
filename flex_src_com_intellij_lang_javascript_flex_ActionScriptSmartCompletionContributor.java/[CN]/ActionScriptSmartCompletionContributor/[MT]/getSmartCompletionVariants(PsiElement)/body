@@ -1,0 +1,92 @@
+{
+  final PsiElement parent=location.getParent();
+  List<Object> variants=new ArrayList<Object>();
+  if (parent instanceof JSArgumentList && ((JSArgumentList)parent).getArguments()[0] == location && ((JSReferenceExpression)location).getQualifier() == null) {
+    final JSExpression calledExpr=((JSCallExpression)parent.getParent()).getMethodExpression();
+    if (calledExpr instanceof JSReferenceExpression) {
+      final JSReferenceExpression expression=(JSReferenceExpression)calledExpr;
+      @NonNls final String s=expression.getReferencedName();
+      if ("addEventListener".equals(s) || "removeEventListener".equals(s) || "willTrigger".equals(s)|| "hasEventListener".equals(s)) {
+        final MyEventSubclassesProcessor subclassesProcessor=new MyEventSubclassesProcessor(location,variants);
+        subclassesProcessor.findAcceptableVariants(expression);
+        return variants;
+      }
+    }
+  }
+  JSType expectedClassType=JSTypeUtils.getValuableType(findClassType(parent));
+  if (expectedClassType != null) {
+    JSClass clazz=expectedClassType.resolveClass();
+    if (clazz != null && !JSGenericTypeImpl.isGenericActionScriptVectorType(expectedClassType)) {
+      final Set<String> processedCandidateNames=new THashSet<String>(50);
+      Query<JSClass> query;
+      if (clazz.isInterface()) {
+        query=JSClassSearch.searchInterfaceImplementations(clazz,true,location.getResolveScope());
+      }
+ else {
+        LookupElement lookupItem=JSLookupUtilImpl.createPrioritizedLookupItem(clazz,clazz.getName(),VariantsProcessor.LookupPriority.SMART_PROPRITY + 1,false,true);
+        CompletionResultSet completionResultSet=JSCompletionContributor.getInstance().getCompletionResultSet();
+        if (completionResultSet != null && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
+          ((LookupItem)lookupItem).setInsertHandler(new JSInsertHandler<LookupElement>());
+          completionResultSet.addElement(lookupItem);
+        }
+        variants.add(lookupItem);
+        processedCandidateNames.add(clazz.getQualifiedName());
+        query=JSClassSearch.searchClassInheritors(clazz,true,location.getResolveScope());
+      }
+      addAllClassesFromQuery(variants,query,parent,processedCandidateNames);
+      if (clazz.isInterface()) {
+        IElementType opSign;
+        if (parent instanceof JSBinaryExpression && ((opSign=((JSBinaryExpression)parent).getOperationSign()) == JSTokenTypes.AS_KEYWORD || opSign == JSTokenTypes.IS_KEYWORD)) {
+          addAllClassesFromQuery(variants,JSClassSearch.searchClassInheritors(clazz,true,location.getResolveScope()),parent,processedCandidateNames);
+        }
+      }
+      final JSCompletionContributor contributor=JSCompletionContributor.getInstance();
+      if (!contributor.isDoingSmartCodeCompleteAction()) {
+        contributor.setAlreadyUsedClassesSet(processedCandidateNames);
+      }
+    }
+ else {
+      String typeText=expectedClassType.getTypeText();
+      if (!(expectedClassType instanceof JSAnyType)) {
+        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(clazz,ImportUtils.importAndShortenReference(typeText,parent,false,true).first + "()",VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+      }
+      JSResolveUtil.GenericSignature signature=JSResolveUtil.extractGenericSignature(typeText);
+      if (signature != null) {
+        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(createType(JSCommonTypeNames.ARRAY_CLASS_NAME,JSTypeSourceFactory.createTypeSource(parent),JSContext.INSTANCE).resolveClass(),"<" + ImportUtils.importAndShortenReference(signature.genericType,parent,false,true).first + ">"+ "[]",VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+      }
+    }
+    return variants.isEmpty() ? Collections.emptyList() : variants;
+  }
+ else   if (location instanceof JSReferenceExpression && ((JSReferenceExpression)location).getQualifier() == null) {
+    if (JSResolveUtil.isExprInStrictTypeContext((JSReferenceExpression)location)) {
+      if (parent instanceof JSVariable || parent instanceof JSFunction) {
+        JSType type=TypeFromUsageDetector.detectTypeFromUsage(parent,parent.getContainingFile());
+        if (type == null && parent instanceof JSVariable) {
+          PsiElement parent2=parent.getParent();
+          PsiElement grandParent=parent2 instanceof JSVarStatement ? parent2.getParent() : null;
+          if (grandParent instanceof JSForInStatement && ((JSForInStatement)grandParent).isForEach() && parent2 == ((JSForInStatement)grandParent).getDeclarationStatement()) {
+            JSExpression expression=((JSForInStatement)grandParent).getCollectionExpression();
+            if (expression != null) {
+              JSType expressionType=JSResolveUtil.getExpressionJSType(expression);
+              if (expressionType != null) {
+                final JSType componentType=JSTypeUtils.getComponentType(expressionType);
+                if (componentType != null) {
+                  type=componentType;
+                }
+              }
+            }
+          }
+        }
+        final String qualifiedNameMatchingType=type != null ? JSTypeUtils.getQualifiedNameMatchingType(type,false) : null;
+        if (qualifiedNameMatchingType != null) {
+          String qName=JSDialectSpecificHandlersFactory.forElement(location).getImportHandler().resolveTypeName(qualifiedNameMatchingType,location).getQualifiedName();
+          variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(JSDialectSpecificHandlersFactory.forElement(location).getClassResolver().findClassByQName(qName,location),ImportUtils.importAndShortenReference(qName,parent,false,true).first,VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+        }
+      }
+    }
+ else {
+      variants=addVariantsForUnqualifiedReference((JSReferenceExpression)location);
+    }
+  }
+  return variants.isEmpty() ? null : variants;
+}

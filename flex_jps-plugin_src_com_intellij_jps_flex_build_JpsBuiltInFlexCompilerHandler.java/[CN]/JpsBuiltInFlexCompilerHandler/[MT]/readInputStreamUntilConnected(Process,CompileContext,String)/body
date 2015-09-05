@@ -1,0 +1,33 @@
+{
+  SharedThreadPool.getInstance().executeOnPooledThread(new Runnable(){
+    public void run(){
+      final InputStreamReader reader=FlexCommonUtils.createInputStreamReader(process.getInputStream());
+      try {
+        char[] buf=new char[1024];
+        int read;
+        while ((read=reader.read(buf,0,buf.length)) >= 0) {
+          final String output=new String(buf,0,read);
+          if (output.startsWith(CONNECTION_SUCCESSFUL)) {
+            break;
+          }
+ else {
+            closeSocket();
+            context.processMessage(new CompilerMessage(compilerName,BuildMessage.Kind.ERROR,output));
+          }
+        }
+      }
+ catch (      IOException e) {
+        closeSocket();
+        context.processMessage(new CompilerMessage(compilerName,BuildMessage.Kind.ERROR,"Failed to start Flex compiler: " + e.toString()));
+      }
+ finally {
+        try {
+          reader.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+);
+}

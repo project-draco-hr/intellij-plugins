@@ -1,0 +1,32 @@
+{
+  final String libraryLevel=library.getTable() != null ? library.getTable().getTableLevel() : null;
+  if (LibraryTablesRegistrar.APPLICATION_LEVEL.equals(libraryLevel) || LibraryTablesRegistrar.PROJECT_LEVEL.equals(libraryLevel)) {
+    return !ContainerUtil.process(bc.getDependencies().getEntries(),new Processor<DependencyEntry>(){
+      @Override public boolean process(      DependencyEntry dependencyEntry){
+        if (!(dependencyEntry instanceof SharedLibraryEntry)) {
+          return true;
+        }
+        if (!canDependOn(dependencyEntry,transitive,productionOnly)) {
+          return true;
+        }
+        return !((SharedLibraryEntry)dependencyEntry).getLibraryName().equals(library.getName()) || !((SharedLibraryEntry)dependencyEntry).getLibraryLevel().equals(libraryLevel);
+      }
+    }
+);
+  }
+ else {
+    final String libraryId=getLibraryId(library);
+    return libraryId != null && !ContainerUtil.process(bc.getDependencies().getEntries(),new Processor<DependencyEntry>(){
+      @Override public boolean process(      DependencyEntry dependencyEntry){
+        if (!(dependencyEntry instanceof ModuleLibraryEntry)) {
+          return true;
+        }
+        if (!canDependOn(dependencyEntry,transitive,productionOnly)) {
+          return true;
+        }
+        return !((ModuleLibraryEntry)dependencyEntry).getLibraryId().equals(libraryId);
+      }
+    }
+);
+  }
+}

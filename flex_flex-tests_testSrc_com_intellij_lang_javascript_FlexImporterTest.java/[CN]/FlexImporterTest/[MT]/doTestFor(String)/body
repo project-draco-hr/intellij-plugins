@@ -1,0 +1,34 @@
+{
+  final File file=new File(getTestDataPath() + fileName);
+  final byte[] contents;
+  if (file.getName().endsWith(".swc")) {
+    final ZipFile zipFile=new ZipFile(file);
+    final ZipEntry zipEntry=zipFile.getEntry("library.swf");
+    final InputStream inputStream=zipFile.getInputStream(zipEntry);
+    contents=FileUtil.loadBytes(inputStream,(int)zipEntry.getSize());
+    inputStream.close();
+    zipFile.close();
+  }
+ else {
+    contents=FileUtil.loadFileBytes(file);
+  }
+  String result=FlexImporter.buildInterfaceFromStream(new ByteArrayInputStream(contents));
+  String resultFileName=getTestDataPath() + fileName + ".txt";
+  try {
+    String expected=StringUtil.convertLineSeparators(FileUtil.loadFile(new File(resultFileName),CharsetToolkit.UTF8_CHARSET));
+    assertEquals("interface stubs do not match",expected,result);
+    result=FlexImporter.dumpContentsFromStream(new ByteArrayInputStream(contents),getName().equals("testAbc"));
+    resultFileName=getTestDataPath() + fileName + ".il";
+    expected=StringUtil.convertLineSeparators(FileUtil.loadFile(new File(resultFileName),CharsetToolkit.UTF8_CHARSET));
+    assertEquals(expected,result);
+  }
+ catch (  IOException ex) {
+    if (!new File(resultFileName).exists()) {
+      FileOutputStream fileOutputStream=new FileOutputStream(resultFileName);
+      fileOutputStream.write(result.getBytes(CharsetToolkit.UTF8_CHARSET));
+      fileOutputStream.close();
+      System.out.println("File " + resultFileName + " was created");
+      throw ex;
+    }
+  }
+}

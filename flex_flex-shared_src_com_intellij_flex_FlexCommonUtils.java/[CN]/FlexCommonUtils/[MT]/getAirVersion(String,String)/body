@@ -1,0 +1,17 @@
+{
+  final String version;
+  if (sdkVersion != null && sdkVersion.startsWith(AIR_SDK_VERSION_PREFIX)) {
+    version=sdkVersion.substring(AIR_SDK_VERSION_PREFIX.length());
+  }
+ else   if (sdkHomePath != null && sdkHomePath.endsWith(".pom") && new File(sdkHomePath).isFile()) {
+    version=guessAirSdkVersionByFlexmojosSdkVersion(sdkVersion);
+  }
+ else {
+    version=getVersionOfAirSdkIncludedInFlexSdk(sdkHomePath);
+  }
+  if (version != null) {
+    final Trinity<String,String,String> majorMinorRevision=getMajorMinorRevisionVersion(version);
+    return majorMinorRevision.third.isEmpty() || "0".equals(majorMinorRevision.third) ? majorMinorRevision.first + "." + majorMinorRevision.second : majorMinorRevision.first + "." + majorMinorRevision.second+ "."+ majorMinorRevision.third;
+  }
+  return null;
+}

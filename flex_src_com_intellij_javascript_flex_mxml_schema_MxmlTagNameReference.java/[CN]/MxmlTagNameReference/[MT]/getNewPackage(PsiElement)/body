@@ -1,0 +1,14 @@
+{
+  if (element instanceof JSFile || (element instanceof XmlFile && JavaScriptSupportLoader.isMxmlOrFxgFile((XmlFile)element))) {
+    final VirtualFile virtualFile=((PsiFile)element).getVirtualFile();
+    if (virtualFile != null) {
+      final VirtualFile sourceRoot=ProjectRootManager.getInstance(element.getProject()).getFileIndex().getSourceRootForFile(virtualFile);
+      if (sourceRoot != null) {
+        final String relPath=FileUtil.getRelativePath(sourceRoot.getPath(),virtualFile.getPath(),'/');
+        final int lastSlashIndex=relPath.lastIndexOf("/");
+        return relPath.substring(0,Math.max(0,lastSlashIndex)).replace("/",".");
+      }
+    }
+  }
+  return null;
+}

@@ -1,0 +1,16 @@
+{
+  if (orderEntry != null) {
+    Library library=orderEntry.getLibrary();
+    if (library != null) {
+      if (((LibraryEx)library).isDisposed()) {
+        Pair<String,String> moduleAndBcName=getModuleAndBcName();
+        LOG.error("Module library '" + library.getName() + "' is disposed, used in BC: "+ moduleAndBcName.second+ " of module "+ moduleAndBcName.first);
+        return new SimpleColoredText("<unknown>",SimpleTextAttributes.ERROR_ATTRIBUTES);
+      }
+      boolean hasInvalidRoots=!((LibraryEx)library).getInvalidRootUrls(OrderRootType.CLASSES).isEmpty();
+      String text=OrderEntryAppearanceService.getInstance().forLibrary(project,library,hasInvalidRoots).getText();
+      return new SimpleColoredText(text,SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    }
+  }
+  return new SimpleColoredText("<unknown>",SimpleTextAttributes.ERROR_ATTRIBUTES);
+}

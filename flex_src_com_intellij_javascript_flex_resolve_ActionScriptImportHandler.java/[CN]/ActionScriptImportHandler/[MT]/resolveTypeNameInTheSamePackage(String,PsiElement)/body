@@ -1,0 +1,17 @@
+{
+  JSNamedElement fileLocalElement=JSResolveUtil.findFileLocalElement(str,context);
+  if (fileLocalElement != null)   return fileLocalElement;
+  final String packageQualifierText=JSResolveUtil.findPackageStatementQualifier(context);
+  PsiElement byQName;
+  if (packageQualifierText != null) {
+    byQName=JSClassResolver.findClassFromNamespace(packageQualifierText + "." + str,context);
+    if (byQName instanceof JSQualifiedNamedElement) {
+      return (JSQualifiedNamedElement)byQName;
+    }
+  }
+  byQName=JSDialectSpecificHandlersFactory.forElement(context).getClassResolver().findClassByQName(str,context);
+  if (byQName instanceof JSQualifiedNamedElement && JSResolveUtil.acceptableSymbol((JSQualifiedNamedElement)byQName,JSResolveUtil.GlobalSymbolsAcceptanceState.WHATEVER,false,context)) {
+    return (JSQualifiedNamedElement)byQName;
+  }
+  return null;
+}

@@ -1,0 +1,41 @@
+{
+  Map<PsiElement,PairInfo> navElement2pairInfo=new HashMap<PsiElement,PairInfo>();
+  final Project project=context.getProject();
+  GlobalSearchScope scope=FlexCssUtil.getResolveScope(context);
+  Set<JSClass> visited=ContainerUtil.newLinkedHashSet();
+  for (  String className : myClassNames) {
+    Collection<JSQualifiedNamedElement> candidates=StubIndex.getElements(JSQualifiedElementIndex.KEY,className.hashCode(),project,scope,JSQualifiedNamedElement.class);
+    findStyleAttributes(candidates,visited,navElement2pairInfo);
+    PsiElement jsClass=ActionScriptClassResolver.findClassByQNameStatic(className,scope);
+    if (jsClass instanceof JSClass) {
+      findStyleAttributesInClassOrSuper((JSClass)jsClass,visited,navElement2pairInfo);
+    }
+  }
+  Set<JSFile> visitedFiles=ContainerUtil.newLinkedHashSet();
+  for (  String fileName : myFileNames) {
+    Collection<VirtualFile> files=FilenameIndex.getVirtualFilesByName(project,fileName,scope);
+    for (    final VirtualFile file : files) {
+      PsiFile psiFile=ApplicationManager.getApplication().runReadAction(new Computable<PsiFile>(){
+        @Nullable @Override public PsiFile compute(){
+          return PsiManager.getInstance(project).findFile(file);
+        }
+      }
+);
+      if (psiFile instanceof JSFile) {
+        findStyleAttributesInFile((JSFile)psiFile,visitedFiles,navElement2pairInfo);
+      }
+    }
+  }
+  Set<PsiElement> navPairs=navElement2pairInfo.keySet();
+  Map<String,PsiElement> qName2ResultElement=new HashMap<String,PsiElement>();
+  for (  PsiElement navPair : navPairs) {
+    PairInfo pairInfo=navElement2pairInfo.get(navPair);
+    String jsClassQName=pairInfo.myJsClassQName;
+    PsiElement navPairInOtherClassWithSameQName=jsClassQName != null ? qName2ResultElement.get(jsClassQName) : null;
+    if (navPairInOtherClassWithSameQName == null || navPairInOtherClassWithSameQName == navElement2pairInfo.get(navPairInOtherClassWithSameQName) && pairInfo.myPair != navPair) {
+      qName2ResultElement.put(jsClassQName,navPair);
+    }
+  }
+  Collection<PsiElement> result=qName2ResultElement.values();
+  return PsiUtilCore.toPsiElementArray(result);
+}

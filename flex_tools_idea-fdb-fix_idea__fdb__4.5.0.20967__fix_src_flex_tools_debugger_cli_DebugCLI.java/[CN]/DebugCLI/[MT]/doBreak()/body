@@ -1,0 +1,67 @@
+{
+  waitTilHalted();
+  int module=propertyGet(LIST_MODULE);
+  int line=propertyGet(LIST_LINE);
+  String arg=null;
+  try {
+    if (hasMoreTokens()) {
+      arg=nextToken();
+      int[] result=parseLocationArg(module,line,arg);
+      module=result[0];
+      line=result[1];
+    }
+ else {
+      Location l=getCurrentLocation();
+      SourceFile file=l.getFile();
+      module=file.getId();
+      line=l.getLine();
+    }
+    BreakAction b=addBreakpoint(module,line);
+    Location l=b.getLocation();
+    int which=b.getId();
+    String name=l.getFile().getName();
+    int offset=adjustOffsetForUnitTests(l.getFile().getOffsetForLine(line));
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("breakpointNumber",Integer.toString(which));
+    args.put("file",name);
+    args.put("line",Integer.toString(line));
+    String formatString;
+    if (offset != 0) {
+      args.put("offset","0x" + Integer.toHexString(offset));
+      formatString="createdBreakpointWithOffset";
+    }
+ else {
+      formatString="createdBreakpoint";
+    }
+    out(getLocalizationManager().getLocalizedTextString(formatString,args));
+    propertyPut(BPNUM,which);
+  }
+ catch (  ParseException pe) {
+    err(pe.getMessage());
+  }
+catch (  AmbiguousException ae) {
+    err(ae.getMessage());
+  }
+catch (  NoMatchException nme) {
+    BreakAction b=addUnresolvedBreakpoint(arg);
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("breakpointNumber",Integer.toString(b.getId()));
+    out(getLocalizationManager().getLocalizedTextString("breakpointCreatedButNotYetResolved",args));
+    propertyPut(BPNUM,b.getId());
+  }
+catch (  NullPointerException npe) {
+    String filename;
+    try {
+      filename=m_fileInfo.getFile(module).getName() + "#" + module;
+    }
+ catch (    Exception e) {
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("fileNumber",Integer.toString(module));
+      filename=getLocalizationManager().getLocalizedTextString("fileNumber",args);
+    }
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("filename",filename);
+    args.put("line",Integer.toString(line));
+    err(getLocalizationManager().getLocalizedTextString("breakpointNotSetNoCode",args));
+  }
+}

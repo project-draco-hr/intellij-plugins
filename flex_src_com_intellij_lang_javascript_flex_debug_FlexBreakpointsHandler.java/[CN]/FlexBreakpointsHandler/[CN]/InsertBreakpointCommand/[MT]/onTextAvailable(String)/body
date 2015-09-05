@@ -1,0 +1,28 @@
+{
+  int index;
+  if ((index=s.indexOf(FlexDebugProcess.BREAKPOINT_MARKER)) != -1) {
+    if (s.contains(" created")) {
+      registerBreakPoint();
+    }
+ else     if (s.contains("not set; no executable code")) {
+      updateBreakpointStatusToInvalid(myBreakpoint);
+    }
+ else {
+      final int from=index + FlexDebugProcess.BREAKPOINT_MARKER.length();
+      if (s.contains("file")) {
+        registerBreakPoint();
+        updateBreakpointStatusToVerified(s.substring(from,s.indexOf(':',from)));
+      }
+    }
+  }
+ else   if (s.contains(FlexDebugProcess.AMBIGUOUS_MATCHING_FILE_NAMES)) {
+    if (myDebugProcess.getFileId(mySourcePosition.getFile().getPath()) != null) {
+      final DebuggerCommand command=myBreakpoint == null ? new InsertBreakpointCommand(mySourcePosition) : new InsertBreakpointCommand(myBreakpoint);
+      myDebugProcess.sendAndProcessOneCommand(command,null);
+    }
+ else {
+      updateBreakpointStatusToInvalid(myBreakpoint);
+    }
+  }
+  return CommandOutputProcessingMode.DONE;
+}

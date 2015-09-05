@@ -1,0 +1,64 @@
+{
+  if (FlexSdkUtils.isFlex4Sdk(FlexUtils.getSdkForActiveBC(context.module))) {
+    MxmlLanguageTagsUtil.checkFlex4Attributes(tag,host,true);
+  }
+  if (MxmlLanguageTagsUtil.isFxPrivateTag(tag)) {
+    MxmlLanguageTagsUtil.validateFxPrivateTag(tag,host);
+    return;
+  }
+  if (MxmlLanguageTagsUtil.isFxLibraryTag(tag)) {
+    MxmlLanguageTagsUtil.validateFxLibraryTag(tag,host);
+    return;
+  }
+  if (MxmlLanguageTagsUtil.isFxDefinitionTag(tag)) {
+    MxmlLanguageTagsUtil.validateFxDefinitionTag(tag,host);
+    return;
+  }
+  if (MxmlLanguageTagsUtil.isFxReparentTag(tag)) {
+    MxmlLanguageTagsUtil.validateFxReparentTag(tag,host);
+    return;
+  }
+  for (  XmlTag subtag : tag.getSubTags()) {
+    final String s=subtag.getLocalName();
+    if (s.length() > 0 && Character.isLowerCase(s.charAt(0))) {
+      if (tag.getAttributeValue(s) != null) {
+        final List<XmlElement> elements=new ArrayList<XmlElement>();
+        collectLowerCasedElements(elements,tag.getAttributes());
+        collectLowerCasedElements(elements,tag.getSubTags());
+        XmlUtil.doDuplicationCheckForElements(elements.toArray(new XmlElement[elements.size()]),new THashMap<String,XmlElement>(elements.size()),myDuplicationInfoProvider,host);
+        break;
+      }
+    }
+  }
+  final PsiElement declaration=getDeclaration();
+  if ((declaration instanceof JSClass) && !CodeContext.hasDefaultConstructor((JSClass)declaration)) {
+    host.addMessage(tag,JSBundle.message("class.0.does.not.have.default.constructor",((JSClass)declaration).getQualifiedName()),Validator.ValidationHost.ErrorType.ERROR);
+  }
+  if (tag.getParent() instanceof XmlDocument) {
+    final JSClass jsClass=XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)tag.getContainingFile());
+    final JSReferenceList list=jsClass.getImplementsList();
+    final MxmlErrorReportingClient reportingClient=new MxmlErrorReportingClient(host);
+    if (list != null) {
+      ActionScriptAnnotatingVisitor.checkActionScriptImplementedMethods(jsClass,reportingClient);
+      for (      JSClass element : list.getReferencedClasses()) {
+        if (element == jsClass) {
+          reportingClient.reportError(refToImplementsNode(tag),JSBundle.message("javascript.validation.message.circular.dependency"),JSAnnotatingVisitor.ErrorReportingClient.ProblemKind.ERROR);
+          continue;
+        }
+        if (element != null && !element.isInterface()) {
+          reportingClient.reportError(refToImplementsNode(tag),JSBundle.message("javascript.validation.message.interface.name.expected.here"),JSAnnotatingVisitor.ErrorReportingClient.ProblemKind.ERROR);
+        }
+      }
+    }
+    JSClass[] classes=jsClass.getSuperClasses();
+    if (classes.length > 0 && classes[0] == jsClass) {
+      reportingClient.reportError(tag.getNode(),JSBundle.message("javascript.validation.message.circular.dependency"),JSAnnotatingVisitor.ErrorReportingClient.ProblemKind.ERROR);
+    }
+    ActionScriptAnnotatingVisitor.checkFileUnderSourceRoot(jsClass,reportingClient);
+  }
+  if (MxmlLanguageTagsUtil.isComponentTag(tag)) {
+    if (tag.getSubTags().length == 0) {
+      host.addMessage(tag,JSBundle.message("javascript.validation.empty.component.type"),ValidationHost.ErrorType.ERROR);
+    }
+  }
+}

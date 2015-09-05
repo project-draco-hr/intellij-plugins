@@ -1,0 +1,30 @@
+{
+  if (element instanceof JSFunction) {
+    return getMethodPresentableName((JSFunction)element);
+  }
+ else   if (element instanceof JSVariable) {
+    return getFieldPresentableName((JSVariable)element);
+  }
+ else   if (element instanceof JSClass) {
+    return getClassPresentableName((JSClass)element);
+  }
+ else   if (element instanceof String) {
+    String s=(String)element;
+    return decorate(getPackageDisplayName(s));
+  }
+ else   if (element instanceof JSPackageStatement) {
+    return decorate(((JSPackageStatement)element).getQualifiedName());
+  }
+ else   if (element instanceof JSFile) {
+    return decorate(getElementTitle(element));
+  }
+ else   if (element instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+    return decorate(getElementTitle(element));
+  }
+ else   if (element instanceof PsiDirectory) {
+    PsiDirectory directory=(PsiDirectory)element;
+    String qName=JSResolveUtil.getExpectedPackageNameFromFile(directory.getVirtualFile(),directory.getProject());
+    return decorate(getElementTitle(qName));
+  }
+  return null;
+}

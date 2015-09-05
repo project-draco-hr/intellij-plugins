@@ -1,0 +1,36 @@
+{
+  if (MxmlJSClass.isTagThatAllowsAnyXmlContent(contextTag)) {
+    return new AnyXmlElementWithAnyChildrenDescriptor();
+  }
+  final String namespace=childTag.getNamespace();
+  XmlElementDescriptor descriptor;
+  if (!ClassBackedElementDescriptor.sameNs(namespace,parentDescriptor.context.namespace)) {
+    final XmlNSDescriptor nsdescriptor=childTag.getNSDescriptor(namespace,true);
+    descriptor=nsdescriptor != null ? nsdescriptor.getElementDescriptor(childTag) : null;
+  }
+ else {
+    descriptor=parentDescriptor.context.getElementDescriptor(childTag.getLocalName(),childTag);
+  }
+  if (arrayElementType != null) {
+    if (descriptor == null || isVectorType(type) && isVectorDescriptor(descriptor) || JSCommonTypeNames.ARRAY_CLASS_NAME.equals(type) && isArrayDescriptor(descriptor) || ActionScriptClassResolver.findClassByQNameStatic(arrayElementType,childTag) == null) {
+      return descriptor;
+    }
+    return ClassBackedElementDescriptor.checkValidDescriptorAccordingToType(arrayElementType,descriptor);
+  }
+  if (type != null && ClassBackedElementDescriptor.isAdequateType(type)) {
+    return ClassBackedElementDescriptor.checkValidDescriptorAccordingToType(type,descriptor);
+  }
+  if (ClassBackedElementDescriptor.IFACTORY_SHORT_CLASS_NAME.equals(ClassBackedElementDescriptor.className(type))) {
+    if (!FlexNameAlias.COMPONENT_TYPE_NAME.equals(childTag.getLocalName()) || !JavaScriptSupportLoader.isLanguageNamespace(childTag.getNamespace())) {
+      return null;
+    }
+  }
+  if (descriptor == null) {
+    PsiElement element=JSResolveUtil.unwrapProxy(getDeclaration());
+    if (element instanceof JSNamedElement) {
+      element=new ClassBackedElementDescriptor(ClassBackedElementDescriptor.getPropertyType((JSNamedElement)element),parentDescriptor.context,parentDescriptor.project,true).getDeclaration();
+      return parentDescriptor.getClassIfDynamic(childTag.getLocalName(),element);
+    }
+  }
+  return descriptor;
+}

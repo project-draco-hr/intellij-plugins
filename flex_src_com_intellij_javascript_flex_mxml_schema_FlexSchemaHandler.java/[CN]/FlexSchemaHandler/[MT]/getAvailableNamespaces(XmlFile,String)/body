@@ -1,0 +1,65 @@
+{
+  PsiFile originalFile=_file.getOriginalFile();
+  if (originalFile instanceof XmlFile)   _file=(XmlFile)originalFile;
+  final XmlFile file=_file;
+  final Project project=file.getProject();
+  final Module module=ProjectRootManager.getInstance(project).getFileIndex().getModuleForFile(file.getVirtualFile());
+  final Collection<String> illegalNamespaces=getIllegalNamespaces(file);
+  final Set<String> result=new THashSet<String>();
+  final Set<String> componentsThatHaveNotPackageBackedNamespace=new THashSet<String>();
+  for (  final String namespace : CodeContextHolder.getInstance(project).getNamespaces(module)) {
+    if (!CodeContext.isPackageBackedNamespace(namespace) && !illegalNamespaces.contains(namespace)) {
+      if (tagName == null) {
+        result.add(namespace);
+      }
+ else {
+        final XmlElementDescriptor descriptor=CodeContext.getContext(namespace,module).getElementDescriptor(tagName,(XmlTag)null);
+        if (descriptor != null) {
+          result.add(namespace);
+          componentsThatHaveNotPackageBackedNamespace.add(descriptor.getQualifiedName());
+        }
+      }
+    }
+  }
+  if (tagName == null && !illegalNamespaces.contains(JavaScriptSupportLoader.MXML_URI)) {
+    result.add(JavaScriptSupportLoader.MXML_URI);
+  }
+  if (XmlBackedJSClassImpl.SCRIPT_TAG_NAME.equals(tagName) || "Style".equals(tagName))   return result;
+  if (DumbService.isDumb(project))   return result;
+  if (tagName == null) {
+    FileBasedIndex.getInstance().processAllKeys(JSPackageIndex.INDEX_ID,new Processor<String>(){
+      public boolean process(      final String packageName){
+        result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+        return true;
+      }
+    }
+,project);
+  }
+ else {
+    final GlobalSearchScope scopeWithLibs=module != null ? GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module) : GlobalSearchScope.allScope(project);
+    for (    JSQualifiedNamedElement element : JSResolveUtil.findElementsByName(tagName,project,scopeWithLibs,false)) {
+      if (element instanceof JSClass && CodeContext.hasDefaultConstructor((JSClass)element)) {
+        final String packageName=StringUtil.getPackageName(element.getQualifiedName());
+        if (!componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName))) {
+          result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+        }
+      }
+    }
+  }
+  final GlobalSearchScope scopeWithoutLibs=module != null ? GlobalSearchScope.moduleWithDependenciesScope(module) : GlobalSearchScope.allScope(project);
+  FlexResolveHelper.processAllMxmlAndFxgFiles(scopeWithoutLibs,project,new FlexResolveHelper.MxmlAndFxgFilesProcessor(){
+    public void addDependency(    final PsiDirectory directory){
+    }
+    public boolean processFile(    final VirtualFile file,    final VirtualFile root){
+      if (tagName == null || tagName.equals(file.getNameWithoutExtension())) {
+        final String packageName=VfsUtilCore.getRelativePath(file.getParent(),root,'.');
+        if (packageName != null && (tagName == null || !componentsThatHaveNotPackageBackedNamespace.contains(StringUtil.getQualifiedName(packageName,tagName)))) {
+          result.add(StringUtil.isEmpty(packageName) ? "*" : packageName + ".*");
+        }
+      }
+      return true;
+    }
+  }
+,tagName);
+  return result;
+}

@@ -1,0 +1,23 @@
+{
+  TemplateManagerImpl.setTemplateTesting(getProject(),getTestRootDisposable());
+  enableInspectionTool(new SpellCheckingInspection());
+  doSimpleHighlightingWithInvokeFixAndCheckResult("Typo: Rename to...");
+  final LookupEx lookup=LookupManager.getActiveLookup(myEditor);
+  assertNotNull(lookup);
+  boolean selected=false;
+  for (  LookupElement l : lookup.getItems()) {
+    if (variantName.equals(l.getLookupString())) {
+      lookup.setCurrentItem(l);
+      selected=true;
+      WriteCommandAction.runWriteCommandAction(null,new Runnable(){
+        @Override public void run(){
+          ((LookupImpl)lookup).finishLookup(Lookup.AUTO_INSERT_SELECT_CHAR);
+        }
+      }
+);
+    }
+  }
+  assertTrue(selected);
+  LookupManager.getInstance(myProject).hideActiveLookup();
+  checkResultByFile(BASE_PATH + getTestName(false) + "_after2.js2");
+}

@@ -1,0 +1,37 @@
+{
+  if (sdkRoot == null || !sdkRoot.isValid()) {
+    return;
+  }
+  PropertiesComponent.getInstance().setValue(LAST_SELECTED_FLEX_SDK_HOME_KEY,sdkRoot.getPath());
+  sdkRoot.refresh(false,true);
+  sdkModificator.setVersionString(getVersionString(sdkRoot.getPath()));
+  final VirtualFile playerDir=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+    public VirtualFile compute(){
+      final VirtualFile libsDir=LocalFileSystem.getInstance().refreshAndFindFileByPath(sdkRoot.getPath() + "/frameworks/libs");
+      if (libsDir != null && libsDir.isDirectory()) {
+        libsDir.refresh(false,true);
+        return libsDir.findChild("player");
+      }
+      return null;
+    }
+  }
+);
+  if (playerDir != null) {
+    FlexSdkUtils.processPlayerglobalSwcFiles(playerDir,new Processor<VirtualFile>(){
+      public boolean process(      final VirtualFile playerglobalSwcFile){
+        addSwcRoot(sdkModificator,playerglobalSwcFile);
+        return true;
+      }
+    }
+);
+  }
+  final VirtualFile baseDir=sdkRoot.findChild("frameworks");
+  if (baseDir != null && baseDir.isDirectory()) {
+    addSwcRoots(sdkModificator,baseDir,Collections.singletonList("libs/air/airglobal.swc"),false);
+    addFlexSdkSwcRoots(sdkModificator,baseDir);
+  }
+  final VirtualFile projectsDir=VfsUtil.findRelativeFile("frameworks/projects",sdkRoot);
+  if (projectsDir != null && projectsDir.isDirectory()) {
+    findSourceRoots(projectsDir,sdkModificator);
+  }
+}

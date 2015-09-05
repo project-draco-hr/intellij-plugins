@@ -1,0 +1,25 @@
+{
+  VirtualFile folder=LocalFileSystem.getInstance().findFileByPath(folderPath);
+  if (folder == null) {
+    try {
+      folder=VfsUtil.createDirectories(folderPath);
+    }
+ catch (    IOException e) {
+      if (interactive) {
+        Messages.showErrorDialog(project,FlexBundle.message("failed.to.create.folder",FileUtil.toSystemDependentName(folderPath),e.getMessage()),errorMessageTitle);
+      }
+      return null;
+    }
+  }
+  if (folder == null) {
+    if (interactive) {
+      Messages.showErrorDialog(project,FlexBundle.message("failed.to.create.folder",folderPath,"unknown error"),errorMessageTitle);
+    }
+    return null;
+  }
+ else   if (!folder.isDirectory()) {
+    Messages.showErrorDialog(project,FlexBundle.message("selected.path.not.folder",FileUtil.toSystemDependentName(folderPath)),errorMessageTitle);
+    return null;
+  }
+  return folder;
+}

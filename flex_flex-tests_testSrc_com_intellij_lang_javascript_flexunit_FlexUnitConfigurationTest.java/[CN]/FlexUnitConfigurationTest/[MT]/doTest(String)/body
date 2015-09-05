@@ -1,0 +1,47 @@
+{
+  configureByFile(BASE_PATH + filename);
+  final Map<Integer,String> markers=JSTestUtils.extractPositionMarkers(getProject(),getEditor().getDocument());
+  assertFalse("No caret markers found",markers.isEmpty());
+  assertFalse("No 'expected' value",markers.containsValue(null));
+  final DataContext dataContext=DataManager.getInstance().getDataContext(getEditor().getComponent());
+  int i=1;
+  for (  Map.Entry<Integer,String> marker : markers.entrySet()) {
+    String place=filename + ": marker " + i+++ ": ";
+    getEditor().getCaretModel().moveToOffset(marker.getKey());
+    final ConfigurationFromContext configurationFromContext=new FlexUnitRuntimeConfigurationProducer().createConfigurationFromContext(ConfigurationContext.getFromContext(dataContext));
+    final RunConfiguration configuration=configurationFromContext == null ? null : configurationFromContext.getConfiguration();
+    if ("null".equals(marker.getValue())) {
+      assertNull(place + "Null configuration expected",configuration);
+    }
+ else {
+      assertNotNull(place + "Not null configuration expected",configuration);
+      assertTrue(place + "Invalid configuration",configuration instanceof FlexUnitRunConfiguration);
+      final String[] expected;
+      if ("null".equals(marker.getValue())) {
+        expected=null;
+      }
+ else {
+        expected=marker.getValue().split(" ");
+        assertEquals(place + "Expected should be in the form: \"Class com.test.Foo\" or \"Method com.test.Foo.testBar()\" or \"Package com.test\"",2,expected.length);
+      }
+      final FlexUnitRunnerParameters params=((FlexUnitRunConfiguration)configuration).getRunnerParameters();
+      assertEquals(place + "Invalid scope",expected[0],params.getScope().name());
+      final String definition;
+switch (params.getScope()) {
+case Class:
+        definition=params.getClassName();
+      break;
+case Method:
+    definition=params.getClassName() + "." + params.getMethodName()+ "()";
+  break;
+case Package:
+definition=params.getPackageName();
+break;
+default :
+fail(place + "Unknown scope: " + params.getScope());
+definition=null;
+}
+assertEquals(place + "Invalid definition",expected[1],definition);
+}
+}
+}

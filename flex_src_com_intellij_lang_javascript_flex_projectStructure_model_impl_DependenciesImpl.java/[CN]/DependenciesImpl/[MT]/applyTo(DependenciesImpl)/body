@@ -1,0 +1,24 @@
+{
+  copy.myTargetPlayer=myTargetPlayer;
+  copy.myComponentSet=myComponentSet;
+  copy.myFrameworkLinkage=myFrameworkLinkage;
+  copy.myEntries.clear();
+  copy.myEntries.addAll(ContainerUtil.map(myEntries,new Function<ModifiableDependencyEntry,ModifiableDependencyEntry>(){
+    @Override public ModifiableDependencyEntry fun(    ModifiableDependencyEntry e){
+      if (e instanceof ModuleLibraryEntryImpl) {
+        return ((ModuleLibraryEntryImpl)e).getCopy();
+      }
+ else       if (e instanceof SharedLibraryEntryImpl) {
+        return ((SharedLibraryEntryImpl)e).getCopy();
+      }
+ else       if (e instanceof BuildConfigurationEntryImpl) {
+        return ((BuildConfigurationEntryImpl)e).getCopy();
+      }
+ else {
+        throw new RuntimeException("Unexpected entry type: " + e);
+      }
+    }
+  }
+));
+  copy.mySdk=mySdk != null ? mySdk.getCopy() : null;
+}

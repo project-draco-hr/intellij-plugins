@@ -1,0 +1,43 @@
+{
+  if (frameIndex == -1) {
+    if (output.startsWith(BATCH_MARKER))     return ProcessingResult.FINISHED;
+    int i=INDEX + 1;
+    final boolean cpuSample=output.startsWith(SAMPLE_MARKER);
+    if (cpuSample) {
+      i=output.indexOf(' ',INDEX);
+      sampleDuration=Long.parseLong(output.substring(INDEX,i));
+      i+=2;
+    }
+    if (cpuSample || output.startsWith(CREATE_OBJECT_SAMPLE_MARKER) || output.startsWith(DELETE_OBJECT_SAMPLE_MARKER)) {
+      int i2=output.indexOf(' ',i);
+      int frameCount=Integer.parseInt(output.substring(i - 1,i2 != -1 ? i2 : output.length()));
+      frames=frameCount > 0 ? new FrameInfo[frameCount] : FrameInfo.EMPTY_FRAME_INFO_ARRAY;
+      frameIndex=0;
+      type=output;
+      specialArgs=i2 != -1 ? output.substring(i2 + 1) : "";
+      return maybeFinishSample();
+    }
+  }
+  if (frames != null && frameIndex >= 0 && frameIndex < frames.length) {
+    char ch=output.charAt(0);
+    if (output.startsWith("u>:")) {
+      int count=Integer.parseInt(output.substring(output.indexOf(':') + 1));
+      Sample s=type.startsWith(CREATE_OBJECT_SAMPLE_MARKER) ? lastCreateObjectSample : type.startsWith(SAMPLE_MARKER) ? lastCpuSample : null;
+      for (int i=s.frames.length - count; i < s.frames.length; ++i) {
+        frames[frameIndex++]=s.frames[i];
+      }
+    }
+ else {
+      if (Character.isDigit(ch)) {
+        output=dictionary.get(output);
+      }
+ else {
+        dictionary.put("" + (dictionary.size() + 1),output);
+      }
+      frames[frameIndex++]=frameInfoBuilder.buildInstance(output);
+    }
+    return maybeFinishSample();
+  }
+  LOG.warn("Unexpected:" + output);
+  return ProcessingResult.FINISHED;
+}

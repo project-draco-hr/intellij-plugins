@@ -1,0 +1,33 @@
+{
+  final VirtualFile dotFlexLibPropertiesFile=dotProjectFile.getParent().findChild(FlashBuilderImporter.DOT_FLEX_LIB_PROPERTIES);
+  if (dotFlexLibPropertiesFile != null) {
+    try {
+      final Element flexLibPropertiesElement=JDOMUtil.load(dotFlexLibPropertiesFile.getInputStream());
+      if (!FLEX_LIB_PROPERTIES_TAG.equals(flexLibPropertiesElement.getName()))       return;
+      if (project.getTargetPlatform() == TargetPlatform.Desktop && "true".equals(flexLibPropertiesElement.getAttributeValue(USE_MULTIPLATFORM_CONFIG_ATTR))) {
+        project.setTargetPlatform(TargetPlatform.Mobile);
+      }
+      for (      final Element namespaceManifestsElement : flexLibPropertiesElement.getChildren(NAMESPACE_MANIFESTS_TAG,flexLibPropertiesElement.getNamespace())) {
+        for (        final Element namespaceManifestEntryElement : namespaceManifestsElement.getChildren(NAMESPACE_MANIFEST_ENTRY_TAG,namespaceManifestsElement.getNamespace())) {
+          final String namespace=namespaceManifestEntryElement.getAttributeValue(NAMESPACE_ATTR);
+          final String manifestPath=namespaceManifestEntryElement.getAttributeValue(MANIFEST_ATTR);
+          if (!StringUtil.isEmpty(manifestPath) && !StringUtil.isEmpty(namespace)) {
+            project.addNamespaceAndManifestPath(namespace,FileUtil.toSystemIndependentName(manifestPath));
+          }
+        }
+      }
+      for (      final Element includeResourcesElement : flexLibPropertiesElement.getChildren(INCLUDE_RESOURCES_ELEMENT,flexLibPropertiesElement.getNamespace())) {
+        for (        final Element resourceEntryElement : includeResourcesElement.getChildren(RESOURCE_ENTRY_ELEMENT,includeResourcesElement.getNamespace())) {
+          final String sourcePath=resourceEntryElement.getAttributeValue(SOURCE_PATH_ATTR);
+          if (!StringUtil.isEmpty(sourcePath)) {
+            project.addFileIncludedInSwc(FileUtil.toSystemIndependentName(sourcePath));
+          }
+        }
+      }
+    }
+ catch (    JDOMException ignored) {
+    }
+catch (    IOException ignored) {
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  final Ref<String> versionRef=new Ref<String>();
+  final boolean ok=ExternalTask.runWithProgress(new AdtTask(project,sdk){
+    protected void appendAdtOptions(    final List<String> command){
+      command.add("-runtimeVersion");
+      command.add("-platform");
+      command.add("android");
+      final DeviceInfo device=runnerParameters.getDeviceInfo();
+      if (device != null) {
+        command.add("-device");
+        command.add(device.DEVICE_ID);
+      }
+    }
+    protected boolean checkMessages(){
+      if (myMessages.size() == 1) {
+        final String output=myMessages.get(0);
+        if (output.startsWith("Failed to find package com.adobe.air")) {
+          versionRef.set("");
+          return true;
+        }
+ else         if (FlexCommonUtils.AIR_VERSION_PATTERN.matcher(output).matches()) {
+          versionRef.set(output);
+          return true;
+        }
+      }
+      return false;
+    }
+  }
+,FlexBundle.message("checking.air.version"),FlexBundle.message("check.air.version.title"));
+  if (!ok) {
+    throw new AdtException();
+  }
+  return versionRef.get();
+}

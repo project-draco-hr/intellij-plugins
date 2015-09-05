@@ -1,0 +1,70 @@
+{
+  final DefaultActionGroup actionGroup=new DefaultActionGroup();
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
+  final FlexBuildConfiguration activeBc=manager.getActiveConfiguration();
+  final FlexBuildConfiguration[] bcs=manager.getBuildConfigurations();
+  Arrays.sort(bcs,new Comparator<FlexBuildConfiguration>(){
+    @Override public int compare(    final FlexBuildConfiguration o1,    final FlexBuildConfiguration o2){
+      return o1.getName().compareToIgnoreCase(o2.getName());
+    }
+  }
+);
+  for (  final FlexBuildConfiguration bc : bcs) {
+    actionGroup.add(new SelectBcAction(bc,manager));
+  }
+  actionGroup.addSeparator();
+  actionGroup.add(new EditBcsAction(module));
+  final DataContext dataContext=SimpleDataContext.getProjectContext(module.getProject());
+  return new PopupFactoryImpl.ActionGroupPopup(FlexBundle.message("choose.build.configuration.popup.title",module.getName()),actionGroup,dataContext,false,false,false,true,null,-1,new Condition<AnAction>(){
+    @Override public boolean value(    final AnAction anAction){
+      return anAction instanceof SelectBcAction && ((SelectBcAction)anAction).getBC() == activeBc;
+    }
+  }
+,null){
+    @Override protected ListCellRenderer getListElementRenderer(){
+      return new PopupListElementRenderer(this){
+{
+        }
+        @Override protected JComponent createItemComponent(){
+          return new MyPanel();
+        }
+        @Override public Component getListCellRendererComponent(        final JList list,        final Object value,        final int index,        final boolean isSelected,        final boolean cellHasFocus){
+          MyPanel p=(MyPanel)myComponent;
+          p.clear();
+          PopupFactoryImpl.ActionItem actionItem=(PopupFactoryImpl.ActionItem)value;
+          AnAction anAction=actionItem.getAction();
+          SimpleColoredText text;
+          Icon icon;
+          boolean isActive;
+          if (anAction instanceof SelectBcAction) {
+            FlexBuildConfiguration bc=((SelectBcAction)anAction).getBC();
+            isActive=bc == activeBc;
+            text=BCUtils.renderBuildConfiguration(bc,null,isActive);
+            icon=bc.getIcon();
+          }
+ else {
+            text=new SimpleColoredText(anAction.getTemplatePresentation().getText(),SimpleTextAttributes.REGULAR_ATTRIBUTES);
+            icon=anAction.getTemplatePresentation().getIcon();
+            isActive=false;
+          }
+          RowIcon rowIcon=new RowIcon(2);
+          rowIcon.setIcon(isActive ? (isSelected ? ICON_ACTIVE_SELECTED : ICON_ACTIVE) : ICON_EMPTY,0);
+          rowIcon.setIcon(icon,1);
+          p.setIcon(rowIcon);
+          if (isSelected) {
+            text=text.derive(SimpleTextAttributes.SELECTED_SIMPLE_CELL_ATTRIBUTES,true);
+            setSelected(p);
+          }
+ else {
+            setDeselected(p);
+          }
+          p.setText(text);
+          mySeparatorComponent.setVisible(actionItem.isPrependWithSeparator());
+          return myRendererComponent;
+        }
+      }
+;
+    }
+  }
+;
+}

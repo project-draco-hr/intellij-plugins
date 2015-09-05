@@ -1,0 +1,15 @@
+{
+  final VirtualFile sdkRoot=sdk.getHomeDirectory();
+  if (sdkRoot == null || !sdkRoot.isValid() || sdkRoot.isDirectory()) {
+    return;
+  }
+  final SdkModificator modificator=sdk.getSdkModificator();
+  modificator.setVersionString(getVersionString(sdkRoot.getPath()));
+  FlexmojosSdkAdditionalData data=(FlexmojosSdkAdditionalData)sdk.getSdkAdditionalData();
+  if (data == null) {
+    data=new FlexmojosSdkAdditionalData();
+    modificator.setSdkAdditionalData(data);
+  }
+  data.setup(sdkRoot);
+  modificator.commitChanges();
+}

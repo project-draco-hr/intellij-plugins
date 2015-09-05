@@ -1,0 +1,26 @@
+{
+  AtomicNotNullLazyValue<MavenProject> projectRef=projectsCache.get(pomFile);
+  if (projectRef == null) {
+    AtomicNotNullLazyValue<MavenProject> candidate=projectsCache.putIfAbsent(pomFile,projectRef=new AtomicNotNullLazyValue<MavenProject>(){
+      @Override protected MavenProject compute(){
+        ProjectBuildingRequest projectBuildingRequest=session.getRequest().getProjectBuildingRequest();
+        projectBuildingRequest.setResolveDependencies(true);
+        projectBuildingRequest.setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL);
+        projectBuildingRequest.setRepositorySession(session.getRepositorySession());
+        projectBuildingRequest.setBuildStartTime(buildStartDate);
+        try {
+          return projectBuilder.build(pomFile,projectBuildingRequest).getProject();
+        }
+ catch (        Throwable e) {
+          logger.error("Cannot read project " + pomFile.getPath(),e);
+          return null;
+        }
+      }
+    }
+);
+    if (candidate != null) {
+      projectRef=candidate;
+    }
+  }
+  return projectRef.getValue();
+}

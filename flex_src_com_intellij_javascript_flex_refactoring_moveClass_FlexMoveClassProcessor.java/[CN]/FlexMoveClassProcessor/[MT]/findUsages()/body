@@ -1,0 +1,11 @@
+{
+  Collection<UsageInfo> result=Collections.synchronizedCollection(new ArrayList<UsageInfo>());
+  result.addAll(Arrays.asList(super.findUsages()));
+  for (  JSQualifiedNamedElement element : myElements) {
+    if (element instanceof JSClass) {
+      JSRefactoringUtil.addConstructorUsages((JSClass)element,false,result);
+    }
+    TextOccurrencesUtil.findNonCodeUsages(element,element.getQualifiedName(),mySearchInComments,mySearchInNonJavaFiles,StringUtil.getQualifiedName(myTargetPackage,element.getName()),result);
+  }
+  return result.toArray(new UsageInfo[result.size()]);
+}

@@ -1,0 +1,38 @@
+{
+  int count=displayCount();
+  for (int i=0; i < count; i++) {
+    DisplayAction a=displayAt(i);
+    if (a.isEnabled()) {
+      try {
+        sb.append(a.getId());
+        sb.append(": ");
+        sb.append(a.getContent());
+        sb.append(" = ");
+        Object result=m_exprCache.evaluate(a.getExpression());
+        if (result instanceof Variable)         ExpressionCache.appendVariableValue(sb,((Variable)result).getValue());
+ else         if (result instanceof Value)         ExpressionCache.appendVariableValue(sb,(Value)result);
+ else         if (result instanceof InternalProperty)         sb.append(((InternalProperty)result).valueOf());
+ else         sb.append(result);
+        sb.append(m_newline);
+      }
+ catch (      NoSuchVariableException nsv) {
+        Map args=new HashMap();
+        args.put("variable",nsv.getMessage());
+        sb.append(getLocalizationManager().getLocalizedTextString("variableUnknown",args));
+        sb.append(m_newline);
+      }
+catch (      NumberFormatException nfe) {
+        Map args=new HashMap();
+        args.put("value",nfe.getMessage());
+        sb.append(getLocalizationManager().getLocalizedTextString("couldNotConvertToNumber",args));
+        sb.append(m_newline);
+      }
+catch (      PlayerFaultException pfe) {
+        sb.append(pfe.getMessage() + m_newline);
+      }
+catch (      NullPointerException npe) {
+        sb.append(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+      }
+    }
+  }
+}

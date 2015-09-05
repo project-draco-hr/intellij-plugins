@@ -1,0 +1,35 @@
+{
+  if (!(psiFile instanceof JSFile)) {
+    return null;
+  }
+  final JSClass jsClass=BaseJSGenerateHandler.findClass(psiFile,editor);
+  if (jsClass == null || !ActionScriptEventDispatchUtils.isEventDispatcher(jsClass)) {
+    return null;
+  }
+  final PsiElement elementAtCursor=psiFile.findElementAt(editor.getCaretModel().getOffset());
+  final JSExpressionStatement expressionStatement=PsiTreeUtil.getParentOfType(elementAtCursor,JSExpressionStatement.class);
+  final PsiElement expressionStatementParent=expressionStatement == null ? null : expressionStatement.getParent();
+  final JSFunction jsFunction=PsiTreeUtil.getParentOfType(expressionStatement,JSFunction.class);
+  final JSExpression expression=expressionStatement == null ? null : expressionStatement.getExpression();
+  final JSReferenceExpression refExpression=expression instanceof JSReferenceExpression ? (JSReferenceExpression)expression : null;
+  final JSExpression qualifier=refExpression == null ? null : refExpression.getQualifier();
+  final PsiReference qualifierReference=qualifier == null ? null : qualifier.getReference();
+  final PsiElement referenceNameElement=refExpression == null ? null : refExpression.getReferenceNameElement();
+  JSAttributeList functionAttributes;
+  if (jsFunction == null || ((functionAttributes=jsFunction.getAttributeList()) != null && functionAttributes.hasModifier(JSAttributeList.ModifierType.STATIC)) || qualifierReference == null || !(referenceNameElement instanceof LeafPsiElement) || (!(expressionStatementParent instanceof JSFunction) && !(expressionStatementParent instanceof JSBlockStatement))) {
+    return null;
+  }
+  final PsiElement qualifierResolve=qualifierReference.resolve();
+  if (!(qualifierResolve instanceof JSClass) || !isEventClass((JSClass)qualifierResolve)) {
+    return null;
+  }
+  final PsiElement expressionResolve=refExpression.resolve();
+  if (expressionResolve instanceof JSVariable) {
+    final JSAttributeList varAttributes=((JSVariable)expressionResolve).getAttributeList();
+    final String text=((JSVariable)expressionResolve).getLiteralOrReferenceInitializerText();
+    if (varAttributes != null && varAttributes.hasModifier(JSAttributeList.ModifierType.STATIC) && varAttributes.getAccessType() == JSAttributeList.AccessType.PUBLIC && text != null && StringUtil.isQuotedString(text)) {
+      return Trinity.create(expressionStatement,((JSClass)qualifierResolve).getQualifiedName(),initializerToPartialMethodName(text));
+    }
+  }
+  return null;
+}

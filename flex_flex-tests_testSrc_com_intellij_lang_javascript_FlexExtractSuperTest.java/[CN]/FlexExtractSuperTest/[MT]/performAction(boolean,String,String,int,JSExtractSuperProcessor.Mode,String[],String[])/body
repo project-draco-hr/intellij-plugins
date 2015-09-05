@@ -1,0 +1,24 @@
+{
+  JSClass sourceClass=JSTestUtils.findClassByQName(from,GlobalSearchScope.moduleScope(myModule));
+  final List<JSMemberInfo> memberInfos=FlexPullUpTest.getMemberInfos(members,sourceClass,false);
+  JSMemberInfo.sortByOffset(memberInfos);
+  JSMemberInfo[] infosArray=JSMemberInfo.getSelected(memberInfos,sourceClass,Conditions.<JSMemberInfo>alwaysTrue());
+  try {
+    final PsiElement finalSourceClass=sourceClass;
+    PsiDirectory dir=WriteCommandAction.runWriteCommandAction(null,new Computable<PsiDirectory>(){
+      public PsiDirectory compute(){
+        return CreateClassOrInterfaceFix.findOrCreateDirectory(StringUtil.getPackageName(extractedSuperName),finalSourceClass);
+      }
+    }
+);
+    new JSExtractSuperProcessor(sourceClass,infosArray,StringUtil.getShortName(extractedSuperName),StringUtil.getPackageName(extractedSuperName),docCommentPolicy,mode,classNotInterface,dir).run();
+    assertEquals("Conflicts expected:\n" + StringUtil.join(conflicts,"\n"),0,conflicts.length);
+    myProject.getComponent(PostprocessReformattingAspect.class).doPostponedFormatting();
+    FileDocumentManager.getInstance().saveAllDocuments();
+  }
+ catch (  BaseRefactoringProcessor.ConflictsInTestsException e) {
+    assertNotNull("Conflicts not expected but found:" + e.getMessage(),conflicts);
+    assertSameElements(e.getMessages(),conflicts);
+    myDoCompare=false;
+  }
+}

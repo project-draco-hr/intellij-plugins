@@ -1,0 +1,41 @@
+{
+  String path=getHomePath() + getBasePath() + testName;
+  final File globalBefore=new File(path,"global_before");
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      try {
+        if (checkJdk()) {
+          Element d=JDOMUtil.load(new File(globalBefore,JDK_TABLE_XML));
+          ConversionHelper.expandPaths(d);
+          ((ProjectJdkTableImpl)ProjectJdkTable.getInstance()).loadState(d);
+        }
+{
+          Document d=JDOMUtil.loadDocument(new File(globalBefore,GLOBAL_LIBS_XML));
+          ConversionHelper.expandPaths(d.getRootElement());
+          ApplicationLibraryTable.getApplicationTable().loadState(d.getRootElement());
+        }
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
+  if (!super.doTest(testName,conversionShouldHappen)) {
+    return false;
+  }
+  File globalAfter=new File(path,"global_after");
+  if (checkJdk()) {
+    Document d=JDOMUtil.loadDocument(new File(globalAfter,JDK_TABLE_XML));
+    Element sdkState=((ProjectJdkTableImpl)ProjectJdkTable.getInstance()).getState();
+    ConversionHelper.collapsePaths(sdkState);
+    PlatformTestUtil.assertElementsEqual(d.getRootElement(),sdkState);
+  }
+{
+    Document d=JDOMUtil.loadDocument(new File(globalAfter,GLOBAL_LIBS_XML));
+    Element globalLibState=ApplicationLibraryTable.getApplicationTable().getState();
+    ConversionHelper.collapsePaths(globalLibState);
+    PlatformTestUtil.assertElementsEqual(d.getRootElement(),globalLibState);
+  }
+  return true;
+}

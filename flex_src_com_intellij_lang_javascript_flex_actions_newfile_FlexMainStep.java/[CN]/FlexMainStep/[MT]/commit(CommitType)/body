@@ -1,0 +1,20 @@
+{
+  super.commit(commitType);
+  final FileTemplate template;
+  try {
+    template=ClassLoaderUtil.runWithClassLoader(CreateClassOrInterfaceFix.class.getClassLoader(),new ThrowableComputable<FileTemplate,IOException>(){
+      @Override public FileTemplate compute() throws IOException {
+        return FileTemplateManager.getDefaultInstance().getInternalTemplate(myModel.getTemplateName());
+      }
+    }
+);
+    String[] attributes=FileTemplateUtil.calculateAttributes(template.getText(),new Properties(),true,myProject);
+    if (ArrayUtil.contains(CreateClassOrInterfaceFix.SUPERCLASS,attributes)) {
+      myModel.setSuperclassFqn(getSuperclassFqn());
+    }
+  }
+ catch (  IOException e) {
+  }
+catch (  ParseException e) {
+  }
+}

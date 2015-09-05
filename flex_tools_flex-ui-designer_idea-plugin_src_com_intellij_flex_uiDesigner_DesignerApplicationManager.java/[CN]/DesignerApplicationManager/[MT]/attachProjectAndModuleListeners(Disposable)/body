@@ -1,0 +1,50 @@
+{
+  MessageBusConnection connection=ApplicationManager.getApplication().getMessageBus().connect(parentDisposable);
+  connection.subscribe(ProjectManager.TOPIC,new ProjectManagerAdapter(){
+    @Override public void projectClosed(    Project project){
+      if (isApplicationClosed()) {
+        return;
+      }
+      Client client=Client.getInstance();
+      if (client.getRegisteredProjects().contains(project)) {
+        client.closeProject(project);
+      }
+    }
+  }
+);
+  connection.subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void moduleRemoved(    @NotNull Project project,    @NotNull Module module){
+      Client client=Client.getInstance();
+      if (!client.isModuleRegistered(module)) {
+        return;
+      }
+      if (unregisterTaskQueueProcessor == null) {
+        unregisterTaskQueueProcessor=new QueueProcessor<Module>(new Consumer<Module>(){
+          @Override public void consume(          Module module){
+            boolean hasError=true;
+            final ActionCallback callback;
+            initialRenderQueue.suspend();
+            try {
+              callback=Client.getInstance().unregisterModule(module);
+              hasError=false;
+            }
+  finally {
+              if (hasError) {
+                initialRenderQueue.resume();
+              }
+            }
+            callback.doWhenProcessed(new Runnable(){
+              @Override public void run(){
+                initialRenderQueue.resume();
+              }
+            }
+);
+          }
+        }
+);
+      }
+      unregisterTaskQueueProcessor.add(module);
+    }
+  }
+);
+}

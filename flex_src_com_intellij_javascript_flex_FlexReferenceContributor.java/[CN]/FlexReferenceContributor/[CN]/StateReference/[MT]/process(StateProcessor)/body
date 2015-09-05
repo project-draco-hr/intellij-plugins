@@ -1,0 +1,17 @@
+{
+  String s=processor.getHint();
+  Map<String,XmlTag> map=statesCache.compute(getElement().getContainingFile());
+  if (s == null) {
+    for (    Map.Entry<String,XmlTag> t : map.entrySet()) {
+      XmlTag tag=t.getValue();
+      if (myStateGroupsOnly && !DUMMY_STATE_GROUP_TAG.equals(tag.getName()))       continue;
+      if (!processor.process(tag,t.getKey()))       return false;
+    }
+  }
+ else {
+    XmlTag tag=map.get(s);
+    if (myStateGroupsOnly && !DUMMY_STATE_GROUP_TAG.equals(tag.getName()))     return true;
+    if (tag != null)     return processor.process(tag,s);
+  }
+  return true;
+}

@@ -1,0 +1,16 @@
+{
+  if (abcModifierApplicable && abcModifier.methodTrait(traitKind,name,in,methodInfoIndex,this)) {
+    return;
+  }
+  if (!abcModifierApplicable || !abcModifier.methodTraitName(name,traitKind,in,this)) {
+    currentBuffer.writeU32(history.getIndex(IndexHistory.MULTINAME,name));
+  }
+  TIntArrayList newMetadata=trimMetadata(metadata);
+  if (((traitKind >> 4) & TRAIT_FLAG_metadata) != 0 && newMetadata == null) {
+    traitKind&=~(TRAIT_FLAG_metadata << 4);
+  }
+  currentBuffer.writeU8(traitKind);
+  currentBuffer.writeU32(dispId);
+  currentBuffer.writeU32(methodInfo.getIndex(methodInfoIndex));
+  encodeMetaData(newMetadata);
+}

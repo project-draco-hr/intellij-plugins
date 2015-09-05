@@ -1,0 +1,28 @@
+{
+  if (mySdks != null) {
+    return mySdks;
+  }
+  Sdk[] allSdks;
+  boolean cache;
+  final FlexProjectConfigurationEditor currentEditor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+  if (currentEditor == null) {
+    allSdks=ProjectJdkTable.getInstance().getAllJdks();
+    cache=true;
+  }
+ else {
+    final Collection<Sdk> sdks=ProjectStructureConfigurable.getInstance(currentEditor.getProject()).getProjectJdksModel().getProjectSdks().values();
+    allSdks=sdks.toArray(new Sdk[sdks.size()]);
+    cache=false;
+  }
+  List<Sdk> result=ContainerUtil.findAll(allSdks,new Condition<Sdk>(){
+    @Override public boolean value(    final Sdk sdk){
+      return ArrayUtil.contains(sdk.getName(),myNames);
+    }
+  }
+);
+  Sdk[] resultArray=result.toArray(new Sdk[result.size()]);
+  if (cache) {
+    mySdks=resultArray;
+  }
+  return resultArray;
+}

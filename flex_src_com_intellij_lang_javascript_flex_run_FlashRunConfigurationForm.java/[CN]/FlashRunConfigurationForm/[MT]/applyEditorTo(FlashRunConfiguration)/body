@@ -1,0 +1,57 @@
+{
+  final FlashRunnerParameters params=configuration.getRunnerParameters();
+  myBCCombo.applyTo(params);
+  final boolean overrideMainClass=myOverrideMainClassCheckBox.isSelected();
+  params.setOverrideMainClass(overrideMainClass);
+  params.setOverriddenMainClass(overrideMainClass ? myMainClassComponent.getText().trim() : "");
+  params.setOverriddenOutputFileName(overrideMainClass ? myOutputFileNameTextField.getText().trim() : "");
+  params.setLaunchUrl(myUrlOrFileRadioButton.isSelected());
+  final String url=myUrlOrFileTextWithBrowse.getText().trim();
+  final boolean windowsLocalFile=SystemInfo.isWindows && url.length() >= 2 && Character.isLetter(url.charAt(0)) && ':' == url.charAt(1);
+  params.setUrl(windowsLocalFile ? FileUtil.toSystemIndependentName(url) : url);
+  params.setLauncherParameters(myLauncherParameters);
+  params.setRunTrusted(myRunTrustedCheckBox.isSelected());
+  params.setAdlOptions(myAdlOptionsEditor.getText().trim());
+  params.setAirProgramParameters(myAirProgramParametersEditor.getText().trim());
+  final AirMobileRunTarget mobileRunTarget=myOnEmulatorRadioButton.isSelected() ? AirMobileRunTarget.Emulator : myOnAndroidDeviceRadioButton.isSelected() ? AirMobileRunTarget.AndroidDevice : myOnIOSSimulatorRadioButton.isSelected() ? AirMobileRunTarget.iOSSimulator : AirMobileRunTarget.iOSDevice;
+  params.setMobileRunTarget(mobileRunTarget);
+  final Emulator emulator=(Emulator)myEmulatorCombo.getSelectedItem();
+  params.setEmulator(emulator);
+  if (emulator.adlAlias == null) {
+    try {
+      params.setScreenWidth(Integer.parseInt(myScreenWidth.getText().trim()));
+      params.setScreenHeight(Integer.parseInt(myScreenHeight.getText().trim()));
+      params.setFullScreenWidth(Integer.parseInt(myFullScreenWidth.getText().trim()));
+      params.setFullScreenHeight(Integer.parseInt(myFullScreenHeight.getText().trim()));
+    }
+ catch (    NumberFormatException e) {
+    }
+    try {
+      params.setScreenDpi(Integer.parseInt(myScreenDpi.getText().trim()));
+    }
+ catch (    NumberFormatException e) {
+      params.setScreenDpi(0);
+    }
+  }
+  final FlexBuildConfiguration bc=myBCCombo.getBC();
+  if (SystemInfo.isMac && bc != null && bc.getTargetPlatform() == TargetPlatform.Mobile && myOnIOSSimulatorRadioButton.isSelected()) {
+    final String path=FileUtil.toSystemIndependentName(myIOSSimulatorSdkTextWithBrowse.getText().trim());
+    if (!path.isEmpty()) {
+      PropertiesComponent.getInstance().setValue(LATEST_SELECTED_IOS_SIMULATOR_SDK_PATH_KEY,path);
+    }
+  }
+  params.setIOSSimulatorSdkPath(FileUtil.toSystemIndependentName(myIOSSimulatorSdkTextWithBrowse.getText().trim()));
+  params.setFastPackaging(myFastPackagingCheckBox.isSelected());
+  params.setDebugTransport(myDebugOverNetworkRadioButton.isSelected() ? AirMobileDebugTransport.Network : AirMobileDebugTransport.USB);
+  try {
+    final int port=Integer.parseInt(myUsbDebugPortTextField.getText().trim());
+    if (port > 0 && port < 65535) {
+      params.setUsbDebugPort(port);
+    }
+  }
+ catch (  NumberFormatException ignore) {
+  }
+  params.setEmulatorAdlOptions(myEmulatorAdlOptionsEditor.getText().trim());
+  params.setAppDescriptorForEmulator((AppDescriptorForEmulator)myAppDescriptorForEmulatorCombo.getSelectedItem());
+  params.setDebuggerSdkRaw(mySdkForDebuggingCombo.getSelectedSdkRaw());
+}

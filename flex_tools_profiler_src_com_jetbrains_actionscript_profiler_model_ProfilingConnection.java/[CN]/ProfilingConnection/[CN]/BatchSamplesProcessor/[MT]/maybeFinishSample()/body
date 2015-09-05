@@ -1,0 +1,41 @@
+{
+  if (frameIndex == frames.length) {
+    Sample sample;
+    if (type.startsWith(CREATE_OBJECT_SAMPLE_MARKER)) {
+      ++memorySamples;
+      final int endIndex=specialArgs.indexOf(' ');
+      final int endIndex2=specialArgs.indexOf(' ',endIndex + 1);
+      final int id=Integer.parseInt(specialArgs.substring(0,endIndex));
+      String className=specialArgs.substring(endIndex + 1,endIndex2);
+      className=getClassName(className);
+      final int size=Integer.parseInt(specialArgs.substring(endIndex2 + 1));
+      sample=new CreateObjectSample(sampleDuration,frames,id,className,size);
+      lastCreateObjectSample=sample;
+    }
+ else     if (type.startsWith(DELETE_OBJECT_SAMPLE_MARKER)) {
+      ++memorySamples;
+      final int endIndex=specialArgs.indexOf(' ');
+      int endIndex2=specialArgs.indexOf(' ',endIndex + 1);
+      if (endIndex2 == -1)       endIndex2=specialArgs.length();
+      final int id=Integer.parseInt(specialArgs.substring(0,endIndex));
+      String type=specialArgs.substring(endIndex + 1,endIndex2);
+      final int size=endIndex2 != specialArgs.length() ? Integer.parseInt(specialArgs.substring(endIndex2 + 1)) : 0;
+      if (type != null) {
+        type=getClassName(type);
+        mySampleProcessor.process(new DeleteObjectSample(sampleDuration,frames,id,type,size));
+      }
+      return ProcessingResult.FINISHED;
+    }
+ else {
+      ++cpuSamples;
+      sample=new Sample(sampleDuration,frames);
+      lastCpuSample=sample;
+    }
+    mySampleProcessor.process(sample);
+    frameIndex=-1;
+    return ProcessingResult.FINISHED;
+  }
+ else {
+    return ProcessingResult.CONTINUE;
+  }
+}

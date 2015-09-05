@@ -1,0 +1,36 @@
+{
+  final String customDescriptorPath=packagingOptions.getCustomDescriptorPath();
+  final File descriptorTemplateFile=new File(customDescriptorPath);
+  if (!descriptorTemplateFile.isFile()) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("air.descriptor.not.found",customDescriptorPath)));
+    return;
+  }
+  final String outputFilePath=bc.getActualOutputFilePath();
+  final String outputFolderPath=PathUtilRt.getParentPath(outputFilePath);
+  final File outputFolder=new File(outputFolderPath);
+  if (!outputFolder.isDirectory()) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("output.folder.does.not.exist",outputFolder.getPath())));
+    return;
+  }
+  final String content;
+  try {
+    content=fixInitialContent(descriptorTemplateFile,PathUtilRt.getFileName(outputFilePath));
+  }
+ catch (  IOException e) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.open.air.descriptor",descriptorTemplateFile.getPath(),e.getMessage())));
+    return;
+  }
+catch (  JDOMException e) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("incorrect.air.descriptor.content",descriptorTemplateFile.getPath(),e.getMessage())));
+    return;
+  }
+  try {
+    final String descriptorFileName=bc.isTempBCForCompilation() ? FlexCommonUtils.getGeneratedAirDescriptorName(bc,packagingOptions) : descriptorTemplateFile.getName();
+    final File outputFile=new File(outputFolder,descriptorFileName);
+    FileUtil.writeToFile(outputFile,content.getBytes("UTF-8"));
+    outputConsumer.registerOutputFile(outputFile,Collections.singletonList(descriptorTemplateFile.getPath()));
+  }
+ catch (  IOException e) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.copy.air.descriptor",e.getMessage())));
+  }
+}

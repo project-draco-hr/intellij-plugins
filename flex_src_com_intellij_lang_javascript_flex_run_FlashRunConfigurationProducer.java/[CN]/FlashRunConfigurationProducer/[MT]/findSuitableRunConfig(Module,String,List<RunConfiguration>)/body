@@ -1,0 +1,30 @@
+{
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
+  RunConfiguration basedOnBC=null;
+  RunConfiguration basedOnMainClass=null;
+  RunConfiguration basedOnMainClassAndActiveBC=null;
+  for (  final RunConfiguration runConfig : existing) {
+    final FlashRunnerParameters params=((FlashRunConfiguration)runConfig).getRunnerParameters();
+    if (module.getName().equals(params.getModuleName())) {
+      final FlexBuildConfiguration bc=manager.findConfigurationByName(params.getBCName());
+      if (bc == null)       continue;
+      if (params.isOverrideMainClass()) {
+        if (fqn.equals(params.getOverriddenMainClass())) {
+          if (manager.getActiveConfiguration() == bc) {
+            basedOnMainClassAndActiveBC=runConfig;
+          }
+          basedOnMainClass=runConfig;
+        }
+      }
+ else {
+        if (bc.getOutputType() == OutputType.Application && fqn.equals(bc.getMainClass())) {
+          if (manager.getActiveConfiguration() == bc) {
+            return runConfig;
+          }
+          basedOnBC=runConfig;
+        }
+      }
+    }
+  }
+  return basedOnBC != null ? basedOnBC : basedOnMainClassAndActiveBC != null ? basedOnMainClassAndActiveBC : basedOnMainClass;
+}

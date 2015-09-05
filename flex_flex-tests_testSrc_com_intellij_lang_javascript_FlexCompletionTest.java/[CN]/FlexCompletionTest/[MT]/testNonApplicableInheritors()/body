@@ -1,0 +1,21 @@
+{
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    public void consume(    final FlexProjectConfigurationEditor editor){
+      final ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+      final ModifiableFlexBuildConfiguration bc2=editor.copyConfiguration(bc1,BuildConfigurationNature.DEFAULT);
+      bc2.setName("bc 2");
+      bc2.getDependencies().getModifiableEntries().clear();
+    }
+  }
+);
+  LookupElement[] elements=doTest("","as");
+  assertEquals(3,elements.length);
+  assertEquals("Image",elements[0].getLookupString());
+  assertEquals("Base64Image",elements[1].getLookupString());
+  assertEquals("ImageMap",elements[2].getLookupString());
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(myModule);
+  manager.setActiveBuildConfiguration(manager.findConfigurationByName("bc 2"));
+  elements=doTest("","as");
+  assertEquals(1,elements.length);
+  assertEquals("Image",elements[0].getLookupString());
+}

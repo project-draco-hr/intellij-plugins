@@ -1,0 +1,27 @@
+{
+  ToolbarDecorator d=ToolbarDecorator.createDecorator(myTable);
+  d.setAddAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton button){
+      if (addObject()) {
+        ((AbstractTableModel)myTable.getModel()).fireTableDataChanged();
+        if (myEditAddedRow) {
+          myTable.editCellAt(myTable.getRowCount() - 1,0);
+        }
+      }
+    }
+  }
+);
+  d.setRemoveAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton anActionButton){
+      TableUtil.stopEditing(myTable);
+      final int[] selectedRows=myTable.getSelectedRows();
+      Arrays.sort(selectedRows);
+      for (int i=selectedRows.length - 1; i >= 0; i--) {
+        myList.remove(selectedRows[i]);
+      }
+      ((AbstractTableModel)myTable.getModel()).fireTableDataChanged();
+    }
+  }
+);
+  myMainPanel.add(d.createPanel(),BorderLayout.CENTER);
+}

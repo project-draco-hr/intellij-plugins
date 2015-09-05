@@ -1,0 +1,15 @@
+{
+  return JavaScriptSupportLoader.isMxmlOrFxgFile(file) || ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+    @Override public Boolean compute(){
+      final Collection<JSQualifiedNamedElement> elements=StubIndex.getInstance().getElements(JSQualifiedElementIndex.KEY,qName.hashCode(),module.getProject(),GlobalSearchScope.moduleScope(module),JSQualifiedNamedElement.class);
+      if (elements.isEmpty()) {
+        final PsiFile psiFile=PsiManager.getInstance(module.getProject()).findFile(file);
+        return psiFile != null && PsiTreeUtil.getChildOfType(psiFile,JSPackageStatement.class) != null;
+      }
+ else {
+        return true;
+      }
+    }
+  }
+);
+}

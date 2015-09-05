@@ -1,0 +1,32 @@
+{
+  BufferedReader input=new BufferedReader(new FileReader(file));
+  try {
+    String line;
+    int assertIndex=0;
+    while ((line=input.readLine()) != null) {
+      if (line.startsWith("move")) {
+        StringTokenizer tokenizer=new StringTokenizer(line," ");
+        tokenizer.nextToken();
+        robot.mouseMove(Integer.parseInt(tokenizer.nextToken()) + xOffset,Integer.parseInt(tokenizer.nextToken()) + yOffset);
+      }
+ else       if (line.equals("down")) {
+        robot.mousePress(InputEvent.BUTTON1_MASK);
+      }
+ else       if (line.startsWith("up")) {
+        if (line.length() > 2) {
+          robot.delay(Integer.parseInt(line.substring(3)));
+        }
+        robot.mouseRelease(InputEvent.BUTTON1_MASK);
+      }
+ else       if (line.startsWith("assert")) {
+        asserts[assertIndex++].test();
+      }
+ else {
+        throw new IllegalArgumentException(line);
+      }
+    }
+  }
+  finally {
+    input.close();
+  }
+}

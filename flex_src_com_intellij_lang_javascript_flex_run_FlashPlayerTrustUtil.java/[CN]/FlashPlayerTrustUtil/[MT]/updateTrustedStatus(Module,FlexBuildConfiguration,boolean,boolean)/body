@@ -1,0 +1,21 @@
+{
+  final Collection<String> paths=new ArrayList<String>();
+  try {
+    paths.add(new File(PathUtil.getParentPath(bc.getActualOutputFilePath())).getCanonicalPath());
+  }
+ catch (  IOException e) {
+  }
+  for (  DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry instanceof BuildConfigurationEntry && entry.getDependencyType().getLinkageType() == LinkageType.LoadInRuntime) {
+      final FlexBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
+      if (dependencyBC != null) {
+        try {
+          paths.add(new File(PathUtil.getParentPath(dependencyBC.getActualOutputFilePath())).getCanonicalPath());
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+  updateTrustedStatus(module.getProject(),isTrusted,isDebug,paths.toArray(new String[paths.size()]));
+}

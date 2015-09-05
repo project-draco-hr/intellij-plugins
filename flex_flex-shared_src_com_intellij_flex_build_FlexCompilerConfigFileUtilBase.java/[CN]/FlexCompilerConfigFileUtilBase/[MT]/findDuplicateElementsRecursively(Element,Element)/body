@@ -1,0 +1,24 @@
+{
+  final Collection<Element> result=new THashSet<Element>();
+  for (  Element potentialChild : (Iterable<Element>)otherElement.getChildren()) {
+    final List existingChildren=existingElement.getChildren(potentialChild.getName(),existingElement.getNamespace());
+    for (    Element existingChild : (Iterable<Element>)existingChildren) {
+      final String potentialChildContent=potentialChild.getTextTrim();
+      if (potentialChildContent.isEmpty()) {
+        result.addAll(findDuplicateElementsRecursively(existingChild,potentialChild));
+      }
+ else {
+        final String existingElementContent=existingChild.getTextTrim();
+        if (ArrayUtil.contains(existingChild.getName(),NON_REPEATABLE_OPTIONS_THAT_CAN_BE_IN_GENERATED_FILE)) {
+          result.add(potentialChild);
+        }
+ else         if (areOptionValuesEqual(existingChild.getName(),potentialChildContent,existingElementContent)) {
+          if (existingElement.getChildren().size() == existingChildren.size()) {
+            result.add(potentialChild);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}

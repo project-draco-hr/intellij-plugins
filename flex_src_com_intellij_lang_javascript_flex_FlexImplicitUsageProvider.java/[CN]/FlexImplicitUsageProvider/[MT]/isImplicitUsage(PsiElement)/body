@@ -1,0 +1,50 @@
+{
+  if (element instanceof XmlAttribute && ((XmlAttribute)element).isNamespaceDeclaration() && JavaScriptSupportLoader.isLanguageNamespace(((XmlAttribute)element).getValue())) {
+    return true;
+  }
+  if (element instanceof JSClass) {
+    JSClass clazz=(JSClass)element;
+    final Module module=ModuleUtilCore.findModuleForPsiElement(clazz);
+    if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())     return false;
+    if (FlashRunConfigurationProducer.isAcceptedMainClass(clazz,module))     return true;
+    if (ActionScriptClassResolver.isParentClass(clazz,FlashRunConfigurationForm.MODULE_BASE_CLASS_NAME))     return true;
+    FlexUnitSupport flexUnitSupport=FlexUnitSupport.getSupport(module);
+    if (flexUnitSupport != null && flexUnitSupport.isTestClass(clazz,true))     return true;
+  }
+ else   if (element instanceof JSFunction) {
+    if (isTestMethod((JSFunction)element))     return true;
+    if (isAnnotatedByUnknownAttribute((JSAttributeListOwner)element))     return true;
+  }
+ else   if (element instanceof JSVariable) {
+    if (isAnnotatedByUnknownAttribute((JSAttributeListOwner)element))     return true;
+    if (JSResolveUtil.findParent(element) instanceof JSClass) {
+      final JSAttributeList varAttrList=((JSVariable)element).getAttributeList();
+      if (varAttrList != null && varAttrList.findAttributeByName(FlexAnnotationNames.EMBED) != null) {
+        return true;
+      }
+    }
+  }
+  if (element instanceof JSParameter) {
+    JSFunction function=PsiTreeUtil.getParentOfType(element,JSFunction.class);
+    if (function != null) {
+      final JSParameter[] params=function.getParameters();
+      if (params.length == 1 && element == params[0]) {
+        @NonNls String type=((JSParameter)element).getTypeString();
+        if (type != null)         type=JSImportHandlingUtil.resolveTypeName(type,element);
+        if (type != null) {
+          if (FlexCommonTypeNames.FLASH_EVENT_FQN.equals(type) || FlexCommonTypeNames.STARLING_EVENT_FQN.equals(type)) {
+            return true;
+          }
+          boolean b=JSResolveUtil.processHierarchy(type,element.getContainingFile(),new Processor<JSClass>(){
+            public boolean process(            JSClass jsClass){
+              return !FlexCommonTypeNames.FLASH_EVENT_FQN.equals(jsClass.getQualifiedName()) && !FlexCommonTypeNames.STARLING_EVENT_FQN.equals(jsClass.getQualifiedName());
+            }
+          }
+,false);
+          if (!b)           return true;
+        }
+      }
+    }
+  }
+  return false;
+}

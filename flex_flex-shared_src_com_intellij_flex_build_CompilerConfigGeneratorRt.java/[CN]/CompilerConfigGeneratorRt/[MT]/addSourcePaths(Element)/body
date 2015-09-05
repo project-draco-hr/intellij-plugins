@@ -1,0 +1,49 @@
+{
+  final String localeValue=getValueAndSource(CompilerOptionInfo.getOptionInfo("compiler.locale")).first;
+  final List<String> locales=StringUtil.split(localeValue,CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+  locales.addAll(FlexCommonUtils.getOptionValues(myProjectLevelCompilerOptions.getAdditionalOptions(),"locale","compiler.locale"));
+  locales.addAll(FlexCommonUtils.getOptionValues(myModuleLevelCompilerOptions.getAdditionalOptions(),"locale","compiler.locale"));
+  locales.addAll(FlexCommonUtils.getOptionValues(myBC.getCompilerOptions().getAdditionalOptions(),"locale","compiler.locale"));
+  final Set<String> sourcePathsWithLocaleToken=new THashSet<String>();
+  final List<String> sourcePathsWithoutLocaleToken=new LinkedList<String>();
+  for (  JpsModuleSourceRoot srcRoot : myModule.getSourceRoots(JavaSourceRootType.SOURCE)) {
+    final String srcRootPath=JpsPathUtil.urlToPath(srcRoot.getUrl());
+    if (locales.contains(PathUtilRt.getFileName(srcRootPath))) {
+      sourcePathsWithLocaleToken.add(PathUtilRt.getParentPath(srcRootPath) + "/" + FlexCommonUtils.LOCALE_TOKEN);
+    }
+ else {
+      sourcePathsWithoutLocaleToken.add(srcRootPath);
+    }
+  }
+  if (includeTestRoots()) {
+    for (    JpsModuleSourceRoot srcRoot : myModule.getSourceRoots(JavaSourceRootType.TEST_SOURCE)) {
+      final String srcRootPath=JpsPathUtil.urlToPath(srcRoot.getUrl());
+      if (locales.contains(PathUtilRt.getFileName(srcRootPath))) {
+        sourcePathsWithLocaleToken.add(PathUtilRt.getParentPath(srcRootPath) + "/" + FlexCommonUtils.LOCALE_TOKEN);
+      }
+ else {
+        sourcePathsWithoutLocaleToken.add(srcRootPath);
+      }
+    }
+  }
+  final StringBuilder sourcePathBuilder=new StringBuilder();
+  if (myCSS) {
+    final String cssFolderPath=PathUtilRt.getParentPath(myBC.getMainClass());
+    if (!sourcePathsWithoutLocaleToken.contains(cssFolderPath)) {
+      sourcePathBuilder.append(cssFolderPath);
+    }
+  }
+  for (  final String sourcePath : sourcePathsWithLocaleToken) {
+    if (sourcePathBuilder.length() > 0) {
+      sourcePathBuilder.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+    }
+    sourcePathBuilder.append(sourcePath);
+  }
+  for (  final String sourcePath : sourcePathsWithoutLocaleToken) {
+    if (sourcePathBuilder.length() > 0) {
+      sourcePathBuilder.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+    }
+    sourcePathBuilder.append(sourcePath);
+  }
+  addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,sourcePathBuilder.toString());
+}

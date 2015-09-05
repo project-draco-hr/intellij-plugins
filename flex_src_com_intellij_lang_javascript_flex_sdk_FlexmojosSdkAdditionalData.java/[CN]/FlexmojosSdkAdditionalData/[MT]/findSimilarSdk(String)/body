@@ -1,0 +1,31 @@
+{
+  final int firstDotIndex=version.indexOf('.');
+  final int secondDotIndex=version.indexOf('.',firstDotIndex + 1);
+  final int thirdDotIndex=version.indexOf('.',secondDotIndex + 1);
+  if (firstDotIndex <= 0)   return null;
+  final String major=version.substring(0,firstDotIndex);
+  final String minor=secondDotIndex > firstDotIndex ? version.substring(firstDotIndex + 1,secondDotIndex) : "";
+  final String revision=thirdDotIndex > secondDotIndex ? version.substring(secondDotIndex + 1,thirdDotIndex) : "";
+  final String build=thirdDotIndex > 0 ? version.substring(thirdDotIndex + 1) : "";
+  Sdk matchingMajorMinorRevisionBuild=null;
+  Sdk matchingMajorMinorRevision=null;
+  Sdk matchingMajorMinor=null;
+  Sdk latestSdk=null;
+  for (  Sdk sdk : FlexSdkUtils.getFlexSdks()) {
+    final String candidateVersion=sdk.getVersionString();
+    if (candidateVersion == null)     continue;
+    if (candidateVersion.startsWith(major + "." + minor+ "."+ revision) && candidateVersion.endsWith(build)) {
+      matchingMajorMinorRevisionBuild=sdk;
+      break;
+    }
+    if (candidateVersion.startsWith(major + "." + minor+ "."+ revision))     matchingMajorMinorRevision=sdk;
+    if (candidateVersion.startsWith(major + "." + minor))     matchingMajorMinor=sdk;
+    if (latestSdk == null || StringUtil.compareVersionNumbers(candidateVersion,latestSdk.getVersionString()) > 0) {
+      latestSdk=sdk;
+    }
+  }
+  if (matchingMajorMinorRevisionBuild != null)   return matchingMajorMinorRevisionBuild;
+  if (matchingMajorMinorRevision != null)   return matchingMajorMinorRevision;
+  if (matchingMajorMinor != null)   return matchingMajorMinor;
+  return latestSdk;
+}

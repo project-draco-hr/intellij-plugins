@@ -1,0 +1,27 @@
+{
+  int transformedFlags=ElementBase.transformFlags(element,flags);
+  Icon icon=null;
+  if (element instanceof XmlFile) {
+    if (JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+      final JSClass jsClass=XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)element);
+      if (jsClass != null) {
+        icon=jsClass.getIcon(flags);
+      }
+    }
+  }
+ else   if (element instanceof JSFileImpl) {
+    final JSNamedElement mainDeclaredElement=JSFileImpl.findMainDeclaredElement((JSFileImpl)element);
+    if (mainDeclaredElement != null) {
+      icon=mainDeclaredElement.getIcon(transformedFlags);
+    }
+  }
+  if (icon != null) {
+    final PsiFile psiFile=element.getContainingFile();
+    final VirtualFile vFile=psiFile == null ? null : psiFile.getVirtualFile();
+    CompilerManager compilerManager=CompilerManager.getInstance(element.getProject());
+    if (vFile != null && compilerManager != null && compilerManager.isExcludedFromCompilation(vFile)) {
+      icon=new LayeredIcon(icon,PlatformIcons.EXCLUDED_FROM_COMPILE_ICON);
+    }
+  }
+  return icon;
+}

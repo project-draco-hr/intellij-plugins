@@ -1,0 +1,24 @@
+{
+  if (bindingItems.isEmpty()) {
+    out.writeShort(0);
+    return;
+  }
+  final int bindingSizePosition=out.allocateShort();
+  int size=bindingItems.size();
+  for (  Binding binding : bindingItems) {
+    int beforePosition=out.size();
+    try {
+      binding.write(out,writer,this);
+      continue;
+    }
+ catch (    UnsupportedOperationException e) {
+      MxmlWriter.LOG.warn("unsupported injected AS: " + e.getMessage());
+    }
+catch (    Throwable e) {
+      problemsHolder.add(e);
+    }
+    size--;
+    out.getByteOut().setPosition(beforePosition);
+  }
+  out.putShort(size,bindingSizePosition);
+}

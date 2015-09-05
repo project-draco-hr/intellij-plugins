@@ -1,0 +1,16 @@
+{
+  final String sources="StyleableLibSources.zip";
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"Lib1",getTestDataPath() + BASE_PATH,"StyleableLib.swc",sources,null);
+      JSTestUtils.addLibrary(myModule,"Lib2",getTestDataPath() + BASE_PATH,"StyleableLib1.swc",null,null);
+    }
+  }
+;
+  final VirtualFile styleableFile=getFile(sources + "!/foo/Styleable1.as");
+  doTest(getTestName(false) + ".css",styleableFile,null);
+  PsiFile file=PsiManager.getInstance(myProject).findFile(styleableFile);
+  if (file instanceof PsiFileImpl) {
+    assertNull("File should not be parsed",((PsiFileImpl)file).getTreeElement());
+  }
+}

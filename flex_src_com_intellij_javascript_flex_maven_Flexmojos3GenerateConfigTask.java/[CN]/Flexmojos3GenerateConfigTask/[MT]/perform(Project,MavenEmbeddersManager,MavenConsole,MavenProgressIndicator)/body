@@ -1,0 +1,47 @@
+{
+  if (myModule.isDisposed())   return;
+  indicator.setText(FlexBundle.message("generating.flex.config.for",myMavenProject.getDisplayName()));
+  final MavenProjectsTree.EmbedderTask task=new MavenProjectsTree.EmbedderTask(){
+    public void run(    MavenEmbedderWrapper embedder) throws MavenProcessCanceledException {
+      List<VirtualFile> temporaryFiles=null;
+      final IgnoredFileBean[] filesToIgnoreOriginal=ChangeListManager.getInstance(project).getFilesToIgnore();
+      try {
+        MavenWorkspaceMap workspaceMap=new MavenWorkspaceMap();
+        temporaryFiles=mavenIdToOutputFileMapping(workspaceMap,project,myTree.getProjects());
+        embedder.customizeForStrictResolve(workspaceMap,console,indicator);
+        final String generateConfigGoal=FlexmojosImporter.FLEXMOJOS_GROUP_ID + ":" + FlexmojosImporter.FLEXMOJOS_ARTIFACT_ID+ ":generate-config-"+ myMavenProject.getPackaging();
+        final MavenExplicitProfiles profilesIds=myMavenProject.getActivatedProfilesIds();
+        MavenServerExecutionResult result=embedder.execute(myMavenProject.getFile(),profilesIds.getEnabledProfiles(),profilesIds.getDisabledProfiles(),Collections.singletonList(generateConfigGoal));
+        if (result.projectData == null) {
+          myFlexConfigInformer.showFlexConfigWarningIfNeeded(project);
+        }
+        MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
+          public void run(){
+            final VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(myConfigFilePath);
+            if (file != null) {
+              file.refresh(false,false);
+              updateMainClass(myModule,file);
+            }
+          }
+        }
+);
+      }
+ catch (      MavenProcessCanceledException e) {
+        throw e;
+      }
+catch (      Exception e) {
+        myFlexConfigInformer.showFlexConfigWarningIfNeeded(project);
+        console.printException(e);
+        MavenLog.LOG.warn(e);
+      }
+ finally {
+        ChangeListManager.getInstance(project).setFilesToIgnore(filesToIgnoreOriginal);
+        if (temporaryFiles != null && !temporaryFiles.isEmpty()) {
+          removeTemporaryFiles(project,temporaryFiles);
+        }
+      }
+    }
+  }
+;
+  myTree.executeWithEmbedder(myMavenProject,embeddersManager,MavenEmbeddersManager.FOR_POST_PROCESSING,console,indicator,task);
+}

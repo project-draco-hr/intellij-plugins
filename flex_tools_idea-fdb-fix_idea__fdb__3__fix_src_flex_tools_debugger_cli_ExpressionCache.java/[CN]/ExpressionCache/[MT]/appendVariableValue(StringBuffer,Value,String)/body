@@ -1,0 +1,106 @@
+{
+  int type=val.getType();
+  String typeName=val.getTypeName();
+  String className=val.getClassName();
+  if (typeName != null && typeName.length() == 0)   typeName=null;
+switch (type) {
+case VariableType.NUMBER:
+{
+      double value=((Double)val.getValueAsObject()).doubleValue();
+      long longValue=(long)value;
+      if (longValue == value) {
+        sb.append(longValue);
+        sb.append(" (0x");
+        sb.append(Long.toHexString(longValue));
+        sb.append(")");
+      }
+ else {
+        sb.append(value);
+      }
+      break;
+    }
+case VariableType.BOOLEAN:
+{
+    Boolean b=(Boolean)val.getValueAsObject();
+    if (b.booleanValue())     sb.append("true");
+ else     sb.append("false");
+    break;
+  }
+case VariableType.STRING:
+{
+  boolean isException=(val.isAttributeSet(ValueAttribute.IS_EXCEPTION));
+  sb.append(isException ? '<' : '\"');
+  sb.append(StringUtil.escape((val.getValueAsString())));
+  sb.append(isException ? '>' : '\"');
+  break;
+}
+case VariableType.OBJECT:
+{
+sb.append("[");
+sb.append(className);
+if (System.getProperty("fdbunit") == null) {
+  sb.append(" ");
+  sb.append(StringUtil.escape(String.valueOf(val.getValueAsObject())));
+}
+if (typeName != null && !typeName.equals(className)) {
+  sb.append(", class='");
+  int at=typeName.indexOf('@');
+  if (at != -1) {
+    final boolean isXml=typeName.startsWith("XML@");
+    if (!isXml) {
+      typeName=typeName.substring(0,at);
+    }
+  }
+  sb.append(StringUtil.escape(typeName));
+  sb.append('\'');
+}
+sb.append(']');
+break;
+}
+case VariableType.FUNCTION:
+{
+sb.append('[');
+if (val.isAttributeSet(VariableAttribute.HAS_GETTER)) sb.append(getLocalizationManager().getLocalizedTextString("getterFunction"));
+ else if (val.isAttributeSet(VariableAttribute.HAS_SETTER)) sb.append(getLocalizationManager().getLocalizedTextString("setterFunction"));
+ else sb.append(getLocalizationManager().getLocalizedTextString("function"));
+sb.append(' ');
+sb.append(StringUtil.escape(String.valueOf(val.getValueAsObject())));
+if (typeName != null && !typeName.equals(variableName)) {
+sb.append(", name='");
+sb.append(StringUtil.escape(typeName));
+sb.append('\'');
+}
+sb.append(']');
+break;
+}
+case VariableType.MOVIECLIP:
+{
+sb.append("[");
+sb.append(className);
+sb.append(" ");
+sb.append(StringUtil.escape(String.valueOf(val.getValueAsObject())));
+if (typeName != null && !typeName.equals(className)) {
+sb.append(", named='");
+sb.append(StringUtil.escape(typeName));
+sb.append('\'');
+}
+sb.append(']');
+break;
+}
+case VariableType.NULL:
+{
+sb.append("null");
+break;
+}
+case VariableType.UNDEFINED:
+{
+sb.append("undefined");
+break;
+}
+case VariableType.UNKNOWN:
+{
+sb.append(getLocalizationManager().getLocalizedTextString("unknownVariableType"));
+break;
+}
+}
+}

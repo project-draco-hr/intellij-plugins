@@ -1,0 +1,18 @@
+{
+  if (callExpression instanceof JSNewExpression) {
+    if (resolveResult instanceof JSFunction && ((JSFunction)resolveResult).isConstructor()) {
+      resolveResult=resolveResult.getParent();
+    }
+    if (resolveResult instanceof JSClass && ((JSClass)resolveResult).isInterface()) {
+      final PsiElement referenceNameElement=methodExpression.getReferenceNameElement();
+      myProblemReporter.registerProblem(referenceNameElement,JSBundle.message("javascript.interface.can.not.be.instantiated.message"),getUnresolvedReferenceHighlightType(methodExpression),getUnresolvedFunctionInspectionId());
+      return false;
+    }
+  }
+  final JSArgumentList argumentList=callExpression.getArgumentList();
+  if (argumentList instanceof JSE4XFilterQueryArgumentList && (type != null && !(type instanceof JSAnyType) || resolveResult instanceof JSFunction && ((JSFunction)resolveResult).isGetProperty())) {
+    checkE4XFilterQuery(callExpression,type.getTypeText(),argumentList);
+    return false;
+  }
+  return true;
+}

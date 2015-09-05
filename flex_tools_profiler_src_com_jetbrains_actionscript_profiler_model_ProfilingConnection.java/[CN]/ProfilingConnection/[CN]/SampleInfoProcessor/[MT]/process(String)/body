@@ -1,0 +1,18 @@
+{
+  if (output.startsWith("EndSnapshot"))   return ProcessingResult.FINISHED;
+  if (output.startsWith(COMMAND_MARKER))   return ProcessingResult.CONTINUE;
+  if (output.startsWith("cls:")) {
+    return ProcessingResult.CONTINUE;
+  }
+  int i=output.indexOf(',');
+  int id=Integer.parseInt(output.substring(0,i));
+  while (i != -1) {
+    int nextI=output.indexOf(',',i + 1);
+    if (nextI == -1)     nextI=output.length();
+    int nextId=Integer.parseInt(output.substring(i + 1,nextI));
+    myDataConsumer.referenced(id,nextId);
+    if (nextI == output.length())     break;
+    i=nextI;
+  }
+  return ProcessingResult.CONTINUE;
+}

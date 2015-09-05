@@ -1,0 +1,27 @@
+{
+  final StringBuilder builder=new StringBuilder();
+  builder.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  builder.append("<s:Skin xmlns:fx=\"http://ns.adobe.com/mxml/2009\" xmlns:s=\"library://ns.adobe.com/flex/spark\">\n");
+  builder.append("\n");
+  if (!StringUtil.isEmpty(hostComponent)) {
+    builder.append("<fx:Metadata>\n");
+    builder.append("[HostComponent(\"").append(hostComponent).append("\")]\n");
+    builder.append("</fx:Metadata>\n");
+    builder.append("\n");
+  }
+  final PsiElement element=ActionScriptClassResolver.findClassByQNameStatic(hostComponent,context);
+  if (element instanceof JSClass) {
+    final JSClass jsClass=(JSClass)element;
+    final Collection<String> skinStates=getSkinStates(jsClass);
+    if (!skinStates.isEmpty()) {
+      builder.append("<s:states>\n");
+      for (      final String skinState : skinStates) {
+        builder.append("<s:State name=\"").append(skinState).append("\"/>\n");
+      }
+      builder.append("</s:states>\n");
+      builder.append("\n");
+    }
+  }
+  builder.append("</s:Skin>\n");
+  return builder.toString();
+}

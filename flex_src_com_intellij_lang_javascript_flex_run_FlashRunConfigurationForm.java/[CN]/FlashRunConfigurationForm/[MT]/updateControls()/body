@@ -1,0 +1,47 @@
+{
+  final FlexBuildConfiguration bc=myBCCombo.getBC();
+  final Module module=myBCCombo.getModule();
+  final boolean overrideMainClass=myOverrideMainClassCheckBox.isSelected();
+  myMainClassComponent.setEnabled(overrideMainClass);
+  myOutputFileNameLabel.setEnabled(overrideMainClass);
+  myOutputFileNameTextField.setEnabled(overrideMainClass);
+  if (!overrideMainClass && bc != null && module != null) {
+    final InfoFromConfigFile info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(bc.getCompilerOptions().getAdditionalConfigFilePath());
+    myMainClassComponent.setText(StringUtil.notNullize(info.getMainClass(module),bc.getMainClass()));
+    myOutputFileNameTextField.setText(StringUtil.notNullize(info.getOutputFileName(),bc.getOutputFileName()));
+  }
+  final boolean web=bc != null && bc.getTargetPlatform() == TargetPlatform.Web;
+  final boolean desktop=bc != null && bc.getTargetPlatform() == TargetPlatform.Desktop;
+  final boolean mobile=bc != null && bc.getTargetPlatform() == TargetPlatform.Mobile;
+  myLaunchPanel.setVisible(web);
+  myWebOptionsPanel.setVisible(web);
+  myDesktopOptionsPanel.setVisible(desktop);
+  myMobileRunPanel.setVisible(mobile);
+  myMobileOptionsPanel.setVisible(mobile);
+  if (web) {
+    updateBCOutputLabel(bc);
+    myUrlOrFileTextWithBrowse.setEnabled(myUrlOrFileRadioButton.isSelected());
+    myLauncherParametersTextWithBrowse.getTextField().setText(myLauncherParameters.getPresentableText());
+    myRunTrustedCheckBox.setEnabled(!myUrlOrFileRadioButton.isSelected());
+  }
+  if (mobile) {
+    final boolean runOnEmulator=myOnEmulatorRadioButton.isSelected();
+    final boolean app=bc.getOutputType() == OutputType.Application;
+    myEmulatorCombo.setEnabled(runOnEmulator);
+    UIUtil.setEnabled(myEmulatorScreenSizePanel,runOnEmulator,true);
+    myFastPackagingCheckBox.setEnabled(myOnIOSDeviceRadioButton.isSelected());
+    myEmulatorAdlOptionsLabel.setEnabled(runOnEmulator);
+    myEmulatorAdlOptionsEditor.setEnabled(runOnEmulator);
+    myAppDescriptorForEmulatorLabel.setEnabled(app && runOnEmulator);
+    myAppDescriptorForEmulatorCombo.setEnabled(app && runOnEmulator);
+    if (runOnEmulator) {
+      updateEmulatorRelatedControls();
+    }
+    myIOSSimulatorSdkTextWithBrowse.setEnabled(myOnIOSSimulatorRadioButton.isSelected());
+    if (myIOSSimulatorSdkTextWithBrowse.isEnabled() && myIOSSimulatorSdkTextWithBrowse.getText().isEmpty() && SystemInfo.isMac) {
+      final String latestSelected=PropertiesComponent.getInstance().getValue(LATEST_SELECTED_IOS_SIMULATOR_SDK_PATH_KEY);
+      myIOSSimulatorSdkTextWithBrowse.setText(FileUtil.toSystemDependentName(StringUtil.notNullize(latestSelected,guessIosSimulatorSdkPath())));
+    }
+    updateDebugTransportRelatedControls();
+  }
+}

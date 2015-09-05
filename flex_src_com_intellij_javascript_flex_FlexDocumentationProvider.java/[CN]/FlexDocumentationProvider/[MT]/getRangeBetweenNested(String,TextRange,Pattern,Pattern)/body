@@ -1,0 +1,29 @@
+{
+  Matcher open=openPattern.matcher(input);
+  Matcher close=closePattern.matcher(input);
+  if (!open.find(within != null ? within.getStartOffset() : 0)) {
+    return null;
+  }
+  final int contentsStart=open.end();
+  int nesting=0;
+  int pos=contentsStart;
+  while (true) {
+    if ((within != null && !within.contains(pos)) || !close.find(pos)) {
+      return null;
+    }
+    int closePos=close.start();
+    if (open.find(pos) && open.start() < closePos) {
+      nesting++;
+      pos=open.end();
+    }
+ else {
+      if (nesting > 0) {
+        nesting--;
+        pos=close.end();
+      }
+ else {
+        return new TextRange(contentsStart,closePos);
+      }
+    }
+  }
+}

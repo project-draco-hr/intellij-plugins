@@ -1,0 +1,35 @@
+{
+  String key=null;
+  PropertiesFile bundle=null;
+  for (  JSAttributeNameValuePair p : attribute.getValues()) {
+    final String name=p.getName();
+    if ("key".equals(name)) {
+      key=p.getSimpleValue();
+    }
+ else     if ("bundle".equals(name)) {
+      try {
+        final PsiFileSystemItem referencedPsiFile=InjectionUtil.getReferencedPsiFile(p);
+        if (referencedPsiFile instanceof PropertiesFile) {
+          bundle=(PropertiesFile)referencedPsiFile;
+        }
+ else {
+          LOG.warn("skip resource directive, referenced file is not properties file " + host.getText());
+        }
+      }
+ catch (      InvalidPropertyException e) {
+        invalidPropertyException=e;
+        return InjectedASWriter.IGNORE;
+      }
+    }
+  }
+  if (key == null || key.isEmpty() || bundle == null) {
+    LOG.warn("skip resource directive, one of the required attributes is missed " + host.getText());
+    return InjectedASWriter.IGNORE;
+  }
+  final IProperty property=bundle.findPropertyByKey(key);
+  if (property == null) {
+    LOG.warn("skip resource directive, key not found " + host.getText());
+    return InjectedASWriter.IGNORE;
+  }
+  return new ResourceDirectiveValueWriter(property.getUnescapedValue());
+}

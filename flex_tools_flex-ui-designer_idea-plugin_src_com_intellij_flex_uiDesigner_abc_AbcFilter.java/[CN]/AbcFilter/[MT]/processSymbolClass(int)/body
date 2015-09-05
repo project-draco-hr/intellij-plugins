@@ -1,0 +1,51 @@
+{
+  final int tagStartPosition=buffer.position();
+  writeDataBeforeTag(length);
+  buffer.position(tagStartPosition);
+  int numSymbols=analyzeClassAssociatedWithMainTimeline(length);
+  final boolean hasClassAssociatedWithMainTimeLine=symbolsClassTagLengthWithoutUselessMainClass != -1;
+  mergeDoAbc(true,hasClassAssociatedWithMainTimeLine);
+  lastWrittenPosition=tagStartPosition - (length < 63 ? 2 : 6);
+  buffer.position(lastWrittenPosition);
+  final boolean hasExportsAssets=exportAssets != null && !exportAssets.isEmpty();
+  if (hasClassAssociatedWithMainTimeLine || hasExportsAssets) {
+    if (hasExportsAssets) {
+      numSymbols+=exportAssets.size();
+    }
+    if (numSymbols == 0) {
+      lastWrittenPosition=tagStartPosition + length;
+    }
+ else {
+      int finalSymbolClassTagLength=symbolsClassTagLengthWithoutUselessMainClass;
+      if (hasExportsAssets) {
+        final TIntObjectIterator<TagPositionInfo> iterator=exportAssets.iterator();
+        for (int i=exportAssets.size(); i-- > 0; ) {
+          iterator.advance();
+          finalSymbolClassTagLength+=iterator.value().length();
+        }
+      }
+      encodeTagHeader(TagTypes.SymbolClass,finalSymbolClassTagLength);
+      buffer.putShort((short)numSymbols);
+      buffer.position(lastWrittenPosition);
+      buffer.limit(sA);
+      channel.write(buffer);
+      lastWrittenPosition=sB;
+      buffer.limit(buffer.capacity());
+      if (hasExportsAssets) {
+        final TIntObjectIterator<TagPositionInfo> iterator=exportAssets.iterator();
+        for (int i=exportAssets.size(); i-- > 0; ) {
+          iterator.advance();
+          TagPositionInfo exportAsset=iterator.value();
+          buffer.position(exportAsset.start);
+          buffer.limit(exportAsset.end);
+          channel.write(buffer);
+        }
+        exportAssets.clear();
+        buffer.limit(buffer.capacity());
+      }
+    }
+    symbolsClassTagLengthWithoutUselessMainClass=-1;
+  }
+  decoders.clear();
+  buffer.position(tagStartPosition + length);
+}

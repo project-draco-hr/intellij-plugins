@@ -1,0 +1,37 @@
+{
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBc : modulesAndBCs) {
+    final Module module=moduleAndBc.first;
+    ModifiableFlexBuildConfiguration bc=null;
+    final ModifiableFlexBuildConfiguration[] bcs=flexConfigEditor.getConfigurations(module);
+    for (    ModifiableFlexBuildConfiguration each : bcs) {
+      if (each.getName().equals(moduleAndBc.second.getName())) {
+        bc=each;
+        break;
+      }
+    }
+    if (bc == null)     continue;
+    final Collection<VirtualFile> filteredRoots=filterAlreadyExistingRoots(roots,flexConfigEditor,module,bc);
+    final LibraryTableBase.ModifiableModelEx libraryModel=flexConfigEditor.getLibraryModel(bc.getDependencies());
+    for (    VirtualFile file : filteredRoots) {
+      final Library library=libraryModel.createLibrary(null,FlexLibraryType.FLEX_LIBRARY);
+      final LibraryEx.ModifiableModelEx libraryModifiableModel=((LibraryEx.ModifiableModelEx)library.getModifiableModel());
+      final String libraryId=UUID.randomUUID().toString();
+      libraryModifiableModel.setProperties(new FlexLibraryProperties(libraryId));
+      if (file.isInLocalFileSystem() && file.isDirectory()) {
+        libraryModifiableModel.addJarDirectory(file,false);
+      }
+ else {
+        libraryModifiableModel.addRoot(file,OrderRootType.CLASSES);
+      }
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          libraryModifiableModel.commit();
+        }
+      }
+);
+      final ModifiableModuleLibraryEntry libraryEntry=flexConfigEditor.createModuleLibraryEntry(bc.getDependencies(),libraryId);
+      libraryEntry.getDependencyType().setLinkageType(LinkageType.Merged);
+      bc.getDependencies().getModifiableEntries().add(libraryEntry);
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  doTest(new PerformAction(){
+    @Override public void performAction(    VirtualFile rootDir,    VirtualFile rootAfter) throws Exception {
+      Collection<PsiDirectory> dirsToMove=new ArrayList<PsiDirectory>();
+      for (      String s : toMove) {
+        final VirtualFile child=VfsUtilCore.findRelativeFile(s,rootDir);
+        assertNotNull("Folder " + s + " not found",child);
+        assertTrue("Folder " + s + " not found",child.isDirectory());
+        dirsToMove.add(myPsiManager.findDirectory(child));
+      }
+      PsiDirectory targetDir;
+      if (justRename) {
+        targetDir=null;
+      }
+ else {
+        final VirtualFile f=VfsUtilCore.findRelativeFile(target,rootDir);
+        assertNotNull("Target dir " + target + " not found",f);
+        targetDir=myPsiManager.findDirectory(f);
+        assertNotNull(targetDir);
+      }
+      new MoveDirectoryWithClassesProcessor(myProject,dirsToMove.toArray(new PsiDirectory[dirsToMove.size()]),targetDir,true,true,false,null){
+        @Override protected String getTargetName(){
+          if (justRename) {
+            assertFalse(target.contains("/"));
+            return target;
+          }
+          return super.getTargetName();
+        }
+        @Override public TargetDirectoryWrapper getTargetDirectory(        final PsiDirectory dir){
+          if (justRename) {
+            return new TargetDirectoryWrapper(dir.getParentDirectory(),target);
+          }
+          return super.getTargetDirectory(dir);
+        }
+      }
+.run();
+      FileDocumentManager.getInstance().saveAllDocuments();
+    }
+  }
+);
+}

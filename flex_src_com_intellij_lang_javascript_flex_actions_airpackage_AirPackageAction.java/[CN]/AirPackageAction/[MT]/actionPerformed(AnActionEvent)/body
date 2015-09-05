@@ -1,0 +1,24 @@
+{
+  final Project project=e.getProject();
+  if (project == null)   return;
+  final AirPackageDialog dialog=new AirPackageDialog(project);
+  if (!dialog.showAndGet()) {
+    return;
+  }
+  final Collection<Pair<Module,FlexBuildConfiguration>> modulesAndBCs=dialog.getSelectedBCs();
+  final Set<Module> modules=new THashSet<Module>();
+  for (  Pair<Module,FlexBuildConfiguration> bc : modulesAndBCs) {
+    modules.add(bc.first);
+  }
+  final CompilerManager compilerManager=CompilerManager.getInstance(project);
+  final CompileScope compileScope=compilerManager.createModulesCompileScope(modules.toArray(new Module[modules.size()]),false);
+  FlexResourceBuildTargetScopeProvider.setBCsToCompileForPackaging(compileScope,modulesAndBCs);
+  compilerManager.make(compileScope,new CompileStatusNotification(){
+    public void finished(    final boolean aborted,    final int errors,    final int warnings,    final CompileContext compileContext){
+      if (!aborted && errors == 0) {
+        createPackages(project,modulesAndBCs,dialog.getPasswords());
+      }
+    }
+  }
+);
+}

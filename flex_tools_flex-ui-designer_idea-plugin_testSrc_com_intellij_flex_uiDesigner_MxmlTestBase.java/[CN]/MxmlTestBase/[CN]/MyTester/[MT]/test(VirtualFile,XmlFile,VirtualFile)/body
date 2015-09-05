@@ -1,0 +1,17 @@
+{
+  final String documentName=file.getNameWithoutExtension();
+  System.out.print(documentName + '\n');
+  socketInputHandler.setExpectedErrorMessage(expectedErrorForDocument(documentName));
+  AsyncResult<DocumentFactoryManager.DocumentInfo> renderResult=client.renderDocument(myModule,xmlFile,new ProblemsHolder());
+  socketInputHandler.processUntil(renderResult);
+  if (renderResult.isDone()) {
+    ActionCallback testCallback=client.test(DocumentFactoryManager.getInstance().getId(file),documentName,originalFile.getParent().getName());
+    socketInputHandler.processUntil(testCallback);
+    if (testCallback.isDone()) {
+      passedCounter++;
+    }
+ else {
+      throw new AssertionError(socketInputHandler.reader.readUTF());
+    }
+  }
+}

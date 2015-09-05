@@ -1,0 +1,16 @@
+{
+  final Project project=myModule.getProject();
+  Flexmojos4GenerateConfigTask existingTask=null;
+  for (  MavenProjectsProcessorTask postTask : postTasks) {
+    if (postTask.getClass() == Flexmojos4GenerateConfigTask.class) {
+      existingTask=(Flexmojos4GenerateConfigTask)postTask;
+      break;
+    }
+  }
+  if (existingTask == null) {
+    ChangeListManager.getInstance(project).addFilesToIgnore(IgnoredBeanFactory.ignoreUnderDirectory(getCompilerConfigsDir(project),project));
+    existingTask=new Flexmojos4GenerateConfigTask(myMavenTree);
+    postTasks.add(existingTask);
+  }
+  existingTask.submit(myMavenProject,myModule,configFilePath);
+}

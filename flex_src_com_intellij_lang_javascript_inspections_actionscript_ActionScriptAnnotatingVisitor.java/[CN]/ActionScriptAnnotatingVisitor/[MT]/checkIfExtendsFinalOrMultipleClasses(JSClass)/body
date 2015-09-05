@@ -1,0 +1,19 @@
+{
+  final JSReferenceList extendsList=jsClass.getExtendsList();
+  if (extendsList != null) {
+    final String[] extendsListTexts=extendsList.getReferenceTexts();
+    if (extendsListTexts.length > 1) {
+      myHolder.createErrorAnnotation(extendsList.getTextRange(),JSBundle.message("javascript.validation.message.extend.multiple.classes"));
+    }
+ else     if (extendsListTexts.length == 1) {
+      final JSClass[] superClasses=jsClass.getSuperClasses();
+      final JSAttributeList attributeList=superClasses.length > 0 ? superClasses[0].getAttributeList() : null;
+      if (attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.FINAL)) {
+        final JSExpression[] referencesToSuper=extendsList.getExpressions();
+        if (referencesToSuper.length == 1) {
+          myHolder.createErrorAnnotation(referencesToSuper[0],JSBundle.message("javascript.validation.message.extend.final.class",superClasses[0].getQualifiedName()));
+        }
+      }
+    }
+  }
+}

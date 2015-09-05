@@ -1,0 +1,15 @@
+{
+  final Collection<AirSigningOptions> signingOptionsWithUnknownPasswords=new ArrayList<AirSigningOptions>();
+  for (  AirPackagingOptions packagingOptions : allPackagingOptions) {
+    final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+    final boolean tempCertificate=!(packagingOptions instanceof IosPackagingOptions) && signingOptions.isUseTempCertificate();
+    if (!tempCertificate && !PasswordStore.isPasswordKnown(project,signingOptions)) {
+      signingOptionsWithUnknownPasswords.add(signingOptions);
+    }
+  }
+  if (!signingOptionsWithUnknownPasswords.isEmpty()) {
+    final KeystorePasswordDialog dialog=new KeystorePasswordDialog(project,signingOptionsWithUnknownPasswords);
+    return dialog.showAndGet() ? dialog.getPasswords() : null;
+  }
+  return PasswordStore.getInstance(project);
+}

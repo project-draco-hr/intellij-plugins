@@ -1,0 +1,42 @@
+{
+  final VirtualFile existingConfigFile=FlexCompilationManager.refreshAndFindFileInWriteAction(FlexCommonUtils.getTempFlexConfigsDirPath() + "/" + fileName);
+  if (existingConfigFile != null && existingConfigFile.isValid() && Arrays.equals(text.getBytes(),existingConfigFile.contentsToByteArray())) {
+    return existingConfigFile;
+  }
+  final Ref<VirtualFile> fileRef=new Ref<VirtualFile>();
+  final Ref<IOException> error=new Ref<IOException>();
+  final Runnable runnable=new Runnable(){
+    @Override public void run(){
+      fileRef.set(ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+        @Override public VirtualFile compute(){
+          try {
+            final String baseDirPath=FlexCommonUtils.getTempFlexConfigsDirPath();
+            final VirtualFile baseDir=VfsUtil.createDirectories(baseDirPath);
+            VirtualFile configFile=baseDir.findChild(fileName);
+            if (configFile == null) {
+              configFile=baseDir.createChildData(this,fileName);
+            }
+            VfsUtil.saveText(configFile,text);
+            return configFile;
+          }
+ catch (          IOException ex) {
+            error.set(ex);
+          }
+          return null;
+        }
+      }
+));
+    }
+  }
+;
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    runnable.run();
+  }
+ else {
+    ApplicationManager.getApplication().invokeAndWait(runnable,ProgressManager.getInstance().getProgressIndicator().getModalityState());
+  }
+  if (!error.isNull()) {
+    throw error.get();
+  }
+  return fileRef.get();
+}

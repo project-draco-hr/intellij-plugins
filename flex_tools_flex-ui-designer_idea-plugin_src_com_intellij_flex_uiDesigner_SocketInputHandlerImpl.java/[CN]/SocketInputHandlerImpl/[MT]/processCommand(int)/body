@@ -1,0 +1,58 @@
+{
+switch (command) {
+case ServerMethod.GO_TO_CLASS:
+    goToClass();
+  break;
+case ServerMethod.GET_RESOURCE_BUNDLE:
+getResourceBundle();
+break;
+case ServerMethod.GET_BITMAP_DATA:
+getBitmapData();
+break;
+case ServerMethod.GET_SWF_DATA:
+getSwfData();
+break;
+case ServerMethod.GET_EMBED_SWF_ASSET_INFO:
+case ServerMethod.GET_EMBED_IMAGE_ASSET_INFO:
+getAssetInfo(command == ServerMethod.GET_EMBED_SWF_ASSET_INFO);
+break;
+case ServerMethod.OPEN_FILE:
+openFile();
+break;
+case ServerMethod.OPEN_FILE_AND_FIND_XML_ATTRIBUTE_OR_TAG:
+openFileAndFindXmlAttributeOrTag();
+break;
+case ServerMethod.OPEN_DOCUMENT:
+openDocument();
+break;
+case ServerMethod.RESOLVE_EXTERNAL_INLINE_STYLE_DECLARATION_SOURCE:
+ApplicationManager.getApplication().invokeLater(new ResolveExternalInlineStyleSourceAction(reader,readModule()));
+break;
+case ServerMethod.UNREGISTER_DOCUMENT_FACTORIES:
+unregisterDocumentFactories();
+break;
+case ServerMethod.UNREGISTER_LIBRARY_SETS:
+LibraryManager.getInstance().unregister(reader.readIntArray());
+break;
+case ServerMethod.SHOW_ERROR:
+showError();
+break;
+case ServerMethod.LOG_WARNING:
+logWarning();
+break;
+case ServerMethod.CLOSE_PROJECT:
+Client.getInstance().unregisterProject(readProject());
+break;
+case ServerMethod.SAVE_PROJECT_WINDOW_BOUNDS:
+ProjectWindowBounds.save(readProject(),reader);
+break;
+case ServerMethod.SET_PROPERTY:
+setProperty();
+break;
+case ServerMethod.CALLBACK:
+executeCallback();
+break;
+default :
+throw new IllegalArgumentException("unknown client command: " + command);
+}
+}

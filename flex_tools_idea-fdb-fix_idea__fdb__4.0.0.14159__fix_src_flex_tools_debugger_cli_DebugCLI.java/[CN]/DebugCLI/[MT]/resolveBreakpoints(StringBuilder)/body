@@ -1,0 +1,21 @@
+{
+  int count=breakpointCount();
+  boolean success=true;
+  for (int i=0; i < count; ++i) {
+    BreakAction b=breakpointAt(i);
+    try {
+      tryResolveBreakpoint(b,sb);
+    }
+ catch (    Exception e) {
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("breakpointNumber",Integer.toString(b.getId()));
+      args.put("expression",b.getBreakpointExpression());
+      sb.append(getLocalizationManager().getLocalizedTextString("attemptingToResolve",args));
+      sb.append(m_newline);
+      sb.append(e.getMessage());
+      sb.append(m_newline);
+      success=false;
+    }
+  }
+  return success;
+}

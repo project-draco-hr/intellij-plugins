@@ -1,0 +1,20 @@
+{
+  final String descriptorContent=FileUtil.loadFile(descriptorFile,"UTF-8");
+  final Document document=JDOMUtil.loadDocument(StringUtil.trimStart(descriptorContent,"\uFEFF"));
+  final Element rootElement=document.getRootElement();
+  if (rootElement == null || !"application".equals(rootElement.getName())) {
+    throw new JDOMException("incorrect root tag");
+  }
+  Element initialWindowElement=rootElement.getChild("initialWindow",rootElement.getNamespace());
+  if (initialWindowElement == null) {
+    initialWindowElement=new Element("initialWindow",rootElement.getNamespace());
+    rootElement.addContent(initialWindowElement);
+  }
+  Element contentElement=initialWindowElement.getChild("content",rootElement.getNamespace());
+  if (contentElement == null) {
+    contentElement=new Element("content",rootElement.getNamespace());
+    initialWindowElement.addContent(contentElement);
+  }
+  contentElement.setText(swfName);
+  return JDOMUtil.writeDocument(document,SystemProperties.getLineSeparator());
+}

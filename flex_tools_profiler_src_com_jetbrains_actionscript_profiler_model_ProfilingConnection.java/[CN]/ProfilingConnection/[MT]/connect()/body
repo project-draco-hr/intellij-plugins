@@ -1,0 +1,68 @@
+{
+  myAbortingSocketConnection=false;
+  myDisposed=false;
+  ensurePolicyServedEvenOnFlashSecurityPort();
+  try {
+    myServerSocket=new ServerSocket(myPort);
+    Socket socket=myServerSocket.accept();
+    myInputStream=new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+    myOutputStream=socket.getOutputStream();
+    myServerSocket.close();
+    myServerSocket=null;
+    myIoHandler.finished("Connection established",null);
+  }
+ catch (  IOException ex) {
+    final boolean abortedWaitingForConnection=ex instanceof SocketException && myAbortingSocketConnection;
+    if (abortedWaitingForConnection) {
+      ex=new EOFException("aborted wait for connection");
+    }
+ else {
+      LOG.warn(ex);
+    }
+    myIoHandler.finished(null,ex);
+    return;
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      int bytesRead=0;
+      try {
+        while (true) {
+          String x=myInputStream.readUTF();
+          if (x == null)           break;
+          LOG.debug(x);
+          bytesRead+=x.length();
+          try {
+            if (myCurrentPacketProcessor == null) {
+              String marker=x;
+              int i=x.indexOf('\0');
+              if (i != -1)               marker=x.substring(0,i + 1);
+              myCurrentPacketProcessor=myInitialString2ProcessorsMap.get(marker);
+              if (myCurrentPacketProcessor != null) {
+                myCurrentPacketProcessor.startingPacket(x);
+              }
+            }
+            if (myCurrentPacketProcessor != null) {
+              PacketProcessor.ProcessingResult processingResult=myCurrentPacketProcessor.process(x);
+              if (processingResult == PacketProcessor.ProcessingResult.FINISHED)               myCurrentPacketProcessor=null;
+              if (processingResult == PacketProcessor.ProcessingResult.STOP)               return;
+            }
+ else {
+              LOG.warn("No processing:" + x);
+            }
+          }
+ catch (          Exception e) {
+            LOG.error(e);
+          }
+        }
+      }
+ catch (      IOException ex) {
+        LOG.debug("Bytes read:" + bytesRead);
+        myIoHandler.finished(null,ex);
+      }
+catch (      Throwable t) {
+        LOG.error(t);
+      }
+    }
+  }
+);
+}

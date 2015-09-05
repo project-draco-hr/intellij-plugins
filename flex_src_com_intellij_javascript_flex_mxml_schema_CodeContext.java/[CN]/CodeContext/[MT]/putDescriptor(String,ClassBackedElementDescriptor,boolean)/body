@@ -1,0 +1,21 @@
+{
+  if (JavaScriptSupportLoader.isLanguageNamespace(namespace)) {
+    if (MxmlJSClass.XML_TAG_NAME.equals(name) || MxmlJSClass.XMLLIST_TAG_NAME.equals(name)) {
+      return;
+    }
+    if (JSCommonTypeNames.STRING_CLASS_NAME.equals(name) || JSCommonTypeNames.BOOLEAN_CLASS_NAME.equals(name) || JSCommonTypeNames.INT_TYPE_NAME.equals(name)|| JSCommonTypeNames.UINT_TYPE_NAME.equals(name)|| JSCommonTypeNames.NUMBER_CLASS_NAME.equals(name)) {
+      descriptor.addPredefinedMemberDescriptor(new AnnotationBackedDescriptorImpl(FlexReferenceContributor.SOURCE_ATTR_NAME,descriptor,true,null,null,null));
+    }
+  }
+  if (JavaScriptSupportLoader.MXML_URI3.equals(namespace) && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(name)) {
+    final AnnotationBackedDescriptorImpl typeDescriptor=new AnnotationBackedDescriptorImpl("type",descriptor,true,null,null,null);
+    typeDescriptor.setRequired(true);
+    descriptor.addPredefinedMemberDescriptor(typeDescriptor);
+  }
+ else   if (addGumboAttributesIfNeeded && FlexSdkUtils.isFlex4Sdk(FlexUtils.getSdkForActiveBC(module))) {
+    for (    String gumboAttr : GUMBO_ATTRIBUTES) {
+      descriptor.addPredefinedMemberDescriptor(new AnnotationBackedDescriptorImpl(gumboAttr,descriptor,true,null,null,null));
+    }
+  }
+  myNameToDescriptorsMap.put(name,descriptor);
+}

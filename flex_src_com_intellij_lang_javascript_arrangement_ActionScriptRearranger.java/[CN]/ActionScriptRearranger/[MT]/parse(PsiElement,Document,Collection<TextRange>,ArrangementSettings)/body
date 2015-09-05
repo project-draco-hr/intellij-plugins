@@ -1,0 +1,66 @@
+{
+  final PsiFile file=root.getContainingFile();
+  if (!(file instanceof JSFile))   return Collections.emptyList();
+  final JSClass jsClass=JSPsiImplUtils.findClass((JSFile)file);
+  if (jsClass == null)   return Collections.emptyList();
+  final List<ActionScriptArrangementEntry> result=new SortedList<ActionScriptArrangementEntry>(ActionScriptArrangementEntry.COMPARATOR);
+  final JSBlockStatement[] blockStatements=PsiTreeUtil.getChildrenOfType(jsClass,JSBlockStatement.class);
+  if (blockStatements != null) {
+    for (    JSBlockStatement blockStatement : blockStatements) {
+      ContainerUtil.addIfNotNull(result,ActionScriptArrangementEntry.create(blockStatement,ranges,document));
+    }
+  }
+  final Map<JSVariable,ActionScriptArrangementEntry> varToEntry=new THashMap<JSVariable,ActionScriptArrangementEntry>();
+  final JSVarStatement[] varStatements=PsiTreeUtil.getChildrenOfType(jsClass,JSVarStatement.class);
+  if (varStatements != null) {
+    for (    final JSVarStatement varStatement : varStatements) {
+      final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(varStatement,ranges,document);
+      if (entry != null) {
+        result.add(entry);
+        final JSVariable[] variables=varStatement.getVariables();
+        if (entry.getType() == VAR && variables.length == 1) {
+          varToEntry.put(variables[0],entry);
+        }
+      }
+    }
+  }
+  final Map<JSFunction,ActionScriptArrangementEntry> functionToEntry=new THashMap<JSFunction,ActionScriptArrangementEntry>();
+  for (  final JSFunction function : jsClass.getFunctions()) {
+    final ActionScriptArrangementEntry entry=ActionScriptArrangementEntry.create(function,ranges,document);
+    if (entry != null) {
+      result.add(entry);
+      functionToEntry.put(function,entry);
+    }
+  }
+  for (  Map.Entry<JSFunction,ActionScriptArrangementEntry> mapEntry : functionToEntry.entrySet()) {
+    final JSFunction function=mapEntry.getKey();
+    final String name=function.getName();
+    if (function.isSetProperty() && name != null) {
+      final ActionScriptArrangementEntry setterEntry=mapEntry.getValue();
+      final JSFunction getter=jsClass.findFunctionByNameAndKind(name,JSFunction.FunctionKind.GETTER);
+      final ActionScriptArrangementEntry getterEntry=functionToEntry.get(getter);
+      if (getterEntry != null) {
+        setterEntry.addDependency(getterEntry);
+      }
+    }
+  }
+  if (groupPropertyFieldWithGetterSetter(settings)) {
+    final JSCodeStyleSettings codeStyleSettings=CodeStyleSettingsManager.getSettings(jsClass.getProject()).getCustomSettings(JSCodeStyleSettings.class);
+    for (    Map.Entry<JSVariable,ActionScriptArrangementEntry> mapEntry : varToEntry.entrySet()) {
+      final JSVariable jsVar=mapEntry.getKey();
+      final ActionScriptArrangementEntry varEntry=mapEntry.getValue();
+      if (StringUtil.startsWith(jsVar.getName(),codeStyleSettings.FIELD_PREFIX)) {
+        final String propertyName=JSRefactoringUtil.transformVarNameToAccessorName(jsVar.getName(),jsClass.getProject());
+        JSFunction getterOrSetter=jsClass.findFunctionByNameAndKind(propertyName,JSFunction.FunctionKind.GETTER);
+        if (getterOrSetter == null)         getterOrSetter=jsClass.findFunctionByNameAndKind(propertyName,JSFunction.FunctionKind.SETTER);
+        final ActionScriptArrangementEntry propertyEntry=getterOrSetter == null ? null : functionToEntry.get(getterOrSetter);
+        if (propertyEntry != null) {
+          varEntry.setType(propertyEntry.getType());
+          varEntry.setModifiers(propertyEntry.getModifiers());
+          propertyEntry.addDependency(varEntry);
+        }
+      }
+    }
+  }
+  return result;
+}

@@ -1,0 +1,39 @@
+{
+  String prefix=null;
+  XmlTag tag=(XmlTag)context;
+  String name=getName();
+  int packageIndex=className.lastIndexOf(name);
+  String packageName=packageIndex > 0 ? className.substring(0,packageIndex - 1) : "";
+  if (packageName.length() > 0)   packageName+=".*";
+ else   packageName="*";
+  XmlNSDescriptor nsDescriptor=tag.getPrefixByNamespace(packageName) != null ? tag.getNSDescriptor(packageName,true) : null;
+  if (nsDescriptor instanceof FlexMxmlNSDescriptor) {
+    if (((FlexMxmlNSDescriptor)nsDescriptor).hasElementDescriptorWithName(name,className)) {
+      prefix=tag.getPrefixByNamespace(packageName);
+    }
+  }
+  if (prefix == null) {
+    final String preferredNamespace=this.context.namespace;
+    final String[] knownNamespaces=tag.knownNamespaces();
+    if (preferredNamespace.indexOf('*') == -1 && ArrayUtil.contains(preferredNamespace,knownNamespaces)) {
+      nsDescriptor=tag.getNSDescriptor(preferredNamespace,true);
+      if (nsDescriptor instanceof FlexMxmlNSDescriptor && ((FlexMxmlNSDescriptor)nsDescriptor).hasElementDescriptorWithName(name,className)) {
+        prefix=tag.getPrefixByNamespace(preferredNamespace);
+      }
+    }
+    if (prefix == null) {
+      for (      String namespace : knownNamespaces) {
+        if (namespace.equals(preferredNamespace) || namespace.indexOf('*') != -1) {
+          continue;
+        }
+        nsDescriptor=tag.getNSDescriptor(namespace,true);
+        if (nsDescriptor instanceof FlexMxmlNSDescriptor && ((FlexMxmlNSDescriptor)nsDescriptor).hasElementDescriptorWithName(name,className)) {
+          prefix=tag.getPrefixByNamespace(namespace);
+          break;
+        }
+      }
+    }
+  }
+  if (prefix == null || prefix.length() == 0)   return name;
+  return prefix + ":" + name;
+}

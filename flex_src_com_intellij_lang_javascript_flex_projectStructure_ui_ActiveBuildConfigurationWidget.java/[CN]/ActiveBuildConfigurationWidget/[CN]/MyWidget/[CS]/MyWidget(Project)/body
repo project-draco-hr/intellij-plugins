@@ -1,0 +1,56 @@
+{
+  super(project);
+  Disposer.register(project,this);
+  project.getMessageBus().connect(this).subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
+    public void rootsChanged(    final ModuleRootEvent event){
+      update();
+    }
+  }
+);
+  myEnabledLabel.setFont(SystemInfo.isMac ? UIUtil.getLabelFont().deriveFont(11.0f) : UIUtil.getLabelFont());
+  myEnabledLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  myDisabledLabel.setHorizontalAlignment(SwingConstants.CENTER);
+  myDisabledLabel.setToolTipText(FlexBundle.message("active.bc.widget.empty.tooltip"));
+  myDisabledLabel.setForeground(UIUtil.getInactiveTextColor());
+  myDisabledLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  myPanel=new JPanel(new GridBagLayout()){
+    @Override public Dimension getPreferredSize(){
+      int max=getFontMetrics(getFont()).stringWidth(myDisabledLabel.getText());
+      return new Dimension(20 + max,getMinimumSize().height);
+    }
+  }
+;
+  myPanel.setOpaque(false);
+  myPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+  myPanel.setBorder(WidgetBorder.INSTANCE);
+  GridBagConstraints c=new GridBagConstraints(0,0,1,1,1,1,GridBagConstraints.WEST,GridBagConstraints.NONE,new Insets(0,0,0,0),0,0);
+  myPanel.add(myEnabledLabel,c);
+  c.gridx++;
+  c.anchor=GridBagConstraints.CENTER;
+  myPanel.add(myDisabledLabel,c);
+  c.gridx++;
+  c.weightx=0;
+  myPanel.add(myUpDownLabel,c);
+  ClickListener listener=new ClickListener(){
+    @Override public boolean onClick(    @NotNull MouseEvent e,    int clickCount){
+      Module module=findCurrentFlexModule();
+      if (module != null) {
+        ListPopup popup=ChooseActiveBuildConfigurationAction.createPopup(module);
+        final Dimension dimension=popup.getContent().getPreferredSize();
+        final Point at=new Point(0,-dimension.height);
+        popup.show(new RelativePoint(e.getComponent(),at));
+      }
+ else {
+        HintHint hintHint=new HintHint(e).setShowImmediately(true).setAwtTooltip(true);
+        new LightweightHint(new JLabel(myDisabledLabel.getToolTipText())).show(myPanel,e.getX(),e.getY(),myPanel,hintHint);
+      }
+      return true;
+    }
+  }
+;
+  listener.installOn(myEnabledLabel);
+  listener.installOn(myDisabledLabel);
+  listener.installOn(myPanel);
+  listener.installOn(myUpDownLabel);
+  update();
+}

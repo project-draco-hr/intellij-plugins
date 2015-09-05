@@ -1,0 +1,41 @@
+{
+  try {
+    int id=-1;
+    if (hasMoreTokens())     id=nextIntToken();
+ else     id=propertyGet(BPNUM);
+    int at=breakpointIndexOf(id);
+    BreakAction a=breakpointAt(at);
+    a.clearCommands();
+    a.setSilent(false);
+    String line=null;
+    boolean first=true;
+    boolean isEnd=false;
+    Map args=new HashMap();
+    args.put("breakpointNumber",Integer.toString(id));
+    out(getLocalizationManager().getLocalizedTextString("typeCommandsForBreakpoint",args));
+    do {
+      displayCommandPrompt();
+      line=readLine().trim();
+      isEnd=line.equalsIgnoreCase("end");
+      if (!isEnd) {
+        if (first && line.equalsIgnoreCase("silent"))         a.setSilent(true);
+ else         a.addCommand(line);
+      }
+      first=false;
+    }
+ while (!isEnd);
+  }
+ catch (  IndexOutOfBoundsException iob) {
+    Map args=new HashMap();
+    args.put("breakpointNumber",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("noBreakpointNumber",args));
+  }
+catch (  NumberFormatException nfe) {
+    Map args=new HashMap();
+    args.put("token",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("badBreakpointNumber",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("commandFailed"));
+  }
+}

@@ -1,0 +1,24 @@
+{
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addFlexLibrary(false,myModule,"playerglobal",false,getTestDataPath() + getBasePath(),"playerglobal.swc",null,null);
+      final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic("flash.display3D.textures.CubeTexture",GlobalSearchScope.moduleWithLibrariesScope(myModule));
+      clazz.getNode();
+    }
+  }
+;
+  configureByFile(BASE_PATH + getTestName(false) + ".as");
+  final boolean doProfiling=false;
+  if (doProfiling)   ProfilingUtil.startCPUProfiling();
+  try {
+    PlatformTestUtil.startPerformanceTest("ActionScript class completion",300,new ThrowableRunnable(){
+      @Override public void run() throws Throwable {
+        complete();
+      }
+    }
+).cpuBound().usesAllCPUCores().assertTiming();
+  }
+  finally {
+    if (doProfiling)     ProfilingUtil.captureCPUSnapshot();
+  }
+}

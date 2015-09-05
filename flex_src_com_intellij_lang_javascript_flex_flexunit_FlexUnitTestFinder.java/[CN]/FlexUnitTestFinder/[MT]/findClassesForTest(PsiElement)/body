@@ -1,0 +1,20 @@
+{
+  final JSClass jsClass=findSourceElement(element);
+  final String className=jsClass == null ? null : jsClass.getName();
+  final Pair<Module,FlexUnitSupport> moduleAndSupport=FlexUnitSupport.getModuleAndSupport(element);
+  final Module module=moduleAndSupport == null ? null : moduleAndSupport.first;
+  final FlexUnitSupport flexUnitSupport=moduleAndSupport == null ? null : moduleAndSupport.second;
+  if (className == null || module == null || flexUnitSupport == null) {
+    return Collections.emptyList();
+  }
+  final GlobalSearchScope scope=GlobalSearchScope.moduleWithDependenciesScope(module).intersectWith(GlobalSearchScopes.projectProductionScope(module.getProject()));
+  final List<Pair<? extends PsiNamedElement,Integer>> classesWithWeights=new ArrayList<Pair<? extends PsiNamedElement,Integer>>();
+  for (  Pair<String,Integer> nameWithWeight : TestFinderHelper.collectPossibleClassNamesWithWeights(className)) {
+    for (    final JSQualifiedNamedElement jsElement : JSResolveUtil.findElementsByName(nameWithWeight.first,module.getProject(),scope)) {
+      if (jsElement instanceof JSClass && jsElement != jsClass && !((JSClass)jsElement).isInterface() && !flexUnitSupport.isTestClass((JSClass)jsElement,true)) {
+        classesWithWeights.add(Pair.create(jsElement,nameWithWeight.second));
+      }
+    }
+  }
+  return TestFinderHelper.getSortedElements(classesWithWeights,false);
+}

@@ -1,0 +1,17 @@
+{
+  JSQualifiedNamedElement parent=PsiTreeUtil.getNonStrictParentOfType(element,JSClass.class,JSFunction.class,JSVariable.class,JSNamespaceDeclaration.class);
+  if (parent != null) {
+    PsiFile file=parent.getContainingFile();
+    if (file != null && (ActionScriptFileType.INSTANCE == file.getFileType() || FlexApplicationComponent.MXML == file.getFileType())) {
+      VirtualFile vFile=file.getVirtualFile();
+      if (vFile != null && ProjectRootManager.getInstance(element.getProject()).getFileIndex().isInLibrarySource(vFile)) {
+        PsiElement fromLibrary=findDecompiledElement(parent);
+        if (fromLibrary != null) {
+          return fromLibrary;
+        }
+      }
+    }
+    return parent;
+  }
+  return null;
+}

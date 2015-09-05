@@ -1,0 +1,20 @@
+{
+  if (element instanceof JSClass) {
+    return true;
+  }
+ else   if (element instanceof JSPackageStatement) {
+    return true;
+  }
+ else   if (element instanceof JSFile) {
+    return JSPsiImplUtils.findQualifiedElement((JSFile)element) instanceof JSClass;
+  }
+ else   if (element instanceof PsiFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+    return true;
+  }
+ else   if (element instanceof PsiDirectory) {
+    PsiDirectory directory=(PsiDirectory)element;
+    String packageName=JSResolveUtil.getExpectedPackageNameFromFile(directory.getVirtualFile(),directory.getProject());
+    return packageName != null && packageExists(directory.getProject(),packageName,GlobalSearchScope.allScope(directory.getProject()));
+  }
+  return false;
+}

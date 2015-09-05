@@ -1,0 +1,19 @@
+{
+  String packageName=null;
+  int startIndex=frameText.indexOf(' ');
+  while (startIndex != -1 && frameText.length() > startIndex && frameText.charAt(startIndex) == ' ') {
+    startIndex++;
+  }
+  if (startIndex > 0 && frameText.substring(startIndex).startsWith("this = [")) {
+    final int classMarkerIndex=frameText.indexOf(FlexStackFrame.CLASS_MARKER,startIndex);
+    final int packageEndIndex=frameText.indexOf("::",classMarkerIndex + FlexStackFrame.CLASS_MARKER.length());
+    final int classEndIndex=frameText.indexOf("']",classMarkerIndex + FlexStackFrame.CLASS_MARKER.length());
+    if (classMarkerIndex > 0 && packageEndIndex > classMarkerIndex && packageEndIndex < classEndIndex) {
+      packageName=frameText.substring(classMarkerIndex + FlexStackFrame.CLASS_MARKER.length(),packageEndIndex);
+    }
+ else {
+      packageName="";
+    }
+  }
+  return packageName;
+}

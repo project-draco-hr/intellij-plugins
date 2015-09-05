@@ -1,0 +1,25 @@
+{
+  return new Runnable(){
+    public void run(){
+      final ProgressIndicator indicator=ProgressManager.getInstance().getProgressIndicator();
+      if (indicator != null) {
+        indicator.setIndeterminate(true);
+      }
+      try {
+        AirPackageProjectParameters.getInstance(task.myProject).setPackagingInProgress(true);
+        task.start();
+        while (!task.isFinished()) {
+          if (indicator != null && indicator.isCanceled()) {
+            task.cancel();
+            break;
+          }
+          TimeoutUtil.sleep(200);
+        }
+      }
+  finally {
+        AirPackageProjectParameters.getInstance(task.myProject).setPackagingInProgress(false);
+      }
+    }
+  }
+;
+}

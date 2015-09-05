@@ -1,0 +1,29 @@
+{
+  final Ref<JSClass> result=new Ref<JSClass>();
+  final String expectedPackage=link.equals(className) ? "" : link.substring(0,link.length() - className.length() - 1);
+  final ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final PsiManager manager=PsiManager.getInstance(project);
+  final Processor<VirtualFile> processor=new Processor<VirtualFile>(){
+    public boolean process(    VirtualFile file){
+      VirtualFile rootForFile=projectFileIndex.getSourceRootForFile(file);
+      if (rootForFile == null)       return true;
+      if (expectedPackage.equals(VfsUtilCore.getRelativePath(file.getParent(),rootForFile,'.'))) {
+        PsiFile psiFile=manager.findFile(file);
+        final JSClass clazz=psiFile instanceof XmlFile ? XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)psiFile) : null;
+        if (clazz != null) {
+          result.set(clazz);
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+;
+  Collection<VirtualFile> files=FilenameIndex.getVirtualFilesByName(project,className + JavaScriptSupportLoader.MXML_FILE_EXTENSION_DOT,scope);
+  ContainerUtil.process(files,processor);
+  if (result.isNull()) {
+    files=FilenameIndex.getVirtualFilesByName(project,className + JavaScriptSupportLoader.FXG_FILE_EXTENSION_DOT,scope);
+    ContainerUtil.process(files,processor);
+  }
+  return result.get();
+}

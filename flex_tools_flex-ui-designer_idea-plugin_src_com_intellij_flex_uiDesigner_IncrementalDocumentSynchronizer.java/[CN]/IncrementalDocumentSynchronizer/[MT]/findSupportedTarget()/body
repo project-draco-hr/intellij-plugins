@@ -1,0 +1,56 @@
+{
+  PsiElement element=event.getParent();
+  while (!(element instanceof XmlAttribute)) {
+    element=element.getParent();
+    if (element instanceof XmlTag) {
+      XmlTag tag=(XmlTag)element;
+      XmlElementDescriptor descriptor=tag.getDescriptor();
+      if (descriptor instanceof ClassBackedElementDescriptor) {
+        ClassBackedElementDescriptor classBackedElementDescriptor=(ClassBackedElementDescriptor)descriptor;
+        if (classBackedElementDescriptor.isPredefined()) {
+          isStyleDataChanged=descriptor.getQualifiedName().equals(FlexPredefinedTagNames.STYLE);
+          isSkippedXml=isStyleDataChanged || (!MxmlUtil.isObjectLanguageTag(tag) && !descriptor.getQualifiedName().equals(FlexPredefinedTagNames.DECLARATIONS));
+        }
+      }
+      return null;
+    }
+ else     if (element instanceof PsiFile || element == null) {
+      return null;
+    }
+  }
+  XmlAttribute attribute=(XmlAttribute)element;
+  if (JavaScriptSupportLoader.MXML_URI3.equals(attribute.getNamespace()) || attribute.getValueElement() == null) {
+    return null;
+  }
+  XmlAttributeDescriptor xmlDescriptor=attribute.getDescriptor();
+  if (!(xmlDescriptor instanceof AnnotationBackedDescriptor)) {
+    return null;
+  }
+  AnnotationBackedDescriptor descriptor=(AnnotationBackedDescriptor)xmlDescriptor;
+  if (descriptor.isPredefined() || MxmlUtil.isIdLanguageAttribute(attribute,descriptor)) {
+    return null;
+  }
+  PsiReference[] references=attribute.getReferences();
+  if (references.length > 1) {
+    for (int i=references.length - 1; i > -1; i--) {
+      PsiReference psiReference=references[i];
+      if (psiReference instanceof FlexReferenceContributor.StateReference) {
+        return null;
+      }
+    }
+  }
+ else {
+    String prefix=attribute.getName() + '.';
+    for (    XmlAttribute anotherAttribute : attribute.getParent().getAttributes()) {
+      if (anotherAttribute != attribute && anotherAttribute.getName().startsWith(prefix)) {
+        return null;
+      }
+    }
+  }
+  XmlAttributeValueProvider valueProvider=new XmlAttributeValueProvider(attribute);
+  PsiLanguageInjectionHost injectedHost=valueProvider.getInjectedHost();
+  if (injectedHost != null && InjectedLanguageUtil.hasInjections(injectedHost)) {
+    return null;
+  }
+  return valueProvider;
+}

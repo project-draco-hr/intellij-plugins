@@ -1,0 +1,21 @@
+{
+  final FlexBuildConfiguration bc;
+  try {
+    bc=myRunnerParameters.checkAndGetModuleAndBC(getProject()).second;
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
+  }
+  final BuildConfigurationNature nature=bc.getNature();
+  if (nature.isDesktopPlatform() || nature.isMobilePlatform()) {
+    return new FlashRunConfiguration.AirRunState(getProject(),env,myRunnerParameters){
+      @NotNull @Override public ExecutionResult execute(      @NotNull Executor executor,      @NotNull ProgramRunner runner) throws ExecutionException {
+        final ProcessHandler processHandler=startProcess();
+        final ExecutionConsole console=FlexBaseRunner.createFlexUnitRunnerConsole(getProject(),env,processHandler);
+        return new DefaultExecutionResult(console,processHandler);
+      }
+    }
+;
+  }
+  return EmptyRunProfileState.INSTANCE;
+}

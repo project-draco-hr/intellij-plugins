@@ -1,0 +1,41 @@
+{
+  PsiElement element=CommonDataKeys.PSI_ELEMENT.getData(context);
+  if (isAcceptableAsNode(element)) {
+    return element;
+  }
+  final Editor editor=LangDataKeys.EDITOR.getData(context);
+  if (editor != null) {
+    final PsiFile file=CommonDataKeys.PSI_FILE.getData(context);
+    if (file != null) {
+      PsiElement elementAtOffset=file.findElementAt(editor.getCaretModel().getOffset());
+      final PsiNamedElement enclosing=PsiTreeUtil.getParentOfType(elementAtOffset,JSClass.class,JSFile.class,XmlFile.class);
+      if (enclosing instanceof JSClass) {
+        element=enclosing;
+      }
+ else       if (enclosing instanceof JSFile) {
+        final XmlBackedJSClass clazz=JSResolveUtil.getXmlBackedClass((JSFile)enclosing);
+        if (clazz != null) {
+          return clazz;
+        }
+        JSElement qualified=JSPsiImplUtils.findQualifiedElement((JSFile)enclosing);
+        if (qualified instanceof JSClass) {
+          return qualified;
+        }
+      }
+      if (enclosing instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)enclosing)) {
+        return XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)enclosing);
+      }
+    }
+  }
+  Project project=CommonDataKeys.PROJECT.getData(context);
+  if (project != null) {
+    VirtualFile file=CommonDataKeys.VIRTUAL_FILE.getData(context);
+    if (file != null) {
+      PsiDirectory directory=PsiManager.getInstance(project).findDirectory(file);
+      if (directory != null && isAcceptableAsNode(directory)) {
+        return directory;
+      }
+    }
+  }
+  return element;
+}

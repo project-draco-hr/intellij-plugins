@@ -1,0 +1,36 @@
+{
+  final AndroidPackagingOptions packagingOptions=bc.getAndroidPackagingOptions();
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final boolean tempCertificate=signingOptions.isUseTempCertificate();
+  final String keystorePassword=tempCertificate ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=tempCertificate || signingOptions.getKeyAlias().isEmpty() ? "" : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+  final String packageFilePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ ".apk";
+  return new AdtPackageTask(module.getProject(),bc.getSdk(),packageFilePath){
+    protected void appendAdtOptions(    List<String> command){
+      command.add("-package");
+      command.add("-target");
+switch (packageType) {
+case Release:
+        command.add(captiveRuntime ? "apk-captive-runtime" : "apk");
+      break;
+case DebugOverNetwork:
+    command.add("apk-debug");
+  command.add("-connect");
+break;
+case DebugOverUSB:
+command.add("apk-debug");
+command.add("-listen");
+command.add(String.valueOf(debugPort));
+break;
+}
+if (!AirSigningOptions.ARCH_DEFAULT.equals(packagingOptions.getSigningOptions().getArch())) {
+command.add("-arch");
+command.add(packagingOptions.getSigningOptions().getArch());
+}
+appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+appendPaths(command,module,bc,packagingOptions,null,".apk");
+}
+}
+;
+}

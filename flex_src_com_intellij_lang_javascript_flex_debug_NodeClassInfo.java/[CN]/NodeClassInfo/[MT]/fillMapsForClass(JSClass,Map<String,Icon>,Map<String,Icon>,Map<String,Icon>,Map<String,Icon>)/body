@@ -1,0 +1,39 @@
+{
+  for (  final JSVariable variable : jsClass.getFields()) {
+    final JSAttributeList varAttributes=variable.getAttributeList();
+    if (varAttributes != null && varAttributes.hasModifier(JSAttributeList.ModifierType.STATIC)) {
+      staticFields.put(variable.getName(),variable.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+    }
+ else {
+      fields.put(variable.getName(),variable.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+    }
+  }
+  for (  final JSFunction function : jsClass.getFunctions()) {
+    if (function.getKind() == JSFunction.FunctionKind.GETTER && function.getName() != null) {
+      final JSAttributeList functionAttributes=function.getAttributeList();
+      if (functionAttributes != null && functionAttributes.hasModifier(JSAttributeList.ModifierType.STATIC)) {
+        staticProperties.put(function.getName(),function.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+      }
+ else {
+        properties.put(function.getName(),function.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+      }
+    }
+  }
+  if (jsClass instanceof MxmlJSClass) {
+    final PsiFile file=jsClass.getContainingFile();
+    final XmlFile xmlFile=file instanceof XmlFile ? (XmlFile)file : null;
+    final XmlTag rootTag=xmlFile == null ? null : xmlFile.getRootTag();
+    if (rootTag != null) {
+      processSubtagsRecursively(rootTag,new Processor<XmlTag>(){
+        public boolean process(        final XmlTag tag){
+          final String id=tag.getAttributeValue("id");
+          if (id != null) {
+            fields.put(id,tag.getIcon(Iconable.ICON_FLAG_VISIBILITY));
+          }
+          return !MxmlJSClass.isTagThatAllowsAnyXmlContent(tag);
+        }
+      }
+);
+    }
+  }
+}

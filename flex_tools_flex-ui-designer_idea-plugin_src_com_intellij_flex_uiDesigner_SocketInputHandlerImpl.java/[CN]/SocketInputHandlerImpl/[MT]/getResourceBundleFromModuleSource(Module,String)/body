@@ -1,0 +1,35 @@
+{
+  final AccessToken token=ReadAction.start();
+  try {
+    final PsiManager psiManager=PsiManager.getInstance(module.getProject());
+    final List<VirtualFile> result=new ArrayList<VirtualFile>();
+    FileBasedIndex.getInstance().processValues(FileTypeIndex.NAME,PropertiesFileType.INSTANCE,null,new FileBasedIndex.ValueProcessor<Void>(){
+      @Override public boolean process(      VirtualFile file,      Void value){
+        if (file.getNameWithoutExtension().equals(bundleName)) {
+          result.add(file);
+          if (file.getParent().getName().equals("en_US")) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+,module.getModuleScope(false));
+    PropertiesFile defaultResourceBundle=null;
+    for (    VirtualFile file : result) {
+      PsiFile psiFile=psiManager.findFile(file);
+      if (psiFile != null) {
+        if (file.getParent().getName().equals("en_US")) {
+          defaultResourceBundle=(PropertiesFile)psiFile;
+        }
+ else {
+          return (PropertiesFile)psiFile;
+        }
+      }
+    }
+    return defaultResourceBundle;
+  }
+  finally {
+    token.finish();
+  }
+}

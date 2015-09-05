@@ -1,0 +1,31 @@
+{
+  int mask=calculateCheckBitsMask(types.getId(),workflow);
+  if ((unit.checkBits & mask) > 0) {
+    return true;
+  }
+  for (Iterator i=types.iterator(); i.hasNext(); ) {
+    Object name=i.next();
+    if (name instanceof flex2.compiler.util.QName) {
+      flex2.compiler.util.QName qName=(flex2.compiler.util.QName)name;
+      Source s=symbolTable.findSourceByQName(qName);
+      CompilationUnit u=(s != null) ? s.getCompilationUnit() : null;
+      if (unit == u) {
+        continue;
+      }
+      if (u == null || (u.getWorkflow() & workflow) == 0) {
+        return false;
+      }
+      if (u == null || u.typeInfo == null) {
+        return false;
+      }
+      if (s.getLogger() != null && s.getLogger().errorCount() > 0) {
+        return false;
+      }
+    }
+ else {
+      return false;
+    }
+  }
+  unit.checkBits|=mask;
+  return true;
+}

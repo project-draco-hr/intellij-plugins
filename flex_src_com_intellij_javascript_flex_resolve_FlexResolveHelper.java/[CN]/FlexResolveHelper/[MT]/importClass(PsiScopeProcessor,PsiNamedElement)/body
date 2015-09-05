@@ -1,0 +1,38 @@
+{
+  if (file instanceof JSFunction)   return true;
+  if (file instanceof XmlBackedJSClassImpl) {
+    if (!processInlineComponentsInScope((XmlBackedJSClassImpl)file,new Processor<XmlBackedJSClass>(){
+      public boolean process(      XmlBackedJSClass inlineComponent){
+        return processor.execute(inlineComponent,ResolveState.initial());
+      }
+    }
+)) {
+      return false;
+    }
+  }
+  final String packageQualifierText=JSResolveUtil.findPackageStatementQualifier(file);
+  final Project project=file.getProject();
+  GlobalSearchScope scope=JSResolveUtil.getResolveScope(file);
+  final MxmlAndFxgFilesProcessor filesProcessor=new MxmlAndFxgFilesProcessor(){
+    final PsiManager manager=PsiManager.getInstance(project);
+    public void addDependency(    final PsiDirectory directory){
+    }
+    public boolean processFile(    final VirtualFile file,    final VirtualFile root){
+      final PsiFile xmlFile=manager.findFile(file);
+      if (!(xmlFile instanceof XmlFile))       return true;
+      return processor.execute(XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)xmlFile),ResolveState.initial());
+    }
+  }
+;
+  PsiFile containingFile=file.getContainingFile();
+  boolean completion=containingFile.getOriginalFile() != containingFile;
+  if (completion) {
+    return processAllMxmlAndFxgFiles(scope,project,filesProcessor,null);
+  }
+ else {
+    if (packageQualifierText != null && packageQualifierText.length() > 0) {
+      if (!processMxmlAndFxgFilesInPackage(scope,project,packageQualifierText,filesProcessor))       return false;
+    }
+    return processMxmlAndFxgFilesInPackage(scope,project,"",filesProcessor);
+  }
+}

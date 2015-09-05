@@ -1,0 +1,16 @@
+{
+  GotoImplementationHandler handler=new GotoImplementationHandler();
+  GotoTargetHandler.GotoData pair=handler.getSourceAndTargetElements(getEditor(),getFile());
+  PsiElement base=pair.source;
+  PsiElement[] implementations=pair.targets;
+  check(expected,implementations);
+  final Ref<PsiElement[]> ref=new Ref<PsiElement[]>();
+  new ShowImplementationsAction(){
+    @Override protected void showImplementations(    @NotNull PsiElement[] impls,    @NotNull Project project,    String text,    Editor editor,    PsiFile file,    PsiElement element,    boolean invokedFromEditor,    boolean invokedByShortcut){
+      ref.set(impls);
+    }
+  }
+.performForContext(DataManager.getInstance().getDataContext());
+  implementations=ArrayUtil.remove(ref.get(),base);
+  check(expected,implementations);
+}

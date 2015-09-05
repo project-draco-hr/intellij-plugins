@@ -1,0 +1,14 @@
+{
+  if (context instanceof XmlAttribute && !myEnumerated && "id".equals(name)) {
+    String value=((XmlAttribute)context).getValue();
+    int index=value.indexOf(CompletionInitializationContext.DUMMY_IDENTIFIER);
+    value=index == -1 ? value : value.substring(0,index);
+    final PsiElement parent=context.getParent();
+    final String tagName=parent instanceof XmlTag ? ((XmlTag)parent).getLocalName() : null;
+    if (StringUtil.isNotEmpty(tagName)) {
+      final String[] suggestedIds=suggestIdValues(value,tagName);
+      return makeUnique(suggestedIds,getNamedElementsVisibleAt(context));
+    }
+  }
+  return super.getEnumeratedValues(context);
+}

@@ -1,0 +1,65 @@
+{
+  final Map<String,String> libNameToSourceRoot=new THashMap<String,String>();
+  while (tokenizer.hasMoreTokens()) {
+    final String line=tokenizer.nextToken();
+    final int spaceIndex=line.indexOf(' ');
+    final int commaPos=line.indexOf(',');
+    if (spaceIndex == -1 || commaPos == -1) {
+      log("Unexpected string format:" + line);
+      continue;
+    }
+    String id=line.substring(0,spaceIndex);
+    String fullPath;
+    if (line.charAt(spaceIndex + 1) == '$') {
+      if (line.indexOf("$framework/mx/styles/StyleProtoChain.as",spaceIndex) != -1) {
+        fullPath=DebugPathManager.getFudHome() + "/flex-injection/src/main/flex/mx/styles/StyleProtoChain.as";
+      }
+ else       if (line.indexOf("$framework/mx/effects/Effect.as",spaceIndex) != -1) {
+        fullPath=DebugPathManager.getFudHome() + "/flex-injection/src/main/flex/mx/effects/Effect.as";
+      }
+ else {
+        int firstSlashIndex=line.indexOf('/');
+        StringBuilder builder=StringBuilderSpinAllocator.alloc();
+        try {
+          boolean isBackSlash=firstSlashIndex == -1;
+          if (isBackSlash) {
+            firstSlashIndex=line.indexOf('\\');
+          }
+          builder.append(getAppSdkHome()).append("/frameworks/projects/").append(line,spaceIndex + 2,firstSlashIndex).append("/src/");
+          if (isBackSlash) {
+            builder.append(line.substring(firstSlashIndex + 1,commaPos).replace('\\','/'));
+          }
+ else {
+            builder.append(line,firstSlashIndex + 1,commaPos);
+          }
+          fullPath=builder.toString();
+        }
+  finally {
+          StringBuilderSpinAllocator.dispose(builder);
+        }
+      }
+    }
+ else     if (line.startsWith("/Users/develar/Documents/flex",spaceIndex + 1)) {
+      final int beginIndex="/Users/develar/Documents/flex/frameworks/projects/".length() + spaceIndex + 1;
+      final int endIndex=line.indexOf('/',beginIndex + 2);
+      String libName=line.substring(beginIndex,endIndex);
+      fullPath="/Users/develar/.m2/repository/com/adobe/flex/framework/" + libName + "/4.5.0.20968/"+ libName+ "-4.5.0.20968-sources.jar!"+ line.substring(endIndex + "src".length() + 1,commaPos);
+    }
+ else     if (line.startsWith("/Users/develar/Documents/",spaceIndex + 1)) {
+      fullPath=getFromAttachedSources(line,libNameToSourceRoot,commaPos);
+      if (fullPath == null) {
+        fullPath=line.substring(spaceIndex + 1,commaPos).replace(File.separatorChar,'/');
+      }
+    }
+ else     if (line.indexOf("FtyleProtoChain.as",spaceIndex) != -1) {
+      fullPath="/Developer/SDKs/flex_4.5.1/frameworks/projects/framework/src/mx/styles/StyleProtoChain.as";
+    }
+ else     if (line.indexOf("Fffect.as",spaceIndex) != -1) {
+      fullPath="/Developer/SDKs/flex_4.5.1/frameworks/projects/framework/src/mx/effects/Effect.as";
+    }
+ else {
+      fullPath=line.substring(spaceIndex + 1,commaPos).replace(File.separatorChar,'/');
+    }
+    String shortName=line.substring(commaPos + 2);
+  }
+}

@@ -1,0 +1,33 @@
+{
+  final Set<ArrangementSettingsToken> result=ContainerUtilRt.newHashSet();
+  final JSAttributeList attributes=fieldOrMethod.getAttributeList();
+  if (attributes != null) {
+    JSAttributeList.AccessType accessType=attributes.getExplicitAccessType();
+    if (accessType == null) {
+      final String namespace=attributes.getNamespace();
+      if (namespace == null) {
+        accessType=JSAttributeList.AccessType.PACKAGE_LOCAL;
+      }
+    }
+    if (accessType != null) {
+switch (accessType) {
+case PUBLIC:
+        result.add(StdArrangementTokens.Modifier.PUBLIC);
+      break;
+case PROTECTED:
+    result.add(StdArrangementTokens.Modifier.PROTECTED);
+  break;
+case PACKAGE_LOCAL:
+result.add(StdArrangementTokens.Modifier.PACKAGE_PRIVATE);
+break;
+case PRIVATE:
+result.add(StdArrangementTokens.Modifier.PRIVATE);
+break;
+}
+}
+if (attributes.hasModifier(JSAttributeList.ModifierType.STATIC)) result.add(StdArrangementTokens.Modifier.STATIC);
+if (attributes.hasModifier(JSAttributeList.ModifierType.FINAL)) result.add(StdArrangementTokens.Modifier.FINAL);
+if (attributes.hasModifier(JSAttributeList.ModifierType.OVERRIDE)) result.add(StdArrangementTokens.Modifier.OVERRIDE);
+}
+return result;
+}

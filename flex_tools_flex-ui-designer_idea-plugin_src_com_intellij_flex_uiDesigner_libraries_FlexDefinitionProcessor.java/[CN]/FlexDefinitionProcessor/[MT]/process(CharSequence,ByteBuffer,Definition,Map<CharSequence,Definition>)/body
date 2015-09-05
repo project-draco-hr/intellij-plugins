@@ -1,0 +1,82 @@
+{
+  for (  String overloadedClassName : OVERLOADED) {
+    if (StringUtil.equals(name,overloadedClassName)) {
+      changeAbcName(overloadedClassName,buffer);
+      flipDefinition(definition,definitionMap,overloadedClassName);
+    }
+  }
+  if (StringUtil.equals(name,"mx.containers:Panel")) {
+    final List<SkipMethodKey> skippedMethods;
+    if (vGreaterOrEquals4_5) {
+      skippedMethods=new ArrayList<SkipMethodKey>(1);
+      skippedMethods.add(new SkipMethodKey("addChildAt",true));
+    }
+ else {
+      skippedMethods=null;
+    }
+    definition.doAbcData.abcModifier=new MethodAccessModifier("setControlBar",skippedMethods);
+  }
+ else   if (StringUtil.equals(name,"mx.controls:SWFLoader")) {
+    definition.doAbcData.abcModifier=new MethodAccessModifier("loadContent",null);
+  }
+ else   if (StringUtil.equals(name,"mx.styles:StyleProtoChain")) {
+    List<String> list=new ArrayList<String>(2);
+    list.add("matchStyleDeclarations");
+    list.add("sortOnSpecificity");
+    definition.doAbcData.abcModifier=new MethodAccessModifier(list);
+  }
+ else {
+    final boolean mxCore=StringUtil.startsWith(name,MX_CORE);
+    if (mxCore) {
+      if (equals(name,MX_CORE.length(),"UIComponent")) {
+        List<SkipMethodKey> list=new ArrayList<SkipMethodKey>(1);
+        list.add(new SkipMethodKey("removedFromStageHandler",false,true));
+        definition.doAbcData.abcModifier=new MethodAccessModifier("UIComponent",list,new VarAccessModifier("deferredSetStyles"));
+      }
+ else       if (vGreaterOrEquals4_5 && equals(name,MX_CORE.length(),"FTETextField")) {
+        definition.doAbcData.abcModifier=new VarAccessModifier("staticHandlersAdded");
+      }
+    }
+    if (definition.doAbcData.abcModifier != null) {
+      return;
+    }
+    boolean skipInitialize=false;
+    boolean skipCommitProperties=false;
+    boolean modifyConstructor=false;
+    boolean skipColorCorrection=false;
+    if (mxCore || StringUtil.startsWith(name,SPARK_COMPONENTS)) {
+      final int localNameOffset=mxCore ? MX_CORE.length() : SPARK_COMPONENTS.length();
+      skipInitialize=equals(name,localNameOffset,"Application");
+      skipCommitProperties=skipInitialize;
+      if (mxCore) {
+        if (skipInitialize) {
+          modifyConstructor=true;
+        }
+      }
+ else {
+        skipColorCorrection=skipInitialize && vGreaterOrEquals4_5;
+        modifyConstructor=skipInitialize || equals(name,localNameOffset,"ViewNavigatorApplicationBase") || equals(name,localNameOffset,"TabbedViewNavigatorApplication");
+        if (!skipInitialize && vGreaterOrEquals4_5) {
+          skipInitialize=equals(name,localNameOffset,"View");
+        }
+      }
+    }
+ else     if (vGreaterOrEquals4_5 && StringUtil.equals(name,"spark.components.supportClasses:ViewNavigatorApplicationBase")) {
+      skipInitialize=true;
+    }
+    final List<SkipMethodKey> skippedMethods;
+    if (skipInitialize || skipCommitProperties) {
+      skippedMethods=new ArrayList<SkipMethodKey>(2);
+      skippedMethods.add(new SkipMethodKey("initialize",true));
+      if (skipCommitProperties) {
+        skippedMethods.add(new SkipMethodKey("commitProperties",false));
+      }
+    }
+ else {
+      skippedMethods=null;
+    }
+    if (skippedMethods != null || modifyConstructor) {
+      definition.doAbcData.abcModifier=new MethodAccessModifier(skippedMethods,skipColorCorrection ? "colorCorrection" : null,modifyConstructor,null,null);
+    }
+  }
+}

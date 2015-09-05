@@ -1,0 +1,32 @@
+{
+  myOverrideMainClassCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      if (myOverrideMainClassCheckBox.isSelected()) {
+        updateOutputFileName(myOutputFileNameTextField,false);
+      }
+      updateControls();
+      if (myMainClassComponent.isEnabled()) {
+        IdeFocusManager.getInstance(myProject).requestFocus(myMainClassComponent.getChildComponent(),true);
+      }
+    }
+  }
+);
+  myMainClassComponent.addDocumentListener(new DocumentAdapter(){
+    public void documentChanged(    final DocumentEvent e){
+      final String shortName=StringUtil.getShortName(myMainClassComponent.getText().trim());
+      if (!shortName.isEmpty()) {
+        myOutputFileNameTextField.setText(shortName + ".swf");
+      }
+    }
+  }
+);
+  myOutputFileNameTextField.getDocument().addDocumentListener(new com.intellij.ui.DocumentAdapter(){
+    protected void textChanged(    final javax.swing.event.DocumentEvent e){
+      final FlexBuildConfiguration bc=myBCCombo.getBC();
+      if (bc != null && bc.getTargetPlatform() == TargetPlatform.Web) {
+        updateBCOutputLabel(bc);
+      }
+    }
+  }
+);
+}

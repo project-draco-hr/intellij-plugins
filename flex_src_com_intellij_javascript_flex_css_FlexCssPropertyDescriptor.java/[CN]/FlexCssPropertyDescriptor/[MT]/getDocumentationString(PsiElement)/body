@@ -1,0 +1,33 @@
+{
+  if (context == null)   return null;
+  PsiElement[] declarations=getDeclarations(context);
+  List<DocumentationElement> docElements=new ArrayList<DocumentationElement>();
+  for (  PsiElement declaration : declarations) {
+    PsiFile file=declaration.getContainingFile();
+    if (file != null) {
+      DocumentationProvider provider=DocumentationManager.getProviderFromElement(declaration);
+      String docForDeclaration=provider.generateDoc(declaration,declaration);
+      if (docForDeclaration != null) {
+        JSClass jsClass=PsiTreeUtil.getParentOfType(declaration,JSClass.class);
+        String header=jsClass != null ? jsClass.getQualifiedName() : file.getName();
+        docElements.add(new DocumentationElement(header,docForDeclaration));
+      }
+    }
+  }
+  Collections.sort(docElements,new Comparator<DocumentationElement>(){
+    public int compare(    @NotNull DocumentationElement e1,    @NotNull DocumentationElement e2){
+      return Comparing.compare(e1.header,e2.header);
+    }
+  }
+);
+  StringBuilder builder=new StringBuilder();
+  for (int i=0, n=docElements.size(); i < n; i++) {
+    DocumentationElement docElement=docElements.get(i);
+    builder.append("<b>").append(docElement.header).append("</b>").append("<br>\n");
+    builder.append(docElement.documentation);
+    if (i != n - 1) {
+      builder.append("<br><br>\n\n");
+    }
+  }
+  return builder.toString();
+}

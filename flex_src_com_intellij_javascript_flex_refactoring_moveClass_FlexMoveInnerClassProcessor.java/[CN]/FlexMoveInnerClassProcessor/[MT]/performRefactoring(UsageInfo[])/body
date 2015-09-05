@@ -1,0 +1,66 @@
+{
+  try {
+    CreateClassOrInterfaceFix.createClass(myClassName,myPackageName,myTargetDirectory,false);
+  }
+ catch (  Exception e) {
+    Messages.showErrorDialog(myProject,e.getMessage(),getCommandName());
+    return;
+  }
+  final PsiFile sourceFile=myElement.getContainingFile();
+  Collection<String> importsInTargetFile=new HashSet<String>();
+  Collection<String> namespacesInTargetFile=new HashSet<String>();
+  List<FormatFixer> formatters=new ArrayList<FormatFixer>();
+  JSClass targetClass=myElement instanceof JSClass ? (JSClass)myElement : null;
+  JSRefactoringUtil.fixOutgoingReferences(myElement,importsInTargetFile,namespacesInTargetFile,Collections.singletonList(((JSAttributeListOwner)myElement)),targetClass,false,false);
+  myElement.setName(myClassName);
+  Collection<UsageInfo> usagesToProcess=new ArrayList<UsageInfo>(Arrays.asList(usages));
+  for (Iterator<UsageInfo> i=usagesToProcess.iterator(); i.hasNext(); ) {
+    UsageInfo usage=i.next();
+    PsiElement element;
+    if (usage instanceof NonCodeUsageInfo || !((element=usage.getElement()) instanceof JSReferenceExpression) || !PsiTreeUtil.isAncestor(myElement,element,false)) {
+      continue;
+    }
+    ((JSReferenceExpression)element).bindToElement(myElement);
+    i.remove();
+  }
+  final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(StringUtil.getQualifiedName(myPackageName,myClassName),GlobalSearchScope.projectScope(myProject));
+  PsiElement toInsert=myElement instanceof JSVariable ? JSRefactoringUtil.getVarStatementCopy((JSVariable)myElement) : myElement.copy();
+  final PsiElement inserted=clazz.replace(toInsert);
+  PsiFile insertedContainingFile=inserted.getContainingFile();
+  JSQualifiedNamedElement newClass=inserted instanceof JSVarStatement ? ((JSVarStatement)inserted).getVariables()[0] : (JSQualifiedNamedElement)inserted;
+  SmartPsiElementPointer<JSQualifiedNamedElement> newClassPointer=SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(newClass);
+  JSRefactoringUtil.handleDocCommentAndFormat(inserted,formatters);
+  JSRefactoringUtil.deleteWithNoPostponedFormatting(myElement);
+  if (myPackageName.length() > 0) {
+    for (    UsageInfo usage : usagesToProcess) {
+      if (usage instanceof NonCodeUsageInfo || usage.getFile() != sourceFile)       continue;
+      final PsiElement element=usage.getElement();
+      if (element == null)       continue;
+      ImportUtils.doImport(element,StringUtil.getQualifiedName(myPackageName,myClassName),true);
+    }
+  }
+  JSRefactoringUtil.postProcess(sourceFile,newClass,Collections.singletonList(sourceFile),importsInTargetFile,namespacesInTargetFile,formatters,true,false);
+  boolean makePublic=false;
+  newClass=newClassPointer.getElement();
+  List<NonCodeUsageInfo> nonCodeUsages=new ArrayList<NonCodeUsageInfo>();
+  for (  UsageInfo usage : usagesToProcess) {
+    if (usage instanceof NonCodeUsageInfo) {
+      nonCodeUsages.add((NonCodeUsageInfo)usage);
+    }
+ else {
+      JSReferenceExpression refExpr=(JSReferenceExpression)usage.getElement();
+      if (refExpr == null) {
+        continue;
+      }
+      makePublic|=JSPsiImplUtils.getQNameForMove(refExpr,newClass) != null;
+      refExpr.bindToElement(newClass);
+    }
+  }
+  JSVisibilityUtil.setVisibility((JSAttributeListOwner)newClass,makePublic ? JSAttributeList.AccessType.PUBLIC : JSAttributeList.AccessType.PACKAGE_LOCAL);
+  myNonCodeUsages=nonCodeUsages.toArray(new NonCodeUsageInfo[nonCodeUsages.size()]);
+  if (myMoveCallback != null) {
+    myMoveCallback.refactoringCompleted();
+  }
+  OpenFileDescriptor descriptor=new OpenFileDescriptor(myProject,insertedContainingFile.getVirtualFile(),newClass.getTextOffset());
+  FileEditorManager.getInstance(myProject).openTextEditor(descriptor,true);
+}

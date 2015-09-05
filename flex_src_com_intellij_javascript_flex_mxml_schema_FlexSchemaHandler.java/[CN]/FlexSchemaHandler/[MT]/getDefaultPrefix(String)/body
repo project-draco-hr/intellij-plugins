@@ -1,0 +1,37 @@
+{
+  if (JavaScriptSupportLoader.MXML_URI.equals(namespace))   return "mx";
+  if (JavaScriptSupportLoader.MXML_URI3.equals(namespace))   return "fx";
+  if (MxmlJSClass.MXML_URI4.equals(namespace))   return "s";
+  if (MxmlJSClass.MXML_URI5.equals(namespace))   return "h";
+  if (MxmlJSClass.MXML_URI6.equals(namespace))   return "mx";
+  if ("*".equals(namespace))   return "local";
+  namespace=FileUtil.toSystemIndependentName(namespace.toLowerCase());
+  String prefix=namespace;
+  if (namespace.endsWith(".*") && namespace.length() > 2) {
+    final String pack=namespace.substring(0,namespace.length() - 2);
+    prefix=pack.substring(pack.lastIndexOf('.') + 1);
+  }
+ else {
+    final String schemaMarker="://";
+    int schemaMarkerIndex=namespace.indexOf(schemaMarker);
+    if (schemaMarkerIndex > 0) {
+      String path=namespace.substring(schemaMarkerIndex + schemaMarker.length());
+      path=StringUtil.trimStart(path,"www.");
+      path=StringUtil.trimEnd(path,"/");
+      final String lastSegment=path.substring(path.lastIndexOf('/') + 1);
+      if (prefixPattern.matcher(lastSegment).matches()) {
+        return lastSegment;
+      }
+      final int dotIndex=path.indexOf('.');
+      final int slashIndex=path.indexOf('/');
+      final int endIndex=(dotIndex == -1) ? (slashIndex == -1 ? path.length() : slashIndex) : (slashIndex == -1 ? dotIndex : Math.min(dotIndex,slashIndex));
+      if (path.length() > 0 && endIndex > 0) {
+        prefix=path.substring(0,endIndex);
+      }
+    }
+  }
+  if (prefix != null && prefixPattern.matcher(prefix).matches()) {
+    return prefix;
+  }
+  return "undefined";
+}

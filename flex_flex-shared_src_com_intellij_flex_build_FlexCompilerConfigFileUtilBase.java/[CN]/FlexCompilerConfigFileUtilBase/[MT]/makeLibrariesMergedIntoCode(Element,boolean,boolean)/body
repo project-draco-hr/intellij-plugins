@@ -1,0 +1,18 @@
+{
+  final Namespace namespace=rootElement.getNamespace();
+  final Collection<String> paths=removeLibs(rootElement,externalLibs,includedLibs);
+  if (!paths.isEmpty()) {
+    final Element compilerElement=rootElement.getChild(COMPILER,namespace);
+    Element libraryPathElement=compilerElement.getChild(LIBRARY_PATH,namespace);
+    if (libraryPathElement == null) {
+      libraryPathElement=new Element(LIBRARY_PATH,namespace);
+      libraryPathElement.setAttribute(new Attribute(APPEND,"true"));
+      compilerElement.addContent(libraryPathElement);
+    }
+    for (    final String path : paths) {
+      final Element pathElement=new Element(PATH_ELEMENT,namespace);
+      pathElement.addContent(path);
+      libraryPathElement.addContent(pathElement);
+    }
+  }
+}

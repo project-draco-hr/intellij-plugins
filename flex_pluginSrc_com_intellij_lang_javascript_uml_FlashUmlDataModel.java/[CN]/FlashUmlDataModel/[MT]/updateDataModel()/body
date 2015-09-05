@@ -1,0 +1,97 @@
+{
+  final Set<JSClass> classes=getAllClasses();
+  syncPackages();
+  final Set<JSClass> interfaces=new HashSet<JSClass>();
+  for (  String psiPackage : packages) {
+    if (FlashUmlElementManager.packageExists(getProject(),psiPackage,GlobalSearchScope.allScope(getProject()))) {
+      myNodes.add(new FlashUmlPackageNode(psiPackage,getProvider()));
+    }
+  }
+  for (  JSClass psiClass : classes) {
+    if (isAllowedToShow(psiClass)) {
+      myNodes.add(new FlashUmlClassNode(psiClass,getProvider()));
+    }
+    if (psiClass.isInterface()) {
+      interfaces.add(psiClass);
+    }
+  }
+  for (  JSClass psiClass : classes) {
+{
+      DiagramNode<Object> source=findNode(psiClass);
+      DiagramNode<Object> target=null;
+      Collection<JSClass> processed=new ArrayList<JSClass>();
+      JSClass superClass=getSuperClass(psiClass,processed);
+      while (target == null && superClass != null) {
+        target=findNode(superClass);
+        superClass=getSuperClass(superClass,processed);
+      }
+      if (source != null && target != null && source != target) {
+        if (!((JSClass)getIdentifyingElement(source)).isInterface() || !JSResolveUtil.isObjectClass((JSClass)getIdentifyingElement(target))) {
+          addEdge(source,target,psiClass.isInterface() ? FlashUmlRelationship.INTERFACE_GENERALIZATION : FlashUmlRelationship.GENERALIZATION);
+        }
+      }
+    }
+    for (    JSClass inter : psiClass.getImplementedInterfaces()) {
+      if (interfaces.contains(inter)) {
+        DiagramNode<Object> source=findNode(psiClass);
+        DiagramNode<Object> target=findNode(inter);
+        if (source != null && target != null && source != target) {
+          addEdge(source,target,FlashUmlRelationship.REALIZATION);
+        }
+      }
+    }
+    if (psiClass.isInterface()) {
+      Set<JSClass> found=new HashSet<JSClass>();
+      findNearestInterfaces(psiClass,found);
+      for (      JSClass inter : found) {
+        if (interfaces.contains(inter)) {
+          DiagramNode<Object> source=findNode(psiClass);
+          DiagramNode<Object> target=findNode(inter);
+          if (source != null && target != null && source != target) {
+            addEdge(source,target,FlashUmlRelationship.INTERFACE_GENERALIZATION);
+          }
+        }
+      }
+    }
+ else {
+      Set<JSClass> inters=new HashSet<JSClass>();
+      ContainerUtil.addAll(inters,psiClass.getImplementedInterfaces());
+      Collection<JSClass> processed=new ArrayList<JSClass>();
+      JSClass cur=getSuperClass(psiClass,processed);
+      while (cur != null) {
+        if (findNode(cur) == null) {
+          ContainerUtil.addAll(inters,cur.getImplementedInterfaces());
+        }
+ else {
+          break;
+        }
+        cur=getSuperClass(cur,processed);
+      }
+      ArrayList<JSClass> faces=new ArrayList<JSClass>(inters);
+      while (!faces.isEmpty()) {
+        JSClass inter=faces.get(0);
+        if (findNode(inter) != null) {
+          DiagramNode<Object> source=findNode(psiClass);
+          DiagramNode<Object> target=findNode(inter);
+          if (source != null && target != null && source != target) {
+            addEdge(source,target,FlashUmlRelationship.REALIZATION);
+          }
+          faces.remove(inter);
+        }
+ else {
+          faces.remove(inter);
+          ContainerUtil.addAll(faces,inter.getImplementedInterfaces());
+        }
+      }
+    }
+  }
+  if (isShowDependencies()) {
+    final EnumSet<FlashUmlDependenciesSettingsOption> options=FlashUmlDependenciesSettingsOption.getEnabled();
+    for (    JSClass psiClass : classes) {
+      showDependenciesFor(psiClass,options);
+    }
+  }
+  mergeWithBackup(myNodes,myNodesOld);
+  mergeWithBackup(myEdges,myEdgesOld);
+  mergeWithBackup(myDependencyEdges,myDependencyEdgesOld);
+}

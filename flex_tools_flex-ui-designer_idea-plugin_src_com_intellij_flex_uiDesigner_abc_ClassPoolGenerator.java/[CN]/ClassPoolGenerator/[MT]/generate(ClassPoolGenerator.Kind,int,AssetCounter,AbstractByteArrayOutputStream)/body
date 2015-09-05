@@ -1,0 +1,24 @@
+{
+  final int start=out.size();
+  out.getBuffer(SwfUtil.getWrapHeaderLength());
+  ArrayList<Decoder> decoders=new ArrayList<Decoder>(size);
+switch (kind) {
+case IMAGE:
+    generate(kind,decoders,size,allocatedCount.imageCount);
+  allocatedCount.imageCount+=size;
+break;
+case SWF:
+generate(kind,decoders,size,allocatedCount.swfCount);
+allocatedCount.swfCount+=size;
+break;
+case SPARK_VIEW:
+generate(kind,decoders,size,allocatedCount.viewCount);
+allocatedCount.viewCount+=size;
+break;
+default :
+throw new IllegalArgumentException("unknown method");
+}
+final ByteBuffer buffer=SwfUtil.mergeDoAbc(decoders).writeDoAbc(out);
+SwfUtil.header(SwfUtil.getWrapLength() + (out.size() - start),out,buffer,start);
+SwfUtil.footer(out);
+}

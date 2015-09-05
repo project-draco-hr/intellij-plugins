@@ -1,0 +1,27 @@
+{
+  final CompilerOptionInfo.ListElement firstElement=myInfo.LIST_ELEMENTS[0];
+  if (myInfo.LIST_ELEMENTS.length == 1 && (firstElement.LIST_ELEMENT_TYPE == ListElementType.File || firstElement.LIST_ELEMENT_TYPE == ListElementType.FileOrFolder)) {
+    final FileChooserDescriptor descriptor=firstElement.LIST_ELEMENT_TYPE == ListElementType.File ? FlexUtils.createFileChooserDescriptor(firstElement.FILE_EXTENSIONS) : FileChooserDescriptorFactory.createSingleLocalFileDescriptor();
+    final VirtualFile file=FileChooser.chooseFile(descriptor,myProject,null);
+    if (file != null) {
+      getCurrentList().add(new StringBuilder(file.getPath()));
+      return true;
+    }
+  }
+ else {
+    final StringBuilder b=new StringBuilder();
+    boolean first=true;
+    for (    CompilerOptionInfo.ListElement listElement : myInfo.LIST_ELEMENTS) {
+      if (first) {
+        first=false;
+      }
+ else {
+        b.append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR);
+      }
+      b.append(listElement.DEFAULT_VALUE);
+    }
+    getCurrentList().add(b);
+    return true;
+  }
+  return false;
+}

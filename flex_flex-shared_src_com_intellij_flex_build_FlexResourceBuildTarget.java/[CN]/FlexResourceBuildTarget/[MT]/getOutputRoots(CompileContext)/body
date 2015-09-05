@@ -1,0 +1,13 @@
+{
+  if (getTargetType() == FlexResourceBuildTargetType.TEST) {
+    final File outputDir=ProjectPaths.getModuleOutputDir(getModule(),true);
+    return outputDir == null ? Collections.<File>emptyList() : Collections.singletonList(outputDir);
+  }
+  final Set<File> result=new THashSet<File>(FileUtil.FILE_HASHING_STRATEGY);
+  for (  JpsFlexBuildConfiguration bc : getModule().getProperties().getBuildConfigurations()) {
+    if (FlexCommonUtils.canHaveResourceFiles(bc.getNature())) {
+      result.add(new File(PathUtilRt.getParentPath(bc.getActualOutputFilePath())));
+    }
+  }
+  return result;
+}

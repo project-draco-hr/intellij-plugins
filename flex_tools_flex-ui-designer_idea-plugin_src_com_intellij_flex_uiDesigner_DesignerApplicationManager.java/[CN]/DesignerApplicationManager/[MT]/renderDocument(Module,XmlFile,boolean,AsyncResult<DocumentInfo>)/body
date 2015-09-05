@@ -1,0 +1,22 @@
+{
+  final boolean appClosed=isApplicationClosed();
+  boolean hasError=true;
+  try {
+    if (appClosed || !Client.getInstance().isModuleRegistered(module)) {
+      final Sdk sdk=FlexUtils.getSdkForActiveBC(module);
+      if (sdk == null || !checkFlexSdkVersion(sdk)) {
+        reportInvalidFlexSdk(module,debug,sdk);
+        result.setRejected();
+        return;
+      }
+    }
+    hasError=false;
+  }
+  finally {
+    if (hasError) {
+      result.setRejected();
+    }
+  }
+  final RenderDocumentTask renderDocumentTask=new RenderDocumentTask(psiFile,result);
+  ProgressManager.getInstance().run(appClosed ? new DesignerApplicationLauncher(module,renderDocumentTask,debug) : new DocumentTaskExecutor(module,renderDocumentTask));
+}

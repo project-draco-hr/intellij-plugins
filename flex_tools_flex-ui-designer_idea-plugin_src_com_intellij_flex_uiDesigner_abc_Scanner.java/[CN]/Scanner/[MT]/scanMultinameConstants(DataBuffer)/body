@@ -1,0 +1,41 @@
+{
+  int size=in.readU32();
+  if (size == 0) {
+    return ArrayUtil.EMPTY_INT_ARRAY;
+  }
+  int[] positions=new int[size];
+  for (int i=1; i < size; i++) {
+    positions[i]=in.position();
+    int kind=in.readU8();
+switch (kind) {
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+      in.readU32();
+    in.readU32();
+  break;
+case CONSTANT_RTQname:
+case CONSTANT_RTQnameA:
+in.readU32();
+break;
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+in.readU32();
+in.readU32();
+break;
+case CONSTANT_RTQnameL:
+case CONSTANT_RTQnameLA:
+break;
+case CONSTANT_MultinameL:
+case CONSTANT_MultinameLA:
+in.readU32();
+break;
+case CONSTANT_TypeName:
+in.readU32();
+in.skipEntries(in.readU32());
+break;
+default :
+throw new DecoderException("Invalid constant type: " + kind);
+}
+}
+return positions;
+}

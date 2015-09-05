@@ -1,0 +1,20 @@
+{
+  final GlobalSearchScope searchScope;
+  int separatorIndex=fqn.indexOf(SEPARATOR);
+  if (separatorIndex != -1) {
+    String moduleName=fqn.substring(0,separatorIndex);
+    Module module=ModuleManager.getInstance(project).findModuleByName(moduleName);
+    if (module == null) {
+      return null;
+    }
+    fqn=fqn.substring(separatorIndex + 1);
+    searchScope=module.getModuleScope(true);
+  }
+ else {
+    searchScope=GlobalSearchScope.allScope(project);
+  }
+  final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(fqn,searchScope);
+  if (clazz instanceof JSClass)   return clazz;
+  if (FlashUmlElementManager.packageExists(project,fqn,searchScope))   return fqn;
+  return null;
+}

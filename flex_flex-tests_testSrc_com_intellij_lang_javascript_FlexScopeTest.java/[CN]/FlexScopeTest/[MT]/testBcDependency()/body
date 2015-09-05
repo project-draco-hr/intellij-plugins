@@ -1,0 +1,54 @@
+{
+  doHighlightingTest("_1");
+  final Module module2=JSTestUtils.createModule(myProject,"module2",getVirtualFile(getBasePath() + "Module2"));
+  doHighlightingTest("_1");
+  ModuleRootModificationUtil.addDependency(myModule,module2);
+  doHighlightingTest("_1");
+  AccessToken writeAction=WriteAction.start();
+  try {
+    JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+      @Override public void consume(      final FlexProjectConfigurationEditor editor){
+        final ModifiableFlexBuildConfiguration dependentBc=editor.getConfigurations(myModule)[0];
+        final ModifiableFlexBuildConfiguration dependencyBc=editor.getConfigurations(module2)[0];
+        final ModifiableBuildConfigurationEntry dependencyEntry=editor.createBcEntry(dependentBc.getDependencies(),dependencyBc,null);
+        dependentBc.getDependencies().getModifiableEntries().add(dependencyEntry);
+      }
+    }
+);
+  }
+  finally {
+    writeAction.finish();
+  }
+  doHighlightingTest("_1");
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor editor){
+      final ModifiableFlexBuildConfiguration dependentBc=editor.getConfigurations(myModule)[0];
+      dependentBc.getDependencies().getModifiableEntries().get(0).getDependencyType().setLinkageType(LinkageType.LoadInRuntime);
+      editor.getConfigurations(module2)[0].setOutputType(OutputType.RuntimeLoadedModule);
+    }
+  }
+);
+  doHighlightingTest("_1");
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor editor){
+      final ModifiableFlexBuildConfiguration dependentBc=editor.getConfigurations(myModule)[0];
+      dependentBc.getDependencies().getModifiableEntries().get(0).getDependencyType().setLinkageType(LinkageType.External);
+      editor.getConfigurations(module2)[0].setOutputType(OutputType.Library);
+    }
+  }
+);
+  doHighlightingTest("_2");
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor e){
+      final ModifiableFlexBuildConfiguration bc=e.createConfiguration(myModule);
+      bc.setName("Second");
+    }
+  }
+);
+  doHighlightingTest("_2");
+  final FlexBuildConfigurationManager bcManager=FlexBuildConfigurationManager.getInstance(myModule);
+  bcManager.setActiveBuildConfiguration(bcManager.findConfigurationByName("Second"));
+  doHighlightingTest("_1");
+  bcManager.setActiveBuildConfiguration(bcManager.findConfigurationByName("Unnamed"));
+  doHighlightingTest("_2");
+}

@@ -1,0 +1,12 @@
+{
+  final Project project=parentInOriginalTree.getProject();
+  final GlobalSearchScope resolveScope=JSResolveUtil.getResolveScope(parentInOriginalTree);
+  JSPackageIndex.processElementsInScopeRecursive("",new JSPackageIndex.PackageQualifiedElementsProcessor(){
+    @Override public boolean process(    String qualifiedName,    JSPackageIndexInfo.Kind kind,    boolean isPublic){
+      if (kind != JSPackageIndexInfo.Kind.FUNCTION && kind != JSPackageIndexInfo.Kind.VARIABLE)       return true;
+      PsiElement element=JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver().findClassByQName(qualifiedName,resolveScope);
+      return element == null || processor.execute(element,ResolveState.initial());
+    }
+  }
+,resolveScope,project);
+}

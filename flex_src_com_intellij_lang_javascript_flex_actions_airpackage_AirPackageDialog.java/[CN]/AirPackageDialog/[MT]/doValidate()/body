@@ -1,0 +1,48 @@
+{
+  final Collection<Pair<Module,FlexBuildConfiguration>> modulesAndBCs=getSelectedBCs();
+  if (modulesAndBCs.isEmpty())   return new ValidationInfo("Please select one or more build configurations");
+  if (myApkDebugPortTextField.isVisible() && myApkDebugPortPanel.isEnabled()) {
+    try {
+      final String portValue=myApkDebugPortTextField.getText().trim();
+      final int port=portValue.isEmpty() ? AirPackageUtil.DEBUG_PORT_DEFAULT : Integer.parseInt(portValue);
+      if (port <= 0 || port > 65535)       return new ValidationInfo("Incorrect port",myApkDebugPortPanel);
+    }
+ catch (    NumberFormatException e) {
+      return new ValidationInfo("Incorrect port",myApkDebugPortTextField);
+    }
+  }
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : modulesAndBCs) {
+    final FlexBuildConfiguration bc=moduleAndBC.second;
+    if (bc.isSkipCompile() && LocalFileSystem.getInstance().findFileByPath(bc.getActualOutputFilePath()) == null) {
+      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),FlexBundle.message("compilation.is.switched.off")));
+    }
+    final BuildConfigurationNature nature=bc.getNature();
+    if (nature.isMobilePlatform()) {
+      if (!bc.getAndroidPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isEnabled()) {
+        return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),"both Android and iOS packaging disabled"));
+      }
+      if (bc.getAndroidPackagingOptions().isEnabled() && bc.getIosPackagingOptions().isEnabled()) {
+        final AndroidPackageType androidPackage=(AndroidPackageType)myAndroidTypeCombo.getSelectedItem();
+        final IOSPackageType iosPackage=(IOSPackageType)myIOSTypeCombo.getSelectedItem();
+        final boolean androidDebug=androidPackage != AndroidPackageType.Release;
+        final boolean iosDebug=iosPackage == IOSPackageType.DebugOverNetwork;
+        if (androidDebug != iosDebug) {
+          return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),FlexBundle.message("different.debug.settings",androidDebug ? 1 : 2)));
+        }
+      }
+    }
+    final Ref<String> firstErrorRef=new Ref<String>();
+    ValidateFlashConfigurationsPrecompileTask.checkPackagingOptions(moduleAndBC.first,bc,new Consumer<FlashProjectStructureProblem>(){
+      public void consume(      final FlashProjectStructureProblem problem){
+        if (problem.severity == ProjectStructureProblemType.Severity.ERROR && firstErrorRef.isNull()) {
+          firstErrorRef.set(problem.errorMessage);
+        }
+      }
+    }
+);
+    if (!firstErrorRef.isNull()) {
+      return new ValidationInfo(FlexBundle.message("can.not.package.bc",bc.getName(),firstErrorRef.get()));
+    }
+  }
+  return null;
+}

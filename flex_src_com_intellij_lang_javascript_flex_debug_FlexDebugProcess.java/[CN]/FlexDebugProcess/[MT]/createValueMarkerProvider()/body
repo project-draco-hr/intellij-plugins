@@ -1,0 +1,25 @@
+{
+  return new XValueMarkerProvider<FlexValue,String>(FlexValue.class){
+    @Override public boolean canMark(    @NotNull final FlexValue value){
+      return getObjectId(value) != null;
+    }
+    @Override public String getMarker(    @NotNull final FlexValue value){
+      return getObjectId(value);
+    }
+    private String getObjectId(    final FlexValue value){
+      final String text=value.getResult();
+      final String prefix="[Object ";
+      final String suffix=FlexStackFrame.CLASS_MARKER;
+      int suffixIndex;
+      if (text.startsWith(prefix) && (suffixIndex=text.indexOf(suffix,prefix.length())) > 0) {
+        try {
+          return FlexStackFrame.validObjectId(text.substring(prefix.length(),suffixIndex));
+        }
+ catch (        NumberFormatException e) {
+        }
+      }
+      return null;
+    }
+  }
+;
+}

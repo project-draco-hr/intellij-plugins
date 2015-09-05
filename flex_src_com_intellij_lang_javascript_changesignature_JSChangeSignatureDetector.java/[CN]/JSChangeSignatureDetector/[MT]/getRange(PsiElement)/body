@@ -1,0 +1,19 @@
+{
+  JSFunction f=PsiTreeUtil.getParentOfType(element,JSFunction.class,false);
+  if (f == null)   return null;
+  ASTNode identifier=f.findNameIdentifier();
+  if (identifier == null) {
+    return null;
+  }
+  PsiElement e=f.getReturnTypeElement();
+  if (e == null) {
+    ASTNode colon=f.getNode().findChildByType(JSTokenTypes.COLON);
+    if (colon != null) {
+      e=colon.getPsi();
+    }
+  }
+  if (e == null) {
+    e=f.getParameterList();
+  }
+  return new TextRange(identifier.getTextRange().getStartOffset(),e.getTextRange().getEndOffset());
+}

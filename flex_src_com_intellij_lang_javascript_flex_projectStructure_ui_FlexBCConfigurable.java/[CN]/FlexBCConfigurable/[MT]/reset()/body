@@ -1,0 +1,28 @@
+{
+  myFreeze=true;
+  try {
+    setDisplayName(myConfiguration.getName());
+    myNatureLabel.setText(myConfiguration.getNature().getPresentableText());
+    myOptimizeForCombo.setSelectedItem(myConfiguration.getOptimizeFor());
+    myMainClassComponent.setText(myConfiguration.getMainClass());
+    myOutputFileNameTextField.setText(myConfiguration.getOutputFileName());
+    myOutputFolderField.setText(FileUtil.toSystemDependentName(myConfiguration.getOutputFolder()));
+    myUseHTMLWrapperCheckBox.setSelected(myConfiguration.isUseHtmlWrapper());
+    myWrapperTemplateTextWithBrowse.setText(FileUtil.toSystemDependentName(myConfiguration.getWrapperTemplatePath()));
+    myRLMs=new ArrayList<FlexBuildConfiguration.RLMInfo>(myConfiguration.getRLMs());
+    myCssFilesToCompile=new ArrayList<String>(myConfiguration.getCssFilesToCompile());
+    mySkipCompilationCheckBox.setSelected(myConfiguration.isSkipCompile());
+    updateControls();
+    overriddenValuesChanged(null,null,null);
+    myDependenciesConfigurable.reset();
+    myCompilerOptionsConfigurable.reset();
+    if (myAirDesktopPackagingConfigurable != null)     myAirDesktopPackagingConfigurable.reset();
+    if (myAndroidPackagingConfigurable != null)     myAndroidPackagingConfigurable.reset();
+    if (myIOSPackagingConfigurable != null)     myIOSPackagingConfigurable.reset();
+  }
+  finally {
+    myFreeze=false;
+  }
+  rebuildMainClassFilter();
+  myContext.getDaemonAnalyzer().queueUpdate(myStructureElement);
+}

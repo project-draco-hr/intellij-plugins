@@ -1,0 +1,123 @@
+{
+  configureByFiles(projectRoot,files);
+  final Ref<IXMLElement> expected=new Ref<IXMLElement>();
+  UIUtil.invokeAndWaitIfNeeded(new Runnable(){
+    @Override public void run(){
+      AccessToken l=WriteAction.start();
+      try {
+        Collection<IXMLElement> collection=JSTestUtils.extractXml(myEditor.getDocument(),"testResults");
+        assertEquals("Invalid expected structure",1,collection.size());
+        expected.set(collection.iterator().next());
+      }
+ catch (      Exception e) {
+        e.printStackTrace();
+        fail(e.getMessage());
+      }
+ finally {
+        l.finish();
+      }
+    }
+  }
+);
+  UIUtil.invokeAndWaitIfNeeded(new Runnable(){
+    @Override public void run(){
+      AccessToken l=WriteAction.start();
+      try {
+        JSTestUtils.modifyBuildConfiguration(myModule,new Consumer<ModifiableFlexBuildConfiguration>(){
+          public void consume(          final ModifiableFlexBuildConfiguration configuration){
+            configuration.setTargetPlatform(myTargetPlatform);
+          }
+        }
+);
+      }
+  finally {
+        l.finish();
+      }
+    }
+  }
+);
+  final RunnerAndConfigurationSettings runnerAndConfigurationSettings=RunManager.getInstance(myProject).createRunConfiguration("test",FlexUnitRunConfigurationType.getFactory());
+  final FlexUnitRunConfiguration flexUnitRunConfig=(FlexUnitRunConfiguration)runnerAndConfigurationSettings.getConfiguration();
+  final FlexUnitRunnerParameters params=flexUnitRunConfig.getRunnerParameters();
+  params.setModuleName(myModule.getName());
+  params.setBCName(FlexBuildConfigurationManager.getInstance(myModule).getBuildConfigurations()[0].getName());
+  params.setOutputLogLevel(outputLogLevel);
+  params.setScope(testScope);
+switch (testScope) {
+case Class:
+    params.setClassName(testClassOrPackage);
+  break;
+case Method:
+params.setClassName(testClassOrPackage);
+params.setMethodName(testMethod);
+break;
+case Package:
+params.setPackageName(testClassOrPackage);
+break;
+default :
+fail("Unknown scope: " + testScope);
+}
+flexUnitRunConfig.checkConfiguration();
+final ProgramRunner runner=new FlexUnitTestRunner();
+final Executor executor=debugNotRun ? DefaultDebugExecutor.getDebugExecutorInstance() : DefaultRunExecutor.getRunExecutorInstance();
+final ExecutionEnvironment env=new ExecutionEnvironment(executor,runner,runnerAndConfigurationSettings,getProject());
+final Semaphore compilation=new Semaphore();
+compilation.down();
+final Semaphore execution=new Semaphore();
+execution.down();
+final Semaphore startup=new Semaphore();
+final ProcessListener listener=new ProcessListener(){
+@Override public void startNotified(ProcessEvent event){
+startup.up();
+}
+@Override public void processTerminated(ProcessEvent event){
+execution.up();
+}
+@Override public void processWillTerminate(ProcessEvent event,boolean willBeDestroyed){
+}
+@Override public void onTextAvailable(ProcessEvent event,Key outputType){
+System.out.println("FlexUnit: " + event.getText());
+}
+}
+;
+final Ref<ExecutionConsole> executionConsole=new Ref<ExecutionConsole>();
+ApplicationManager.getApplication().invokeLater(new Runnable(){
+@Override public void run(){
+try {
+runner.execute(env,new ProgramRunner.Callback(){
+@Override public void processStarted(RunContentDescriptor descriptor){
+compilation.up();
+startup.down();
+descriptor.getProcessHandler().addProcessListener(listener);
+executionConsole.set(descriptor.getExecutionConsole());
+}
+}
+);
+}
+ catch (Throwable t) {
+t.printStackTrace();
+fail(t.getMessage());
+compilation.up();
+startup.up();
+execution.up();
+}
+}
+}
+);
+if (!compilation.waitFor(COMPILATION_TIMEOUT * 1000)) {
+fail("Compilation did not succeed in " + COMPILATION_TIMEOUT + " seconds. There was an error or it took too long\n"+ FlexCompilerHandler.getInstance(myProject).getLastCompilationMessages());
+}
+if (!startup.waitFor(STARTUP_TIMEOUT * 1000)) {
+fail("Process was not started in " + STARTUP_TIMEOUT + " seconds");
+}
+if (!execution.waitFor(EXECUTION_TIMEOUT * 1000)) {
+fail("Execution did not finish in " + EXECUTION_TIMEOUT + " seconds");
+}
+Thread.sleep(200);
+final AbstractTestProxy testRoot=((SMTRunnerConsoleView)executionConsole.get()).getResultsViewer().getRoot();
+checkResults(expected.get(),testRoot);
+if (outputLogLevel == null) {
+checkOutput(testRoot,outputLogLevel);
+}
+return testRoot;
+}

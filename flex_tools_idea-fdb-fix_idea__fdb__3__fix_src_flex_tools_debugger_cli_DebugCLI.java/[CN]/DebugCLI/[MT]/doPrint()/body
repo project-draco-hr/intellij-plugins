@@ -1,0 +1,47 @@
+{
+  try {
+    Object result=null;
+    if (!hasMoreTokens()) {
+      try {
+        result=m_exprCache.get("$");
+      }
+ catch (      ArrayIndexOutOfBoundsException aib) {
+        err(getLocalizationManager().getLocalizedTextString("commandHistoryIsEmpty"));
+        throw new NullPointerException();
+      }
+    }
+ else {
+      String s=restOfLine();
+      ValueExp expr=parseExpression(s);
+      if (expr.hasSideEffectsOtherThanGetters())       throw new IllegalAccessException();
+      result=evalExpression(expr);
+    }
+    int which=m_exprCache.add(result);
+    StringBuffer sb=new StringBuffer();
+    sb.append('$');
+    sb.append(which);
+    sb.append(" = ");
+    if (result instanceof Variable)     ExpressionCache.appendVariableValue(sb,((Variable)result).getValue());
+ else     if (result instanceof Value)     ExpressionCache.appendVariableValue(sb,(Value)result);
+ else     if (result instanceof InternalProperty)     sb.append(((InternalProperty)result).valueOf());
+ else     sb.append(result);
+    out(sb.toString());
+    m_repeatLine=m_currentLine;
+  }
+ catch (  ArrayIndexOutOfBoundsException aio) {
+    Map args=new HashMap();
+    args.put("number",aio.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("historyHasNotReached",args));
+  }
+catch (  IllegalAccessException iae) {
+    err(getLocalizationManager().getLocalizedTextString("noSideEffectsAllowed"));
+  }
+catch (  NoSuchVariableException nsv) {
+    Map args=new HashMap();
+    args.put("variable",nsv.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("variableUnknown",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

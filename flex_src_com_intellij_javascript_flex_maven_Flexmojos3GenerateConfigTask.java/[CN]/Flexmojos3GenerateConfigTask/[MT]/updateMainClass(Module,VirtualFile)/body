@@ -1,0 +1,30 @@
+{
+  if (FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor() != null)   return;
+  try {
+    final String mainClassPath=FlexUtils.findXMLElement(configFile.getInputStream(),"<flex-config><file-specs><path-element>");
+    final VirtualFile mainClassFile=mainClassPath == null ? null : LocalFileSystem.getInstance().findFileByPath(mainClassPath);
+    if (mainClassFile == null || mainClassFile.isDirectory())     return;
+    final VirtualFile sourceRoot=ProjectRootManager.getInstance(module.getProject()).getFileIndex().getSourceRootForFile(mainClassFile);
+    final String relativePath=sourceRoot == null ? null : VfsUtilCore.getRelativePath(mainClassFile,sourceRoot,'/');
+    final String mainClass=relativePath == null ? mainClassFile.getNameWithoutExtension() : FileUtil.getNameWithoutExtension(relativePath).replace('/','.');
+    final ModifiableRootModel modifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+    final LibraryTableBase.ModifiableModelEx librariesModel=(LibraryTableBase.ModifiableModelEx)ProjectLibraryTable.getInstance(module.getProject()).getModifiableModel();
+    final FlexProjectConfigurationEditor flexEditor=FlexProjectConfigurationEditor.createEditor(module.getProject(),Collections.singletonMap(module,modifiableModel),librariesModel,null);
+    final ModifiableFlexBuildConfiguration[] bcs=flexEditor.getConfigurations(module);
+    final ModifiableFlexBuildConfiguration mainBC=ContainerUtil.find(bcs,new Condition<ModifiableFlexBuildConfiguration>(){
+      public boolean value(      final ModifiableFlexBuildConfiguration bc){
+        return bc.getOutputType() == OutputType.Application && module.getName().equals(bc.getName());
+      }
+    }
+);
+    if (mainBC != null) {
+      mainBC.setMainClass(mainClass);
+    }
+    flexEditor.commit();
+    modifiableModel.dispose();
+  }
+ catch (  IOException ignore) {
+  }
+catch (  ConfigurationException ignore) {
+  }
+}

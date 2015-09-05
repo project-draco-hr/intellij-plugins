@@ -1,0 +1,39 @@
+{
+  final List<DeviceInfo> devices=DeviceInfo.getAndroidDevices(project,flexSdk);
+  if (devices.isEmpty()) {
+    final int choice=Messages.showYesNoDialog(project,"No Android devices connected to the computer","Error","Scan Again","Cancel",Messages.getErrorIcon());
+    return choice == Messages.YES && scanAndroidDevices(project,flexSdk,runnerParameters);
+  }
+ else   if (devices.size() == 1) {
+    runnerParameters.setDeviceInfo(devices.get(0));
+    return true;
+  }
+ else {
+    final String preferredId=PropertiesComponent.getInstance(project).getValue(PREFERRED_ANDROID_DEVICE_ID_PROPERTY);
+    String preferredPresentableName=null;
+    final Collection<String> presentableNames=new ArrayList<String>();
+    for (    DeviceInfo device : devices) {
+      final StringBuilder presentableName=new StringBuilder();
+      if (!"device".equals(device.DEVICE_NAME)) {
+        presentableName.append(device.DEVICE_NAME).append(' ');
+        presentableName.append('(').append(device.DEVICE_ID).append(')');
+      }
+ else {
+        presentableName.append(device.DEVICE_ID);
+      }
+      if (device.DEVICE_ID.equals(preferredId)) {
+        preferredPresentableName=presentableName.toString();
+      }
+      presentableNames.add(presentableName.toString());
+    }
+    if (preferredPresentableName == null) {
+      preferredPresentableName=presentableNames.iterator().next();
+    }
+    final int choice=Messages.showChooseDialog(project,"Select Android device","Android Device",null,presentableNames.toArray(new String[presentableNames.size()]),preferredPresentableName);
+    if (choice == -1)     return false;
+    final DeviceInfo selectedDevice=devices.get(choice);
+    runnerParameters.setDeviceInfo(selectedDevice);
+    PropertiesComponent.getInstance(project).setValue(PREFERRED_ANDROID_DEVICE_ID_PROPERTY,selectedDevice.DEVICE_ID);
+    return true;
+  }
+}

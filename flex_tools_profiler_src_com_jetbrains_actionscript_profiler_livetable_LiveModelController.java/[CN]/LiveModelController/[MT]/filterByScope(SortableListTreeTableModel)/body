@@ -1,0 +1,23 @@
+{
+  final MutableTreeNode root=(MutableTreeNode)model.getRoot();
+  int i=0;
+  Iterator<SizeInfoNode> iterator=filteredClasses.iterator();
+  while (iterator.hasNext()) {
+    final SizeInfoNode node=iterator.next();
+    if (scope == null || ResolveUtil.containsInScope(node.getQName(),scope)) {
+      root.insert(node,root.getChildCount());
+      iterator.remove();
+      ++i;
+    }
+  }
+  while (i < root.getChildCount()) {
+    final SizeInfoNode child=(SizeInfoNode)root.getChildAt(i);
+    if (scope != null && !ResolveUtil.containsInScope(child.getQName(),scope)) {
+      root.remove(i);
+      filteredClasses.add(child);
+    }
+ else {
+      ++i;
+    }
+  }
+}

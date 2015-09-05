@@ -1,0 +1,35 @@
+{
+  final ByteBuffer buffer=history.createBuffer(metadataInfo);
+  final int filePositionBefore;
+  if (asTag) {
+    filePositionBefore=(int)channel.position();
+    buffer.putShort((short)((TagTypes.DoABC2 << 6) | 63));
+    buffer.position(6);
+    buffer.putInt(1);
+    buffer.put((byte)0);
+  }
+ else {
+    filePositionBefore=-1;
+  }
+  buffer.putShort((short)minorVersion);
+  buffer.putShort((short)majorVersion);
+  buffer.flip();
+  channel.write(buffer);
+  buffer.clear();
+  history.writeTo(channel,buffer);
+  methodInfo.writeTo(channel);
+  metadataInfo.writeTo(buffer);
+  buffer.flip();
+  channel.write(buffer);
+  buffer.clear();
+  instanceInfo.writeTo(channel);
+  classInfo.writeTo(channel);
+  scriptInfo.writeTo(channel);
+  methodBodies.writeTo(channel);
+  if (asTag) {
+    final int size=(int)channel.position() - filePositionBefore - 6;
+    buffer.putInt(size);
+    buffer.flip();
+    channel.write(buffer,filePositionBefore + 2);
+  }
+}

@@ -1,0 +1,32 @@
+{
+  data=_data;
+  processor=_processor;
+  data.setPosition(0);
+  magic=data.readInt();
+  _processor.dumpStat("magic " + Integer.toString(magic,16) + "\n");
+  if (magic != (46 << 16 | 14) && magic != (46 << 16 | 15) && magic != (46 << 16 | 16)) {
+    throw new Error("not an abc file.  magic=" + Integer.toString(magic,16));
+  }
+  parseCpool();
+  defaults[CONSTANT_Utf8]=strings;
+  defaults[CONSTANT_Int]=ints;
+  defaults[CONSTANT_UInt]=uints;
+  defaults[CONSTANT_Double]=doubles;
+  defaults[CONSTANT_Int]=ints;
+  defaults[CONSTANT_False]=buildSparseArray(10,"false");
+  defaults[CONSTANT_True]=buildSparseArray(11,"true");
+  defaults[CONSTANT_Namespace]=namespaces;
+  defaults[CONSTANT_PrivateNs]=namespaces;
+  defaults[CONSTANT_PackageNs]=namespaces;
+  defaults[CONSTANT_PackageInternalNs]=namespaces;
+  defaults[CONSTANT_ProtectedNs]=namespaces;
+  defaults[CONSTANT_StaticProtectedNs]=namespaces;
+  defaults[CONSTANT_StaticProtectedNs2]=namespaces;
+  defaults[CONSTANT_Null]=buildSparseArray(12,"null");
+  parseMethodInfos();
+  parseMetadataInfos();
+  parseInstanceInfos();
+  parseClassInfos();
+  parseScriptInfos();
+  parseMethodBodies();
+}

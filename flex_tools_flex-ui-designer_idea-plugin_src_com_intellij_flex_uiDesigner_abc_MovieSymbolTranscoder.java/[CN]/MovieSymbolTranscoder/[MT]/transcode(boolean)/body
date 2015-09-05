@@ -1,0 +1,16 @@
+{
+  fileLength=SYMBOL_CLASS_TAG_FULL_LENGTH + SwfUtil.getWrapLength();
+  final PlacedObject exportedSymbol=transcode();
+  buffer.position(exportedSymbol.start + 2);
+  if (writeBounds) {
+    writeMovieBounds();
+  }
+  final byte[] symbolOwnClassAbc=getSymbolOwnClassAbc(buffer.getShort());
+  fileLength+=symbolOwnClassAbc.length;
+  SwfUtil.header(fileLength,out);
+  writeUsedPlacedObjects();
+  writePlacedObject(exportedSymbol);
+  out.write(symbolOwnClassAbc);
+  writeSymbolClass(exportedSymbol.newId);
+  SwfUtil.footer(out);
+}

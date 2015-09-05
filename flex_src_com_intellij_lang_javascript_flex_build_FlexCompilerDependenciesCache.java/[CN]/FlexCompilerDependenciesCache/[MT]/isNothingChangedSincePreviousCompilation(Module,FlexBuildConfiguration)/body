@@ -1,0 +1,16 @@
+{
+  final Collection<BCInfo> infosForModule=myCache.get(module);
+  final BCInfo existingInfo=infosForModule == null ? null : findCacheForBC(infosForModule,bc);
+  if (existingInfo == null) {
+    return false;
+  }
+  final String[] currentSourceRoots=ModuleRootManager.getInstance(module).getSourceRootUrls();
+  if (!Arrays.equals(existingInfo.mySourceRootUrls,currentSourceRoots) || existingInfo.timestampsChanged()) {
+    infosForModule.remove(existingInfo);
+    if (infosForModule.isEmpty()) {
+      myCache.remove(module);
+    }
+    return false;
+  }
+  return true;
+}

@@ -1,0 +1,18 @@
+{
+  final String testName=getTestName(false);
+  String[] files=new String[1 + (moreFiles != null ? moreFiles.length : 0)];
+  if (moreFiles != null)   System.arraycopy(moreFiles,0,files,1,moreFiles.length);
+  files[0]=testName + suffix + "."+ ext;
+  final Collection<HighlightInfo> infoCollection=doTestFor(true,files);
+  String actionName=className + "?";
+  if (!shouldBeAvailable) {
+    IntentionAction intentionAction=findIntentionAction(infoCollection,actionName,myEditor,myFile);
+    assertNull(intentionAction);
+    return;
+  }
+  findAndInvokeIntentionAction(infoCollection,actionName,myEditor,myFile);
+  checkResultByFile(BASE_PATH + "/" + testName+ suffix+ "_after."+ ext);
+  JSTestUtils.initJSIndexes(getProject());
+  final Collection<HighlightInfo> infosAfterApplyingAction=doHighlighting();
+  assertEquals(countNonInformationHighlights(infoCollection) - 1,countNonInformationHighlights(infosAfterApplyingAction));
+}

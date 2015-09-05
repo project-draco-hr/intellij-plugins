@@ -1,0 +1,26 @@
+{
+  if (!hasMoreTokens())   err(getLocalizationManager().getLocalizedTextString("argumentRequired"));
+ else {
+    String faultName=nextToken();
+    Object[] names=new Object[]{faultName};
+    if (faultName.equalsIgnoreCase("all"))     names=m_faultTable.names();
+    if (!m_faultTable.exists((String)names[0]))     err(getLocalizationManager().getLocalizedTextString("unrecognizedFault"));
+ else {
+      if (!hasMoreTokens())       listFault((String)names[0]);
+ else {
+        String action=null;
+        try {
+          while (hasMoreTokens()) {
+            action=nextToken();
+            for (int i=0; i < names.length; i++)             m_faultTable.action((String)names[i],action);
+          }
+        }
+ catch (        IllegalArgumentException iae) {
+          Map<String,Object> args=new HashMap<String,Object>();
+          args.put("action",action);
+          err(getLocalizationManager().getLocalizedTextString("unrecognizedAction",args));
+        }
+      }
+    }
+  }
+}

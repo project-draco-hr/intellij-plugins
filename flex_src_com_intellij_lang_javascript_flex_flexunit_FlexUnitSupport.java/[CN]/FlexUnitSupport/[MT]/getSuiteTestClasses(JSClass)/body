@@ -1,0 +1,15 @@
+{
+  if (!SUITE_RUNNER.equals(getCustomRunner(suiteClass)))   return Collections.emptyList();
+  Collection<JSClass> result=new ArrayList<JSClass>();
+  for (  JSVariable field : suiteClass.getFields()) {
+    if (field.getAttributeList() == null)     continue;
+    if (field.getAttributeList().hasModifier(JSAttributeList.ModifierType.STATIC))     continue;
+    if (field.getAttributeList().getAccessType() != JSAttributeList.AccessType.PUBLIC)     continue;
+    final PsiElement typeElement=field.getTypeElement();
+    if (!(typeElement instanceof JSReferenceExpression))     continue;
+    final PsiElement type=((JSReferenceExpression)typeElement).resolve();
+    if (!(type instanceof JSClass))     continue;
+    result.add((JSClass)type);
+  }
+  return result;
+}

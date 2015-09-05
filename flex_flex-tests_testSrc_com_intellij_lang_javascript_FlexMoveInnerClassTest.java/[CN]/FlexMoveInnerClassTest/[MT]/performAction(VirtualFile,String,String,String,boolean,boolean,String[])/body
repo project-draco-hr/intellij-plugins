@@ -1,0 +1,44 @@
+{
+  PsiFile sourceFile=myPsiManager.findFile(rootDir.findFileByRelativePath(fromFilePath));
+  final EditorInfo editorInfo=new EditorInfo(sourceFile.getText());
+  assertEquals("Wrong number of carets",1,editorInfo.caretState.carets.size());
+  assertNotNull("No caret specified",editorInfo.caretState.carets.get(0).position);
+  final Document doc=PsiDocumentManager.getInstance(myProject).getDocument(sourceFile);
+  final PsiDirectory targetDirectory;
+  final AccessToken accessToken=WriteAction.start();
+  try {
+    doc.setText(editorInfo.getNewFileText());
+    PsiDocumentManager.getInstance(myProject).commitDocument(doc);
+    final VirtualFile srcRootFile=ModuleRootManager.getInstance(myModule).getSourceRoots()[0];
+    final VirtualFile file=VfsUtil.findRelativeFile(targetPackage.replace('.',File.separatorChar),srcRootFile);
+    if (file != null) {
+      targetDirectory=myPsiManager.findDirectory(file);
+    }
+ else {
+      PsiDirectory srcRoot=myPsiManager.findDirectory(srcRootFile);
+      targetDirectory=DirectoryUtil.createSubdirectories(targetPackage,srcRoot,".");
+    }
+  }
+  finally {
+    accessToken.finish();
+  }
+  PsiElement element=sourceFile.findElementAt(editorInfo.caretState.carets.get(0).getCaretOffset(doc));
+  while (true) {
+    assertFalse("inner element to move not found",element instanceof JSFile);
+    final JSQualifiedNamedElement adjusted=FlexMoveFileRefactoringHandler.adjustForMove(element);
+    if (adjusted != null) {
+      element=adjusted;
+      break;
+    }
+    element=element.getParent();
+  }
+  try {
+    new FlexMoveInnerClassProcessor((JSQualifiedNamedElement)element,targetDirectory,className,targetPackage,searchInStringsAndComments,searchTextOccurences,null).run();
+    assertEquals("Conflicts expected:\n" + StringUtil.join(conflicts,"\n"),0,conflicts.length);
+  }
+ catch (  BaseRefactoringProcessor.ConflictsInTestsException e) {
+    assertTrue("Conflicts not expected but found:" + e.getMessage(),conflicts.length > 0);
+    assertSameElements(e.getMessages(),conflicts);
+    myDoCompare=false;
+  }
+}

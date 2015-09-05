@@ -1,0 +1,19 @@
+{
+  final int i=s.indexOf(DELIM);
+  if (i != -1)   s=s.substring(i + DELIM.length());
+  result=s.trim();
+  if (callback != null) {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        callback.evaluated(new FlexValue(FlexStackFrame.this,myDebugProcess,mySourcePosition,expression,expression,result,null,FlexValue.ValueType.Other));
+      }
+    }
+);
+  }
+ else {
+synchronized (this) {
+      myFinished=true;
+      notify();
+    }
+  }
+}

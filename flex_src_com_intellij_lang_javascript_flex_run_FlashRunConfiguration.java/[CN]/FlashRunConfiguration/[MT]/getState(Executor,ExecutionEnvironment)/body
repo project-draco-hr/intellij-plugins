@@ -1,0 +1,14 @@
+{
+  final FlexBuildConfiguration config;
+  try {
+    config=myRunnerParameters.checkAndGetModuleAndBC(getProject()).second;
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e.getMessage());
+  }
+  final BuildConfigurationNature nature=config.getNature();
+  if (nature.isDesktopPlatform() || (nature.isMobilePlatform() && myRunnerParameters.getMobileRunTarget() == AirMobileRunTarget.Emulator)) {
+    return new AirRunState(getProject(),env,myRunnerParameters);
+  }
+  return EmptyRunProfileState.INSTANCE;
+}

@@ -1,0 +1,46 @@
+{
+  final Iterator<FlexCompilationTask> iterator=myInProgressTasks.iterator();
+  while (iterator.hasNext()) {
+    FlexCompilationTask task=iterator.next();
+    if (task.isFinished()) {
+      iterator.remove();
+      myFinishedTasks.add(task);
+      if (task.isCompilationFailed()) {
+        final Collection<FlexCompilationTask> cancelledTasks=cancelNotStartedDependentTasks(task);
+        if (cancelledTasks.isEmpty()) {
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexCommonBundle.message("compilation.failed"),null,-1,-1);
+        }
+ else {
+          addMessage(task,CompilerMessageCategory.INFORMATION,FlexCommonBundle.message("compilation.failed.dependent.will.be.skipped"),null,-1,-1);
+          for (          final FlexCompilationTask cancelledTask : cancelledTasks) {
+            addMessage(cancelledTask,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped"),null,-1,-1);
+          }
+        }
+      }
+ else {
+        addMessage(task,CompilerMessageCategory.INFORMATION,FlexCommonBundle.message("compilation.successful"),null,-1,-1);
+        final String prefix=getMessagePrefix(task);
+        final List<String> taskMessages=new ArrayList<String>();
+        for (        CompilerMessage message : myCompileContext.getMessages(CompilerMessageCategory.INFORMATION)) {
+          if (message.getMessage().startsWith(prefix)) {
+            taskMessages.add(message.getMessage().substring(prefix.length()));
+          }
+        }
+        try {
+          FlexCompilationUtils.performPostCompileActions(task.getModule(),task.getBC(),taskMessages);
+        }
+ catch (        FlexCompilerException e) {
+          addMessage(task,CompilerMessageCategory.ERROR,e.getMessage(),e.getUrl(),e.getLine(),e.getColumn());
+        }
+      }
+      if (task.isCompilationFailed()) {
+        myCompilerDependenciesCache.markBCDirty(task.getModule(),task.getBC());
+      }
+ else {
+synchronized (this) {
+          myCompilerDependenciesCache.cacheBC(task.getModule(),task.getBC(),task.getConfigFiles());
+        }
+      }
+    }
+  }
+}

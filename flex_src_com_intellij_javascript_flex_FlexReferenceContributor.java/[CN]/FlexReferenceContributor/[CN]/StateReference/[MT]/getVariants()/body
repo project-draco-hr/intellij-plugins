@@ -1,0 +1,19 @@
+{
+  final Set<String> list=new THashSet<String>();
+  process(new StateProcessor(){
+    public boolean process(    @NotNull XmlTag t,    @NotNull String name){
+      list.add(name);
+      return true;
+    }
+    public String getHint(){
+      return null;
+    }
+  }
+);
+  final PsiElement parent=myElement instanceof XmlAttributeValue ? myElement.getParent() : null;
+  final PsiElement tag=parent instanceof XmlAttribute ? parent.getParent() : null;
+  if (tag instanceof XmlTag && TRANSITION_TAG_NAME.equals(((XmlTag)tag).getLocalName())) {
+    list.add("*");
+  }
+  return ArrayUtil.toObjectArray(list);
+}

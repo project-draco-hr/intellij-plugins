@@ -1,0 +1,22 @@
+{
+  Matcher m=p.matcher(input);
+  boolean result=m.find();
+  int prevpos=0;
+  boolean isInTag=false;
+  boolean isInPre=false;
+  if (result) {
+    StringBuffer sb=new StringBuffer();
+    do {
+      String s=input.substring(prevpos,m.start());
+      isInTag=endIsBetween(s,"<",">",isInTag);
+      isInPre=endIsBetween(s,"<pre>","</pre>",isInPre);
+      prevpos=m.end();
+      m.appendReplacement(sb,isInTag || isInPre ? "$0" : replacement);
+      result=m.find();
+    }
+ while (result);
+    m.appendTail(sb);
+    return sb.toString();
+  }
+  return input;
+}

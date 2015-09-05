@@ -1,0 +1,74 @@
+{
+  super(false,null);
+  myModule=module;
+  myConfiguration=bc;
+  myConfigEditor=configEditor;
+  mySdksModel=sdksModel;
+  myContext=context;
+  myName=bc.getName();
+  myStructureElement=new BuildConfigurationProjectStructureElement(bc,module,context){
+    @Override protected void libraryReplaced(    @NotNull final Library library,    @Nullable final Library replacement){
+      myDependenciesConfigurable.libraryReplaced(library,replacement);
+    }
+  }
+;
+  myRLMs=Collections.emptyList();
+  myCssFilesToCompile=Collections.emptyList();
+  myDisposable=Disposer.newDisposable();
+  myUserActivityListener=new UserActivityListener(){
+    @Override public void stateChanged(){
+      if (myFreeze) {
+        return;
+      }
+      try {
+        apply();
+      }
+ catch (      ConfigurationException ignored) {
+      }
+      myContext.getDaemonAnalyzer().queueUpdate(myStructureElement);
+      myContext.getDaemonAnalyzer().queueUpdateForAllElementsWithErrors();
+      final FlexBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
+      final List<ModifiableFlexBuildConfiguration> bcs=configurator.getBCsByOutputPath(myConfiguration.getActualOutputFilePath());
+      if (bcs != null) {
+        for (        ModifiableFlexBuildConfiguration bc : bcs) {
+          if (bc == myConfiguration)           continue;
+          myContext.getDaemonAnalyzer().queueUpdate(configurator.getBCConfigurable(bc).myStructureElement);
+        }
+      }
+    }
+  }
+;
+  final UserActivityWatcher watcher=new UserActivityWatcher();
+  watcher.register(myMainPanel);
+  watcher.addUserActivityListener(myUserActivityListener,myDisposable);
+  createChildConfigurables();
+  myChangeNatureHyperlink.addHyperlinkListener(new HyperlinkAdapter(){
+    protected void hyperlinkActivated(    final HyperlinkEvent e){
+      bcNatureModifier.run();
+    }
+  }
+);
+  myNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    DocumentEvent e){
+      setDisplayName(myNameField.getText().trim());
+    }
+  }
+);
+  myOutputFolderField.addBrowseFolderListener(null,null,module.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  initHtmlWrapperControls();
+  initRLMControls();
+  initCSSControls();
+  myOptimizeForCombo.setModel(new CollectionComboBoxModel(Arrays.asList(""),""));
+  myOptimizeForCombo.setRenderer(new ListCellRendererWrapper(){
+    @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
+      if ("".equals(value)) {
+        setText("<no optimization>");
+      }
+    }
+  }
+);
+  myMainClassWarning.setIcon(FlexIcons.Flex.SmallWarning);
+  myOutputFileNameWarning.setIcon(FlexIcons.Flex.SmallWarning);
+  myOutputFolderWarning.setIcon(FlexIcons.Flex.SmallWarning);
+  myWarning.setIcon(UIUtil.getBalloonWarningIcon());
+}

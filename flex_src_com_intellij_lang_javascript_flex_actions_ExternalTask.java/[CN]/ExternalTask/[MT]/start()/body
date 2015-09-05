@@ -1,0 +1,26 @@
+{
+  final List<String> command=createCommandLine();
+  for (  String s : command) {
+    if (s == null) {
+      LOG.error(StringUtil.join(command,new Function<String,String>(){
+        public String fun(        final String s){
+          return s == null ? "null" : s;
+        }
+      }
+," "));
+    }
+  }
+  final ProcessBuilder processBuilder=new ProcessBuilder(command);
+  processBuilder.redirectErrorStream(true);
+  processBuilder.directory(getProcessDir());
+  myCommandLine=StringUtil.join(command," ");
+  debug("Executing task: " + myCommandLine);
+  try {
+    myProcess=processBuilder.start();
+    scheduleInputStreamReading();
+  }
+ catch (  IOException e) {
+    myFinished=true;
+    myMessages.add(e.getMessage());
+  }
+}

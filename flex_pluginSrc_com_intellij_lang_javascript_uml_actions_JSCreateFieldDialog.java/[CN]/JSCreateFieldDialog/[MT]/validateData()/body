@@ -1,0 +1,19 @@
+{
+  if (!JSRefactoringUtil.isValidIdentifier(getFieldName(),myTargetClass.getProject())) {
+    return Pair.create(JSBundle.message("invalid.identifier.value.0",getFieldName()),true);
+  }
+  String type=getFieldType().trim();
+  if ("void".equals(type) || type.contains(" ") || JSRefactoringUtil.createTypeElement(myTargetClass.getProject(),type,JavaScriptSupportLoader.ECMA_SCRIPT_L4) == null) {
+    return Pair.create(JSBundle.message("invalid.field.type.expression",type),true);
+  }
+  if (isConstant() && StringUtil.isEmpty(getInitializer())) {
+    return Pair.create(JSBundle.message("field.initializer.is.not.specified"),true);
+  }
+  if (!JSRefactoringUtil.isResolvableType(type,myTargetClass,false,false)) {
+    return Pair.create(JSBundle.message("type.is.not.resolved",type),false);
+  }
+  if (myTargetClass.findFieldByName(getFieldName()) != null) {
+    return Pair.create(JSBundle.message("class.already.contains.field.warning",myTargetClass.getQualifiedName(),getFieldName()),false);
+  }
+  return null;
+}

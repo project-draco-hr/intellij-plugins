@@ -1,0 +1,25 @@
+{
+  int size=in.readU32();
+  if (size == 0) {
+    return ArrayUtil.EMPTY_INT_ARRAY;
+  }
+  int[] positions=new int[size];
+  for (int i=0; i < size; i++) {
+    positions[i]=in.position();
+    int paramCount=in.readU32();
+    in.readU32();
+    in.skipEntries(paramCount);
+    in.readU32();
+    int flags=in.readU8();
+    long optionalCount=((flags & METHOD_HasOptional) != 0) ? in.readU32() : 0;
+    for (long q=0; q < optionalCount; ++q) {
+      in.readU32();
+      in.readU8();
+    }
+    long paramNameCount=((flags & METHOD_HasParamNames) != 0) ? paramCount : 0;
+    for (long q=0; q < paramNameCount; ++q) {
+      in.readU32();
+    }
+  }
+  return positions;
+}

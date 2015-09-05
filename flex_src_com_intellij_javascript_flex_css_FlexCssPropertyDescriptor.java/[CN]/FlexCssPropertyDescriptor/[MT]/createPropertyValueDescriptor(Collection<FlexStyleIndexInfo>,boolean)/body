@@ -1,0 +1,22 @@
+{
+  List<CssValueDescriptor> children=ContainerUtil.newArrayList();
+  Set<String> formats=addValuesFromFormats(children,infos);
+  addValuesFromEnumerations2(infos,children);
+  addValuesFromTypes2(infos,formats,children);
+  CssGroupValue result=CssElementDescriptorFactory2.getInstance().createGroupValue(CssGroupValue.Type.OR,-1,1,null,null);
+  if (!children.isEmpty()) {
+    for (    CssValueDescriptor child : children) {
+      result.addChild(CssValueDescriptorModificator.withParent(child,result));
+    }
+    if (!formats.contains(COLOR_FORMAT)) {
+      result.addChild(CssElementDescriptorFactory2.getInstance().createStringValueDescriptor(null,1,1,result));
+    }
+  }
+ else {
+    result.addChild(CssElementDescriptorFactory2.getInstance().createAnyValueDescriptor(1,1,result));
+  }
+  result.addChild(CssElementDescriptorFactory2.getInstance().createNameValueDescriptor("undefined",1,1,result));
+  result.addChild(CssElementDescriptorFactory2.getInstance().createFunctionInvocationValueDescriptor("PropertyReference",1,1,result));
+  result.addChild(CssElementDescriptorFactory2.getInstance().createFunctionInvocationValueDescriptor("Embed",1,1,result));
+  return result;
+}

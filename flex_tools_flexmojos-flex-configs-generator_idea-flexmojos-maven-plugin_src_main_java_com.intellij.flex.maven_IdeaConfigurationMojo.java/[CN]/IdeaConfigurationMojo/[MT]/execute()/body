@@ -1,0 +1,40 @@
+{
+  List<String> configurators=new ArrayList<String>(2);
+  if (generateNonShareable) {
+    configurators.add("com.intellij.flex.maven.IdeaConfigurator");
+  }
+  if (generateShareable) {
+    configurators.add("com.intellij.flex.maven.ShareableFlexConfigGenerator");
+  }
+  final HashMap<Artifact,MavenProject> ourProjects=new HashMap<Artifact,MavenProject>(session.getProjects().size());
+  final String rootProjectDirPath=session.getTopLevelProject().getBasedir().getPath();
+  for (  MavenProject project : session.getProjects()) {
+    final String packaging=project.getPackaging();
+    if (!(packaging.equals("swc") || packaging.equals("swf") || packaging.equals("air"))) {
+      continue;
+    }
+    for (    Artifact artifact : project.getArtifacts()) {
+      final MavenProject reactorProject=ourProjects.get(artifact);
+      if (reactorProject != null) {
+        if (!artifact.isResolved()) {
+          artifact.setResolved(true);
+        }
+ else         if (artifact.getFile().getPath().startsWith(rootProjectDirPath)) {
+          continue;
+        }
+        artifact.setFile(reactorProject.getArtifact().getFile());
+      }
+    }
+    ourProjects.put(project.getArtifact(),project);
+    try {
+      session.setCurrentProject(project);
+      generateForProject(project,configurators);
+    }
+ catch (    Exception e) {
+      throw new MojoExecutionException("Cannot generate flex config: " + e.getMessage(),e);
+    }
+ finally {
+      session.setCurrentProject(session.getTopLevelProject());
+    }
+  }
+}

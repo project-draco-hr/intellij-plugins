@@ -1,0 +1,46 @@
+{
+  try {
+    waitForMetaData();
+  }
+ catch (  InProgressException ipe) {
+  }
+  SourceFile m=m_fileInfo.getFile(module);
+  ArrayList<ModuleFunctionPair> functionNames=new ArrayList<ModuleFunctionPair>();
+  appendFunctionNamesMatching(functionNames,m,partialFunctionName);
+  if (functionNames.size() == 0) {
+    if (!onlyThisModule) {
+      Iterator fileIter=m_fileInfo.getAllFiles();
+      while (fileIter.hasNext()) {
+        SourceFile nextFile=(SourceFile)((Map.Entry)fileIter.next()).getValue();
+        if (nextFile != m) {
+          appendFunctionNamesMatching(functionNames,nextFile,partialFunctionName);
+        }
+      }
+    }
+    if (functionNames.size() == 0) {
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("name",partialFunctionName);
+      throw new NoMatchException(getLocalizationManager().getLocalizedTextString("noFunctionWithSpecifiedName",args));
+    }
+  }
+  if (functionNames.size() > 1) {
+    ModuleFunctionPair[] functionNameArray=functionNames.toArray(new ModuleFunctionPair[functionNames.size()]);
+    Arrays.sort(functionNameArray);
+    String s=getLocalizationManager().getLocalizedTextString("ambiguousMatchingFunctionNames") + m_newline;
+    Map<String,Object> args=new HashMap<String,Object>();
+    for (int i=0; i < functionNameArray.length; i++) {
+      String moduleName=m_fileInfo.getFile(functionNameArray[i].moduleId).getName();
+      String functionName=functionNameArray[i].functionName;
+      args.put("functionName",functionName);
+      args.put("filename",moduleName + "#" + functionNameArray[i].moduleId);
+      s+=" " + getLocalizationManager().getLocalizedTextString("functionInFile",args);
+      if (i < functionNameArray.length - 1)       s+=m_newline;
+    }
+    throw new AmbiguousException(s);
+  }
+  ModuleFunctionPair pair=functionNames.get(0);
+  module=pair.moduleId;
+  m=m_fileInfo.getFile(module);
+  int line=m.getLineForFunctionName(m_session,pair.functionName);
+  return new int[]{module,line};
+}

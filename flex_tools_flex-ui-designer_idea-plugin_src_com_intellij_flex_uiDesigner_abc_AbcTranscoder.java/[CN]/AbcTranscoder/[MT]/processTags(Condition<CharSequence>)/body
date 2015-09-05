@@ -1,0 +1,42 @@
+{
+  while (buffer.position() < buffer.limit()) {
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+switch (type) {
+case TagTypes.DoABC2:
+      readAbcName(buffer.position() + 4);
+    if (abcNameFilter != null && !abcNameFilter.value(transientNameString)) {
+      skipTag(length);
+    }
+ else {
+      int oldPosition=buffer.position();
+      writeDataBeforeTag(length);
+      buffer.position(oldPosition);
+      doAbc2(length);
+      buffer.position(lastWrittenPosition);
+    }
+  continue;
+case TagTypes.End:
+processEnd(length);
+return;
+case TagTypes.SymbolClass:
+processSymbolClass(length);
+continue;
+case TagTypes.ExportAssets:
+processExportAssets(length,false);
+continue;
+default :
+final int s=processTag(type,length);
+if (s == 1) {
+skipTag(length);
+}
+ else if (s == 0) {
+buffer.position(buffer.position() + length);
+}
+}
+}
+}

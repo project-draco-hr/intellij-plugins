@@ -1,0 +1,37 @@
+{
+  if (element instanceof JSClass) {
+    return (JSClass)element;
+  }
+  if (element instanceof XmlComment) {
+    PsiElement parent=element.getParent();
+    if (parent instanceof XmlProlog) {
+      PsiElement e=parent.getNextSibling();
+      if (e instanceof XmlTag) {
+        return XmlBackedJSClassImpl.getContainingComponent((XmlElement)e);
+      }
+    }
+  }
+  if (element instanceof JSFunction || element instanceof JSVariable) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    if (parent instanceof JSClass) {
+      return (JSClass)parent;
+    }
+ else     if (parent instanceof JSFile || parent instanceof JSPackage) {
+      return (JSQualifiedNamedElement)element;
+    }
+  }
+  JSAttribute attribute=null;
+  if (element instanceof JSAttribute) {
+    attribute=(JSAttribute)element;
+  }
+ else   if (element instanceof JSAttributeNameValuePair) {
+    attribute=(JSAttribute)element.getParent();
+  }
+  if (attribute != null && DOCUMENTED_ATTRIBUTES.containsKey(attribute.getName())) {
+    final JSClass jsClass=PsiTreeUtil.getParentOfType(element,JSClass.class);
+    if (jsClass != null) {
+      return jsClass;
+    }
+  }
+  return null;
+}

@@ -1,0 +1,38 @@
+{
+  if (!defined.add(tag)) {
+    return;
+  }
+  for (Iterator i=tag.getReferences(); i.hasNext(); ) {
+    define((Tag)i.next(),defined,tagVisitor);
+  }
+  if (tag instanceof ImportRecord) {
+    return;
+  }
+  tag.visit(tagVisitor);
+  Tag visitAfter;
+  if (tag instanceof DefineSprite) {
+    visitAfter=((DefineSprite)tag).scalingGrid;
+  }
+ else   if (tag instanceof DefineButton) {
+    visitAfter=((DefineButton)tag).scalingGrid;
+  }
+ else   if (tag instanceof DefineShape) {
+    visitAfter=((DefineShape)tag).scalingGrid;
+  }
+ else   if (tag instanceof DefineFont3) {
+    visitAfter=((DefineFont3)tag).zones;
+  }
+ else   if (tag instanceof DefineEditText) {
+    visitAfter=((DefineEditText)tag).csmTextSettings;
+  }
+ else   if (tag instanceof DefineText) {
+    visitAfter=((DefineText)tag).csmTextSettings;
+  }
+ else {
+    return;
+  }
+  visitAfter(visitAfter,defined,tagVisitor);
+  if (tag instanceof DefineFont) {
+    visitAfter(((DefineFont)tag).license,defined,tagVisitor);
+  }
+}

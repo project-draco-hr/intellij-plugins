@@ -1,0 +1,17 @@
+{
+  super(new LightVirtualFile(file.getPath()));
+  Pair<CharArrayReader,ByteArrayInputStream> data=LibraryUtil.openSwc(file);
+  catalogFile=new LightVirtualFile(file.getPath() + "/catalog.xml",XmlFileType.INSTANCE,FileUtil.loadTextAndClose(data.first));
+  catalogFile.setCharset(CharsetToolkit.UTF8_CHARSET);
+  final byte[] swfBytes=FileUtil.loadBytes(data.second);
+  swfFile=new LightVirtualFile(file.getPath() + "/library.swf"){
+    @Override public InputStream getInputStream(){
+      return new ByteArrayInputStream(swfBytes);
+    }
+    @NotNull @Override public byte[] contentsToByteArray(){
+      return swfBytes;
+    }
+  }
+;
+  swfFile.setFileType(FlexApplicationComponent.SWF_FILE_TYPE);
+}

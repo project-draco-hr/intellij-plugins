@@ -1,0 +1,11 @@
+{
+  JSTestUtils.disableFileHeadersInTemplates(getProject());
+  final String testName=getTestName(false);
+  doHighlightingWithInvokeFixAndCheckResult("Create class 'Foo'","mxml");
+  final VirtualFile verificationFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "_Foo.as");
+  final VirtualFile createdFile=VfsUtilCore.findRelativeFile("/foo/Foo.as",ModuleRootManager.getInstance(myModule).getSourceRoots()[0]);
+  assertNotNull(verificationFile);
+  assertNotNull(createdFile);
+  FileDocumentManager.getInstance().saveAllDocuments();
+  assertEquals(StringUtil.convertLineSeparators(VfsUtilCore.loadText(verificationFile)),StringUtil.convertLineSeparators(VfsUtilCore.loadText(createdFile)));
+}

@@ -1,0 +1,13 @@
+{
+  final Module module=context.getModule();
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return false;
+  final PsiElement element=findTestElement(context.getPsiLocation());
+  if (element == null)   return false;
+  final FlexUnitRunnerParameters fakeParams=new FlexUnitRunnerParameters();
+  if (!configureRunnerParameters(fakeParams,module,element))   return false;
+  final FlexUnitRunnerParameters params=configuration.getRunnerParameters();
+  if (params.getModuleName().equals(fakeParams.getModuleName()) && params.getScope() == fakeParams.getScope() && (params.getScope() != FlexUnitRunnerParameters.Scope.Package || params.getPackageName().equals(fakeParams.getPackageName())) && (params.getScope() == FlexUnitRunnerParameters.Scope.Package || params.getClassName().equals(fakeParams.getClassName())) && (params.getScope() != FlexUnitRunnerParameters.Scope.Method || params.getMethodName().equals(fakeParams.getMethodName()))) {
+    return true;
+  }
+  return false;
+}

@@ -1,0 +1,25 @@
+{
+  final AtomicBoolean result=new AtomicBoolean();
+  final Semaphore debuggerRunSemaphore=new Semaphore();
+  debuggerRunSemaphore.down();
+  ApplicationManager.getApplication().invokeLater(new Runnable(){
+    @Override public void run(){
+      try {
+        runDebugger(module,new Runnable(){
+          @Override public void run(){
+            result.set(true);
+            debuggerRunSemaphore.up();
+          }
+        }
+);
+      }
+ catch (      ExecutionException e) {
+        LOG.error(e);
+        debuggerRunSemaphore.up();
+      }
+    }
+  }
+);
+  debuggerRunSemaphore.waitFor();
+  return result.get();
+}

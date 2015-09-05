@@ -1,0 +1,72 @@
+{
+  try {
+    myConsoleView.print(myAdlCommandLine.getCommandLineString() + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    adlProcess=myAdlCommandLine.createProcess();
+  }
+ catch (  ExecutionException e) {
+    throw new IOException(e.getMessage());
+  }
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      InputStreamReader reader=new InputStreamReader(adlProcess.getInputStream());
+      try {
+        char[] buf=new char[1024];
+        int read;
+        while ((read=reader.read(buf,0,buf.length)) >= 0) {
+          String message=new String(buf,0,read);
+          LOG.debug("[adl input stream]: " + message);
+          if (!startupDone) {
+            myConsoleView.print(ADL_PREFIX + message + (message.endsWith("\n") ? "" : "\n"),ConsoleViewContentType.ERROR_OUTPUT);
+          }
+        }
+        adlProcess.destroy();
+        try {
+          int exitCode=adlProcess.exitValue();
+          myConsoleView.print(ADL_PREFIX + IdeBundle.message("finished.with.exit.code.text.message",exitCode) + "\n",exitCode == 0 ? ConsoleViewContentType.SYSTEM_OUTPUT : ConsoleViewContentType.ERROR_OUTPUT);
+        }
+ catch (        IllegalThreadStateException ignore) {
+        }
+        getProcessHandler().detachProcess();
+      }
+ catch (      IOException e) {
+        LOG.debug("adl input stream reading error",e);
+        myConsoleView.print(ADL_PREFIX + e.getMessage() + "\n",ConsoleViewContentType.ERROR_OUTPUT);
+      }
+ finally {
+        if (myTempDirToDeleteWhenProcessFinished != null) {
+          FlexUtils.removeFileLater(myTempDirToDeleteWhenProcessFinished);
+        }
+        try {
+          reader.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+);
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      InputStreamReader reader=new InputStreamReader(adlProcess.getErrorStream());
+      try {
+        char[] buf=new char[1024];
+        int read;
+        while ((read=reader.read(buf,0,buf.length)) >= 0) {
+          String message=new String(buf,0,read);
+          LOG.debug("[adl error stream]: " + message);
+        }
+      }
+ catch (      IOException e) {
+        LOG.debug("adl error stream reading error",e);
+      }
+ finally {
+        try {
+          reader.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+);
+}

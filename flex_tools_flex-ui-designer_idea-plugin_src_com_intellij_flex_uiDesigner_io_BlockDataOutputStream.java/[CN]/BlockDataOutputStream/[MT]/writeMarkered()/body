@@ -1,0 +1,30 @@
+{
+  int lastEnd=0;
+  AuditorOutput auditorOutput=null;
+  if (out instanceof AuditorOutput) {
+    auditorOutput=(AuditorOutput)out;
+    auditorOutput.written=0;
+  }
+  Marker marker=markers.getFirst();
+  do {
+    int length=marker.getStart() - lastEnd;
+    if (length >= 0) {
+      if (length > 0) {
+        out.write(buffer,lastEnd,length);
+      }
+      lastEnd=marker.getEnd();
+    }
+    if (marker instanceof ByteRangePointer) {
+      writeDataRange(((ByteRangePointer)marker).getDataRange());
+    }
+  }
+ while ((marker=(Marker)marker.getNext()) != null);
+  int tailLength=count - lastEnd;
+  if (tailLength > 0) {
+    out.write(buffer,lastEnd,tailLength);
+  }
+  if (auditorOutput != null) {
+    auditorOutput.written=-1;
+  }
+  markers.clear();
+}

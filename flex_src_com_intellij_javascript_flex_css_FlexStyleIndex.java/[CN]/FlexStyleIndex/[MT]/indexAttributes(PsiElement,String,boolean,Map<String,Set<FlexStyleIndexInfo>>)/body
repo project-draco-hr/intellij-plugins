@@ -1,0 +1,28 @@
+{
+  JSResolveUtil.processMetaAttributesForClass(element,new JSResolveUtil.MetaDataProcessor(){
+    @Override public boolean process(    @NotNull JSAttribute jsAttribute){
+      String attrName=jsAttribute.getName();
+      if (attrName != null && FlexAnnotationNames.STYLE.equals(attrName)) {
+        JSAttributeNameValuePair pair=jsAttribute.getValueByName("name");
+        String propertyName=pair != null ? pair.getSimpleValue() : null;
+        if (propertyName != null) {
+          if (classQName != null) {
+            FlexStyleIndexInfo info=FlexStyleIndexInfo.create(classQName,propertyName,jsAttribute,inClass);
+            if (info != null) {
+              addElement(map,propertyName,info);
+              String classicPropertyName=FlexCssUtil.toClassicForm(propertyName);
+              if (!propertyName.equals(classicPropertyName)) {
+                addElement(map,classicPropertyName,info);
+              }
+            }
+          }
+        }
+      }
+      return true;
+    }
+    @Override public boolean handleOtherElement(    PsiElement el,    PsiElement context,    @Nullable Ref<PsiElement> continuePassElement){
+      return true;
+    }
+  }
+,false);
+}

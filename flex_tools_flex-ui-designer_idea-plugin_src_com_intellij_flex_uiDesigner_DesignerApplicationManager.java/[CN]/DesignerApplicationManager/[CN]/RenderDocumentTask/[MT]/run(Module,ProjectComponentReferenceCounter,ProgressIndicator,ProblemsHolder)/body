@@ -1,0 +1,44 @@
+{
+  indicator.setText(FlashUIDesignerBundle.message("rendering.document"));
+  Client client=Client.getInstance();
+  if (!client.flush()) {
+    return false;
+  }
+  if (projectComponentReferenceCounter != null && !client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,module,problemsHolder)) {
+    return false;
+  }
+  AsyncResult<DocumentInfo> renderResult=client.renderDocument(module,psiFile,problemsHolder);
+  if (renderResult.isRejected()) {
+    return false;
+  }
+  final AtomicBoolean processed=new AtomicBoolean(false);
+  indicator.setText(FlashUIDesignerBundle.message("loading.libraries"));
+  renderResult.doWhenDone(new Consumer<DocumentInfo>(){
+    @Override public void consume(    DocumentInfo documentInfo){
+      if (asyncResult != null) {
+        asyncResult.setDone(documentInfo);
+      }
+    }
+  }
+);
+  renderResult.doWhenProcessed(new Runnable(){
+    @Override public void run(){
+      processed.set(true);
+    }
+  }
+);
+  while (!processed.get()) {
+    try {
+      Thread.sleep(5);
+    }
+ catch (    InterruptedException ignored) {
+      renderResult.setRejected();
+      return false;
+    }
+    if (indicator.isCanceled() || getInstance().isApplicationClosed()) {
+      renderResult.setRejected();
+      return false;
+    }
+  }
+  return true;
+}

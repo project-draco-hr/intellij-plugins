@@ -1,0 +1,50 @@
+{
+  myFilesToPackageTable=new JBTable();
+  myFilesToPackageTable.putClientProperty("terminateEditOnFocusLost",Boolean.TRUE);
+  myFilesToPackageTable.setPreferredScrollableViewportSize(JBUI.size(400,150));
+  myFilesToPackageTable.setRowHeight(new JTextField("Fake").getPreferredSize().height + myFilesToPackageTable.getRowMargin());
+  myFilesToPackageTable.setModel(new DefaultTableModel(){
+    public int getColumnCount(){
+      return Column.values().length;
+    }
+    public int getRowCount(){
+      return myFilesToPackage.size();
+    }
+    public String getColumnName(    int column){
+      return Column.values()[column].getColumnName();
+    }
+    public Class<?> getColumnClass(    int column){
+      return Column.values()[column].getColumnClass();
+    }
+    public Object getValueAt(    int row,    int column){
+      return Column.values()[column].getValue(myFilesToPackage.get(row));
+    }
+    public void setValueAt(    Object aValue,    int row,    int column){
+      Column.values()[column].setValue(myFilesToPackage,row,aValue);
+    }
+  }
+);
+  myFilesToPackageTable.getColumnModel().getColumn(0).setCellEditor(new AbstractTableCellEditor(){
+    private CellEditorComponentWithBrowseButton<JTextField> myComponent;
+    public Component getTableCellEditorComponent(    final JTable table,    Object value,    boolean isSelected,    int row,    int column){
+      final ActionListener listener=new ActionListener(){
+        public void actionPerformed(        ActionEvent e){
+          FileChooserDescriptor d=new FileChooserDescriptor(true,true,false,true,false,false);
+          VirtualFile initialFile=LocalFileSystem.getInstance().findFileByPath((String)getCellEditorValue());
+          VirtualFile file=FileChooser.chooseFile(d,myProject,initialFile);
+          if (file != null) {
+            myComponent.getChildComponent().setText(file.getPresentableUrl());
+          }
+        }
+      }
+;
+      myComponent=new CellEditorComponentWithBrowseButton<JTextField>(new TextFieldWithBrowseButton(listener),this);
+      myComponent.getChildComponent().setText((String)value);
+      return myComponent;
+    }
+    public Object getCellEditorValue(){
+      return myComponent.getChildComponent().getText();
+    }
+  }
+);
+}

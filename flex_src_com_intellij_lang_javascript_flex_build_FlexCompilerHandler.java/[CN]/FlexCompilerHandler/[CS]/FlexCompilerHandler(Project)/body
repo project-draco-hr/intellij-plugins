@@ -1,0 +1,48 @@
+{
+  super(project);
+  MessageBusConnection connection=project.getMessageBus().connect(project);
+  connection.subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
+    public void rootsChanged(    ModuleRootEvent event){
+      quitCompilerShell();
+    }
+  }
+);
+  connection.subscribe(ProjectTopics.MODULES,new ModuleAdapter(){
+    @Override public void modulesRenamed(    @NotNull Project project,    @NotNull List<Module> modules,    @NotNull Function<Module,String> oldNameProvider){
+      for (      RunnerAndConfigurationSettings settings : RunManagerEx.getInstanceEx(project).getSortedConfigurations()) {
+        RunConfiguration runConfiguration=settings.getConfiguration();
+        if (runConfiguration instanceof FlashRunConfiguration) {
+          ((FlashRunConfiguration)runConfiguration).getRunnerParameters().handleModulesRename(modules,oldNameProvider);
+        }
+ else         if (runConfiguration instanceof FlexUnitRunConfiguration) {
+          ((FlexUnitRunConfiguration)runConfiguration).getRunnerParameters().handleModulesRename(modules,oldNameProvider);
+        }
+      }
+    }
+  }
+);
+  connection.subscribe(FlexBuildConfigurationChangeListener.TOPIC,new FlexBuildConfigurationChangeListener(){
+    @Override public void buildConfigurationsRenamed(    final Map<Pair<String,String>,String> renames){
+      for (      RunnerAndConfigurationSettings settings : RunManagerEx.getInstanceEx(project).getSortedConfigurations()) {
+        RunConfiguration runConfiguration=settings.getConfiguration();
+        if (runConfiguration instanceof FlashRunConfiguration) {
+          ((FlashRunConfiguration)runConfiguration).getRunnerParameters().handleBuildConfigurationsRename(renames);
+        }
+ else         if (runConfiguration instanceof FlexUnitRunConfiguration) {
+          ((FlexUnitRunConfiguration)runConfiguration).getRunnerParameters().handleBuildConfigurationsRename(renames);
+        }
+      }
+    }
+  }
+);
+  myCompilerDependenciesCache=new FlexCompilerDependenciesCache(project);
+  final MyVirtualFileAdapter myFileListener=new MyVirtualFileAdapter();
+  LocalFileSystem.getInstance().addVirtualFileListener(myFileListener);
+  Disposer.register(project,new Disposable(){
+    public void dispose(){
+      LocalFileSystem.getInstance().removeVirtualFileListener(myFileListener);
+    }
+  }
+);
+  myReadErrStreamAlarm=new Alarm(Alarm.ThreadToUse.POOLED_THREAD,project);
+}

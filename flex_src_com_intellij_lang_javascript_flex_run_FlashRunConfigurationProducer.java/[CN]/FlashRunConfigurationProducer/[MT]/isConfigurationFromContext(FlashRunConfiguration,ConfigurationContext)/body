@@ -1,0 +1,10 @@
+{
+  final Module module=context.getModule();
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return false;
+  if (!module.getName().equals(configuration.getRunnerParameters().getModuleName()))   return false;
+  final JSClass jsClass=getJSClass(context.getPsiLocation());
+  if (jsClass == null || !isAcceptedMainClass(jsClass,module))   return false;
+  final List<RunConfiguration> existing=RunManagerEx.getInstanceEx(module.getProject()).getConfigurationsList(getConfigurationType());
+  final RunConfiguration suitable=findSuitableRunConfig(module,jsClass.getQualifiedName(),existing);
+  return suitable == configuration;
+}

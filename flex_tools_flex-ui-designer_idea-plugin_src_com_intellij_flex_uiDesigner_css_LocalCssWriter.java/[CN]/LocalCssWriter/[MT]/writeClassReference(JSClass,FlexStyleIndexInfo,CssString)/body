@@ -1,0 +1,19 @@
+{
+  final int projectComponentFactoryId;
+  if (info != null && info.getAttributeName().equals("skinClass")) {
+    projectComponentFactoryId=InjectionUtil.getProjectComponentFactoryId(jsClass,projectComponentReferenceCounter);
+  }
+ else   if (InjectionUtil.isProjectComponent(jsClass)) {
+    throw new InvalidPropertyException(cssString,"class.reference.in.css.support.only.skin.class",jsClass.getQualifiedName());
+  }
+ else {
+    projectComponentFactoryId=-1;
+  }
+  if (projectComponentFactoryId == -1) {
+    super.writeClassReference(jsClass,info,cssString);
+  }
+ else {
+    propertyOut.write(AmfExtendedTypes.DOCUMENT_FACTORY_REFERENCE);
+    propertyOut.writeUInt29(projectComponentFactoryId);
+  }
+}

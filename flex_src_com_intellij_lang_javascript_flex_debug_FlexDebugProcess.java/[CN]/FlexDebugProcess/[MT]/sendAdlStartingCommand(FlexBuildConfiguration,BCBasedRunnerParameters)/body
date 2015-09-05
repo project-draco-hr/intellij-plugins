@@ -1,0 +1,23 @@
+{
+  try {
+    final Sdk sdk=bc.getSdk();
+    LOG.assertTrue(sdk != null);
+    final boolean needToRemoveAirRuntimeDir;
+    final VirtualFile airRuntimeDirForFlexmojosSdk;
+    if (sdk.getSdkType() instanceof FlexmojosSdkType) {
+      final Pair<VirtualFile,Boolean> airRuntimeDirInfo;
+      airRuntimeDirInfo=FlexSdkUtils.getAirRuntimeDirInfoForFlexmojosSdk(sdk);
+      needToRemoveAirRuntimeDir=airRuntimeDirInfo.second;
+      airRuntimeDirForFlexmojosSdk=airRuntimeDirInfo.first;
+    }
+ else {
+      needToRemoveAirRuntimeDir=false;
+      airRuntimeDirForFlexmojosSdk=null;
+    }
+    final String airRuntimePath=airRuntimeDirForFlexmojosSdk == null ? null : airRuntimeDirForFlexmojosSdk.getPath();
+    sendCommand(new StartAirAppDebuggingCommand(FlexBaseRunner.createAdlCommandLine(getSession().getProject(),params,bc,airRuntimePath),needToRemoveAirRuntimeDir ? airRuntimeDirForFlexmojosSdk : null));
+  }
+ catch (  CantRunException e) {
+    throw new IOException(e.getMessage());
+  }
+}

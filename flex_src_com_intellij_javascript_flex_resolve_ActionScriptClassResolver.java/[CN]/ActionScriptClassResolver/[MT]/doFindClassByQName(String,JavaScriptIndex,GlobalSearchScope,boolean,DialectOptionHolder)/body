@@ -1,0 +1,58 @@
+{
+  Project project=index.getProject();
+  boolean clazzShouldBeTakenFromOurLibrary=OBJECT_CLASS_NAME.equals(link) || "Arguments".equals(link);
+  if (clazzShouldBeTakenFromOurLibrary && !(searchScope instanceof AdditionalIndexedRootsScope)) {
+    searchScope=new AdditionalIndexedRootsScope(searchScope,JSIndexedRootProvider.class);
+  }
+  final Collection<JSQualifiedNamedElement> candidates=StubIndex.getElements(JSQualifiedElementIndex.KEY,link.hashCode(),project,searchScope,JSQualifiedNamedElement.class);
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  JSQualifiedNamedElement resultFromSourceContent=null;
+  JSQualifiedNamedElement resultFromLibraries=null;
+  long resultFromLibrariesTimestamp=0;
+  for (  Object _clazz : candidates) {
+    if (!(_clazz instanceof JSQualifiedNamedElement))     continue;
+    if (_clazz instanceof JSFunction && ((JSFunction)_clazz).isConstructor())     continue;
+    JSQualifiedNamedElement clazz=(JSQualifiedNamedElement)_clazz;
+    if (link.equals(clazz.getQualifiedName())) {
+      PsiFile file=clazz.getContainingFile();
+      if (!file.getLanguage().isKindOf(JavaScriptSupportLoader.ECMA_SCRIPT_L4))       continue;
+      VirtualFile vFile=file.getVirtualFile();
+      if (clazzShouldBeTakenFromOurLibrary && !JavaScriptIndex.ECMASCRIPT_JS2.equals(vFile.getName())) {
+        continue;
+      }
+      if (!allowFileLocalSymbols && JSResolveUtil.isFileLocalSymbol(clazz)) {
+        continue;
+      }
+      if (projectFileIndex.isInSourceContent(vFile)) {
+        resultFromSourceContent=clazz;
+        continue;
+      }
+      if (resultFromLibraries == null) {
+        resultFromLibraries=clazz;
+      }
+ else       if (JSCommonTypeNames.VECTOR_CLASS_NAME.equals(link)) {
+        if (clazz instanceof JSClass && resultFromLibraries instanceof JSClass && ((JSClass)clazz).getFunctions().length > ((JSClass)resultFromLibraries).getFunctions().length) {
+          resultFromLibraries=clazz;
+        }
+      }
+ else {
+        if (resultFromLibrariesTimestamp == 0) {
+          resultFromLibrariesTimestamp=getResolveResultTimestamp(resultFromLibraries);
+        }
+        final long classTimestamp=getResolveResultTimestamp(clazz);
+        if (classTimestamp > resultFromLibrariesTimestamp) {
+          resultFromLibraries=clazz;
+          resultFromLibrariesTimestamp=classTimestamp;
+        }
+      }
+    }
+  }
+  PsiElement result=resultFromSourceContent != null ? resultFromSourceContent : resultFromLibraries;
+  if (result == null) {
+    String className=link.substring(link.lastIndexOf('.') + 1);
+    if (className.length() > 0 && !isBuiltInClassName(className) && (Character.isLetter(className.charAt(0)) || '_' == className.charAt(0))) {
+      result=findClassByQNameViaHelper(link,project,className,searchScope);
+    }
+  }
+  return result;
+}

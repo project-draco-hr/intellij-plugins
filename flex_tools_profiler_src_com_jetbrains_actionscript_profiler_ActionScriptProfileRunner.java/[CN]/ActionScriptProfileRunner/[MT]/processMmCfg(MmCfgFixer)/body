@@ -1,0 +1,26 @@
+{
+  StringBuilder mmCfgContent=new StringBuilder();
+  final String mmCfgPath=ActionScriptProfileSettings.getMmCfgPath();
+  final File file=new File(mmCfgPath);
+  String lineEnd=System.getProperty("line.separator");
+  if (file.exists()) {
+    final LineNumberReader lineNumberReader=new LineNumberReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(file))));
+    while (true) {
+      final String s=lineNumberReader.readLine();
+      if (s == null)       break;
+      final int i=s.indexOf(DELIMITER);
+      if (i != -1) {
+        String value=s.substring(i + 1);
+        String name=s.substring(0,i);
+        final String result=mmCfgFixer.processOption(name,value,s);
+        if (result != null)         mmCfgContent.append(result).append(lineEnd);
+      }
+ else {
+        mmCfgContent.append(s).append(lineEnd);
+      }
+    }
+  }
+  final String options=mmCfgFixer.additionalOptions(lineEnd);
+  if (options != null)   mmCfgContent.insert(0,options + lineEnd);
+  FileUtil.writeToFile(file,mmCfgContent.toString().getBytes());
+}

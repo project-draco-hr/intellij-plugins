@@ -1,0 +1,37 @@
+{
+  final String outputFilePath=bc.getActualOutputFilePath();
+  final String outputFolder=PathUtil.getParentPath(outputFilePath);
+  command.add(FileUtil.toSystemDependentName(outputFolder + "/" + packagingOptions.getPackageFileName()+ packageFileExtension));
+  command.add(FileUtil.toSystemDependentName(FlexBaseRunner.getAirDescriptorPath(bc,packagingOptions)));
+  if (platformSdkPath != null && !platformSdkPath.isEmpty()) {
+    command.add("-platformsdk");
+    command.add(FileUtil.toSystemDependentName(platformSdkPath));
+  }
+  appendANEPaths(command,module,bc);
+  command.add("-C");
+  command.add(FileUtil.toSystemDependentName(outputFolder));
+  command.add(FileUtil.toSystemDependentName(PathUtil.getFileName(outputFilePath)));
+  for (  FilePathAndPathInPackage entry : packagingOptions.getFilesToPackage()) {
+    final String fullPath=FileUtil.toSystemIndependentName(entry.FILE_PATH.trim());
+    String relPathInPackage=FileUtil.toSystemIndependentName(entry.PATH_IN_PACKAGE.trim());
+    if (relPathInPackage.startsWith("/")) {
+      relPathInPackage=relPathInPackage.substring(1);
+    }
+    final String pathEnd="/" + relPathInPackage;
+    if (fullPath.endsWith(pathEnd)) {
+      command.add("-C");
+      command.add(FileUtil.toSystemDependentName(fullPath.substring(0,fullPath.length() - pathEnd.length())));
+      command.add(FileUtil.toSystemDependentName(relPathInPackage));
+    }
+ else     if (".".equals(relPathInPackage)) {
+      command.add("-C");
+      command.add(FileUtil.toSystemDependentName(fullPath));
+      command.add(FileUtil.toSystemDependentName("."));
+    }
+ else {
+      command.add("-e");
+      command.add(FileUtil.toSystemDependentName(fullPath));
+      command.add(relPathInPackage);
+    }
+  }
+}

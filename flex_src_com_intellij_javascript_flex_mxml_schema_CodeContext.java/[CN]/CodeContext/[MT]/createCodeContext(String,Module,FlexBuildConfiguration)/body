@@ -1,0 +1,31 @@
+{
+  if (!isPackageBackedNamespace(namespace)) {
+    return createCodeContextFromLibraries(namespace,module,bc);
+  }
+  final Project project=module.getProject();
+  final CodeContext codeContext=new CodeContext(namespace,module);
+  final String packageName=namespace.endsWith(".*") ? namespace.substring(0,namespace.length() - 2) : "";
+  final GlobalSearchScope searchScope=GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module);
+  JSPackageIndex.processElementsInScope(packageName,null,new JSPackageIndex.PackageElementsProcessor(){
+    public boolean process(    VirtualFile file,    String name,    JSPackageIndexInfo.Kind kind,    boolean isPublic){
+      if (kind != JSPackageIndexInfo.Kind.CLASS)       return true;
+      if (JavaScriptSupportLoader.isMxmlOrFxgFile(file)) {
+        addFileBackedDescriptor(file,codeContext,packageName,project);
+        PsiDirectory psiDirectory=PsiManager.getInstance(project).findDirectory(file.getParent());
+        if (psiDirectory != null)         codeContext.addDependency(psiDirectory);
+      }
+ else {
+        String qName=JSPackageIndex.buildQualifiedName(packageName,name);
+        codeContext.putDescriptor(name,new ClassBackedElementDescriptor(name,qName,codeContext,project),true);
+        final PsiFile containingFile=PsiManager.getInstance(project).findFile(file);
+        if (containingFile == null)         return true;
+        final PsiDirectory containingDirectory=containingFile.getParent();
+        final Object dependency=containingDirectory != null ? containingDirectory : containingFile;
+        codeContext.addDependency(dependency);
+      }
+      return true;
+    }
+  }
+,searchScope,project);
+  return codeContext;
+}

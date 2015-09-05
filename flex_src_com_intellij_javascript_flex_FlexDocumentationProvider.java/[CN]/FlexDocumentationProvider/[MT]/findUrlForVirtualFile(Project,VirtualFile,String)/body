@@ -1,0 +1,25 @@
+{
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  Module module=fileIndex.getModuleForFile(virtualFile);
+  if (module == null) {
+    final VirtualFileSystem fs=virtualFile.getFileSystem();
+    if (fs instanceof JarFileSystem) {
+      final VirtualFile jar=((JarFileSystem)fs).getVirtualFileForJar(virtualFile);
+      if (jar != null) {
+        module=fileIndex.getModuleForFile(jar);
+      }
+    }
+  }
+  if (module != null) {
+    String[] javadocPaths=JavaModuleExternalPaths.getInstance(module).getJavadocUrls();
+    List<String> httpRoots=PlatformDocumentationUtil.getHttpRoots(correctHttpRoots(javadocPaths),relPath);
+    if (httpRoots != null)     return httpRoots;
+  }
+  final List<OrderEntry> orderEntries=fileIndex.getOrderEntriesForFile(virtualFile);
+  for (  OrderEntry orderEntry : orderEntries) {
+    final String[] files=JavadocOrderRootType.getUrls(orderEntry);
+    final List<String> httpRoot=PlatformDocumentationUtil.getHttpRoots(correctHttpRoots(files),relPath);
+    if (httpRoot != null)     return httpRoot;
+  }
+  return Collections.emptyList();
+}

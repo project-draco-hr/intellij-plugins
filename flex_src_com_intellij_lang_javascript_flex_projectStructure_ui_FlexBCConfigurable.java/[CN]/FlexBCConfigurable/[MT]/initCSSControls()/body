@@ -1,0 +1,22 @@
+{
+  myCssFilesTextWithBrowse.getTextField().setEditable(false);
+  myCssFilesTextWithBrowse.setButtonIcon(PlatformIcons.OPEN_EDIT_DIALOG_ICON);
+  myCssFilesTextWithBrowse.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final List<StringBuilder> value=new ArrayList<StringBuilder>();
+      for (      String cssFilePath : myCssFilesToCompile) {
+        value.add(new StringBuilder(cssFilePath));
+      }
+      final RepeatableValueDialog dialog=new RepeatableValueDialog(myModule.getProject(),FlexBundle.message("css.files.to.compile.dialog.title"),value,CompilerOptionInfo.CSS_FILES_INFO_FOR_UI);
+      if (dialog.showAndGet()) {
+        final List<StringBuilder> newValue=dialog.getCurrentList();
+        myCssFilesToCompile=new ArrayList<String>(newValue.size());
+        for (        StringBuilder cssPath : newValue) {
+          myCssFilesToCompile.add(cssPath.toString());
+        }
+        updateCssFilesText();
+      }
+    }
+  }
+);
+}

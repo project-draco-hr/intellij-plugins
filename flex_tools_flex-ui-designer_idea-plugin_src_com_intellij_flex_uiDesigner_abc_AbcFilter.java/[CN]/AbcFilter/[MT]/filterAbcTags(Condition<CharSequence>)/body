@@ -1,0 +1,22 @@
+{
+  while (true) {
+    int tagCodeAndLength=buffer.getShort();
+    int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+switch (type) {
+case TagTypes.End:
+      mergeDoAbc(onlyAbcAsTag,false);
+    return;
+case TagTypes.DoABC2:
+  readAbcName(buffer.position() + 4);
+if (abcNameFilter.value(transientNameString)) {
+  decoders.add(new Decoder(createBufferWrapper(length)));
+}
+default :
+buffer.position(buffer.position() + length);
+}
+}
+}

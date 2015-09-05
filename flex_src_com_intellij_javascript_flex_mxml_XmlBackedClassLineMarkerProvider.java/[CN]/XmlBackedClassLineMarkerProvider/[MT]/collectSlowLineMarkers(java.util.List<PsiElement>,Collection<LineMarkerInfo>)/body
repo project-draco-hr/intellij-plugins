@@ -1,0 +1,12 @@
+{
+  for (  PsiElement element : elements) {
+    ProgressManager.checkCanceled();
+    if (element instanceof XmlTag && element.getParent() instanceof XmlDocument && element.getContainingFile() != null && JavaScriptSupportLoader.isFlexMxmFile(element.getContainingFile())) {
+      final XmlBackedJSClass clazz=XmlBackedJSClassFactory.getInstance().getXmlBackedClass((XmlTag)element);
+      Query<JSClass> classQuery=JSClassSearch.searchClassInheritors(clazz,true);
+      if (classQuery.findFirst() != null) {
+        result.add(new LineMarkerInfo<JSClass>(clazz,element.getTextOffset(),AllIcons.Gutter.OverridenMethod,Pass.UPDATE_OVERRIDEN_MARKERS,JavaScriptLineMarkerProvider.ourClassInheritorsTooltipProvider,JavaScriptLineMarkerProvider.ourClassInheritorsNavHandler));
+      }
+    }
+  }
+}

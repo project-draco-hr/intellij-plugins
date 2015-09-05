@@ -1,0 +1,16 @@
+{
+  final Module module2=doCreateRealModuleIn("module2",myProject,FlexModuleType.getInstance());
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      copyFileToModule(module2,getTestDataPath() + BASE_PATH + getTestName(false)+ "_2.js2");
+    }
+  }
+;
+  configureByFiles(null,BASE_PATH + getTestName(false) + ".js2");
+  final JSClassResolver resolver=JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver();
+  final PsiElement class1=resolver.findClassByQName("com.foo.Foo",myModule.getModuleScope());
+  assertNotNull(class1);
+  final PsiElement class2=resolver.findClassByQName("com.foo.Foo",module2.getModuleScope());
+  assertNotNull(class2);
+  assertFalse(class1.isEquivalentTo(class2));
+}

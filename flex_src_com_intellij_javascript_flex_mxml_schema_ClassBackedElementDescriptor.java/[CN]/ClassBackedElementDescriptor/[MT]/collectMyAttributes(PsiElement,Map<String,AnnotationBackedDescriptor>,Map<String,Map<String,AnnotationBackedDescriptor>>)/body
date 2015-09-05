@@ -1,0 +1,76 @@
+{
+  processAttributes(jsClass,new AttributedItemsProcessor(){
+    @Override public boolean process(    final JSNamedElement jsNamedElement,    final boolean isPackageLocalVisibility){
+      String name=jsNamedElement.getName();
+      if (name != null) {
+        if (jsNamedElement instanceof JSVariable && ((JSVariable)jsNamedElement).isConst())         return true;
+        String propertyType=getPropertyType(jsNamedElement);
+        boolean deferredInstance=false;
+        final JSAttributeList attributeList=((JSAttributeListOwner)jsNamedElement).getAttributeList();
+        if (attributeList != null) {
+          String instanceType=JSPsiImplUtils.getTypeFromAnnotationParameter(attributeList,"InstanceType",null);
+          if (instanceType != null) {
+            deferredInstance=true;
+            propertyType=instanceType;
+          }
+        }
+        if (propertyType != null && propertyType.length() > 0 && (Character.isUpperCase(propertyType.charAt(0)) || propertyType.indexOf('.') >= 0) && !STRING_CLASS_NAME.equals(propertyType) && !NUMBER_CLASS_NAME.equals(propertyType) && !BOOLEAN_CLASS_NAME.equals(propertyType)) {
+          String arrayType=null;
+          if (JSTypeEvaluateManager.isArrayType(propertyType)) {
+            arrayType=JSTypeEvaluateManager.getComponentType(propertyType);
+          }
+ else           if (ARRAY_CLASS_NAME.equals(propertyType)) {
+            if (attributeList != null) {
+              arrayType=JSPsiImplUtils.getTypeFromAnnotationParameter(attributeList,FlexAnnotationNames.INSPECTABLE,ARRAY_TYPE_ANNOTATION_PARAMETER);
+              if (arrayType == null) {
+                arrayType=JSPsiImplUtils.getArrayElementTypeFromAnnotation(attributeList);
+              }
+            }
+            if (arrayType == null && jsClass instanceof JSClass && jsNamedElement instanceof JSFunction && ((JSFunction)jsNamedElement).isSetProperty()) {
+              final JSFunction getter=((JSClass)jsClass).findFunctionByNameAndKind(jsNamedElement.getName(),JSFunction.FunctionKind.GETTER);
+              final JSAttributeList getterAttributeList=getter == null ? null : getter.getAttributeList();
+              if (getterAttributeList != null) {
+                arrayType=JSPsiImplUtils.getTypeFromAnnotationParameter(getterAttributeList,FlexAnnotationNames.INSPECTABLE,ARRAY_TYPE_ANNOTATION_PARAMETER);
+                if (arrayType == null) {
+                  arrayType=JSPsiImplUtils.getArrayElementTypeFromAnnotation(getterAttributeList);
+                }
+              }
+            }
+          }
+ else {
+            propertyType=JSImportHandlingUtil.resolveTypeName(propertyType,jsNamedElement);
+          }
+          if (arrayType != null) {
+            arrayType=JSImportHandlingUtil.resolveTypeName(arrayType,jsNamedElement);
+          }
+          putDescriptor(jsNamedElement,name,propertyType,arrayType,deferredInstance,isPackageLocalVisibility,map,packageToInternalDescriptors);
+        }
+ else {
+          putDescriptor(jsNamedElement,name,propertyType,null,deferredInstance,isPackageLocalVisibility,map,packageToInternalDescriptors);
+        }
+      }
+      return true;
+    }
+    @Override public boolean process(    final JSAttributeNameValuePair pair,    final String annotationName,    final boolean included){
+      String name=pair.getSimpleValue();
+      if (name != null) {
+        if (included) {
+          final AnnotationBackedDescriptorImpl previousDescriptor=(AnnotationBackedDescriptorImpl)map.get(name);
+          final AnnotationBackedDescriptorImpl descriptor=new AnnotationBackedDescriptorImpl(name,ClassBackedElementDescriptor.this,false,null,null,pair);
+          if (previousDescriptor == null || !previousDescriptor.isPreferredTo(descriptor)) {
+            map.put(name,descriptor);
+          }
+        }
+ else         map.remove(name);
+      }
+      return true;
+    }
+  }
+);
+  if (predefined && (FlexPredefinedTagNames.SCRIPT.equals(className) || FlexPredefinedTagNames.STYLE.equals(className))) {
+    map.put(FlexReferenceContributor.SOURCE_ATTR_NAME,new AnnotationBackedDescriptorImpl(FlexReferenceContributor.SOURCE_ATTR_NAME,this,true,null,null,null));
+  }
+  if (!predefined && map.get(FlexMxmlLanguageAttributeNames.ID) == null) {
+    addPredefinedMemberDescriptor(new AnnotationBackedDescriptorImpl(FlexMxmlLanguageAttributeNames.ID,this,true,null,null,null));
+  }
+}

@@ -1,0 +1,35 @@
+{
+  final Pair<Module,FlexBuildConfiguration> moduleAndBC=super.checkAndGetModuleAndBC(project);
+  doCheck(moduleAndBC);
+  if (myOverrideMainClass) {
+    final FlexBuildConfiguration origBC=moduleAndBC.second;
+    final ModifiableFlexBuildConfiguration overriddenBC=Factory.getTemporaryCopyForCompilation(origBC);
+    overriddenBC.setOutputType(OutputType.Application);
+    overriddenBC.setMainClass(myOverriddenMainClass);
+    overriddenBC.setOutputFileName(myOverriddenOutputFileName);
+    overriddenBC.setRLMs(Collections.<FlexBuildConfiguration.RLMInfo>emptyList());
+    if (origBC.getOutputType() != OutputType.Application) {
+      overriddenBC.setUseHtmlWrapper(false);
+      overriddenBC.setCssFilesToCompile(Collections.<String>emptyList());
+      overriddenBC.getDependencies().setFrameworkLinkage(LinkageType.Merged);
+      for (      ModifiableDependencyEntry entry : overriddenBC.getDependencies().getModifiableEntries()) {
+        if (entry.getDependencyType().getLinkageType() == LinkageType.External) {
+          entry.getDependencyType().setLinkageType(LinkageType.Merged);
+        }
+      }
+      overriddenBC.getAirDesktopPackagingOptions().setUseGeneratedDescriptor(true);
+      final ModifiableAndroidPackagingOptions androidOptions=overriddenBC.getAndroidPackagingOptions();
+      androidOptions.setEnabled(true);
+      androidOptions.setUseGeneratedDescriptor(true);
+      androidOptions.getSigningOptions().setUseTempCertificate(true);
+      overriddenBC.getIosPackagingOptions().setEnabled(false);
+    }
+    if (BCUtils.canHaveResourceFiles(overriddenBC.getNature()) && !BCUtils.canHaveResourceFiles(origBC.getNature())) {
+      overriddenBC.getCompilerOptions().setResourceFilesMode(CompilerOptions.ResourceFilesMode.None);
+    }
+    overriddenBC.getAndroidPackagingOptions().setPackageFileName(FileUtil.getNameWithoutExtension(myOverriddenOutputFileName));
+    overriddenBC.getIosPackagingOptions().setPackageFileName(FileUtil.getNameWithoutExtension(myOverriddenOutputFileName));
+    return Pair.create(moduleAndBC.first,((FlexBuildConfiguration)overriddenBC));
+  }
+  return moduleAndBC;
+}

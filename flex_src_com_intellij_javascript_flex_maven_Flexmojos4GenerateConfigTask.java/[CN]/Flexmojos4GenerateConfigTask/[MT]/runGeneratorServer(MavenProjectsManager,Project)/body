@@ -1,0 +1,28 @@
+{
+  final SimpleJavaParameters params=new SimpleJavaParameters();
+  params.setJdk(new SimpleJavaSdkType().createJdk("tmp",SystemProperties.getJavaHome()));
+  final MavenGeneralSettings mavenGeneralSettings=mavenProjectsManager.getGeneralSettings();
+  final ParametersList programParametersList=params.getProgramParametersList();
+  programParametersList.add(getSettingsFilePath(mavenGeneralSettings.getEffectiveGlobalSettingsIoFile()));
+  programParametersList.add(getSettingsFilePath(mavenGeneralSettings.getEffectiveUserSettingsIoFile()));
+  programParametersList.add(mavenGeneralSettings.getEffectiveLocalRepository().getAbsolutePath());
+  programParametersList.add(mavenGeneralSettings.isWorkOffline() ? "t" : "f");
+  programParametersList.add(project.getBaseDir().getPath() + "/.idea/flexmojos");
+  configureMavenClassPath(mavenGeneralSettings,params.getClassPath());
+  final File userVmP=new File(SystemProperties.getUserHome(),"fcg-vmp");
+  if (userVmP.exists()) {
+    params.getVMParametersList().addParametersString(FileUtil.loadFile(userVmP));
+  }
+  params.setMainClass("com.intellij.flex.maven.GeneratorServer");
+  final GeneralCommandLine commandLine=CommandLineBuilder.createFromJavaParameters(params);
+  commandLine.setRedirectErrorStream(true);
+  LOG.info("Generate Flex Configs Task:" + commandLine.getCommandLineString());
+  indicator.checkCanceled();
+  process=commandLine.createProcess();
+  ApplicationManager.getApplication().executeOnPooledThread(new OutputReader(project));
+  out=new DataOutputStream(new BufferedOutputStream(process.getOutputStream()));
+  writeExplicitProfiles(mavenProjectsManager.getExplicitProfiles().getEnabledProfiles());
+  writeWorkspaceMap(myTree.getProjects());
+  out.writeUTF(FlexCommonUtils.getPathToBundledJar("flexmojos-idea-configurator.jar"));
+  out.writeUTF(getIdeaConfiguratorClassName());
+}

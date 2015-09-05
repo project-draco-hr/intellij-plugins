@@ -1,0 +1,33 @@
+{
+  if (configFile == null || !configFile.isValid() || configFile.isDirectory()) {
+    return Collections.emptyList();
+  }
+  Pair<Long,Collection<NamespacesInfo>> data=configFile.getUserData(MOD_STAMP_TO_NAMESPACES_INFOS);
+  final FileDocumentManager documentManager=FileDocumentManager.getInstance();
+  final Document cachedDocument=documentManager.getCachedDocument(configFile);
+  final Long currentTimestamp=cachedDocument != null ? cachedDocument.getModificationStamp() : configFile.getModificationCount();
+  final Long cachedTimestamp=data == null ? null : data.first;
+  if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+    data=null;
+    configFile.putUserData(MOD_STAMP_TO_NAMESPACES_INFOS,data);
+    try {
+      final NamespacesXmlBuilder builder=new NamespacesXmlBuilder();
+      if (cachedDocument != null) {
+        NanoXmlUtil.parse(new CharSequenceReader(cachedDocument.getCharsSequence()),builder);
+      }
+ else {
+        NanoXmlUtil.parse(configFile.getInputStream(),builder);
+      }
+      final Collection<NamespacesInfo> namespacesInfos=new ArrayList<NamespacesInfo>();
+      final Collection<String> includedInSwcNamespaces=builder.getIncludedNamespaces();
+      for (      Pair<String,String> namespaceAndManifest : builder.getNamespacesAndManifests()) {
+        namespacesInfos.add(new NamespacesInfo(namespaceAndManifest.first,namespaceAndManifest.second,includedInSwcNamespaces.contains(namespaceAndManifest.first)));
+      }
+      data=Pair.create(currentTimestamp,namespacesInfos);
+      configFile.putUserData(MOD_STAMP_TO_NAMESPACES_INFOS,data);
+    }
+ catch (    IOException ignored) {
+    }
+  }
+  return data == null ? Collections.<NamespacesInfo>emptyList() : data.second;
+}

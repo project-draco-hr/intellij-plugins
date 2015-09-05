@@ -1,0 +1,29 @@
+{
+  final JSAttributeImpl jsAttribute=(JSAttributeImpl)element.getParent();
+  final XmlElementDescriptor descriptor=jsAttribute.getBackedDescriptor();
+  final XmlAttributeDescriptor attributeDescriptor=descriptor == null ? null : descriptor.getAttributeDescriptor(StringUtil.notNullize(name,JSAttributeNameValuePair.DEFAULT),null);
+  if (name == null) {
+    return getDefaultPropertyRefs(element,attributeDescriptor);
+  }
+  final String baseClassFqns=attributeDescriptor == null ? null : attributeDescriptor.getDefaultValue();
+  if (baseClassFqns != null) {
+    return getClassRefs(element,baseClassFqns);
+  }
+ else   if ("source".equals(name)) {
+    return getPathRefsCheckingParent(element);
+  }
+ else   if ("key".equals(name)) {
+    return getPropertyRefsCheckingParent(element);
+  }
+ else   if (BUNDLE_ATTR_NAME.equals(name)) {
+    return getBundleRefsCheckingParent(element);
+  }
+ else   if (attributeDescriptor != null && attributeDescriptor.isEnumerated()) {
+    final String[] enumeratedValues=attributeDescriptor.getEnumeratedValues();
+    final TextRange range=getValueRange(element);
+    if (enumeratedValues != null && enumeratedValues.length > 0 && range != null) {
+      return new PsiReference[]{new EnumeratedAttributeValueReference(element,range,enumeratedValues)};
+    }
+  }
+  return PsiReference.EMPTY_ARRAY;
+}

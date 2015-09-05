@@ -1,0 +1,30 @@
+{
+  Class entryPointClass;
+  entryPointClass=findClass("flex2.tools.Fcsh");
+  if (entryPointClass == null) {
+    entryPointClass=findClass("flex2.tools.SimpleShell");
+  }
+  if (entryPointClass != null) {
+    try {
+      final Method main=entryPointClass.getMethod("main",args.getClass());
+      main.invoke(null,new Object[]{args});
+    }
+ catch (    NoSuchMethodException e) {
+      e.printStackTrace();
+    }
+catch (    IllegalAccessException e) {
+      e.printStackTrace();
+    }
+catch (    InvocationTargetException e) {
+      if (e.getCause() instanceof VirtualMachineError) {
+        throw (VirtualMachineError)e.getCause();
+      }
+ else {
+        e.printStackTrace();
+      }
+    }
+  }
+ else {
+    System.err.println("Flex SDK is corrupted.");
+  }
+}

@@ -1,0 +1,43 @@
+{
+  FlexCompilationTask taskToStart=null;
+  if (!myNotStartedTasks.isEmpty() && myInProgressTasks.size() < myMaxParallelCompilations) {
+    boolean allTasksHaveDependenciesOnlyInNotStarted=true;
+    for (    FlexCompilationTask task : myNotStartedTasks) {
+      if (BCUtils.isRLMTemporaryBC(task.getBC()) && !isMainAppCompiledForRLM(task.getModule(),task.getBC())) {
+        allTasksHaveDependenciesOnlyInNotStarted=false;
+        continue;
+      }
+      if (hasDependenciesIn(task,myInProgressTasks)) {
+        allTasksHaveDependenciesOnlyInNotStarted=false;
+        continue;
+      }
+      if (hasDependenciesIn(task,myNotStartedTasks)) {
+        continue;
+      }
+      taskToStart=task;
+      break;
+    }
+    if (taskToStart == null && allTasksHaveDependenciesOnlyInNotStarted) {
+      taskToStart=myNotStartedTasks.iterator().next();
+    }
+    if (taskToStart != null) {
+      myNotStartedTasks.remove(taskToStart);
+      if (myCompilerDependenciesCache.isNothingChangedSincePreviousCompilation(taskToStart.getModule(),taskToStart.getBC())) {
+        addMessage(taskToStart,CompilerMessageCategory.INFORMATION,FlexBundle.message("compilation.skipped.because.nothing.changed"),null,-1,-1);
+        taskToStart.cancel();
+        myFinishedTasks.add(taskToStart);
+        try {
+          FlexCompilationUtils.performPostCompileActions(taskToStart.getModule(),taskToStart.getBC(),Collections.<String>emptyList());
+        }
+ catch (        FlexCompilerException e) {
+          addMessage(taskToStart,CompilerMessageCategory.ERROR,e.getMessage(),e.getUrl(),e.getLine(),e.getColumn());
+        }
+      }
+ else {
+        taskToStart.start(this);
+        myInProgressTasks.add(taskToStart);
+      }
+      startNewTaskIfPossible();
+    }
+  }
+}

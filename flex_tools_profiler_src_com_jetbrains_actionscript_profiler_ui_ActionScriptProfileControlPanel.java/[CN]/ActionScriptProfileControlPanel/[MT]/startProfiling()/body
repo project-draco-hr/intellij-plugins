@@ -1,0 +1,39 @@
+{
+  if (profilingManager != null) {
+    profilingManager.dispose();
+  }
+  profilingManager=new ProfilingManager(ActionScriptProfileSettings.getInstance().getPort());
+  final LiveModelController liveModelController=new LiveModelController();
+  final LiveObjectsNode liveObjectsNode=new LiveObjectsNode(runConfigurationName,module,profilingManager,liveModelController);
+  profilerDataConsumer=new ProfilerDataConsumer(liveModelController);
+  setStatus(ProfilerBundle.message("agent.connection.waiting"));
+  myAlarm.cancelAllRequests();
+  myAlarm.addRequest(new Runnable(){
+    @Override public void run(){
+      NOTIFICATION_GROUP.createNotification(ProfilerBundle.message("profiler.connection.timeout"),NotificationType.ERROR).notify(module.getProject());
+    }
+  }
+,MINUTE);
+  profilingManager.initializeProfiling(profilerDataConsumer,new ProfilingManager.Callback(){
+    public void finished(    @Nullable String data,    @Nullable IOException ex){
+      if (data != null && connectionCallback != null) {
+        myAlarm.cancelAllRequests();
+        setStatus(ProfilerBundle.message("agent.connection.open"));
+        ApplicationManager.getApplication().invokeLater(connectionCallback);
+        setCurrentState(State.NORMAL);
+      }
+ else       if (ex != null) {
+        setStatus(ProfilerBundle.message("agent.connection.close"));
+        setCurrentState(State.NONE);
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            treeModel.removeNodeFromParent(liveObjectsNode);
+          }
+        }
+);
+      }
+    }
+  }
+);
+  treeModel.insertNodeInto(liveObjectsNode,(MutableTreeNode)treeModel.getRoot(),0);
+}

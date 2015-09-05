@@ -1,0 +1,24 @@
+{
+  if (!visited.add(jsClass))   return;
+  FlexUtils.processMetaAttributesForClass(jsClass,new JSResolveUtil.MetaDataProcessor(){
+    public boolean process(    @NotNull JSAttribute jsAttribute){
+      if (FlexAnnotationNames.STYLE.equals(jsAttribute.getName())) {
+        JSAttributeNameValuePair pair=jsAttribute.getValueByName("name");
+        String styleName=pair != null ? pair.getSimpleValue() : null;
+        if (styleName != null) {
+          result.add(new FlexCssPropertyDescriptor(ContainerUtil.newLinkedHashSet(FlexStyleIndexInfo.create(jsClass.getQualifiedName(),styleName,jsAttribute,true))));
+        }
+      }
+      return true;
+    }
+    public boolean handleOtherElement(    PsiElement el,    PsiElement context,    @Nullable Ref<PsiElement> continuePassElement){
+      return true;
+    }
+  }
+);
+  for (  JSClass jsSuper : jsClass.getSupers()) {
+    if (jsSuper != null) {
+      fillPropertyDescriptorsDynamically(jsSuper,visited,result);
+    }
+  }
+}

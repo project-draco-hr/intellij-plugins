@@ -1,0 +1,44 @@
+{
+  final List<VirtualFile> validFiles=new ArrayList<VirtualFile>(myFiles.size());
+  for (  final VirtualFile file : myFiles) {
+    if (file.isValid()) {
+      validFiles.add(file);
+    }
+  }
+  if (validFiles.isEmpty()) {
+    return;
+  }
+  if (validFiles.size() == 1) {
+    FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,validFiles.get(0),myLine,0),true);
+  }
+ else {
+    final PsiManager psiManager=PsiManager.getInstance(project);
+    final Collection<PsiFile> psiFiles=new ArrayList<PsiFile>(validFiles.size());
+    for (    final VirtualFile file : validFiles) {
+      final PsiFile psiFile=psiManager.findFile(file);
+      if (psiFile != null) {
+        psiFiles.add(psiFile);
+      }
+    }
+    final JList list=new JBList(PsiUtilCore.toPsiFileArray(psiFiles));
+    list.setCellRenderer(new DefaultPsiElementCellRenderer());
+    final PopupChooserBuilder builder=new PopupChooserBuilder(list);
+    final JBPopup popup=builder.setItemChoosenCallback(new Runnable(){
+      public void run(){
+        final Object[] selectedElements=list.getSelectedValues();
+        if (selectedElements != null && selectedElements.length == 1 && selectedElements[0] instanceof PsiFile) {
+          final VirtualFile file=((PsiFile)selectedElements[0]).getVirtualFile();
+          if (file != null) {
+            FileEditorManager.getInstance(project).openTextEditor(new OpenFileDescriptor(project,file,myLine,0),true);
+          }
+        }
+      }
+    }
+).createPopup();
+    final JFrame frame=WindowManager.getInstance().getFrame(project);
+    final Point mousePosition=frame.getMousePosition();
+    if (mousePosition != null) {
+      popup.show(new RelativePoint(frame,mousePosition));
+    }
+  }
+}

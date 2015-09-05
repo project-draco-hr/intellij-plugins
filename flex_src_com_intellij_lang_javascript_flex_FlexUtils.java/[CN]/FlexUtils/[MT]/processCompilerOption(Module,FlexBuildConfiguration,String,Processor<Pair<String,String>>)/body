@@ -1,0 +1,22 @@
+{
+  String rawValue=bc.getCompilerOptions().getOption(option);
+  if (rawValue == null)   rawValue=FlexBuildConfigurationManager.getInstance(module).getModuleLevelCompilerOptions().getOption(option);
+  if (rawValue == null) {
+    rawValue=FlexProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions().getOption(option);
+  }
+  if (rawValue == null)   return true;
+  int pos=0;
+  while (true) {
+    int index=rawValue.indexOf(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR,pos);
+    if (index == -1)     break;
+    String token=rawValue.substring(pos,index);
+    final int tabIndex=token.indexOf(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR);
+    if (tabIndex > 0 && !processor.process(Pair.create(token.substring(0,tabIndex),token.substring(tabIndex + 1))))     return false;
+    pos=index + 1;
+  }
+  final int tabIndex=rawValue.indexOf(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR,pos);
+  if (tabIndex > pos) {
+    if (!processor.process(Pair.create(rawValue.substring(pos,tabIndex),rawValue.substring(tabIndex + 1))))     return false;
+  }
+  return true;
+}

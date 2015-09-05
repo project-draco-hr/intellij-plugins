@@ -1,0 +1,32 @@
+{
+  if (qName2IdMap != null)   return;
+  qName2IdMap=myDebugProcess.getQName2IdIfSameEqualityObject(getEqualityObject());
+  if (qName2IdMap != null)   return;
+  qName2IdMap=new LinkedHashMap<String,String>();
+  final DebuggerCommand command=new DebuggerCommand("info scopechain",CommandOutputProcessingType.SPECIAL_PROCESSING){
+    @Override CommandOutputProcessingMode onTextAvailable(    @NonNls final String s){
+      final StringTokenizer tokenizer=new StringTokenizer(s,"\r\n");
+      while (tokenizer.hasMoreElements()) {
+        String line=tokenizer.nextToken();
+        int lBracketPos=line.indexOf('[');
+        int rBracketPos=line.lastIndexOf(']');
+        if (lBracketPos == -1 || rBracketPos == -1)         continue;
+        line=line.substring(lBracketPos + 1,rBracketPos);
+        String id=line.substring(line.indexOf(' ') + 1,line.indexOf(','));
+        String qName=line.substring(line.indexOf('\'') + 1,line.lastIndexOf('\''));
+        qName=qName.replace("::",".");
+        qName2IdMap.put(qName,id);
+      }
+      myDebugProcess.setQName2Id(qName2IdMap,getEqualityObject());
+      return CommandOutputProcessingMode.DONE;
+    }
+  }
+;
+  myDebugProcess.sendAndProcessOneCommand(command,new Function<Exception,Void>(){
+    @Override public Void fun(    final Exception e){
+      FlexDebugProcess.log(e);
+      return null;
+    }
+  }
+);
+}

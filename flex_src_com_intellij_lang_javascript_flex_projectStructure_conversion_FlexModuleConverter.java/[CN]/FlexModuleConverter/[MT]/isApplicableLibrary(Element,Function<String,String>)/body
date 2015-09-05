@@ -1,0 +1,63 @@
+{
+  String libraryType=library.getAttributeValue(LibraryImpl.LIBRARY_TYPE_ATTR);
+  if (FlexLibraryType.FLEX_LIBRARY.getKindId().equals(libraryType)) {
+    return true;
+  }
+  if (libraryType != null) {
+    return false;
+  }
+  final Element rootChild=library.getChild(OrderRootType.CLASSES.name());
+  if (rootChild == null) {
+    return false;
+  }
+  JarDirectories jarDirectories=new JarDirectories();
+  try {
+    jarDirectories.readExternal(library);
+  }
+ catch (  InvalidDataException ignored) {
+    jarDirectories.clear();
+  }
+  List<Element> classesRoots=rootChild.getChildren(LibraryImpl.ROOT_PATH_ELEMENT);
+  if (classesRoots.isEmpty()) {
+    return false;
+  }
+  for (  Element root : classesRoots) {
+    final String url=root.getAttributeValue("url");
+    if (url == null) {
+      continue;
+    }
+    final String path=getPathFromUrl(url);
+    if (path == null) {
+      continue;
+    }
+    if (path.toLowerCase().endsWith(".swc")) {
+      return true;
+    }
+ else {
+      if (jarDirectories.contains(OrderRootType.CLASSES,url)) {
+        String expanded=pathExpander.fun(path);
+        File file=new File(expanded);
+        if (!file.isDirectory()) {
+          return true;
+        }
+        String[] allChildren=file.list();
+        if (allChildren == null || allChildren.length == 0) {
+          return true;
+        }
+        File[] swcs=file.listFiles(FileFilters.filesWithExtension("swc"));
+        if (swcs != null && swcs.length > 0) {
+          return true;
+        }
+        File[] jars=file.listFiles(FileFilters.filesWithExtension("jar"));
+        if (jars != null && jars.length > 0) {
+          continue;
+        }
+        return true;
+      }
+ else       if (!path.toLowerCase().endsWith(".jar")) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

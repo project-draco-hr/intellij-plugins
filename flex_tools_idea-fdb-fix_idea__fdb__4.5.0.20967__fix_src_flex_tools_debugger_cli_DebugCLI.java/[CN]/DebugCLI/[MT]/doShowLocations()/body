@@ -1,0 +1,50 @@
+{
+  StringBuilder sb=new StringBuilder();
+  sb.append("Num Type           Disp Enb Address    What" + m_newline);
+  int count=breakpointCount();
+  for (int i=0; i < count; i++) {
+    BreakAction b=breakpointAt(i);
+    int num=b.getId();
+    FieldFormat.formatLong(sb,num,3);
+    sb.append(" breakpoint     ");
+    if (b.isAutoDisable())     sb.append("dis  ");
+ else     if (b.isAutoDelete())     sb.append("del  ");
+ else     sb.append("keep ");
+    if (b.isEnabled())     sb.append("y   ");
+ else     sb.append("n   ");
+    Iterator<Location> itr=b.getLocations().iterator();
+    while (itr.hasNext()) {
+      Location l=itr.next();
+      SourceFile file=l.getFile();
+      String funcName=(file == null) ? getLocalizationManager().getLocalizedTextString("unknownBreakpointLocation") : file.getFunctionNameForLine(m_session,l.getLine());
+      int offset=adjustOffsetForUnitTests((file == null) ? 0 : file.getOffsetForLine(l.getLine()));
+      sb.append("0x");
+      FieldFormat.formatLongToHex(sb,offset,8);
+      sb.append(' ');
+      if (funcName != null) {
+        Map<String,Object> funcArgs=new HashMap<String,Object>();
+        funcArgs.put("functionName",funcName);
+        sb.append(getLocalizationManager().getLocalizedTextString("inFunctionAt",funcArgs));
+      }
+      sb.append(file.getName());
+      if (file != null) {
+        sb.append("#");
+        sb.append(file.getId());
+      }
+      sb.append(':');
+      sb.append(l.getLine());
+      try {
+        SwfInfo info=m_fileInfo.swfForFile(file);
+        Map<String,Object> swfArgs=new HashMap<String,Object>();
+        swfArgs.put("swf",FileInfoCache.shortNameOfSwf(info));
+        sb.append(getLocalizationManager().getLocalizedTextString("inSwf",swfArgs));
+      }
+ catch (      NullPointerException npe) {
+        sb.append(getLocalizationManager().getLocalizedTextString("nonRestorable"));
+      }
+      sb.append(m_newline);
+      if (itr.hasNext())       sb.append("                            ");
+    }
+  }
+  out(sb.toString());
+}

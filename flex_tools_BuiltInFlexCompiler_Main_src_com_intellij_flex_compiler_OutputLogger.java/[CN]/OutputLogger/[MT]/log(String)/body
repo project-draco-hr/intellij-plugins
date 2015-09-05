@@ -1,0 +1,17 @@
+{
+  if (!myErrorsReported) {
+    if (message.startsWith("Error: ") || message.startsWith("Exception in thread \"main\" ")) {
+      myErrorsReported=true;
+    }
+ else {
+      final Matcher matcher=ERROR_PATTERN.matcher(message);
+      if (matcher.matches()) {
+        final String type=matcher.group(5);
+        if ("Error".equals(type)) {
+          myErrorsReported=true;
+        }
+      }
+    }
+  }
+  myMessageSender.sendMessage(myLogMessagePrefix + message);
+}

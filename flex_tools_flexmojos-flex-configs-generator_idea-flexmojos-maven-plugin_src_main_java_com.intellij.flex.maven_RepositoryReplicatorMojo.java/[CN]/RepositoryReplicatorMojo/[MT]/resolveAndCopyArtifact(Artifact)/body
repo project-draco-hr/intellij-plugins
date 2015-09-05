@@ -1,0 +1,24 @@
+{
+  if (copiedArtifacts.contains(artifact)) {
+    return true;
+  }
+  copiedArtifacts.add(artifact);
+  File artifactFile=artifact.getFile();
+  if (artifactFile == null && !artifact.isResolved()) {
+    ArtifactResolutionRequest request=new ArtifactResolutionRequest();
+    request.setArtifact(artifact);
+    request.setLocalRepository(session.getLocalRepository());
+    request.setRemoteRepositories(remoteRepositories);
+    ArtifactResolutionResult result=repositorySystem.resolve(request);
+    artifactFile=artifact.getFile();
+    if (!result.isSuccess() && artifactFile == null) {
+      if (getLog().isDebugEnabled()) {
+        for (        Exception e : result.getExceptions()) {
+          getLog().error(e);
+        }
+      }
+      throw new MojoExecutionException("Failed to resolve artifact " + artifact);
+    }
+  }
+  return copyArtifact(artifactFile,artifactFile.getPath().substring(localRepositoryBasedirLength));
+}

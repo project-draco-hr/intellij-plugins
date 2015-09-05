@@ -1,0 +1,31 @@
+{
+  final String testName=getTestName(false);
+  doTestFor(true,testName + ".as",testName + ".swc");
+  checkNavigatableSymbols("layoutObject");
+  final Set<String> resolvedNses=new THashSet<String>();
+  final Ref<String> foundConst=new Ref<String>();
+  final Ref<String> foundConst2=new Ref<String>();
+  myFile.acceptChildren(new JSRecursiveElementVisitor(){
+    @Override public void visitJSReferenceExpression(    JSReferenceExpression node){
+      super.visitJSReferenceExpression(node);
+      final PsiElement resolve=node.resolve();
+      if (node.getParent() instanceof JSUseNamespaceDirective) {
+        foundConst2.set(JSPsiImplUtils.calcNamespaceReference(node.getParent()));
+      }
+ else       if (resolve instanceof JSVariable && ((JSVariable)resolve).isConst()) {
+        foundConst.set(StringUtil.stripQuotesAroundValue(((JSVariable)resolve).getInitializer().getText()));
+      }
+      if (resolve instanceof JSAttributeListOwner) {
+        final JSAttributeList attributeList=((JSAttributeListOwner)resolve).getAttributeList();
+        final String ns=attributeList != null ? attributeList.resolveNamespaceValue() : null;
+        if (ns != null)         resolvedNses.add(ns);
+      }
+    }
+  }
+);
+  String ns="http://www.adobe.com/2006/flex/mx/internal";
+  assertEquals(1,resolvedNses.size());
+  assertEquals(ns,foundConst.get());
+  assertEquals(ns,foundConst2.get());
+  assertTrue(resolvedNses.contains(ns));
+}

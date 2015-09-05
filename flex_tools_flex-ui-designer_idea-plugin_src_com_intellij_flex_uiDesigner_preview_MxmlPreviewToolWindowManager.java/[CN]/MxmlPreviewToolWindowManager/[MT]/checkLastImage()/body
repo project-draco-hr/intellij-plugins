@@ -1,0 +1,28 @@
+{
+  File file=new File(DesignerApplicationManager.APP_DIR,LAST_PREVIEW_IMAGE_FILE_NAME);
+  if (!file.exists()) {
+    return false;
+  }
+  try {
+    final VirtualFile virtualFile=toolWindowForm.getFile();
+    BufferedImage image=IOUtil.readImage(file,new Processor<DataInputStream>(){
+      @Override public boolean process(      DataInputStream in){
+        try {
+          return in.readLong() == virtualFile.getTimeStamp() && in.readUTF().equals(virtualFile.getUrl());
+        }
+ catch (        IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+);
+    if (image != null) {
+      toolWindowForm.getPreviewPanel().setImage(image);
+      return true;
+    }
+  }
+ catch (  IOException e) {
+    LogMessageUtil.LOG.warn("Can't read image for last document",e);
+  }
+  return false;
+}

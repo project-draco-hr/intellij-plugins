@@ -1,0 +1,66 @@
+{
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
+  FlexUnitSupport support=null;
+  FlexBuildConfiguration bc=null;
+  if (module.getName().equals(params.getModuleName()) && !params.getBCName().isEmpty()) {
+    bc=manager.findConfigurationByName(params.getBCName());
+    if (bc != null) {
+      support=FlexUnitSupport.getSupport(bc,module);
+    }
+  }
+  if (support == null) {
+    bc=manager.getActiveConfiguration();
+    support=FlexUnitSupport.getSupport(bc,module);
+  }
+  if (support == null) {
+    for (    FlexBuildConfiguration anyBC : manager.getBuildConfigurations()) {
+      bc=anyBC;
+      support=FlexUnitSupport.getSupport(bc,module);
+      if (support != null) {
+        break;
+      }
+    }
+  }
+  if (support == null) {
+    return false;
+  }
+  params.setModuleName(module.getName());
+  params.setBCName(bc.getName());
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    if (bc.getAndroidPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.Android);
+    }
+ else     if (bc.getIosPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.IOS);
+    }
+  }
+  if (element instanceof JSClass) {
+    final JSClass clazz=(JSClass)element;
+    if (!support.isTestClass(clazz,true))     return false;
+    forClass(clazz,params);
+  }
+ else   if (element instanceof JSFunction) {
+    final JSFunction method=(JSFunction)element;
+    final String methodName=method.getName();
+    final JSClass clazz=(JSClass)element.getParent();
+    if (!support.isTestClass(clazz,true))     return false;
+    if (methodName == null || !support.isTestMethod(method)) {
+      forClass(clazz,params);
+    }
+ else {
+      params.setClassName(clazz.getQualifiedName());
+      params.setMethodName(methodName);
+      params.setScope(FlexUnitRunnerParameters.Scope.Method);
+    }
+  }
+ else   if (element instanceof PsiDirectory) {
+    if (!forDirectory((PsiDirectory)element,module,params))     return false;
+  }
+ else   if (element instanceof PsiDirectoryContainer) {
+    if (!forPackage((PsiDirectoryContainer)element,module,params))     return false;
+  }
+ else {
+    return false;
+  }
+  return true;
+}

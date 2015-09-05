@@ -1,0 +1,58 @@
+{
+  final AtomicInteger count=new AtomicInteger();
+  ReferencesSearch.search(myClass,myClass.getUseScope()).forEach(new Processor<PsiReference>(){
+    @Override public boolean process(    PsiReference psiReference){
+      return !isClassInstantiation(psiReference) || count.incrementAndGet() < 2;
+    }
+  }
+);
+  int usages=count.get();
+  if (usages < 2) {
+    usages+=JSInheritanceUtil.findSuperConstructorCalls(myClass).size();
+  }
+  if (usages < 2) {
+    final Collection<String> toImport=new ArrayList<String>();
+    for (    JSExpression argument : myNode.getArguments()) {
+      String type=JSResolveUtil.getQualifiedExpressionType(argument,argument.getContainingFile());
+      if (StringUtil.isNotEmpty(type) && ImportUtils.needsImport(myClass,StringUtil.getPackageName(type))) {
+        toImport.add(type);
+      }
+    }
+    AccessToken l=WriteAction.start();
+    try {
+      if (!toImport.isEmpty()) {
+        FormatFixer formatFixer=ImportUtils.insertImportStatements(myClass,toImport);
+        if (formatFixer != null) {
+          formatFixer.fixFormat();
+        }
+      }
+      CreateConstructorFix.super.applyFix(project,psiElement,myClass.getContainingFile(),getEditor(myClass.getProject(),myClass.getContainingFile()));
+    }
+  finally {
+      l.finish();
+    }
+  }
+ else {
+    String text="function " + myClass.getName() + "(){}";
+    JSFunction fakeFunction=(JSFunction)JSChangeUtil.createStatementFromText(project,text,JavaScriptSupportLoader.ECMA_SCRIPT_L4).getPsi();
+    new ChangeSignatureFix(fakeFunction,myNode.getArguments()){
+      @Override protected Pair<Boolean,List<JSParameterInfo>> handleCall(      @NotNull JSFunction function,      JSExpression[] arguments,      boolean dummy){
+        List<JSParameterInfo> parameterInfos=super.handleCall(function,arguments,dummy).second;
+        return Pair.create(true,parameterInfos);
+      }
+      @Override protected JSChangeSignatureDialog createDialog(      PsiElement context,      final List<JSParameterInfo> paramInfos){
+        JSMethodDescriptor descriptor=new JSMethodDescriptor(myFunction,true){
+          @Override public List<JSParameterInfo> getParameters(){
+            return paramInfos;
+          }
+        }
+;
+        return new MyDialog(descriptor,context);
+      }
+      @Override protected JSChangeSignatureProcessor createProcessor(      List<JSParameterInfo> paramInfos,      JSAttributeList attributeList){
+        return new MyProcessor(myFunction,attributeList != null ? attributeList.getAccessType() : JSAttributeList.AccessType.PACKAGE_LOCAL,myClass.getName(),"",paramInfos.toArray(new JSParameterInfo[paramInfos.size()]),Collections.<JSFunction>emptySet());
+      }
+    }
+.invoke(project,editor,file);
+  }
+}

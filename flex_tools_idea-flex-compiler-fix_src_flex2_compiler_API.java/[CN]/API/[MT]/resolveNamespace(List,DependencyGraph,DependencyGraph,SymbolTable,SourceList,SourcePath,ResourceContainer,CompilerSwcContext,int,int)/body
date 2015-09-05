@@ -1,0 +1,32 @@
+{
+  Set qNames=new HashSet();
+  for (int i=start; i < end; i++) {
+    Source source=(Source)sources.get(i);
+    CompilationUnit u=source.getCompilationUnit();
+    if (u.namespaces.size() == 0) {
+      continue;
+    }
+    qNames.clear();
+    String head=source.getName();
+    String name=u.getSource().getNameForReporting();
+    for (Iterator k=u.namespaces.iterator(); k.hasNext(); ) {
+      Object unresolved=k.next();
+      if (unresolved instanceof MultiName) {
+        MultiName mName=(MultiName)unresolved;
+        QName qName=resolveMultiName(name,mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+        if (qName != null) {
+          qNames.add(qName);
+          u.namespaceHistory.put(mName,qName);
+          Source tailSource=symbolTable.findSourceByQName(qName);
+          String tail=tailSource.getName();
+          addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+          addEdgeToGraphs(null,dgraph,head,tail);
+        }
+        k.remove();
+      }
+    }
+    if (qNames.size() > 0) {
+      u.namespaces.addAll(qNames);
+    }
+  }
+}

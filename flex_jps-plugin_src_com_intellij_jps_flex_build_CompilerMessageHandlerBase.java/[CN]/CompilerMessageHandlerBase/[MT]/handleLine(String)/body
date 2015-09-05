@@ -1,0 +1,74 @@
+{
+  if (StringUtil.isEmptyOrSpaces(text)) {
+    reportPreviousInfoMessage();
+    return;
+  }
+  if (text.equals("^")) {
+    myPreviousUnreportedInfoMessage=null;
+    return;
+  }
+  if ("command line".equals(text)) {
+    reportPreviousInfoMessage();
+    return;
+  }
+  if (text.startsWith("Exception in thread \"") || text.contains(FlexCommonUtils.COULD_NOT_CREATE_JVM)) {
+    reportPreviousInfoMessage();
+    myContext.processMessage(new CompilerMessage(myCompilerName,BuildMessage.Kind.ERROR,text));
+    myCompilationFailed=true;
+    return;
+  }
+  if (myAsc20) {
+    if (text.startsWith("Warning: ") || text.startsWith("Error: ") || text.startsWith("Syntax error: ")|| text.startsWith("Internal error: ")) {
+      final BuildMessage.Kind kind=text.startsWith("Warning: ") ? BuildMessage.Kind.WARNING : BuildMessage.Kind.ERROR;
+      final int index=text.indexOf(": ");
+      final String usefulMessage=text.substring(index + ": ".length());
+      final Pair<String,Integer> sourcePathAndLine=FlexCommonUtils.getSourcePathAndLineFromASC20Message(myPreviousUnreportedInfoMessage);
+      if (sourcePathAndLine == null) {
+        reportPreviousInfoMessage();
+        myContext.processMessage(new CompilerMessage(myCompilerName,kind,usefulMessage));
+      }
+ else {
+        myPreviousUnreportedInfoMessage=null;
+        if (!isNotSupportedOptionFromGeneratedConfig(usefulMessage,sourcePathAndLine.first)) {
+          myContext.processMessage(new CompilerMessage(myCompilerName,kind,usefulMessage,sourcePathAndLine.first,-1,-1,-1,sourcePathAndLine.second,0));
+        }
+      }
+      myCompilationFailed|=kind == BuildMessage.Kind.ERROR;
+      return;
+    }
+  }
+ else {
+    final Matcher matcher=FlexCommonUtils.ERROR_PATTERN.matcher(text);
+    if (matcher.matches()) {
+      final String sourceFilePath=matcher.group(1);
+      final String additionalInfo=matcher.group(2);
+      final String line=matcher.group(3);
+      final String column=matcher.group(4);
+      final String type=matcher.group(5);
+      final String message=matcher.group(6);
+      final BuildMessage.Kind kind="Warning".equals(type) ? BuildMessage.Kind.WARNING : BuildMessage.Kind.ERROR;
+      final File file=new File(sourceFilePath);
+      final boolean sourceFileExists=file.exists();
+      final StringBuilder fullMessage=new StringBuilder();
+      if (!sourceFileExists)       fullMessage.append(sourceFilePath).append(": ");
+      if (additionalInfo != null)       fullMessage.append(additionalInfo).append(' ');
+      fullMessage.append(message);
+      reportPreviousInfoMessage();
+      myContext.processMessage(new CompilerMessage(myCompilerName,kind,fullMessage.toString(),sourceFileExists ? sourceFilePath : null,-1,-1,-1,line != null ? Integer.parseInt(line) : 0,column != null ? Integer.parseInt(column) : 0));
+      myCompilationFailed|=kind == BuildMessage.Kind.ERROR;
+      return;
+    }
+  }
+  if (text.startsWith(ERROR_PREFIX)) {
+    reportPreviousInfoMessage();
+    myContext.processMessage(new CompilerMessage(myCompilerName,BuildMessage.Kind.ERROR,text.substring(ERROR_PREFIX.length())));
+    myCompilationFailed=true;
+    return;
+  }
+  reportPreviousInfoMessage();
+  myPreviousUnreportedInfoMessage=text;
+  if (text.contains(FlexCommonUtils.OUT_OF_MEMORY) || text.contains(FlexCommonUtils.JAVA_HEAP_SPACE)) {
+    myContext.processMessage(new CompilerMessage(myCompilerName,BuildMessage.Kind.ERROR,FlexCommonBundle.message("increase.flex.compiler.heap",CommonBundle.settingsActionPath())));
+    myCompilationFailed=true;
+  }
+}

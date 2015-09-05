@@ -1,0 +1,40 @@
+{
+  final Module module2=JSTestUtils.createModule(myProject,"module2",getVirtualFile("m2"));
+  final Module module3=JSTestUtils.createModule(myProject,"module3",getVirtualFile("m3"));
+  VirtualFile moduleDir=myModule.getModuleFile().getParent();
+  JSTestUtils.addFlexLibrary(false,myModule,"Lib",true,getTestDataPath(),"Lib",null,null,LinkageType.Test,moduleDir);
+  JSTestUtils.addFlexLibrary(false,myModule,"Lib2",true,getTestDataPath(),"Lib2",null,null,LinkageType.Merged,moduleDir);
+  JSTestUtils.addFlexLibrary(true,myModule,"Lib3",true,getTestDataPath(),"Lib3",null,null,LinkageType.Test,moduleDir);
+  JSTestUtils.addFlexLibrary(true,myModule,"Lib4",true,getTestDataPath(),"Lib4",null,null,LinkageType.Merged,moduleDir);
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor editor){
+      ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+      bc1.getDependencies().setSdkEntry(Factory.createSdkEntry(TEST_FLEX_SDK_NAME));
+      bc1.setName("bc1");
+      setOutputPaths(bc1);
+      ModifiableFlexBuildConfiguration bc2=editor.getConfigurations(module2)[0];
+      bc2.setOutputType(OutputType.Library);
+      bc2.setName("bc2");
+      setOutputPaths(bc2);
+      ModifiableFlexBuildConfiguration bc3=editor.getConfigurations(module3)[0];
+      bc3.setOutputType(OutputType.Library);
+      bc2.setName("bc3");
+      setOutputPaths(bc3);
+      ModifiableBuildConfigurationEntry entry1=editor.createBcEntry(bc1.getDependencies(),bc2,null);
+      entry1.getDependencyType().setLinkageType(LinkageType.Test);
+      bc1.getDependencies().getModifiableEntries().add(entry1);
+      ModifiableBuildConfigurationEntry entry2=editor.createBcEntry(bc2.getDependencies(),bc3,null);
+      entry2.getDependencyType().setLinkageType(LinkageType.Test);
+      bc2.getDependencies().getModifiableEntries().add(entry2);
+    }
+  }
+);
+  final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(myModule).getActiveConfiguration();
+  ModifiableFlexBuildConfiguration tempBc=Factory.getTemporaryCopyForCompilation(bc);
+  doTest("4.5.1.21328",tempBc,Factory.createCompilerOptions(),Factory.createCompilerOptions(),"_1",null);
+  tempBc.setMainClass(FlexCommonUtils.FLEX_UNIT_LAUNCHER);
+  Map<String,String> map=new HashMap<String,String>();
+  map.put("$FLEX_UNIT_TEMP_FOLDER$",FlexUnitPrecompileTask.getPathToFlexUnitTempDirectory(myProject));
+  map.put("$APP_DIR$",FileUtil.toSystemIndependentName(PathManager.getHomePath()));
+  doTest("4.5.1.21328",tempBc,Factory.createCompilerOptions(),Factory.createCompilerOptions(),"_2",map);
+}

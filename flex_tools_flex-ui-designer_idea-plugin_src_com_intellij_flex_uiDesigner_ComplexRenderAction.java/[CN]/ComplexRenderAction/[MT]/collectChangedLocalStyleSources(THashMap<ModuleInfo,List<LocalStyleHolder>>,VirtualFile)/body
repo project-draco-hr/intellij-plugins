@@ -1,0 +1,31 @@
+{
+  final Ref<Boolean> result=new Ref<Boolean>(false);
+  Client.getInstance().getRegisteredModules().forEach(new TObjectProcedure<ModuleInfo>(){
+    @Override public boolean execute(    ModuleInfo moduleInfo){
+      if (holders.containsKey(moduleInfo)) {
+        result.set(true);
+        return false;
+      }
+      List<LocalStyleHolder> styleHolders=moduleInfo.getLocalStyleHolders();
+      if (styleHolders != null) {
+        List<LocalStyleHolder> list=null;
+        for (        LocalStyleHolder styleHolder : styleHolders) {
+          if (styleHolder.file.equals(file)) {
+            if (list == null) {
+              list=new ArrayList<LocalStyleHolder>();
+              holders.put(moduleInfo,list);
+              result.set(true);
+            }
+            list.add(styleHolder);
+          }
+        }
+        if (list != null) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+);
+  return result.get();
+}

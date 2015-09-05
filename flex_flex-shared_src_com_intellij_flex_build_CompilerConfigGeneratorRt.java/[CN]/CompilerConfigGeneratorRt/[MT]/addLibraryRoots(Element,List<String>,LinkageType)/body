@@ -1,0 +1,21 @@
+{
+  for (  String libRootUrl : libRootUrls) {
+    final String libFilePath=JpsPathUtil.urlToPath(libRootUrl);
+    final File libFile=new File(libFilePath);
+    if (libFile.isDirectory()) {
+      addOption(rootElement,CompilerOptionInfo.SOURCE_PATH_INFO,libFile.getPath());
+    }
+ else     if (libFile.isFile()) {
+      if (libFilePath.toLowerCase().endsWith(".ane")) {
+        addLib(rootElement,libFilePath,LinkageType.External);
+      }
+ else       if (libFilePath.toLowerCase().endsWith(".swc")) {
+        final String libFileName=libFile.getName().toLowerCase();
+        if (libFileName.startsWith("airglobal") && !libFileName.equals("airglobal.swc") || libFileName.startsWith("playerglobal") && !libFileName.equals("playerglobal.swc")) {
+          continue;
+        }
+        addLib(rootElement,libFilePath,linkageType);
+      }
+    }
+  }
+}

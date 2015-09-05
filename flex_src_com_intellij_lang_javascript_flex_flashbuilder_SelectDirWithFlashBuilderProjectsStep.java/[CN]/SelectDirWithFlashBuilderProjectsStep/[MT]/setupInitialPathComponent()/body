@@ -1,0 +1,18 @@
+{
+  myInitialPathComponent.getComponent().getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    protected void textChanged(    final DocumentEvent e){
+      onInitialPathChanged();
+    }
+  }
+);
+  final FileChooserDescriptor descriptor=new FileChooserDescriptor(true,true,true,true,false,false){
+    public boolean isFileVisible(    final VirtualFile file,    final boolean showHiddenFiles){
+      return (super.isFileVisible(file,showHiddenFiles) && (file.isDirectory() || FlashBuilderProjectFinder.isFlashBuilderProject(file)) || FlashBuilderProjectFinder.hasArchiveExtension(file.getPath()));
+    }
+    public Icon getIcon(    final VirtualFile file){
+      return !file.isDirectory() && (FlashBuilderProjectFinder.hasFxpExtension(file.getPath()) || FlashBuilderProjectFinder.isFlashBuilderProject(file)) ? dressIcon(file,getBuilder().getIcon()) : super.getIcon(file);
+    }
+  }
+;
+  myInitialPathComponent.getComponent().addBrowseFolderListener(FlexBundle.message("select.flash.builder.workspace.or.project"),null,getWizardContext().getProject(),descriptor);
+}

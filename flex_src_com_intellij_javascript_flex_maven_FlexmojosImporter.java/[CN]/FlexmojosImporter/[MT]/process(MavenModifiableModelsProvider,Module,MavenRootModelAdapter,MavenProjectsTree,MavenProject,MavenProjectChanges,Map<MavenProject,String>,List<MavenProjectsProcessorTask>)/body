@@ -1,0 +1,24 @@
+{
+  expireNotification();
+  final FlexProjectConfigurationEditor currentEditor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+  final boolean needToCommit=currentEditor == null;
+  final LibraryTableBase.ModifiableModelEx projectLibrariesModel=(LibraryTableBase.ModifiableModelEx)modelsProvider.getProjectLibrariesModel();
+  final Map<Module,ModifiableRootModel> moduleToModifiableModel=Collections.singletonMap(module,modelAdapter.getRootModel());
+  final FlexProjectConfigurationEditor flexEditor=currentEditor != null ? currentEditor : new FlexProjectConfigurationEditor(module.getProject(),FlexProjectConfigurationEditor.createModelProvider(moduleToModifiableModel,projectLibrariesModel,null)){
+    @Nullable protected Module findModuleWithBC(    final BuildConfigurationEntry bcEntry){
+      return modelAdapter.findModuleByName(bcEntry.getModuleName());
+    }
+  }
+;
+  final MavenPlugin flexmojosPlugin=getFlexmojosPlugin(mavenProject);
+  final Flexmojos3Configurator configurator=StringUtil.compareVersionNumbers(flexmojosPlugin.getVersion(),"5") >= 0 ? new Flexmojos5Configurator(module,modelsProvider,flexEditor,mavenTree,mavenProjectToModuleName,mavenProject,flexmojosPlugin,getCompiledLocales(mavenProject),getRuntimeLocales(mavenProject),this) : StringUtil.compareVersionNumbers(flexmojosPlugin.getVersion(),"4") >= 0 ? new Flexmojos4Configurator(module,modelsProvider,flexEditor,mavenTree,mavenProjectToModuleName,mavenProject,flexmojosPlugin,getCompiledLocales(mavenProject),getRuntimeLocales(mavenProject),this) : new Flexmojos3Configurator(module,modelsProvider,flexEditor,mavenTree,mavenProjectToModuleName,mavenProject,flexmojosPlugin,getCompiledLocales(mavenProject),getRuntimeLocales(mavenProject),this);
+  configurator.configureAndAppendTasks(postTasks);
+  if (needToCommit) {
+    try {
+      flexEditor.commit();
+    }
+ catch (    ConfigurationException e) {
+      MavenLog.LOG.error(e);
+    }
+  }
+}

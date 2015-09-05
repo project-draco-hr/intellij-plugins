@@ -1,0 +1,55 @@
+{
+  final String wrapperName;
+  if (!FlexSdkUtils.isAirSdkWithoutFlex(sdk) && StringUtil.compareVersionNumbers(sdk.getVersionString(),"4") < 0) {
+    final String prefix=checkPlayerVersion ? expressInstall ? "express-installation" : "client-side-detection" : "no-player-detection";
+    wrapperName=prefix + (enableHistory ? "-with-history" : "");
+  }
+ else {
+    wrapperName="swfobject";
+  }
+  final String sdkTemplatePath=sdk.getHomePath() + "/templates/" + wrapperName;
+  final VirtualFile sdkTemplateFolder=LocalFileSystem.getInstance().findFileByPath(sdkTemplatePath);
+  if (sdkTemplateFolder == null || !sdkTemplateFolder.isDirectory()) {
+    Messages.showErrorDialog(project,FlexBundle.message("html.wrapper.in.sdk.not.found",sdkTemplatePath),TITLE);
+    return false;
+  }
+  final boolean swfObjectWrapper="swfobject".equals(sdkTemplateFolder.getName());
+  final IOException exception=ApplicationManager.getApplication().runWriteAction(new NullableComputable<IOException>(){
+    public IOException compute(){
+      try {
+        for (        VirtualFile file : sdkTemplateFolder.getChildren()) {
+          if (swfObjectWrapper) {
+            if (FlexCommonUtils.HTML_WRAPPER_TEMPLATE_FILE_NAME.equals(file.getName())) {
+              fixAndCopyIndexTemplateHtml(file,folder,enableHistory,checkPlayerVersion,expressInstall);
+              continue;
+            }
+ else             if ("history".equals(file.getName())) {
+              if (!enableHistory) {
+                continue;
+              }
+            }
+ else             if (PLAYER_PRODUCT_INSTALL_SWF.equals(file.getName())) {
+              if (!checkPlayerVersion || !expressInstall) {
+                continue;
+              }
+            }
+            file.copy(this,folder,file.getName());
+          }
+ else {
+            file.copy(this,folder,file.getName());
+          }
+        }
+      }
+ catch (      IOException e) {
+        return e;
+      }
+      return null;
+    }
+  }
+);
+  if (exception != null) {
+    Messages.showErrorDialog(project,FlexBundle.message("html.wrapper.creation.failed",exception.getMessage()),TITLE);
+    return false;
+  }
+  return true;
+}

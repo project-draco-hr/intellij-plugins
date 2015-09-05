@@ -1,0 +1,42 @@
+{
+  VirtualFile source=null;
+  String mimeType=null;
+  String symbol=null;
+  for (  JSAttributeNameValuePair p : attribute.getValues()) {
+    final String name=p.getName();
+    if (name == null || name.equals("source")) {
+      try {
+        source=InjectionUtil.getReferencedFile(p);
+      }
+ catch (      InvalidPropertyException e) {
+        problemsHolder.add(e);
+        return InjectedASWriter.IGNORE;
+      }
+    }
+ else     if (name.equals("mimeType")) {
+      mimeType=p.getSimpleValue();
+    }
+ else     if (name.equals("symbol")) {
+      symbol=p.getSimpleValue();
+    }
+  }
+  if (source == null) {
+    problemsHolder.add(host,FlashUIDesignerBundle.message("embed.source.not.specified",host.getText()));
+    return InjectedASWriter.IGNORE;
+  }
+  if (InjectionUtil.isSwf(source,mimeType)) {
+    return new SwfValueWriter(source,symbol);
+  }
+ else {
+    if (symbol != null) {
+      LOG.warn("Attribute symbol is unneeded for " + host.getText());
+    }
+    if (InjectionUtil.isImage(source,mimeType)) {
+      return new ImageValueWriter(source,mimeType);
+    }
+ else {
+      problemsHolder.add(host,FlashUIDesignerBundle.message("unsupported.embed.asset.type",host.getText()));
+      return InjectedASWriter.IGNORE;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  final Collection<JSQualifiedNamedElement> candidates=getCandidates(editor,file);
+  if (candidates.isEmpty() || myUnambiguousTheFlyMode && candidates.size() != 1) {
+    return;
+  }
+  if (candidates.size() > 1) {
+    NavigationUtil.getPsiElementPopup(candidates.toArray(new JSQualifiedNamedElement[candidates.size()]),new JSQualifiedNamedElementRenderer(),JSBundle.message("choose.class.to.import.title"),new PsiElementProcessor<JSQualifiedNamedElement>(){
+      public boolean execute(      @NotNull final JSQualifiedNamedElement element){
+        CommandProcessor.getInstance().executeCommand(project,new Runnable(){
+          public void run(){
+            doImport(element.getQualifiedName());
+          }
+        }
+,getClass().getName(),this);
+        return false;
+      }
+    }
+).showInBestPositionFor(editor);
+  }
+ else {
+    if (myUnambiguousTheFlyMode) {
+      CommandProcessor.getInstance().runUndoTransparentAction(new Runnable(){
+        public void run(){
+          doImport(candidates.iterator().next().getQualifiedName());
+        }
+      }
+);
+    }
+ else {
+      doImport(candidates.iterator().next().getQualifiedName());
+    }
+  }
+}

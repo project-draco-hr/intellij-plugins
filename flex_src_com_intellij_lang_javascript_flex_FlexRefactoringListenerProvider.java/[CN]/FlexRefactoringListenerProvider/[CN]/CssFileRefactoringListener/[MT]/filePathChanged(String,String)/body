@@ -1,0 +1,27 @@
+{
+  for (  FlexBuildConfiguration bc : FlexBuildConfigurationManager.getInstance(myModule).getBuildConfigurations()) {
+    if (BCUtils.canHaveRLMsAndRuntimeStylesheets(bc)) {
+      final Collection<String> cssFiles=bc.getCssFilesToCompile();
+      if (cssFiles.isEmpty())       continue;
+      final Collection<String> newCssFiles=new ArrayList<String>(cssFiles.size());
+      boolean changed=false;
+      for (      String cssFile : cssFiles) {
+        if (cssFile.equals(oldFilePath)) {
+          newCssFiles.add(newFilePath);
+          changed=true;
+        }
+ else {
+          newCssFiles.add(cssFile);
+        }
+      }
+      if (changed) {
+        FlexProjectConfigurationEditor.makeNonStructuralModification(bc,new Consumer<NonStructuralModifiableBuildConfiguration>(){
+          @Override public void consume(          final NonStructuralModifiableBuildConfiguration configuration){
+            configuration.setCssFilesToCompile(newCssFiles);
+          }
+        }
+);
+      }
+    }
+  }
+}

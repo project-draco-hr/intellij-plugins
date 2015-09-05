@@ -1,0 +1,18 @@
+{
+  while (!queue.isEmpty()) {
+    cache.add(queue.poll());
+  }
+  final Iterator<Sample> iterator=cache.iterator();
+  while (iterator.hasNext()) {
+    final Sample sample=iterator.next();
+    if (sample instanceof CreateObjectSample) {
+      applyCreate(model,(CreateObjectSample)sample);
+      iterator.remove();
+    }
+ else     if (sample instanceof DeleteObjectSample && applyDelete(model,(DeleteObjectSample)sample)) {
+      iterator.remove();
+    }
+  }
+  removeUselessNodes((MutableTreeNode)model.getRoot());
+  filterByScope(model);
+}

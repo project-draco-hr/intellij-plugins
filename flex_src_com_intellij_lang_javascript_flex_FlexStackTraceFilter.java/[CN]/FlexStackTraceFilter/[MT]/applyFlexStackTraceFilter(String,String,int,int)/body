@@ -1,0 +1,19 @@
+{
+  final Collection<VirtualFile> result=new ArrayList<VirtualFile>();
+  final Collection<VirtualFile> files=FilenameIndex.getVirtualFilesByName(myProject,PathUtil.getFileName(filePath),GlobalSearchScope.allScope(myProject));
+  for (  final VirtualFile file : files) {
+    if (file.getPath().endsWith(matchingRelativePath)) {
+      result.add(file);
+    }
+  }
+  if (!result.isEmpty()) {
+    final int colonLineNumberLength=lineNumber > 0 ? (":".length() + String.valueOf(lineNumber).length()) : 0;
+    int highlightingLength=matchingRelativePath.length() + colonLineNumberLength;
+    if (result.size() == 1 && result.iterator().next().getPath().equals(filePath)) {
+      highlightingLength=filePath.length() + colonLineNumberLength;
+    }
+    final int highlightStartOffset=highlightEndOffset - highlightingLength;
+    return new Result(highlightStartOffset,highlightEndOffset,new OpenOneOfSeveralFilesHyperlinkInfo(result,lineNumber));
+  }
+  return null;
+}

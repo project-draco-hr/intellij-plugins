@@ -1,0 +1,27 @@
+{
+  if (mainClassPath.isEmpty())   return "unknown";
+  File mainClassFile=new File(mainClassPath);
+  if (!mainClassFile.isFile()) {
+    mainClassFile=new File(baseDir + File.pathSeparator + mainClassPath);
+  }
+  if (!mainClassFile.isFile()) {
+    return FileUtil.getNameWithoutExtension(FileUtil.getNameWithoutExtension(PathUtilRt.getFileName(mainClassPath)));
+  }
+  String mainClassCanonicalPath;
+  try {
+    mainClassCanonicalPath=FileUtil.toSystemIndependentName(mainClassFile.getCanonicalPath());
+  }
+ catch (  IOException e) {
+    mainClassCanonicalPath=FileUtil.toSystemIndependentName(mainClassFile.getPath());
+  }
+  for (  JpsModuleSourceRoot sourceRoot : module.getSourceRoots()) {
+    final String sourcePath=JpsPathUtil.urlToPath(sourceRoot.getUrl());
+    if (FileUtil.isAncestor(sourcePath,mainClassCanonicalPath,true)) {
+      final String relativePath=FileUtil.getRelativePath(sourcePath,mainClassCanonicalPath,'/');
+      if (relativePath != null) {
+        return FileUtil.getNameWithoutExtension(relativePath).replace("/",".");
+      }
+    }
+  }
+  return FileUtil.getNameWithoutExtension(mainClassCanonicalPath);
+}

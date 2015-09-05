@@ -1,0 +1,35 @@
+{
+  ToolbarDecorator d=ToolbarDecorator.createDecorator(myFilesToPackageTable);
+  d.setAddAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton button){
+      final FileChooserDescriptor descriptor=new FileChooserDescriptor(true,true,false,true,false,true);
+      final VirtualFile[] files=FileChooser.chooseFiles(descriptor,myProject,null);
+      final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(myProject).getFileIndex();
+      for (      final VirtualFile file : files) {
+        final VirtualFile sourceRoot=fileIndex.getSourceRootForFile(file);
+        String relativePath=sourceRoot == null ? null : sourceRoot.equals(file) ? "." : VfsUtilCore.getRelativePath(file,sourceRoot,'/');
+        myFilesToPackage.add(new FilePathAndPathInPackage(file.getPath(),StringUtil.notNullize(relativePath,file.getName())));
+      }
+      if (files.length > 0) {
+        fireDataChanged();
+        IdeFocusManager.getInstance(myProject).requestFocus(myFilesToPackageTable,true);
+        final int rowCount=myFilesToPackageTable.getRowCount();
+        myFilesToPackageTable.setRowSelectionInterval(rowCount - files.length,rowCount - 1);
+      }
+    }
+  }
+);
+  d.setRemoveAction(new AnActionButtonRunnable(){
+    public void run(    AnActionButton anActionButton){
+      TableUtil.stopEditing(myFilesToPackageTable);
+      final int[] selectedRows=myFilesToPackageTable.getSelectedRows();
+      Arrays.sort(selectedRows);
+      for (int i=selectedRows.length - 1; i >= 0; i--) {
+        myFilesToPackage.remove(selectedRows[i]);
+      }
+      fireDataChanged();
+    }
+  }
+);
+  myMainPanel.add(d.createPanel(),BorderLayout.CENTER);
+}

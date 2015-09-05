@@ -1,0 +1,80 @@
+{
+  StringBuilder buf=new StringBuilder(1024);
+  buf.append(indent + "<" + node.shortname+ ">\n");
+  if (node.children != null) {
+    for (Iterator it=node.children.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry e=(Map.Entry)it.next();
+      FormatNode child=(FormatNode)e.getValue();
+      if (child.children != null) {
+        buf.append(formatBuffer1(cfgbuf,child,indent + pad,lmgr,prefix));
+      }
+ else {
+        String description=lmgr.getLocalizedTextString(prefix + "." + child.fullname);
+        if (description != null)         buf.append(indent + pad + "<!-- "+ child.fullname+ ": "+ description+ "-->\n");
+        if ((child.values == null) || !child.info.isDisplayed()) {
+          boolean newline=false;
+          buf.append(indent + pad + "<!-- "+ child.fullname+ " usage:\n");
+          buf.append(indent + pad + "<"+ child.shortname+ ">");
+          int i=0;
+          while (true) {
+            if (child.info.getArgCount() == 1) {
+              buf.append(child.info.getArgName(i));
+              break;
+            }
+ else {
+              buf.append("\n" + indent + pad+ pad+ "<"+ child.info.getArgName(i)+ ">"+ classToArgName(child.info.getArgType(i))+ "</"+ child.info.getArgName(i)+ ">");
+              newline=true;
+            }
+            if (child.info.getArgCount() == -1) {
+              if (i > 0) {
+                boolean found=false;
+                String argName=child.info.getArgName(i + 1);
+                for (int j=i; j >= 0; j--) {
+                  if (child.info.getArgName(j).equals(argName)) {
+                    found=true;
+                    break;
+                  }
+                }
+                if (found) {
+                  break;
+                }
+              }
+            }
+ else             if (i >= child.info.getArgCount()) {
+              break;
+            }
+            ++i;
+          }
+          if (newline)           buf.append("\n" + indent + pad);
+          buf.append("</" + child.shortname + ">\n");
+          buf.append(indent + pad + "-->\n");
+        }
+ else {
+          boolean newline=false;
+          for (Iterator valit=child.values.iterator(); valit.hasNext(); ) {
+            ConfigurationValue cv=(ConfigurationValue)valit.next();
+            buf.append(indent + pad + "<"+ child.shortname+ ">");
+            int argCount=child.info.getArgCount();
+            int argc=0;
+            for (Iterator argit=cv.getArgs().iterator(); argit.hasNext(); ) {
+              String arg=(String)argit.next();
+              if (argCount == 1) {
+                buf.append(arg);
+                break;
+              }
+ else {
+                String argname=child.info.getArgName(argc++);
+                newline=true;
+                buf.append("\n" + indent + pad+ pad+ "<"+ argname+ ">"+ arg+ "</"+ argname+ ">");
+              }
+            }
+            if (newline)             buf.append("\n" + indent + pad);
+            buf.append("</" + child.shortname + ">\n");
+          }
+        }
+      }
+    }
+  }
+  buf.append(indent + "</" + node.shortname+ ">\n");
+  return buf.toString();
+}

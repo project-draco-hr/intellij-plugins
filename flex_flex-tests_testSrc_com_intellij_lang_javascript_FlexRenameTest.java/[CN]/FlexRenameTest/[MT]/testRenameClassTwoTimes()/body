@@ -1,0 +1,22 @@
+{
+  final String name=getTestName(false);
+  VirtualFile file=getVirtualFile(getBasePath() + name + "/mytest/foo/"+ name+ "_2.js2");
+  VirtualFile[] files={getVirtualFile(getBasePath() + name + "/mytest/boo/"+ name+ ".js2"),file};
+  configureByFiles(new File(getTestDataPath() + getBasePath() + name),files);
+  int referencesCount=findRenamedRefsToReferencedElementAtCaret().length;
+  performAction(name + "_3",true);
+  checkResultByFile(getBasePath() + name + "_after.js2");
+  assertEquals(referencesCount,findRenamedRefsToReferencedElementAtCaret().length);
+  performAction(name + "_4",true);
+  checkResultByFile(getBasePath() + name + "_after2.js2");
+  PsiReference[] refs=findRenamedRefsToReferencedElementAtCaret();
+  assertEquals(referencesCount,refs.length);
+  for (  PsiReference ref : refs) {
+    PsiElement refElement=ref.getElement();
+    PsiElement refElementParent=refElement.getParent();
+    assertFalse(refElementParent instanceof JSReferenceExpression);
+    if (!(refElementParent instanceof JSImportStatement)) {
+      assertEquals(name + "_4",refElement.getText());
+    }
+  }
+}

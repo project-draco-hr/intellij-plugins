@@ -1,0 +1,43 @@
+{
+  Set<String> allNames=ContainerUtil.newLinkedHashSet();
+  for (  Collection<FlexStyleIndexInfo> collection : collections) {
+    for (    FlexStyleIndexInfo info : collection) {
+      allNames.add(info.getClassOrFileName());
+    }
+  }
+  Set<String> namesFromSelectors=null;
+  if (selectors.size() > 0 && !containsGlobalSelectors(selectors)) {
+    namesFromSelectors=ContainerUtil.newLinkedHashSet();
+    for (    CssSimpleSelector selector : selectors) {
+      if (module != null) {
+        final JSClass jsClass=getClassFromMxmlDescriptor(selector,module);
+        if (jsClass != null) {
+          String classOrFileName=findJsClassOrFile(jsClass,ContainerUtil.<JSClass>newLinkedHashSet(),allNames);
+          if (classOrFileName != null) {
+            namesFromSelectors.add(classOrFileName);
+          }
+          continue;
+        }
+      }
+      final String selectorName=selector.getElementName();
+      Collection<JSQualifiedNamedElement> elements=JSResolveUtil.findElementsByName(selectorName,scope.getProject(),scope);
+      for (      PsiElement element : elements) {
+        if (element instanceof JSClass) {
+          String classOrFileName=findJsClassOrFile((JSClass)element,ContainerUtil.<JSClass>newLinkedHashSet(),allNames);
+          if (classOrFileName != null) {
+            namesFromSelectors.add(classOrFileName);
+          }
+        }
+      }
+    }
+  }
+  List<FlexStyleIndexInfo> result=new ArrayList<FlexStyleIndexInfo>();
+  for (  Collection<FlexStyleIndexInfo> collection : collections) {
+    for (    FlexStyleIndexInfo info : collection) {
+      if (namesFromSelectors == null || namesFromSelectors.contains(info.getClassOrFileName())) {
+        result.add(info);
+      }
+    }
+  }
+  return result;
+}

@@ -1,0 +1,31 @@
+{
+  buffer.mark();
+  buffer.position(buffer.position() + 4);
+  final int endPosition=buffer.position() + spriteTagLength;
+  while (true) {
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+    final int start=buffer.position();
+switch (type) {
+case TagTypes.PlaceObject:
+      updateReferenceById(start);
+    break;
+case TagTypes.PlaceObject2:
+case TagTypes.PlaceObject3:
+  updatePlaceObject2Or3Reference(type == TagTypes.PlaceObject2);
+break;
+}
+final int newPosition=start + length;
+if (newPosition < endPosition) {
+buffer.position(newPosition);
+}
+ else {
+break;
+}
+}
+buffer.reset();
+}

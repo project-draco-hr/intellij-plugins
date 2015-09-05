@@ -1,0 +1,38 @@
+{
+  if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return;
+  }
+  final boolean isRootModule=bc == null;
+  if (isRootModule) {
+    bc=getActiveConfiguration(module);
+  }
+  if (bc == null || !processedConfigurations.add(bc)) {
+    return;
+  }
+  ModuleData moduleData=modules2activeConfigurations.get(module);
+  if (moduleData == null) {
+    modules2activeConfigurations.put(module,moduleData=new ModuleData());
+  }
+  moduleData.addBc(bc,productionDependency);
+  for (  DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (!(entry instanceof BuildConfigurationEntry)) {
+      continue;
+    }
+    final LinkageType linkageType=entry.getDependencyType().getLinkageType();
+    if (linkageType == LinkageType.LoadInRuntime) {
+      continue;
+    }
+    FlexBuildConfiguration dependencyBc=((BuildConfigurationEntry)entry).findBuildConfiguration();
+    if (dependencyBc == null || !FlexCommonUtils.checkDependencyType(bc.getOutputType(),dependencyBc.getOutputType(),linkageType)) {
+      continue;
+    }
+    if (!isRootModule && !BCUtils.isTransitiveDependency(linkageType)) {
+      continue;
+    }
+    Module dependencyModule=((BuildConfigurationEntry)entry).findModule();
+    if (dependencyModule == null || dependencyModule == module) {
+      continue;
+    }
+    processModuleWithBuildConfiguration(dependencyModule,dependencyBc,modules2activeConfigurations,processedConfigurations,entry.getDependencyType().getLinkageType() != LinkageType.Test);
+  }
+}

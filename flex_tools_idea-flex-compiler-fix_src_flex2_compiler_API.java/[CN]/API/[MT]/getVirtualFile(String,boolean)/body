@@ -1,0 +1,15 @@
+{
+  VirtualFile result;
+  File file=FileUtil.openFile(path);
+  if (file != null && FileUtils.exists(file)) {
+    result=new LocalFile(FileUtil.getCanonicalFile(file));
+  }
+ else {
+    PathResolver resolver=ThreadLocalToolkit.getPathResolver();
+    result=resolver.resolve(path);
+    if (result == null && reportError) {
+      throw new ConfigurationException.IOError(path);
+    }
+  }
+  return result;
+}

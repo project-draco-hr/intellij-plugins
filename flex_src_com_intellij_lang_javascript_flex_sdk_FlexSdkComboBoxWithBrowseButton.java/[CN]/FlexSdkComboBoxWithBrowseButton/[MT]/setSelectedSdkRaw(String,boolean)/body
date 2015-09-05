@@ -1,0 +1,27 @@
+{
+  final JComboBox combo=getComboBox();
+  if (BC_SDK_KEY.equals(sdkName)) {
+    combo.setSelectedItem(myBCSdk);
+    return;
+  }
+ else {
+    for (int i=0; i < combo.getItemCount(); i++) {
+      final Object item=combo.getItemAt(i);
+      if (item instanceof Sdk && ((Sdk)item).getName().equals(sdkName)) {
+        combo.setSelectedItem(item);
+        return;
+      }
+    }
+  }
+  if (addErrorItemIfSdkNotFound) {
+    final List<Object> items=new ArrayList<Object>();
+    items.add(sdkName);
+    for (int i=0; i < combo.getItemCount(); i++) {
+      final Object item=combo.getItemAt(i);
+      if (!(item instanceof String)) {
+        items.add(item);
+      }
+    }
+    combo.setModel(new DefaultComboBoxModel(ArrayUtil.toObjectArray(items)));
+  }
+}

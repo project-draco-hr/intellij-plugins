@@ -1,0 +1,24 @@
+{
+  int start=data.getPosition();
+  int count=readU32();
+  instances=new Traits[count];
+  for (int i=0; i < count; i++) {
+    Traits t=instances[i]=new Traits();
+    t.name=names[readU32()];
+    t.base=names[readU32()];
+    t.flags=data.readByte();
+    if ((t.flags & CLASS_FLAG_protected) != 0)     t.protectedNs=namespaces[readU32()];
+    int interface_count=readU32();
+    t.interfaces=new Multiname[interface_count];
+    for (int j=0; j < interface_count; j++) {
+      t.interfaces[j]=names[readU32()];
+    }
+    MethodInfo m=t.init=methods[readU32()];
+    m.name=((Multiname)t.name);
+    m.kind=TraitType.Method;
+    m.id=-1;
+    m.parentTraits=t;
+    parseTraits(t);
+  }
+  reportAboutPercentage("InstanceInfo size ",data,start,processor);
+}

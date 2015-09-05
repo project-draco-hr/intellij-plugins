@@ -1,0 +1,27 @@
+{
+  final Project project=moduleInfo.getModule().getProject();
+  LibrarySet librarySet=moduleInfo.getLibrarySet();
+  do {
+    PropertiesFile propertiesFile;
+    for (    Library library : librarySet.getLibraries()) {
+      if (library.hasResourceBundles() && (propertiesFile=getResourceBundleFile(locale,bundleName,library,project)) != null) {
+        return new Pair<PropertiesFile,Integer>(propertiesFile,librarySet.getId());
+      }
+    }
+  }
+ while ((librarySet=librarySet.getParent()) != null);
+  final Sdk sdk=FlexUtils.getSdkForActiveBC(moduleInfo.getModule());
+  VirtualFile dir=sdk == null ? null : sdk.getHomeDirectory();
+  if (dir != null) {
+    dir=dir.findFileByRelativePath("frameworks/projects");
+  }
+  if (dir != null) {
+    for (    String libName : new String[]{"framework","spark","mx","airframework","rpc","advancedgrids","charts","textLayout"}) {
+      VirtualFile file=dir.findFileByRelativePath(libName + "/bundles/" + locale+ "/"+ bundleName+ PROPERTIES_EXTENSION);
+      if (file != null) {
+        return new Pair<PropertiesFile,Integer>(virtualFileToProperties(project,file),moduleInfo.getFlexLibrarySet().getId());
+      }
+    }
+  }
+  return null;
+}

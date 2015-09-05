@@ -1,0 +1,14 @@
+{
+  final Collection<VirtualFile> files=FileBasedIndex.getInstance().getContainingFiles(indexId,name,scope);
+  final PsiManager psiManager=PsiManager.getInstance(project);
+  Collection<JSClass> classes=new ArrayList<JSClass>(files.size());
+  for (  VirtualFile file : files) {
+    PsiFile psifile=psiManager.findFile(file);
+    if (!(psifile instanceof XmlFile))     continue;
+    classes.addAll(XmlBackedJSClassImpl.getClasses((XmlFile)psifile));
+  }
+  if (FlexNameAlias.CONTAINER_TYPE_NAME.equals(name)) {
+    classes.addAll(searchClassInheritors(indexId,FlexNameAlias.COMPONENT_TYPE_NAME,project,scope));
+  }
+  return classes;
+}

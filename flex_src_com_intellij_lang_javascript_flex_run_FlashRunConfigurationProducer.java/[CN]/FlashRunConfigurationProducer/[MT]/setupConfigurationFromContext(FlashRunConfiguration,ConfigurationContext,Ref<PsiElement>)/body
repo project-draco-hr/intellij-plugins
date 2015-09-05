@@ -1,0 +1,28 @@
+{
+  final Module module=context.getModule();
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return false;
+  final JSClass jsClass=getJSClass(context.getPsiLocation());
+  if (jsClass == null || !isAcceptedMainClass(jsClass,module))   return false;
+  final FlashRunnerParameters params=configuration.getRunnerParameters();
+  params.setModuleName(module.getName());
+  final FlexBuildConfiguration bc=getBCToBaseOn(module,jsClass.getQualifiedName());
+  params.setBCName(bc.getName());
+  if (bc.getOutputType() == OutputType.Application && jsClass.getQualifiedName().equals(bc.getMainClass())) {
+    params.setOverrideMainClass(false);
+  }
+ else {
+    params.setOverrideMainClass(true);
+    params.setOverriddenMainClass(jsClass.getQualifiedName());
+    params.setOverriddenOutputFileName(jsClass.getName() + ".swf");
+  }
+  if (bc.getTargetPlatform() == TargetPlatform.Mobile && bc.getOutputType() == OutputType.Application && params.getMobileRunTarget() == FlashRunnerParameters.AirMobileRunTarget.Emulator) {
+    if (params.getAppDescriptorForEmulator() == FlashRunnerParameters.AppDescriptorForEmulator.Android && !bc.getAndroidPackagingOptions().isEnabled() && bc.getIosPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.IOS);
+    }
+    if (params.getAppDescriptorForEmulator() == FlashRunnerParameters.AppDescriptorForEmulator.IOS && bc.getAndroidPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.Android);
+    }
+  }
+  configuration.setGeneratedName();
+  return true;
+}

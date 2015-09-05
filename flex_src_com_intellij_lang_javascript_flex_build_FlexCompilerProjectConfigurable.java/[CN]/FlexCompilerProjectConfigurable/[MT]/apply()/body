@@ -1,0 +1,24 @@
+{
+  if (!myProject.isDefault()) {
+    final FlexCompilerHandler flexCompilerHandler=FlexCompilerHandler.getInstance(myProject);
+    flexCompilerHandler.getCompilerDependenciesCache().clear();
+    flexCompilerHandler.quitCompilerShell();
+    flexCompilerHandler.getBuiltInFlexCompilerHandler().stopCompilerProcess();
+  }
+  myConfig.USE_BUILT_IN_COMPILER=myBuiltInCompilerRadioButton.isSelected();
+  myConfig.USE_MXMLC_COMPC=myMxmlcCompcRadioButton.isSelected();
+  myConfig.PREFER_ASC_20=myPreferASC20CheckBox.isSelected();
+  try {
+    final int heapSizeMb=Integer.parseInt(myHeapSizeTextField.getText().trim());
+    if (heapSizeMb > 0) {
+      myConfig.HEAP_SIZE_MB=heapSizeMb;
+    }
+ else {
+      throw new ConfigurationException(FlexBundle.message("invalid.flex.compiler.heap.size"));
+    }
+  }
+ catch (  NumberFormatException e) {
+    throw new ConfigurationException(FlexBundle.message("invalid.flex.compiler.heap.size"));
+  }
+  myConfig.VM_OPTIONS=myVMOptionsEditor.getText().trim();
+}

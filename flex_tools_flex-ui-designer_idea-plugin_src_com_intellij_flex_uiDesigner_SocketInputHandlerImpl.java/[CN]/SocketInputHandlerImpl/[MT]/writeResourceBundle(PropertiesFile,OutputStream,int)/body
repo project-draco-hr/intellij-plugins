@@ -1,0 +1,18 @@
+{
+  if (file == null) {
+    out.write(0);
+    out.write(0);
+    return;
+  }
+  final AmfOutputStream amfOut=new AmfOutputStream(new ByteArrayOutputStreamEx(4 * 1024));
+  amfOut.writeShort(sourceId + 1);
+  final List<IProperty> properties=file.getProperties();
+  amfOut.write(Amf3Types.DICTIONARY);
+  amfOut.writeUInt29((properties.size() << 1) | 1);
+  amfOut.write(0);
+  for (  IProperty property : properties) {
+    amfOut.write(property.getUnescapedKey());
+    amfOut.write(property.getUnescapedValue());
+  }
+  amfOut.getByteArrayOut().writeTo(out);
+}

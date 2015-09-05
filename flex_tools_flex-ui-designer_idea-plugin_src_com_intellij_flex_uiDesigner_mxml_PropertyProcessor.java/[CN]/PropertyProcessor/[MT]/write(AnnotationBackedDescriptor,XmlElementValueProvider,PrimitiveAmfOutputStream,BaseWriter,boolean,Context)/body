@@ -1,0 +1,62 @@
+{
+  final String type=descriptor.getType();
+  if (isStyle) {
+    int flags=0;
+    if (isEffect()) {
+      flags|=StyleFlags.EFFECT;
+      out.write(flags);
+      out.write(Amf3Types.OBJECT);
+      return COMPLEX_STYLE;
+    }
+ else {
+      out.write(flags);
+    }
+  }
+ else   if (isEffect()) {
+    out.write(Amf3Types.OBJECT);
+    return COMPLEX;
+  }
+  if (writeIfPrimitive(valueProvider,type,out,descriptor,isStyle,false)) {
+  }
+ else   if (type.equals(JSCommonTypeNames.ARRAY_CLASS_NAME)) {
+    if (!descriptor.isRichTextContent() && valueProvider instanceof XmlAttributeValueProvider && isInlineArray(valueProvider.getTrimmed())) {
+      writeInlineArray(valueProvider);
+    }
+ else {
+      out.write(Amf3Types.ARRAY);
+      return ARRAY;
+    }
+  }
+ else   if (descriptor.getArrayType() != null) {
+    if (valueProvider.getElement() instanceof XmlTag) {
+      final XmlTag propertyTag=(XmlTag)valueProvider.getElement();
+      final XmlTag[] subTags=propertyTag.getSubTags();
+      if (subTags.length == 1) {
+        final XmlTag contentTag=subTags[0];
+        final XmlElementDescriptor contentTagDescriptor=contentTag.getDescriptor();
+        if (contentTagDescriptor instanceof ClassBackedElementDescriptor && CodeContext.AS3_VEC_VECTOR_QUALIFIED_NAME.equals(contentTagDescriptor.getQualifiedName())) {
+          if (!mxmlWriter.processMxmlVector(contentTag,parentContext,false)) {
+            throw new InvalidPropertyException(contentTag,"invalid.vector.value");
+          }
+          return isStyle ? PRIMITIVE_STYLE : PRIMITIVE;
+        }
+      }
+    }
+    writer.vectorHeader(descriptor.getArrayType());
+    return VECTOR;
+  }
+ else   if (type.equals(JSCommonTypeNames.OBJECT_CLASS_NAME) || type.equals(JSCommonTypeNames.ANY_TYPE)) {
+    final PropertyKind propertyKind=writeUntypedPropertyValue(out,valueProvider,descriptor,isStyle,parentContext);
+    if (propertyKind != null) {
+      return propertyKind;
+    }
+  }
+ else   if (type.equals(FlexCommonTypeNames.IFACTORY)) {
+    writeClassFactory(valueProvider);
+  }
+ else {
+    out.write(Amf3Types.OBJECT);
+    return isStyle ? COMPLEX_STYLE : COMPLEX;
+  }
+  return isStyle ? PRIMITIVE_STYLE : PRIMITIVE;
+}

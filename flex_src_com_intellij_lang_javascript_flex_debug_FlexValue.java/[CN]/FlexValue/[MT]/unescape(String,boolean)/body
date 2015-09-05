@@ -1,0 +1,15 @@
+{
+  if (flexSdk_4_12plus_IdeMode) {
+    return StringUtil.unescapeStringCharacters(str);
+  }
+  int escapeEndIndex=0;
+  int escapeStartIndex;
+  while ((escapeStartIndex=str.indexOf(ESCAPE_START,escapeEndIndex - ESCAPE_START.length())) > -1) {
+    escapeEndIndex=str.indexOf(ESCAPE_END,escapeStartIndex);
+    if (escapeEndIndex < 0) {
+      escapeEndIndex=str.length();
+    }
+    str=str.substring(0,escapeStartIndex) + StringUtil.unescapeStringCharacters(str.substring(escapeStartIndex + ESCAPE_START.length(),escapeEndIndex)) + (escapeEndIndex + ESCAPE_END.length() <= str.length() ? str.substring(escapeEndIndex + ESCAPE_END.length()) : "");
+  }
+  return str;
+}

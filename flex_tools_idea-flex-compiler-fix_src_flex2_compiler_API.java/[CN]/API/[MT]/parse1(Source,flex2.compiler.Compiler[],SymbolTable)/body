@@ -1,0 +1,20 @@
+{
+  if (s.isCompiled()) {
+    return s.getCompilationUnit();
+  }
+  CompilationUnit u=null;
+  flex2.compiler.Compiler c=getCompiler(s,compilers);
+  if (c != null) {
+    Logger original=ThreadLocalToolkit.getLogger(), local=s.getLogger();
+    ThreadLocalToolkit.setLogger(local);
+    u=c.parse1(s,symbolTable);
+    ThreadLocalToolkit.setLogger(original);
+    if (local.errorCount() == 0) {
+      symbolTable.registerQNames(u.topLevelDefinitions,u.getSource());
+      u.setState(CompilationUnit.SyntaxTree);
+      u.setWorkflow(preprocess);
+      u.setWorkflow(parse1);
+    }
+  }
+  return u;
+}

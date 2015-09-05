@@ -1,0 +1,29 @@
+{
+  if (context == null)   return false;
+  PsiFile file=context.getContainingFile();
+  if (file == null)   return false;
+  if (HtmlUtil.hasHtml(file))   return false;
+  final VirtualFile vFile=file.getOriginalFile().getVirtualFile();
+  if (vFile != null) {
+    final FileType type=vFile.getFileType();
+    if (type instanceof LanguageFileType) {
+      Language lang=((LanguageFileType)type).getLanguage();
+      if (lang.isKindOf(CSSLanguage.INSTANCE) && !lang.is(CSSLanguage.INSTANCE))       return false;
+    }
+  }
+  Module module=findModuleForPsiElement(file);
+  if (module == null) {
+    file=InjectedLanguageManager.getInstance(file.getProject()).getTopLevelFile(context);
+    if (file != null) {
+      module=findModuleForPsiElement(file);
+    }
+  }
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return false;
+  }
+  if (vFile != null) {
+    final CssDialect dialect=CssDialectMappings.getInstance(context.getProject()).getMapping(vFile);
+    return dialect != CssDialect.CLASSIC;
+  }
+  return true;
+}

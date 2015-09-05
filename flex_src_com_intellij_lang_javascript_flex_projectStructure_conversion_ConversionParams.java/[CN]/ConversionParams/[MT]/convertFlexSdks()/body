@@ -1,0 +1,42 @@
+{
+  final ProjectJdkTable sdkTable=ProjectJdkTable.getInstance();
+  final Sdk[] allSdks=sdkTable.getAllJdks();
+  final FlexSdkType2 newSdkType=FlexSdkType2.getInstance();
+  Map<String,Sdk> homePathToNewSdk=new HashMap<String,Sdk>();
+  Collection<Sdk> sdksToAdd=new ArrayList<Sdk>();
+  for (  Sdk sdk : allSdks) {
+    if (sdk.getSdkType() == newSdkType && sdk.getHomePath() != null) {
+      homePathToNewSdk.put(sdk.getHomePath(),sdk);
+    }
+  }
+  for (  Sdk sdk : allSdks) {
+    if (!ArrayUtil.contains(sdk.getSdkType().getName(),OLD_SDKS_TYPES)) {
+      continue;
+    }
+    final String version=sdk.getVersionString();
+    if (version == null || (!version.startsWith("3.") && !version.startsWith("4."))) {
+      continue;
+    }
+    final String homePath=sdk.getHomePath();
+    if (homePath == null) {
+      continue;
+    }
+    if (homePathToNewSdk.containsKey(homePath)) {
+      continue;
+    }
+    String newSdkName=SdkConfigurationUtil.createUniqueSdkName(newSdkType,homePath,Arrays.asList(allSdks));
+    Sdk newSdk=new ProjectJdkImpl(newSdkName,newSdkType,homePath,"");
+    newSdkType.setupSdkPaths(newSdk);
+    sdksToAdd.add(newSdk);
+    homePathToNewSdk.put(homePath,newSdk);
+  }
+  final AccessToken l=WriteAction.start();
+  try {
+    for (    Sdk sdk : sdksToAdd) {
+      sdkTable.addJdk(sdk);
+    }
+  }
+  finally {
+    l.finish();
+  }
+}

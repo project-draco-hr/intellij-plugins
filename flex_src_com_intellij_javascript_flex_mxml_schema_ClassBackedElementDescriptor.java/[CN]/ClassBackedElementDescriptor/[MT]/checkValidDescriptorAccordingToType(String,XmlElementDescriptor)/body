@@ -1,0 +1,20 @@
+{
+  if (descriptor instanceof ClassBackedElementDescriptor) {
+    if (isAdequateType(arrayElementType)) {
+      PsiElement declaration=descriptor.getDeclaration();
+      if (declaration instanceof XmlFile) {
+        declaration=XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)declaration);
+      }
+      if (declaration == null) {
+        return null;
+      }
+      PsiElement element=JSResolveUtil.unwrapProxy(declaration);
+      if (element instanceof JSClass) {
+        if (!JSResolveUtil.isAssignableType(arrayElementType,((JSClass)element).getQualifiedName(),element)) {
+          return null;
+        }
+      }
+    }
+  }
+  return descriptor;
+}

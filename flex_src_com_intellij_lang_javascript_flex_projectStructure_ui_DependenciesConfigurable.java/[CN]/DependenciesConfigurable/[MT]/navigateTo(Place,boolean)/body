@@ -1,0 +1,26 @@
+{
+  if (place != null) {
+    final Object location=place.getPath(FlexBCConfigurable.LOCATION_ON_TAB);
+    if (location == Location.SDK) {
+      if (requestFocus) {
+        return IdeFocusManager.findInstance().requestFocus(mySdkCombo,true);
+      }
+    }
+ else     if (location instanceof Location.TableEntry) {
+      for (int row=0; row < myTable.getRowCount(); row++) {
+        MyTableItem item=myTable.getItemAt(row);
+        Location.TableEntry loc=item.getLocation();
+        if (loc.equals(location)) {
+          myTable.clearSelection();
+          myTable.getSelectionModel().addSelectionInterval(row,row);
+          TableUtil.scrollSelectionToVisible(myTable);
+          break;
+        }
+      }
+      if (requestFocus) {
+        return IdeFocusManager.findInstance().requestFocus(myTable,true);
+      }
+    }
+  }
+  return ActionCallback.DONE;
+}

@@ -1,0 +1,37 @@
+{
+  final JdkComboBox.JdkComboBoxItem selectedItem=mySdkCombo.getSelectedItem();
+  String currentSdkName=selectedItem.getSdkName();
+  SdkEntry sdkEntry=myDependencies.getSdkEntry();
+  if (currentSdkName != null) {
+    if (sdkEntry == null) {
+      return mySdkCombo.getSelectedJdk() != null;
+    }
+ else     if (!currentSdkName.equals(sdkEntry.getName())) {
+      return true;
+    }
+  }
+ else {
+    if (sdkEntry != null)     return true;
+  }
+  final String targetPlayer=(String)myTargetPlayerCombo.getSelectedItem();
+  if (myTargetPlayerCombo.isVisible() && targetPlayer != null && !myDependencies.getTargetPlayer().equals(targetPlayer))   return true;
+  if (myComponentSetCombo.isVisible() && myDependencies.getComponentSet() != myComponentSetCombo.getSelectedItem())   return true;
+  if (myFrameworkLinkageCombo.isVisible() && myDependencies.getFrameworkLinkage() != myFrameworkLinkageCombo.getSelectedItem()) {
+    return true;
+  }
+  List<MyTableItem> items=myTable.getItems();
+  items=ContainerUtil.filter(items,new Condition<MyTableItem>(){
+    @Override public boolean value(    MyTableItem item){
+      return !(item instanceof SdkItem || item instanceof SdkEntryItem);
+    }
+  }
+);
+  DependencyEntry[] entries=myDependencies.getEntries();
+  if (items.size() != entries.length)   return true;
+  for (int i=0; i < items.size(); i++) {
+    MyTableItem item=items.get(i);
+    DependencyEntry entry=entries[i];
+    if (item.isModified(entry))     return true;
+  }
+  return false;
+}

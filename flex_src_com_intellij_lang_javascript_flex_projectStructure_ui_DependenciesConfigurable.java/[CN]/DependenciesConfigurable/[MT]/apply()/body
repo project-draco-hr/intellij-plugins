@@ -1,0 +1,35 @@
+{
+  final Object targetPlayer=myTargetPlayerCombo.getSelectedItem();
+  if (myTargetPlayerCombo.isVisible() && targetPlayer != null) {
+    myDependencies.setTargetPlayer((String)targetPlayer);
+  }
+  if (myComponentSetCombo.isVisible()) {
+    myDependencies.setComponentSet((ComponentSet)myComponentSetCombo.getSelectedItem());
+  }
+  if (myFrameworkLinkageCombo.isVisible()) {
+    myDependencies.setFrameworkLinkage((LinkageType)myFrameworkLinkageCombo.getSelectedItem());
+  }
+  List<MyTableItem> items=myTable.getItems();
+  List<ModifiableDependencyEntry> newEntries=new ArrayList<ModifiableDependencyEntry>();
+  for (  MyTableItem item : items) {
+    ModifiableDependencyEntry entry=item.apply(myDependencies);
+    if (entry != null) {
+      newEntries.add(entry);
+    }
+  }
+  myConfigEditor.setEntries(myDependencies,newEntries);
+  JdkComboBox.JdkComboBoxItem currentSdk=mySdkCombo.getSelectedItem();
+  if (currentSdk != null) {
+    final String sdkName=currentSdk.getSdkName();
+    if (sdkName != null) {
+      SdkEntry sdkEntry=Factory.createSdkEntry(sdkName);
+      myDependencies.setSdkEntry(sdkEntry);
+    }
+ else {
+      myDependencies.setSdkEntry(null);
+    }
+  }
+ else {
+    myDependencies.setSdkEntry(null);
+  }
+}

@@ -1,0 +1,26 @@
+{
+  final String testName=getTestName(false);
+  doTestFor(true,null,new Function<Collection<HighlightInfo>,Void>(){
+    @Override public Void fun(    final Collection<HighlightInfo> highlightInfos){
+      myFile.accept(new XmlRecursiveElementVisitor(){
+        @Override public void visitXmlAttribute(        final XmlAttribute attribute){
+          final XmlAttributeDescriptor descriptor=attribute.getDescriptor();
+          if (descriptor instanceof AnnotationBackedDescriptor) {
+            assertNotNull(descriptor.getDeclaration());
+          }
+        }
+      }
+);
+      try {
+        final String actionName="Create Method 'bar'";
+        findAndInvokeIntentionAction(highlightInfos,actionName,myEditor,myFile);
+        assertNull(findIntentionAction(doHighlighting(),actionName,myEditor,myFile));
+      }
+ catch (      IncorrectOperationException ex) {
+        throw new RuntimeException(ex);
+      }
+      return null;
+    }
+  }
+,testName + ".mxml",testName + "_2.mxml",testName + "_2.as",testName + "_3.mxml");
+}

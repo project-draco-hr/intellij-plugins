@@ -1,0 +1,19 @@
+{
+  final String wrapperFolderPath=getWrapperFolderPath();
+  for (  String url : ModuleRootManager.getInstance(myModule).getContentRootUrls()) {
+    final String path=VfsUtil.urlToPath(url);
+    if (FileUtil.isAncestor(wrapperFolderPath,path,false)) {
+      return new ValidationInfo(FlexBundle.message("html.wrapper.folder.clash.for.dialog","module content root",FileUtil.toSystemDependentName(path)),myWrapperFolderComponent.getComponent());
+    }
+  }
+  for (  String url : ModuleRootManager.getInstance(myModule).getSourceRootUrls()) {
+    final String path=VfsUtil.urlToPath(url);
+    if (FileUtil.isAncestor(wrapperFolderPath,path,false)) {
+      return new ValidationInfo(FlexBundle.message("html.wrapper.folder.clash.for.dialog","source folder",FileUtil.toSystemDependentName(path)),myWrapperFolderComponent.getComponent());
+    }
+  }
+  if (!myOutputPath.isEmpty() && FileUtil.isAncestor(wrapperFolderPath,myOutputPath,false)) {
+    return new ValidationInfo(FlexBundle.message("html.wrapper.folder.clash.for.dialog","output folder",FileUtil.toSystemDependentName(myOutputPath)),myWrapperFolderComponent.getComponent());
+  }
+  return null;
+}

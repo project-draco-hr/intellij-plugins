@@ -1,0 +1,21 @@
+{
+  return new CheckboxTree.CheckboxTreeCellRenderer(){
+    public void customizeRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      if (!(value instanceof CheckedTreeNode))       return;
+      final CheckedTreeNode node=(CheckedTreeNode)value;
+      final Object userObject=node.getUserObject();
+      if (userObject instanceof Project) {
+        getTextRenderer().append(((Project)userObject).getName());
+      }
+ else       if (userObject instanceof Module) {
+        getTextRenderer().setIcon(ModuleType.get((Module)userObject).getIcon());
+        getTextRenderer().append(((Module)userObject).getName());
+      }
+ else       if (userObject instanceof FlexBuildConfiguration) {
+        BCUtils.renderBuildConfiguration((FlexBuildConfiguration)userObject,null,false).appendToComponent(getTextRenderer());
+        getTextRenderer().setIcon(((FlexBuildConfiguration)userObject).getIcon());
+      }
+    }
+  }
+;
+}

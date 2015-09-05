@@ -1,0 +1,14 @@
+{
+  final String testName=getTestName(false);
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      JSTestUtils.addLibrary(myModule,"lib_1",getTestDataPath() + getBasePath() + "/",testName + "_lib_1.swc",testName + "_lib_1_src.zip",null);
+    }
+  }
+;
+  doTestFor(true,testName + ".as");
+  JSTestUtils.addLibrary(myModule,"lib_2",getTestDataPath() + getBasePath() + "/",testName + "_lib_2.swc",null,null);
+  final List<HighlightInfo> highlightingInfo=filterUnwantedInfos(doHighlighting(),this);
+  assertEquals(1,highlightingInfo.size());
+  assertEquals("functionFromLib1",highlightingInfo.get(0).getText());
+}

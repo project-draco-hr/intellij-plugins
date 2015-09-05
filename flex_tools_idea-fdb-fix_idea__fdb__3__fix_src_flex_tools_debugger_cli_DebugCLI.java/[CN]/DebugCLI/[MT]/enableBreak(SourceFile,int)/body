@@ -1,0 +1,25 @@
+{
+  LocationCollection col=new LocationCollection();
+  boolean singleSwfBreakpoint=m_fileInfo.isSwfFilterOn();
+  SwfInfo swf=m_fileInfo.getSwfFilter();
+  try {
+    if (singleSwfBreakpoint) {
+      Location l=findAndEnableBreak(swf,f,line);
+      col.add(l);
+    }
+ else {
+      SwfInfo[] swfs=m_fileInfo.getSwfs();
+      for (int i=0; i < swfs.length; i++) {
+        swf=swfs[i];
+        if (swf != null) {
+          Location l=findAndEnableBreak(swf,f,line);
+          if (l != null)           col.add(l);
+        }
+      }
+    }
+  }
+ catch (  InProgressException ipe) {
+    if (Trace.error)     Trace.trace(((swf == null) ? "SWF " : swf.getUrl()) + " still loading, breakpoint at " + f.getName()+ ":"+ line+ " not set");
+  }
+  return col;
+}

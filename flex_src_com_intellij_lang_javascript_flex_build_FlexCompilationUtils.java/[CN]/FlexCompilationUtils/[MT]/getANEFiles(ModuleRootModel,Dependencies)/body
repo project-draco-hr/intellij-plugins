@@ -1,0 +1,22 @@
+{
+  final Collection<VirtualFile> result=new ArrayList<VirtualFile>();
+  for (  DependencyEntry entry : dependencies.getEntries()) {
+    if (entry instanceof ModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,moduleRootModel);
+      if (orderEntry != null) {
+        for (        VirtualFile libFile : orderEntry.getRootFiles(OrderRootType.CLASSES)) {
+          addIfANE(result,libFile);
+        }
+      }
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      final Library library=FlexProjectRootsUtil.findOrderEntry(moduleRootModel.getModule().getProject(),(SharedLibraryEntry)entry);
+      if (library != null) {
+        for (        VirtualFile libFile : library.getFiles((OrderRootType.CLASSES))) {
+          addIfANE(result,libFile);
+        }
+      }
+    }
+  }
+  return result;
+}

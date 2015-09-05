@@ -1,0 +1,23 @@
+{
+  XmlElementDescriptor[] elementDescriptors=CodeContext.getContext(namespace,module).getDescriptorsWithAllowedDeclaration();
+  ArrayList<XmlElementDescriptor> results=new ArrayList<XmlElementDescriptor>(elementDescriptors.length);
+  final XmlTag rootTag=document == null ? null : document.getRootTag();
+  final boolean isRootTagCompletion=rootTag != null && rootTag.getName().endsWith(CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED);
+  for (  XmlElementDescriptor elementDescriptor : elementDescriptors) {
+    if (isRootTagCompletion) {
+      if (!isLegalRootElementDescriptor(elementDescriptor)) {
+        continue;
+      }
+      if (elementDescriptor instanceof MxmlBackedElementDescriptor) {
+        final PsiElement declaration=elementDescriptor.getDeclaration();
+        final PsiFile containingFile=document.getContainingFile();
+        if (declaration != null && containingFile != null && declaration.equals(containingFile.getOriginalFile())) {
+          continue;
+        }
+      }
+    }
+    String name=elementDescriptor.getName();
+    if (name.length() > 0)     results.add(elementDescriptor);
+  }
+  return results.toArray(new XmlElementDescriptor[results.size()]);
+}

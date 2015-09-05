@@ -1,0 +1,18 @@
+{
+  final DefaultPlexusContainer container=new DefaultPlexusContainer(new DefaultContainerConfiguration().setClassWorld(new ClassWorld("plexus.core",Thread.currentThread().getContextClassLoader())).setName("maven").setAutoWiring(true));
+  final List<LocalRepositoryManagerFactory> factoryList=Collections.singletonList(container.lookup(LocalRepositoryManagerFactory.class,"simple"));
+  final String mavenVersion=container.lookup(RuntimeInformation.class).getMavenVersion();
+  if (mavenVersion.length() >= 5 && mavenVersion.charAt(2) == '0' && mavenVersion.charAt(4) < '4') {
+    final DefaultRepositorySystem repositorySystem=(DefaultRepositorySystem)container.lookup(RepositorySystem.class);
+    try {
+      repositorySystem.getClass().getMethod("setLocalRepositoryManagerFactories",List.class).invoke(repositorySystem,factoryList);
+    }
+ catch (    Exception e) {
+      container.getLoggerManager().getLoggerForComponent(null).warn("",e);
+    }
+  }
+ else {
+    ((DefaultLocalRepositoryProvider)container.lookup(LocalRepositoryProvider.class)).setLocalRepositoryManagerFactories(factoryList);
+  }
+  return container;
+}

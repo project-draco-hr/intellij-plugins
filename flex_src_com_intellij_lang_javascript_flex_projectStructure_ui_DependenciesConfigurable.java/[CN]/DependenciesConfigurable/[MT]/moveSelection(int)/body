@@ -1,0 +1,26 @@
+{
+  int[] selectedRows=myTable.getSelectedRows();
+  Arrays.sort(selectedRows);
+  DefaultMutableTreeNode root=myTable.getRoot();
+  if (delta < 0) {
+    for (int i=0; i < selectedRows.length; i++) {
+      int row=selectedRows[i];
+      DefaultMutableTreeNode child=(DefaultMutableTreeNode)root.getChildAt(row);
+      root.remove(row);
+      root.insert(child,row + delta);
+    }
+  }
+ else {
+    for (int i=selectedRows.length - 1; i >= 0; i--) {
+      int row=selectedRows[i];
+      DefaultMutableTreeNode child=(DefaultMutableTreeNode)root.getChildAt(row);
+      root.remove(row);
+      root.insert(child,row + delta);
+    }
+  }
+  myTable.refresh();
+  myTable.clearSelection();
+  for (  int selectedRow : selectedRows) {
+    myTable.getSelectionModel().addSelectionInterval(selectedRow + delta,selectedRow + delta);
+  }
+}

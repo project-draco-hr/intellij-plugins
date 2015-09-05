@@ -1,0 +1,77 @@
+{
+  int start=0, end=sources.size();
+  while (start < end) {
+    if (!preprocess(sources,compilers,start,end,symbolTable.getSuppressWarningsIncremental())) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    if (!parse1(sources,units,igraph,dgraph,compilers,symbolTable,start,end)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    resolveInheritance(sources,igraph,dgraph,symbolTable,sourceList,sourcePath,resources,swcContext,start,end);
+    addGeneratedSources(sources,igraph,dgraph,resources,symbolTable,configuration,start,end);
+    start=end;
+    end=sources.size();
+    if (start < end) {
+      continue;
+    }
+    if (!sortInheritance(sources,units,igraph)) {
+      break;
+    }
+    if (!parse2(sources,compilers,symbolTable)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    if (!analyze(sources,compilers,symbolTable,1)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    resolveNamespace(sources,igraph,dgraph,symbolTable,sourceList,sourcePath,resources,swcContext,0,end);
+    addGeneratedSources(sources,igraph,dgraph,resources,symbolTable,configuration,0,end);
+    start=end;
+    end=sources.size();
+    if (start < end) {
+      continue;
+    }
+    if (!analyze(sources,compilers,symbolTable,2)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    resolveType(sources,units,igraph,dgraph,symbolTable,sourceList,sourcePath,resources,swcContext);
+    final CompilerConfiguration config=(configuration != null) ? configuration.getCompilerConfiguration() : null;
+    if (config != null && config.strict()) {
+      resolveImportStatements(sources,units,sourcePath,swcContext);
+    }
+    if (config != null && (config.strict() || config.warnings())) {
+      resolveExpression(sources,units,igraph,dgraph,symbolTable,sourceList,sourcePath,resources,swcContext,configuration);
+    }
+    start=end;
+    end=sources.size();
+    if (start < end) {
+      continue;
+    }
+    if (!analyze(sources,compilers,symbolTable,3)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    if (!analyze(sources,compilers,symbolTable,4)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    if (!generate(sources,units,compilers,symbolTable)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    markDone(sources,units);
+    if (!postprocess(sources,units,compilers,symbolTable)) {
+      break;
+    }
+    if (tooManyErrors() || forcedToStop())     break;
+    resolveExpression(sources,units,igraph,dgraph,symbolTable,sourceList,sourcePath,resources,swcContext,configuration);
+    addGeneratedSources(sources,igraph,dgraph,resources,symbolTable,configuration,0,end);
+    start=end;
+    end=sources.size();
+  }
+  adjustQNames(units,igraph,symbolTable);
+}

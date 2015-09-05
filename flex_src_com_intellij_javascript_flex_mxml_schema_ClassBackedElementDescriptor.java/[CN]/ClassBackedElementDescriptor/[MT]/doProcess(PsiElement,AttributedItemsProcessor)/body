@@ -1,0 +1,33 @@
+{
+  return JSResolveUtil.processMetaAttributesForClass(jsClass,new JSResolveUtil.MetaDataProcessor(){
+    @Override public boolean process(    final @NotNull JSAttribute attr){
+      final String attrName=attr.getName();
+      boolean skipped=false;
+      if (FlexAnnotationNames.EVENT.equals(attrName) || FlexAnnotationNames.STYLE.equals(attrName) || FlexAnnotationNames.EFFECT.equals(attrName)|| (skipped=FlexAnnotationNames.EXCLUDE.equals(attrName))) {
+        JSAttributeNameValuePair jsAttributeNameValuePair=attr.getValueByName("name");
+        if (jsAttributeNameValuePair == null)         jsAttributeNameValuePair=attr.getValueByName(null);
+        if (jsAttributeNameValuePair != null && !processor.process(jsAttributeNameValuePair,attrName,!skipped))         return false;
+      }
+      return true;
+    }
+    @Override public boolean handleOtherElement(    final PsiElement el,    final PsiElement context,    Ref<PsiElement> continuePassElement){
+      if (continuePassElement != null) {
+        if (el instanceof JSVarStatement) {
+          JSVariable[] jsVariables=((JSVarStatement)el).getVariables();
+          if (jsVariables.length > 0)           continuePassElement.set(jsVariables[0]);
+        }
+ else {
+          continuePassElement.set(el);
+        }
+      }
+ else {
+        final JSAttributeList.AccessType accessType=((JSAttributeList)el).getAccessType();
+        if ((accessType == JSAttributeList.AccessType.PUBLIC || accessType == JSAttributeList.AccessType.PACKAGE_LOCAL) && !((JSAttributeList)el).hasModifier(JSAttributeList.ModifierType.STATIC) && (context instanceof JSVariable || (context instanceof JSFunction && ((JSFunction)context).isSetProperty()))) {
+          if (!processor.process((JSNamedElement)context,accessType == JSAttributeList.AccessType.PACKAGE_LOCAL))           return false;
+        }
+      }
+      return true;
+    }
+  }
+);
+}

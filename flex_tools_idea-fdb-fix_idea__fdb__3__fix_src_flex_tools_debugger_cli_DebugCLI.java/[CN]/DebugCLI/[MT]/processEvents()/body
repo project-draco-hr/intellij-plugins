@@ -1,0 +1,33 @@
+{
+  boolean requestResume=false;
+  boolean requestHalt=m_requestHalt;
+  while (m_session != null && m_session.getEventCount() > 0) {
+    DebugEvent e=m_session.nextEvent();
+    if (e instanceof TraceEvent) {
+      dumpTraceLine(e.information);
+    }
+ else     if (e instanceof SwfLoadedEvent) {
+      handleSwfLoadedEvent((SwfLoadedEvent)e);
+    }
+ else     if (e instanceof SwfUnloadedEvent) {
+      handleSwfUnloadedEvent((SwfUnloadedEvent)e);
+    }
+ else     if (e instanceof BreakEvent) {
+    }
+ else     if (e instanceof FileListModifiedEvent) {
+    }
+ else     if (e instanceof FunctionMetaDataAvailableEvent) {
+    }
+ else     if (e instanceof FaultEvent) {
+      if (handleFault((FaultEvent)e))       requestResume=true;
+ else       requestHalt=true;
+    }
+ else {
+      Map args=new HashMap();
+      args.put("type",e);
+      args.put("info",e.information);
+      err(getLocalizationManager().getLocalizedTextString("unknownEvent",args));
+    }
+  }
+  if (requestResume && !requestHalt && m_session.isSuspended()&& m_session.suspendReason() == SuspendReason.Fault)   m_requestResume=true;
+}

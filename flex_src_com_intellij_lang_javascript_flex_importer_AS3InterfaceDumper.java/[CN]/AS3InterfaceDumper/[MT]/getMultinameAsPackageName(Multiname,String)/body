@@ -1,0 +1,16 @@
+{
+  if (name.nsset == null || (name.nsset.length == 1 && name.nsset[0].equals(Abc.PUBLIC_NS))) {
+    return name.name;
+  }
+ else {
+    final String validNsName=name.getValidNsName(classNameTable);
+    final int prefLength="::".length();
+    if (Multiname.hasNamespace(validNsName) || (parentName != null && parentName.regionMatches(0,validNsName,0,validNsName.length()) && parentName.regionMatches(validNsName.length(),"::",0,prefLength) && parentName.regionMatches(validNsName.length() + prefLength,name.name,0,name.name.length()) && parentName.length() == validNsName.length() + prefLength + name.name.length())) {
+      return name.name;
+    }
+    if (parentName != null && !myDumpTypeRef && willDumpNsName(name,parentName,false,false,isTopLevelObject(parentName),validNsName)) {
+      return name.name;
+    }
+    return validNsName + "." + name.name;
+  }
+}

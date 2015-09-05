@@ -1,0 +1,33 @@
+{
+  PsiFile psiFile=declaration.getContainingFile();
+  VirtualFile virtualFile=psiFile.getVirtualFile();
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(psiFile.getProject()).getFileIndex();
+  LOG.assertTrue(virtualFile != null);
+  if (!projectFileIndex.isInSourceContent(virtualFile)) {
+    return NON_PROJECT_CLASS;
+  }
+  if (psiFile instanceof XmlFile) {
+    return new Trinity<Integer,String,Condition<AnnotationBackedDescriptor>>(DocumentFactoryManager.getInstance().getId(virtualFile,(XmlFile)psiFile,projectComponentReferenceCounter),null,null);
+  }
+  final Set<PsiFile> filteredFiles;
+  if (computePropertyFilter) {
+    filteredFiles=new THashSet<PsiFile>();
+    filteredFiles.add(psiFile);
+  }
+ else {
+    filteredFiles=null;
+  }
+  final JSClass aClass=(JSClass)declaration;
+  JSClass[] classes;
+  while ((classes=aClass.getSuperClasses()).length > 0) {
+    JSClass parentClass=classes[0];
+    PsiFile containingFile=parentClass.getContainingFile();
+    if (!projectFileIndex.isInSourceContent(containingFile.getVirtualFile())) {
+      return new Trinity<Integer,String,Condition<AnnotationBackedDescriptor>>(-1,parentClass.getQualifiedName(),computePropertyFilter ? new CustomComponentPropertyFilter(filteredFiles) : null);
+    }
+ else     if (computePropertyFilter) {
+      filteredFiles.add(containingFile);
+    }
+  }
+  throw new InvalidPropertyException(element,"unresolved.class",aClass.getQualifiedName());
+}

@@ -1,0 +1,28 @@
+{
+  try {
+    configurable.apply();
+  }
+ catch (  ConfigurationException ignored) {
+  }
+  ModifiableFlexBuildConfiguration existingBC=myConfigurablesMap.getKeysByValue(configurable).get(0);
+  FlexBCConfigurable unwrapped=FlexBCConfigurable.unwrap(configurable);
+  final String title=FlexBundle.message("copy.build.configuration",existingBC.getName(),unwrapped.getModule().getName());
+  Module module=unwrapped.getModule();
+  AddBuildConfigurationDialog dialog=new AddBuildConfigurationDialog(module.getProject(),title,getUsedNames(module),existingBC.getNature(),true);
+  dialog.reset("",existingBC.getAndroidPackagingOptions().isEnabled(),existingBC.getIosPackagingOptions().isEnabled());
+  if (!dialog.showAndGet()) {
+    return;
+  }
+  final String newBCName=dialog.getBCName();
+  final String fileName=PathUtil.suggestFileName(newBCName);
+  final BuildConfigurationNature newNature=dialog.getNature();
+  ModifiableFlexBuildConfiguration newBC=myConfigEditor.copyConfiguration(existingBC,newNature);
+  newBC.setName(newBCName);
+  newBC.setOutputFileName(fileName + (newBC.getOutputType() == OutputType.Library ? ".swc" : ".swf"));
+  updatePackageFileName(newBC,fileName);
+  if (newNature.isApp() && newNature.isMobilePlatform()) {
+    newBC.getAndroidPackagingOptions().setEnabled(dialog.isAndroidEnabled());
+    newBC.getIosPackagingOptions().setEnabled(dialog.isIOSEnabled());
+  }
+  createConfigurableNode(newBC,unwrapped.getModule(),treeNodeNameUpdater);
+}

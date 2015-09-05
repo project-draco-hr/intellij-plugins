@@ -1,0 +1,35 @@
+{
+  final boolean isElement=additionalInfo.startsWith(ELEMENT_MARKER + "<") && additionalInfo.endsWith(">");
+  final boolean isEmptyElement=isElement && additionalInfo.endsWith("/>");
+  final boolean isText=!isElement && additionalInfo.startsWith(TEXT_MARKER);
+  if (isText || isElement) {
+    String textToShow;
+    if (isText) {
+      textToShow=additionalInfo.substring(TEXT_MARKER.length());
+    }
+ else     if (isEmptyElement) {
+      textToShow=additionalInfo.substring(ELEMENT_MARKER.length());
+    }
+ else {
+      final String startTag=additionalInfo.substring(ELEMENT_MARKER.length());
+      final int spaceIndex=startTag.indexOf(" ");
+      final String tagName=startTag.substring(1,spaceIndex > 0 ? spaceIndex : startTag.length() - 1);
+      textToShow=startTag + "..." + "</"+ tagName+ "> ";
+      if (textToShow.length() > XValueNode.MAX_VALUE_LENGTH) {
+        textToShow=textToShow.substring(0,XValueNode.MAX_VALUE_LENGTH);
+      }
+      node.setFullValueEvaluator(new XFullValueEvaluator(){
+        @Override public void startEvaluation(        @NotNull XFullValueEvaluationCallback callback){
+          new XmlObjectEvaluator(flexValue,callback).startEvaluation();
+        }
+      }
+);
+      node.setPresentation(flexValue.getIcon(),XML_TYPE,textToShow,true);
+      return;
+    }
+    textToShow=setFullValueEvaluatorIfNeeded(node,textToShow,true);
+    node.setPresentation(flexValue.getIcon(),XML_TYPE,textToShow,true);
+    return;
+  }
+  node.setPresentation(flexValue.getIcon(),XML_TYPE,setFullValueEvaluatorIfNeeded(node,additionalInfo,true),true);
+}

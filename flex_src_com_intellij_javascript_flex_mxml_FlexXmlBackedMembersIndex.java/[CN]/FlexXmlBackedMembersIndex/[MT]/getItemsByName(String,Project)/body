@@ -1,0 +1,31 @@
+{
+  Collection<VirtualFile> files=FileBasedIndex.getInstance().getContainingFiles(NAME,name,GlobalSearchScope.projectScope(project));
+  final Collection<NavigationItem> result=new ArrayList<NavigationItem>();
+  for (  VirtualFile vFile : files) {
+    PsiFile file=PsiManager.getInstance(project).findFile(vFile);
+    if (!(file instanceof XmlFile)) {
+      continue;
+    }
+    process((XmlFile)file,new Consumer<PsiElement>(){
+      @Override public void consume(      PsiElement element){
+        if (name.equals(getName(element))) {
+          if (element instanceof JSNamedElement) {
+            result.add((JSNamedElement)element);
+          }
+ else {
+            XmlAttribute id=((XmlTag)element).getAttribute("id");
+            if (id != null) {
+              XmlAttributeValue valueElement=id.getValueElement();
+              PsiElement[] children;
+              if (valueElement != null && (children=valueElement.getChildren()).length == 3) {
+                result.add(new TagNavigationItem(children[1],name));
+              }
+            }
+          }
+        }
+      }
+    }
+,true);
+  }
+  return result;
+}

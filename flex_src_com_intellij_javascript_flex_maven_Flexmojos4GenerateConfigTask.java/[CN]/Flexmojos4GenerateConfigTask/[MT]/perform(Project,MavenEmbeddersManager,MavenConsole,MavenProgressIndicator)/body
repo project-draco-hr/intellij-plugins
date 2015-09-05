@@ -1,0 +1,51 @@
+{
+  final long start=System.currentTimeMillis();
+  this.indicator=indicator;
+  indicator.setText(FlexBundle.message("generating.flex.configs"));
+  try {
+    runGeneratorServer(MavenProjectsManager.getInstance(project),project);
+    writeProjects(project);
+  }
+ catch (  IOException e) {
+    showWarning(project,e.getMessage());
+    LOG.error(e);
+  }
+catch (  ExecutionException e) {
+    showWarning(project,e.getMessage());
+  }
+  if (process == null) {
+    return;
+  }
+  while (process != null) {
+    try {
+      Thread.sleep(500);
+    }
+ catch (    InterruptedException ignored) {
+      break;
+    }
+    if (indicator.isCanceled()) {
+      LOG.warn("Generating flex configs canceled");
+      if (process != null) {
+        process.destroy();
+      }
+      break;
+    }
+  }
+  if (postTask != null) {
+    MavenUtil.invokeAndWait(project,postTask);
+    MavenUtil.invokeAndWaitWriteAction(project,new Runnable(){
+      @Override public void run(){
+        for (        Map.Entry<Module,String> entry : myModuleToConfigFilePath.entrySet()) {
+          if (entry.getKey().isDisposed())           continue;
+          final VirtualFile configFile=LocalFileSystem.getInstance().refreshAndFindFileByPath(entry.getValue());
+          if (configFile != null && !configFile.isDirectory()) {
+            Flexmojos3GenerateConfigTask.updateMainClass(entry.getKey(),configFile);
+          }
+        }
+      }
+    }
+);
+  }
+  final long duration=System.currentTimeMillis() - start;
+  LOG.info("Generating flex configs took " + duration + " ms: "+ duration / 60000 + " min " + (duration % 60000) / 1000 + "sec");
+}

@@ -1,0 +1,22 @@
+{
+  if (!Comparing.equal(sdk.getHomePath(),mySdkHome)) {
+    stopCompilerProcess();
+  }
+  if (myServerSocket == null) {
+    try {
+      myServerSocket=new ServerSocket(0);
+      myServerSocket.setSoTimeout(10000);
+      final int port=myServerSocket.getLocalPort();
+      startCompilerProcess(sdk,port,context,compilerName);
+      final Socket socket=myServerSocket.accept();
+      myDataInputStream=new DataInputStream(socket.getInputStream());
+      myDataOutputStream=new DataOutputStream(socket.getOutputStream());
+      mySdkHome=sdk.getHomePath();
+      scheduleInputReading();
+    }
+ catch (    IOException e) {
+      stopCompilerProcess();
+      throw e;
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  if (children.length == 1) {
+    if (children[0] instanceof XmlText) {
+      return ((XmlText)children[0]).getValue();
+    }
+ else {
+      return EMPTY;
+    }
+  }
+ else {
+    final StringBuilder consolidatedText=StringBuilderSpinAllocator.alloc();
+    try {
+      for (      final XmlTagChild element : children) {
+        consolidatedText.append(element instanceof XmlText ? ((XmlText)element).getValue() : element.getText());
+      }
+      return consolidatedText.length() == 0 ? EMPTY : consolidatedText;
+    }
+  finally {
+      StringBuilderSpinAllocator.dispose(consolidatedText);
+    }
+  }
+}

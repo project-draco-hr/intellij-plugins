@@ -1,0 +1,57 @@
+{
+  waitTilHalted();
+  try {
+    if (!hasMoreTokens()) {
+      if (yesNoQuery(getLocalizationManager().getLocalizedTextString("askDeleteAllBreakpoints"))) {
+        int count=breakpointCount();
+        for (int i=count - 1; i > -1; i--)         removeBreakpointAt(i);
+        removeAllWatchpoints();
+        removeAllCatchpoints();
+      }
+    }
+ else {
+      String arg=nextToken();
+      int cmd=disableCommandFor(arg);
+      int id=-1;
+      if (cmd == CMD_DISPLAY)       doUnDisplay();
+ else {
+        if (cmd == CMD_BREAK)         id=nextIntToken();
+ else         id=Integer.parseInt(arg);
+        do {
+          try {
+            int at=breakpointIndexOf(id);
+            if (at > -1) {
+              removeBreakpointAt(at);
+            }
+ else {
+              at=watchpointIndexOf(id);
+              if (at > -1) {
+                removeWatchpointAt(at);
+              }
+ else {
+                at=catchpointIndexOf(id);
+                removeCatchpointAt(at);
+              }
+            }
+          }
+ catch (          IndexOutOfBoundsException iob) {
+            Map<String,Object> args=new HashMap<String,Object>();
+            args.put("breakpointNumber",m_currentToken);
+            err(getLocalizationManager().getLocalizedTextString("noBreakpointNumber",args));
+          }
+          if (hasMoreTokens())           id=nextIntToken();
+ else           id=-1;
+        }
+ while (id > -1);
+      }
+    }
+  }
+ catch (  NumberFormatException nfe) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("token",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("badBreakpointNumber",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("commandFailed"));
+  }
+}

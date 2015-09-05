@@ -1,0 +1,17 @@
+{
+  final String superClassFqn=mySuperClassField.getText().trim();
+  final PsiElement element=ActionScriptClassResolver.findClassByQNameStatic(superClassFqn,getSuperClassScope(myModule));
+  mySuperClass=element instanceof JSClass ? (JSClass)element : null;
+  if (myCreateTestSourceFolderCheckBox.isVisible() && myCreateTestSourceFolderCheckBox.isSelected()) {
+    myTargetDirectory=createTestSourceFolderAndPackage(myModule,myTestSourceFolderTextField.getText().trim(),getPackageName());
+  }
+  if (myTargetDirectory == null) {
+    myTargetDirectory=JSRefactoringUtil.chooseOrCreateDirectoryForClass(myModule.getProject(),myModule,getTestClassPackageScope(myModule),getPackageName(),getTestClassName(),myExistingTestSourceRoot,ThreeState.YES);
+  }
+  if (myTargetDirectory != null) {
+    if (myCreateTestSourceFolderCheckBox.isVisible()) {
+      PropertiesComponent.getInstance(myModule.getProject()).setValue(CREATE_TEST_SOURCE_FOLDER_KEY,myCreateTestSourceFolderCheckBox.isSelected(),true);
+    }
+    super.doOKAction();
+  }
+}

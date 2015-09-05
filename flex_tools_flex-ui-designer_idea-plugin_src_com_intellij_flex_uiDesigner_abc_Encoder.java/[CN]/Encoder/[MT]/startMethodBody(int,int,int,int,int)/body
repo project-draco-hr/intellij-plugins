@@ -1,0 +1,27 @@
+{
+  TIntObjectHashMap<byte[]> modifiedMethodBodies=history.constantPool.modifiedMethodBodies == null ? null : history.getModifiedMethodBodies();
+  byte[] bytes=modifiedMethodBodies == null ? null : modifiedMethodBodies.get(methodInfoIndex);
+  final int result;
+  if (bytes != null) {
+    if (bytes == EMPTY_METHOD_BODY) {
+      methodBodies.writeU32(methodInfo.getIndex(methodInfoIndex));
+      methodBodies.writeTo(bytes);
+      return MethodCodeDecoding.STOP;
+    }
+ else {
+      result=MethodCodeDecoding.STOP_AFTER_CONSTRUCT_SUPER;
+    }
+  }
+ else {
+    result=MethodCodeDecoding.CONTINUE;
+  }
+  methodBodies.writeU32(methodInfo.getIndex(methodInfoIndex));
+  methodBodies.writeU32(maxStack);
+  methodBodies.writeU32(maxRegs);
+  methodBodies.writeU32(scopeDepth);
+  methodBodies.writeU32(maxScope);
+  currentBuffer=methodBodies;
+  opcodePass=1;
+  exPass=1;
+  return result;
+}

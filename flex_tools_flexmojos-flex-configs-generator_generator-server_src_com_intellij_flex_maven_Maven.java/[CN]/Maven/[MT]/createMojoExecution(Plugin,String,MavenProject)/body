@@ -1,0 +1,10 @@
+{
+  if (plugin.getVersion() == null) {
+    plugin.setVersion(plexusContainer.lookup(PluginVersionResolver.class).resolve(new DefaultPluginVersionRequest(plugin,session)).getVersion());
+  }
+  MojoDescriptor mojoDescriptor=pluginManager.getMojoDescriptor(plugin,goal,project.getRemotePluginRepositories(),session.getRepositorySession());
+  List<PluginExecution> executions=plugin.getExecutions();
+  MojoExecution mojoExecution=new MojoExecution(mojoDescriptor,executions.isEmpty() ? null : executions.get(executions.size() - 1).getId(),MojoExecution.Source.CLI);
+  plexusContainer.lookup(LifecycleExecutionPlanCalculator.class).setupMojoExecution(session,project,mojoExecution);
+  return mojoExecution;
+}

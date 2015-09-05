@@ -1,0 +1,24 @@
+{
+  final ActionCallback callback=new ActionCallback("getDocumentImage");
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.getDocumentImage,callback,result,new Runnable(){
+      @Override public void run(){
+        Reader reader=SocketInputHandler.getInstance().getReader();
+        try {
+          result.setDone(reader.readImage());
+        }
+ catch (        IOException e) {
+          LogMessageUtil.LOG.error(e);
+          result.setRejected();
+        }
+      }
+    }
+);
+    out.writeShort(documentInfo.getId());
+    hasError=false;
+  }
+  finally {
+    finalizeMessageAndFlush(hasError,callback);
+  }
+}

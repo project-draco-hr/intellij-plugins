@@ -1,0 +1,22 @@
+{
+  final Project project=e.getProject();
+  boolean flexModulePresent=false;
+  boolean airAppPresent=false;
+  if (project != null) {
+    final FlexModuleType flexModuleType=FlexModuleType.getInstance();
+    MODULES_LOOP:     for (    Module module : ModuleManager.getInstance(project).getModules()) {
+      if (ModuleType.get(module) == flexModuleType) {
+        flexModulePresent=true;
+        for (        FlexBuildConfiguration bc : FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations()) {
+          final BuildConfigurationNature nature=bc.getNature();
+          if (nature.isApp() && !nature.isWebPlatform()) {
+            airAppPresent=true;
+            break MODULES_LOOP;
+          }
+        }
+      }
+    }
+  }
+  e.getPresentation().setVisible(flexModulePresent);
+  e.getPresentation().setEnabled(airAppPresent && !CompilerManager.getInstance(project).isCompilationActive() && !AirPackageProjectParameters.getInstance(project).isPackagingInProgress());
+}

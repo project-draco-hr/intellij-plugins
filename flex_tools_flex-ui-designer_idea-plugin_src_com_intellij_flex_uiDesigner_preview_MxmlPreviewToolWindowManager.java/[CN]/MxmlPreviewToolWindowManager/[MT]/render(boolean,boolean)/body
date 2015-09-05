@@ -1,0 +1,55 @@
+{
+  if (!toolWindowVisible) {
+    return;
+  }
+  final VirtualFile file=toolWindowForm.getFile();
+  if (file == null) {
+    return;
+  }
+  toolWindowForm.getPreviewPanel().clearCannotRender();
+  if (isSlow) {
+    toolWindowForm.getPreviewPanel().getLoadingDecorator().startLoading(false);
+    loadingDecoratorStarted++;
+  }
+  toolWindowForm.waitingForGetDocument=true;
+  XmlFile xmlFile=(XmlFile)PsiManager.getInstance(project).findFile(file);
+  LogMessageUtil.LOG.assertTrue(xmlFile != null);
+  AsyncResult<BufferedImage> result=DesignerApplicationManager.getInstance().getDocumentImage(xmlFile);
+  result.doWhenDone(new QueuedAsyncResultHandler<BufferedImage>(){
+    @Override protected boolean isExpired(){
+      return toolWindowForm == null || !file.equals(toolWindowForm.getFile());
+    }
+    @Override public void process(    final BufferedImage image){
+      UIUtil.invokeLaterIfNeeded(new Runnable(){
+        @Override public void run(){
+          toolWindowForm.getPreviewPanel().setImage(image);
+        }
+      }
+);
+    }
+  }
+);
+  result.doWhenProcessed(new Runnable(){
+    @Override public void run(){
+      toolWindowForm.waitingForGetDocument=false;
+      if (isSlow && --loadingDecoratorStarted == 0 && toolWindowForm != null) {
+        toolWindowForm.getPreviewPanel().getLoadingDecorator().stopLoading();
+      }
+    }
+  }
+);
+  result.doWhenRejected(new Runnable(){
+    @Override public void run(){
+      if (clearPreviousOnError) {
+        toolWindowForm.getPreviewPanel().setImage(null);
+      }
+      UIUtil.invokeLaterIfNeeded(new Runnable(){
+        @Override public void run(){
+          toolWindowForm.getPreviewPanel().showCannotRender();
+        }
+      }
+);
+    }
+  }
+);
+}

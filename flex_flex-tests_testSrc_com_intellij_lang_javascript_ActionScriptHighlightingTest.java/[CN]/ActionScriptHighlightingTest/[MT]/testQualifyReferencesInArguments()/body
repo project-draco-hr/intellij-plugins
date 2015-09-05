@@ -1,0 +1,10 @@
+{
+  String testName=getTestName(false);
+  String root=getTestDataPath() + getBasePath() + "/"+ testName;
+  Collection<HighlightInfo> infoCollection=doTestFor(true,new File(root + "/before"),(Runnable)null,testName + "/before/" + "Ref1.as");
+  findAndInvokeIntentionAction(infoCollection,"Change Foo.func() signature",myEditor,myFile);
+  FileDocumentManager.getInstance().saveAllDocuments();
+  VirtualFile dirAfter=LocalFileSystem.getInstance().findFileByIoFile(new File(root + "/after"));
+  VirtualFile actualDir=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(myFile.getVirtualFile());
+  PlatformTestUtil.assertDirectoriesEqual(dirAfter,actualDir);
+}

@@ -1,0 +1,18 @@
+{
+  final NamesValidator namesValidator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+  if (myFileLocal) {
+    final String className=myClassNameField.getText();
+    if (StringUtil.isEmpty(className)) {
+      throw new ConfigurationException(FlexBundle.message("element.name.empty",JSBundle.message(JSNamedElementKind.kind(myElements.iterator().next()).humanReadableKey())));
+    }
+    if (!namesValidator.isIdentifier(className,myProject)) {
+      throw new ConfigurationException(FlexBundle.message("invalid.element.name",StringUtil.decapitalize(JSBundle.message(JSNamedElementKind.kind(myElements.iterator().next()).humanReadableKey())),className));
+    }
+  }
+  final String packageName=myTargetPackageField.getText();
+  for (  final String s : StringUtil.split(packageName,".")) {
+    if (!namesValidator.isIdentifier(s,myProject)) {
+      throw new ConfigurationException(JSBundle.message("invalid.package",packageName));
+    }
+  }
+}

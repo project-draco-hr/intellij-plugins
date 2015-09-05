@@ -1,0 +1,54 @@
+{
+  UIUtil.invokeAndWaitIfNeeded(new Runnable(){
+    @Override public void run(){
+      try {
+        FlexUnitExecutionTest.super.setUp();
+        CompilerProjectExtension.getInstance(myProject).setCompilerOutputUrl(createOutputFolder().getUrl());
+      }
+ catch (      Throwable e) {
+        e.printStackTrace();
+        assertTrue(false);
+      }
+    }
+  }
+);
+  if (BLOCK_PORT_843) {
+    ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+      @Override public void run(){
+        ServerSocket socket=null;
+        myStopBlocking=false;
+        try {
+          socket=new ServerSocket(843);
+          socket.setSoTimeout(50);
+          while (!myStopBlocking) {
+            try {
+              socket.accept();
+            }
+ catch (            SocketTimeoutException e) {
+            }
+          }
+        }
+ catch (        IOException e) {
+          fail(e.getMessage());
+        }
+ finally {
+          if (socket != null) {
+            try {
+              socket.close();
+            }
+ catch (            IOException e) {
+            }
+          }
+        }
+      }
+    }
+);
+  }
+  FlexCompilerProjectConfiguration c=FlexCompilerProjectConfiguration.getInstance(myProject);
+  myUseMxmlcCompc=c.USE_MXMLC_COMPC;
+  myUseBuiltInCompiler=c.USE_BUILT_IN_COMPILER;
+  myUseFcsh=c.USE_FCSH;
+  c.USE_MXMLC_COMPC=true;
+  c.USE_FCSH=false;
+  c.USE_BUILT_IN_COMPILER=false;
+}

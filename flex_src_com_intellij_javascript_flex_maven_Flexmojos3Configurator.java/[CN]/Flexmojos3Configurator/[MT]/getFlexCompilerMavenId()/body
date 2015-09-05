@@ -1,0 +1,30 @@
+{
+  for (  final MavenId mavenId : myFlexmojosPlugin.getDependencies()) {
+    if (FLEX_COMPILER_ARTIFACT_ID.equals(mavenId.getArtifactId()) && (FLEX_COMPILER_ADOBE_GROUP_ID.equals(mavenId.getGroupId()) || FLEX_COMPILER_APACHE_GROUP_ID.equals(mavenId.getGroupId()))) {
+      return mavenId;
+    }
+  }
+  for (  final MavenArtifact mavenArtifact : myMavenProject.getDependencies()) {
+    if ("com.adobe.flex".equals(mavenArtifact.getGroupId()) && "framework".equals(mavenArtifact.getArtifactId()) || "com.adobe.flex.framework".equals(mavenArtifact.getGroupId()) && ("flex-framework".equals(mavenArtifact.getArtifactId()) || "air-framework".equals(mavenArtifact.getArtifactId()))) {
+      return new MavenId(FLEX_COMPILER_ADOBE_GROUP_ID,FLEX_COMPILER_ARTIFACT_ID,mavenArtifact.getVersion());
+    }
+    if ("org.apache.flex".equals(mavenArtifact.getGroupId()) && "framework".equals(mavenArtifact.getArtifactId()) || "org.apache.flex.framework".equals(mavenArtifact.getGroupId()) && ("flex-framework".equals(mavenArtifact.getArtifactId()) || "common-framework".equals(mavenArtifact.getArtifactId()))) {
+      return new MavenId(FLEX_COMPILER_APACHE_GROUP_ID,FLEX_COMPILER_ARTIFACT_ID,mavenArtifact.getVersion());
+    }
+  }
+  final String version;
+  final String pluginVersion=myFlexmojosPlugin.getVersion();
+  if (StringUtil.compareVersionNumbers(pluginVersion,"5") >= 0) {
+    version="4.6.0.23201";
+  }
+ else   if (StringUtil.compareVersionNumbers(pluginVersion,"4.1") >= 0 || pluginVersion != null && pluginVersion.startsWith("4.0-RC")) {
+    version="4.5.1.21328";
+  }
+ else   if (StringUtil.compareVersionNumbers(pluginVersion,"4") >= 0) {
+    version="4.5.0.18623";
+  }
+ else {
+    version="3.2.0.3958";
+  }
+  return new MavenId(FLEX_COMPILER_ADOBE_GROUP_ID,FLEX_COMPILER_ARTIFACT_ID,version);
+}

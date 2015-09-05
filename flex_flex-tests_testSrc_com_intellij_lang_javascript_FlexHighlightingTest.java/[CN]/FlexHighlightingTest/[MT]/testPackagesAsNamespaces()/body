@@ -1,0 +1,16 @@
+{
+  final String testName=getTestName(false);
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      final VirtualFile srcRoot=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "/");
+      PsiTestUtil.addSourceRoot(myModule,srcRoot);
+    }
+  }
+;
+  doTestFor(true,testName + "/" + testName+ ".mxml");
+  final PsiReference psiReference=myFile.findReferenceAt(myEditor.getCaretModel().getOffset());
+  assertEquals(1,((PsiPolyVariantReference)psiReference).multiResolve(false).length);
+  final PsiElement element=psiReference.resolve();
+  assertTrue(element instanceof JSClass);
+  assertEquals("one.two.three.MyComponent",((JSClass)element).getQualifiedName());
+}

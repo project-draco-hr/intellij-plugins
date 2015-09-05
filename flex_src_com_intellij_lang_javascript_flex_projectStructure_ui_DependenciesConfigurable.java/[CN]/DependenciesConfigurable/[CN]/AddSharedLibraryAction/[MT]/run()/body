@@ -1,0 +1,23 @@
+{
+  final Collection<Library> usedLibraries=new HashSet<Library>();
+  List<MyTableItem> items=myTable.getItems();
+  for (  MyTableItem item : items) {
+    if (item instanceof SharedLibraryItem) {
+      LibraryEx library=(LibraryEx)((SharedLibraryItem)item).findLiveLibrary();
+      if (library != null) {
+        usedLibraries.add(library);
+      }
+    }
+  }
+  ChooseLibrariesDialog d=new ChooseLibrariesDialog(new Condition<Library>(){
+    public boolean value(    final Library library){
+      return !usedLibraries.contains(library);
+    }
+  }
+);
+  if (!d.showAndGet()) {
+    return;
+  }
+  final List<Library> libraries=d.getSelectedLibraries();
+  addSharedLibraries(libraries);
+}

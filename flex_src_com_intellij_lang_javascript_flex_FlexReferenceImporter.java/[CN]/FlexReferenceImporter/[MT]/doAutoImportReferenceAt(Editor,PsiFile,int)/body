@@ -1,0 +1,17 @@
+{
+  if (!(file instanceof JSFile) || file.getLanguage() != JavaScriptSupportLoader.ECMA_SCRIPT_L4)   return false;
+  Document document=editor.getDocument();
+  int lineNumber=document.getLineNumber(offset);
+  int startOffset=document.getLineStartOffset(lineNumber);
+  int endOffset=document.getLineEndOffset(lineNumber);
+  List<PsiElement> elements=CollectHighlightsUtil.getElementsInRange(file,startOffset,endOffset);
+  for (  PsiElement element : elements) {
+    if (element instanceof JSReferenceExpression && ((JSReferenceExpression)element).getQualifier() == null) {
+      if (((JSReferenceExpression)element).multiResolve(false).length == 0) {
+        new AddImportECMAScriptClassOrFunctionAction(editor,(PsiPolyVariantReference)element,true).execute();
+        return true;
+      }
+    }
+  }
+  return false;
+}

@@ -1,0 +1,57 @@
+{
+  super(project,true);
+  myProject=project;
+  myElements=elements;
+  myTargetContainer=targetContainer;
+  myCallback=callback;
+  final JSQualifiedNamedElement firstElement=myElements.iterator().next();
+  myFileLocal=JSResolveUtil.isFileLocalSymbol(firstElement);
+  setSize(500,130);
+  String labelText;
+  if (myFileLocal) {
+    LOG.assertTrue(myElements.size() == 1);
+    myClassNameLabel.setVisible(true);
+    myClassNameLabel.setText(FlexBundle.message("element.name",JSBundle.message(JSNamedElementKind.kind(firstElement).humanReadableKey())));
+    myClassNameField.setVisible(true);
+    myClassNameField.setText(myElements.iterator().next().getName());
+    myClassNameField.selectAll();
+    myPackageLabel.setText(FlexBundle.message("package.name.title"));
+    setTitle(RefactoringBundle.message("move.inner.to.upper.level.title"));
+  }
+ else {
+    myClassNameLabel.setVisible(false);
+    myClassNameField.setVisible(false);
+    myPackageLabel.setText(FlexBundle.message("to.package.title"));
+    setTitle(RefactoringBundle.message("move.title"));
+  }
+  myElementLabel.setLabelFor(myTargetPackageField.getChildComponent());
+  if (elements.size() == 1) {
+    labelText=FlexBundle.message(myFileLocal ? "move.file.local.0" : "move.0",StringUtil.decapitalize(JSBundle.message(JSNamedElementKind.kind(firstElement).humanReadableKey())),firstElement.getQualifiedName());
+  }
+ else {
+    labelText=FlexBundle.message("move.elements");
+  }
+  myElementLabel.setText(labelText);
+  myPackageLabel.setLabelFor(myTargetPackageField.getChildComponent());
+  init();
+  boolean canMoveToDifferentSourceRoot=!myFileLocal && ProjectRootManager.getInstance(myProject).getContentSourceRoots().length > 1;
+  if (canMoveToDifferentSourceRoot) {
+    myCbMoveToAnotherSourceFolder.setEnabled(true);
+  }
+ else {
+    myCbMoveToAnotherSourceFolder.setEnabled(false);
+    myCbMoveToAnotherSourceFolder.setSelected(false);
+  }
+  myClassNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    DocumentEvent e){
+      validateButtons();
+    }
+  }
+);
+  myTargetPackageField.addDocumentListener(new com.intellij.openapi.editor.event.DocumentAdapter(){
+    @Override public void documentChanged(    com.intellij.openapi.editor.event.DocumentEvent e){
+      validateButtons();
+    }
+  }
+);
+}

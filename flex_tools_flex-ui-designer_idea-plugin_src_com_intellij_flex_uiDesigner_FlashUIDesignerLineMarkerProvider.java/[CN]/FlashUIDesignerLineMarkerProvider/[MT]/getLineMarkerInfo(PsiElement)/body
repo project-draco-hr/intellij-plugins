@@ -1,0 +1,21 @@
+{
+  if (!(element instanceof XmlTag)) {
+    return null;
+  }
+  final XmlTag tag=(XmlTag)element;
+  final XmlFile psiFile=(XmlFile)tag.getContainingFile();
+  if (psiFile.getRootTag() != tag || !DesignerApplicationManager.isApplicable(tag.getProject(),psiFile)) {
+    return null;
+  }
+  return new LineMarkerInfo<PsiElement>(element,element.getTextRange(),PlatformIcons.UI_FORM_ICON,Pass.UPDATE_ALL,new Function<PsiElement,String>(){
+    @Override public String fun(    PsiElement element){
+      return FlashUIDesignerBundle.message("gutter.open");
+    }
+  }
+,new GutterIconNavigationHandler<PsiElement>(){
+    @Override public void navigate(    MouseEvent e,    PsiElement elt){
+      DesignerApplicationManager.getInstance().openDocument(psiFile,false);
+    }
+  }
+,GutterIconRenderer.Alignment.LEFT);
+}

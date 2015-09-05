@@ -1,0 +1,24 @@
+{
+  final int nameIndex=in.readU32();
+  instanceInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,nameIndex));
+  instanceInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,in.readU32()));
+  abcModifierApplicable=abcModifier != null && compareLocalName(in,nameIndex,abcModifier.getClassLocalName());
+  int flags=in.readU8();
+  instanceInfo.writeU8(flags);
+  if ((flags & CLASS_FLAG_protected) != 0) {
+    instanceInfo.writeU32(history.getIndex(IndexHistory.NS,in.readU32()));
+  }
+  final int interfaceCount=in.readU32();
+  instanceInfo.writeU32(interfaceCount);
+  if (interfaceCount > 0) {
+    for (int j=0; j < interfaceCount; j++) {
+      instanceInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,in.readU32()));
+    }
+  }
+  final int oldIInit=in.readU32();
+  instanceInfo.writeU32(methodInfo.getIndex(oldIInit));
+  if (abcModifierApplicable && abcModifier.isModifyConstructor()) {
+    history.getModifiedMethodBodies().put(oldIInit,MODIFY_INIT_METHOD_BODY_MARKER);
+  }
+  currentBuffer=instanceInfo;
+}

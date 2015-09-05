@@ -1,0 +1,48 @@
+{
+  Result result=Result.OK;
+  String lastRead="";
+  out:   while (true) {
+    int read=out.read(buf);
+    if (read == -1) {
+      read=err.read(buf);
+      if (read > 0) {
+        messagesBuffer.addMessage(CompilerMessageCategory.ERROR,new String(buf,0,read),null,-1,-1);
+      }
+      break;
+    }
+    @NonNls String output=lastRead + new String(buf,0,read);
+    trace(TraceType.OUT,output);
+    StringTokenizer tokenizer=new StringTokenizer(output,"\r\n");
+    while (tokenizer.hasMoreElements()) {
+      @NonNls String s=tokenizer.nextElement().trim();
+      if (s.length() == 0)       continue;
+      if (s.startsWith("(fcsh)")) {
+        if (s.indexOf("need to repeat command") != -1) {
+          result=Result.NEED_TO_REPEAT_COMMAND;
+        }
+ else         if (s.indexOf("out of memory") != -1) {
+          result=Result.OUT_OF_MEMORY;
+        }
+        myCancelledReadErrStream=true;
+        myReadErrStreamAlarm.cancelAllRequests();
+        scanErrorStream(messagesBuffer);
+        break out;
+      }
+      if (s.startsWith(FCSH_ASSIGNED_MARKER) && command != null) {
+        int id=Integer.parseInt(s.substring(FCSH_ASSIGNED_MARKER.length(),s.indexOf(' ',FCSH_ASSIGNED_MARKER.length())));
+        commandToIdMap.put(command,id);
+        continue;
+      }
+ else       if (s.startsWith("fcsh: Target") && s.indexOf("not found") != -1) {
+        result=Result.TARGET_NOT_FOUND;
+        continue;
+      }
+      if (!tokenizer.hasMoreElements() && tokenizer.getCurrentPosition() == output.length()) {
+        lastRead=s + "\n";
+        break;
+      }
+      messagesBuffer.addMessage(CompilerMessageCategory.INFORMATION,s,null,-1,-1);
+    }
+  }
+  return result;
+}

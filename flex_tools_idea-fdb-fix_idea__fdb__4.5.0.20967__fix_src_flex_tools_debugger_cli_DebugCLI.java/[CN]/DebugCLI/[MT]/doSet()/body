@@ -1,0 +1,20 @@
+{
+  try {
+    ValueExp exp=null;
+    if (!hasMoreTokens())     err(getLocalizationManager().getLocalizedTextString("setCommand"));
+ else {
+      String s=restOfLine();
+      if ((exp=parseExpression(s)) == null)       ;
+ else       if (!exp.containsAssignment())       throw new IllegalAccessException("=");
+ else       evalExpression(exp);
+    }
+  }
+ catch (  IllegalAccessException iae) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("operator",iae.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("missingOperator",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

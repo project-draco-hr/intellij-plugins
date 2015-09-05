@@ -1,0 +1,30 @@
+{
+  if (parent instanceof JSClass) {
+    final JSClass clazz=(JSClass)parent;
+    if (!clazz.isValid()) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+    final List<PsiElement> elements=new ArrayList<PsiElement>();
+    ContainerUtil.addAll(elements,clazz.getFields());
+    boolean isInterface=clazz.isInterface();
+    for (    JSFunction method : clazz.getFunctions()) {
+      if (isInterface && method.getKind() == JSFunction.FunctionKind.CONSTRUCTOR)       continue;
+      if (method.getKind() != JSFunction.FunctionKind.SETTER || clazz.findFunctionByNameAndKind(method.getName(),JSFunction.FunctionKind.GETTER) == null) {
+        elements.add(method);
+      }
+    }
+    if (elements.isEmpty()) {
+      return PsiElement.EMPTY_ARRAY;
+    }
+ else     if (!(clazz instanceof JSClassImpl) || clazz.getStub() == null) {
+      Collections.sort(elements,new Comparator<PsiElement>(){
+        public int compare(        PsiElement o1,        PsiElement o2){
+          return o1.getTextOffset() - o2.getTextOffset();
+        }
+      }
+);
+    }
+    return PsiUtilCore.toPsiElementArray(elements);
+  }
+  return PsiElement.EMPTY_ARRAY;
+}

@@ -1,0 +1,28 @@
+{
+  if (valueObject == null)   return null;
+  @NonNls String value=valueObject.toString();
+  char ch;
+  if (needsQuoting(value)) {
+    boolean doQoute=true;
+    if (value.indexOf('.') != -1) {
+      try {
+        Double.parseDouble(value);
+        doQoute=false;
+      }
+ catch (      NumberFormatException ex) {
+      }
+    }
+ else     if (value.length() > 0 && (Character.isDigit(ch=value.charAt(0)) || (ch == '-' && value.length() > 1 && Character.isDigit(value.charAt(1))))) {
+      try {
+        Integer.parseInt(value);
+        doQoute=false;
+      }
+ catch (      NumberFormatException ex) {
+      }
+    }
+    if (doQoute) {
+      value="\"" + quote(value) + "\"";
+    }
+  }
+  return value;
+}
