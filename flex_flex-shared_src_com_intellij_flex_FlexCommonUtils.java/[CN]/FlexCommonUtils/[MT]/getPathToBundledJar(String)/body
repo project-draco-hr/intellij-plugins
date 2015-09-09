@@ -1,11 +1,16 @@
 {
   final URL url=FlexCommonUtils.class.getResource("");
-  String folder;
   if ("jar".equals(url.getProtocol())) {
-    folder="/plugins/flex/lib/";
+    return FileUtil.toSystemDependentName(PathManager.getHomePath() + "/plugins/flex/lib/" + filename);
   }
  else {
-    folder="/flex/lib/";
+    final File dir=new File("../lib");
+    if (dir.isDirectory()) {
+      final String path=FileUtil.toSystemIndependentName(FileUtil.toCanonicalPath(dir.getAbsolutePath()));
+      if (path.endsWith("/flex/lib")) {
+        return FileUtil.toSystemDependentName(path + "/" + filename);
+      }
+    }
+    return FileUtil.toSystemDependentName(PathManager.getHomePath() + "/contrib/flex/lib/" + filename);
   }
-  return FileUtil.toSystemDependentName(PathManager.getHomePath() + folder + filename);
 }
