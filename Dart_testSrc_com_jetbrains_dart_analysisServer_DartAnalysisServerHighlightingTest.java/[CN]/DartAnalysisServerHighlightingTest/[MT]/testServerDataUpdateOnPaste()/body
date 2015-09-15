@@ -1,22 +1,23 @@
 {
-  ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
-  myFixture.configureByText(DartFileType.INSTANCE,"import 'dart:core';\n" + "import 'dart:core';\n" + "import 'dart:core';\n");
-  myFixture.doHighlighting();
+  initServerDataTest();
   final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
   final VirtualFile file=getFile().getVirtualFile();
-  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  checkServerDataInitialState(file);
   CopyPasteManager.getInstance().setContents(new StringSelection("long text 012345678901234567890123456789"));
   getEditor().getCaretModel().moveToOffset(27);
   myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
   checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(67,78),TextRange.create(87,98));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,79),TextRange.create(20,26),TextRange.create(67,78),TextRange.create(80,99),TextRange.create(80,86),TextRange.create(87,98));
   undoAndUpdateHighlighting(file);
-  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  checkServerDataInitialState(file);
   getEditor().getCaretModel().moveToOffset(29);
   myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
   checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(87,98));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,79),TextRange.create(20,26),TextRange.create(27,78),TextRange.create(80,99),TextRange.create(80,86),TextRange.create(87,98));
   undoAndUpdateHighlighting(file);
-  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  checkServerDataInitialState(file);
   getEditor().getCaretModel().moveToOffset(38);
   myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
   checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(87,98));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,79),TextRange.create(20,26),TextRange.create(27,38),TextRange.create(80,99),TextRange.create(80,86),TextRange.create(87,98));
 }
