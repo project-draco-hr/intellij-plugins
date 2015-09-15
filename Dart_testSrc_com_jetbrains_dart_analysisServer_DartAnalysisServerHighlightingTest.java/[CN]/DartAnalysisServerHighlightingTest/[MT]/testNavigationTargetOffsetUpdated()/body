@@ -1,0 +1,14 @@
+{
+  ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
+  myFixture.configureByText(DartFileType.INSTANCE,"var a = 1; var b = a;");
+  myFixture.doHighlighting();
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=getFile().getVirtualFile();
+  final List<DartAnalysisServerService.PluginNavigationRegion> regions=service.getNavigation(file);
+  checkRegions(regions,TextRange.create(4,5),TextRange.create(15,16),TextRange.create(19,20));
+  assertEquals(4,regions.get(2).getTargets().get(0).getOffset());
+  getEditor().getCaretModel().moveToOffset(0);
+  myFixture.type("foo \b");
+  checkRegions(regions,TextRange.create(7,8),TextRange.create(18,19),TextRange.create(22,23));
+  assertEquals(7,regions.get(2).getTargets().get(0).getOffset());
+}

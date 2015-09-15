@@ -1,0 +1,20 @@
+{
+  ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
+  myFixture.configureByText(DartFileType.INSTANCE,"import 'dart:core';\n" + "import 'dart:core';\n" + "import 'dart:core';\n");
+  myFixture.doHighlighting();
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=getFile().getVirtualFile();
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,39),TextRange.create(20,26),TextRange.create(27,38),TextRange.create(40,59),TextRange.create(40,46),TextRange.create(47,58));
+  getEditor().getCaretModel().moveToOffset(27);
+  myFixture.type('a');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(28,39),TextRange.create(48,59));
+  undoAndUpdateHighlighting(file);
+  getEditor().getCaretModel().moveToOffset(29);
+  myFixture.type('a');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(48,59));
+  undoAndUpdateHighlighting(file);
+  getEditor().getCaretModel().moveToOffset(38);
+  myFixture.type('a');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(48,59));
+}

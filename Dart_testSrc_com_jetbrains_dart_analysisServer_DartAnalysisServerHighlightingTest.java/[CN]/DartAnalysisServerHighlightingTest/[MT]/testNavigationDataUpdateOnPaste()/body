@@ -1,0 +1,22 @@
+{
+  ((CodeInsightTestFixtureImpl)myFixture).canChangeDocumentDuringHighlighting(true);
+  myFixture.configureByText(DartFileType.INSTANCE,"import 'dart:core';\n" + "import 'dart:core';\n" + "import 'dart:core';\n");
+  myFixture.doHighlighting();
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=getFile().getVirtualFile();
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  CopyPasteManager.getInstance().setContents(new StringSelection("long text 012345678901234567890123456789"));
+  getEditor().getCaretModel().moveToOffset(27);
+  myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(67,78),TextRange.create(87,98));
+  undoAndUpdateHighlighting(file);
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  getEditor().getCaretModel().moveToOffset(29);
+  myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(87,98));
+  undoAndUpdateHighlighting(file);
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(47,58));
+  getEditor().getCaretModel().moveToOffset(38);
+  myFixture.performEditorAction(IdeActions.ACTION_EDITOR_PASTE);
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(87,98));
+}
