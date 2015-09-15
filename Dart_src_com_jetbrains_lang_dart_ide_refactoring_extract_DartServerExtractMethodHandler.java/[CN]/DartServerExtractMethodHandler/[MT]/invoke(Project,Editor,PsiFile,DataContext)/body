@@ -1,0 +1,20 @@
+{
+  final SelectionModel selectionModel=editor.getSelectionModel();
+  if (!selectionModel.hasSelection())   selectionModel.selectLineAtCaret();
+  final String filePath=file.getVirtualFile().getPath();
+  final int offset=selectionModel.getSelectionStart();
+  final int length=selectionModel.getSelectionEnd() - offset;
+  final ServerExtractMethodRefactoring refactoring=new ServerExtractMethodRefactoring(filePath,offset,length);
+{
+    final RefactoringStatus initialStatus=refactoring.checkInitialConditions();
+    if (initialStatus == null) {
+      return;
+    }
+    if (initialStatus.hasError()) {
+      final String title=DartBundle.message("dart.refactoring.extract.method.error");
+      CommonRefactoringUtil.showErrorHint(project,editor,initialStatus.getMessage(),title,null);
+      return;
+    }
+  }
+  new DartServerExtractMethodDialog(project,editor,refactoring).show();
+}

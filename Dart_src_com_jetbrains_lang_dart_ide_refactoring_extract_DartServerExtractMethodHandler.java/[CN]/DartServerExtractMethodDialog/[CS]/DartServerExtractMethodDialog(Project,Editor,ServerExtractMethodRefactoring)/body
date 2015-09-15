@@ -1,0 +1,37 @@
+{
+  super(project,editor,refactoring);
+  myRefactoring=refactoring;
+  setTitle("Extract Method");
+  init();
+  myMethodNameField.getDocument().addDocumentListener(new DocumentAdapter(){
+    @Override protected void textChanged(    DocumentEvent e){
+      final String name=myMethodNameField.getText();
+      myRefactoring.setName(name);
+      mySignatureLabel.setText(myRefactoring.getSignature());
+    }
+  }
+);
+  if (myRefactoring.getOccurrences() != 1) {
+    myAllCheckBox.setSelected(true);
+    myAllCheckBox.addChangeListener(new ChangeListener(){
+      @Override public void stateChanged(      ChangeEvent e){
+        myRefactoring.setExtractAll(myAllCheckBox.isSelected());
+      }
+    }
+);
+  }
+ else {
+    myAllCheckBox.setEnabled(false);
+  }
+  if (myRefactoring.canExtractGetter()) {
+    myGetterCheckBox.addChangeListener(new ChangeListener(){
+      @Override public void stateChanged(      ChangeEvent e){
+        myRefactoring.setCreateGetter(myGetterCheckBox.isSelected());
+      }
+    }
+);
+  }
+ else {
+    myGetterCheckBox.setEnabled(false);
+  }
+}
