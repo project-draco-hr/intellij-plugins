@@ -3,7 +3,7 @@
   boolean playerglobal=false;
   boolean airglobal=false;
   boolean mobilecomponents=false;
-  final ModifiableRootModel rootModel=myModelsProvider.getRootModel(myModule);
+  final ModifiableRootModel rootModel=myModelsProvider.getModifiableRootModel(myModule);
   for (  OrderEntry entry : rootModel.getOrderEntries()) {
     final DependencyScope scope=entry instanceof ExportableOrderEntry ? ((ExportableOrderEntry)entry).getScope() : DependencyScope.COMPILE;
     final boolean isExported=entry instanceof ExportableOrderEntry && ((ExportableOrderEntry)entry).isExported();
@@ -47,7 +47,7 @@
     if (library == null || !MavenRootModelAdapter.isMavenLibrary(library))     continue;
     final String libraryName=library.getName();
     if (libraryName.contains(":rb.swc:") || libraryName.contains(":resource-bundle:")) {
-      final Library.ModifiableModel libraryModifiableModel=myModelsProvider.getLibraryModel(library);
+      final Library.ModifiableModel libraryModifiableModel=myModelsProvider.getModifiableLibraryModel(library);
       for (      final String rbSwcPlaceholdersUrl : findRbSwcPlaceholderUrls(libraryModifiableModel)) {
         final Collection<String> rootsToAdd=getRbSwcUrlsForCompiledLocales(rbSwcPlaceholdersUrl);
         libraryModifiableModel.removeRoot(rbSwcPlaceholdersUrl,OrderRootType.CLASSES);
@@ -66,7 +66,7 @@
       final LibraryKind kind=((LibraryEx)library).getKind();
       if (kind != FlexLibraryType.FLEX_LIBRARY) {
         if (kind == null) {
-          final LibraryEx.ModifiableModelEx libraryModel=(LibraryEx.ModifiableModelEx)myModelsProvider.getLibraryModel(library);
+          final LibraryEx.ModifiableModelEx libraryModel=(LibraryEx.ModifiableModelEx)myModelsProvider.getModifiableLibraryModel(library);
           libraryModel.setKind(FlexLibraryType.FLEX_LIBRARY);
           libraryModel.setProperties(FlexLibraryType.FLEX_LIBRARY.createDefaultProperties());
         }
