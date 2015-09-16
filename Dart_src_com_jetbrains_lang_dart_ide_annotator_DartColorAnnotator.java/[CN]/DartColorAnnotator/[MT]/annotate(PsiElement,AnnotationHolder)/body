@@ -1,5 +1,11 @@
 {
   if (holder.isBatchMode())   return;
+  if (element instanceof DartFile || element instanceof DartEmbeddedContent) {
+    final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+    if (canBeAnalyzedByServer(element.getContainingFile()) && service.serverReadyForRequest(element.getProject())) {
+      service.updateFilesContent();
+    }
+  }
   final DartSdk sdk=DartSdk.getDartSdk(element.getProject());
   if (DartTokenTypes.COLON == element.getNode().getElementType() && element.getParent() instanceof DartTernaryExpression) {
     createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.OPERATION_SIGN);

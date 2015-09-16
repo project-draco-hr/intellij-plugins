@@ -1,0 +1,11 @@
+{
+  final Project project=file.getProject();
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk))   return false;
+  final VirtualFile vFile=file.getVirtualFile();
+  if (vFile == null || !vFile.isInLocalFileSystem())   return false;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  if (fileIndex.isInLibraryClasses(vFile))   return true;
+  final Module module=fileIndex.getModuleForFile(vFile);
+  return module != null && DartSdkGlobalLibUtil.isDartSdkEnabled(module);
+}

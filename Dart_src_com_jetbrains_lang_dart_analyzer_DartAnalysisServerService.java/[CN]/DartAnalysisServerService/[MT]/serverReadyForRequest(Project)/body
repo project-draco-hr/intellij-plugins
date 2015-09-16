@@ -1,10 +1,13 @@
 {
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !isDartSdkVersionSufficient(sdk)) {
+    stopServer();
+    return false;
+  }
 synchronized (myLock) {
     if (myServer == null || !sdk.getHomePath().equals(mySdkHome) || !sdk.getVersion().equals(mySdkVersion) || !myServer.isSocketOpen()) {
       stopServer();
-      if (isDartSdkVersionSufficient(sdk)) {
-        startServer(sdk);
-      }
+      startServer(sdk);
     }
     if (myServer != null) {
       myRootsHandler.ensureProjectServed(project);
