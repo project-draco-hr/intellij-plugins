@@ -1,10 +1,11 @@
 {
   if (psiFile instanceof DartExpressionCodeFragment)   return null;
-  if (!DartColorAnnotator.canBeAnalyzedByServer(psiFile))   return null;
+  final VirtualFile vFile=psiFile.getVirtualFile();
+  if (!DartColorAnnotator.canBeAnalyzedByServer(psiFile.getProject(),vFile))   return null;
   if (psiFile instanceof XmlFile && !containsDartEmbeddedContent((XmlFile)psiFile))   return null;
   final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(psiFile.getProject()).getFileIndex();
-  if (!fileIndex.isInContent(psiFile.getVirtualFile()))   return null;
+  if (!fileIndex.isInContent(vFile))   return null;
   if (!DartAnalysisServerService.getInstance().serverReadyForRequest(psiFile.getProject()))   return null;
   DartAnalysisServerService.getInstance().updateFilesContent();
-  return new AnnotatorInfo(psiFile.getProject(),psiFile.getVirtualFile().getPath());
+  return new AnnotatorInfo(psiFile.getProject(),vFile.getPath());
 }

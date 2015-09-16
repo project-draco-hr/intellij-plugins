@@ -1,12 +1,15 @@
 {
   if (holder.isBatchMode())   return;
-  if (element instanceof DartFile || element instanceof DartEmbeddedContent) {
+  final AnnotationSession session=holder.getCurrentAnnotationSession();
+  if (session.getUserData(DART_SERVER_DATA_HANDLED) != Boolean.TRUE) {
+    session.putUserData(DART_SERVER_DATA_HANDLED,Boolean.TRUE);
+    final VirtualFile vFile=element.getContainingFile().getVirtualFile();
     final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
-    if (canBeAnalyzedByServer(element.getContainingFile()) && service.serverReadyForRequest(element.getProject())) {
+    if (canBeAnalyzedByServer(element.getProject(),vFile) && service.serverReadyForRequest(element.getProject())) {
       service.updateFilesContent();
+      applyServerHighlighting(vFile,holder);
     }
   }
-  final DartSdk sdk=DartSdk.getDartSdk(element.getProject());
   if (DartTokenTypes.COLON == element.getNode().getElementType() && element.getParent() instanceof DartTernaryExpression) {
     createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.OPERATION_SIGN);
     return;
@@ -27,20 +30,8 @@
     highlightEscapeSequences(element,holder);
     return;
   }
-  if (element instanceof DartMetadata) {
-    final DartArguments arguments=((DartMetadata)element).getArguments();
-    final int endOffset=arguments == null ? element.getTextRange().getEndOffset() : arguments.getTextRange().getStartOffset();
-    final TextRange range=TextRange.create(element.getTextRange().getStartOffset(),endOffset);
-    createInfoAnnotation(holder,range,DartSyntaxHighlighterColors.DART_ANNOTATION);
-    return;
-  }
   if (element instanceof DartSymbolLiteralExpression) {
     createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.SYMBOL_LITERAL);
     return;
   }
-  if (element instanceof DartReference && element.getParent() instanceof DartType && "dynamic".equals(element.getText())) {
-    createInfoAnnotation(holder,element,DartSyntaxHighlighterColors.DART_TYPE_NAME_DYNAMIC);
-    return;
-  }
-  highlightIfDeclarationOrReference(element,holder,sdk);
 }
