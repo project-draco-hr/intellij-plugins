@@ -1,0 +1,35 @@
+{
+  myFixture.configureByText("firstFile.dart","class Foo { toString(){ return super.toString(); } }");
+  final VirtualFile firstFile=getFile().getVirtualFile();
+  final VirtualFile secondFile=myFixture.addFileToProject("secondFile.dart","class Bar { toString(){ return super.toString(); } }").getVirtualFile();
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  myFixture.doHighlighting();
+  assertNotEmpty(service.getHighlight(firstFile));
+  assertNotEmpty(service.getNavigation(firstFile));
+  assertNotEmpty(service.getOverrideMembers(firstFile));
+  myFixture.openFileInEditor(secondFile);
+  final FileEditorManagerEvent event=new FileEditorManagerEvent(FileEditorManager.getInstance(getProject()),firstFile,null,secondFile,null);
+  getProject().getMessageBus().syncPublisher(FileEditorManagerListener.FILE_EDITOR_MANAGER).selectionChanged(event);
+  myFixture.doHighlighting();
+  assertNotEmpty(service.getHighlight(firstFile));
+  assertNotEmpty(service.getNavigation(firstFile));
+  assertNotEmpty(service.getOverrideMembers(firstFile));
+  assertNotEmpty(service.getHighlight(secondFile));
+  assertNotEmpty(service.getNavigation(secondFile));
+  assertNotEmpty(service.getOverrideMembers(secondFile));
+  getProject().getMessageBus().syncPublisher(FileEditorManagerListener.FILE_EDITOR_MANAGER).fileClosed(FileEditorManager.getInstance(getProject()),firstFile);
+  assertNotEmpty(service.getHighlight(firstFile));
+  assertNotEmpty(service.getNavigation(firstFile));
+  assertNotEmpty(service.getOverrideMembers(firstFile));
+  assertNotEmpty(service.getHighlight(secondFile));
+  assertNotEmpty(service.getNavigation(secondFile));
+  assertNotEmpty(service.getOverrideMembers(secondFile));
+  FileEditorManager.getInstance(getProject()).closeFile(firstFile);
+  getProject().getMessageBus().syncPublisher(FileEditorManagerListener.FILE_EDITOR_MANAGER).fileClosed(FileEditorManager.getInstance(getProject()),firstFile);
+  assertEmpty(service.getHighlight(firstFile));
+  assertEmpty(service.getNavigation(firstFile));
+  assertEmpty(service.getOverrideMembers(firstFile));
+  assertNotEmpty(service.getHighlight(secondFile));
+  assertNotEmpty(service.getNavigation(secondFile));
+  assertNotEmpty(service.getOverrideMembers(secondFile));
+}
