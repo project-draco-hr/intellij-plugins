@@ -2,9 +2,17 @@
   if (isServerDrivenResolution()) {
     reference=replaceQualifiedReferenceWithLast(reference);
     final PsiFile refPsiFile=reference.getContainingFile();
-    final int refOffset=reference.getTextOffset();
-    final int refLength=reference.getTextLength();
-    final PluginNavigationRegion region=findRegion(refPsiFile,refOffset,refLength);
+    int refOffset=reference.getTextOffset();
+    int refLength=reference.getTextLength();
+    PluginNavigationRegion region=findRegion(refPsiFile,refOffset,refLength);
+    if (region == null && reference instanceof DartLibraryId) {
+      final PsiElement parent=reference.getParent();
+      if (parent instanceof DartPartOfStatement) {
+        refOffset=parent.getTextOffset();
+        refLength=reference.getTextOffset() + reference.getTextLength() - refOffset;
+        region=findRegion(refPsiFile,refOffset,refLength);
+      }
+    }
     if (region != null) {
       final Project project=reference.getProject();
       final List<PsiElement> result=new SmartList<PsiElement>();
