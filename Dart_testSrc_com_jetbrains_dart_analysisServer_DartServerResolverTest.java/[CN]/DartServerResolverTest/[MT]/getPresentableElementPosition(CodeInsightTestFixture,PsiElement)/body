@@ -10,8 +10,12 @@
     component=PsiTreeUtil.getParentOfType(component,DartComponent.class);
   }
   String path=element instanceof PsiDirectoryImpl ? ((PsiDirectoryImpl)element).getVirtualFile().getPath() : element.getContainingFile().getVirtualFile().getPath();
-  if (path.startsWith("/src/"))   path=path.substring("/src/".length());
-  if (path.startsWith(DartTestUtils.SDK_HOME_PATH))   path="[Dart SDK]" + path.substring(DartTestUtils.SDK_HOME_PATH.length());
+  final String contentRoot=ModuleRootManager.getInstance(fixture.getModule()).getContentRoots()[0].getPath();
+  if (path.equals(contentRoot))   path="[content root]";
+  final String contentRootWithSlash=contentRoot + "/";
+  if (path.startsWith(contentRootWithSlash))   path=path.substring(contentRootWithSlash.length());
+  final DartSdk sdk=DartSdk.getDartSdk(element.getProject());
+  if (sdk != null && path.startsWith(sdk.getHomePath()))   path="[Dart SDK]" + path.substring(sdk.getHomePath().length());
   if (buf.length() > 0)   buf.insert(0," -> ");
   buf.insert(0,path);
   return buf.toString();
