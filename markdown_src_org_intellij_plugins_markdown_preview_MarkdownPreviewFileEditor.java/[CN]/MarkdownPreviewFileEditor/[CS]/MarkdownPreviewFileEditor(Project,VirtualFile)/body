@@ -3,11 +3,13 @@
   myDocument=FileDocumentManager.getInstance().getDocument(myFile);
   if (myDocument != null) {
     myDocument.addDocumentListener(new DocumentAdapter(){
-      @Override public void documentChanged(      DocumentEvent e){
+      @Override public void beforeDocumentChange(      DocumentEvent e){
         myAlarm.cancelAllRequests();
+      }
+      @Override public void documentChanged(      final DocumentEvent e){
         myAlarm.addRequest(new Runnable(){
           @Override public void run(){
-            updateHtml();
+            updateHtml(true);
           }
         }
 ,PARSING_CALL_TIMEOUT_MS);
