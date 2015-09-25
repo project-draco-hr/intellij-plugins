@@ -1,20 +1,4 @@
 {
   final ServerRenameRefactoring refactoring=createRenameRefactoring();
-  final RefactoringStatus initialConditions=refactoring.checkInitialConditions();
-  assertNotNull(initialConditions);
-  assertTrue(initialConditions.isOK());
-  refactoring.setNewName(newName);
-  final RefactoringStatus finalConditions=refactoring.checkFinalConditions();
-  assertNotNull(finalConditions);
-  assertTrue(finalConditions.isOK());
-  final SourceChange change=refactoring.getChange();
-  assertNotNull(change);
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    @Override public void run(){
-      final Set<String> excludedIds=refactoring.getPotentialEdits();
-      AssistUtils.applySourceChange(myFixture.getProject(),change,excludedIds);
-    }
-  }
-);
-  myFixture.checkResultByFile(getTestName(false) + ".after.dart");
+  doTest(refactoring,newName);
 }
