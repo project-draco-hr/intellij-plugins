@@ -1,7 +1,8 @@
 {
+  final SearchScope scope=options.searchScope;
   final ReadActionConsumer<SearchResult> searchResultProcessor=new ReadActionConsumer<SearchResult>(){
     @Override public void consumeInReadAction(    SearchResult result){
-      final SearchScope scope=options.searchScope;
+      if (result.getKind().equals(SearchResultKind.DECLARATION))       return;
       final Location location=result.getLocation();
       final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(location.getFile()));
       if (vFile == null)       return;
@@ -15,7 +16,8 @@
       int offset=location.getOffset();
       int length=location.getLength();
       offset-=usageElement.getTextOffset();
-      final UsageInfo usageInfo=new UsageInfo(usageElement,offset,offset + length);
+      boolean nonCodeUsage=usageElement instanceof PsiComment || usageElement.getParent() instanceof PsiComment;
+      final UsageInfo usageInfo=new UsageInfo(usageElement,offset,offset + length,nonCodeUsage);
       usageInfo.setDynamicUsage(result.isPotential());
       processor.process(usageInfo);
     }
