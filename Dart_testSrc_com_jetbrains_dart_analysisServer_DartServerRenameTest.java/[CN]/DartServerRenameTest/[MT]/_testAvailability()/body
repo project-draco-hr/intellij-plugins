@@ -1,0 +1,17 @@
+{
+  final XmlFile htmlPsiFile=(XmlFile)myFixture.configureByText("foo.html","<script type='application/dart'>\n" + "  var <caret>foo;\n" + "</script>");
+  final VirtualFile htmlVirtualFile=htmlPsiFile.getVirtualFile();
+  final XmlTag htmlTag=htmlPsiFile.getRootTag();
+  final PsiElement dartElementInHtmlFile=htmlPsiFile.findElementAt(getEditor().getCaretModel().getOffset());
+  final PsiFile dartPsiFile=myFixture.addFileToProject("bar.dart","// comment");
+  final VirtualFile dartVirtualFile=dartPsiFile.getVirtualFile();
+  final PsiElement dartElement=dartPsiFile.findElementAt(0);
+  final DartServerRenameHandler handler=new DartServerRenameHandler();
+  assertFalse("no editor",handler.isRenaming(new DataContextForTest(null,htmlVirtualFile,htmlPsiFile,null)));
+  assertFalse("html element at caret",handler.isRenaming(new DataContextForTest(getEditor(),htmlVirtualFile,htmlPsiFile,htmlTag)));
+  assertTrue("dart element in html file at caret",handler.isRenaming(new DataContextForTest(getEditor(),htmlVirtualFile,htmlPsiFile,null)));
+  assertTrue("dart element in html file",handler.isRenaming(new DataContextForTest(getEditor(),htmlVirtualFile,htmlPsiFile,dartElementInHtmlFile)));
+  myFixture.openFileInEditor(dartVirtualFile);
+  assertTrue("dart comment at caret",handler.isRenaming(new DataContextForTest(getEditor(),dartVirtualFile,dartPsiFile,null)));
+  assertTrue("dart comment at caret",handler.isRenaming(new DataContextForTest(getEditor(),dartVirtualFile,dartPsiFile,dartElement)));
+}

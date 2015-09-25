@@ -1,0 +1,14 @@
+{
+  if (!DartResolver.isServerDrivenResolution())   return false;
+  final Editor editor=CommonDataKeys.EDITOR.getData(dataContext);
+  if (editor == null)   return false;
+  final VirtualFile file=CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+  if (!DartAnalysisServerService.isLocalDartOrHtmlFile(file))   return false;
+  final PsiElement psiElement=CommonDataKeys.PSI_ELEMENT.getData(dataContext);
+  if (psiElement != null) {
+    return psiElement.getLanguage() == DartLanguage.INSTANCE;
+  }
+  final PsiFile psiFile=CommonDataKeys.PSI_FILE.getData(dataContext);
+  final PsiElement elementAtOffset=psiFile == null ? null : psiFile.findElementAt(editor.getCaretModel().getOffset());
+  return elementAtOffset != null && elementAtOffset.getLanguage() == DartLanguage.INSTANCE;
+}
