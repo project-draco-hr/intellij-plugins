@@ -1,0 +1,18 @@
+{
+  DartSdk sdk=DartSdk.getDartSdk(getEnvironment().getProject());
+  if (sdk == null) {
+    throw new ExecutionException("Dart SDK cannot be found");
+  }
+  String sdkPath=sdk.getHomePath();
+  String opts=myRunnerParameters.getVMOptions();
+  final String filePath=myRunnerParameters.getFilePath();
+  StringBuilder builder=new StringBuilder();
+  int idx=-1;
+  if (opts != null) {
+    idx=opts.indexOf(PUB_SNAPSHOT_PATH);
+    builder.append(opts).append(' ');
+  }
+  if (idx == -1)   builder.append(sdkPath).append(PUB_SNAPSHOT_PATH).append(' ').append(RUN_TEST_COMMAND);
+  myRunnerParameters.setVMOptions(builder.toString());
+  return doStartProcess(filePath == null ? null : pathToDartUrl(filePath));
+}
