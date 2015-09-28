@@ -1,18 +1,23 @@
 {
-  DartSdk sdk=DartSdk.getDartSdk(getEnvironment().getProject());
+  Project project=getEnvironment().getProject();
+  DartSdk sdk=DartSdk.getDartSdk(project);
   if (sdk == null) {
     throw new ExecutionException("Dart SDK cannot be found");
   }
   String sdkPath=sdk.getHomePath();
-  String opts=myRunnerParameters.getVMOptions();
   final String filePath=myRunnerParameters.getFilePath();
   StringBuilder builder=new StringBuilder();
-  int idx=-1;
-  if (opts != null) {
-    idx=opts.indexOf(PUB_SNAPSHOT_PATH);
-    builder.append(opts).append(' ');
+  builder.append(RUN_COMMAND).append(' ').append(TEST_PACKAGE_SPEC);
+  builder.append(EXPANDED_REPORTER_OPTION);
+  if (filePath != null) {
+    builder.append(' ').append(filePath);
   }
-  if (idx == -1)   builder.append(sdkPath).append(PUB_SNAPSHOT_PATH).append(' ').append(RUN_TEST_COMMAND);
-  myRunnerParameters.setVMOptions(builder.toString());
-  return doStartProcess(filePath == null ? null : pathToDartUrl(filePath));
+  String testName=((DartTestRunnerParameters)myRunnerParameters).getTestName();
+  if (testName != null && !testName.isEmpty()) {
+    String safeName=StringUtil.escapeStringCharacters(testName);
+    builder.append(' ').append(NAME_REGEX_OPTION).append('"').append(safeName).append('"');
+  }
+  myRunnerParameters.setArguments(builder.toString());
+  myRunnerParameters.setWorkingDirectory(project.getBasePath());
+  return doStartProcess(pathToDartUrl(sdkPath + PUB_SNAPSHOT_PATH));
 }
