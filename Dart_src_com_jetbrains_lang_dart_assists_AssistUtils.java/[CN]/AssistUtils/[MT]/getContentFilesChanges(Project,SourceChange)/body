@@ -3,9 +3,13 @@
   final List<SourceFileEdit> fileEdits=sourceChange.getEdits();
   for (  SourceFileEdit fileEdit : fileEdits) {
     final VirtualFile file=findVirtualFile(fileEdit);
-    if (file != null && isInContent(project,file)) {
-      map.put(file,fileEdit);
+    if (file == null) {
+      throw new DartSourceEditException("Failed to edit file, file not found: " + fileEdit.getFile());
     }
+    if (!isInContent(project,file)) {
+      throw new DartSourceEditException("Can't edit file outside of the project content: " + fileEdit.getFile());
+    }
+    map.put(file,fileEdit);
   }
   return map;
 }

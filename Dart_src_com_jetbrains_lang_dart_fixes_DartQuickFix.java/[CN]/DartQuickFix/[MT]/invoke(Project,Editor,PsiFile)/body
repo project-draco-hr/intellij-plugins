@@ -24,5 +24,10 @@
   if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project,Collections.singletonList(virtualFile)))   return;
   final Document document=FileDocumentManager.getInstance().getDocument(virtualFile);
   if (document == null)   return;
-  AssistUtils.applySourceChange(project,mySourceChange);
+  try {
+    AssistUtils.applySourceChange(project,mySourceChange);
+  }
+ catch (  DartSourceEditException e) {
+    CommonRefactoringUtil.showErrorHint(project,editor,e.getMessage(),CommonBundle.getErrorTitle(),null);
+  }
 }
