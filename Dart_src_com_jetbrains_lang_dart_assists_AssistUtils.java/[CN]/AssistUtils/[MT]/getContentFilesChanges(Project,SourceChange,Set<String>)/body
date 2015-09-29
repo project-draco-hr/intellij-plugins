@@ -2,6 +2,16 @@
   final Map<VirtualFile,SourceFileEdit> map=Maps.newHashMap();
   final List<SourceFileEdit> fileEdits=sourceChange.getEdits();
   for (  SourceFileEdit fileEdit : fileEdits) {
+    boolean allEditsExcluded=true;
+    for (    SourceEdit edit : fileEdit.getEdits()) {
+      if (!excludedIds.contains(edit.getId())) {
+        allEditsExcluded=false;
+        break;
+      }
+    }
+    if (allEditsExcluded) {
+      continue;
+    }
     final VirtualFile file=findVirtualFile(fileEdit);
     if (file == null) {
       throw new DartSourceEditException("Failed to edit file, file not found: " + fileEdit.getFile());
