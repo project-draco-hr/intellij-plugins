@@ -1,0 +1,28 @@
+{
+  if (!resolveProcessor.getResultSink().isActionScript())   return false;
+  String attributeNs=attributeList != null ? attributeList.getNamespace() : null;
+  if (attributeNs != null) {
+    if (!resolveProcessor.isProcessingFromIndices()) {
+      String resolvedNs=attributeList.resolveNamespaceValue();
+      if (resolvedNs == null && !resolveProcessor.getResultSink().isActionScript()) {
+        resolvedNs=attributeNs;
+      }
+      attributeNs=resolvedNs;
+    }
+ else {
+      attributeNs=null;
+    }
+  }
+  if (openedNses == null && attributeNs != null) {
+    if (!anyNsAllowed && place instanceof JSReferenceExpression && !JSResolveUtil.isExprInTypeContext((JSReferenceExpression)place)) {
+      openedNses=JSResolveUtil.calculateOpenNses(place);
+    }
+  }
+  if (openedNses != null && !openedNses.containsKey(attributeNs) && !AS3_NAMESPACE_VALUE.equals(attributeNs) && !ResolveProcessor.AS3_NAMESPACE.equals(attributeNs)) {
+    if (attributeNs != null || defaultNsIsNotAllowed) {
+      resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.MEMBER_FROM_UNOPENED_NAMESPACE);
+      return true;
+    }
+  }
+  return false;
+}

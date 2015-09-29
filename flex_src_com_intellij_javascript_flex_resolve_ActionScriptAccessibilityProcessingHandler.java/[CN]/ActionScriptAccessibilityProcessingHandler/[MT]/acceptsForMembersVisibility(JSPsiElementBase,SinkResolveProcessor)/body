@@ -1,0 +1,58 @@
+{
+  if (!(element instanceof JSAttributeListOwner))   return true;
+  final JSAttributeList attributeList=((JSAttributeListOwner)element).getAttributeList();
+  if (JSResolveUtil.getClassOfContext(place) != JSResolveUtil.getClassOfContext(element)) {
+    if (!acceptPrivateMembers) {
+      if (attributeList != null && attributeList.getAccessType() == JSAttributeList.AccessType.PRIVATE) {
+        resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.PRIVATE_MEMBER_IS_NOT_ACCESSIBLE);
+        return false;
+      }
+    }
+    if (!acceptProtectedMembers) {
+      if (attributeList != null && attributeList.getAccessType() == JSAttributeList.AccessType.PROTECTED) {
+        if ((myClassScopeTypeName != null || isParentClassContext(element))) {
+          resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.PROTECTED_MEMBER_IS_NOT_ACCESSIBLE);
+          return false;
+        }
+      }
+    }
+  }
+  PsiElement elt=JSResolveUtil.findParent(element);
+  if (processStatics) {
+    if ((attributeList == null || !attributeList.hasModifier(JSAttributeList.ModifierType.STATIC))) {
+      if (JSResolveUtil.PROTOTYPE_FIELD_NAME.equals(resolveProcessor.myName))       return true;
+      resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.INSTANCE_MEMBER_INACCESSIBLE);
+      return false;
+    }
+    if (myTypeName != null && elt instanceof JSClass && !myTypeName.equals(((JSClass)elt).getQualifiedName())) {
+      resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.STATIC_MEMBER_INACCESSIBLE);
+      return false;
+    }
+  }
+ else   if (myClassDeclarationStarted && !allowUnqualifiedStaticsFromInstance) {
+    if (attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.STATIC)) {
+      boolean referencingClass=false;
+      if (place instanceof JSReferenceExpression) {
+        JSExpression qualifier=((JSReferenceExpression)place).getQualifier();
+        if (qualifier instanceof JSReferenceExpression) {
+          JSElement expression=JSSymbolUtil.calcRefExprValue((JSReferenceExpression)qualifier);
+          if (expression instanceof JSReferenceExpression) {
+            for (            ResolveResult r : ((JSReferenceExpression)expression).multiResolve(false)) {
+              PsiElement rElement=r.getElement();
+              if (rElement instanceof JSClass) {
+                referencingClass=true;
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (!referencingClass) {
+        resolveProcessor.addPossibleCandidateResult(element,JSResolveResult.STATIC_MEMBER_INACCESSIBLE);
+        return false;
+      }
+    }
+  }
+  if (processActionScriptNotAllowedNsAttributes(element,resolveProcessor,attributeList))   return false;
+  return true;
+}
