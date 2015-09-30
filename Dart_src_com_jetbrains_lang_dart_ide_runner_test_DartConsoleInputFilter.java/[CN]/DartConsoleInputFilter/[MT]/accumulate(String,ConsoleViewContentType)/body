@@ -1,0 +1,62 @@
+{
+  List<Pair<String,ConsoleViewContentType>> result=new ArrayList<Pair<String,ConsoleViewContentType>>();
+  State currentState=myState, nextState=myState;
+  boolean fastExit=false;
+switch (currentState) {
+case Init:
+    if (NEWLINE.equals(text)) {
+      nextState=State.Timestamp;
+      fastExit=true;
+    }
+  break;
+case Info:
+break;
+case Timestamp:
+if (TIME_FORMAT.matcher(text).matches()) {
+nextState=State.Pass;
+}
+break;
+case Pass:
+case Fail:
+String contentCode=contentType.toString();
+if (PASS_CODE.equals(contentCode)) {
+currentState=State.Pass;
+if (text.equals(myPass)) {
+nextState=State.Fail;
+}
+ else {
+nextState=State.Message;
+myPass=text;
+}
+}
+ else if (FAIL_CODE.equals(contentCode)) {
+currentState=State.Fail;
+if (text.equals(myFail)) {
+nextState=State.Message;
+didFail=true;
+}
+ else {
+nextState=State.Error;
+myFail=text;
+}
+}
+break;
+case Message:
+nextState=State.Timestamp;
+if (didFail) {
+didFail=false;
+result.add(Pair.create("",contentType));
+return result;
+}
+break;
+case Error:
+break;
+}
+myState=nextState;
+if (fastExit) {
+return null;
+}
+Pair<String,ConsoleViewContentType> pair=Pair.create(text,contentType);
+result.add(pair);
+return result;
+}

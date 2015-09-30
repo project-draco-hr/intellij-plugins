@@ -1,0 +1,75 @@
+{
+  State currentState=myState, nextState=myState;
+switch (currentState) {
+case Init:
+    if (text.startsWith(OBSERVATORY_MSG) && text.endsWith(NEWLINE)) {
+      nextState=State.Timestamp;
+      return false;
+    }
+  break;
+case Info:
+break;
+case Timestamp:
+if (TIME_FORMAT.matcher(text.trim()).matches()) {
+nextState=State.Pass;
+}
+break;
+case Pass:
+case Fail:
+String contentCode=contentType.toString();
+if (PASS_CODE.equals(contentCode)) {
+currentState=State.Pass;
+if (text.equals(myPassCount)) {
+nextState=State.Fail;
+}
+ else {
+testFinished();
+nextState=State.TestName;
+myPassCount=text;
+}
+}
+ else if (FAIL_CODE.equals(contentCode)) {
+currentState=State.Fail;
+if (text.equals(myFailCount)) {
+nextState=State.Message;
+didFail=true;
+}
+ else {
+testFailed();
+nextState=State.Error;
+myFailCount=text;
+}
+}
+if (text.startsWith(SOME_FAILED)) {
+nextState=State.End;
+}
+ else if (text.startsWith(ALL_PASSED)) {
+nextState=State.End;
+}
+break;
+case TestName:
+nextState=State.Timestamp;
+setTestName(text);
+break;
+case Message:
+nextState=State.Timestamp;
+if (didFail) {
+didFail=false;
+return true;
+}
+myFailureMessage+=text;
+break;
+case Error:
+setTestName(text);
+nextState=State.ErrorMessage;
+break;
+case ErrorMessage:
+myFailureMessage=text;
+nextState=State.Message;
+break;
+case End:
+return true;
+}
+myState=nextState;
+return true;
+}
