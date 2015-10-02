@@ -1,9 +1,11 @@
 {
   try {
     final VmService vmService=VmService.localConnect(myObservatoryPort);
-    myVmServiceWrapper=new VmServiceWrapper(vmService);
     vmService.addVmServiceListener(new DartVmServiceListener(this));
-    scheduleDebugStartup();
+    myVmServiceWrapper=new VmServiceWrapper(vmService);
+    myVmServiceWrapper.streamListen(VmService.DEBUG_STREAM_ID);
+    myVmServiceWrapper.streamListen(VmService.ISOLATE_STREAM_ID);
+    myVmServiceWrapper.handleDebuggerConnected();
   }
  catch (  IOException e) {
     final String message="Failed to connect to the VM observatory service: " + e.getMessage() + "\n";
