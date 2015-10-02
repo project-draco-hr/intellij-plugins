@@ -1,0 +1,34 @@
+{
+  assertSyncRequestAllowed();
+  final CountDownLatch latch=new CountDownLatch(isolateRefs.size());
+  final Ref<RPCError> errorRef=Ref.create();
+  for (  final IsolateRef isolateRef : isolateRefs) {
+    myRequestsScheduler.addRequest(new Runnable(){
+      @Override public void run(){
+        myVmService.resume(isolateRef.getId(),null,new SuccessConsumer(){
+          @Override public void received(          Success response){
+            latch.countDown();
+          }
+          @Override public void onError(          RPCError error){
+            errorRef.set(error);
+            latch.countDown();
+          }
+        }
+);
+      }
+    }
+,0);
+  }
+  try {
+    latch.await(RESPONSE_WAIT_TIMEOUT,TimeUnit.MILLISECONDS);
+  }
+ catch (  InterruptedException e) {
+    throw new VmServiceException("Thread interrupted while waiting for VmService.resume(). " + e.getMessage());
+  }
+  if (latch.getCount() > 0) {
+    throw new VmServiceException("No response from VmService.resume() in " + RESPONSE_WAIT_TIMEOUT + "ms.");
+  }
+  if (!errorRef.isNull()) {
+    throw new VmServiceException("VmService.resume()",errorRef.get());
+  }
+}

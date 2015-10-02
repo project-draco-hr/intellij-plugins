@@ -22,9 +22,14 @@
     commandLine.addParameter("--package-root=" + FileUtil.toSystemDependentName(packageRoot.getPath()));
   }
   if (DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId())) {
-    myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
-    commandLine.addParameter("--debug:" + myDebuggingPort);
-    commandLine.addParameter("--break-at-isolate-spawn");
+    if (StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0) {
+      myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
+      commandLine.addParameter("--debug:" + myDebuggingPort);
+      commandLine.addParameter("--break-at-isolate-spawn");
+    }
+ else {
+      commandLine.addParameter("--pause_isolates_on_start");
+    }
   }
   myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
   commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);

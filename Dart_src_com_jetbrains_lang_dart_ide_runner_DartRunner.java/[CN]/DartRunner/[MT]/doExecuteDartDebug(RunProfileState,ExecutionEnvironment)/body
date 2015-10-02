@@ -35,7 +35,9 @@
   final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
       final DartUrlResolver dartUrlResolver=DartUrlResolver.getInstance(env.getProject(),contextFileOrDir);
-      return new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver);
+      final DartSdk sdk=DartSdk.getDartSdk(session.getProject());
+      assert(sdk != null);
+      return StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0 ? new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver) : new DartVmServiceDebugProcess(session,debuggingHost,observatoryPort,executionResult,dartUrlResolver);
     }
   }
 );
