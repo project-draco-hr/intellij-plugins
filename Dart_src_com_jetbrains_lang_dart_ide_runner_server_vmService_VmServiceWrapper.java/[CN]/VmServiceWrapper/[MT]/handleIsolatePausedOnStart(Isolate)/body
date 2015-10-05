@@ -6,14 +6,14 @@
         myVmService.getLibrary(isolate.getId(),libraryRef.getId(),new GetLibraryConsumer(){
           @Override public void received(          final Library library){
             myIsolatesInfo.addLibrary(isolate,library);
-            resumeIsolateIfDone();
+            checkDone();
           }
           @Override public void onError(          RPCError error){
-            resumeIsolateIfDone();
+            checkDone();
           }
-          private void resumeIsolateIfDone(){
+          private void checkDone(){
             if (counter.decrementAndGet() == 0) {
-              resumeIsolate(isolate.getId());
+              setInitialBreakpointsAndResume(isolate);
             }
           }
         }
