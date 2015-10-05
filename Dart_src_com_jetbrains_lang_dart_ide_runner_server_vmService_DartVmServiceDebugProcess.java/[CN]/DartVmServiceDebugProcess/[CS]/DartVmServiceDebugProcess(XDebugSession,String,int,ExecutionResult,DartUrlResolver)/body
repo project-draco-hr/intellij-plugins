@@ -7,4 +7,14 @@
   final DartVmServiceBreakpointHandler breakpointHandler=new DartVmServiceBreakpointHandler(this,myIsolatesInfo);
   myBreakpointHandlers=new XBreakpointHandler[]{breakpointHandler};
   setLogger();
+  session.addSessionListener(new XDebugSessionAdapter(){
+    @Override public void sessionPaused(){
+      stackFrameChanged();
+    }
+    @Override public void stackFrameChanged(){
+      final XStackFrame stackFrame=getSession().getCurrentStackFrame();
+      myLatestCurrentIsolateId=stackFrame instanceof DartVmServiceStackFrame ? ((DartVmServiceStackFrame)stackFrame).getIsolateId() : null;
+    }
+  }
+);
 }

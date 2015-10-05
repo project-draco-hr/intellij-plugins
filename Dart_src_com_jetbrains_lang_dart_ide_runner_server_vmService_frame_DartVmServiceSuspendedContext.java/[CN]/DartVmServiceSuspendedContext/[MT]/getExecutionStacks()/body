@@ -1,0 +1,16 @@
+{
+  if (myExecutionStacks == null) {
+    final Collection<IsolatesInfo.IsolateInfo> isolateInfos=myDebugProcess.getIsolateInfos();
+    final Collection<XExecutionStack> stacks=new ArrayList<XExecutionStack>(isolateInfos.size());
+    for (    IsolatesInfo.IsolateInfo isolateInfo : isolateInfos) {
+      if (isolateInfo.getIsolateId().equals(myActiveExecutionStack.getIsolateId())) {
+        stacks.add(myActiveExecutionStack);
+      }
+ else {
+        stacks.add(new DartVmServiceExecutionStack(myDebugProcess,isolateInfo.getIsolateId(),isolateInfo.getIsolateName(),null));
+      }
+    }
+    myExecutionStacks=stacks.toArray(new XExecutionStack[stacks.size()]);
+  }
+  return myExecutionStacks;
+}
