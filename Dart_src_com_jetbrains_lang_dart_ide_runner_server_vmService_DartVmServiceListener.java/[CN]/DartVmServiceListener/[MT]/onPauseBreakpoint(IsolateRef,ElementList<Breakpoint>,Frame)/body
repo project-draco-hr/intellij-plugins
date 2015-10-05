@@ -1,0 +1,12 @@
+{
+  if (vmBreakpoints.isEmpty()) {
+    myDebugProcess.getSession().positionReached(new DartVmServiceSuspendedContext(myDebugProcess,isolateRef,topFrame));
+  }
+ else {
+    if (vmBreakpoints.size() > 1) {
+      LOG.error(vmBreakpoints.size() + " breakpoints hit in one shot.");
+    }
+    final XLineBreakpoint<XBreakpointProperties> xBreakpoint=myBreakpointHandler.getXBreakpoint(vmBreakpoints.get(0));
+    myDebugProcess.getSession().breakpointReached(xBreakpoint,null,new DartVmServiceSuspendedContext(myDebugProcess,isolateRef,topFrame));
+  }
+}
