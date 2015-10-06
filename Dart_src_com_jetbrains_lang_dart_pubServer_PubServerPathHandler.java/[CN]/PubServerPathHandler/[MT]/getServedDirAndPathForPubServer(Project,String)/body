@@ -4,13 +4,14 @@
   int slashIndex=-1;
   while ((slashIndex=path.indexOf('/',slashIndex + 1)) != -1) {
     final String pathPart=path.substring(0,slashIndex);
-    final VirtualFile dir=WebServerPathToFileManager.getInstance(project).findVirtualFile(pathPart);
-    if (dir == null || !dir.isDirectory()) {
+    PathInfo dirInfo=WebServerPathToFileManager.getInstance(project).getPathInfo(pathPart);
+    if (dirInfo == null || !dirInfo.getIsDirectory()) {
       continue;
     }
-    final VirtualFile parentDir=dir.getParent();
+    VirtualFile dir=LocalFileSystem.getInstance().findFileByPath(FileUtilRt.toSystemIndependentName(dirInfo.getFilePath()));
+    final VirtualFile parentDir=dir == null ? null : dir.getParent();
     if (parentDir != null && parentDir.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null) {
-      if ("build".equals(dir.getName())) {
+      if ("build".equals(dirInfo.getName())) {
         return null;
       }
       servedDir=dir;
