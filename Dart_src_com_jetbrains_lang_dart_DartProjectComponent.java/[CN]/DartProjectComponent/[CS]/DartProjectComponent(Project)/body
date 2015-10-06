@@ -4,7 +4,9 @@
   project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
     @Override public void rootsChanged(    ModuleRootEvent event){
       myProjectRootsModificationTracker.incModificationCount();
-      DartFileListener.scheduleDartPackageRootsUpdate(myProject);
+      if (!Registry.is("dart.projects.without.pubspec",false)) {
+        DartFileListener.scheduleDartPackageRootsUpdate(myProject);
+      }
     }
   }
 );
