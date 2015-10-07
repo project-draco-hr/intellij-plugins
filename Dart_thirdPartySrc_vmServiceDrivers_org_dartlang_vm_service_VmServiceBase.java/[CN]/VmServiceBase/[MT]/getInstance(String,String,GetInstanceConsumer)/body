@@ -1,0 +1,19 @@
+{
+  getObject(isolateId,instanceId,new GetObjectConsumer(){
+    @Override public void onError(    RPCError error){
+      consumer.onError(error);
+    }
+    @Override public void received(    Obj response){
+      if (response instanceof Instance) {
+        consumer.received((Instance)response);
+      }
+ else {
+        onError(RPCError.unexpected("Instance",response));
+      }
+    }
+    @Override public void received(    Sentinel response){
+      onError(RPCError.unexpected("Instance",response));
+    }
+  }
+);
+}
