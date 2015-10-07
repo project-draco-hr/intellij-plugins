@@ -1,0 +1,22 @@
+{
+  myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,myInstanceRef.getId(),new GetObjectConsumer(){
+    @Override public void received(    Obj obj){
+      final ElementList<BoundField> fields=((Instance)obj).getFields();
+      final XValueChildrenList childrenList=new XValueChildrenList(fields.size());
+      for (      BoundField field : fields) {
+        final InstanceRef value=field.getValue();
+        if (value != null) {
+          childrenList.add(new DartVmServiceValue(myDebugProcess,myIsolateId,field.getDecl().getName(),value));
+        }
+      }
+      node.addChildren(childrenList,true);
+    }
+    @Override public void received(    Sentinel sentinel){
+      node.setErrorMessage(sentinel.getValueAsString());
+    }
+    @Override public void onError(    RPCError error){
+      node.setErrorMessage(error.getMessage());
+    }
+  }
+);
+}
