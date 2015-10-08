@@ -1,22 +1,38 @@
 {
   myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,myInstanceRef.getId(),new GetObjectConsumer(){
     @Override public void received(    Obj obj){
-      final ElementList<BoundField> fields=((Instance)obj).getFields();
-      final XValueChildrenList childrenList=new XValueChildrenList(fields.size());
-      for (      BoundField field : fields) {
-        final InstanceRef value=field.getValue();
-        if (value != null) {
-          childrenList.add(new DartVmServiceValue(myDebugProcess,myIsolateId,field.getDecl().getName(),value));
-        }
-      }
-      node.addChildren(childrenList,true);
-    }
-    @Override public void received(    Sentinel sentinel){
-      node.setErrorMessage(sentinel.getValueAsString());
-    }
-    @Override public void onError(    RPCError error){
-      node.setErrorMessage(error.getMessage());
-    }
-  }
+switch (myInstanceRef.getKind()) {
+case List:
+case Uint8ClampedList:
+case Uint8List:
+case Uint16List:
+case Uint32List:
+case Uint64List:
+case Int8List:
+case Int16List:
+case Int32List:
+case Int64List:
+case Float32List:
+case Float64List:
+case Int32x4List:
+case Float32x4List:
+case Float64x2List:
+        addListChildren(node,((Instance)obj).getElements());
+      break;
+case Map:
+    addMapChildren(node,((Instance)obj).getAssociations());
+  break;
+default :
+addFields(node,((Instance)obj).getFields());
+break;
+}
+}
+@Override public void received(Sentinel sentinel){
+node.setErrorMessage(sentinel.getValueAsString());
+}
+@Override public void onError(RPCError error){
+node.setErrorMessage(error.getMessage());
+}
+}
 );
 }
