@@ -1,23 +1,27 @@
 {
-  final AtomicInteger counter=new AtomicInteger(isolate.getLibraries().size());
-  for (  final LibraryRef libraryRef : isolate.getLibraries()) {
-    addRequest(new Runnable(){
-      @Override public void run(){
-        myVmService.getLibrary(isolate.getId(),libraryRef.getId(),new GetLibraryConsumer(){
-          @Override public void received(          final Library library){
-            myIsolatesInfo.addLibrary(isolate,library);
-            checkDone();
-          }
-          @Override public void onError(          RPCError error){
-            checkDone();
-          }
-          private void checkDone(){
-            if (counter.decrementAndGet() == 0) {
-              addInitialBreakpointsAndResume(isolate);
-            }
-          }
+  final Set<XLineBreakpoint<XBreakpointProperties>> xBreakpoints=myBreakpointHandler.getXBreakpoints();
+  if (xBreakpoints.isEmpty()) {
+    resumeIsolate(isolate.getId());
+    return;
+  }
+  final AtomicInteger counter=new AtomicInteger(xBreakpoints.size());
+  for (  final XLineBreakpoint<XBreakpointProperties> xBreakpoint : xBreakpoints) {
+    addBreakpoint(isolate.getId(),xBreakpoint,new VmServiceConsumers.BreakpointConsumerWrapper(){
+      @Override void sourcePositionNotApplicable(){
+        checkDone();
+      }
+      @Override public void received(      Breakpoint vmBreakpoint){
+        myBreakpointHandler.vmBreakpointAdded(xBreakpoint,isolate.getId(),vmBreakpoint);
+        checkDone();
+      }
+      @Override public void onError(      RPCError error){
+        myBreakpointHandler.breakpointFailed(xBreakpoint);
+        checkDone();
+      }
+      private void checkDone(){
+        if (counter.decrementAndGet() == 0) {
+          resumeIsolate(isolate.getId());
         }
-);
       }
     }
 );

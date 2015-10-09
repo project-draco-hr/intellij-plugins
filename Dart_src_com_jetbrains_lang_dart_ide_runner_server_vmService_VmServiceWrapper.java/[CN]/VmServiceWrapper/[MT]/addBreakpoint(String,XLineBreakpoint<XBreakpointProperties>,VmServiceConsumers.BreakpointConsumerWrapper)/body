@@ -4,16 +4,11 @@
     consumer.sourcePositionNotApplicable();
     return;
   }
-  final String uri=myDebugProcess.getUriForFile(position.getFile());
-  final String scriptId=myIsolatesInfo.getScriptId(isolateId,uri);
-  final int line=position.getLine() + 1;
-  if (scriptId == null) {
-    consumer.sourcePositionNotApplicable();
-    return;
-  }
   addRequest(new Runnable(){
     @Override public void run(){
-      myVmService.addBreakpoint(isolateId,scriptId,line,consumer);
+      final String uri=myDebugProcess.getUriForFile(position.getFile());
+      final int line=position.getLine() + 1;
+      myVmService.addBreakpointWithScriptUri(isolateId,uri,line,1,consumer);
     }
   }
 );
