@@ -1,17 +1,17 @@
 {
   final Set<XLineBreakpoint<XBreakpointProperties>> xBreakpoints=myBreakpointHandler.getXBreakpoints();
   if (xBreakpoints.isEmpty()) {
-    resumeIsolate(isolate.getId());
+    resumeIsolate(isolateId);
     return;
   }
   final AtomicInteger counter=new AtomicInteger(xBreakpoints.size());
   for (  final XLineBreakpoint<XBreakpointProperties> xBreakpoint : xBreakpoints) {
-    addBreakpoint(isolate.getId(),xBreakpoint,new VmServiceConsumers.BreakpointConsumerWrapper(){
+    addBreakpoint(isolateId,xBreakpoint,new VmServiceConsumers.BreakpointConsumerWrapper(){
       @Override void sourcePositionNotApplicable(){
         checkDone();
       }
       @Override public void received(      Breakpoint vmBreakpoint){
-        myBreakpointHandler.vmBreakpointAdded(xBreakpoint,isolate.getId(),vmBreakpoint);
+        myBreakpointHandler.vmBreakpointAdded(xBreakpoint,isolateId,vmBreakpoint);
         checkDone();
       }
       @Override public void onError(      RPCError error){
@@ -20,7 +20,7 @@
       }
       private void checkDone(){
         if (counter.decrementAndGet() == 0) {
-          resumeIsolate(isolate.getId());
+          resumeIsolate(isolateId);
         }
       }
     }
