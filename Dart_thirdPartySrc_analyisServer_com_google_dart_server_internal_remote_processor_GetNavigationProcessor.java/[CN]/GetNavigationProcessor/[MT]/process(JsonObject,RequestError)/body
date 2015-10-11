@@ -1,0 +1,23 @@
+{
+  if (resultObject != null) {
+    try {
+      String[] targetFiles=constructStringArray(resultObject.get("files").getAsJsonArray());
+      List<NavigationTarget> targets=NavigationTarget.fromJsonArray(resultObject.get("targets").getAsJsonArray());
+      for (      NavigationTarget target : targets) {
+        target.lookupFile(targetFiles);
+      }
+      JsonArray regionsArray=resultObject.get("regions").getAsJsonArray();
+      List<NavigationRegion> regions=NavigationRegion.fromJsonArray(regionsArray);
+      for (      NavigationRegion region : regions) {
+        region.lookupTargets(targets);
+      }
+      consumer.computedNavigation(regions);
+    }
+ catch (    Exception exception) {
+      requestError=generateRequestError(exception);
+    }
+  }
+  if (requestError != null) {
+    consumer.onError(requestError);
+  }
+}

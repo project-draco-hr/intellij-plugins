@@ -1,0 +1,48 @@
+{
+  while (true) {
+    String line=stream.readLine();
+    if (line == null) {
+      return;
+    }
+    syserr.println(line);
+    if (!line.startsWith("Unhandled exception:")) {
+      continue;
+    }
+    StringBuilder message=new StringBuilder(200);
+    while (true) {
+      line=readAvailableLine();
+      if (line == null) {
+        break;
+      }
+      line=line.trim();
+      if (line.startsWith("#")) {
+        break;
+      }
+      if (line.length() > 0) {
+        if (message.length() > 0) {
+          message.append("\n");
+        }
+        message.append(line);
+      }
+    }
+    StringBuilder stack=new StringBuilder();
+    if (line != null) {
+      while (true) {
+        stack.append(line);
+        line=readAvailableLine();
+        if (line == null) {
+          break;
+        }
+        stack.append("\n");
+      }
+    }
+    JsonObject response=new JsonObject();
+    response.addProperty("event",RemoteAnalysisServerImpl.SERVER_NOTIFICATION_ERROR);
+    JsonObject paramsObject=new JsonObject();
+    paramsObject.addProperty("isFatal",true);
+    paramsObject.addProperty("message",message.toString());
+    paramsObject.addProperty("stackTrace",stack.toString());
+    response.add("params",paramsObject);
+    processor.process(response);
+  }
+}
