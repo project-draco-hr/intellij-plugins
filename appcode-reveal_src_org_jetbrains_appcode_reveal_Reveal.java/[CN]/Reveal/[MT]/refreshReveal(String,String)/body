@@ -1,11 +1,30 @@
 {
   UsageTrigger.trigger("appcode.reveal.showInReveal");
-  String script="activate\n" + "repeat with doc in documents\n" + " refresh doc "+ "   application bundle identifier \"" + StringUtil.escapeQuotes(bundleID) + "\""+ "   device name \""+ StringUtil.escapeQuotes(deviceName)+ "\""+ "   when available\n"+ "end repeat\n"+ "activate\n";
-  try {
-    AppleScript.tell("Reveal",script,true);
+  if (isCompatibleWithRevealOnePointSixOrHigher()) {
+    File inspectionScript=getRevealInspectionScript();
+    if (inspectionScript == null) {
+      throw new ExecutionException("Cannot refresh Reveal. Inspection script could not be found at path: " + inspectionScript.toString());
+    }
+    try {
+      ProcessBuilder pb=new ProcessBuilder("/usr/bin/osascript",inspectionScript.toString(),bundleID,deviceName);
+      Process p=pb.start();
+      p.waitFor();
+    }
+ catch (    IOException e) {
+      throw new ExecutionException("Cannot refresh Reveal: " + e.getMessage(),e);
+    }
+catch (    InterruptedException e) {
+      throw new ExecutionException("Cannot refresh Reveal: " + e.getMessage(),e);
+    }
   }
- catch (  ScriptException e) {
-    LOG.info("Reveal script failed:\n" + script);
-    throw new ExecutionException("Cannot refresh Reveal: " + e.getMessage(),e);
+ else {
+    String script="activate\n" + "repeat with doc in documents\n" + " refresh doc "+ "   application bundle identifier \"" + StringUtil.escapeQuotes(bundleID) + "\""+ "   device name \""+ StringUtil.escapeQuotes(deviceName)+ "\""+ "   when available\n"+ "end repeat\n"+ "activate\n";
+    try {
+      AppleScript.tell("Reveal",script,true);
+    }
+ catch (    ScriptException e) {
+      LOG.info("Reveal script failed:\n" + script);
+      throw new ExecutionException("Cannot refresh Reveal: " + e.getMessage(),e);
+    }
   }
 }
