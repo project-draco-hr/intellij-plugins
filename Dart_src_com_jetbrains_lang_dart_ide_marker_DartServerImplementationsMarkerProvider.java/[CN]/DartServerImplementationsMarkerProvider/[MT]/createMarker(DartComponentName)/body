@@ -1,0 +1,23 @@
+{
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=name.getContainingFile().getVirtualFile();
+  if (file == null || !file.isInLocalFileSystem()) {
+    return null;
+  }
+  final int nameOffset=name.getTextOffset();
+  final int nameLength=name.getTextLength();
+  if ("Object".equals(name.getName())) {
+    return null;
+  }
+  for (  ImplementedClass clazz : service.getImplementedClasses(file)) {
+    if (clazz.getOffset() == nameOffset && clazz.getLength() == nameLength) {
+      return createMarkerClass(name);
+    }
+  }
+  for (  ImplementedMember member : service.getImplementedMembers(file)) {
+    if (member.getOffset() == nameOffset && member.getLength() == nameLength) {
+      return createMarkerMember(name);
+    }
+  }
+  return null;
+}

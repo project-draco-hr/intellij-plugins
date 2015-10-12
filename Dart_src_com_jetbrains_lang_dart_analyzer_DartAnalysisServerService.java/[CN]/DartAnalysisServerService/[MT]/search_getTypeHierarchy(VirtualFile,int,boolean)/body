@@ -1,0 +1,22 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(file.getPath());
+  final List<TypeHierarchyItem> results=Lists.newArrayList();
+  final AnalysisServer server=myServer;
+  if (server == null) {
+    return results;
+  }
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.search_getTypeHierarchy(filePath,offset,superOnly,new GetTypeHierarchyConsumer(){
+    @Override public void computedHierarchy(    List<TypeHierarchyItem> hierarchyItems){
+      results.addAll(hierarchyItems);
+      latch.countDown();
+    }
+    @Override public void onError(    RequestError error){
+      logError("search_getTypeHierarchy()",filePath,error);
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_TYPE_HIERARCHY_TIMEOUT);
+  return results;
+}

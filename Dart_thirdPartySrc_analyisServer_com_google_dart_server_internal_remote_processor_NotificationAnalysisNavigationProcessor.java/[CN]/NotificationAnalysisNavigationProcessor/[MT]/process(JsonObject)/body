@@ -1,0 +1,15 @@
+{
+  JsonObject paramsObject=response.get("params").getAsJsonObject();
+  String file=paramsObject.get("file").getAsString();
+  String[] targetFiles=constructStringArray(paramsObject.get("files").getAsJsonArray());
+  List<NavigationTarget> targets=NavigationTarget.fromJsonArray(paramsObject.get("targets").getAsJsonArray());
+  for (  NavigationTarget target : targets) {
+    target.lookupFile(targetFiles);
+  }
+  JsonArray regionsArray=paramsObject.get("regions").getAsJsonArray();
+  List<NavigationRegion> regions=NavigationRegion.fromJsonArray(regionsArray);
+  for (  NavigationRegion region : regions) {
+    region.lookupTargets(targets);
+  }
+  getListener().computedNavigation(file,regions);
+}

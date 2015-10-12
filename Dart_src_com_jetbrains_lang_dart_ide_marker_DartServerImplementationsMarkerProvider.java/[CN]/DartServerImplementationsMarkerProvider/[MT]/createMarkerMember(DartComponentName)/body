@@ -1,0 +1,21 @@
+{
+  final VirtualFile file=name.getContainingFile().getVirtualFile();
+  final int nameOffset=name.getTextOffset();
+  return new LineMarkerInfo<PsiElement>(name,name.getTextRange(),AllIcons.Gutter.OverridenMethod,Pass.UPDATE_ALL,new Function<PsiElement,String>(){
+    @Override public String fun(    PsiElement element){
+      return DaemonBundle.message("method.is.overridden.too.many");
+    }
+  }
+,new GutterIconNavigationHandler<PsiElement>(){
+    @Override public void navigate(    MouseEvent e,    PsiElement elt){
+      final List<TypeHierarchyItem> items=DartAnalysisServerService.getInstance().search_getTypeHierarchy(file,nameOffset,false);
+      if (items.isEmpty()) {
+        return;
+      }
+      final List<DartComponent> components=Lists.newArrayList();
+      addSubMembers(name.getProject(),Sets.<TypeHierarchyItem>newHashSet(),items,components,items.get(0),false);
+      PsiElementListNavigator.openTargets(e,DartResolveUtil.getComponentNameArray(components),DaemonBundle.message("navigation.title.implementation.method",name.getName(),components.size()),"Implementations of " + name.getName(),new DefaultPsiElementCellRenderer());
+    }
+  }
+,GutterIconRenderer.Alignment.RIGHT);
+}

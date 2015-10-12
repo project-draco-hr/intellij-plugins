@@ -1,0 +1,26 @@
+{
+  if (process == null) {
+    return;
+  }
+  final Process processToStop=process;
+  process=null;
+  long endTime=System.currentTimeMillis() + 5000;
+  while (System.currentTimeMillis() < endTime) {
+    try {
+      int exit=processToStop.exitValue();
+      if (exit != 0) {
+        Logging.getLogger().logInformation("Non-zero exit code: " + exit + " for\n   "+ analysisServerPath);
+      }
+      return;
+    }
+ catch (    IllegalThreadStateException e) {
+    }
+    try {
+      Thread.sleep(20);
+    }
+ catch (    InterruptedException e) {
+    }
+  }
+  processToStop.destroy();
+  Logging.getLogger().logInformation("Terminated " + analysisServerPath);
+}

@@ -1,0 +1,59 @@
+{
+  if (object instanceof Boolean) {
+    return new JsonPrimitive((Boolean)object);
+  }
+ else   if (object instanceof Number) {
+    return new JsonPrimitive((Number)object);
+  }
+ else   if (object instanceof String) {
+    return new JsonPrimitive((String)object);
+  }
+ else   if (object instanceof List<?>) {
+    List<?> list=(List<?>)object;
+    JsonArray jsonArray=new JsonArray();
+    for (    Object item : list) {
+      JsonElement jsonItem=buildJsonElement(item);
+      jsonArray.add(jsonItem);
+    }
+    return jsonArray;
+  }
+ else   if (object instanceof Map<?,?>) {
+    Map<?,?> map=(Map<?,?>)object;
+    JsonObject jsonObject=new JsonObject();
+    for (    Entry<?,?> entry : map.entrySet()) {
+      Object key=entry.getKey();
+      String keyString;
+      if (key instanceof String) {
+        keyString=(String)key;
+      }
+ else {
+        throw new IllegalArgumentException("Unable to convert to string: " + getClassName(key));
+      }
+      Object value=entry.getValue();
+      JsonElement valueJson=buildJsonElement(value);
+      if (keyString != null && valueJson != null) {
+        jsonObject.add(keyString,valueJson);
+      }
+    }
+    return jsonObject;
+  }
+ else   if (object instanceof AnalysisError) {
+    return buildJsonObjectAnalysisError((AnalysisError)object);
+  }
+ else   if (object instanceof AddContentOverlay) {
+    return ((AddContentOverlay)object).toJson();
+  }
+ else   if (object instanceof ChangeContentOverlay) {
+    return ((ChangeContentOverlay)object).toJson();
+  }
+ else   if (object instanceof RemoveContentOverlay) {
+    return ((RemoveContentOverlay)object).toJson();
+  }
+ else   if (object instanceof AnalysisOptions) {
+    return ((AnalysisOptions)object).toJson();
+  }
+ else   if (object instanceof Location) {
+    return buildJsonObjectLocation((Location)object);
+  }
+  throw new IllegalArgumentException("Unable to convert to JSON: " + object);
+}
