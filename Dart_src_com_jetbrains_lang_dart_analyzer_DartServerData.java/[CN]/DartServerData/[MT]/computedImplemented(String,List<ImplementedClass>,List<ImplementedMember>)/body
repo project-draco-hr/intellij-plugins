@@ -9,19 +9,15 @@
     newImplementedMembers.add(new DartRegion(implementedMember.getOffset(),implementedMember.getLength()));
   }
   boolean hasChanges=false;
-synchronized (myImplementedClassData) {
-    final List<DartRegion> old=myImplementedClassData.get(filePath);
-    if (old == null || !old.equals(newImplementedClasses)) {
-      hasChanges=true;
-      myImplementedClassData.put(filePath,newImplementedClasses);
-    }
+  final List<DartRegion> oldClasses=myImplementedClassData.get(filePath);
+  if (oldClasses == null || !oldClasses.equals(newImplementedClasses)) {
+    hasChanges=true;
+    myImplementedClassData.put(filePath,newImplementedClasses);
   }
-synchronized (myImplementedMemberData) {
-    final List<DartRegion> old=myImplementedMemberData.get(filePath);
-    if (old == null || !old.equals(newImplementedMembers)) {
-      hasChanges=true;
-      myImplementedMemberData.put(filePath,newImplementedMembers);
-    }
+  final List<DartRegion> oldMembers=myImplementedMemberData.get(filePath);
+  if (oldMembers == null || !oldMembers.equals(newImplementedMembers)) {
+    hasChanges=true;
+    myImplementedMemberData.put(filePath,newImplementedMembers);
   }
   if (hasChanges) {
     forceFileAnnotation(filePath,false);
