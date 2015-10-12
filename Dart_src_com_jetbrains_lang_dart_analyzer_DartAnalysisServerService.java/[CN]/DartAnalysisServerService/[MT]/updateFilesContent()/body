@@ -7,7 +7,10 @@
 synchronized (myLock) {
     final Set<String> oldTrackedFiles=new THashSet<String>(myFilePathWithOverlaidContentToTimestamp.keySet());
     final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
-    for (    Document document : fileDocumentManager.getUnsavedDocuments()) {
+    final Set<Document> documents=new THashSet<Document>(myChangedDocuments);
+    myChangedDocuments.clear();
+    ContainerUtil.addAll(documents,fileDocumentManager.getUnsavedDocuments());
+    for (    Document document : documents) {
       final VirtualFile file=fileDocumentManager.getFile(document);
       if (isLocalDartOrHtmlFile(file)) {
         oldTrackedFiles.remove(file.getPath());
@@ -24,11 +27,15 @@ synchronized (myLock) {
       filesToUpdate.put(FileUtil.toSystemDependentName(oldPath),new RemoveContentOverlay());
     }
     if (LOG.isDebugEnabled()) {
-      if (!filesToUpdate.isEmpty()) {
-        LOG.debug("Sending overlaid content of the following files:\n" + StringUtil.join(filesToUpdate.keySet(),",\n"));
+      final Set<String> overlaid=new THashSet<String>(filesToUpdate.keySet());
+      for (      String removeOverlaid : oldTrackedFiles) {
+        overlaid.remove(FileUtil.toSystemDependentName(removeOverlaid));
+      }
+      if (!overlaid.isEmpty()) {
+        LOG.debug("Sending overlaid content: " + StringUtil.join(overlaid,",\n"));
       }
       if (!oldTrackedFiles.isEmpty()) {
-        LOG.debug("Removing overlaid content of the following files:\n" + StringUtil.join(oldTrackedFiles,",\n"));
+        LOG.debug("Removing overlaid content: " + StringUtil.join(oldTrackedFiles,",\n"));
       }
     }
   }
