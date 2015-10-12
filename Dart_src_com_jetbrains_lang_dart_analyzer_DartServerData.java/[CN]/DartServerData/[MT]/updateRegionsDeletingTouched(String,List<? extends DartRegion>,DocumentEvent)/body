@@ -1,0 +1,33 @@
+{
+  if (regions == null)   return;
+  final int eventOffset=e.getOffset();
+  final int deltaLength=e.getNewLength() - e.getOldLength();
+  final Iterator<? extends DartRegion> iterator=regions.iterator();
+  while (iterator.hasNext()) {
+    final DartRegion region=iterator.next();
+    if (region instanceof DartNavigationRegion) {
+      for (      DartNavigationTarget target : ((DartNavigationRegion)region).getTargets()) {
+        if (target.myFile.equals(filePath) && target.myOffset >= eventOffset) {
+          target.myOffset+=deltaLength;
+        }
+      }
+    }
+    if (deltaLength > 0) {
+      if (eventOffset <= region.myOffset) {
+        region.myOffset+=deltaLength;
+      }
+ else       if (region.myOffset < eventOffset && eventOffset < region.myOffset + region.myLength) {
+        iterator.remove();
+      }
+    }
+ else     if (deltaLength < 0) {
+      final int eventRightOffset=eventOffset - deltaLength;
+      if (eventRightOffset <= region.myOffset) {
+        region.myOffset+=deltaLength;
+      }
+ else       if (eventOffset < region.myOffset + region.myLength) {
+        iterator.remove();
+      }
+    }
+  }
+}
