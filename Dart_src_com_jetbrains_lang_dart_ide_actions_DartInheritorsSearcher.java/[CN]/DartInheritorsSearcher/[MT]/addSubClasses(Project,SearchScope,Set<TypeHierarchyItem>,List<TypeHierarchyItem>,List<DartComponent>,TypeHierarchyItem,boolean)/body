@@ -1,0 +1,17 @@
+{
+  if (!visited.add(currentItem)) {
+    return;
+  }
+  if (addItem) {
+    final Element element=currentItem.getClassElement();
+    final Location location=element.getLocation();
+    final DartComponent component=DartServerOverrideMarkerProvider.findDartComponent(project,location);
+    if (component != null && (scope == null || isInScope(scope,component))) {
+      components.add(component);
+    }
+  }
+  for (  int subIndex : currentItem.getSubclasses()) {
+    final TypeHierarchyItem subItem=hierarchyItems.get(subIndex);
+    addSubClasses(project,scope,visited,hierarchyItems,components,subItem,true);
+  }
+}

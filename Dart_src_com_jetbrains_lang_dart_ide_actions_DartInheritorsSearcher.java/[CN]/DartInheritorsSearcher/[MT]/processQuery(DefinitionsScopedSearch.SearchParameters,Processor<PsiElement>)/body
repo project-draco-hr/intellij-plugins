@@ -1,0 +1,17 @@
+{
+  final Ref<VirtualFile> fileRef=Ref.create();
+  final Ref<Integer> offsetRef=Ref.create();
+  final Ref<DartComponentType> componentTypeRef=Ref.create();
+  prepare(parameters,fileRef,offsetRef,componentTypeRef);
+  if (fileRef.isNull() || offsetRef.isNull() || componentTypeRef.isNull())   return;
+  final List<TypeHierarchyItem> hierarchyItems=DartAnalysisServerService.getInstance().search_getTypeHierarchy(fileRef.get(),offsetRef.get(),false);
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
+    @Override public void run(){
+      final List<DartComponent> components=componentTypeRef.get() == DartComponentType.CLASS ? getSubClasses(parameters.getElement().getProject(),parameters.getScope(),hierarchyItems) : getSubMembers(parameters.getElement().getProject(),parameters.getScope(),hierarchyItems);
+      for (      DartComponent component : components) {
+        consumer.process(component);
+      }
+    }
+  }
+);
+}
