@@ -1,38 +1,26 @@
 {
+  if ((isListKind(myInstanceRef.getKind()) || myInstanceRef.getKind() == InstanceKind.Map) && myInstanceRef.getLength() > MAX_COLLECTION_ELEMENTS_TO_SHOW) {
+    node.setErrorMessage("Too many items");
+    return;
+  }
   myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,myInstanceRef.getId(),new GetObjectConsumer(){
     @Override public void received(    Obj obj){
-switch (myInstanceRef.getKind()) {
-case List:
-case Uint8ClampedList:
-case Uint8List:
-case Uint16List:
-case Uint32List:
-case Uint64List:
-case Int8List:
-case Int16List:
-case Int32List:
-case Int64List:
-case Float32List:
-case Float64List:
-case Int32x4List:
-case Float32x4List:
-case Float64x2List:
+      if (isListKind(myInstanceRef.getKind())) {
         addListChildren(node,((Instance)obj).getElements());
-      break;
-case Map:
-    addMapChildren(node,((Instance)obj).getAssociations());
-  break;
-default :
-addFields(node,((Instance)obj).getFields());
-break;
-}
-}
-@Override public void received(Sentinel sentinel){
-node.setErrorMessage(sentinel.getValueAsString());
-}
-@Override public void onError(RPCError error){
-node.setErrorMessage(error.getMessage());
-}
-}
+      }
+ else       if (myInstanceRef.getKind() == InstanceKind.Map) {
+        addMapChildren(node,((Instance)obj).getAssociations());
+      }
+ else {
+        addFields(node,((Instance)obj).getFields());
+      }
+    }
+    @Override public void received(    Sentinel sentinel){
+      node.setErrorMessage(sentinel.getValueAsString());
+    }
+    @Override public void onError(    RPCError error){
+      node.setErrorMessage(error.getMessage());
+    }
+  }
 );
 }
