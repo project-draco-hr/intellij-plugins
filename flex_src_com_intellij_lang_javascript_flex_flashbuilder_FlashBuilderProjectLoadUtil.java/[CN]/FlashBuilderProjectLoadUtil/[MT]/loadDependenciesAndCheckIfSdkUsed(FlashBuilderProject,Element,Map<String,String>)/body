@@ -1,0 +1,33 @@
+{
+  for (  final Element libraryPathElement : compilerElement.getChildren(LIBRARY_PATH_TAG)) {
+    for (    final Element libraryPathEntryElement : libraryPathElement.getChildren(LIBRARY_PATH_ENTRY_TAG)) {
+      final String libraryKind=StringUtil.notNullize(libraryPathEntryElement.getAttributeValue(LIBRARY_KIND_ATTR),SWC_FILE_KIND);
+      if (libraryKind.equals(USE_SDK_KIND)) {
+        project.setSdkUsed(true);
+      }
+ else {
+        final String libraryPath=libraryPathEntryElement.getAttributeValue(PATH_ATTR);
+        if (!StringUtil.isEmptyOrSpaces(libraryPath)) {
+          if (SWC_FILE_KIND.equals(libraryKind) || SWC_FOLDER_KIND.equals(libraryKind) || ANE_KIND.equals(libraryKind)) {
+            final Collection<String> librarySourcePaths=new ArrayList<String>();
+            final String replacedPath=pathReplacementMap.get(libraryPath);
+            String path=replacedPath != null ? replacedPath : libraryPath;
+            if (path.startsWith(FLEXUNIT_LIB_MACRO)) {
+              final String flexUnitFrameworkPath=guessFlexUnitFrameworkPath();
+              if (flexUnitFrameworkPath != null) {
+                path=flexUnitFrameworkPath + "/libs" + path.substring(FLEXUNIT_LIB_MACRO.length());
+              }
+            }
+ else             if (path.equals(FLEXUNIT_LOCALE_MACRO)) {
+              final String flexUnitFrameworkPath=guessFlexUnitFrameworkPath();
+              if (flexUnitFrameworkPath != null) {
+                path=flexUnitFrameworkPath + "/locale/version4locale/FlexUnitTestRunner_rb.swc";
+              }
+            }
+            project.addLibraryPathAndSources(FileUtil.toSystemIndependentName(path),librarySourcePaths);
+          }
+        }
+      }
+    }
+  }
+}

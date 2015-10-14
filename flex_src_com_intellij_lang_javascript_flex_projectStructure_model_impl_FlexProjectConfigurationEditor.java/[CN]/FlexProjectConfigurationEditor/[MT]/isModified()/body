@@ -1,0 +1,21 @@
+{
+  if (myDisposed) {
+    return false;
+  }
+  for (  Module module : myModule2Editors.keySet()) {
+    if (myProvider.getModuleModifiableModel(module).isChanged()) {
+      return true;
+    }
+    FlexBuildConfiguration[] originalConfigurations=FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations();
+    List<Editor> currentConfigurations=myModule2Editors.get(module);
+    if (originalConfigurations.length != currentConfigurations.size()) {
+      return true;
+    }
+    for (    Editor currentConfiguration : currentConfigurations) {
+      if (currentConfiguration.isModified()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

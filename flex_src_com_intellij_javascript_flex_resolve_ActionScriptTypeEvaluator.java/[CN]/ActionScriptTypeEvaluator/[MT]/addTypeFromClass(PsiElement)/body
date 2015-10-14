@@ -1,0 +1,19 @@
+{
+  if (resolveResult instanceof JSFunction) {
+    resolveResult=resolveResult.getParent();
+  }
+  final JSReferenceExpression expression=myContext.getProcessedExpression();
+  if (expression == null)   return;
+  PsiElement parent=expression.getParent();
+  if (parent instanceof JSExpression)   parent=JSUtils.unparenthesize((JSExpression)parent);
+  String psiElementType=parent instanceof JSReferenceExpression || JSResolveUtil.isExprInStrictTypeContext(expression) || PsiTreeUtil.getChildOfType(expression,JSE4XNamespaceReference.class) != null || parent instanceof JSCallExpression ? ((JSClass)resolveResult).getQualifiedName() : "Class";
+  JSTypeSource source=JSTypeSourceFactory.createTypeSource(expression);
+  JSType type=JSNamedType.createType(psiElementType,source,JSContext.UNKNOWN);
+  if (JSTypeUtils.isActionScriptVectorType(type)) {
+    type=JSTypeUtils.createType(JSImportHandlingUtil.resolveTypeName(expression.getText(),expression),source);
+  }
+  final JSElement peek=myContext.peekJSElementToApply();
+  if (peek instanceof JSCallExpression)   myContext.popJSElementToApply();
+  addType(type,resolveResult);
+  if (peek instanceof JSCallExpression)   myContext.pushJSElementToApply(peek);
+}

@@ -1,0 +1,45 @@
+{
+  super.visitJSReferenceExpression(node);
+  final PsiElement parent=node.getParent();
+  if (node.getQualifier() == null) {
+    String nodeText=node.getText();
+    if (!(parent instanceof JSCallExpression) && JSResolveUtil.isExprInStrictTypeContext(node) && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(nodeText)) {
+      myHolder.createWarningAnnotation(node,JSBundle.message("javascript.validation.message.vector.without.parameters"));
+    }
+ else     if (parent instanceof JSNewExpression && JSCommonTypeNames.VECTOR_CLASS_NAME.equals(nodeText)) {
+      myHolder.createWarningAnnotation(node,JSBundle.message("javascript.validation.message.vector.without.parameters2"));
+    }
+  }
+  if (parent instanceof JSNamedElement) {
+    JSNamedElement namedElement=(JSNamedElement)parent;
+    final ASTNode nameIdentifier=namedElement.findNameIdentifier();
+    if (nameIdentifier != null && nameIdentifier.getPsi() == node) {
+      if (parent instanceof JSPackageStatement) {
+        checkPackageStatement((JSPackageStatement)parent);
+      }
+ else       if (!(parent instanceof JSImportStatement) && parent.getParent() instanceof JSPackageStatement) {
+        checkNamedObjectIsInCorrespondingFile(namedElement);
+      }
+ else       if (parent instanceof JSVariable) {
+        if (parent.getParent().getParent() instanceof JSPackageStatement) {
+          checkNamedObjectIsInCorrespondingFile((JSVariable)parent);
+        }
+      }
+ else       if (parent instanceof JSNamespaceDeclaration) {
+        DuplicatesCheckUtil.checkDuplicates((JSNamespaceDeclaration)parent,myProblemReporter);
+      }
+      if (parent instanceof JSClass) {
+        final JSClass jsClass=(JSClass)parent;
+        final JSFunction constructor=jsClass.getConstructor();
+        if (constructor == null)         checkMissedSuperCall(node,constructor,jsClass);
+        PsiElement clazzParent=jsClass.getParent();
+        final PsiElement context=clazzParent.getContext();
+        boolean clazzParentIsInjectedJsFile=clazzParent instanceof JSFile && (context instanceof XmlAttributeValue || context instanceof XmlText) && !XmlBackedJSClassImpl.isImplementsAttribute((JSFile)clazzParent);
+        if (PsiTreeUtil.getParentOfType(jsClass,JSFunction.class,JSClass.class) != null || clazzParentIsInjectedJsFile) {
+          myHolder.createErrorAnnotation(node,JSBundle.message("javascript.validation.message.nested.classes.are.not.allowed"));
+        }
+        checkClass(jsClass);
+      }
+    }
+  }
+}

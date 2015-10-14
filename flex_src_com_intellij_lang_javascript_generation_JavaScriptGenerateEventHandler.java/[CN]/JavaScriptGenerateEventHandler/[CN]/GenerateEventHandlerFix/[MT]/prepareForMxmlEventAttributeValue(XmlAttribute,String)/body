@@ -1,0 +1,25 @@
+{
+  eventClassFqn=eventType;
+  methodBody=StringUtil.notNullize(xmlAttribute.getValue()).trim();
+  if (methodBody.length() > 0 && !methodBody.endsWith(";") && !methodBody.endsWith("}"))   methodBody+=";";
+  final XmlTag xmlTag=xmlAttribute.getParent();
+  final String eventName=xmlAttribute.getName();
+  final String id=xmlTag == null ? null : xmlTag.getAttributeValue("id");
+  if (xmlTag != null && xmlTag.getParent() instanceof XmlDocument) {
+    eventHandlerName=eventName + "Handler";
+  }
+ else   if (id == null) {
+    final String name=xmlTag == null ? "" : xmlTag.getLocalName();
+    final String idBase=name.isEmpty() ? "" : Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    int i=0;
+    do {
+      i++;
+      eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,idBase + i,eventName);
+    }
+ while (myJsClass.findFunctionByName(eventHandlerName) != null);
+  }
+ else {
+    eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,id,eventName);
+  }
+  eventHandlerName2="on" + (eventName.isEmpty() ? "Event" : Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1));
+}

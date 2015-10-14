@@ -1,0 +1,21 @@
+{
+  final String name=var.getName();
+  final VirtualFile file=position.getFile();
+  final int offset=position.getOffset();
+  final PsiFile psiFile=PsiManager.getInstance(myProcess.getProject()).findFile(file);
+  if (psiFile == null)   return null;
+  final PsiElement element=RubyPsiUtil.getInstance().getSignificantLeafToTheRight(psiFile.findElementAt(offset));
+  final RContainer container=element != null ? RubyPsiUtil.getInstance().getParentContainerOrSelf(element) : null;
+  if (container == null)   return null;
+  ScopeVariable variable=null;
+  for (  ScopeVariable scopeVariable : container.getScope().getAllDeclaredVariables()) {
+    if (name.equals(scopeVariable.getName())) {
+      variable=scopeVariable;
+      break;
+    }
+  }
+  if (variable == null)   return null;
+  final RPsiElement item=ContainerUtil.getFirstItem(variable.getDeclarations());
+  if (item == null)   return null;
+  return item;
+}

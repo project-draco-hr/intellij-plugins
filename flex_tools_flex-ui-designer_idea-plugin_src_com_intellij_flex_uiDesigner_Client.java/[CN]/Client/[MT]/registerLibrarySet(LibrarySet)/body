@@ -1,0 +1,46 @@
+{
+  final List<Library> styleOwners=new ArrayList<Library>();
+  for (  Library library : librarySet.getLibraries()) {
+    if (library.isStyleOwner()) {
+      styleOwners.add(library);
+    }
+  }
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.registerLibrarySet);
+    out.writeUInt29(librarySet.getId());
+    out.write(librarySet instanceof FlexLibrarySet);
+    LibrarySet parent=librarySet.getParent();
+    out.writeShort(parent == null ? -1 : parent.getId());
+    out.write(styleOwners.size());
+    final LibraryManager libraryManager=LibraryManager.getInstance();
+    for (    Library library : styleOwners) {
+      final boolean registered=libraryManager.isRegistered(library);
+      out.write(registered);
+      if (registered) {
+        out.writeUInt29(library.getId());
+      }
+ else {
+        out.writeUInt29(libraryManager.add(library));
+        writeVirtualFile(library.getFile(),out);
+        if (library.inheritingStyles == null) {
+          out.writeShort(0);
+        }
+ else {
+          out.write(library.inheritingStyles);
+        }
+        if (library.defaultsStyle == null) {
+          out.write(0);
+        }
+ else {
+          out.write(1);
+          out.write(library.defaultsStyle);
+        }
+      }
+    }
+    hasError=false;
+  }
+  finally {
+    finalizeMessage(hasError);
+  }
+}

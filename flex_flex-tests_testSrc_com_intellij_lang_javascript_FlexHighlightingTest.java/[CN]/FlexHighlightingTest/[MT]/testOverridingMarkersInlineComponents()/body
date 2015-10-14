@@ -1,0 +1,12 @@
+{
+  doTestFor(true,getTestName(false) + ".mxml");
+  int offset=myEditor.getCaretModel().getOffset();
+  PsiElement source=InjectedLanguageUtil.findElementAtNoCommit(myFile,offset);
+  source=PsiTreeUtil.getParentOfType(source,JSFunction.class);
+  Collection<JSClass> classes=JSInheritanceUtil.findDeclaringClasses((JSFunction)source);
+  assertEquals(1,classes.size());
+  assertEquals("mx.core.UIComponent",classes.iterator().next().getQualifiedName());
+  JSFunction baseFunction=classes.iterator().next().findFunctionByName(((JSFunction)source).getName());
+  Collection<JSFunction> implementations=JSFunctionsSearch.searchOverridingFunctions(baseFunction,true).findAll();
+  assertEquals(2,implementations.size());
+}

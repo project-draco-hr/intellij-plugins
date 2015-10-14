@@ -1,0 +1,20 @@
+{
+  final Pair<Module,FlexBuildConfiguration> moduleAndBC=super.checkAndGetModuleAndBC(project);
+  doCheck(project,moduleAndBC);
+  final ModifiableFlexBuildConfiguration overriddenBC=Factory.getTemporaryCopyForCompilation(moduleAndBC.second);
+  overriddenBC.setOutputType(OutputType.Application);
+  overriddenBC.setMainClass(FlexCommonUtils.FLEX_UNIT_LAUNCHER);
+  overriddenBC.setOutputFileName("_flexunit.swf");
+  overriddenBC.setOutputFolder(VfsUtilCore.urlToPath(CompilerModuleExtension.getInstance(moduleAndBC.first).getCompilerOutputUrlForTests()));
+  overriddenBC.setUseHtmlWrapper(false);
+  overriddenBC.setRLMs(Collections.<FlexBuildConfiguration.RLMInfo>emptyList());
+  overriddenBC.setCssFilesToCompile(Collections.<String>emptyList());
+  overriddenBC.setSkipCompile(false);
+  overriddenBC.getDependencies().setFrameworkLinkage(LinkageType.Merged);
+  for (  ModifiableDependencyEntry entry : overriddenBC.getDependencies().getModifiableEntries()) {
+    if (entry.getDependencyType().getLinkageType() == LinkageType.External) {
+      entry.getDependencyType().setLinkageType(LinkageType.Merged);
+    }
+  }
+  return Pair.create(moduleAndBC.first,((FlexBuildConfiguration)overriddenBC));
+}

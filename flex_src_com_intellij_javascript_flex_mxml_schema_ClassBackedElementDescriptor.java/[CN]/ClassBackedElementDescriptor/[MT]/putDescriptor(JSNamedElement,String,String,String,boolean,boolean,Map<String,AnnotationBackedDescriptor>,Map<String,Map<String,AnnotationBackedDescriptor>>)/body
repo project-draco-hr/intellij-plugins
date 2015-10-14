@@ -1,0 +1,26 @@
+{
+  AnnotationBackedDescriptorImpl previousDescriptor=(AnnotationBackedDescriptorImpl)map.get(name);
+  AnnotationBackedDescriptorImpl descriptor;
+  if (previousDescriptor != null && previousDescriptor.parentDescriptor != this && previousDescriptor.getOriginatingElementType() == AnnotationBackedDescriptorImpl.OriginatingElementType.VarOrFunction && jsNamedElement instanceof JSAttributeListOwner && AnnotationBackedDescriptorImpl.findInspectableAttr(jsNamedElement) == null) {
+    descriptor=new AnnotationBackedDescriptorImpl(name,this,previousDescriptor,jsNamedElement);
+  }
+ else {
+    descriptor=new AnnotationBackedDescriptorImpl(name,this,false,propertyType,arrayType,deferredInstance,jsNamedElement);
+  }
+  if (previousDescriptor == null || !previousDescriptor.isPreferredTo(descriptor)) {
+    if (isPackageLocalVisibility) {
+      final String packageName=JSResolveUtil.getPackageNameFromPlace(jsNamedElement);
+      if (packageName != null) {
+        Map<String,AnnotationBackedDescriptor> descriptorMap=packageToInternalDescriptors.get(packageName);
+        if (descriptorMap == null) {
+          descriptorMap=new THashMap<String,AnnotationBackedDescriptor>();
+          packageToInternalDescriptors.put(packageName,descriptorMap);
+        }
+        descriptorMap.put(name,descriptor);
+      }
+    }
+ else {
+      map.put(name,descriptor);
+    }
+  }
+}

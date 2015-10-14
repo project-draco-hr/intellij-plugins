@@ -1,0 +1,14 @@
+{
+  prepareSdkTest();
+  importProject("<actionScriptProperties>\n" + "  <compiler useApolloConfig='true' flexSDK='custom sdk name'>\n" + "    <libraryPath>\n"+ "      <libraryPathEntry kind='4'/>\n"+ "    </libraryPath>"+ "  </compiler>\n"+ "  <buildTargets>\n"+ "    <buildTarget buildTargetName=\"default\">\n"+ "      <airSettings airCertificatePath=\"desktop.p12\"/>"+ "    </buildTarget>\n"+ "  </buildTargets>\n"+ "</actionScriptProperties>",myFlashBuilderProjectDir.getPath() + "/Flash_Builder_workspace");
+  final FlexBuildConfiguration bc=getBC();
+  assertEquals(TargetPlatform.Desktop,bc.getTargetPlatform());
+  assertTrue(bc.isPureAs());
+  assertEquals(OutputType.Application,bc.getOutputType());
+  assertFalse(bc.getAirDesktopPackagingOptions().getSigningOptions().isUseTempCertificate());
+  assertEquals("desktop.p12",bc.getAirDesktopPackagingOptions().getSigningOptions().getKeystorePath());
+  final Sdk flexSdk=bc.getSdk();
+  assertNotNull(flexSdk);
+  assertInstanceOf(flexSdk.getSdkType(),FlexSdkType2.class);
+  assertEquals(myFlashBuilderProjectDir.getPath() + "/custom_sdk",flexSdk.getHomePath());
+}

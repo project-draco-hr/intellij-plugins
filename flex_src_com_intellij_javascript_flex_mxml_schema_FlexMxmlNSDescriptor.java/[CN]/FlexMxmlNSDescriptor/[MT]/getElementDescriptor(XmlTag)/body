@@ -1,0 +1,29 @@
+{
+  if (MxmlJSClass.isInsideTagThatAllowsAnyXmlContent(tag)) {
+    return new AnyXmlElementWithAnyChildrenDescriptor();
+  }
+  final String namespace=tag.getNamespace();
+  final CodeContext context=CodeContext.getContext(namespace,module);
+  final String localName=tag.getLocalName();
+  XmlElementDescriptor descriptor=context.getElementDescriptor(localName,tag);
+  if (descriptor == null) {
+    final XmlTag parentTag=tag.getParentTag();
+    if (parentTag != null && namespace.equals(parentTag.getNamespace())) {
+      final XmlElementDescriptor parentDescriptor=parentTag.getDescriptor();
+      if (parentDescriptor != null && (!(parentDescriptor instanceof ClassBackedElementDescriptor) || ClassBackedElementDescriptor.sameNs(namespace,(((ClassBackedElementDescriptor)parentDescriptor).context.namespace)))) {
+        descriptor=parentDescriptor.getElementDescriptor(tag,parentTag);
+      }
+ else       if (parentDescriptor != null && !reportedAboutStackOverflow) {
+        Logger.getInstance(getClass().getName()).error(new AssertionError("avoided SOE:\n" + tag.getContainingFile().getText()));
+        reportedAboutStackOverflow=true;
+      }
+    }
+  }
+ else   if (tag.getParent() instanceof XmlDocument && !isLegalRootElementDescriptor(descriptor)) {
+    return null;
+  }
+  if (descriptor == null && JavaScriptSupportLoader.MXML_URI3.equals(tag.getNamespace())) {
+    return FxDefinitionBackedDescriptor.getFxDefinitionBackedDescriptor(module,tag);
+  }
+  return descriptor;
+}

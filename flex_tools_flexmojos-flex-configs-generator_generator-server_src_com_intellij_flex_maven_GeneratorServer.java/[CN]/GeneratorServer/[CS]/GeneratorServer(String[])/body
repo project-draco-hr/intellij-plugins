@@ -1,0 +1,47 @@
+{
+  generatorOutputDirectory=new File(args[4]);
+  generatorOutputDirectory.mkdirs();
+  in=new DataInputStream(new BufferedInputStream(System.in));
+  plexusContainer=createPlexusContainer();
+  logger=plexusContainer.getLoggerManager().getLoggerForComponent(null);
+  mavenPluginManager=plexusContainer.lookup(MavenPluginManager.class);
+  session=createSession(createExecutionRequest(args));
+  maven=new Maven(plexusContainer,session);
+  final List<String> generators=new ArrayList<String>(2);
+  final URL generatorJarPath=new File(in.readUTF()).toURI().toURL();
+  generators.add(in.readUTF());
+  final int projectsCount=in.readUnsignedShort();
+  final ExecutorService executorService=Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+  try {
+    for (int i=0; i < projectsCount; i++) {
+      final String pathname=in.readUTF();
+      final String projectId=Integer.toString(i);
+      executorService.submit(new Runnable(){
+        @Override public void run(){
+          try {
+            MavenProject project=maven.readProject(new File(pathname),logger);
+            if (project == null) {
+              return;
+            }
+            String configFilePath=generate(project,generators,generatorJarPath);
+synchronized (System.out) {
+              System.out.append("\n[fcg] generated: ").append(projectId).append(':').append(configFilePath);
+              for (              String sourceRoot : project.getCompileSourceRoots()) {
+                System.out.append('|').append(sourceRoot);
+              }
+              System.out.append("[/fcg]").flush();
+            }
+          }
+ catch (          Throwable e) {
+            getLogger().error("Cannot generate flex config for " + pathname,e);
+          }
+        }
+      }
+);
+    }
+  }
+  finally {
+    executorService.shutdown();
+    executorService.awaitTermination(10,TimeUnit.MINUTES);
+  }
+}

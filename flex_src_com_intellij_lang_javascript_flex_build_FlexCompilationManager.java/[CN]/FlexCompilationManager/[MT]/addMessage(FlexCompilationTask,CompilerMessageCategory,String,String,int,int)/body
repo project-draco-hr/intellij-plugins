@@ -1,0 +1,33 @@
+{
+  if (!myCompilationFinished) {
+    if (message.contains(FlexCommonUtils.COULD_NOT_CREATE_JVM)) {
+      category=CompilerMessageCategory.ERROR;
+    }
+    if (category == CompilerMessageCategory.INFORMATION) {
+      final int bytesWrittenIndex=message.indexOf(BYTES_WRITTEN_TO);
+      if (bytesWrittenIndex > 0) {
+        final int inIndex=message.lastIndexOf(" in ");
+        if (inIndex > bytesWrittenIndex) {
+          final String outputFilePath=message.substring(bytesWrittenIndex + BYTES_WRITTEN_TO.length(),inIndex);
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            refreshAndFindFileInWriteAction(outputFilePath);
+          }
+        }
+      }
+ else {
+        final Matcher matcher=OUTPUT_FILE_CREATED_PATTERN.matcher(message);
+        if (matcher.matches()) {
+          final String outputFilePath=matcher.group(2);
+          if (!ApplicationManager.getApplication().isUnitTestMode()) {
+            refreshAndFindFileInWriteAction(outputFilePath);
+          }
+        }
+      }
+    }
+    final String prefix=getMessagePrefix(task);
+    myCompileContext.addMessage(category,prefix + message,url,lineNum,columnNum);
+    if (message.contains(FlexCommonUtils.OUT_OF_MEMORY) || message.contains(FlexCommonUtils.JAVA_HEAP_SPACE)) {
+      myCompileContext.addMessage(CompilerMessageCategory.ERROR,prefix + FlexCommonBundle.message("increase.flex.compiler.heap",CommonBundle.settingsActionPath()),null,-1,-1);
+    }
+  }
+}

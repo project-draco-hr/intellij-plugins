@@ -1,0 +1,30 @@
+{
+  myUseHTMLWrapperCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+      IdeFocusManager.getInstance(myModule.getProject()).requestFocus(myWrapperTemplateTextWithBrowse.getTextField(),true);
+    }
+  }
+);
+  final String title="Select folder with HTML wrapper template";
+  final String description="Folder must contain 'index.template.html' file which must contain '${swf}' macro.";
+  myWrapperTemplateTextWithBrowse.addBrowseFolderListener(title,description,myModule.getProject(),FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myCreateHtmlWrapperTemplateButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final Sdk sdk=myDependenciesConfigurable.getCurrentSdk();
+      if (sdk == null || sdk.getSdkType() == FlexmojosSdkType.getInstance()) {
+        final SelectFlexSdkDialog dialog=new SelectFlexSdkDialog(myModule.getProject(),CreateHtmlWrapperTemplateDialog.TITLE,FlexBundle.message("take.wrapper.template.from.sdk"));
+        if (dialog.showAndGet()) {
+          final Sdk dialogSdk=dialog.getSdk();
+          if (dialogSdk != null) {
+            showHtmlWrapperCreationDialog(dialogSdk);
+          }
+        }
+      }
+ else {
+        showHtmlWrapperCreationDialog(sdk);
+      }
+    }
+  }
+);
+}

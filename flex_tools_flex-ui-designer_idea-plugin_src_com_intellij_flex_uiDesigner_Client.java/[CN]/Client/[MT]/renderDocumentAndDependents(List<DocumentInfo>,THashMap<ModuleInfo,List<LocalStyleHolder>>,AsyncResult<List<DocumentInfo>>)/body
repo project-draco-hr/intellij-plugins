@@ -1,0 +1,43 @@
+{
+  if ((infos == null || infos.isEmpty()) && outdatedLocalStyleHolders.isEmpty()) {
+    result.setDone(infos);
+    return result;
+  }
+  final ActionCallback callback=new ActionCallback("renderDocumentAndDependents");
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.renderDocumentsAndDependents,callback,result,new Runnable(){
+      @Override public void run(){
+        final int[] ids;
+        try {
+          ids=SocketInputHandler.getInstance().getReader().readIntArray();
+        }
+ catch (        IOException e) {
+          LogMessageUtil.processInternalError(e);
+          return;
+        }
+        DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
+        List<DocumentInfo> rendered=new ArrayList<DocumentInfo>(ids.length);
+        for (        int id : ids) {
+          rendered.add(documentFactoryManager.getInfo(id));
+        }
+        result.setDone(rendered);
+      }
+    }
+);
+    out.writeUInt29(outdatedLocalStyleHolders.size());
+    outdatedLocalStyleHolders.forEachKey(new TObjectProcedure<ModuleInfo>(){
+      @Override public boolean execute(      ModuleInfo moduleInfo){
+        out.writeUInt29(moduleInfo.getId());
+        return true;
+      }
+    }
+);
+    out.write(infos);
+    hasError=false;
+  }
+  finally {
+    finalizeMessageAndFlush(hasError,callback);
+  }
+  return result;
+}

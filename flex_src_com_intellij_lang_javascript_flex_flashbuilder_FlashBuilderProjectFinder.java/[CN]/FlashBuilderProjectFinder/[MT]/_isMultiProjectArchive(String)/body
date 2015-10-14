@@ -1,0 +1,35 @@
+{
+  boolean containsDotProjectFile=false;
+  boolean containsDotActionScriptFile=false;
+  boolean containsNestedProjects=false;
+  ZipFile zipFile=null;
+  try {
+    zipFile=new ZipFile(archiveFilePath);
+    final Enumeration<? extends ZipEntry> entries=zipFile.entries();
+    while (entries.hasMoreElements()) {
+      final String entryName=entries.nextElement().getName();
+      if (FlashBuilderImporter.DOT_PROJECT.equals(entryName))       containsDotProjectFile=true;
+      if (FlashBuilderImporter.DOT_ACTION_SCRIPT_PROPERTIES.equals(entryName))       containsDotActionScriptFile=true;
+      if (entryName.endsWith(FlashBuilderImporter.DOT_FXP) || entryName.endsWith(FlashBuilderImporter.DOT_FXPL)) {
+        containsNestedProjects=true;
+      }
+      if (containsDotProjectFile && containsDotActionScriptFile && containsNestedProjects)       break;
+    }
+    if (!containsDotProjectFile || !containsDotActionScriptFile) {
+      throw new ConfigurationException(FlexBundle.message("does.not.contain.flash.builder.projects"),CommonBundle.getErrorTitle());
+    }
+    return containsNestedProjects;
+  }
+ catch (  IOException e) {
+    throw new ConfigurationException(FlexBundle.message("does.not.contain.flash.builder.projects"),CommonBundle.getErrorTitle());
+  }
+ finally {
+    if (zipFile != null) {
+      try {
+        zipFile.close();
+      }
+ catch (      IOException ignore) {
+      }
+    }
+  }
+}

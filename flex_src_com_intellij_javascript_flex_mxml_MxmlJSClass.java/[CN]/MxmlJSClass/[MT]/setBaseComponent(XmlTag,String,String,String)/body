@@ -1,0 +1,16 @@
+{
+  Map<String,String> existingPrefix2Namespace=rootTag.getLocalNamespaceDeclarations();
+  for (  Map.Entry<String,String> entry : existingPrefix2Namespace.entrySet()) {
+    if (entry.getValue().equals(namespace)) {
+      rootTag.setName(entry.getKey() + ":" + StringUtil.getShortName(qName));
+      return;
+    }
+  }
+  int postfix=1;
+  String uniquePrefix=prefix;
+  while (existingPrefix2Namespace.containsKey(uniquePrefix)) {
+    uniquePrefix=prefix + postfix++;
+  }
+  rootTag.setName(uniquePrefix + ":" + StringUtil.getShortName(qName));
+  rootTag.setAttribute("xmlns:" + uniquePrefix,namespace);
+}

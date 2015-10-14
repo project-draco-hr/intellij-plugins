@@ -1,0 +1,89 @@
+{
+  indicator.setText(FlashUIDesignerBundle.message("copying.app.files"));
+  copyAppFiles();
+  indicator.setText(FlashUIDesignerBundle.message("finding.suitable.air.runtime"));
+  List<AdlRunConfiguration> adlRunConfigurations=getSuitableAdlRunConfigurations();
+  if (adlRunConfigurations.isEmpty()) {
+    notifyNoSuitableSdkToLaunch();
+    return false;
+  }
+  indicator.checkCanceled();
+  DesignerApplicationManager.getInstance().setApplication(new DesignerApplication());
+  runInitializeLibrariesAndModuleThread();
+  if (debug && !runAndWaitDebugger()) {
+    return false;
+  }
+  indicator.checkCanceled();
+  MessageSocketManager messageSocketManager=new MessageSocketManager(this,DesignerApplicationManager.APP_DIR);
+  Disposer.register(DesignerApplicationManager.getApplication(),messageSocketManager);
+  final List<String> arguments=new ArrayList<String>();
+  arguments.add(Integer.toString(messageSocketManager.listen()));
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    arguments.add("-p");
+    arguments.add(DebugPathManager.resolveTestArtifactPath("test-1.0-SNAPSHOT.swf"));
+  }
+  AdlProcessHandler adlProcessHandler=null;
+  final Ref<Boolean> found=new Ref<Boolean>(true);
+  for (  AdlRunConfiguration adlRunConfiguration : adlRunConfigurations) {
+    found.set(true);
+    adlRunConfiguration.arguments=arguments;
+    try {
+      final String appClassifierVersion;
+      if (StringUtil.compareVersionNumbers(adlRunConfiguration.getRuntimeVersion(),"3.0") < 0 || !(SystemInfo.isMac || SystemInfo.isWindows)) {
+        appClassifierVersion="2.6";
+      }
+ else {
+        appClassifierVersion="3.0";
+      }
+      adlProcessHandler=runAdl(adlRunConfiguration,DesignerApplicationManager.APP_DIR.getPath() + File.separatorChar + "descriptor-air"+ appClassifierVersion+ ".xml",new Consumer<Integer>(){
+        @Override public void consume(        Integer exitCode){
+          found.set(false);
+          if (!indicator.isCanceled()) {
+            LOG.info(describeAdlExit(exitCode));
+            semaphore.up();
+          }
+        }
+      }
+);
+    }
+ catch (    ExecutionException e) {
+      adlProcessHandler=null;
+      LOG.error(e);
+      continue;
+    }
+    semaphore.down();
+    try {
+      if (!semaphore.waitForUnsafe(60 * 1000)) {
+        found.set(false);
+        LOG.warn("Client not opened in 60 seconds");
+        if (checkStartupError()) {
+          return false;
+        }
+      }
+    }
+ catch (    InterruptedException e) {
+      if (indicator.isCanceled()) {
+        return false;
+      }
+      LOG.warn(e);
+      continue;
+    }
+    indicator.checkCanceled();
+    if (found.get()) {
+      break;
+    }
+  }
+  if (!found.get()) {
+    if (!checkStartupError()) {
+      notifyNoSuitableSdkToLaunch();
+    }
+    return false;
+  }
+  ProjectComponentReferenceCounter projectComponentReferenceCounter=initializeTask.get(DebugPathManager.IS_DEV ? 999 : 60,TimeUnit.SECONDS);
+  indicator.checkCanceled();
+  final DesignerApplication application=DesignerApplicationManager.getApplication();
+  LOG.assertTrue(adlProcessHandler != null && application != null);
+  application.setProcessHandler(adlProcessHandler);
+  DesignerApplicationManager.getInstance().attachProjectAndModuleListeners(application);
+  return postTask.run(module,projectComponentReferenceCounter,indicator,problemsHolder);
+}

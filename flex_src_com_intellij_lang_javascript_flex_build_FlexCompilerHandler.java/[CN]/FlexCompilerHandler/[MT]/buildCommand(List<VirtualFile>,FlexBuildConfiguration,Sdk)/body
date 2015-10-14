@@ -1,0 +1,24 @@
+{
+  final StringBuilder configsParam=new StringBuilder();
+  final String workDirPathWithSlash=FlexUtils.getFlexCompilerWorkDirPath(myProject,flexSdk) + "/";
+  for (  final VirtualFile configFile : configFiles) {
+    String relativePathToConfig=configFile.getPath();
+    if (configFile.getPath().startsWith(workDirPathWithSlash)) {
+      relativePathToConfig=configFile.getPath().substring(workDirPathWithSlash.length());
+    }
+    if (relativePathToConfig.indexOf(' ') >= 0) {
+      relativePathToConfig="\"" + relativePathToConfig + "\"";
+    }
+    if (configsParam.length() > 0) {
+      configsParam.append(",");
+    }
+    boolean useSdkConfig=config.USE_DEFAULT_SDK_CONFIG_FILE && !(flexSdk.getSdkType() instanceof FlexmojosSdkType);
+    configsParam.append(" -load-config").append(useSdkConfig ? "+=" : "=").append(relativePathToConfig);
+  }
+  @NonNls String s=config.OUTPUT_TYPE.equals(FlexBuildConfiguration.APPLICATION) ? "mxmlc" : "compc";
+  s+=configsParam;
+  if (config.ADDITIONAL_COMPILER_OPTIONS != null && config.ADDITIONAL_COMPILER_OPTIONS.length() > 0) {
+    s+=" " + FlexUtils.replacePathMacros(config.ADDITIONAL_COMPILER_OPTIONS,null,flexSdk.getHomePath());
+  }
+  return s;
+}

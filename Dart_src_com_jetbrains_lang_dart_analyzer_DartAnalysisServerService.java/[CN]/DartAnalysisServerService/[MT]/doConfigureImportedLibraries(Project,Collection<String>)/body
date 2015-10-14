@@ -1,0 +1,39 @@
+{
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null)   return;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final SortedSet<String> folderPaths=new TreeSet<String>();
+  final Collection<String> rootsToAddToLib=new THashSet<String>();
+  for (  final String path : filePaths) {
+    if (path != null) {
+      folderPaths.add(PathUtil.getParentPath(FileUtil.toSystemIndependentName(path)));
+    }
+  }
+  outer:   for (  final String path : folderPaths) {
+    final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(path);
+    if (!path.startsWith(sdk.getHomePath() + "/") && (vFile == null || !fileIndex.isInContent(vFile))) {
+      for (      String configuredPath : rootsToAddToLib) {
+        if (path.startsWith(configuredPath + "/")) {
+          continue outer;
+        }
+      }
+      rootsToAddToLib.add(path);
+    }
+  }
+  final Processor<? super PsiFileSystemItem> falseProcessor=new Processor<PsiFileSystemItem>(){
+    @Override public boolean process(    final PsiFileSystemItem item){
+      return false;
+    }
+  }
+;
+  final Condition<Module> moduleFilter=new Condition<Module>(){
+    @Override public boolean value(    final Module module){
+      return DartSdkGlobalLibUtil.isDartSdkEnabled(module) && !FilenameIndex.processFilesByName(PubspecYamlUtil.PUBSPEC_YAML,false,falseProcessor,module.getModuleContentScope(),project,null);
+    }
+  }
+;
+  final DartFileListener.DartLibInfo libInfo=new DartFileListener.DartLibInfo(true);
+  libInfo.addRoots(rootsToAddToLib);
+  final Library library=DartFileListener.updatePackagesLibraryRoots(project,libInfo);
+  DartFileListener.updateDependenciesOnDartPackagesLibrary(project,moduleFilter,library);
+}

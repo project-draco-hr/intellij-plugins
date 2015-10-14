@@ -1,0 +1,20 @@
+{
+  return new Consumer<List<String>>(){
+    public void consume(    final List<String> messages){
+      String reason=StringUtil.join(messages,"<br>");
+      if (reason.length() > 1000) {
+        reason=reason.substring(0,1000) + "...";
+      }
+      NOTIFICATION_GROUP.createNotification("",FlexBundle.message("failed.to.create.air.package",PathUtil.getFileName(packagePath),reason),NotificationType.ERROR,new NotificationListener(){
+        public void hyperlinkUpdate(        @NotNull final Notification notification,        @NotNull final HyperlinkEvent event){
+          if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            notification.expire();
+            Messages.showMessageDialog(project,task.getCommandLine(),"ADT Command Line",null);
+          }
+        }
+      }
+).notify(project);
+    }
+  }
+;
+}

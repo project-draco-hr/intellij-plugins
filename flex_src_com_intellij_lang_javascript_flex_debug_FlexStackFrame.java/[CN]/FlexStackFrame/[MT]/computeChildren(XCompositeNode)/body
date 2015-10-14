@@ -1,0 +1,64 @@
+{
+  List<DebuggerCommand> commands=new ArrayList<DebuggerCommand>();
+  commands.add(new MyDebuggerCommand("print this",node,true,FlexValue.ValueType.This));
+  commands.add(new MyDebuggerCommand("info arguments",node,false,FlexValue.ValueType.Parameter));
+  commands.add(new MyDebuggerCommand("info locals",node,false,FlexValue.ValueType.Variable));
+  if (mySourcePosition != null) {
+    commands.add(new DebuggerCommand("does not matter",CommandOutputProcessingType.SPECIAL_PROCESSING){
+      @Override public void post(      FlexDebugProcess flexDebugProcess) throws IOException {
+        ensureQName2IdMapLoaded();
+        final XValueChildrenList resultChildren=new XValueChildrenList(1);
+        Boolean insideFunExpr=ApplicationManager.getApplication().runReadAction(new Computable<Boolean>(){
+          @Override public Boolean compute(){
+            Project project=getDebugProcess().getSession().getProject();
+            PsiElement element=XDebuggerUtil.getInstance().findContextElement(mySourcePosition.getFile(),mySourcePosition.getOffset(),project,true);
+            JSFunction function=PsiTreeUtil.getParentOfType(element,JSFunction.class);
+            return function instanceof JSFunctionExpression;
+          }
+        }
+);
+        if (Boolean.TRUE.equals(insideFunExpr)) {
+          scopeChain=new ArrayList<String>(2);
+          String firstTokenAfterLastClosure=null;
+          for (          String token : qName2IdMap.keySet()) {
+            final int slashIndex=token.indexOf('/');
+            if (slashIndex != -1 || token.contains(ANONYMOUS)) {
+              final String funName=token.substring(slashIndex + 1);
+              addScopeChainElement(token,funName,resultChildren);
+            }
+ else             if (firstTokenAfterLastClosure == null && resultChildren.size() > 0) {
+              firstTokenAfterLastClosure=token;
+            }
+          }
+          if (firstTokenAfterLastClosure != null) {
+            addScopeChainElement(firstTokenAfterLastClosure,firstTokenAfterLastClosure,resultChildren);
+          }
+        }
+        node.addChildren(resultChildren,false);
+      }
+      @Override public String read(      FlexDebugProcess flexDebugProcess) throws IOException {
+        return "";
+      }
+      private void addScopeChainElement(      final String token,      final String funName,      final XValueChildrenList resultChildren){
+        final String id=qName2IdMap.get(token);
+        final String path="#" + validObjectId(id);
+        scopeChain.add(path);
+        final String name="Locals of " + funName;
+        final String flexValueResult="[Object " + id + CLASS_MARKER+ token+ "']";
+        resultChildren.add(name,new FlexValue(FlexStackFrame.this,myDebugProcess,mySourcePosition,name,path,flexValueResult,null,FlexValue.ValueType.ScopeChainEntry));
+      }
+    }
+);
+  }
+  myDebugProcess.sendCommand(new CompositeDebuggerCommand(node,commands.toArray(new DebuggerCommand[commands.size()])){
+    @Override protected void obsolete(){
+      super.obsolete();
+      node.addChildren(XValueChildrenList.EMPTY,true);
+    }
+    @Override protected void succeeded(){
+      super.succeeded();
+      node.addChildren(XValueChildrenList.EMPTY,true);
+    }
+  }
+);
+}

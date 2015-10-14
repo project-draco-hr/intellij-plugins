@@ -1,0 +1,35 @@
+{
+  super.preGenerate(project,classifier);
+  baseDir=project.getBasedir().getPath();
+  localRepositoryBasedir=session.getLocalRepository().getBasedir();
+  localRepositoryBasedirLength=localRepositoryBasedir.length();
+  if (!listForGantGenerated) {
+    listForGantGenerated=true;
+    StringBuilder s=new StringBuilder(8192);
+    s.append("def List<SwfDescriptor> getList() {\n\treturn [");
+    boolean isFirst=true;
+    final int absPathPrefixLength=session.getTopLevelProject().getBasedir().getPath().length();
+    for (    MavenProject p : session.getProjects()) {
+      final String packaging=p.getPackaging();
+      if (packaging.equals("swf") || packaging.equals("air") || packaging.equals("swc")) {
+        if (!isFirst) {
+          s.append(", ");
+        }
+ else {
+          isFirst=false;
+        }
+        s.append("\n\t\tnew SwfDescriptor(\"").append(p.getArtifactId()).append(".xml\", \"");
+        final String pBaseDir=p.getBasedir().getPath();
+        if (session.getTopLevelProject() != p) {
+          s.append(pBaseDir.substring(absPathPrefixLength + 1));
+        }
+ else {
+          s.append(pBaseDir);
+        }
+        s.append("\", ").append(packaging.equals("swc") ? "true" : "false").append(')');
+      }
+    }
+    s.append("\n\t];\n}");
+    Utils.write(s,new File("build-gant/flex_ui_designer_swfs_build.gant"));
+  }
+}

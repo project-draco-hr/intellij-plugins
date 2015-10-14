@@ -1,0 +1,27 @@
+{
+  final RunManagerEx runManager=RunManagerEx.getInstanceEx(module.getProject());
+  final List<RunConfiguration> existingConfigurations=runManager.getConfigurationsList(FlashRunConfigurationType.getInstance());
+  for (  RunConfiguration configuration : existingConfigurations) {
+    final FlashRunnerParameters parameters=((FlashRunConfiguration)configuration).getRunnerParameters();
+    if (module.getName().equals(parameters.getModuleName()) && bc.getName().equals(parameters.getBCName())) {
+      return;
+    }
+  }
+  final RunnerAndConfigurationSettings settings=runManager.createConfiguration("",FlashRunConfigurationType.getFactory());
+  final FlashRunConfiguration runConfiguration=(FlashRunConfiguration)settings.getConfiguration();
+  final FlashRunnerParameters params=runConfiguration.getRunnerParameters();
+  params.setModuleName(module.getName());
+  params.setBCName(bc.getName());
+  if (bc.getNature().isMobilePlatform()) {
+    if (bc.getAndroidPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.Android);
+    }
+ else     if (bc.getIosPackagingOptions().isEnabled()) {
+      params.setAppDescriptorForEmulator(FlashRunnerParameters.AppDescriptorForEmulator.IOS);
+    }
+  }
+  settings.setName(params.suggestUniqueName(existingConfigurations));
+  settings.setTemporary(false);
+  runManager.addConfiguration(settings,false);
+  runManager.setSelectedConfiguration(settings);
+}

@@ -1,0 +1,16 @@
+{
+  final DataContext dataContext=e.getDataContext();
+  final IdeView view=LangDataKeys.IDE_VIEW.getData(dataContext);
+  if (view == null) {
+    return;
+  }
+  final Project project=CommonDataKeys.PROJECT.getData(dataContext);
+  final PsiDirectory dir=view.getOrChooseDirectory();
+  if (dir == null || project == null)   return;
+  CommandProcessor.getInstance().executeCommand(project,new Runnable(){
+    @Override public void run(){
+      createAction(dir).execute();
+    }
+  }
+,getCommandName(),null);
+}

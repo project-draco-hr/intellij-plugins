@@ -1,0 +1,65 @@
+{
+  final VirtualFile templateDir=LocalFileSystem.getInstance().findFileByPath(bc.getWrapperTemplatePath());
+  if (templateDir == null || !templateDir.isDirectory()) {
+    throw new FlexCompilerException(FlexCommonBundle.message("html.wrapper.dir.not.found",bc.getWrapperTemplatePath()));
+  }
+  final VirtualFile templateFile=templateDir.findChild(FlexCommonUtils.HTML_WRAPPER_TEMPLATE_FILE_NAME);
+  if (templateFile == null) {
+    throw new FlexCompilerException(FlexCommonBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath()));
+  }
+  final InfoFromConfigFile info=FlexCompilerConfigFileUtil.getInfoFromConfigFile(bc.getCompilerOptions().getAdditionalConfigFilePath());
+  final String outputFolderPath=StringUtil.notNullize(info.getOutputFolderPath(),bc.getOutputFolder());
+  final String outputFileName=bc.isTempBCForCompilation() ? bc.getOutputFileName() : StringUtil.notNullize(info.getOutputFileName(),bc.getOutputFileName());
+  final String targetPlayer=StringUtil.notNullize(info.getTargetPlayer(),bc.getDependencies().getTargetPlayer());
+  final VirtualFile outputDir=LocalFileSystem.getInstance().findFileByPath(outputFolderPath);
+  if (outputDir == null || !outputDir.isDirectory()) {
+    throw new FlexCompilerException(FlexCommonBundle.message("output.folder.does.not.exist",outputFolderPath));
+  }
+  final Ref<FlexCompilerException> exceptionRef=new Ref<FlexCompilerException>();
+  ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+    @Override public void run(){
+      exceptionRef.set(ApplicationManager.getApplication().runWriteAction(new NullableComputable<FlexCompilerException>(){
+        @Override public FlexCompilerException compute(){
+          for (          VirtualFile file : templateDir.getChildren()) {
+            if (Comparing.equal(file,templateFile)) {
+              final String wrapperText;
+              try {
+                wrapperText=VfsUtilCore.loadText(file);
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexCommonBundle.message("failed.to.load.template.file",file.getPresentableUrl(),e.getMessage()));
+              }
+              if (!wrapperText.contains(FlexCommonUtils.SWF_MACRO)) {
+                return new FlexCompilerException(FlexCommonBundle.message("no.swf.macro",FileUtil.toSystemDependentName(file.getPath())));
+              }
+              final String mainClass=StringUtil.notNullize(info.getMainClass(module),bc.getMainClass());
+              final PsiElement jsClass=ActionScriptClassResolver.findClassByQNameStatic(mainClass,module.getModuleScope());
+              final String fixedText=replaceMacros(wrapperText,FileUtil.getNameWithoutExtension(outputFileName),targetPlayer,jsClass instanceof JSClass ? (JSClass)jsClass : null);
+              final String wrapperFileName=BCUtils.getWrapperFileName(bc);
+              try {
+                FlexUtils.addFileWithContent(wrapperFileName,fixedText,outputDir);
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexCommonBundle.message("failed.to.create.file.in",wrapperFileName,outputDir.getPresentableUrl(),e.getMessage()));
+              }
+            }
+ else {
+              try {
+                file.copy(this,outputDir,file.getName());
+              }
+ catch (              IOException e) {
+                return new FlexCompilerException(FlexCommonBundle.message("failed.to.copy.file",file.getName(),templateDir.getPath(),outputDir.getPath(),e.getMessage()));
+              }
+            }
+          }
+          return null;
+        }
+      }
+));
+    }
+  }
+,ModalityState.any());
+  if (!exceptionRef.isNull()) {
+    throw exceptionRef.get();
+  }
+}

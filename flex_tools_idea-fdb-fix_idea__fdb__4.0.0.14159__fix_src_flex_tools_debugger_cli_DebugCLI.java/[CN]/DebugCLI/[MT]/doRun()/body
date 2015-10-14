@@ -1,0 +1,59 @@
+{
+  if (m_session != null) {
+    err(getLocalizationManager().getLocalizedTextString("sessionInProgress"));
+    return;
+  }
+  SessionManager mgr=Bootstrap.sessionManager();
+  if (hasMoreTokens()) {
+    if (!setLaunchURI(restOfLine()))     return;
+  }
+  mgr.startListening();
+  try {
+    if (m_launchURI == null) {
+      out(getLocalizationManager().getLocalizedTextString("waitingForPlayerToConnect"));
+      m_session=mgr.accept(null);
+    }
+ else {
+      out(getLocalizationManager().getLocalizedTextString("launchingWithUrl") + m_newline + m_launchURI);
+      m_session=mgr.launch(m_launchURI,null,true,null,null);
+    }
+    if (m_session == null) {
+      throw new SocketTimeoutException();
+    }
+ else {
+      out(getLocalizationManager().getLocalizedTextString("playerConnectedSessionStarting"));
+      initSession(m_session);
+      try {
+        waitTilHalted();
+      }
+ catch (      Exception e) {
+      }
+      try {
+        waitForMetaData();
+      }
+ catch (      Exception e) {
+      }
+      setInitialSourceFile();
+      out(getLocalizationManager().getLocalizedTextString("setBreakpointsThenResume"));
+      try {
+        if (m_session.getPreference(SessionManager.PLAYER_SUPPORTS_GET) == 0)         err(m_newline + getLocalizationManager().getLocalizedTextString("warningNotAllCommandsSupported"));
+      }
+ catch (      Exception npe) {
+      }
+    }
+  }
+ catch (  FileNotFoundException fnf) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("uri",fnf.getLocalizedMessage());
+    err(getLocalizationManager().getLocalizedTextString("fileDoesNotExist",args));
+  }
+catch (  SocketTimeoutException ste) {
+    err(getLocalizationManager().getLocalizedTextString("failedToConnect"));
+  }
+catch (  IOException io) {
+    err(io.getLocalizedMessage());
+  }
+ finally {
+    mgr.stopListening();
+  }
+}

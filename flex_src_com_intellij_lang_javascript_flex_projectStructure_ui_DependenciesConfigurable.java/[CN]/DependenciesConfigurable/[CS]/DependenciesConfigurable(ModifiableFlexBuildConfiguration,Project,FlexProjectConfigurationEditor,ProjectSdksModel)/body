@@ -1,0 +1,223 @@
+{
+  mySkdsModel=sdksModel;
+  myConfigEditor=configEditor;
+  myDependencies=bc.getDependencies();
+  myProject=project;
+  myNature=bc.getNature();
+  mySdkChangeDispatcher=EventDispatcher.create(ChangeListener.class);
+  myDisposable=Disposer.newDisposable();
+  final SdkModel.Listener listener=new SdkModel.Listener(){
+    public void sdkAdded(    final Sdk sdk){
+      rebuildSdksModel();
+    }
+    public void beforeSdkRemove(    final Sdk sdk){
+      rebuildSdksModel();
+    }
+    public void sdkChanged(    final Sdk sdk,    final String previousName){
+      rebuildSdksModel();
+    }
+    public void sdkHomeSelected(    final Sdk sdk,    final String newSdkHome){
+      rebuildSdksModel();
+    }
+  }
+;
+  sdksModel.addListener(listener);
+  Disposer.register(myDisposable,new Disposable(){
+    public void dispose(){
+      sdksModel.removeListener(listener);
+    }
+  }
+);
+  mySdkCombo.setSetupButton(myNewButton,myProject,sdksModel,new JdkComboBox.NoneJdkComboBoxItem(),null,FlexBundle.message("set.up.sdk.title"));
+  mySdkCombo.setEditButton(myEditButton,myProject,new NullableComputable<Sdk>(){
+    @Nullable public Sdk compute(){
+      return mySdkCombo.getSelectedJdk();
+    }
+  }
+);
+  mySdkLabel.setLabelFor(mySdkCombo);
+  mySdkCombo.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      if (myFreeze) {
+        return;
+      }
+      updateOnSelectedSdkChange();
+    }
+  }
+);
+  myComponentSetCombo.setModel(new DefaultComboBoxModel(ComponentSet.values()));
+  myComponentSetCombo.setRenderer(new ListCellRendererWrapper<ComponentSet>(){
+    public void customize(    JList list,    ComponentSet value,    int index,    boolean selected,    boolean hasFocus){
+      setText(value.getPresentableText());
+    }
+  }
+);
+  myFrameworkLinkageCombo.setRenderer(new ListCellRendererWrapper<LinkageType>(){
+    public void customize(    JList list,    LinkageType value,    int index,    boolean selected,    boolean hasFocus){
+      if (value == LinkageType.Default) {
+        final Sdk sdk=mySdkCombo.getSelectedJdk();
+        final String sdkVersion=sdk != null ? sdk.getVersionString() : null;
+        setText(sdkVersion == null ? "Default" : MessageFormat.format("Default ({0})",FlexCommonUtils.getDefaultFrameworkLinkage(sdkVersion,myNature).getLongText()));
+      }
+ else {
+        setText(value.getLongText());
+      }
+    }
+  }
+);
+  myFrameworkLinkageCombo.setModel(new DefaultComboBoxModel(BCUtils.getSuitableFrameworkLinkages(myNature)));
+  ItemListener updateSdkItemsListener=new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      if (myFreeze) {
+        return;
+      }
+      DefaultMutableTreeNode sdkNode=findSdkNode();
+      Sdk currentSdk=mySdkCombo.getSelectedJdk();
+      if (sdkNode != null && currentSdk != null) {
+        updateSdkEntries(sdkNode,currentSdk);
+        myTable.refresh();
+      }
+    }
+  }
+;
+  myTargetPlayerCombo.addItemListener(updateSdkItemsListener);
+  myComponentSetCombo.addItemListener(updateSdkItemsListener);
+  myFrameworkLinkageCombo.addItemListener(updateSdkItemsListener);
+  myTargetPlayerWarning.setIcon(FlexIcons.Flex.SmallWarning);
+  myWarning.setIcon(UIUtil.getBalloonWarningIcon());
+  myTable=new EditableTreeTable<MyTableItem>("",DEPENDENCY_TYPE_COLUMN){
+    @Override protected void render(    SimpleColoredComponent c,    MyTableItem item){
+      if (item != null) {
+        item.getPresentableText().appendToComponent(c);
+        c.setIcon(item.getIcon());
+      }
+    }
+  }
+;
+  myTable.setRootVisible(false);
+  myTable.getTree().setShowsRootHandles(true);
+  myTable.getTree().setLineStyleAngled();
+  myTablePanel.add(ToolbarDecorator.createDecorator(myTable).setAddAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      addItem(button);
+    }
+  }
+).setAddActionName(FlexBundle.message("add.dependency.action.name")).setRemoveAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton anActionButton){
+      removeSelection();
+    }
+  }
+).setEditAction(new AnActionButtonRunnable(){
+    @Override public void run(    AnActionButton button){
+      MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
+      if (item instanceof SharedLibraryItem) {
+        editLibrary((SharedLibraryItem)item);
+      }
+      if (item instanceof ModuleLibraryItem) {
+        editLibrary(((ModuleLibraryItem)item));
+      }
+    }
+  }
+).setRemoveActionUpdater(new AnActionButtonUpdater(){
+    @Override public boolean isEnabled(    AnActionEvent e){
+      if (myTable.getSelectedRowCount() == 0)       return false;
+      for (      int row : myTable.getSelectedRows()) {
+        MyTableItem item=myTable.getItemAt(row);
+        if (item instanceof SdkItem || item instanceof SdkEntryItem)         return false;
+      }
+      return true;
+    }
+  }
+).setEditActionUpdater(new AnActionButtonUpdater(){
+    @Override public boolean isEnabled(    AnActionEvent e){
+      MyTableItem item=myTable.getItemAt(myTable.getSelectedRow());
+      return item != null && item.canEdit();
+    }
+  }
+).disableUpDownActions().createPanel(),BorderLayout.CENTER);
+  new DoubleClickListener(){
+    @Override protected boolean onDoubleClick(    MouseEvent e){
+      if (myTable.getSelectedRowCount() == 1) {
+        myTable.getItemAt(myTable.getSelectedRow()).onDoubleClick();
+        return true;
+      }
+      return false;
+    }
+  }
+.installOn(myTable);
+  FlexBuildConfigurationsExtension.getInstance().getConfigurator().addListener(new FlexBCConfigurator.Listener(){
+    @Override public void moduleRemoved(    Module module){
+      Set<MyTableItem> itemsToRemove=new HashSet<MyTableItem>();
+      for (int row=0; row < myTable.getRowCount(); row++) {
+        MyTableItem item=myTable.getItemAt(row);
+        if (item instanceof BCItem) {
+          FlexBCConfigurable configurable=((BCItem)item).configurable;
+          if (configurable != null && configurable.getModule() == module) {
+            itemsToRemove.add(item);
+          }
+        }
+      }
+      removeItems(itemsToRemove,true);
+    }
+    @Override public void buildConfigurationRemoved(    FlexBCConfigurable configurable){
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        removeItems(Collections.singleton(item.first),true);
+      }
+    }
+    @Override public void buildConfigurationRenamed(    final FlexBCConfigurable configurable){
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        myTable.refreshItemAt(item.second);
+      }
+    }
+    public void natureChanged(    final FlexBCConfigurable configurable){
+      Pair<BCItem,Integer> item=findDependencyItem(configurable);
+      if (item != null) {
+        final BuildConfigurationNature dependencyNature=item.first.configurable.getEditableObject().getNature();
+        if (!FlexCommonUtils.checkDependencyType(myNature.outputType,dependencyNature.outputType,item.first.getLinkageType())) {
+          removeItems(Collections.singleton(item.first),true);
+        }
+      }
+    }
+    @Nullable private Pair<BCItem,Integer> findDependencyItem(    FlexBCConfigurable configurable){
+      if (configurable.isParentFor(DependenciesConfigurable.this)) {
+        return null;
+      }
+      for (int row=0; row < myTable.getRowCount(); row++) {
+        final MyTableItem item=myTable.getItemAt(row);
+        if (item instanceof BCItem && ((BCItem)item).configurable == configurable) {
+          return Pair.create((BCItem)item,row);
+        }
+      }
+      return null;
+    }
+  }
+,myDisposable);
+  myConfigEditor.addModulesModelChangeListener(new FlexProjectConfigurationEditor.ModulesModelChangeListener(){
+    @Override public void modulesModelsChanged(    Collection<Module> modules){
+      FlexBCConfigurator configurator=FlexBuildConfigurationsExtension.getInstance().getConfigurator();
+      for (      Module module : modules) {
+        for (        CompositeConfigurable configurable : configurator.getBCConfigurables(module)) {
+          FlexBCConfigurable flexBCConfigurable=FlexBCConfigurable.unwrap(configurable);
+          if (flexBCConfigurable.isParentFor(DependenciesConfigurable.this)) {
+            resetTable(myDependencies.getSdkEntry(),true);
+          }
+        }
+      }
+    }
+  }
+,myDisposable);
+  UserActivityWatcher watcher=new UserActivityWatcher();
+  watcher.register(myMainPanel);
+  myUserActivityDispatcher=EventDispatcher.create(UserActivityListener.class);
+  watcher.addUserActivityListener(new UserActivityListener(){
+    @Override public void stateChanged(){
+      if (myFreeze) {
+        return;
+      }
+      myUserActivityDispatcher.getMulticaster().stateChanged();
+    }
+  }
+,myDisposable);
+}

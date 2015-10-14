@@ -1,0 +1,18 @@
+{
+  final FlexStackFrame.EvaluateCommand command=myFlexStackFrame.new EvaluateCommand(myExpression + ".length",new XDebuggerEvaluator.XEvaluationCallback(){
+    @Override public void evaluated(    @NotNull XValue result){
+      if (!node.isObsolete()) {
+        final String resultText=((FlexValue)result).myResult;
+        final int index=resultText.indexOf(" (0x");
+        if (index != -1) {
+          final String value=(prefix.isEmpty() ? "" : prefix + ", ") + "size = " + resultText.substring(0,index);
+          node.setPresentation(getIcon(),type,value,true);
+        }
+      }
+    }
+    @Override public void errorOccurred(    @NotNull String errorMessage){
+    }
+  }
+);
+  myDebugProcess.addPendingCommand(new CompositeDebuggerCommand(node,command),100);
+}

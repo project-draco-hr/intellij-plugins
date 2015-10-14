@@ -1,0 +1,31 @@
+{
+  myReset=true;
+  SdkEntry sdkEntry=myDependencies.getSdkEntry();
+  myFreeze=true;
+  try {
+    mySdkCombo.reloadModel(new JdkComboBox.NoneJdkComboBoxItem(),myProject);
+    if (sdkEntry != null) {
+      final Sdk sdk=mySkdsModel.findSdk(sdkEntry.getName());
+      if (sdk != null && (sdk.getSdkType() == FlexSdkType2.getInstance() || sdk.getSdkType() == FlexmojosSdkType.getInstance())) {
+        mySdkCombo.setSelectedJdk(sdk);
+      }
+ else {
+        mySdkCombo.setInvalidJdk(sdkEntry.getName());
+      }
+    }
+ else {
+      mySdkCombo.setSelectedJdk(null);
+    }
+    BCUtils.updateAvailableTargetPlayers(mySdkCombo.getSelectedJdk(),myTargetPlayerCombo);
+    myTargetPlayerCombo.setSelectedItem(myDependencies.getTargetPlayer());
+    overriddenTargetPlayerChanged(null);
+    updateComponentSetCombo();
+    myComponentSetCombo.setSelectedItem(myDependencies.getComponentSet());
+    myFrameworkLinkageCombo.setSelectedItem(myDependencies.getFrameworkLinkage());
+    resetTable(sdkEntry,false);
+    updateControls();
+  }
+  finally {
+    myFreeze=false;
+  }
+}

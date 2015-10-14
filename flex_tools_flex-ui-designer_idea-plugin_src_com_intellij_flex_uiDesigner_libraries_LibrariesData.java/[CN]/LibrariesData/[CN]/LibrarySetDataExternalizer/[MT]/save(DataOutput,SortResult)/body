@@ -1,0 +1,23 @@
+{
+  out.writeShort(value.libraries.size());
+  for (  Library library : value.libraries) {
+    out.writeUTF(library.getFile().getPath());
+  }
+  if (value.definitionMap == null) {
+    out.writeInt(0);
+    return;
+  }
+  out.writeInt(value.definitionMap.size());
+  value.definitionMap.forEachKey(new TObjectProcedure<CharSequence>(){
+    @Override public boolean execute(    CharSequence charSequence){
+      try {
+        out.writeUTF(charSequence.toString());
+      }
+ catch (      IOException e) {
+        throw new RuntimeException(e);
+      }
+      return true;
+    }
+  }
+);
+}

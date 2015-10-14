@@ -1,0 +1,31 @@
+{
+  myTargetPlayer=state.TARGET_PLAYER;
+  myComponentSet=state.COMPONENT_SET;
+  myFrameworkLinkage=LinkageType.valueOf(state.FRAMEWORK_LINKAGE,DEFAULT_FRAMEWORK_LINKAGE);
+  ModulePointerManager pointerManager=ModulePointerManager.getInstance(project);
+  myEntries.clear();
+  for (  EntryState info : state.ENTRIES) {
+    if (info.LIBRARY_ID != null) {
+      ModuleLibraryEntryImpl libraryEntry=new ModuleLibraryEntryImpl(info.LIBRARY_ID);
+      libraryEntry.getDependencyType().loadState(info.DEPENDENCY_TYPE);
+      myEntries.add(libraryEntry);
+    }
+ else     if (info.LIBRARY_NAME != null) {
+      SharedLibraryEntryImpl libraryEntry=new SharedLibraryEntryImpl(info.LIBRARY_NAME,info.LIBRARY_LEVEL);
+      libraryEntry.getDependencyType().loadState(info.DEPENDENCY_TYPE);
+      myEntries.add(libraryEntry);
+    }
+ else     if (info.BC_NAME != null) {
+      BuildConfigurationEntryImpl bcEntry=new BuildConfigurationEntryImpl(pointerManager.create(info.MODULE_NAME),info.BC_NAME);
+      bcEntry.getDependencyType().loadState(info.DEPENDENCY_TYPE);
+      myEntries.add(bcEntry);
+    }
+ else {
+      throw new RuntimeException("unknown entry");
+    }
+  }
+  mySdk=state.SDK != null ? new SdkEntryImpl(state.SDK) : null;
+  if (mySdk != null && mySdk.getName().isEmpty()) {
+    mySdk=null;
+  }
+}

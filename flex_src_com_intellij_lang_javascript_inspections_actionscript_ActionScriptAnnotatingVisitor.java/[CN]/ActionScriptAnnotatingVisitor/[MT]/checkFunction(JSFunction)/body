@@ -1,0 +1,116 @@
+{
+  final ASTNode nameIdentifier=node.findNameIdentifier();
+  if (nameIdentifier == null)   return;
+  PsiElement parent=node.getParent();
+  if (parent instanceof JSFile) {
+    parent=JSResolveUtil.getClassReferenceForXmlFromContext(parent);
+    final String name=node.getName();
+    if (parent instanceof JSClass && name != null && name.equals(((JSClass)parent).getName()) && JavaScriptSupportLoader.isFlexMxmFile(parent.getContainingFile())) {
+      final Annotation annotation=myHolder.createErrorAnnotation(nameIdentifier,JSBundle.message("javascript.validation.message.constructor.in.mxml.is.not.allowed"));
+      annotation.registerFix(new RemoveASTNodeFix("javascript.fix.remove.constructor",node.getNode()));
+    }
+  }
+  if (parent instanceof JSPackageStatement) {
+    checkNamedObjectIsInCorrespondingFile(node);
+  }
+  if (parent instanceof JSClass && !node.isConstructor()) {
+    final JSAttributeList attributeList=node.getAttributeList();
+    final JSClass clazz=(JSClass)parent;
+    if (attributeList == null || !attributeList.hasModifier(JSAttributeList.ModifierType.STATIC) && (attributeList.getAccessType() != JSAttributeList.AccessType.PRIVATE || attributeList.hasModifier(JSAttributeList.ModifierType.OVERRIDE))) {
+      final String qName=clazz.getQualifiedName();
+      final boolean hasOverride=attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.OVERRIDE);
+      final Ref<JSFunction> set=new Ref<JSFunction>();
+      boolean b=JSResolveUtil.iterateType(node,parent,qName,new JSResolveUtil.OverrideHandler(){
+        public boolean process(        final SinkResolveProcessor processor,        final PsiElement scope,        final String className){
+          if (qName == className || qName != null && qName.equals(className))           return true;
+          JSFunction value=(JSFunction)processor.getResult();
+          set.set(value);
+          DialectOptionHolder holder;
+          if ("Object".equals(className)) {
+            if (hasOverride && !attributeList.hasModifier(JSAttributeList.ModifierType.NATIVE)) {
+              final ASTNode astNode=attributeList.getNode().findChildByType(JSTokenTypes.OVERRIDE_KEYWORD);
+              final Annotation annotation=myHolder.createErrorAnnotation(astNode,JSBundle.message("javascript.validation.message.function.override.for.object.method"));
+              annotation.registerFix(new RemoveASTNodeFix("javascript.fix.remove.override.modifier",astNode));
+            }
+            return false;
+          }
+ else           if (!hasOverride && (holder=myHighlighter.getDialectOptionsHolder()) != null && holder.isECMA4) {
+            final Annotation annotation=myHolder.createErrorAnnotation(nameIdentifier,JSBundle.message("javascript.validation.message.function.override.without.override.modifier",className));
+            annotation.registerFix(new AddOverrideIntentionAction(node));
+          }
+ else {
+            JSAttributeList attrList=value.getAttributeList();
+            JSAttributeList parentAttrList=((JSAttributeListOwner)scope).getAttributeList();
+            if (attrList != null && attrList.hasModifier(JSAttributeList.ModifierType.FINAL) || parentAttrList != null && parentAttrList.hasModifier(JSAttributeList.ModifierType.FINAL)) {
+              myHolder.createErrorAnnotation(attributeList.getNode().findChildByType(JSTokenTypes.OVERRIDE_KEYWORD),JSBundle.message("javascript.validation.message.can.not.override.final.method",className));
+            }
+          }
+          if (clazz.isInterface()) {
+            myHolder.createErrorAnnotation(nameIdentifier,JSBundle.message("javascript.validation.message.function.override.for.interface",className));
+          }
+          return false;
+        }
+      }
+);
+      if (b && hasOverride) {
+        final ASTNode astNode=attributeList.getNode().findChildByType(JSTokenTypes.OVERRIDE_KEYWORD);
+        final Annotation annotation=myHolder.createErrorAnnotation(astNode,JSBundle.message("javascript.validation.message.function.override.without.parent.method"));
+        annotation.registerFix(new RemoveASTNodeFix("javascript.fix.remove.override.modifier",astNode));
+      }
+      if (!b && hasOverride) {
+        final JSFunction override=set.get();
+        final JSAttributeList overrideAttrList=override.getAttributeList();
+        String overrideNs=null;
+        if (attributeList.getAccessType() != overrideAttrList.getAccessType() || (overrideNs=JSResolveUtil.getNamespaceValue(overrideAttrList)) != null && !overrideNs.equals(JSResolveUtil.getNamespaceValue(attributeList))) {
+          String newVisibility;
+          SetElementVisibilityFix fix;
+          if (overrideNs != null) {
+            newVisibility=overrideNs;
+            fix=new SetElementVisibilityFix(node,overrideNs);
+          }
+ else {
+            newVisibility=JSFormatUtil.formatVisibility(overrideAttrList.getAccessType());
+            fix=new SetElementVisibilityFix(node,overrideAttrList.getAccessType());
+          }
+          final Annotation annotation=myHolder.createErrorAnnotation(findElementForAccessModifierError(node,attributeList),JSBundle.message("javascript.validation.message.function.override.incompatible.access.modifier",newVisibility));
+          annotation.registerFix(fix);
+        }
+        final SignatureMatchResult incompatibleSignature=checkCompatibleSignature(node,override);
+        if (incompatibleSignature == SignatureMatchResult.PARAMETERS_DIFFERS) {
+          final JSParameterList nodeParameterList=node.getParameterList();
+          final JSParameterList overrideParameterList=override.getParameterList();
+          final Annotation annotation=myHolder.createErrorAnnotation(nodeParameterList != null ? nodeParameterList.getNode() : node.findNameIdentifier(),JSBundle.message("javascript.validation.message.function.override.incompatible.signature",overrideParameterList != null ? overrideParameterList.getText() : "()"));
+          annotation.registerFix(new ChangeSignatureFix(node,overrideParameterList,false){
+            @NotNull public String getText(){
+              return JSBundle.message("javascript.fix.message.change.parameters.to.expected");
+            }
+          }
+);
+          annotation.registerFix(new ChangeSignatureFix(override,nodeParameterList,true));
+        }
+ else         if (incompatibleSignature == SignatureMatchResult.RETURN_TYPE_DIFFERS) {
+          PsiElement returnTypeExpr=node.getReturnTypeElement();
+          JSType type=override.getReturnType();
+          final String baseReturnType=type != null ? type.getResolvedTypeText() : null;
+          String msg=JSBundle.message("javascript.validation.message.function.override.incompatible.signature2",StringUtil.notNullize(baseReturnType));
+          final Annotation annotation=myHolder.createErrorAnnotation(returnTypeExpr != null ? returnTypeExpr.getNode() : node.findNameIdentifier(),msg);
+          annotation.registerFix(new ChangeTypeFix(node,baseReturnType,"javascript.fix.message.change.return.type.to.expected"));
+          annotation.registerFix(createChangeBaseMethodSignatureFix(override,node));
+        }
+ else         if (incompatibleSignature == SignatureMatchResult.FUNCTION_KIND_DIFFERS) {
+          String msg=JSBundle.message("javascript.validation.message.function.override.incompatible.signature3",override.getKind().toString());
+          final Annotation annotation=myHolder.createErrorAnnotation(node.findNameIdentifier(),msg);
+        }
+      }
+    }
+ else     if (attributeList.hasModifier(JSAttributeList.ModifierType.STATIC)) {
+      if (clazz.isInterface()) {
+        reportStaticMethodProblem(attributeList,"javascript.validation.message.static.method.in.interface");
+      }
+      if (attributeList.hasModifier(JSAttributeList.ModifierType.OVERRIDE)) {
+        reportStaticMethodProblem(attributeList,"javascript.validation.message.static.method.with.override");
+      }
+    }
+  }
+  super.checkFunction(node);
+}

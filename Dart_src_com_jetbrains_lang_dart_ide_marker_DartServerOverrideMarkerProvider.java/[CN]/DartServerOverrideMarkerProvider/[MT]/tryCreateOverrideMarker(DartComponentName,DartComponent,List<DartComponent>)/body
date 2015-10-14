@@ -1,0 +1,38 @@
+{
+  if (superclassComponent == null && interfaceComponents.isEmpty()) {
+    return null;
+  }
+  final String name=componentName.getName();
+  final boolean overrides;
+  final DartComponent superComponent;
+  if (superclassComponent != null) {
+    overrides=true;
+    superComponent=superclassComponent;
+  }
+ else {
+    overrides=false;
+    superComponent=interfaceComponents.iterator().next();
+  }
+  final Icon icon=overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
+  return new LineMarkerInfo<PsiElement>(componentName,componentName.getTextRange(),icon,Pass.UPDATE_ALL,new Function<PsiElement,String>(){
+    @Override public String fun(    PsiElement element){
+      final DartClass superClass=PsiTreeUtil.getParentOfType(superComponent,DartClass.class);
+      if (superClass == null)       return "null";
+      if (overrides) {
+        return DartBundle.message("overrides.method.in",name,superClass.getName());
+      }
+      return DartBundle.message("implements.method.in",name,superClass.getName());
+    }
+  }
+,new GutterIconNavigationHandler<PsiElement>(){
+    @Override public void navigate(    MouseEvent e,    PsiElement elt){
+      List<DartComponent> superComponents=Lists.newArrayList();
+      if (superclassComponent != null) {
+        superComponents.add(superclassComponent);
+      }
+      superComponents.addAll(interfaceComponents);
+      PsiElementListNavigator.openTargets(e,DartResolveUtil.getComponentNameArray(superComponents),DaemonBundle.message("navigation.title.super.method",name),DaemonBundle.message("navigation.findUsages.title.super.method",name),new DefaultPsiElementCellRenderer());
+    }
+  }
+,GutterIconRenderer.Alignment.LEFT);
+}

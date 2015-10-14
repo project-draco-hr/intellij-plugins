@@ -1,0 +1,15 @@
+{
+  final XSourcePosition position=xBreakpoint.getSourcePosition();
+  if (position == null || position.getFile().getFileType() != DartFileType.INSTANCE) {
+    consumer.sourcePositionNotApplicable();
+    return;
+  }
+  addRequest(new Runnable(){
+    @Override public void run(){
+      final String uri=myDebugProcess.getUriForFile(position.getFile());
+      final int line=position.getLine() + 1;
+      myVmService.addBreakpointWithScriptUri(isolateId,uri,line,1,consumer);
+    }
+  }
+);
+}

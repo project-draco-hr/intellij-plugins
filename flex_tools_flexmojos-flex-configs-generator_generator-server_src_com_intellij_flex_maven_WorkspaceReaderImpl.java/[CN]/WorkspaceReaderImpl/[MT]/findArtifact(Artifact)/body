@@ -1,0 +1,36 @@
+{
+  final ArtifactData data=map.get(new ArtifactKey(artifact.getGroupId(),artifact.getArtifactId(),artifact.getVersion()));
+  if (data == null) {
+    return null;
+  }
+  if (data.file == null) {
+    data.file=new File(data.filePath);
+  }
+  final String ext=artifact.getExtension();
+  boolean isResourceBundle=false;
+  boolean isLinkReport=false;
+  if (!"sources".equals(artifact.getClassifier()) && (ext.equals("swc") || ext.equals("swf") || ext.equals("air")|| (isResourceBundle=ext.equals("rb.swc"))|| (isLinkReport=ext.equals("xml") && "link-report".equals(artifact.getClassifier())))) {
+    if (data.outputFile == null) {
+      try {
+        generatorServer.resolveOutputs(data);
+      }
+ catch (      Exception e) {
+        generatorServer.getLogger().warn("Error while resolve output file for " + artifact.toString(),e);
+        return null;
+      }
+    }
+    if (artifact.getClassifier() != null) {
+      if (isResourceBundle) {
+        return new File(data.localeOutputFilepathPattern.replace("{_locale_}",artifact.getClassifier()));
+      }
+ else       if (isLinkReport) {
+        return data.linkReport;
+      }
+    }
+    return data.outputFile;
+  }
+ else   if (!(ext.equals(POM_EXTENSION) || ext.equals("jar") || ext.equals("css")|| ext.isEmpty())) {
+    generatorServer.getLogger().warn("Found artifact must be flash artifact (swc or swf), css or jar: " + artifact);
+  }
+  return data.file;
+}

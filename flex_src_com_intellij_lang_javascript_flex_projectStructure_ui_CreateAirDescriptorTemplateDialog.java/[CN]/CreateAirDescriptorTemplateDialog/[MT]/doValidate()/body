@@ -1,0 +1,44 @@
+{
+  final String fileName=myDescriptorFileNameTextField.getText().trim();
+  if (fileName.isEmpty()) {
+    return new ValidationInfo("Descriptor file name not set",myDescriptorFileNameTextField);
+  }
+  if (!fileName.toLowerCase().endsWith(".xml")) {
+    return new ValidationInfo("Descriptor file name must have xml extension",myDescriptorFileNameTextField);
+  }
+  final String folderPath=myDescriptorFolderTextWithBrowse.getText().trim();
+  if (folderPath.isEmpty()) {
+    return new ValidationInfo("Folder is not set",myDescriptorFolderTextWithBrowse);
+  }
+  final VirtualFile dir=LocalFileSystem.getInstance().findFileByPath(folderPath);
+  if (dir != null && !dir.isDirectory()) {
+    return new ValidationInfo("Folder for AIR descriptor must be specified",myDescriptorFolderTextWithBrowse);
+  }
+  final String airVersion=((String)myAirVersionCombo.getSelectedItem()).trim();
+  if (airVersion.isEmpty()) {
+    return new ValidationInfo("AIR version is not set",myAirVersionCombo);
+  }
+  if (!VERSION_PATTERN.matcher(airVersion).matches()) {
+    return new ValidationInfo("Incorrect AIR version",myAirVersionCombo);
+  }
+  final String appId=myAppIdTextField.getText().trim();
+  if (appId.isEmpty()) {
+    return new ValidationInfo("Application ID is required",myAppIdTextField);
+  }
+  if (!appId.equals(FlexCommonUtils.fixApplicationId(appId))) {
+    return new ValidationInfo("Application ID must contain only following symbols: 0-9, a-z, A-Z, '.', '-'",myAppIdTextField);
+  }
+  if (myAppNameTextField.getText().trim().isEmpty()) {
+    return new ValidationInfo("Application name is required",myAppNameTextField);
+  }
+  final String appVersion=myAppVersionTextField.getText().trim();
+  if (appVersion.isEmpty()) {
+    return new ValidationInfo("Application version is not set",myAppVersionTextField);
+  }
+  if (StringUtil.compareVersionNumbers(airVersion,"2.5") >= 0) {
+    if (!VERSION_PATTERN.matcher(appVersion).matches()) {
+      return new ValidationInfo("Application version must have following format: [0-999].[0-999].[0-999]",myAppVersionTextField);
+    }
+  }
+  return null;
+}

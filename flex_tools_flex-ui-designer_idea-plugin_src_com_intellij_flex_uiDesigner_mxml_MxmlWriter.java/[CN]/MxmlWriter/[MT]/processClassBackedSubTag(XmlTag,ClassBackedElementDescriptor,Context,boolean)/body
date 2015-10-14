@@ -1,0 +1,35 @@
+{
+  final boolean allowIncludeInExcludeFrom=hasStates && isListItem && parentContext != null;
+  final Trinity<Integer,String,Condition<AnnotationBackedDescriptor>> effectiveClassInfo;
+  final String effectiveClassName;
+  try {
+    if (propertyProcessor.writeTagIfFxOrFxg(tag,descriptor,parentContext,allowIncludeInExcludeFrom,out)) {
+      return true;
+    }
+    effectiveClassInfo=MxmlUtil.computeEffectiveClass(tag,descriptor.getDeclaration(),projectComponentReferenceCounter,true);
+    if ("mx.core.UIComponent".equals(effectiveClassInfo.second)) {
+      effectiveClassName=MxmlUtil.UNKNOWN_COMPONENT_CLASS_NAME;
+    }
+ else {
+      effectiveClassName=effectiveClassInfo.second;
+    }
+  }
+ catch (  InvalidPropertyException e) {
+    problemsHolder.add(e);
+    return false;
+  }
+  final int childDataPosition=out.size();
+  if (effectiveClassInfo.first == -1) {
+    if (isListItem) {
+      out.write(Amf3Types.OBJECT);
+    }
+    writer.classOrPropertyName(effectiveClassName == null ? descriptor.getQualifiedName() : effectiveClassName);
+  }
+ else {
+    if (!isListItem) {
+      writer.getBlockOut().setPosition(writer.getBlockOut().size() - 1);
+    }
+    writer.documentReference(effectiveClassInfo.first);
+  }
+  return processElements(tag,parentContext,allowIncludeInExcludeFrom,childDataPosition,out.allocateClearShort(),JSResolveUtil.isAssignableType(FlexCommonTypeNames.IVISUAL_ELEMENT,descriptor.getQualifiedName(),descriptor.getDeclaration()) || JSResolveUtil.isAssignableType(FlexCommonTypeNames.FLASH_DISPLAY_OBJECT,descriptor.getQualifiedName(),descriptor.getDeclaration()),effectiveClassInfo.third);
+}

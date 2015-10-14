@@ -1,0 +1,37 @@
+{
+  buffer.position(buffer.position() + 4);
+  int n=AbcUtil.readU32(buffer);
+  while (n-- > 1) {
+    AbcUtil.readU32(buffer);
+  }
+  n=AbcUtil.readU32(buffer);
+  while (n-- > 1) {
+    AbcUtil.readU32(buffer);
+  }
+  n=AbcUtil.readU32(buffer);
+  if (n != 0) {
+    buffer.position(buffer.position() + ((n - 1) * 8));
+  }
+  n=AbcUtil.readU32(buffer);
+  final CharsetEncoder charsetEncoder=Charsets.UTF_8.newEncoder().onMalformedInput(CodingErrorAction.REPLACE).onUnmappableCharacter(CodingErrorAction.REPLACE);
+  o:   while (n-- > 1) {
+    int l=AbcUtil.readU32(buffer);
+    buffer.limit(buffer.position() + l);
+    buffer.mark();
+    final CharBuffer charBuffer=Charsets.UTF_8.decode(buffer);
+    buffer.limit(buffer.capacity());
+    int index=0;
+    do {
+      index=CharArrayUtil.indexOf(charBuffer,from,index);
+      if (index == -1 || (index > 0 && !isSpecialSymbol(charBuffer.get(index - 1)))) {
+        continue o;
+      }
+      charBuffer.put(index,OVERLOADED_AND_BACKED_CLASS_MARK);
+      index+=from.length();
+    }
+ while (index < charBuffer.length());
+    buffer.reset();
+    charsetEncoder.encode(charBuffer,buffer,true);
+    charsetEncoder.reset();
+  }
+}

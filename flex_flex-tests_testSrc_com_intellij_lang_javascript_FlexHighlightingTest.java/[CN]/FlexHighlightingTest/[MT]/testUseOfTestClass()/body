@@ -1,0 +1,21 @@
+{
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          ModifiableRootModel m=ModuleRootManager.getInstance(myModule).getModifiableModel();
+          ContentEntry contentEntry=m.getContentEntries()[0];
+          SourceFolder sourceFolder=contentEntry.getSourceFolders()[0];
+          contentEntry.removeSourceFolder(sourceFolder);
+          contentEntry.addSourceFolder(contentEntry.getFile().findChild("src"),false);
+          contentEntry.addSourceFolder(contentEntry.getFile().findChild("tests"),true);
+          m.commit();
+        }
+      }
+);
+    }
+  }
+;
+  File projectRoot=new File(getTestDataPath() + getBasePath() + "/"+ getTestName(false));
+  doTestFor(false,projectRoot,(Runnable)null,getTestName(false) + "/src/Main.mxml");
+}

@@ -1,0 +1,16 @@
+{
+  final Collection<FlexCompilationTask> tasksToCancel=new ArrayList<FlexCompilationTask>();
+  for (  FlexCompilationTask notStartedTask : myNotStartedTasks) {
+    if (notStartedTask.getDependencies().contains(task.getBC())) {
+      tasksToCancel.add(notStartedTask);
+    }
+  }
+  for (  FlexCompilationTask taskToCancel : tasksToCancel) {
+    taskToCancel.cancel();
+    if (myNotStartedTasks.remove(taskToCancel)) {
+      myFinishedTasks.add(taskToCancel);
+      cancelledTasks.add(taskToCancel);
+      appendAndCancelNotStartedDependentTasks(cancelledTasks,taskToCancel);
+    }
+  }
+}

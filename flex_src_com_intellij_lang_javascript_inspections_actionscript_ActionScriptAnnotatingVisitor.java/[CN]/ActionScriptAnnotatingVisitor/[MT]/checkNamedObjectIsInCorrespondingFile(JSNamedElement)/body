@@ -1,0 +1,32 @@
+{
+  final PsiFile containingFile=aClass.getContainingFile();
+  if (containingFile.getContext() != null)   return;
+  final VirtualFile file=containingFile.getVirtualFile();
+  if (file != null && !file.getNameWithoutExtension().equals(aClass.getName()) && ProjectRootManager.getInstance(containingFile.getProject()).getFileIndex().getSourceRootForFile(file) != null) {
+    final ASTNode node=aClass.findNameIdentifier();
+    if (node != null) {
+      final String name=aClass.getName();
+      String nameWithExtension=name + "." + file.getExtension();
+      final String message=JSBundle.message(aClass instanceof JSClass ? "javascript.validation.message.class.should.be.in.file" : aClass instanceof JSNamespaceDeclaration ? "javascript.validation.message.namespace.should.be.in.file" : aClass instanceof JSVariable ? "javascript.validation.message.variable.should.be.in.file" : "javascript.validation.message.function.should.be.in.file",name,nameWithExtension);
+      final Annotation annotation=myHolder.createErrorAnnotation(node,message);
+      annotation.registerFix(new RenameFileFix(nameWithExtension));
+      annotation.registerFix(new RenameElementFix(aClass){
+        final String text;
+        final String familyName;
+{
+          String term=message.substring(0,message.indexOf(' '));
+          text=super.getText().replace("class",StringUtil.decapitalize(term));
+          familyName=super.getFamilyName().replace("Class",term);
+        }
+        @NotNull @Override public String getText(){
+          return text;
+        }
+        @NotNull @Override public String getFamilyName(){
+          return familyName;
+        }
+      }
+);
+    }
+  }
+  checkFileUnderSourceRoot(aClass,new SimpleErrorReportingClient());
+}

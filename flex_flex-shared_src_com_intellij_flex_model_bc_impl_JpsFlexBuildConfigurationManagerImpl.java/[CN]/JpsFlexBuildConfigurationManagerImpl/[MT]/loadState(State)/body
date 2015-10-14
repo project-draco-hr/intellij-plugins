@@ -1,0 +1,15 @@
+{
+  final JpsElementCollection<JpsFlexBuildConfiguration> bcs=myContainer.getChild(JpsFlexBuildConfigurationImpl.COLLECTION_ROLE);
+  LOG.assertTrue(bcs.getElements().size() == 0);
+  for (  JpsFlexBCState configurationState : state.CONFIGURATIONS) {
+    JpsFlexBuildConfigurationImpl bc=new JpsFlexBuildConfigurationImpl(configurationState.NAME);
+    bc.loadState(configurationState);
+    bcs.addChild(bc);
+  }
+  if (bcs.getElements().isEmpty()) {
+    LOG.warn("Flex build configurations not loaded from *.iml.");
+    bcs.addChild(new JpsFlexBuildConfigurationImpl(JpsFlexBuildConfiguration.UNNAMED));
+  }
+  updateActiveConfiguration(state.ACTIVE_BC_NAME);
+  ((JpsFlexCompilerOptionsImpl)getModuleLevelCompilerOptions()).loadState(state.MODULE_LEVEL_COMPILER_OPTIONS);
+}

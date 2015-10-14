@@ -1,0 +1,19 @@
+{
+  for (  LinkedEditGroup group : sourceChange.getLinkedEditGroups()) {
+    final List<Position> positions=group.getPositions();
+    if (!positions.isEmpty()) {
+      final Position position=positions.get(0);
+      final String path=position.getFile();
+      VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
+      if (virtualFile == null) {
+        return null;
+      }
+      final PsiFile psiFile=PsiManager.getInstance(project).findFile(virtualFile);
+      if (psiFile == null) {
+        return null;
+      }
+      return new ChangeTarget(project,path,position.getOffset(),virtualFile,psiFile);
+    }
+  }
+  return null;
+}

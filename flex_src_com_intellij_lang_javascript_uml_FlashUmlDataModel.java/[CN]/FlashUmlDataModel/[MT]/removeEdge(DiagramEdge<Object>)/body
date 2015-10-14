@@ -1,0 +1,33 @@
+{
+  final Object source=edge.getSource().getIdentifyingElement();
+  final Object target=edge.getTarget().getIdentifyingElement();
+  final DiagramRelationshipInfo relationship=edge.getRelationship();
+  if (!(source instanceof JSClass) || !(target instanceof JSClass) || relationship == DiagramRelationshipInfo.NO_RELATIONSHIP) {
+    return;
+  }
+  final JSClass fromClass=(JSClass)source;
+  final JSClass toClass=(JSClass)target;
+  if (JSProjectUtil.isInLibrary(fromClass)) {
+    return;
+  }
+  if (fromClass instanceof XmlBackedJSClassImpl && !toClass.isInterface()) {
+    Messages.showErrorDialog(fromClass.getProject(),FlexBundle.message("base.component.needed.message"),FlexBundle.message("remove.edge.title"));
+    return;
+  }
+  if (Messages.showYesNoDialog(fromClass.getProject(),FlexBundle.message("remove.inheritance.link.prompt",fromClass.getQualifiedName(),toClass.getQualifiedName()),FlexBundle.message("remove.edge.title"),Messages.getQuestionIcon()) != Messages.YES) {
+    return;
+  }
+  final Runnable runnable=new Runnable(){
+    public void run(){
+      JSReferenceList refList=!fromClass.isInterface() && toClass.isInterface() ? fromClass.getImplementsList() : fromClass.getExtendsList();
+      List<FormatFixer> formatters=new ArrayList<FormatFixer>();
+      JSRefactoringUtil.removeFromReferenceList(refList,toClass,formatters);
+      if (!(fromClass instanceof XmlBackedJSClassImpl) && needsImport(fromClass,toClass)) {
+        formatters.addAll(ECMAScriptImportOptimizer.executeNoFormat(fromClass.getContainingFile()));
+      }
+      FormatFixer.fixAll(formatters);
+    }
+  }
+;
+  DiagramAction.performCommand(getBuilder(),runnable,FlexBundle.message("remove.relationship.command.name"),null,fromClass.getContainingFile());
+}

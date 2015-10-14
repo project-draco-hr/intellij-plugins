@@ -1,0 +1,20 @@
+{
+  if (element instanceof JSClass) {
+    for (    PsiElement elt : JSResolveUtil.getStubbedChildren(element.getParent())) {
+      if (elt == element)       break;
+      if (elt instanceof JSIncludeDirective) {
+        String text=((JSIncludeDirective)elt).getIncludeText();
+        if (text != null)         result.add(text);
+      }
+    }
+  }
+  for (  PsiElement elt : JSResolveUtil.getStubbedChildren(element)) {
+    if (elt instanceof JSIncludeDirective) {
+      String text=((JSIncludeDirective)elt).getIncludeText();
+      if (text != null)       result.add(text);
+    }
+ else     if (elt instanceof JSAttributeList || elt instanceof JSAttributeListOwner) {
+      collectAllIncludes(elt,result);
+    }
+  }
+}

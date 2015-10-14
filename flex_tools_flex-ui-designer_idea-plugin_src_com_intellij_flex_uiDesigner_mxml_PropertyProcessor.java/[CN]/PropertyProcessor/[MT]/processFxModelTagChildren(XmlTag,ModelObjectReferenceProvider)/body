@@ -1,0 +1,39 @@
+{
+  writer.objectHeader("mx.utils.ObjectProxy");
+  final XmlTag[] parentSubTags=parent.getSubTags();
+  for (  XmlTag tag : parentSubTags) {
+    final String tagLocalName=tag.getLocalName();
+    final XmlTag[] subTags=parent.findSubTags(tagLocalName,tag.getNamespace());
+    if (subTags.length > 1) {
+      writer.property(tagLocalName);
+      final int lengthPosition=writer.arrayHeader();
+      int length=0;
+      ModelObjectReferenceProvider subObjectReferenceProvider=null;
+      for (      XmlTag subTag : subTags) {
+        final int result=writeFxModelTagIfContainsXmlText(subTag,null,parentObjectReferenceProvider);
+        if (result == 1) {
+          length++;
+        }
+ else         if (result == 0) {
+          if (subObjectReferenceProvider == null) {
+            subObjectReferenceProvider=new ModelObjectReferenceProvider(writer);
+          }
+          if (processFxModelTagChildren(subTag,subObjectReferenceProvider)) {
+            length++;
+          }
+          subObjectReferenceProvider.reference=null;
+        }
+      }
+      writer.getOut().putShort(length,lengthPosition);
+    }
+ else     if (writeFxModelTagIfContainsXmlText(tag,tagLocalName,parentObjectReferenceProvider) == 0) {
+      writer.property(tagLocalName);
+      processFxModelTagChildren(tag,new ModelObjectReferenceProvider(writer));
+    }
+  }
+  for (  final XmlAttribute attribute : parent.getAttributes()) {
+    mxmlWriter.writeSimpleAttributeBackedProperty(attribute,new AnyXmlAttributeDescriptorWrapper(attribute.getDescriptor()),parentObjectReferenceProvider);
+  }
+  writer.endObject();
+  return true;
+}

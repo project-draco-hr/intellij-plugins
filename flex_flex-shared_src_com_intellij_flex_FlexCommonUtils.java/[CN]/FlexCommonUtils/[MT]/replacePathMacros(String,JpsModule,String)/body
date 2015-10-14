@@ -1,0 +1,30 @@
+{
+  String preResult=StringUtil.replace(text,CompilerOptionInfo.FLEX_SDK_MACRO,sdkRootPath);
+  final File moduleDir=JpsModelSerializationDataService.getBaseDirectory(module);
+  if (moduleDir != null) {
+    preResult=StringUtil.replace(preResult,"${MODULE_DIR}",moduleDir.getPath());
+  }
+  final File projectDir=JpsModelSerializationDataService.getBaseDirectory(module.getProject());
+  if (projectDir != null) {
+    preResult=StringUtil.replace(preResult,"${PROJECT_DIR}",projectDir.getPath());
+  }
+  preResult=StringUtil.replace(preResult,"${USER_HOME}",SystemProperties.getUserHome());
+  final StringBuilder builder=new StringBuilder(preResult);
+  int startIndex;
+  int endIndex=0;
+  while ((startIndex=builder.indexOf("${",endIndex)) >= 0) {
+    endIndex=builder.indexOf("}",startIndex);
+    if (endIndex > startIndex) {
+      final String macroName=builder.substring(startIndex + 2,endIndex);
+      final String macroValue=JpsModelSerializationDataService.getPathVariableValue(module.getProject().getModel().getGlobal(),macroName);
+      if (macroValue != null && !StringUtil.isEmptyOrSpaces(macroValue)) {
+        builder.replace(startIndex,endIndex + 1,macroValue);
+        endIndex=endIndex + macroValue.length() - (macroName.length() + 3);
+      }
+    }
+ else {
+      break;
+    }
+  }
+  return builder.toString();
+}

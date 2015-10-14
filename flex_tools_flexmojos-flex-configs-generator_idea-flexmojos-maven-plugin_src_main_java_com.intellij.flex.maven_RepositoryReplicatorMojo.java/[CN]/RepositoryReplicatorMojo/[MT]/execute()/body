@@ -1,0 +1,59 @@
+{
+  final String localRepositoryBasedir=session.getLocalRepository().getBasedir();
+  File localRepositoryFile=new File(localRepositoryBasedir);
+  localRepositoryBasedirLength=localRepositoryBasedir.length();
+  try {
+    final PluginDescriptor pluginDescriptor=pluginManager.getPluginDescriptor(session.getTopLevelProject().getPlugin("org.sonatype.flexmojos:flexmojos-maven-plugin"),session.getCurrentProject().getRemotePluginRepositories(),session.getRepositorySession());
+    final File compilerLibsDirectory=new File(outputDirectory,"../build-gant/compiler-libs");
+    compilerLibsDirectory.mkdirs();
+    for (    ComponentDependency dependency : pluginDescriptor.getDependencies()) {
+      if (dependency.getGroupId().equals("com.adobe.flex.compiler") && dependency.getType().equals("jar")) {
+        final String artifactId=dependency.getArtifactId();
+        if (artifactId.equals("adt") || artifactId.equals("asdoc") || artifactId.equals("digest")|| artifactId.equals("fcsh")|| artifactId.equals("fdb")|| artifactId.equals("optimizer")|| artifactId.equals("swcdepends")) {
+          continue;
+        }
+        copyIfLastModifiedNotEquals(new File(localRepositoryFile,"com/adobe/flex/compiler/" + artifactId + "/"+ dependency.getVersion()+ "/"+ artifactId+ "-"+ dependency.getVersion()+ ".jar"),new File(compilerLibsDirectory,artifactId + ".jar"));
+      }
+    }
+  }
+ catch (  Exception e) {
+    throw new MojoExecutionException("Cannot find flemxojos maven plugin",e);
+  }
+  if (outputDirectory.exists()) {
+    try {
+      FileUtils.deleteDirectory(outputDirectory);
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("",e);
+    }
+  }
+  outputDirectory.mkdirs();
+  for (  MavenProject project : session.getProjects()) {
+    copiedArtifacts.add(project.getArtifact());
+    try {
+      copyProjectArtifacts(localRepositoryFile,project);
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("",e);
+    }
+    for (    Plugin plugin : project.getBuildPlugins()) {
+      if (plugin.getGroupId().startsWith("org.apache.maven")) {
+        continue;
+      }
+      try {
+        resolveAndCopyArtifact(repositorySystem.createPluginArtifact(plugin));
+      }
+ catch (      IOException e) {
+        throw new MojoExecutionException("",e);
+      }
+    }
+  }
+  for (  MavenProject project : session.getProjects()) {
+    try {
+      copyParentPom(project.getParent());
+    }
+ catch (    IOException e) {
+      throw new MojoExecutionException("",e);
+    }
+  }
+}

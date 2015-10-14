@@ -1,0 +1,21 @@
+{
+  if (myRunnerParameters instanceof RemoteFlashRunnerParameters) {
+    final RemoteDebugTarget remoteDebugTarget=((RemoteFlashRunnerParameters)myRunnerParameters).getRemoteDebugTarget();
+    final AirMobileDebugTransport mobileDebugTransport=((RemoteFlashRunnerParameters)myRunnerParameters).getDebugTransport();
+    final int usbDebugPort=((RemoteFlashRunnerParameters)myRunnerParameters).getUsbDebugPort();
+    final String message;
+    if (remoteDebugTarget == RemoteDebugTarget.Computer) {
+      message=FlexBundle.message("remote.flash.debug.computer",FlexUtils.getOwnIpAddress());
+    }
+ else {
+      final String device=remoteDebugTarget == RemoteDebugTarget.AndroidDevice ? "Android" : "iOS";
+      message=mobileDebugTransport == AirMobileDebugTransport.Network ? FlexBundle.message("remote.flash.debug.mobile.network",device,FlexUtils.getOwnIpAddress()) : FlexBundle.message("remote.flash.debug.mobile.usb",device,String.valueOf(usbDebugPort));
+    }
+    ApplicationManager.getApplication().invokeLater(new Runnable(){
+      @Override public void run(){
+        ToolWindowManager.getInstance(getSession().getProject()).notifyByBalloon(ToolWindowId.DEBUG,MessageType.INFO,message);
+      }
+    }
+);
+  }
+}

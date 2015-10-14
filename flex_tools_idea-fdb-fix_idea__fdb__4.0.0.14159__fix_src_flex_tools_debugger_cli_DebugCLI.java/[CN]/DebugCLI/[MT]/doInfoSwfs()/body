@@ -1,0 +1,40 @@
+{
+  try {
+    StringBuilder sb=new StringBuilder();
+    SwfInfo[] swfs=m_fileInfo.getSwfs();
+    for (int i=0; i < swfs.length; i++) {
+      SwfInfo e=swfs[i];
+      if (e == null || e.isUnloaded())       continue;
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("swfName",FileInfoCache.nameOfSwf(e));
+      args.put("size",NumberFormat.getInstance().format(e.getSwfSize()));
+      try {
+        int size=e.getSwdSize(m_session);
+        SourceFile[] files=e.getSourceList(m_session);
+        int max=Integer.MIN_VALUE;
+        int min=Integer.MAX_VALUE;
+        for (int j=0; j < files.length; j++) {
+          SourceFile f=files[j];
+          int id=f.getId();
+          max=(id > max) ? id : max;
+          min=(id < min) ? id : min;
+        }
+        args.put("scriptCount",Integer.toString(e.getSourceCount(m_session)));
+        args.put("min",Integer.toString(min));
+        args.put("max",Integer.toString(max));
+        args.put("plus",(e.isProcessingComplete()) ? "+" : "");
+        args.put("moreInfo",(size == 0) ? getLocalizationManager().getLocalizedTextString("remainingSourceBeingLoaded") : "");
+      }
+ catch (      InProgressException ipe) {
+        sb.append(getLocalizationManager().getLocalizedTextString("debugInfoBeingLoaded"));
+      }
+      args.put("url",e.getUrl());
+      sb.append(getLocalizationManager().getLocalizedTextString("swfInfo",args));
+      sb.append(m_newline);
+    }
+    out(sb.toString());
+  }
+ catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("noSWFs"));
+  }
+}

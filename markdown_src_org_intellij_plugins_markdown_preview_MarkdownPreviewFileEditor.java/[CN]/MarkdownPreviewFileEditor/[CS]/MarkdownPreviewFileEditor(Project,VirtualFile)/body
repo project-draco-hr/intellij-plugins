@@ -1,0 +1,25 @@
+{
+  myFile=file;
+  myDocument=FileDocumentManager.getInstance().getDocument(myFile);
+  if (myDocument != null) {
+    myDocument.addDocumentListener(new DocumentAdapter(){
+      @Override public void beforeDocumentChange(      DocumentEvent e){
+        myAlarm.cancelAllRequests();
+      }
+      @Override public void documentChanged(      final DocumentEvent e){
+        myAlarm.addRequest(new Runnable(){
+          @Override public void run(){
+            updateHtml(true);
+          }
+        }
+,PARSING_CALL_TIMEOUT_MS);
+      }
+    }
+,this);
+  }
+  myPanel=new MarkdownHtmlPanel();
+  myPanel.setHtml("<html></html>");
+  MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
+  settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,mySettingsChangedListener);
+  mySettingsChangedListener.onSettingsChange(MarkdownApplicationSettings.getInstance());
+}

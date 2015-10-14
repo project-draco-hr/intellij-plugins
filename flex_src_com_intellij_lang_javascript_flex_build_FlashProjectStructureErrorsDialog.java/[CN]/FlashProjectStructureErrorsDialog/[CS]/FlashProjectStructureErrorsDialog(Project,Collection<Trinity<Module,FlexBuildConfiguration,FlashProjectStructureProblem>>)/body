@@ -1,0 +1,46 @@
+{
+  super(project);
+  myProject=project;
+  myTree.setRootVisible(false);
+  myTree.setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
+  for (  Trinity<Module,FlexBuildConfiguration,FlashProjectStructureProblem> problem : problems) {
+    addProblem(problem.first,problem.second,problem.third);
+  }
+  myTree.setCellRenderer(new ColoredTreeCellRenderer(){
+    public void customizeCellRenderer(    JTree tree,    Object value,    boolean selected,    boolean expanded,    boolean leaf,    int row,    boolean hasFocus){
+      final DefaultMutableTreeNode treeNode=(DefaultMutableTreeNode)value;
+      final Object userObject=treeNode.getUserObject();
+      if (userObject instanceof Module) {
+        setIcon(ModuleType.get((Module)userObject).getIcon());
+        append(((Module)userObject).getName());
+      }
+ else       if (userObject instanceof FlexBuildConfiguration) {
+        setIcon(((FlexBuildConfiguration)userObject).getIcon());
+        BCUtils.renderBuildConfiguration((FlexBuildConfiguration)userObject,null).appendToComponent(this);
+      }
+ else       if (userObject instanceof FlashProjectStructureProblem) {
+        setIcon(AllIcons.General.Error);
+        append(((FlashProjectStructureProblem)userObject).errorMessage);
+      }
+    }
+  }
+);
+  myTree.addKeyListener(new KeyAdapter(){
+    public void keyPressed(    KeyEvent e){
+      if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+        openProjectStructure();
+      }
+    }
+  }
+);
+  new DoubleClickListener(){
+    @Override protected boolean onDoubleClick(    MouseEvent e){
+      openProjectStructure();
+      return true;
+    }
+  }
+.installOn(myTree);
+  setTitle(FlexBundle.message("project.setup.problem.title"));
+  setOKButtonText(FlexBundle.message("open.project.structure"));
+  init();
+}

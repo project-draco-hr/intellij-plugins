@@ -1,0 +1,57 @@
+{
+  myHotSpotsTreeTable.setRootVisible(false);
+  myTracesTreeTable.setRootVisible(false);
+  setColumnWidth(myHotSpotsTreeTable.getColumnModel().getColumn(1),MS_COLUMN_WIDTH);
+  setColumnWidth(myHotSpotsTreeTable.getColumnModel().getColumn(2),MS_COLUMN_WIDTH);
+  setColumnWidth(myTracesTreeTable.getColumnModel().getColumn(1),MS_COLUMN_WIDTH);
+  setColumnWidth(myTracesTreeTable.getColumnModel().getColumn(2),MS_COLUMN_WIDTH);
+  scopeLabel.setLabelFor(filterScope.getComboBox());
+  invokedFunctionsLabel.setLabelFor(myHotSpotsTreeTable);
+  mergedCalleesLabel.setLabelFor(myTracesTreeTable);
+  new TreeTableSpeedSearch(myHotSpotsTreeTable).setComparator(new SpeedSearchComparator(false));
+  new TreeTableSpeedSearch(myTracesTreeTable).setComparator(new SpeedSearchComparator(false));
+  PopupHandler.installPopupHandler(myHotSpotsTreeTable,PROFILER_VIEW_GROUP_ID,ActionPlaces.UNKNOWN);
+  PopupHandler.installPopupHandler(myTracesTreeTable,PROFILER_VIEW_GROUP_ID,ActionPlaces.UNKNOWN);
+  final ComboBoxModel model=filterScope.getComboBox().getModel();
+  if (model instanceof DefaultComboBoxModel) {
+    ((DefaultComboBoxModel)model).insertElementAt(new ScopeDescriptor(new AllSearchScope(getProject())),0);
+  }
+  myHotSpotsTreeTable.getTree().setCellRenderer(new FrameInfoCellRenderer(projectScope){
+    @Override public void customizeCellRenderer(    Object value,    boolean selected){
+      setPaintFocusBorder(false);
+      setScopeIcon(FlexProfilerIcons.CallerArrow);
+      setNonScopeIcon(FlexProfilerIcons.CallerLeafArrow);
+      super.customizeCellRenderer(value,selected);
+    }
+  }
+);
+  myTracesTreeTable.getTree().setCellRenderer(new FrameInfoCellRenderer(projectScope){
+    @Override public void customizeCellRenderer(    Object value,    boolean selected){
+      setPaintFocusBorder(false);
+      setScopeIcon(FlexProfilerIcons.CalleeArrow);
+      setNonScopeIcon(FlexProfilerIcons.CalleeLeafArrow);
+      super.customizeCellRenderer(value,selected);
+    }
+  }
+);
+  myFilterSystemStuff.addItemListener(new ItemListener(){
+    public void itemStateChanged(    ItemEvent e){
+      buildPerformanceSamples(myHotSpotsTreeTable.getSortableTreeTableModel());
+      TreeUtil.expand(myHotSpotsTreeTable.getTree(),1);
+    }
+  }
+);
+  filterScope.getComboBox().addItemListener(new ItemListener(){
+    public void itemStateChanged(    ItemEvent e){
+      myAlarm.cancelAllRequests();
+      myAlarm.addRequest(new Runnable(){
+        public void run(){
+          buildPerformanceSamples(myHotSpotsTreeTable.getSortableTreeTableModel());
+          TreeUtil.expand(myHotSpotsTreeTable.getTree(),1);
+        }
+      }
+,100);
+    }
+  }
+);
+}

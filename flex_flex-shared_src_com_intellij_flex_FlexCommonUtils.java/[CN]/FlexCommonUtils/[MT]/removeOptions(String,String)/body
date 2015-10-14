@@ -1,0 +1,36 @@
+{
+  if (commandLine.isEmpty())   return commandLine;
+  final StringBuilder buf=new StringBuilder();
+  for (StringTokenizer tokenizer=new StringTokenizer(commandLine," ",true); tokenizer.hasMoreTokens(); ) {
+    final String token=tokenizer.nextToken();
+    boolean remove=false;
+    for (    String option : optionsToRemove) {
+      if (token.startsWith("-" + option)) {
+        remove=true;
+        break;
+      }
+    }
+    if (remove) {
+      String nextToken=null;
+      WHILE:       while (tokenizer.hasMoreElements()) {
+        nextToken=tokenizer.nextToken();
+        if (StringUtil.isEmptyOrSpaces(nextToken) || canBeCompilerOptionValue(nextToken)) {
+          continue;
+        }
+        for (        String option : optionsToRemove) {
+          if (nextToken.startsWith("-" + option)) {
+            continue WHILE;
+          }
+        }
+        break;
+      }
+      if (nextToken != null && !canBeCompilerOptionValue(nextToken)) {
+        buf.append(nextToken);
+      }
+    }
+ else {
+      buf.append(token);
+    }
+  }
+  return buf.toString();
+}

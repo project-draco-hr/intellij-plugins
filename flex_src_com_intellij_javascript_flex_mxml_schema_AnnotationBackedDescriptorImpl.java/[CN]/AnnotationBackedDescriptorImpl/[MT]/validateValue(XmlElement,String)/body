@@ -1,0 +1,64 @@
+{
+  final PsiElement parent=context instanceof XmlAttributeValue ? context.getParent() : null;
+  if (parent instanceof XmlAttribute && FlexMxmlLanguageAttributeNames.ID.equals(((XmlAttribute)parent).getName())) {
+    final NamesValidator namesValidator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+    return namesValidator.isIdentifier(value,context.getProject()) ? null : JSBundle.message("invalid.identifier.value");
+  }
+  if (value.indexOf('{') != -1)   return null;
+  if (value.trim().startsWith("@Resource"))   return null;
+  if (myAnnotationName != null && CLEAR_DIRECTIVE.equals(value)) {
+    return checkClearDirectiveContext(context);
+  }
+  if (isAllowsPercentage() && value.endsWith("%")) {
+    value=value.substring(0,value.length() - 1);
+  }
+  boolean uint=false;
+  if ("int".equals(type) || (uint="uint".equals(type))) {
+    try {
+      boolean startWithSharp;
+      if ((startWithSharp=value.startsWith("#")) || value.startsWith("0x")) {
+        if (uint) {
+          final long l=Long.parseLong(value.substring(startWithSharp ? 1 : 2),16);
+          if (l < 0 || l > 0xFFFFFFFFL) {
+            throw new NumberFormatException("value out of range");
+          }
+        }
+ else {
+          Integer.parseInt(value.substring(startWithSharp ? 1 : 2),16);
+        }
+      }
+ else {
+        if ("Color".equals(format) && !StringUtil.isEmptyOrSpaces(value) && !Character.isDigit(value.charAt(0))) {
+          return checkColorAlias(value);
+        }
+        if (uint) {
+          final long l=Long.parseLong(value);
+          if (l < 0 || l > 0xFFFFFFFFL) {
+            throw new NumberFormatException("value out of range");
+          }
+        }
+ else {
+          Integer.parseInt(value);
+        }
+      }
+    }
+ catch (    NumberFormatException ex) {
+      return FlexBundle.message("flex.invalid.integer.value");
+    }
+  }
+ else   if ("Number".equals(type)) {
+    try {
+      boolean startWithSharp;
+      if (value != null && ((startWithSharp=value.startsWith("#")) || value.startsWith("0x"))) {
+        Integer.parseInt(value.substring(startWithSharp ? 1 : 2),16);
+      }
+ else {
+        Double.parseDouble(value);
+      }
+    }
+ catch (    NumberFormatException ex) {
+      return FlexBundle.message("flex.invalid.number.value");
+    }
+  }
+  return null;
+}

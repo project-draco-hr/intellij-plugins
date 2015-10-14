@@ -1,0 +1,17 @@
+{
+  JSClass clazz=(JSClass)element;
+  final Collection<PsiElement> inheritors=Collections.synchronizedSet(new THashSet<PsiElement>());
+  final Processor<JSClass> p=new Processor<JSClass>(){
+    public boolean process(    final JSClass aClass){
+      final PsiElement navigationElement=aClass.getNavigationElement();
+      inheritors.add(navigationElement instanceof JSClass ? navigationElement : aClass);
+      return true;
+    }
+  }
+;
+  JSClassSearch.searchClassInheritors(clazz,true).forEach(p);
+  if (clazz.isInterface()) {
+    JSClassSearch.searchInterfaceImplementations(clazz,true).forEach(p);
+  }
+  return inheritors.toArray(new PsiElement[inheritors.size()]);
+}

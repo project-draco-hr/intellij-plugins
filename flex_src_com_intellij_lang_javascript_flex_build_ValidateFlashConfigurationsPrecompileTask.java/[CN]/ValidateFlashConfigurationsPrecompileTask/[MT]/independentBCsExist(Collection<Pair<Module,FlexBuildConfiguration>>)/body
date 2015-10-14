@@ -1,0 +1,22 @@
+{
+  final Set<FlexBuildConfiguration> bcs=new THashSet<FlexBuildConfiguration>();
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : modulesAndBCsToCompile) {
+    bcs.add(moduleAndBC.second);
+  }
+  int independentBCsCount=0;
+  OUTER:   for (  FlexBuildConfiguration bc : bcs) {
+    for (    final DependencyEntry entry : bc.getDependencies().getEntries()) {
+      if (entry instanceof BuildConfigurationEntry) {
+        final FlexBuildConfiguration dependencyBC=((BuildConfigurationEntry)entry).findBuildConfiguration();
+        if (dependencyBC != null && bcs.contains(dependencyBC)) {
+          continue OUTER;
+        }
+      }
+    }
+    independentBCsCount++;
+    if (independentBCsCount > 1) {
+      return true;
+    }
+  }
+  return false;
+}

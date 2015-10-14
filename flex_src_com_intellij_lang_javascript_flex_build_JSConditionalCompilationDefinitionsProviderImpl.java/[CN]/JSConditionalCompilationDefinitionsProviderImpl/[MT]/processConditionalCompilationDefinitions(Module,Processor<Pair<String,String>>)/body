@@ -1,0 +1,13 @@
+{
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(module);
+  final FlexBuildConfiguration bc=manager.getActiveConfiguration();
+  final ModuleOrProjectCompilerOptions moduleLevelOptions=manager.getModuleLevelCompilerOptions();
+  final ModuleOrProjectCompilerOptions projectLevelOptions=FlexProjectLevelCompilerOptionsHolder.getInstance(module.getProject()).getProjectLevelCompilerOptions();
+  if (!FlexUtils.processCompilerOption(module,bc,"compiler.define",processor))   return;
+  if (!processDefinitionsFromCompilerOptions(projectLevelOptions.getAdditionalOptions(),processor))   return;
+  if (!processDefinitionsFromCompilerOptions(moduleLevelOptions.getAdditionalOptions(),processor))   return;
+  if (!processDefinitionsFromCompilerOptions(bc.getCompilerOptions().getAdditionalOptions(),processor))   return;
+  for (  Pair<String,String> nameAndValue : getDefinitionsFromConfigFile(bc.getCompilerOptions().getAdditionalConfigFilePath())) {
+    if (!processor.process(nameAndValue))     return;
+  }
+}

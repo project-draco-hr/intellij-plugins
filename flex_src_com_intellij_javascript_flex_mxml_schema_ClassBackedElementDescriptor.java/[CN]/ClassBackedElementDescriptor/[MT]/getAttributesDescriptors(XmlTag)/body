@@ -1,0 +1,50 @@
+{
+  if (MxmlLanguageTagsUtil.isFxPrivateTag(_context) || MxmlLanguageTagsUtil.isFxLibraryTag(_context)) {
+    return XmlAttributeDescriptor.EMPTY;
+  }
+  if (MxmlLanguageTagsUtil.isFxDefinitionTag(_context)) {
+    return new XmlAttributeDescriptor[]{new AnnotationBackedDescriptorImpl(MxmlLanguageTagsUtil.NAME_ATTRIBUTE,this,true,null,null,null)};
+  }
+  if (_context != null && MxmlLanguageTagsUtil.isComponentTag(_context)) {
+    return new XmlAttributeDescriptor[]{new ClassNameAttributeDescriptor(this),new AnnotationBackedDescriptorImpl(FlexMxmlLanguageAttributeNames.ID,this,true,null,null,null)};
+  }
+  if (myDescriptors == null || myPackageToInternalDescriptors == null) {
+    PsiElement element=getDeclaration();
+    if (element == null) {
+      myDescriptors=Collections.emptyMap();
+      myPackageToInternalDescriptors=Collections.emptyMap();
+    }
+ else {
+      ensureDescriptorsMapsInitialized(element,null);
+    }
+  }
+  final Collection<AnnotationBackedDescriptor> descriptors=new ArrayList<AnnotationBackedDescriptor>(myDescriptors.values());
+  if (_context != null && !myPackageToInternalDescriptors.isEmpty()) {
+    final String contextPackage=JSResolveUtil.getPackageNameFromPlace(_context);
+    final Map<String,AnnotationBackedDescriptor> internalDescriptors=myPackageToInternalDescriptors.get(contextPackage);
+    if (internalDescriptors != null) {
+      descriptors.addAll(internalDescriptors.values());
+    }
+  }
+  if (_context != null && MxmlLanguageTagsUtil.isComponentTag(_context.getParentTag())) {
+    descriptors.add(new AnnotationBackedDescriptorImpl(IMPLEMENTS_ATTR_NAME,this,true,null,null,null));
+  }
+  if (_context != null && _context.getParent() instanceof XmlDocument) {
+    final AnnotationBackedDescriptor idDescriptor=myDescriptors.get(FlexMxmlLanguageAttributeNames.ID);
+    if (idDescriptor != null) {
+      descriptors.remove(idDescriptor);
+    }
+    descriptors.add(new AnnotationBackedDescriptorImpl(IMPLEMENTS_ATTR_NAME,this,true,null,null,null));
+    if (myPredefinedDescriptors != null) {
+      for (      final AnnotationBackedDescriptor descriptor : myPredefinedDescriptors.values()) {
+        if (!FlexMxmlLanguageAttributeNames.ID.equals(descriptor.getName()) && !ArrayUtil.contains(descriptor.getName(),CodeContext.GUMBO_ATTRIBUTES)) {
+          descriptors.add(descriptor);
+        }
+      }
+    }
+  }
+ else   if (myPredefinedDescriptors != null) {
+    descriptors.addAll(myPredefinedDescriptors.values());
+  }
+  return descriptors.toArray(new XmlAttributeDescriptor[descriptors.size()]);
+}

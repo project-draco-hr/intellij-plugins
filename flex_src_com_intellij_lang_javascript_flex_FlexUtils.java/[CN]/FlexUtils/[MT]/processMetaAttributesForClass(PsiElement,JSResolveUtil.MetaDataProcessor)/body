@@ -1,0 +1,26 @@
+{
+  JSResolveUtil.processMetaAttributesForClass(jsClass,processor);
+  if (jsClass instanceof XmlBackedJSClassImpl) {
+    PsiElement parent=jsClass.getParent();
+    if (parent != null) {
+      PsiFile file=parent.getContainingFile();
+      if (file instanceof XmlFile) {
+        XmlDocument document=((XmlFile)file).getDocument();
+        if (document != null) {
+          XmlTag rootTag=document.getRootTag();
+          if (rootTag != null) {
+            JSResolveUtil.JSInjectedFilesVisitor visitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+              @Override protected void process(              JSFile file){
+                if (file != null) {
+                  JSResolveUtil.processMetaAttributesForClass(file,processor);
+                }
+              }
+            }
+;
+            processMxmlTags(rootTag,true,visitor);
+          }
+        }
+      }
+    }
+  }
+}

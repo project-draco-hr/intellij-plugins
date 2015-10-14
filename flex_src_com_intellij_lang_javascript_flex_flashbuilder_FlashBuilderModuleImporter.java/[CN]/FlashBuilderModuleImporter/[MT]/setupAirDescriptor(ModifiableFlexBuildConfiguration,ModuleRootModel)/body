@@ -1,0 +1,25 @@
+{
+  if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+    bc.getAirDesktopPackagingOptions().setUseGeneratedDescriptor(true);
+  }
+ else {
+    bc.getAndroidPackagingOptions().setUseGeneratedDescriptor(true);
+    bc.getIosPackagingOptions().setUseGeneratedDescriptor(true);
+  }
+  final String descriptorRelPath=bc.getMainClass().replace('.','/') + "-app.xml";
+  for (  VirtualFile srcRoot : rootModel.getSourceRoots()) {
+    if (srcRoot.findFileByRelativePath(descriptorRelPath) != null) {
+      if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+        bc.getAirDesktopPackagingOptions().setUseGeneratedDescriptor(false);
+        bc.getAirDesktopPackagingOptions().setCustomDescriptorPath(srcRoot.getPath() + "/" + descriptorRelPath);
+      }
+ else {
+        bc.getAndroidPackagingOptions().setUseGeneratedDescriptor(false);
+        bc.getAndroidPackagingOptions().setCustomDescriptorPath(srcRoot.getPath() + "/" + descriptorRelPath);
+        bc.getIosPackagingOptions().setUseGeneratedDescriptor(false);
+        bc.getIosPackagingOptions().setCustomDescriptorPath(srcRoot.getPath() + "/" + descriptorRelPath);
+      }
+      break;
+    }
+  }
+}

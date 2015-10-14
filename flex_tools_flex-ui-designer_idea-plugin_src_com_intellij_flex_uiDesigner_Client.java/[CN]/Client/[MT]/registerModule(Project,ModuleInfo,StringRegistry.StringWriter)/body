@@ -1,0 +1,19 @@
+{
+  boolean hasError=true;
+  try {
+    beginMessage(ClientMethod.registerModule);
+    stringWriter.writeToIfStarted(out);
+    out.writeShort(registeredModules.add(moduleInfo));
+    writeId(project);
+    out.writeShort(moduleInfo.getLibrarySet().getId());
+    out.write(moduleInfo.isApp());
+    out.write(moduleInfo.getLocalStyleHolders(),"lsh",true,true);
+    hasError=false;
+  }
+  finally {
+    finalizeMessage(hasError);
+    if (hasError) {
+      stringWriter.rollback();
+    }
+  }
+}

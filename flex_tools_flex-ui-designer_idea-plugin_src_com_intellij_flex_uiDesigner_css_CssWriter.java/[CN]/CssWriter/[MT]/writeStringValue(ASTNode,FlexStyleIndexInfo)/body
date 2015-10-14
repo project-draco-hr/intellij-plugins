@@ -1,0 +1,29 @@
+{
+  boolean stripQuotes=node.getElementType() == CssElementTypes.CSS_STRING;
+  if (stripQuotes) {
+    node=node.getFirstChildNode();
+  }
+  final CharSequence chars=node.getChars();
+  if (info == null || info.getEnumeration() == null) {
+    if (stripQuotes) {
+      propertyOut.write(Amf3Types.STRING);
+      writeCssStringToken(chars);
+    }
+ else {
+      if (StringUtil.equals(chars,"true")) {
+        propertyOut.write(Amf3Types.TRUE);
+      }
+ else       if (StringUtil.equals(chars,"false")) {
+        propertyOut.write(Amf3Types.FALSE);
+      }
+ else {
+        propertyOut.write(Amf3Types.STRING);
+        propertyOut.writeAmfUtf(chars);
+      }
+    }
+  }
+ else {
+    propertyOut.write(AmfExtendedTypes.STRING_REFERENCE);
+    stringWriter.write(stripQuotes ? chars.subSequence(1,chars.length() - 1).toString() : chars.toString(),propertyOut);
+  }
+}

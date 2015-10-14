@@ -1,0 +1,19 @@
+{
+  if (myBC.getOutputType() == OutputType.Library) {
+    addFilesIncludedInSwc(rootElement);
+    if (!myFlexmojos) {
+      addLibClasses(rootElement);
+    }
+  }
+ else {
+    final InfoFromConfigFile info=InfoFromConfigFile.getInfoFromConfigFile(myBC.getCompilerOptions().getAdditionalConfigFilePath());
+    final String pathToMainClassFile=myCSS ? myBC.getMainClass() : myFlexUnit ? getPathToFlexUnitMainClass(myProjectDescriptor,myBC.getNature(),myBC.getMainClass()) : FlexCommonUtils.getPathToMainClassFile(myBC.getMainClass(),myModule);
+    if (pathToMainClassFile.isEmpty() && info.getMainClass(myModule) == null && !Utils.IS_TEST_MODE) {
+      throw new IOException(FlexCommonBundle.message("bc.incorrect.main.class",myBC.getMainClass(),myBC.getName(),myModule.getName()));
+    }
+    if (!pathToMainClassFile.isEmpty()) {
+      addOption(rootElement,CompilerOptionInfo.MAIN_CLASS_INFO,FileUtil.toSystemIndependentName(pathToMainClassFile));
+    }
+  }
+  addOption(rootElement,CompilerOptionInfo.OUTPUT_PATH_INFO,myBC.getActualOutputFilePath());
+}

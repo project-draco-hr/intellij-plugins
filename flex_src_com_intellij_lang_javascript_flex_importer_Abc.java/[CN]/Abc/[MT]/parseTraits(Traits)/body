@@ -1,0 +1,70 @@
+{
+  int namecount=readU32();
+  for (int i=0; i < namecount; i++) {
+    Multiname name=names[readU32()];
+    int tag=data.readByte();
+    int traitTypeTag=tag & 0xf;
+    TraitType kind;
+    if (traitTypeTag >= traitTypes.length) {
+      processor.hasError("error trait kind " + traitTypeTag + "\n");
+      kind=null;
+    }
+ else {
+      kind=traitTypes[traitTypeTag];
+    }
+    MemberInfo member=null;
+switch (kind) {
+case Slot:
+case Const:
+case Class:
+      SlotInfo slot=new SlotInfo(name,kind);
+    member=slot;
+  slot.id=readU32();
+t.slots.put(slot.id,slot);
+if (kind == TraitType.Slot || kind == TraitType.Const) {
+int typeIndex=readU32();
+slot.type=names[typeIndex];
+if (slot.type == null) {
+  slot.type=OpaqueAssetsType;
+}
+int index=readU32();
+if (index > 0) slot.value=defaults[data.readByte()][index];
+}
+ else {
+slot.value=classes[readU32()];
+}
+break;
+case Method:
+case Getter:
+case Setter:
+int disp_id=readU32();
+MethodInfo method=methods[readU32()];
+member=method;
+t.methods.put(disp_id,method);
+method.id=disp_id;
+member.kind=kind;
+member.name=name;
+break;
+}
+t.members.put(i,member);
+t.names.put(name.toString(),member);
+member.parentTraits=t;
+final int val=tag >> 4;
+if ((val & ATTR_metadata) != 0) {
+int mdCount=readU32();
+member.metadata=new MetaData[mdCount];
+for (int j=0; j < mdCount; ++j) {
+member.metadata[j]=metadata[readU32()];
+}
+}
+if ((val & ATTR_final) != 0) {
+member.isFinal=true;
+}
+if ((val & ATTR_public) != 0) {
+member.isPublic=true;
+}
+if ((val & ATTR_override) != 0) {
+member.isOverride=true;
+}
+}
+}

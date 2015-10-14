@@ -1,0 +1,75 @@
+{
+  int bp=-1;
+  String name=getLocalizationManager().getLocalizedTextString("unknownFilename");
+  int line=-1;
+  propertyPut(DISPLAY_FRAME_NUMBER,0);
+  Location l=getCurrentLocation();
+  int reason=SuspendReason.Unknown;
+  try {
+    reason=m_session.suspendReason();
+  }
+ catch (  PlayerDebugException pde) {
+  }
+  if (reason == SuspendReason.ScriptLoaded) {
+    if (propertyGet(METADATA_ATTEMPTS) > 0)     try {
+      waitForMetaData(80);
+    }
+ catch (    InProgressException ipe) {
+    }
+    m_fileInfo.setDirty();
+    processEvents();
+    propagateBreakpoints();
+    sb.append(getLocalizationManager().getLocalizedTextString("additionalCodeLoaded"));
+    sb.append(m_newline);
+    if (resolveBreakpoints(sb))     sb.append(getLocalizationManager().getLocalizedTextString("setAdditionalBreakpoints") + m_newline);
+ else     sb.append(getLocalizationManager().getLocalizedTextString("fixBreakpoints") + m_newline);
+  }
+ else   if (l == null || l.getFile() == null) {
+    propertyPut(LAST_FRAME_DEPTH,0);
+    sb.append(getLocalizationManager().getLocalizedTextString("executionHalted"));
+    sb.append(' ');
+    appendBreakInfo(sb);
+  }
+ else {
+    SourceFile file=l.getFile();
+    name=file.getName();
+    line=l.getLine();
+    String funcName=file.getFunctionNameForLine(m_session,line);
+    int lastModule=propertyGet(LIST_MODULE);
+    int lastDepth=propertyGet(LAST_FRAME_DEPTH);
+    int thisModule=file.getId();
+    int thisDepth=propertyGet(CURRENT_FRAME_DEPTH);
+    propertyPut(LAST_FRAME_DEPTH,thisDepth);
+    if (!postStep || lastModule != thisModule || lastDepth != thisDepth) {
+      String reasonForHalting;
+      if (reason == SuspendReason.Fault || reason == SuspendReason.StopRequest) {
+        StringBuilder s=new StringBuilder();
+        appendReason(s,reason);
+        reasonForHalting=s.toString();
+      }
+ else       if ((bp=enabledBreakpointIndexOf(l)) > -1) {
+        Map<String,Object> args=new HashMap<String,Object>();
+        args.put("breakpointNumber",Integer.toString(breakpointAt(bp).getId()));
+        reasonForHalting=getLocalizationManager().getLocalizedTextString("hitBreakpoint",args);
+      }
+ else {
+        reasonForHalting=getLocalizationManager().getLocalizedTextString("executionHalted");
+      }
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("reasonForHalting",reasonForHalting);
+      args.put("fileAndLine",name + ':' + line);
+      String formatString;
+      if (funcName != null) {
+        args.put("functionName",funcName);
+        formatString="haltedInFunction";
+      }
+ else {
+        formatString="haltedInFile";
+      }
+      sb.append(getLocalizationManager().getLocalizedTextString(formatString,args));
+      if (!m_fullnameOption)       sb.append(m_newline);
+    }
+    setListingPosition(thisModule,line);
+    if (!m_fullnameOption)     appendSource(sb,file.getId(),line,file.getLine(line),false);
+  }
+}

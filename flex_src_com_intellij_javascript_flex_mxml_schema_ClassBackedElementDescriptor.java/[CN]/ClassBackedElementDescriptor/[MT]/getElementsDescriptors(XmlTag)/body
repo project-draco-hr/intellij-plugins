@@ -1,0 +1,72 @@
+{
+  if (MxmlJSClass.isTagOrInsideTagThatAllowsAnyXmlContent(_context) || MxmlLanguageTagsUtil.isFxReparentTag(_context)) {
+    return EMPTY_ARRAY;
+  }
+  if (MxmlLanguageTagsUtil.isFxLibraryTag(_context)) {
+    final XmlElementDescriptor definitionDescriptor=context.getElementDescriptor(CodeContext.DEFINITION_TAG_NAME,(XmlTag)null);
+    return definitionDescriptor == null ? EMPTY_ARRAY : new XmlElementDescriptor[]{definitionDescriptor};
+  }
+  final XmlElementDescriptor _parentDescriptor=_context.getDescriptor();
+  if (_parentDescriptor instanceof AnnotationBackedDescriptorImpl) {
+    final String arrayType=((AnnotationBackedDescriptorImpl)_parentDescriptor).getArrayType();
+    if (arrayType != null) {
+      return getElementDescriptorsInheritedFromGivenType(arrayType);
+    }
+    final String type=((AnnotationBackedDescriptorImpl)_parentDescriptor).getType();
+    if (type != null && isAdequateType(type)) {
+      return getElementDescriptorsInheritedFromGivenType(type);
+    }
+    if (IFACTORY_SHORT_CLASS_NAME.equals(className(type)) && JavaScriptSupportLoader.isLanguageNamespace(context.namespace)) {
+      final XmlElementDescriptor descriptor=context.getElementDescriptor(FlexNameAlias.COMPONENT_TYPE_NAME,(XmlTag)null);
+      return descriptor == null ? EMPTY_ARRAY : new XmlElementDescriptor[]{descriptor};
+    }
+  }
+  if (!(_parentDescriptor instanceof ClassBackedElementDescriptor)) {
+    return EMPTY_ARRAY;
+  }
+  final ClassBackedElementDescriptor parentDescriptor=(ClassBackedElementDescriptor)_parentDescriptor;
+  getAttributesDescriptors(_context);
+  List<XmlElementDescriptor> resultList=new ArrayList<XmlElementDescriptor>(myDescriptors == null ? 0 : myDescriptors.size() + context.getAllDescriptorsSize());
+  final boolean isComponentTag=MxmlLanguageTagsUtil.isComponentTag(_context);
+  boolean includeProperties=(parentDescriptor == this) && !isComponentTag;
+  if (isComponentTag) {
+    ContainerUtil.addAll(resultList,getElementDescriptorsInheritedFromGivenType(FlexCommonTypeNames.IUI_COMPONENT));
+    ContainerUtil.addAll(resultList,getElementDescriptorsInheritedFromGivenType(PRIMITIVE_GRAPHIC_ELEMENT_BASE_CLASS));
+  }
+ else   if (parentDescriptor.getDefaultPropertyDescriptor() != null && parentDescriptor.defaultPropertyDescriptor.getType() != null) {
+    final PsiElement contextParent=_context.getParent();
+    if (contextParent instanceof XmlDocument && JavaScriptSupportLoader.isLanguageNamespace(_context.getNamespace())) {
+      for (      XmlElementDescriptor descriptor : context.getDescriptorsWithAllowedDeclaration()) {
+        if (descriptor instanceof ClassBackedElementDescriptor && ((ClassBackedElementDescriptor)descriptor).predefined) {
+          resultList.add(descriptor);
+        }
+      }
+    }
+    final String type=parentDescriptor.getDefaultPropertyType();
+    ContainerUtil.addAll(resultList,isAdequateType(type) ? getElementDescriptorsInheritedFromGivenType(type) : context.getDescriptorsWithAllowedDeclaration());
+    if (JavaScriptSupportLoader.isLanguageNamespace(context.namespace)) {
+      ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.SCRIPT,(XmlTag)null),resultList);
+      ContainerUtil.addIfNotNull(context.getElementDescriptor(CodeContext.REPARENT_TAG_NAME,(XmlTag)null),resultList);
+      if (contextParent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)contextParent)) {
+        ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.DECLARATIONS,(XmlTag)null),resultList);
+        ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.BINDING,(XmlTag)null),resultList);
+        ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.STYLE,(XmlTag)null),resultList);
+        ContainerUtil.addIfNotNull(context.getElementDescriptor(FlexPredefinedTagNames.METADATA,(XmlTag)null),resultList);
+      }
+    }
+  }
+ else   if (parentDescriptor.predefined || isContainerClass(parentDescriptor)) {
+    context.appendDescriptorsWithAllowedDeclaration(resultList);
+  }
+  if (includeProperties && myDescriptors != null) {
+    resultList.addAll(myDescriptors.values());
+    if (!myPackageToInternalDescriptors.isEmpty()) {
+      final String contextPackage=JSResolveUtil.getPackageNameFromPlace(_context);
+      final Map<String,AnnotationBackedDescriptor> internalDescriptors=myPackageToInternalDescriptors.get(contextPackage);
+      if (internalDescriptors != null) {
+        resultList.addAll(internalDescriptors.values());
+      }
+    }
+  }
+  return resultList.toArray(new XmlElementDescriptor[resultList.size()]);
+}

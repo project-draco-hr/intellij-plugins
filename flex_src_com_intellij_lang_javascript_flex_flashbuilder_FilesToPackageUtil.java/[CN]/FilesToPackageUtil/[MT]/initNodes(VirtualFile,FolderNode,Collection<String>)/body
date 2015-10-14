@@ -1,0 +1,27 @@
+{
+  final Map<VirtualFile,Node> map=new THashMap<VirtualFile,Node>();
+  map.put(rootFolder,rootFolderNode);
+  VfsUtilCore.visitChildrenRecursively(rootFolder,new VirtualFileVisitor(){
+    @NotNull public Result visitFileEx(    @NotNull final VirtualFile file){
+      if (file.equals(rootFolder))       return CONTINUE;
+      final VirtualFile parentFile=file.getParent();
+      final Node parentNode=map.get(parentFile);
+      LOG.assertTrue(parentNode instanceof FolderNode,file.getPath());
+      if (pathsExcludedFromPackaging.contains(((FolderNode)parentNode).getChildRelativePath(file.getName())) || file.getPath().endsWith("-app.xml") || !canBeAddedToPackage(file)) {
+        ((FolderNode)parentNode).setHasExcludedChildren();
+        return SKIP_CHILDREN;
+      }
+ else {
+        if (file.isDirectory()) {
+          final FolderNode childFolderNode=((FolderNode)parentNode).addChildFolderNode(file.getPath());
+          map.put(file,childFolderNode);
+        }
+ else {
+          ((FolderNode)parentNode).addChildFileNode(file.getPath());
+        }
+        return CONTINUE;
+      }
+    }
+  }
+);
+}

@@ -1,0 +1,42 @@
+{
+  if (MxmlJSClass.isTagThatAllowsAnyXmlContent(contextTag)) {
+    return new AnyXmlElementWithAnyChildrenDescriptor();
+  }
+  if (MxmlLanguageTagsUtil.isFxReparentTag(contextTag)) {
+    return null;
+  }
+  final XmlElementDescriptor descriptor=_getElementDescriptor(childTag,contextTag);
+  if (descriptor instanceof AnnotationBackedDescriptorImpl && ((AnnotationBackedDescriptorImpl)descriptor).isPredefined()) {
+    return null;
+  }
+  if (MxmlLanguageTagsUtil.isComponentTag(contextTag) && descriptor instanceof ClassBackedElementDescriptor && ((ClassBackedElementDescriptor)descriptor).isPredefined()) {
+    return null;
+  }
+  if (MxmlLanguageTagsUtil.isFxReparentTag(childTag) || MxmlLanguageTagsUtil.isScriptTag(childTag) || MxmlLanguageTagsUtil.isDesignLayerTag(childTag)) {
+    return descriptor;
+  }
+  if (descriptor == null && JavaScriptSupportLoader.MXML_URI3.equals(childTag.getNamespace()) && contextTag != null) {
+    return FxDefinitionBackedDescriptor.getFxDefinitionBackedDescriptor(context.module,childTag);
+  }
+  final XmlElementDescriptor parentDescriptor=contextTag.getDescriptor();
+  if (MxmlLanguageTagsUtil.isComponentTag(contextTag)) {
+    final XmlElementDescriptor checkedDescriptor=checkValidDescriptorAccordingToType(FlexCommonTypeNames.IUI_COMPONENT,descriptor);
+    return checkedDescriptor != null ? checkedDescriptor : checkValidDescriptorAccordingToType(PRIMITIVE_GRAPHIC_ELEMENT_BASE_CLASS,descriptor);
+  }
+ else   if (getDefaultPropertyDescriptor() != null && defaultPropertyDescriptor.getType() != null) {
+    if (descriptor instanceof ClassBackedElementDescriptor && ((ClassBackedElementDescriptor)descriptor).predefined) {
+      final PsiElement contextParent=contextTag.getParent();
+      if (contextParent instanceof XmlDocument) {
+        return MxmlLanguageTagsUtil.isLanguageTagAllowedUnderRootTag(childTag) ? descriptor : null;
+      }
+ else       if (contextParent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)contextParent)) {
+        return MxmlLanguageTagsUtil.isLanguageTagAllowedUnderInlineComponentRootTag(childTag) ? descriptor : null;
+      }
+    }
+    return checkValidDescriptorAccordingToType(getDefaultPropertyType(),descriptor);
+  }
+ else   if (needToCheckThatChildIsUiComponent(contextTag,parentDescriptor,descriptor)) {
+    return checkValidDescriptorAccordingToType(FlexCommonTypeNames.IUI_COMPONENT,descriptor);
+  }
+  return descriptor;
+}

@@ -1,0 +1,14 @@
+{
+  try {
+    ApplicationManager.getApplication().getMessageBus().syncPublisher(DesignerApplicationManager.MESSAGE_TOPIC).errorOccurred();
+  }
+  finally {
+    String userMessage=reader.readUTF();
+    String technicalMessage=reader.readUTF();
+    VirtualFile file=reader.readBoolean() ? DocumentFactoryManager.getInstance().getFile(reader.readUnsignedShort()) : null;
+    if (StringUtil.isEmpty(userMessage)) {
+      userMessage=technicalMessage;
+    }
+    LOG.error(LogMessageUtil.createEvent(userMessage,technicalMessage,file));
+  }
+}

@@ -1,51 +1,10 @@
 {
-synchronized (myLock) {
-    if (myServer == null)     return;
-    final Set<String> oldTrackedFiles=new THashSet<String>(myFilePathWithOverlaidContentToTimestamp.keySet());
-    final Map<String,Object> filesToUpdate=new THashMap<String,Object>();
-    final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
-    for (    Document document : fileDocumentManager.getUnsavedDocuments()) {
-      final VirtualFile file=fileDocumentManager.getFile(document);
-      if (isDartOrHtmlFile(file)) {
-        oldTrackedFiles.remove(file.getPath());
-        final Long oldTimestamp=myFilePathWithOverlaidContentToTimestamp.get(file.getPath());
-        if (oldTimestamp == null || document.getModificationStamp() != oldTimestamp) {
-          filesToUpdate.put(FileUtil.toSystemDependentName(file.getPath()),new AddContentOverlay(document.getText()));
-          myFilePathWithOverlaidContentToTimestamp.put(file.getPath(),document.getModificationStamp());
-        }
+  if (myServer != null) {
+    ApplicationManager.getApplication().runReadAction(new Runnable(){
+      @Override public void run(){
+        doUpdateFilesContent();
       }
     }
-    for (    String oldPath : oldTrackedFiles) {
-      final Long removed=myFilePathWithOverlaidContentToTimestamp.remove(oldPath);
-      LOG.assertTrue(removed != null,oldPath);
-      filesToUpdate.put(FileUtil.toSystemDependentName(oldPath),new RemoveContentOverlay());
-    }
-    if (LOG.isDebugEnabled()) {
-      if (!filesToUpdate.isEmpty()) {
-        LOG.debug("Sending overlaid content of the following files:\n" + StringUtil.join(filesToUpdate.keySet(),",\n"));
-      }
-      if (!oldTrackedFiles.isEmpty()) {
-        LOG.debug("Removing overlaid content of the following files:\n" + StringUtil.join(oldTrackedFiles,",\n"));
-      }
-    }
-    if (!filesToUpdate.isEmpty()) {
-      final UpdateContentConsumer consumer=new UpdateContentConsumer(){
-        @Override public void onResponse(){
-          myFilePathsWithUnsentChanges.clear();
-        }
-      }
-;
-      final AnalysisServer server=myServer;
-      final boolean ok=runInPooledThreadAndWait(new Runnable(){
-        @Override public void run(){
-          server.analysis_updateContent(filesToUpdate,consumer);
-        }
-      }
-,"analysis_updateContent(" + StringUtil.join(filesToUpdate.keySet(),", ") + ")",SEND_REQUEST_TIMEOUT);
-      if (!ok) {
-        stopServer();
-        return;
-      }
-    }
+);
   }
 }

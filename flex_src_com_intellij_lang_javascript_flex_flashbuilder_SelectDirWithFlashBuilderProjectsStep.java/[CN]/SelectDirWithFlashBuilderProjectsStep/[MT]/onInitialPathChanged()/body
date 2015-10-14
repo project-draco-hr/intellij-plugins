@@ -1,0 +1,37 @@
+{
+  final String path=myInitialPathComponent.getComponent().getText().trim();
+  ((FlashBuilderImporter)getBuilder()).setInitiallySelectedPath(path);
+  getWizardContext().requestWizardButtonsUpdate();
+  final VirtualFile file=path.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  final boolean isArchive=file != null && !file.isDirectory() && FlashBuilderProjectFinder.hasArchiveExtension(file.getPath());
+  final boolean multiProjectArchive=isArchive && FlashBuilderProjectFinder.isMultiProjectArchive(file.getPath());
+  if (getWizardContext().isCreatingNewProject()) {
+    if (file != null) {
+      final String suggestedProjectName=((FlashBuilderImporter)getBuilder()).getSuggestedProjectName();
+      myProjectNameComponent.getComponent().setText(suggestedProjectName);
+      if (isArchive) {
+        myProjectLocationComponent.setText(FlexBundle.message("project.location"));
+        String dir=getWizardContext().getProjectFileDirectory();
+        if (new File(dir).isFile()) {
+          dir=PathUtil.getParentPath(dir);
+        }
+        myProjectLocationComponent.getComponent().setText(FileUtil.toSystemDependentName(dir + "/" + suggestedProjectName));
+      }
+ else {
+        myProjectLocationComponent.setText(FlexBundle.message("project.files.location"));
+        myProjectLocationComponent.getComponent().setText(FileUtil.toSystemDependentName(file.isDirectory() ? file.getPath() : file.getParent().getPath()));
+      }
+    }
+    myMultiProjectNote.setVisible(isArchive && multiProjectArchive);
+    myCreateSubfolderCheckBox.setVisible(isArchive && !multiProjectArchive);
+    myCreateSubfolderCheckBox.setText(FlexBundle.message("extract.single.to.subfolder.0",file == null ? "" : file.getNameWithoutExtension()));
+  }
+ else {
+    myExtractPathComponent.setVisible(isArchive);
+    if (isArchive) {
+      myExtractPathComponent.setText(multiProjectArchive ? FlexBundle.message("folder.to.unzip.several.FB.projects") : FlexBundle.message("folder.to.unzip.one.FB.project"));
+      final String extractPath=multiProjectArchive ? getWizardContext().getProject().getBaseDir().getPath() : getWizardContext().getProject().getBaseDir().getPath() + "/" + file.getNameWithoutExtension();
+      myExtractPathComponent.getComponent().setText(FileUtil.toSystemDependentName(extractPath));
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  VirtualFile file=ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
+    @Override public VirtualFile compute(){
+      return myDartUrlResolver.findFileByDartUrl(scriptRef.getUri());
+    }
+  }
+);
+  if (file == null) {
+    file=myScriptIdToContentMap.get(scriptRef.getId());
+  }
+  TIntIntHashMap tokenPosToLine=myScriptIdToLinesMap.get(scriptRef.getId());
+  if (file != null && tokenPosToLine != null) {
+    return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+  }
+  final Script script=myVmServiceWrapper.getScriptSync(isolateId,scriptRef.getId());
+  if (script == null)   return null;
+  if (file == null) {
+    file=new LightVirtualFile(PathUtil.getFileName(script.getUri()),DartFileType.INSTANCE,script.getSource());
+    ((LightVirtualFile)file).setWritable(false);
+    myScriptIdToContentMap.put(scriptRef.getId(),(LightVirtualFile)file);
+  }
+  if (tokenPosToLine == null) {
+    tokenPosToLine=createTokenPosToLineMap(script.getTokenPosTable());
+    myScriptIdToLinesMap.put(scriptRef.getId(),tokenPosToLine);
+  }
+  return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+}

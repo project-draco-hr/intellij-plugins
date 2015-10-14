@@ -1,0 +1,55 @@
+{
+  Library correctlyNamedSdkLib=null;
+  boolean mainDartSdkLibIsCorrect=false;
+  Library incorrectSdkLibWithCorrectRoots=null;
+  final List<Library> libsToDelete=new SmartList<Library>();
+  for (  final Library library : ApplicationLibraryTable.getApplicationTable().getLibraries()) {
+    final String libraryName=library.getName();
+    if (libraryName != null && isDartSdkLibName(libraryName)) {
+      if (libraryName.equals(DartSdk.DART_SDK_GLOBAL_LIB_NAME)) {
+        correctlyNamedSdkLib=library;
+      }
+ else {
+        libsToDelete.add(library);
+      }
+      if (mainDartSdkLibIsCorrect) {
+        continue;
+      }
+      final VirtualFile[] roots=library.getFiles(OrderRootType.CLASSES);
+      if (roots.length == 1 && DartSdkLibraryPresentationProvider.isDartSdkLibRoot(roots[0])) {
+        if (libraryName.equals(DartSdk.DART_SDK_GLOBAL_LIB_NAME)) {
+          mainDartSdkLibIsCorrect=true;
+        }
+ else {
+          incorrectSdkLibWithCorrectRoots=library;
+        }
+      }
+    }
+  }
+  if (!mainDartSdkLibIsCorrect && incorrectSdkLibWithCorrectRoots != null || !libsToDelete.isEmpty()) {
+    final Library finalCorrectlyNamedSdkLib=correctlyNamedSdkLib;
+    final boolean finalCorrectSdkLibExists=mainDartSdkLibIsCorrect;
+    final Library finalIncorrectSdkLibWithCorrectRoots=incorrectSdkLibWithCorrectRoots;
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      @Override public void run(){
+        if (!finalCorrectSdkLibExists && finalIncorrectSdkLibWithCorrectRoots != null) {
+          if (finalCorrectlyNamedSdkLib != null) {
+            ApplicationLibraryTable.getApplicationTable().removeLibrary(finalCorrectlyNamedSdkLib);
+          }
+          libsToDelete.remove(finalIncorrectSdkLibWithCorrectRoots);
+          final Library.ModifiableModel libModel=finalIncorrectSdkLibWithCorrectRoots.getModifiableModel();
+          libModel.setName(DartSdk.DART_SDK_GLOBAL_LIB_NAME);
+          libModel.commit();
+        }
+        if (!libsToDelete.isEmpty()) {
+          final LibraryTable.ModifiableModel model=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
+          for (          Library library : libsToDelete) {
+            model.removeLibrary(library);
+          }
+          model.commit();
+        }
+      }
+    }
+);
+  }
+}

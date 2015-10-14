@@ -1,0 +1,29 @@
+{
+  if (!(forOrderEntry instanceof JdkOrderEntry)) {
+    return false;
+  }
+  if (myActiveConfigurations == null) {
+    return false;
+  }
+  final Module forModule=forOrderEntry.getOwnerModule();
+  final FlexBuildConfiguration bc=getActiveConfiguration(forModule);
+  final Sdk sdk=bc.getSdk();
+  if (sdk == null || sdk.getSdkType() != FlexSdkType2.getInstance()) {
+    return false;
+  }
+  final String[] allUrls=sdk.getRootProvider().getUrls(type);
+  if (type != OrderRootType.CLASSES) {
+    urls.addAll(Arrays.asList(allUrls));
+    return true;
+  }
+  final List<String> themePaths=BCUtils.getThemes(forModule,bc);
+  final List<String> allAccessibleUrls=ContainerUtil.filter(allUrls,new Condition<String>(){
+    @Override public boolean value(    String s){
+      s=VirtualFileManager.extractPath(StringUtil.trimEnd(s,JarFileSystem.JAR_SEPARATOR));
+      return BCUtils.getSdkEntryLinkageType(s,bc) != null || themePaths.contains(s);
+    }
+  }
+);
+  urls.addAll(new HashSet<String>(allAccessibleUrls));
+  return true;
+}

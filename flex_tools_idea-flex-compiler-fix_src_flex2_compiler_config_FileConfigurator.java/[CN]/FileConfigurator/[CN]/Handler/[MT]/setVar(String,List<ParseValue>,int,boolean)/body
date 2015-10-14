@@ -1,0 +1,42 @@
+{
+  int varArgCount=cfgbuf.getVarArgCount(var);
+  Map<String,String> items=new HashMap<String,String>();
+  boolean byName=(varArgCount > 1);
+  if (byName) {
+    for (Iterator<ParseValue> it=argList.iterator(); it.hasNext(); ) {
+      ParseValue v=it.next();
+      if (items.containsKey(v.name)) {
+        byName=false;
+        break;
+      }
+ else {
+        items.put(v.name,v.value);
+      }
+    }
+  }
+  List<String> args=new LinkedList<String>();
+  if (byName) {
+    int argc=0;
+    while (args.size() < items.size()) {
+      String name=cfgbuf.getVarArgName(var,argc++);
+      String val=items.get(name);
+      if (val == null) {
+        throw new ConfigurationException.MissingArgument(name,var,source,line);
+      }
+      args.add(val);
+    }
+  }
+ else {
+    Iterator<ParseValue> it=argList.iterator();
+    int argc=0;
+    while (it.hasNext()) {
+      ParseValue v=it.next();
+      String name=cfgbuf.getVarArgName(var,argc++);
+      if ((v.name != null) && !name.equals(v.name)) {
+        throw new ConfigurationException.UnexpectedArgument(name,v.name,var,source,v.line);
+      }
+      args.add(v.value);
+    }
+  }
+  cfgbuf.setVar(var,args,source,line,contextPath,append);
+}

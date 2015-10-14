@@ -1,0 +1,81 @@
+{
+  int paramCount=in.readU32();
+  methodInfo.writeU32(paramCount);
+  int returnType=in.readU32();
+  methodInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,returnType));
+  for (int i=0; i < paramCount; i++) {
+    methodInfo.writeU32(history.getIndex(IndexHistory.MULTINAME,in.readU32()));
+  }
+  int nativeName=in.readU32();
+  methodInfo.writeU32(disableDebugging ? 0 : history.getIndex(IndexHistory.STRING,nativeName));
+  int flags=in.readU8();
+  if (disableDebugging) {
+    flags&=~METHOD_HasParamNames;
+  }
+  methodInfo.writeU8(flags);
+  if ((flags & METHOD_HasOptional) != 0) {
+    int optionalCount=in.readU32();
+    methodInfo.writeU32(optionalCount);
+    for (int i=0; i < optionalCount; i++) {
+      int value=in.readU32();
+      int kind=-1;
+      int rawKind=in.readU8();
+switch (rawKind) {
+case CONSTANT_Utf8:
+        kind=IndexHistory.STRING;
+      break;
+case CONSTANT_Integer:
+    kind=IndexHistory.INT;
+  break;
+case CONSTANT_UInteger:
+kind=IndexHistory.UINT;
+break;
+case CONSTANT_Double:
+kind=IndexHistory.DOUBLE;
+break;
+case CONSTANT_Namespace:
+case CONSTANT_PrivateNamespace:
+case CONSTANT_PackageNamespace:
+case CONSTANT_PackageInternalNs:
+case CONSTANT_ProtectedNamespace:
+case CONSTANT_ExplicitNamespace:
+case CONSTANT_StaticProtectedNs:
+kind=IndexHistory.NS;
+break;
+case CONSTANT_Qname:
+case CONSTANT_QnameA:
+case CONSTANT_Multiname:
+case CONSTANT_MultinameA:
+case CONSTANT_TypeName:
+kind=IndexHistory.MULTINAME;
+break;
+case CONSTANT_Namespace_Set:
+kind=IndexHistory.NS_SET;
+break;
+}
+int newIndex;
+switch (rawKind) {
+case 0:
+case CONSTANT_False:
+case CONSTANT_True:
+case CONSTANT_Null:
+newIndex=value;
+break;
+default :
+{
+if (kind == -1) {
+throw new DecoderException("Unknown constant type " + rawKind + " for "+ value);
+}
+newIndex=history.getIndex(kind,value);
+}
+}
+methodInfo.writeU32(newIndex);
+methodInfo.writeU8(rawKind);
+}
+}
+if ((flags & METHOD_HasParamNames) != 0 && paramCount != 0) {
+for (int j=0; j < paramCount; ++j) {
+methodInfo.writeU32(history.getIndex(IndexHistory.STRING,in.readU32()));
+}
+}
+}

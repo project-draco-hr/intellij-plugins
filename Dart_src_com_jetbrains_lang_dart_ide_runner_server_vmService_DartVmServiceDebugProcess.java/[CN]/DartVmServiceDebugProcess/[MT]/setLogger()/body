@@ -1,0 +1,25 @@
+{
+  Logging.setLogger(new org.dartlang.vm.service.logging.Logger(){
+    @Override public void logError(    final String message){
+      if (message.contains("\"code\":102,")) {
+        return;
+      }
+      getSession().getConsoleView().print("Error: " + message + "\n",ConsoleViewContentType.ERROR_OUTPUT);
+      LOG.warn(message);
+    }
+    @Override public void logError(    final String message,    final Throwable exception){
+      getSession().getConsoleView().print("Error: " + message + "\n",ConsoleViewContentType.ERROR_OUTPUT);
+      LOG.error(message,exception);
+    }
+    @Override public void logInformation(    String message){
+      if (message.length() > 500) {
+        message=message.substring(0,300) + "..." + message.substring(message.length() - 200);
+      }
+      LOG.debug(message);
+    }
+    @Override public void logInformation(    final String message,    final Throwable exception){
+      LOG.debug(message,exception);
+    }
+  }
+);
+}

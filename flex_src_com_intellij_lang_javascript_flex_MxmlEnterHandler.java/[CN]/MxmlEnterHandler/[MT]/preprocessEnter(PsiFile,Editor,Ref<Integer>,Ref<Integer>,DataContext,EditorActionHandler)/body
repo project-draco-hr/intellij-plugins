@@ -1,0 +1,26 @@
+{
+  int offset=caretOffset.get().intValue();
+  if (file instanceof JSFile) {
+    PsiElement context=InjectedLanguageManager.getInstance(file.getProject()).getInjectionHost(file);
+    if (context instanceof XmlComment) {
+      file=context.getContainingFile();
+      editor=((EditorWindow)editor).getDelegate();
+      offset=editor.getCaretModel().getOffset();
+    }
+  }
+  if (!JavaScriptSupportLoader.isFlexMxmFile(file))   return Result.Continue;
+  if (CodeInsightSettings.getInstance().INSERT_BRACE_ON_ENTER && isAfterUnmatchedMxmlComment(editor,file,offset)) {
+    String indent="";
+    CharSequence buffer=editor.getDocument().getCharsSequence();
+    int lineStart=CharArrayUtil.shiftBackwardUntil(buffer,offset - 1,"\n") + 1;
+    int current=lineStart;
+    while (current < offset && Character.isWhitespace(buffer.charAt(current)))     ++current;
+    if (current > lineStart) {
+      indent=buffer.subSequence(lineStart,current).toString();
+    }
+    editor.getDocument().insertString(offset,"\n" + indent + "-->");
+    originalHandler.execute(editor,dataContext);
+    return Result.Stop;
+  }
+  return Result.Continue;
+}

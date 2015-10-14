@@ -1,0 +1,36 @@
+{
+  final PsiElement at=file.findElementAt(editor.getCaretModel().getOffset());
+  final DartComponent inComponent=PsiTreeUtil.getParentOfType(at,DartComponent.class);
+  final DartComponent inClass=PsiTreeUtil.getParentOfType(at,DartClass.class);
+  if (inClass == null || inComponent == null || inComponent.getComponentName() == null) {
+    return;
+  }
+  final boolean isInClass=inComponent instanceof DartClass;
+  final VirtualFile virtualFile=file.getVirtualFile();
+  final int offset=inComponent.getComponentName().getTextOffset();
+  final List<TypeHierarchyItem> items=DartAnalysisServerService.getInstance().search_getTypeHierarchy(virtualFile,offset,true);
+  final List<DartComponent> supers=Lists.newArrayList();
+  if (!items.isEmpty()) {
+    TypeHierarchyItem seed=items.get(0);
+{
+      final Integer superIndex=seed.getSuperclass();
+      if (superIndex != null) {
+        final TypeHierarchyItem superItem=items.get(superIndex);
+        addSuperComponent(project,supers,isInClass,superItem);
+      }
+    }
+    for (    int superIndex : seed.getInterfaces()) {
+      final TypeHierarchyItem superItem=items.get(superIndex);
+      addSuperComponent(project,supers,isInClass,superItem);
+    }
+  }
+  final String title;
+  if (isInClass) {
+    title=DartBundle.message("goto.super.class.chooser.title");
+  }
+ else {
+    title=CodeInsightBundle.message("goto.super.method.chooser.title");
+  }
+  final NavigatablePsiElement[] targets=DartResolveUtil.getComponentNameArray(supers);
+  PsiElementListNavigator.openTargets(editor,targets,title,null,new DefaultPsiElementCellRenderer());
+}

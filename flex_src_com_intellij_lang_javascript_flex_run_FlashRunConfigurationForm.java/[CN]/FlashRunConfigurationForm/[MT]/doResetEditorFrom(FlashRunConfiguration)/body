@@ -1,0 +1,41 @@
+{
+  final FlashRunnerParameters params=configuration.getRunnerParameters();
+  myLauncherParameters=params.getLauncherParameters().clone();
+  myBCCombo.resetFrom(params);
+  myOverrideMainClassCheckBox.setSelected(params.isOverrideMainClass());
+  if (params.isOverrideMainClass()) {
+    myMainClassComponent.setText(params.getOverriddenMainClass());
+    myOutputFileNameTextField.setText(params.getOverriddenOutputFileName());
+  }
+  myBCOutputRadioButton.setSelected(!params.isLaunchUrl());
+  myUrlOrFileRadioButton.setSelected(params.isLaunchUrl());
+  final String url=params.getUrl();
+  final boolean windowsLocalFile=SystemInfo.isWindows && url.length() >= 2 && Character.isLetter(url.charAt(0)) && ':' == url.charAt(1);
+  myUrlOrFileTextWithBrowse.setText(windowsLocalFile ? FileUtil.toSystemDependentName(url) : url);
+  myRunTrustedCheckBox.setSelected(params.isRunTrusted());
+  myAdlOptionsEditor.setText(params.getAdlOptions());
+  myAirProgramParametersEditor.setText(params.getAirProgramParameters());
+  myOnEmulatorRadioButton.setSelected(params.getMobileRunTarget() == AirMobileRunTarget.Emulator);
+  myEmulatorCombo.setSelectedItem(params.getEmulator());
+  if (params.getEmulator().adlAlias == null) {
+    myScreenWidth.setText(String.valueOf(params.getScreenWidth()));
+    myScreenHeight.setText(String.valueOf(params.getScreenHeight()));
+    myFullScreenWidth.setText(String.valueOf(params.getFullScreenWidth()));
+    myFullScreenHeight.setText(String.valueOf(params.getFullScreenHeight()));
+    myScreenDpi.setText(params.getScreenDpi() > 0 ? String.valueOf(params.getScreenDpi()) : "");
+  }
+  myOnAndroidDeviceRadioButton.setSelected(params.getMobileRunTarget() == AirMobileRunTarget.AndroidDevice);
+  myOnIOSSimulatorRadioButton.setSelected(params.getMobileRunTarget() == AirMobileRunTarget.iOSSimulator);
+  myIOSSimulatorSdkTextWithBrowse.setText(FileUtil.toSystemDependentName(params.getIOSSimulatorSdkPath()));
+  myOnIOSDeviceRadioButton.setSelected(params.getMobileRunTarget() == AirMobileRunTarget.iOSDevice);
+  myFastPackagingCheckBox.setSelected(params.isFastPackaging());
+  myDebugOverNetworkRadioButton.setSelected(params.getDebugTransport() == AirMobileDebugTransport.Network);
+  myDebugOverUSBRadioButton.setSelected(params.getDebugTransport() == AirMobileDebugTransport.USB);
+  myUsbDebugPortTextField.setText(String.valueOf(params.getUsbDebugPort()));
+  myEmulatorAdlOptionsEditor.setText(params.getEmulatorAdlOptions());
+  myAppDescriptorForEmulatorCombo.setSelectedItem(params.getAppDescriptorForEmulator());
+  final FlexBuildConfiguration bc=myBCCombo.getBC();
+  mySdkForDebuggingCombo.setBCSdk(bc == null ? null : bc.getSdk());
+  mySdkForDebuggingCombo.setSelectedSdkRaw(params.getDebuggerSdkRaw());
+  updateControls();
+}

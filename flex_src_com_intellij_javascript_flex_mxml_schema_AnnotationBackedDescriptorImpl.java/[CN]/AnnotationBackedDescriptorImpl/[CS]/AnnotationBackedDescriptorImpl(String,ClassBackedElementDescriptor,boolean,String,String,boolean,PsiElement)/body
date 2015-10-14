@@ -1,0 +1,55 @@
+{
+  name=_name;
+  parentDescriptor=_parentDescriptor;
+  predefined=_predefined;
+  type=_type;
+  arrayElementType=_arrayElementType;
+  myDeferredInstance=deferredInstance;
+  if (originatingElement instanceof JSAttributeNameValuePair) {
+    myOriginatingElementType=OriginatingElementType.Metadata;
+    final JSAttribute attribute=(JSAttribute)originatingElement.getParent();
+    initFromAttribute(attribute);
+  }
+ else   if (originatingElement instanceof JSAttributeListOwner) {
+    myOriginatingElementType=OriginatingElementType.VarOrFunction;
+    myProperty=originatingElement instanceof JSFunction || originatingElement instanceof JSVariable;
+    JSAttribute attribute=findInspectableAttr(originatingElement);
+    initFromAttribute(attribute);
+    attribute=findAttr((JSAttributeListOwner)originatingElement,FlexAnnotationNames.PERCENT_PROXY);
+    if (attribute != null) {
+      JSAttributeNameValuePair[] values=attribute.getValues();
+      percentProxy=values.length > 0 ? values[0].getSimpleValue() : "";
+    }
+    if (type == null) {
+      type=ClassBackedElementDescriptor.getPropertyType((JSNamedElement)originatingElement);
+    }
+    initFromType();
+    initRichTextContentAndCollapseWhiteSpace((JSAttributeListOwner)originatingElement);
+  }
+ else   if (originatingElement instanceof XmlAttribute && FlexMxmlLanguageAttributeNames.ID.equals(((XmlAttribute)originatingElement).getName())) {
+    myOriginatingElementType=OriginatingElementType.IdAttribute;
+  }
+ else {
+    myOriginatingElementType=OriginatingElementType.Other;
+  }
+  if (predefined) {
+    if (FlexStateElementNames.ITEM_CREATION_POLICY.equals(name)) {
+      myEnumerated=true;
+      myEnumeratedValues=DEFERRED_IMMEDIATE;
+    }
+ else     if (FlexStateElementNames.ITEM_DESTRUCTION_POLICY.equals(name)) {
+      myEnumerated=true;
+      myEnumeratedValues=AUTO_NEVER;
+    }
+ else     if (CodeContext.FORMAT_ATTR_NAME.equals(name) && MxmlJSClass.XML_TAG_NAME.equals(parentDescriptor.getName())) {
+      myEnumerated=true;
+      myEnumeratedValues=E4X_XML;
+      myEnumeratedValuesCaseSensitive=false;
+    }
+ else     if (CodeContext.TWO_WAY_ATTR_NAME.equals(name) && FlexPredefinedTagNames.BINDING.equals(parentDescriptor.getName())) {
+      myEnumerated=true;
+      myEnumeratedValues=TRUE_FALSE;
+      myEnumeratedValuesCaseSensitive=false;
+    }
+  }
+}

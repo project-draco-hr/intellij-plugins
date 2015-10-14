@@ -1,0 +1,20 @@
+{
+  AccessToken writeAction=WriteAction.start();
+  try {
+    JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+      @Override public void consume(      final FlexProjectConfigurationEditor editor){
+        final ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+        final ModifiableFlexBuildConfiguration bc2=editor.createConfiguration(myModule);
+        bc2.setNature(new BuildConfigurationNature(TargetPlatform.Web,false,OutputType.Library));
+        bc2.setName("2");
+        final ModifiableBuildConfigurationEntry entry=editor.createBcEntry(bc1.getDependencies(),bc2,null);
+        bc1.getDependencies().getModifiableEntries().add(entry);
+      }
+    }
+);
+  }
+  finally {
+    writeAction.finish();
+  }
+  doHighlightingTest("");
+}

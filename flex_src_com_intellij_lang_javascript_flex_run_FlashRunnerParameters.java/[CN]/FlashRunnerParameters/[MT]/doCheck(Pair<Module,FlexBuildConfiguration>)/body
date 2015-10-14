@@ -1,0 +1,96 @@
+{
+  final FlexBuildConfiguration bc=moduleAndBC.second;
+  final Sdk sdk=bc.getSdk();
+  if (sdk == null) {
+    throw new RuntimeConfigurationError(FlexCommonBundle.message("sdk.not.set.for.bc.0.of.module.1",bc.getName(),moduleAndBC.first.getName()));
+  }
+  if (myOverrideMainClass) {
+    if (myOverriddenMainClass.isEmpty()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("main.class.not.set"));
+    }
+    PsiElement clazz=JSResolveUtil.unwrapProxy(ActionScriptClassResolver.findClassByQNameStatic(myOverriddenMainClass,moduleAndBC.first.getModuleScope(true)));
+    if (!(clazz instanceof JSClass)) {
+      throw new RuntimeConfigurationError(FlexBundle.message("main.class.not.found",myOverriddenMainClass,bc.getName()));
+    }
+    if (myOverriddenOutputFileName.isEmpty()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("output.file.name.not.specified"));
+    }
+    if (!myOverriddenOutputFileName.toLowerCase().endsWith(".swf")) {
+      throw new RuntimeConfigurationError(FlexBundle.message("output.file.must.have.swf.extension"));
+    }
+  }
+ else {
+    if (bc.getOutputType() != OutputType.Application) {
+      throw new RuntimeConfigurationError(FlexBundle.message("bc.does.not.produce.app",getBCName(),getModuleName()));
+    }
+  }
+switch (bc.getTargetPlatform()) {
+case Web:
+    if (myLaunchUrl) {
+      if (myUrl.isEmpty())       throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.url.not.set"));
+      try {
+        if (BrowserUtil.getURL(myUrl) == null)         throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.incorrect.url"));
+      }
+ catch (      MalformedURLException e) {
+        throw new RuntimeConfigurationError(FlexBundle.message("flex.run.config.incorrect.url"));
+      }
+    }
+  if (myLauncherParameters.getLauncherType() == LauncherParameters.LauncherType.Player) {
+    if (StringUtil.isEmptyOrSpaces(myLauncherParameters.getPlayerPath())) {
+      throw new RuntimeConfigurationError(FlexBundle.message("path.to.flash.player.not.set"));
+    }
+    if (!new File(myLauncherParameters.getPlayerPath()).exists()) {
+      throw new RuntimeConfigurationError(FlexBundle.message("flash.player.not.found",myLauncherParameters.getPresentableText()));
+    }
+  }
+checkDebuggerSdk();
+break;
+case Desktop:
+checkAdlAndAirRuntime(sdk);
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getAirDesktopPackagingOptions(),getBCName(),getModuleName());
+}
+break;
+case Mobile:
+switch (myMobileRunTarget) {
+case Emulator:
+checkAdlAndAirRuntime(sdk);
+if (bc.getOutputType() == OutputType.Application) {
+switch (myAppDescriptorForEmulator) {
+case Android:
+checkCustomDescriptor(bc.getAndroidPackagingOptions(),getBCName(),getModuleName());
+break;
+case IOS:
+checkCustomDescriptor(bc.getIosPackagingOptions(),getBCName(),getModuleName());
+break;
+}
+}
+break;
+case AndroidDevice:
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getAndroidPackagingOptions(),getBCName(),getModuleName());
+}
+break;
+case iOSSimulator:
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getIosPackagingOptions(),getBCName(),getModuleName());
+}
+if (!SystemInfo.isMac) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.on.mac.only.warning"));
+}
+if (myIOSSimulatorSdkPath.isEmpty()) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.sdk.not.set"));
+}
+ else if (!new File(FileUtil.toSystemDependentName(myIOSSimulatorSdkPath)).isDirectory()) {
+throw new RuntimeConfigurationError(FlexBundle.message("ios.simulator.sdk.not.found",FileUtil.toSystemDependentName(myIOSSimulatorSdkPath)));
+}
+break;
+case iOSDevice:
+if (bc.getOutputType() == OutputType.Application) {
+checkCustomDescriptor(bc.getIosPackagingOptions(),getBCName(),getModuleName());
+}
+break;
+}
+break;
+}
+}

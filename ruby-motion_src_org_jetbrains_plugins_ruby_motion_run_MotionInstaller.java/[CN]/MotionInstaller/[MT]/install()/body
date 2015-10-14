@@ -1,0 +1,17 @@
+{
+  final GeneralCommandLine result=new GeneralCommandLine();
+  result.setExePath(myHandler.getRemotePath());
+  result.setWorkDirectory(myHandler.getWorkingDirectory());
+  result.getEnvironment().putAll(myHandler.getEnvironment());
+  final AMDevice device=myHandler.getDevice();
+  try {
+    device.lock();
+    device.connect();
+    result.putUserData(DebuggerDriver.DEBUGSERVER_SOCKET,device.startDebugserver());
+  }
+  finally {
+    device.disconnect();
+  }
+  result.setCharset(EncodingManager.getInstance().getDefaultCharset());
+  return result;
+}

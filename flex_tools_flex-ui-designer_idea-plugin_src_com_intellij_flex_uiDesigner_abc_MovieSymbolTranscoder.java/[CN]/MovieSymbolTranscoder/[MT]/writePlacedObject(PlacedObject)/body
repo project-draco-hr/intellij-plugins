@@ -1,0 +1,16 @@
+{
+  final TIntArrayList positions=object.positions;
+  if (positions == null) {
+    out.write(data,object.tagStart,object.start - object.tagStart);
+    out.write(0xff & object.newId);
+    out.write(0xff & (object.newId >> 8));
+    out.write(data,object.start + 2,object.length - 2);
+  }
+ else {
+    buffer.position(0);
+    encodeTagHeader(object.tagType,object.actualLength);
+    buffer.putShort((short)object.newId);
+    out.write(data,0,buffer.position());
+    writeSparseBytes(positions,object.start + 2,object.start + object.length);
+  }
+}

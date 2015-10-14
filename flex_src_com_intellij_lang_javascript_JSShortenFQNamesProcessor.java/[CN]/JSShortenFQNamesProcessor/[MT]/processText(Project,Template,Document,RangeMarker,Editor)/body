@@ -1,0 +1,30 @@
+{
+  if (!template.isToShortenLongNames())   return;
+  try {
+    final PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(project);
+    psiDocumentManager.commitDocument(document);
+    final PsiFile hostFile=PsiUtilBase.getPsiFileInEditor(editor,project);
+    final PsiFile file=(hostFile != null && JavaScriptSupportLoader.isFlexMxmFile(hostFile)) ? InjectedLanguageUtil.findInjectedPsiNoCommit(hostFile,templateRange.getStartOffset()) : hostFile;
+    if (file instanceof JSFile && file.getLanguage().isKindOf(JavaScriptSupportLoader.ECMA_SCRIPT_L4)) {
+      final JSUnusedImportsHelper.Results unusedImportsResults=JSUnusedImportsHelper.getUnusedImports(file);
+      for (      final JSReferenceExpression reference : unusedImportsResults.fqnsToReplaceWithShortName) {
+        final TextRange range=InjectedLanguageManager.getInstance(project).injectedToHost(file,reference.getTextRange());
+        if (TextRange.create(templateRange).contains(range)) {
+          final String shortName=StringUtil.getShortName(reference.getReferencedName());
+          final String resolved=JSImportHandlingUtil.resolveTypeName(shortName,reference);
+          if (shortName.equals(resolved)) {
+            final FormatFixer fixer=ImportUtils.insertImportStatements(reference,Collections.singletonList(reference.getText()));
+            if (fixer != null) {
+              fixer.fixFormat();
+            }
+          }
+          reference.replace(JSChangeUtil.createExpressionFromText(project,shortName).getPsi());
+        }
+      }
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document);
+    }
+  }
+ catch (  IncorrectOperationException e) {
+    LOG.error(e);
+  }
+}

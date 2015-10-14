@@ -1,0 +1,22 @@
+{
+  boolean desktopPresent=false;
+  boolean androidPresent=false;
+  boolean iosPresent=false;
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : getSelectedBCs()) {
+    final FlexBuildConfiguration bc=moduleAndBC.second;
+    final BuildConfigurationNature nature=bc.getNature();
+    if (nature.isDesktopPlatform())     desktopPresent=true;
+    if (nature.isMobilePlatform() && bc.getAndroidPackagingOptions().isEnabled())     androidPresent=true;
+    if (nature.isMobilePlatform() && bc.getIosPackagingOptions().isEnabled())     iosPresent=true;
+    if (desktopPresent && androidPresent && iosPresent)     break;
+  }
+  myDesktopTypeLabel.setEnabled(desktopPresent);
+  myDesktopTypeCombo.setEnabled(desktopPresent);
+  myAndroidTypeLabel.setEnabled(androidPresent);
+  myAndroidTypeCombo.setEnabled(androidPresent);
+  myApkCaptiveRuntimeCheckBox.setEnabled(androidPresent);
+  UIUtil.setEnabled(myApkDebugPortPanel,androidPresent,true);
+  myIosTypeLabel.setEnabled(iosPresent);
+  myIOSTypeCombo.setEnabled(iosPresent);
+  myIosFastPackagingCheckBox.setEnabled(iosPresent);
+}

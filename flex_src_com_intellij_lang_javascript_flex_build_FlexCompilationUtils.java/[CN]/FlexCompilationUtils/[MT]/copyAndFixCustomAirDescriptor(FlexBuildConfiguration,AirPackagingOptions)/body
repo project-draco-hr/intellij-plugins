@@ -1,0 +1,38 @@
+{
+  final String customDescriptorPath=packagingOptions.getCustomDescriptorPath();
+  final VirtualFile descriptorTemplateFile=LocalFileSystem.getInstance().findFileByPath(customDescriptorPath);
+  if (descriptorTemplateFile == null) {
+    throw new FlexCompilerException(FlexCommonBundle.message("air.descriptor.not.found",customDescriptorPath));
+  }
+  final String outputFilePath=bc.getActualOutputFilePath();
+  final String outputFolderPath=PathUtil.getParentPath(outputFilePath);
+  final VirtualFile outputFolder=LocalFileSystem.getInstance().findFileByPath(outputFolderPath);
+  if (outputFolder == null) {
+    throw new FlexCompilerException(FlexCommonBundle.message("output.folder.does.not.exist",outputFolderPath));
+  }
+  final Ref<FlexCompilerException> exceptionRef=new Ref<FlexCompilerException>();
+  ApplicationManager.getApplication().invokeAndWait(new Runnable(){
+    @Override public void run(){
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          try {
+            final String content=fixInitialContent(descriptorTemplateFile,PathUtil.getFileName(outputFilePath));
+            final String descriptorFileName=bc.isTempBCForCompilation() ? BCUtils.getGeneratedAirDescriptorName(bc,packagingOptions) : descriptorTemplateFile.getName();
+            FlexUtils.addFileWithContent(descriptorFileName,content,outputFolder);
+          }
+ catch (          FlexCompilerException e) {
+            exceptionRef.set(e);
+          }
+catch (          IOException e) {
+            exceptionRef.set(new FlexCompilerException(FlexCommonBundle.message("failed.to.copy.air.descriptor",e.getMessage())));
+          }
+        }
+      }
+);
+    }
+  }
+,ModalityState.any());
+  if (!exceptionRef.isNull()) {
+    throw exceptionRef.get();
+  }
+}

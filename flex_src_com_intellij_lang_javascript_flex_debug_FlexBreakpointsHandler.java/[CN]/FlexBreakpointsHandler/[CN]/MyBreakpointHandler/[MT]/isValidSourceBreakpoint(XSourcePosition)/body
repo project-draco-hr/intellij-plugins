@@ -1,0 +1,25 @@
+{
+  final Project project=myDebugProcess.getSession().getProject();
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  final VirtualFile file=position.getFile();
+  VirtualFile rootForFile=fileIndex.getSourceRootForFile(file);
+  if (rootForFile == null) {
+    rootForFile=fileIndex.getClassRootForFile(file);
+  }
+  if (rootForFile == null) {
+    return false;
+  }
+  final Module module=myDebugProcess.getModule();
+  if (module == null)   return false;
+  final ModuleWithDependenciesScope scope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(module,myDebugProcess.getBC(),myDebugProcess.isFlexUnit());
+  if (scope.contains(file) || isInSourcesOfLibraryInScope(fileIndex,file,scope)) {
+    return true;
+  }
+  if (DumbService.getInstance(project).isDumb()) {
+    return false;
+  }
+  final String relPath=VfsUtilCore.getRelativePath(file.getParent(),rootForFile,'.');
+  final String fqn=StringUtil.getQualifiedName(relPath,file.getNameWithoutExtension());
+  final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(fqn,scope);
+  return clazz == null || clazz.getContainingFile() instanceof PsiCompiledFile;
+}

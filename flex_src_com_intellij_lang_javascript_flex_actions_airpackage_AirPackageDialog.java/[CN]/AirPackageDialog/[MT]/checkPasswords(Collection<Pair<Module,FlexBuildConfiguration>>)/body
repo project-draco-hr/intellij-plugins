@@ -1,0 +1,21 @@
+{
+  final Collection<AirPackagingOptions> allPackagingOptions=new ArrayList<AirPackagingOptions>();
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : selectedBCs) {
+    final FlexBuildConfiguration bc=moduleAndBC.second;
+    if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+      if (myDesktopTypeCombo.getSelectedItem() != DesktopPackageType.Airi) {
+        allPackagingOptions.add(bc.getAirDesktopPackagingOptions());
+      }
+    }
+ else {
+      if (bc.getAndroidPackagingOptions().isEnabled()) {
+        allPackagingOptions.add(bc.getAndroidPackagingOptions());
+      }
+      if (bc.getIosPackagingOptions().isEnabled()) {
+        allPackagingOptions.add(bc.getIosPackagingOptions());
+      }
+    }
+  }
+  myPasswords=AirPackageAction.getPasswords(myProject,allPackagingOptions);
+  return myPasswords != null;
+}

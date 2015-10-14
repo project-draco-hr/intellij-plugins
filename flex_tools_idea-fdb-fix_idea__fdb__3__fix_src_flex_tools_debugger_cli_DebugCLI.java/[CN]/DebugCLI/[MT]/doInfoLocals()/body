@@ -1,0 +1,24 @@
+{
+  waitTilHalted();
+  StringBuffer sb=new StringBuffer();
+  try {
+    int num=propertyGet(DISPLAY_FRAME_NUMBER);
+    Frame[] ar=m_session.getFrames();
+    Frame ctx=ar[num];
+    Variable[] vars=ctx.getLocals(m_session);
+    for (int i=0; i < vars.length; i++) {
+      Variable v=vars[i];
+      if (v.isAttributeSet(VariableAttribute.IS_LOCAL)) {
+        ExpressionCache.appendVariable(sb,v);
+        sb.append(m_newline);
+      }
+    }
+  }
+ catch (  NullPointerException npe) {
+    sb.append(getLocalizationManager().getLocalizedTextString("noLocals"));
+  }
+catch (  ArrayIndexOutOfBoundsException aix) {
+    sb.append(getLocalizationManager().getLocalizedTextString("notInValidFrame"));
+  }
+  out(sb.toString());
+}

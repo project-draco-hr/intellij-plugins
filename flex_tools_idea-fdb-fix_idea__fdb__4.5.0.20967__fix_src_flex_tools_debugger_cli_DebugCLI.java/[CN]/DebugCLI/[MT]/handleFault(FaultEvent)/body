@@ -1,0 +1,55 @@
+{
+  boolean requestResume=false;
+  String name=e.name();
+  boolean stop=true;
+  boolean print=true;
+  try {
+    print=m_faultTable.is(name,"print");
+    stop=m_faultTable.is(name,"stop");
+  }
+ catch (  NullPointerException npe) {
+    if (Trace.error) {
+      Map<String,Object> args=new HashMap<String,Object>();
+      args.put("faultName",name);
+      Trace.trace(getLocalizationManager().getLocalizedTextString("faultHasNoTableEntry",args));
+      npe.printStackTrace();
+    }
+  }
+  if (e instanceof ExceptionFault) {
+    ExceptionFault ef=(ExceptionFault)e;
+    Value thrownValue=ef.getThrownValue();
+    if (thrownValue != null) {
+      if (!ef.willExceptionBeCaught()) {
+        stop=true;
+      }
+ else {
+        stop=false;
+        String typeName=thrownValue.getTypeName();
+        int at=typeName.indexOf('@');
+        if (at != -1)         typeName=typeName.substring(0,at);
+        for (int i=0; i < catchpointCount(); ++i) {
+          CatchAction c=catchpointAt(i);
+          String typeToCatch=c.getTypeToCatch();
+          try {
+            if (typeToCatch == null || getSession().evalIs(thrownValue,typeToCatch)) {
+              stop=true;
+              break;
+            }
+          }
+ catch (          PlayerDebugException e1) {
+            e1.printStackTrace();
+            stop=true;
+          }
+catch (          PlayerFaultException e1) {
+            e1.printStackTrace();
+            stop=true;
+          }
+        }
+        if (!stop)         print=false;
+      }
+    }
+  }
+  if (!stop)   requestResume=true;
+  if (print)   dumpFaultLine(e);
+  return requestResume;
+}

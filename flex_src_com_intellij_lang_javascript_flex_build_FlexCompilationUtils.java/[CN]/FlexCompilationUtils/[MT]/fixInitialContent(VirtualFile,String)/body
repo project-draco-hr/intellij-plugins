@@ -1,0 +1,30 @@
+{
+  try {
+    final Document document;
+    try {
+      document=JDOMUtil.loadDocument(descriptorFile.getInputStream());
+    }
+ catch (    IOException e) {
+      throw new FlexCompilerException("Failed to read AIR descriptor content: " + e.getMessage(),descriptorFile.getUrl(),-1,-1);
+    }
+    final Element rootElement=document.getRootElement();
+    if (!"application".equals(rootElement.getName())) {
+      throw new FlexCompilerException("AIR descriptor file has incorrect root tag",descriptorFile.getUrl(),-1,-1);
+    }
+    Element initialWindowElement=rootElement.getChild("initialWindow",rootElement.getNamespace());
+    if (initialWindowElement == null) {
+      initialWindowElement=new Element("initialWindow",rootElement.getNamespace());
+      rootElement.addContent(initialWindowElement);
+    }
+    Element contentElement=initialWindowElement.getChild("content",rootElement.getNamespace());
+    if (contentElement == null) {
+      contentElement=new Element("content",rootElement.getNamespace());
+      initialWindowElement.addContent(contentElement);
+    }
+    contentElement.setText(swfName);
+    return JDOMUtil.writeDocument(document,SystemProperties.getLineSeparator());
+  }
+ catch (  JDOMException e) {
+    throw new FlexCompilerException("AIR descriptor file has incorrect format: " + e.getMessage(),descriptorFile.getUrl(),-1,-1);
+  }
+}

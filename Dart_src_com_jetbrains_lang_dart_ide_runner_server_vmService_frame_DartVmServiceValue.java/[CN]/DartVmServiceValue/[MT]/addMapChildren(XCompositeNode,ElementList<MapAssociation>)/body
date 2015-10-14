@@ -1,0 +1,20 @@
+{
+  final XValueChildrenList childrenList=new XValueChildrenList(mapAssociations.size());
+  int index=0;
+  for (  MapAssociation mapAssociation : mapAssociations) {
+    final InstanceRef keyInstanceRef=mapAssociation.getKey();
+    final InstanceRef valueInstanceRef=mapAssociation.getValue();
+    childrenList.add(String.valueOf(index++),new XValue(){
+      @Override public void computePresentation(      @NotNull XValueNode node,      @NotNull XValuePlace place){
+        final String value=getShortPresentableValue(keyInstanceRef) + " -> " + getShortPresentableValue(valueInstanceRef);
+        node.setPresentation(AllIcons.Debugger.Value,"map entry",value,true);
+      }
+      @Override public void computeChildren(      @NotNull XCompositeNode node){
+        node.addChildren(XValueChildrenList.singleton(new DartVmServiceValue(myDebugProcess,myIsolateId,"key",keyInstanceRef)),false);
+        node.addChildren(XValueChildrenList.singleton(new DartVmServiceValue(myDebugProcess,myIsolateId,"value",valueInstanceRef)),true);
+      }
+    }
+);
+  }
+  node.addChildren(childrenList,true);
+}

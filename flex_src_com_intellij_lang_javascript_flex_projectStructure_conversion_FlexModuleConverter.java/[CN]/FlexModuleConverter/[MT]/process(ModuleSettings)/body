@@ -1,0 +1,69 @@
+{
+  FlexBuildConfigurationManagerImpl configurationManager=ConversionHelper.createBuildConfigurationManager();
+  Collection<Element> orderEntriesToAdd=new ArrayList<Element>();
+  Set<String> usedSdksNames=new HashSet<String>();
+  final Set<Element> usedModuleLibrariesEntries=new HashSet<Element>();
+  if (isFlexModule(moduleSettings)) {
+    ModifiableFlexBuildConfiguration newConfiguration=(ModifiableFlexBuildConfiguration)configurationManager.getBuildConfigurations()[0];
+    newConfiguration.setName(generateModuleBcName(moduleSettings));
+    Element oldConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
+    FlexBuildConfiguration oldConfiguration=oldConfigurationElement != null ? XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class) : null;
+    processConfiguration(oldConfiguration,newConfiguration,moduleSettings,false,null,usedSdksNames,orderEntriesToAdd,usedModuleLibrariesEntries);
+    if (oldConfigurationElement != null) {
+      oldConfigurationElement.detach();
+    }
+  }
+ else {
+    List<Element> flexFacets=getFlexFacets(moduleSettings);
+    for (int i=0; i < flexFacets.size(); i++) {
+      Element facet=flexFacets.get(i);
+      ModifiableFlexBuildConfiguration newConfiguration;
+      if (i == 0) {
+        newConfiguration=(ModifiableFlexBuildConfiguration)configurationManager.getBuildConfigurations()[0];
+      }
+ else {
+        newConfiguration=ConversionHelper.createBuildConfiguration(configurationManager);
+      }
+      newConfiguration.setName(generateFacetBcName(flexFacets,facet));
+      Element oldConfigurationElement=facet.getChild(JpsFacetSerializer.CONFIGURATION_TAG);
+      if (oldConfigurationElement != null) {
+        FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class);
+        try {
+          readNamespaceAndManifestInfoList(oldConfigurationElement,oldConfiguration);
+          readConditionalCompilerDefinitionList(oldConfigurationElement,oldConfiguration);
+          readCssFilesList(oldConfigurationElement,oldConfiguration);
+        }
+ catch (        InvalidDataException ignore) {
+        }
+        final String facetSdkName=oldConfigurationElement.getAttributeValue(FLEX_SDK_ATTR_NAME);
+        processConfiguration(oldConfiguration,newConfiguration,moduleSettings,true,facetSdkName,usedSdksNames,orderEntriesToAdd,usedModuleLibrariesEntries);
+      }
+ else {
+        processConfiguration(null,newConfiguration,moduleSettings,true,null,usedSdksNames,orderEntriesToAdd,usedModuleLibrariesEntries);
+      }
+    }
+    moduleSettings.setModuleType(FlexModuleType.MODULE_TYPE_ID);
+    moduleSettings.getComponentElement(FacetManagerImpl.COMPONENT_NAME).getChildren(JpsFacetSerializer.FACET_TAG).removeAll(flexFacets);
+  }
+  Collection<Element> allEntries=new ArrayList<Element>();
+  allEntries.addAll(usedModuleLibrariesEntries);
+  allEntries.addAll(orderEntriesToAdd);
+  for (  Element orderEntry : allEntries) {
+    if (DependencyScope.readExternal(orderEntry) == DependencyScope.TEST) {
+      orderEntry.removeAttribute(DependencyScope.SCOPE_ATTR);
+    }
+  }
+  if (!usedSdksNames.isEmpty()) {
+    Element sdkEntryElement=new Element(OrderEntryFactory.ORDER_ENTRY_ELEMENT_NAME);
+    sdkEntryElement.setAttribute(OrderEntryFactory.ORDER_ENTRY_TYPE_ATTR,"jdk");
+    final String compositeSdkName=FlexCompositeSdk.getCompositeName(ArrayUtil.toStringArray(usedSdksNames));
+    sdkEntryElement.setAttribute(ModuleJdkOrderEntryImpl.JDK_NAME_ATTR,compositeSdkName);
+    sdkEntryElement.setAttribute(ModuleJdkOrderEntryImpl.JDK_TYPE_ATTR,FlexCompositeSdk.TYPE_ID);
+    moduleSettings.getOrderEntries().add(sdkEntryElement);
+  }
+  Element rootManagerElement=JDomSerializationUtil.findOrCreateComponentElement(moduleSettings.getRootElement(),ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
+  rootManagerElement.addContent(orderEntriesToAdd);
+  Element componentElement=JDomSerializationUtil.findOrCreateComponentElement(moduleSettings.getRootElement(),FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
+  addContent(ConversionHelper.serialize(configurationManager),componentElement);
+  ignoreInapplicableFacets(moduleSettings);
+}

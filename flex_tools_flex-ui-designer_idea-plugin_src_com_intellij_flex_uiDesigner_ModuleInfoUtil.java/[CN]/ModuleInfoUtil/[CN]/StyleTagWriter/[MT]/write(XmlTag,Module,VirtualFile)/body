@@ -1,0 +1,40 @@
+{
+  XmlAttribute source=tag.getAttribute("source");
+  if (source == null) {
+    PsiElement host=MxmlUtil.getInjectedHost(tag);
+    if (host == null) {
+      return null;
+    }
+    MyInjectedPsiVisitor visitor=new MyInjectedPsiVisitor(host);
+    InjectedLanguageUtil.enumerate(host,visitor);
+    CssFile cssFile=visitor.getCssFile();
+    byte[] data=cssFile == null ? null : cssWriter.write(cssFile,module);
+    return data == null ? null : new LocalStyleHolder(InjectedLanguageManager.getInstance(cssFile.getProject()).getTopLevelFile(cssFile).getVirtualFile(),data);
+  }
+ else {
+    XmlAttributeValue valueElement=source.getValueElement();
+    if (valueElement == null) {
+      return null;
+    }
+    PsiFileSystemItem psiFile=InjectionUtil.getReferencedPsiFile(valueElement);
+    if (!(psiFile instanceof CssFile)) {
+      throw new InvalidPropertyException(valueElement,"embed.source.is.not.css.file",psiFile.getName());
+    }
+    CssFile cssFile=(CssFile)psiFile;
+    VirtualFile virtualFile=cssFile.getVirtualFile();
+    ExternalLocalStyleHolder existingLocalStyleHolder=externalLocalStyleHolders.get(virtualFile);
+    if (existingLocalStyleHolder == null) {
+      byte[] data=cssWriter.write(cssFile,module);
+      if (data == null) {
+        return null;
+      }
+      ExternalLocalStyleHolder localStyleHolder=new ExternalLocalStyleHolder(virtualFile,data,userVirtualFile);
+      externalLocalStyleHolders.put(virtualFile,localStyleHolder);
+      return localStyleHolder;
+    }
+ else {
+      existingLocalStyleHolder.addUser(userVirtualFile);
+      return null;
+    }
+  }
+}

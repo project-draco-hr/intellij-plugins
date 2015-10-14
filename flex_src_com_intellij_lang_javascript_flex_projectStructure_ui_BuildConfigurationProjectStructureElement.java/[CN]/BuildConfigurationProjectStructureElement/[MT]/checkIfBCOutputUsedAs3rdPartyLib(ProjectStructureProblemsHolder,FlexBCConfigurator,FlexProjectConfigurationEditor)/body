@@ -1,0 +1,16 @@
+{
+  for (  final DependencyEntry entry : myBc.getDependencies().getEntries()) {
+    if (entry instanceof ModuleLibraryEntry) {
+      final LibraryOrderEntry orderEntry=FlexProjectRootsUtil.findOrderEntry((ModuleLibraryEntry)entry,editor.getModifiableRootModel(myModule));
+      if (orderEntry != null) {
+        checkIfBCOutputUsedAs3rdPartyLib(problemsHolder,configurator,entry,orderEntry.getRootFiles(OrderRootType.CLASSES));
+      }
+    }
+ else     if (entry instanceof SharedLibraryEntry) {
+      final Library library=FlexProjectRootsUtil.findOrderEntry(myModule.getProject(),(SharedLibraryEntry)entry);
+      if (library != null) {
+        checkIfBCOutputUsedAs3rdPartyLib(problemsHolder,configurator,entry,library.getFiles((OrderRootType.CLASSES)));
+      }
+    }
+  }
+}

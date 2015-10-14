@@ -1,0 +1,59 @@
+{
+  socket.start();
+  consumerMap.clear();
+  requestSink=socket.getRequestSink();
+  responseStream=socket.getResponseStream();
+  errorStream=socket.getErrorStream();
+  new ServerResponseReaderThread(responseStream).start();
+  if (errorStream != null) {
+    new ServerErrorReaderThread(errorStream,listener).start();
+  }
+  if (checkServerVersion) {
+    final BlockingRequestSink blockRequestSink=new BlockingRequestSink(requestSink);
+    requestSink=blockRequestSink;
+    server_getVersion(new GetVersionConsumer(){
+      @Override public void computedVersion(      String versionStr){
+        String message=null;
+        Version version=null;
+        try {
+          version=Version.parseVersion(versionStr);
+        }
+ catch (        Throwable e) {
+          message="Unable to parse version: " + versionStr;
+        }
+        if (version != null) {
+          if (version.compareTo(MIN_SERVER_VERSION) < 0 || version.compareTo(MAX_SERVER_VERSION) >= 0) {
+            message="This version of the com.google.dart.server project can communicate only " + "with server versions between " + MIN_SERVER_VERSION + " and "+ MAX_SERVER_VERSION+ ", but the version read from the server is "+ version+ ".";
+          }
+        }
+        if (message == null) {
+synchronized (requestSinkLock) {
+            requestSink=blockRequestSink.toPassthroughSink();
+            return;
+          }
+        }
+        Logging.getLogger().logError(message);
+        listener.serverIncompatibleVersion(versionStr);
+        sendErrorForEveryRequest(versionStr);
+      }
+      @Override public void onError(      RequestError requestError){
+        Logging.getLogger().logError("No version received from the server.");
+        listener.serverIncompatibleVersion(null);
+        sendErrorForEveryRequest(null);
+      }
+      private void sendErrorForEveryRequest(      String version){
+        String message="Incompatible server version: " + version;
+synchronized (requestSinkLock) {
+          requestSink=blockRequestSink.toErrorSink(new ResponseSink(){
+            @Override public void add(            JsonObject response) throws Exception {
+              processResponse(response);
+            }
+          }
+,ResponseUtilities.INCOMPATIBLE_SERVER_VERSION,message);
+        }
+        server_shutdown();
+      }
+    }
+);
+  }
+}

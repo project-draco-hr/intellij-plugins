@@ -1,0 +1,25 @@
+{
+  final FileChooserDescriptor descriptor=new FileChooserDescriptor(true,false,false,false,false,false){
+    public boolean isFileVisible(    final VirtualFile file,    final boolean showHiddenFiles){
+      return super.isFileVisible(file,showHiddenFiles) && (file.isDirectory() || (file.getName().startsWith("adl") && isExecutableExtension(file.getExtension())));
+    }
+    private boolean isExecutableExtension(    final String extension){
+      return SystemInfo.isWindows ? "exe".equalsIgnoreCase(extension) : extension == null || "uexe".equalsIgnoreCase(extension);
+    }
+  }
+;
+  myAdlComponent.getComponent().addBrowseFolderListener("Select ADL executable file",null,null,descriptor,new TextComponentAccessor<JTextField>(){
+    public void setText(    final JTextField component,    @NotNull final String text){
+      component.setText(text);
+      final String adlPath=FileUtil.toSystemDependentName(text);
+      if (adlPath.endsWith(FlexSdkUtils.ADL_RELATIVE_PATH)) {
+        final String runtimePath=adlPath.substring(0,adlPath.length() - FlexSdkUtils.ADL_RELATIVE_PATH.length()) + FlexSdkUtils.AIR_RUNTIME_RELATIVE_PATH;
+        myAirRuntimeComponent.getComponent().setText(runtimePath);
+      }
+    }
+    public String getText(    final JTextField component){
+      return component.getText();
+    }
+  }
+);
+}

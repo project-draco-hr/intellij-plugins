@@ -1,0 +1,19 @@
+{
+  SourceFile[] sourceFiles=m_fileInfo.getFiles(partialFileName);
+  int nSourceFiles=sourceFiles.length;
+  if (nSourceFiles == 0) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("name",partialFileName);
+    throw new NoMatchException(getLocalizationManager().getLocalizedTextString("noSourceFileWithSpecifiedName",args));
+  }
+ else   if (nSourceFiles > 1) {
+    String s=getLocalizationManager().getLocalizedTextString("ambiguousMatchingFilenames") + m_newline;
+    for (int i=0; i < nSourceFiles; i++) {
+      SourceFile sourceFile=sourceFiles[i];
+      s+=" " + sourceFile.getName() + "#"+ sourceFile.getId();
+      if (i < nSourceFiles - 1)       s+=m_newline;
+    }
+    throw new AmbiguousException(s);
+  }
+  return sourceFiles[0].getId();
+}

@@ -1,0 +1,27 @@
+{
+  myProject=project;
+  myProvider=provider;
+  provider.addListener(new FlexBCConfigurator.Listener(){
+    @Override public void moduleRemoved(    final Module module){
+      if (!isFlex(module)) {
+        return;
+      }
+      LOG.assertTrue(myModule2Editors.containsKey(module),"Unknown module: " + module);
+      myModule2Editors.remove(module);
+    }
+    @Override public void buildConfigurationRemoved(    FlexBCConfigurable configurable){
+      configurationRemoved(configurable.getEditableObject());
+    }
+    @Override public void natureChanged(    final FlexBCConfigurable configurable){
+    }
+    @Override public void buildConfigurationRenamed(    final FlexBCConfigurable configurable){
+    }
+  }
+,this);
+  for (  Module module : provider.getModules()) {
+    if (!isFlex(module)) {
+      continue;
+    }
+    addEditorsForModule(module);
+  }
+}

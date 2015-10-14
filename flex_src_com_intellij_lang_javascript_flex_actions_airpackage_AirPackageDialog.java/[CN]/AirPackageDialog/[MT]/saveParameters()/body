@@ -1,0 +1,24 @@
+{
+  final AirPackageProjectParameters params=AirPackageProjectParameters.getInstance(myProject);
+  params.desktopPackageType=(DesktopPackageType)myDesktopTypeCombo.getSelectedItem();
+  params.androidPackageType=(AndroidPackageType)myAndroidTypeCombo.getSelectedItem();
+  params.apkCaptiveRuntime=myApkCaptiveRuntimeCheckBox.isSelected();
+  try {
+    final String portValue=myApkDebugPortTextField.getText().trim();
+    final int port=portValue.isEmpty() ? AirPackageUtil.DEBUG_PORT_DEFAULT : Integer.parseInt(portValue);
+    if (port > 0 && port <= 65535) {
+      params.apkDebugListenPort=port;
+    }
+  }
+ catch (  NumberFormatException e) {
+  }
+  params.iosPackageType=(IOSPackageType)myIOSTypeCombo.getSelectedItem();
+  params.iosFastPackaging=myIosFastPackagingCheckBox.isSelected();
+  final Collection<Pair<Module,FlexBuildConfiguration>> deselectedBCs=myTree.getDeselectedBCs();
+  final StringBuilder buf=new StringBuilder();
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : deselectedBCs) {
+    if (buf.length() > 0)     buf.append('\n');
+    buf.append(moduleAndBC.first.getName()).append('\t').append(moduleAndBC.second.getName());
+  }
+  params.deselectedBCs=buf.toString();
+}

@@ -1,0 +1,46 @@
+{
+  final boolean ok=checkReferences(attributeNameValuePair);
+  if (!ok)   return;
+  if (attributeNameValuePair.getValueNode() == null)   return;
+  final PsiElement parent=attributeNameValuePair.getParent();
+  final XmlElementDescriptor descriptor=parent instanceof JSAttributeImpl ? ((JSAttributeImpl)parent).getBackedDescriptor() : null;
+  final String attributeName=StringUtil.notNullize(attributeNameValuePair.getName(),JSAttributeNameValuePair.DEFAULT);
+  final XmlAttributeDescriptor attributeDescriptor=descriptor == null ? null : descriptor.getAttributeDescriptor(attributeName,null);
+  final String baseClassFqns=attributeDescriptor == null ? null : attributeDescriptor.getDefaultValue();
+  if (baseClassFqns != null && !StringUtil.isEmptyOrSpaces(baseClassFqns)) {
+    final PsiReference[] references=attributeNameValuePair.getReferences();
+    PsiReference lastReference=references.length > 0 ? references[0] : null;
+    for (    final PsiReference reference : references) {
+      if (reference.getRangeInElement().getEndOffset() > lastReference.getRangeInElement().getEndOffset()) {
+        lastReference=reference;
+      }
+    }
+    final PsiElement resolved=lastReference != null ? lastReference.resolve() : null;
+    if (resolved instanceof JSClass) {
+      boolean correctClass=false;
+      final Collection<String> resolvedBaseClasses=new ArrayList<String>();
+      final GlobalSearchScope scope=JSResolveUtil.getResolveScope(attributeNameValuePair);
+      for (      String baseClassFqn : StringUtil.split(baseClassFqns,",")) {
+        if ("Object".equals(baseClassFqn)) {
+          correctClass=true;
+          break;
+        }
+        final PsiElement baseClass=ActionScriptClassResolver.findClassByQNameStatic(baseClassFqn,attributeNameValuePair);
+        if (baseClass instanceof JSClass) {
+          resolvedBaseClasses.add(baseClassFqn);
+          if (JSInheritanceUtil.isParentClass((JSClass)resolved,(JSClass)baseClass,false,scope)) {
+            correctClass=true;
+            break;
+          }
+        }
+      }
+      if (!correctClass) {
+        final String classesForMessage=resolvedBaseClasses.isEmpty() ? StringUtil.replace(baseClassFqns,",",", ") : StringUtil.join(resolvedBaseClasses,", ");
+        myHolder.createErrorAnnotation(calcRangeForReferences(lastReference),JSBundle.message("javascript.expected.class.or.descendant",classesForMessage));
+      }
+    }
+ else     if (resolved != attributeNameValuePair) {
+      myHolder.createErrorAnnotation(attributeNameValuePair.getValueNode(),JSBundle.message("javascript.qualified.class.name.expected"));
+    }
+  }
+}

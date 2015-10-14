@@ -1,0 +1,16 @@
+{
+  final Framework framework=new Framework(name,version,osx);
+  try {
+    final Element root=new SAXBuilder().build(text).getRootElement();
+    readFramework(root,framework);
+    framework.mergeClasses();
+  }
+ catch (  Exception e) {
+    LOG.error("Can't load framework",e,name,version,osx ? "osx" : "");
+  }
+ finally {
+    StreamUtil.closeStream(text);
+  }
+  framework.seal();
+  return framework;
+}

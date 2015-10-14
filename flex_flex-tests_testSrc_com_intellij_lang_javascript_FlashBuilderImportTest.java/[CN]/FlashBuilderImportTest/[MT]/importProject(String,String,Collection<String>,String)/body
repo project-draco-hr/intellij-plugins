@@ -1,0 +1,19 @@
+{
+  final VirtualFile dotProjectFile=FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_PROJECT,dotProjectFileContent,myFlashBuilderProjectDir);
+  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_ACTION_SCRIPT_PROPERTIES,dotActionScriptPropertiesFileContent,myFlashBuilderProjectDir);
+  final FlashBuilderProject flashBuilderProject=FlashBuilderProjectLoadUtil.loadProject(dotProjectFile,false);
+  final Collection<FlashBuilderProject> allFBProjects=new ArrayList<FlashBuilderProject>();
+  allFBProjects.add(flashBuilderProject);
+  for (  String name : otherProjectNames) {
+    allFBProjects.add(FlashBuilderProjectLoadUtil.getDummyFBProject(name));
+  }
+  final String moduleFilePath=myFlashBuilderProjectDir.getPath() + "/" + flashBuilderProject.getName()+ ModuleFileType.DOT_DEFAULT_EXTENSION;
+  final ModifiableModuleModel moduleModel=ModuleManager.getInstance(myProject).getModifiableModel();
+  myModule=moduleModel.newModule(moduleFilePath,FlexModuleType.getInstance().getId());
+  final ModifiableRootModel rootModel=ModuleRootManager.getInstance(myModule).getModifiableModel();
+  final FlashBuilderSdkFinder sdkFinder=new FlashBuilderSdkFinder(myProject,StringUtil.notNullize(flashBuilderWorkspacePath),Collections.<FlashBuilderProject>singletonList(flashBuilderProject));
+  final FlexProjectConfigurationEditor flexEditor=FlexProjectConfigurationEditor.createEditor(myProject,Collections.singletonMap(myModule,rootModel),null,null);
+  new FlashBuilderModuleImporter(myProject,flexEditor,allFBProjects,sdkFinder).setupModule(rootModel,flashBuilderProject);
+  flexEditor.commit();
+  ModifiableModelCommitter.multiCommit(new ModifiableRootModel[]{rootModel},moduleModel);
+}

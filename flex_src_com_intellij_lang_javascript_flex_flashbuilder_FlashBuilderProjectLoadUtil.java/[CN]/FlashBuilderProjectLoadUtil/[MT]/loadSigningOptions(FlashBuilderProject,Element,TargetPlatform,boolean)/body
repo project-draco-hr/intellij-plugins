@@ -1,0 +1,24 @@
+{
+  final Element airSettingsElement=buildTargetElement.getChild(AIR_SETTINGS_ELEMENT,buildTargetElement.getNamespace());
+  if (airSettingsElement == null)   return;
+  final String certPath=airSettingsElement.getAttributeValue(AIR_CERTIFICATE_ATTR);
+  if (certPath != null) {
+    if (targetPlatform == TargetPlatform.Desktop) {
+      fbProject.setDesktopCertPath(FileUtil.toSystemIndependentName(certPath));
+    }
+ else {
+      if (iOS) {
+        fbProject.setIOSCertPath(FileUtil.toSystemIndependentName(certPath));
+      }
+ else {
+        fbProject.setAndroidCertPath(FileUtil.toSystemIndependentName(certPath));
+      }
+    }
+  }
+  if (targetPlatform == TargetPlatform.Mobile && iOS) {
+    final String provisioningPath=buildTargetElement.getAttributeValue(PROVISIONING_FILE_ATTR);
+    if (provisioningPath != null) {
+      fbProject.setIOSProvisioningPath(provisioningPath);
+    }
+  }
+}

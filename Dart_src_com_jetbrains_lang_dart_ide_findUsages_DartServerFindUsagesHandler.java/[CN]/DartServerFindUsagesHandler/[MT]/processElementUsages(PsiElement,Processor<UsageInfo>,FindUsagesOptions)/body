@@ -1,19 +1,29 @@
 {
+  final SearchScope scope=options.searchScope;
   final ReadActionConsumer<SearchResult> searchResultProcessor=new ReadActionConsumer<SearchResult>(){
     @Override public void consumeInReadAction(    SearchResult result){
+      if (result.getKind().equals(SearchResultKind.DECLARATION))       return;
       final Location location=result.getLocation();
-      final PsiElement locationPsiElement=findPsiElement(element,location);
-      if (locationPsiElement != null) {
-        int offset=location.getOffset();
-        int length=location.getLength();
-        offset-=locationPsiElement.getTextOffset();
-        processor.process(new UsageInfo(locationPsiElement,offset,offset + length));
-      }
+      final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(location.getFile()));
+      if (vFile == null)       return;
+      if (scope instanceof LocalSearchScope && !((LocalSearchScope)scope).isInScope(vFile))       return;
+      if (scope instanceof GlobalSearchScope && !((GlobalSearchScope)scope).contains(vFile))       return;
+      final PsiFile psiFile=elementToSearch.getManager().findFile(vFile);
+      if (psiFile == null)       return;
+      final PsiElement usageElement=getUsagePsiElement(psiFile,TextRange.create(location.getOffset(),location.getOffset() + location.getLength()));
+      if (usageElement == null)       return;
+      if (scope instanceof LocalSearchScope && !PsiSearchScopeUtil.isInScope((LocalSearchScope)scope,usageElement))       return;
+      int offset=location.getOffset();
+      int length=location.getLength();
+      offset-=usageElement.getTextOffset();
+      boolean nonCodeUsage=usageElement instanceof PsiComment || usageElement.getParent() instanceof PsiComment;
+      final UsageInfo usageInfo=new UsageInfo(usageElement,offset,offset + length,nonCodeUsage);
+      usageInfo.setDynamicUsage(result.isPotential());
+      processor.process(usageInfo);
     }
   }
 ;
-  final String elementFilePath=readEnclosingFilePath(element);
-  final int elementOffset=element.getTextOffset();
-  DartAnalysisServerService.getInstance().search_findElementReferences(elementFilePath,elementOffset,searchResultProcessor);
+  final DartElementLocation elementLocation=DartElementLocation.of(elementToSearch);
+  DartAnalysisServerService.getInstance().search_findElementReferences(elementLocation.file,elementLocation.offset,searchResultProcessor);
   return true;
 }

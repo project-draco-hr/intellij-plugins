@@ -1,0 +1,60 @@
+{
+  Module module=orderEntry.getOwnerModule();
+  if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return super.shouldAddDependency(orderEntry,settings);
+  }
+  if (orderEntry instanceof ModuleSourceOrderEntry) {
+    return AddDependencyType.DEFAULT;
+  }
+  if (orderEntry instanceof JdkOrderEntry) {
+    if (module != myRootModule) {
+      return AddDependencyType.DO_NOT_ADD;
+    }
+    if (myActiveConfigurations == null) {
+      return AddDependencyType.DEFAULT;
+    }
+    ModuleData moduleData=myActiveConfigurations.get(module);
+    for (    FlexBuildConfiguration bc : moduleData.bcs) {
+      if (bc.getSdk() != null) {
+        return AddDependencyType.DEFAULT;
+      }
+    }
+    return AddDependencyType.DO_NOT_ADD;
+  }
+  Collection<FlexBuildConfiguration> accessibleConfigurations;
+  if (myActiveConfigurations != null) {
+    ModuleData moduleData=myActiveConfigurations.get(module);
+    accessibleConfigurations=moduleData != null ? moduleData.bcs : Collections.<FlexBuildConfiguration>emptyList();
+  }
+ else {
+    accessibleConfigurations=Arrays.asList(FlexBuildConfigurationManager.getInstance(module).getBuildConfigurations());
+  }
+  if (orderEntry instanceof LibraryOrderEntry) {
+    final LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+    if (library == null) {
+      return AddDependencyType.DEFAULT;
+    }
+    if (library.getKind() == FlexLibraryType.FLEX_LIBRARY) {
+      return FlexProjectRootsUtil.dependOnLibrary(accessibleConfigurations,library,module != myRootModule,settings.isProductionOnly()) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+    }
+ else {
+      return AddDependencyType.DO_NOT_ADD;
+    }
+  }
+ else   if (orderEntry instanceof ModuleOrderEntry) {
+    final Module dependencyModule=((ModuleOrderEntry)orderEntry).getModule();
+    if (dependencyModule == null) {
+      return AddDependencyType.DO_NOT_ADD;
+    }
+    if (myActiveConfigurations != null) {
+      ModuleData moduleData=myActiveConfigurations.get(dependencyModule);
+      return moduleData != null && (moduleData.accessibleInProduction || !settings.isProductionOnly()) ? AddDependencyType.DEFAULT : AddDependencyType.DO_NOT_ADD;
+    }
+ else {
+      return AddDependencyType.DEFAULT;
+    }
+  }
+ else {
+    return AddDependencyType.DEFAULT;
+  }
+}

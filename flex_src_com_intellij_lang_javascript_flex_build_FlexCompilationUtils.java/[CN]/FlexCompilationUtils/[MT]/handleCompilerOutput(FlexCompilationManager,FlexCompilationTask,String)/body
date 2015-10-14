@@ -1,0 +1,40 @@
+{
+  boolean failureDetected=false;
+  final List<String> lines=StringUtil.split(StringUtil.replace(output,"\r","\n"),"\n");
+  for (int i=0; i < lines.size(); i++) {
+    final String text=lines.get(i);
+    if (StringUtil.isEmptyOrSpaces(text) || "^".equals(text.trim())) {
+      continue;
+    }
+    final String nextLine=i + 1 < lines.size() ? lines.get(i + 1) : null;
+    if (nextLine != null && nextLine.trim().equals("^")) {
+      continue;
+    }
+    final Matcher matcher=FlexCommonUtils.ERROR_PATTERN.matcher(text);
+    if (matcher.matches()) {
+      final String filePath=matcher.group(1);
+      final String additionalInfo=matcher.group(2);
+      final String line=matcher.group(3);
+      final String column=matcher.group(4);
+      final String type=matcher.group(5);
+      final String message=matcher.group(6);
+      final CompilerMessageCategory messageCategory="Warning".equals(type) ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR;
+      final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+      final StringBuilder fullMessage=new StringBuilder();
+      if (file == null)       fullMessage.append(filePath).append(": ");
+      if (additionalInfo != null)       fullMessage.append(additionalInfo).append(' ');
+      fullMessage.append(message);
+      compilationManager.addMessage(task,messageCategory,fullMessage.toString(),file != null ? file.getUrl() : null,line != null ? Integer.parseInt(line) : 0,column != null ? Integer.parseInt(column) : 0);
+      failureDetected|=messageCategory == CompilerMessageCategory.ERROR;
+    }
+ else     if (text.startsWith("Error: ") || text.startsWith("Exception in thread \"")) {
+      final String updatedText=text.startsWith("Error: ") ? text.substring("Error: ".length()) : text;
+      compilationManager.addMessage(task,CompilerMessageCategory.ERROR,updatedText,null,-1,-1);
+      failureDetected=true;
+    }
+ else {
+      compilationManager.addMessage(task,CompilerMessageCategory.INFORMATION,text,null,-1,-1);
+    }
+  }
+  return !failureDetected;
+}

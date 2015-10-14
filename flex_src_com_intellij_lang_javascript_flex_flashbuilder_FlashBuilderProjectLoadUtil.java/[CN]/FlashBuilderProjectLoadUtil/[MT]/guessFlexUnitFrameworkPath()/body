@@ -1,0 +1,19 @@
+{
+  final String fbPath=FlashBuilderSdkFinder.findFBInstallationPath();
+  if (fbPath == null)   return null;
+  final File pluginsDir=new File(fbPath + "/eclipse/plugins");
+  if (!pluginsDir.isDirectory())   return null;
+  final File[] flexUnitDirs=pluginsDir.listFiles(new FilenameFilter(){
+    @Override public boolean accept(    @NotNull final File dir,    @NotNull final String name){
+      return name.startsWith("com.adobe.flexbuilder.flexunit_");
+    }
+  }
+);
+  for (  File flexUnitDir : flexUnitDirs) {
+    final String flexUnitLibPath=flexUnitDir.getPath() + "/flexunitframework";
+    if (new File(flexUnitLibPath).isDirectory()) {
+      return flexUnitLibPath;
+    }
+  }
+  return null;
+}

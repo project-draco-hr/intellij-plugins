@@ -1,0 +1,18 @@
+{
+  if (!file.isDirectory() || file.getFileSystem() instanceof JarFileSystem)   return;
+  VfsUtilCore.visitChildrenRecursively(file,new VirtualFileVisitor(){
+    @NotNull @Override public Result visitFileEx(    @NotNull VirtualFile child){
+      progressIndicator.checkCanceled();
+      if (child.isDirectory()) {
+        progressIndicator.setText2(child.getPresentableUrl());
+      }
+ else       if ("swc".equalsIgnoreCase(child.getExtension()) || "ane".equalsIgnoreCase(child.getExtension())) {
+        final VirtualFile dir=child.getParent();
+        result.add(dir);
+        return skipTo(dir);
+      }
+      return CONTINUE;
+    }
+  }
+);
+}

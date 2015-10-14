@@ -1,0 +1,35 @@
+{
+  initResultFile();
+  final boolean fromModuleSource=reader.readBoolean();
+  final int moduleId=readEntityId();
+  final String locale=reader.readUTF();
+  final String bundleName=reader.readUTF();
+  final ModuleInfo moduleInfo=Client.getInstance().getRegisteredModules().getNullableInfo(moduleId);
+  PropertiesFile resourceBundle=null;
+  int sourceId=-1;
+  if (moduleInfo == null) {
+    LOG.warn("Skip getResourceBundle(" + locale + ", "+ bundleName+ ") due to cannot find module with id "+ moduleId);
+  }
+ else {
+    if (fromModuleSource) {
+      resourceBundle=getResourceBundleFromModuleSource(moduleInfo.getModule(),bundleName);
+      sourceId=moduleId;
+    }
+ else {
+      Pair<PropertiesFile,Integer> bundleInfo=LibraryManager.getInstance().getResourceBundleFile(locale,bundleName,moduleInfo);
+      if (bundleInfo != null) {
+        resourceBundle=bundleInfo.first;
+        sourceId=bundleInfo.second;
+      }
+    }
+  }
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") final FileOutputStream fileOut=new FileOutputStream(resultFile);
+  final AccessToken token=ReadAction.start();
+  try {
+    writeResourceBundle(resourceBundle,fileOut,sourceId);
+  }
+  finally {
+    token.finish();
+    fileOut.close();
+  }
+}

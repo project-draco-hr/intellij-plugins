@@ -1,0 +1,22 @@
+{
+  myDebugProcess.getVmServiceWrapper().evaluateInTargetContext(myIsolateId,myInstanceRef.getId(),"toString()",new VmServiceConsumers.EvaluateConsumerWrapper(){
+    @Override public void received(    final InstanceRef toStringInstanceRef){
+      if (toStringInstanceRef.getKind() == InstanceKind.String) {
+        final String string=toStringInstanceRef.getValueAsString();
+        if (string.equals("Instance of '" + myInstanceRef.getClassRef().getName() + "'")) {
+          noGoodResult();
+        }
+ else {
+          node.setPresentation(AllIcons.Debugger.Value,myInstanceRef.getClassRef().getName(),string,true);
+        }
+      }
+ else {
+        noGoodResult();
+      }
+    }
+    @Override public void noGoodResult(){
+      node.setPresentation(AllIcons.Debugger.Value,myInstanceRef.getClassRef().getName(),"",true);
+    }
+  }
+);
+}

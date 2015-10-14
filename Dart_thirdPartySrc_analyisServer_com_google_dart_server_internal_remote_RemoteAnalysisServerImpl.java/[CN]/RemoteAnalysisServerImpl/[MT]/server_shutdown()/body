@@ -1,0 +1,15 @@
+{
+  shutdownRequested=true;
+  stopWatcher();
+  String id=generateUniqueId();
+  sendRequestToServer(id,RequestUtilities.generateServerShutdown(id),new BasicConsumer(){
+    @Override public void received(){
+      requestSink.close();
+      for (      AnalysisServerStatusListener listener : statusListenerList) {
+        listener.isAliveServer(false);
+      }
+    }
+  }
+);
+  stopServer();
+}

@@ -1,0 +1,27 @@
+{
+  List<IntentionAction> list=ContainerUtil.findAll(myFixture.getAvailableIntentions(fileName),new Condition<IntentionAction>(){
+    @Override public boolean value(    final IntentionAction intentionAction){
+      return intentionAction.getText().startsWith(hint);
+    }
+  }
+);
+  final AccessToken l=ReadAction.start();
+  try {
+    Document document=myFixture.getEditor().getDocument();
+    int offset=myFixture.getEditor().getCaretModel().getOffset();
+    int line=document.getLineNumber(offset);
+    boolean hasHint=!DaemonCodeAnalyzerEx.processHighlights(document,getProject(),HighlightSeverity.ERROR,document.getLineStartOffset(line),document.getLineEndOffset(line),new Processor<HighlightInfo>(){
+      @Override public boolean process(      HighlightInfo info){
+        return !info.hasHint();
+      }
+    }
+);
+    if (!hasHint) {
+      fail("Auto import fix not found: " + DaemonCodeAnalyzerImpl.getHighlights(document,HighlightSeverity.INFORMATION,getProject()));
+    }
+  }
+  finally {
+    l.finish();
+  }
+  return list;
+}

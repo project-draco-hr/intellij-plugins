@@ -1,0 +1,34 @@
+{
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final boolean tempCertificate=!(packagingOptions instanceof IosPackagingOptions) && signingOptions.isUseTempCertificate();
+  if (!tempCertificate && !signingOptions.getKeyAlias().isEmpty()) {
+    command.add("-alias");
+    command.add(signingOptions.getKeyAlias());
+  }
+  command.add("-storetype");
+  command.add(tempCertificate ? "PKCS12" : signingOptions.getKeystoreType());
+  command.add("-keystore");
+  command.add(FileUtil.toSystemDependentName(tempCertificate ? AirPackageUtil.getTempKeystorePath() : signingOptions.getKeystorePath()));
+  command.add("-storepass");
+  command.add(tempCertificate ? AirPackageUtil.TEMP_KEYSTORE_PASSWORD : keystorePassword);
+  if (tempCertificate) {
+    if (packagingOptions instanceof AirDesktopPackagingOptions) {
+      command.add("-tsa");
+      command.add("none");
+    }
+  }
+ else {
+    if (!signingOptions.getKeyAlias().isEmpty() && !keyPassword.isEmpty()) {
+      command.add("-keypass");
+      command.add(keyPassword);
+    }
+    if (!signingOptions.getProvider().isEmpty()) {
+      command.add("-providerName");
+      command.add(signingOptions.getProvider());
+    }
+    if (!signingOptions.getTsa().isEmpty()) {
+      command.add("-tsa");
+      command.add(signingOptions.getTsa());
+    }
+  }
+}

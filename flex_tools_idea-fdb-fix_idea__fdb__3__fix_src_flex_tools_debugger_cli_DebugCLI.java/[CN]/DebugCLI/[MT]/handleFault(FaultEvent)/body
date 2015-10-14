@@ -1,0 +1,21 @@
+{
+  boolean requestResume=false;
+  String name=e.name();
+  boolean stop=true;
+  boolean print=true;
+  try {
+    print=m_faultTable.is(name,"print");
+    stop=m_faultTable.is(name,"stop");
+  }
+ catch (  NullPointerException npe) {
+    if (Trace.error) {
+      Map args=new HashMap();
+      args.put("faultName",name);
+      Trace.trace(getLocalizationManager().getLocalizedTextString("faultHasNoTableEntry",args));
+      npe.printStackTrace();
+    }
+  }
+  if (!stop)   requestResume=true;
+  if (print)   dumpFaultLine(e);
+  return requestResume;
+}

@@ -1,0 +1,22 @@
+{
+  String type=getType(typeFromFlexValueResult);
+  if (type != null) {
+    if (isGenericVector(type)) {
+      type=VECTOR;
+    }
+    final JavaScriptIndex jsIndex=JavaScriptIndex.getInstance(project);
+    PsiElement jsClass=ActionScriptClassResolver.findClassByQName(type,jsIndex,module);
+    if (!(jsClass instanceof JSClass) && type.endsWith("$")) {
+      jsClass=ActionScriptClassResolver.findClassByQName(type.substring(0,type.length() - 1),jsIndex,module);
+    }
+    if (!(jsClass instanceof JSClass) && module != null) {
+      final GlobalSearchScope scope=ProjectScope.getAllScope(project);
+      jsClass=ActionScriptClassResolver.findClassByQNameStatic(type,scope);
+      if (!(jsClass instanceof JSClass) && type.endsWith("$")) {
+        jsClass=ActionScriptClassResolver.findClassByQNameStatic(type.substring(0,type.length() - 1),scope);
+      }
+    }
+    return jsClass instanceof JSClass ? (JSClass)jsClass : null;
+  }
+  return null;
+}

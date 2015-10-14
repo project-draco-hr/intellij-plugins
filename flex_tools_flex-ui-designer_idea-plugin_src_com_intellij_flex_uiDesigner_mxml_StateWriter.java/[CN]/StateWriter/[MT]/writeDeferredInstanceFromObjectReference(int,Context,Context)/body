@@ -1,0 +1,22 @@
+{
+  int referenceInstanceReference=context.getId();
+  if (referenceInstanceReference == -1) {
+    int objectInstanceReference=parentContext.getScope().referenceCounter++;
+    context.setId(objectInstanceReference);
+    context.referenceInitialized();
+    referenceInstanceReference=writer.allocateAbsoluteStaticObjectId();
+    context.setId(referenceInstanceReference);
+    writeDeferredInstanceFromObjectReference(propertyName,objectInstanceReference,parentContext.getScope().getOwner().getOrAllocateId(),referenceInstanceReference);
+  }
+ else {
+    StaticInstanceReferenceInDeferredParentInstance referenceInDeferredParentInstance=context.getStaticInstanceReferenceInDeferredParentInstance();
+    if (referenceInDeferredParentInstance == null) {
+      writer.property(propertyName).objectReference(referenceInstanceReference);
+    }
+ else {
+      writeDeferredInstanceFromObjectReference(propertyName,referenceInDeferredParentInstance.getObjectInstance(),referenceInDeferredParentInstance.getDeferredParentInstance(),referenceInstanceReference);
+      referenceInDeferredParentInstance.markAsWritten();
+      context.setStaticInstanceReferenceInDeferredParentInstance(null);
+    }
+  }
+}

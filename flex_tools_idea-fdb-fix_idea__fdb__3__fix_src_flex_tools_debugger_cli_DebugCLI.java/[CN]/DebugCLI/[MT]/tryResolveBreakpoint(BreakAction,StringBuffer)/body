@@ -1,0 +1,65 @@
+{
+  int status=b.getStatus();
+  boolean resolved=(status == BreakAction.RESOLVED);
+  if (status == BreakAction.UNRESOLVED) {
+    try {
+      waitTilHalted();
+      if (enableBreakpoint(b,b.isAutoDisable(),b.isAutoDelete())) {
+        resolved=true;
+      }
+ else {
+        int module=propertyGet(LIST_MODULE);
+        int line=propertyGet(LIST_LINE);
+        String arg=b.getBreakpointExpression();
+        if (arg != null) {
+          int[] result=parseLocationArg(module,line,arg);
+          module=result[0];
+          line=result[1];
+          SourceFile f=m_fileInfo.getFile(module);
+          LocationCollection col=enableBreak(f,line);
+          if (col.isEmpty())           throw new NullPointerException(getLocalizationManager().getLocalizedTextString("noExecutableCode"));
+          b.setLocations(col);
+          Location l=col.first();
+          SourceFile file=(l != null) ? l.getFile() : null;
+          String funcName=(file == null) ? null : file.getFunctionNameForLine(m_session,l.getLine());
+          Map args=new HashMap();
+          String formatString;
+          args.put("breakpointNumber",Integer.toString(b.getId()));
+          String filename=file.getName();
+          if (b.isSingleSwf() && file != null) {
+            filename=filename + "#" + file.getId();
+          }
+          args.put("file",filename);
+          args.put("line",new Integer(l.getLine()));
+          if (funcName != null) {
+            args.put("functionName",funcName);
+            formatString="resolvedBreakpointToFunction";
+          }
+ else {
+            formatString="resolvedBreakpointToFile";
+          }
+          sb.append(getLocalizationManager().getLocalizedTextString(formatString,args));
+          sb.append(m_newline);
+          sb.append(m_newline);
+          resolved=true;
+        }
+      }
+    }
+ catch (    NotConnectedException e) {
+    }
+catch (    NoMatchException e) {
+    }
+catch (    ParseException e) {
+      if (Trace.error)       Trace.trace(e.toString());
+    }
+catch (    AmbiguousException e) {
+      b.setStatus(BreakAction.AMBIGUOUS);
+      throw e;
+    }
+catch (    NullPointerException e) {
+      b.setStatus(BreakAction.NOCODE);
+      throw e;
+    }
+  }
+  return resolved;
+}

@@ -1,0 +1,22 @@
+{
+  final XmlAttribute[] attributes=tag.getAttributes();
+  XmlAttribute anchor=null;
+  for (  final XmlAttribute attribute : attributes) {
+    final XmlAttributeDescriptor descriptor=attribute.getDescriptor();
+    if (attribute.isNamespaceDeclaration() || (descriptor != null && descriptor.isRequired())) {
+      anchor=attribute;
+    }
+ else {
+      break;
+    }
+  }
+  @NonNls final String qname="xmlns" + (prefix.length() > 0 ? ":" + prefix : "");
+  final XmlAttribute attribute=XmlElementFactory.getInstance(tag.getProject()).createXmlAttribute(qname,namespace);
+  if (anchor == null) {
+    tag.add(attribute);
+  }
+ else {
+    tag.addAfter(attribute,anchor);
+  }
+  CodeStyleManager.getInstance(tag.getProject()).reformat(tag);
+}

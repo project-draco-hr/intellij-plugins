@@ -1,0 +1,23 @@
+{
+  final PsiFile psiFile=element.getContainingFile();
+  if (!(psiFile instanceof JSFile) || InjectedLanguageManager.getInstance(project).getInjectionHost(psiFile) != null || !psiFile.getLanguage().isKindOf(JavaScriptSupportLoader.ECMA_SCRIPT_L4)) {
+    return false;
+  }
+  final JSClass jsClass=PsiTreeUtil.getParentOfType(element,JSClass.class);
+  if (jsClass == null || !(jsClass.getParent() instanceof JSPackageStatement)) {
+    return false;
+  }
+  if (!jsClass.isInterface()) {
+    final JSAttributeList attributeList=jsClass.getAttributeList();
+    if (attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.FINAL)) {
+      return false;
+    }
+  }
+  final TextRange declarationRange=getClassDeclarationTextRange(jsClass);
+  final int offset=editor.getCaretModel().getOffset();
+  if (offset < declarationRange.getStartOffset() || offset > declarationRange.getEndOffset()) {
+    return false;
+  }
+  setText(getTitle(jsClass));
+  return true;
+}

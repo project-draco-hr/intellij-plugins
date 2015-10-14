@@ -1,0 +1,31 @@
+{
+  try {
+    mySdkSpecificHandler.initThreadLocals(myLogger);
+    final boolean omitTrace=mySdkSpecificHandler.isOmitTrace(mySwf,myParams);
+    try {
+      acquire(omitTrace);
+      mySdkSpecificHandler.setupOmitTraceOption(omitTrace);
+      if (mySwf) {
+        mySdkSpecificHandler.compileSwf(myParams);
+      }
+ else {
+        mySdkSpecificHandler.compileSwc(myParams);
+      }
+    }
+  finally {
+      release(omitTrace);
+    }
+  }
+ catch (  final Exception e) {
+    logError(e);
+  }
+catch (  final Throwable t) {
+    logError(t);
+    System.exit(1);
+  }
+ finally {
+    myLogger.log(FlexCompiler.COMPILATION_FINISHED);
+    mySdkSpecificHandler.cleanThreadLocals();
+    System.gc();
+  }
+}

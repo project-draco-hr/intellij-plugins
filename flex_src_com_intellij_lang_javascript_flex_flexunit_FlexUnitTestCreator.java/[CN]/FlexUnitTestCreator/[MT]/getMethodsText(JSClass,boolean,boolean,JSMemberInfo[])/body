@@ -1,0 +1,15 @@
+{
+  final StringBuilder builder=new StringBuilder();
+  builder.append(generateSetUp ? JSInheritanceUtil.findMember("setUp",createdClass,JSInheritanceUtil.SearchedMemberType.Methods,FunctionKind.SIMPLE,true) == null ? "[Before]\npublic function setUp():void{\n\n}" : "[Before]\npublic override function setUp():void{\nsuper.setUp();\n}" : "");
+  builder.append(generateTearDown ? JSInheritanceUtil.findMember("tearDown",createdClass,JSInheritanceUtil.SearchedMemberType.Methods,FunctionKind.SIMPLE,true) == null ? "[After]\npublic function tearDown():void{\n\n}" : "[After]\npublic override function tearDown():void{\nsuper.tearDown();\n}" : "");
+  final Set<String> processedNames=new THashSet<String>();
+  for (  final JSMemberInfo info : selectedMemberInfos) {
+    final String name=info.getMember().getName();
+    if (!processedNames.contains(name)) {
+      processedNames.add(name);
+      final String testName="test" + capitalizeFirstCharacter(name);
+      builder.append("[Test]\npublic function ").append(testName).append("():void{\n\n}");
+    }
+  }
+  return builder.toString();
+}

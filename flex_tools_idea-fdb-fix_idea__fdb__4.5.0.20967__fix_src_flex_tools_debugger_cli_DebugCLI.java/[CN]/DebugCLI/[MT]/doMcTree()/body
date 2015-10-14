@@ -1,0 +1,39 @@
+{
+  waitTilHalted();
+  try {
+    String var=nextToken();
+    String member="_target";
+    boolean printPath=false;
+    Object result=null;
+    String name=null;
+    if (hasMoreTokens()) {
+      member=nextToken();
+      while (hasMoreTokens()) {
+        String option=nextToken();
+        if (option.equalsIgnoreCase("fullpath"))         printPath=true;
+      }
+    }
+    ValueExp expr=parseExpression(var);
+    result=evalExpression(expr).value;
+    StringBuilder sb=new StringBuilder();
+    if (result instanceof Variable) {
+      name=((Variable)result).getName();
+      result=((Variable)result).getValue();
+    }
+    if (result instanceof Value) {
+      ArrayList<Object> e=new ArrayList<Object>();
+      dumpTree(new HashMap<Object,String>(),e,name,(Value)result,member);
+      treeResults(sb,e,member,printPath);
+    }
+ else     throw new NoSuchVariableException(result);
+    out(sb.toString());
+  }
+ catch (  NoSuchVariableException nsv) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("variable",nsv.getMessage());
+    err(getLocalizationManager().getLocalizedTextString("variableUnknown",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("couldNotEvaluate"));
+  }
+}

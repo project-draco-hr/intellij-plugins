@@ -48,11 +48,14 @@
   }
   boolean isMyMethodCall=namedElement instanceof CfmlFunction;
   if (!myIsForCompletion) {
-    if (myIsMethodCall && (myReferenceName.toLowerCase().startsWith("get") || myReferenceName.toLowerCase().startsWith("set")) && myReferenceName.substring(3).equalsIgnoreCase(elementName.toLowerCase())) {
-      addIfNotNull(execute((PsiNamedElement)element,false),myResult);
+    final String referenceNameLoweCase=myReferenceName.toLowerCase(Locale.ENGLISH);
+    if (myIsMethodCall && (referenceNameLoweCase.startsWith("get") || referenceNameLoweCase.startsWith("set")) && referenceNameLoweCase.substring(3).equalsIgnoreCase(elementName)) {
+      if (!referenceNameLoweCase.startsWith("get") || methodCallArity() == 0) {
+        addIfNotNull(execute((PsiNamedElement)element,false),myResult);
+      }
       return myResult.isEmpty();
     }
-    if (!myReferenceName.toLowerCase().equals(elementName.toLowerCase())) {
+    if (!referenceNameLoweCase.equalsIgnoreCase(elementName)) {
       return true;
     }
   }

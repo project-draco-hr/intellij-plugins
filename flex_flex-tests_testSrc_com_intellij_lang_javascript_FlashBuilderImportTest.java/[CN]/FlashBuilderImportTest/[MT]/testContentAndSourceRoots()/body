@@ -1,0 +1,15 @@
+{
+  final VirtualFile src3=myFlashBuilderProjectDir.createChildDirectory(this,"src3");
+  final VirtualFile flexUnitTestsDir=src3.createChildDirectory(this,"flexUnitTests");
+  FlexUtils.addFileWithContent("doesNotMatter.as","",flexUnitTestsDir);
+  FlexUtils.addFileWithContent("BarTestSuite.as","",src3);
+  FlexUtils.addFileWithContent("FooTest.as","",src3);
+  final String someAbsoluteFolderPath=getSomeAbsoluteFolderPath();
+  final String dotProjectFileContent="<projectDescription>\n" + "  <name>" + getTestName(true) + "</name>\n"+ "  <linkedResources>"+ "    <link>"+ "      <name>LINKED_RESOURCE_1</name>"+ "      <location>"+ someAbsoluteFolderPath+ "</location>"+ "    </link>"+ "  </linkedResources>"+ "</projectDescription>";
+  final String dotActionScriptPropertiesFileContent="<actionScriptProperties>\n" + "  <compiler sourceFolderPath='src1'>\n" + "    <compilerSourcePath>\n"+ "      <compilerSourcePathEntry path='subdir\\src2'/>\n"+ "      <compilerSourcePathEntry path='LINKED_RESOURCE_1\\other1'/>\n"+ "      <compilerSourcePathEntry path='" + myFlashBuilderProjectDir.getPath() + "\\src3"+ "'/>\n"+ "    </compilerSourcePath>\n"+ "  </compiler>\n"+ "</actionScriptProperties>";
+  importProject(dotProjectFileContent,dotActionScriptPropertiesFileContent,Collections.<String>emptyList(),null);
+  final String contentRootUrl=myFlashBuilderProjectDir.getUrl();
+  checkContentRoots(contentRootUrl,VfsUtilCore.pathToUrl(someAbsoluteFolderPath + "/other1"));
+  checkSourceRoots(contentRootUrl + "/src1",contentRootUrl + "/subdir/src2",VfsUtilCore.pathToUrl(someAbsoluteFolderPath + "/other1"),VfsUtilCore.pathToUrl(myFlashBuilderProjectDir.getPath() + "/src3"));
+  checkTestSourceRoots(VfsUtilCore.pathToUrl(myFlashBuilderProjectDir.getPath() + "/src3"));
+}

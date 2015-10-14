@@ -1,0 +1,9 @@
+{
+  if (file == null || !file.isInLocalFileSystem())   return false;
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk))   return false;
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  if (fileIndex.isInLibraryClasses(file))   return true;
+  final Module module=fileIndex.getModuleForFile(file);
+  return module != null && DartSdkGlobalLibUtil.isDartSdkEnabled(module);
+}

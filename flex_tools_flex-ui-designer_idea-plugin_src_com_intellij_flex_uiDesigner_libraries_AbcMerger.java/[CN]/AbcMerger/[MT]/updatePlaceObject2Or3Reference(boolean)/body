@@ -1,0 +1,18 @@
+{
+  if ((buffer.get(buffer.position()) & PlaceObjectFlags.HAS_CHARACTER) == 0) {
+    return false;
+  }
+  int bufferPosition;
+  if (is2) {
+    bufferPosition=buffer.position() + 3;
+  }
+ else {
+    bufferPosition=buffer.position() + 4;
+    final byte flags2=buffer.get(buffer.position() + 1);
+    if ((flags2 & PlaceObject3Flags.HAS_CLASS_NAME) != 0 || (flags2 & PlaceObject3Flags.HAS_IMAGE) != 0) {
+      bufferPosition+=skipAbcName(bufferPosition) + 1;
+    }
+  }
+  updateReferenceById(bufferPosition);
+  return true;
+}

@@ -1,0 +1,32 @@
+{
+  String className=getAttributeValue(tag,"className");
+  if (className != null && writeFxComponentReferenceIfProcessed(className)) {
+    return true;
+  }
+  final MxmlObjectReference objectReference=processFxDeclarationId(tag,className,allowNullableIdOrClassName);
+  if (objectReference == null && !allowNullableIdOrClassName) {
+    return false;
+  }
+  final int objectReferenceId=objectReference == null ? writer.allocateAbsoluteStaticObjectId() : objectReference.id;
+  final int sizePosition=writer.componentFactory(objectReferenceId);
+  final XmlTag[] subTags=tag.getSubTags();
+  final int objectTableSize;
+  final PrimitiveAmfOutputStream out=writer.getOut();
+  if (subTags.length == 1) {
+    out.write(Amf3Types.OBJECT);
+    Context context=writer.createInnerComponentContext(objectReference,objectReferenceId);
+    mxmlWriter.processPropertyTagValue(null,tag,context,COMPLEX);
+    objectTableSize=context.getScope().referenceCounter;
+  }
+ else {
+    writer.objectHeader("Object");
+    writer.endObject();
+    if (subTags.length > 1) {
+      LOG.warn("Skip fx:component, only one root tag is allowed: " + tag.getText());
+    }
+    objectTableSize=0;
+  }
+  out.putShort(out.size() - (sizePosition + 2),sizePosition);
+  out.putShort(objectTableSize,sizePosition + 2);
+  return true;
+}

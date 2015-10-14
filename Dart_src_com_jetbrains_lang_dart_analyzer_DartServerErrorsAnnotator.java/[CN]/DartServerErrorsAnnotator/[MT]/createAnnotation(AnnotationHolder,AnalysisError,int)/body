@@ -1,0 +1,32 @@
+{
+  final Location location=error.getLocation();
+  int highlightingStart=location.getOffset();
+  int highlightingEnd=location.getOffset() + location.getLength();
+  if (highlightingEnd > fileTextLength)   highlightingEnd=fileTextLength;
+  if (highlightingStart > 0 && highlightingStart >= highlightingEnd)   highlightingStart=highlightingEnd - 1;
+  final TextRange textRange=new TextRange(highlightingStart,highlightingEnd);
+  final String severity=error.getSeverity();
+  final String message=StringUtil.notNullize(error.getMessage());
+  final Annotation annotation;
+  if (AnalysisErrorSeverity.INFO.equals(severity)) {
+    annotation=holder.createWeakWarningAnnotation(textRange,message);
+    annotation.setTextAttributes(DartSyntaxHighlighterColors.HINT);
+  }
+ else   if (AnalysisErrorSeverity.WARNING.equals(severity)) {
+    annotation=holder.createWarningAnnotation(textRange,message);
+    annotation.setTextAttributes(DartSyntaxHighlighterColors.WARNING);
+  }
+ else   if (AnalysisErrorSeverity.ERROR.equals(severity)) {
+    annotation=holder.createErrorAnnotation(textRange,message);
+    annotation.setTextAttributes(DartSyntaxHighlighterColors.ERROR);
+  }
+ else {
+    annotation=null;
+  }
+  final ProblemHighlightType specialHighlightType=annotation == null ? null : getSpecialHighlightType(message);
+  if (specialHighlightType != null) {
+    annotation.setTextAttributes(null);
+    annotation.setHighlightType(specialHighlightType);
+  }
+  return annotation;
+}

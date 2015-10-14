@@ -1,0 +1,24 @@
+{
+  boolean hasError=false;
+  try {
+    beginMessage(ClientMethod.updateLocalStyleHolders);
+    stringWriter.writeTo(out);
+    out.writeUInt29(holders.size());
+    holders.forEachKey(new TObjectProcedure<ModuleInfo>(){
+      @Override public boolean execute(      ModuleInfo moduleInfo){
+        out.writeUInt29(moduleInfo.getId());
+        out.write(moduleInfo.getLocalStyleHolders(),"lsh",true,true);
+        return true;
+      }
+    }
+);
+  }
+ catch (  Throwable e) {
+    hasError=true;
+    stringWriter.rollback();
+    LogMessageUtil.processInternalError(e);
+  }
+ finally {
+    finalizeMessage(hasError);
+  }
+}

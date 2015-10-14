@@ -1,0 +1,47 @@
+{
+  final TreePath selectionPath=myTree.getSelectionPath();
+  DefaultMutableTreeNode node=selectionPath == null ? null : (DefaultMutableTreeNode)selectionPath.getLastPathComponent();
+  Object userObject=node == null ? null : node.getUserObject();
+  if (userObject == null)   return;
+  final Ref<Module> moduleRef=new Ref<Module>();
+  final Ref<FlexBuildConfiguration> bcRef=new Ref<FlexBuildConfiguration>();
+  final Ref<FlashProjectStructureProblem> problemRef=new Ref<FlashProjectStructureProblem>();
+  if (userObject instanceof FlashProjectStructureProblem) {
+    problemRef.set((FlashProjectStructureProblem)userObject);
+    node=(DefaultMutableTreeNode)node.getParent();
+    userObject=node.getUserObject();
+  }
+  if (userObject instanceof FlexBuildConfiguration) {
+    bcRef.set((FlexBuildConfiguration)userObject);
+    node=(DefaultMutableTreeNode)node.getParent();
+    userObject=node.getUserObject();
+  }
+  if (userObject instanceof Module) {
+    moduleRef.set((Module)userObject);
+  }
+  close(CANCEL_EXIT_CODE);
+  final ProjectStructureConfigurable configurable=ProjectStructureConfigurable.getInstance(myProject);
+  ShowSettingsUtil.getInstance().editConfigurable(myProject,configurable,new Runnable(){
+    public void run(){
+      final Place place;
+      if (problemRef.get() instanceof FlashProjectStructureProblem.FlexUnitOutputFolderProblem) {
+        place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,configurable.getProjectConfig());
+      }
+ else       if (moduleRef.isNull()) {
+        place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,configurable.getModulesConfig());
+      }
+ else       if (bcRef.isNull()) {
+        place=new Place().putPath(ProjectStructureConfigurable.CATEGORY,configurable.getModulesConfig()).putPath(MasterDetailsComponent.TREE_OBJECT,moduleRef.get());
+      }
+ else {
+        place=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getPlaceFor(moduleRef.get(),bcRef.get().getName());
+        if (!problemRef.isNull()) {
+          place.putPath(CompositeConfigurable.TAB_NAME,problemRef.get().tabName);
+          place.putPath(FlexBCConfigurable.LOCATION_ON_TAB,problemRef.get().locationOnTab);
+        }
+      }
+      configurable.navigateTo(place,true);
+    }
+  }
+);
+}

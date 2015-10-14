@@ -1,0 +1,32 @@
+{
+  final JSClass clazz;
+  final JSReferenceExpression reference;
+  if (node instanceof JSNewExpression) {
+    JSExpression methodExpression=node.getMethodExpression();
+    if (!(methodExpression instanceof JSReferenceExpression)) {
+      return null;
+    }
+    PsiElement resolved=((JSReferenceExpression)methodExpression).resolve();
+    if (!(resolved instanceof JSClass) || resolved instanceof XmlBackedJSClass || ((JSClass)resolved).isInterface()) {
+      return null;
+    }
+    clazz=(JSClass)resolved;
+    reference=(JSReferenceExpression)methodExpression;
+  }
+ else {
+    JSExpression methodExpression=node.getMethodExpression();
+    if (!(methodExpression instanceof JSSuperExpression)) {
+      return null;
+    }
+    JSClass containingClass=JSResolveUtil.getClassOfContext(node);
+    if (containingClass == null) {
+      return null;
+    }
+    clazz=containingClass.getSuperClasses()[0];
+    if (clazz.isInterface()) {
+      return null;
+    }
+    reference=(JSReferenceExpression)clazz.findNameIdentifier().getPsi();
+  }
+  return new CreateConstructorFix(clazz,reference,node);
+}

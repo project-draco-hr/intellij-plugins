@@ -1,0 +1,17 @@
+{
+  final Collection<JSClass> result=new HashSet<JSClass>();
+  JSPackageIndex.processElementsInScope(packageName,null,new JSPackageIndex.PackageElementsProcessor(){
+    public boolean process(    VirtualFile file,    String name,    JSPackageIndexInfo.Kind kind,    boolean isPublic){
+      String qualifiedName=StringUtil.getQualifiedName(packageName,name);
+      if (kind == JSPackageIndexInfo.Kind.CLASS || kind == JSPackageIndexInfo.Kind.INTERFACE) {
+        PsiElement element=ActionScriptClassResolver.findClassByQNameStatic(qualifiedName,searchScope);
+        if (element instanceof JSClass) {
+          result.add((JSClass)element);
+        }
+      }
+      return true;
+    }
+  }
+,searchScope,searchScope.getProject());
+  return result;
+}

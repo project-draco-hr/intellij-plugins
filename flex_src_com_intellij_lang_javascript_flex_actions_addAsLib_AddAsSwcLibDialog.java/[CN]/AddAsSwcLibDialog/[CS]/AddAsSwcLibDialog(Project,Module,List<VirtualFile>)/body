@@ -1,0 +1,32 @@
+{
+  super(project);
+  myProject=project;
+  myRoots=roots;
+  setTitle(FlexBundle.message("add.as.library.title"));
+  if (preferredModule != null) {
+    final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(preferredModule).getActiveConfiguration();
+    myBCTree.selectRow(preferredModule,bc);
+  }
+  myLibComponentsList.setModel(JBList.createDefaultListModel(roots.toArray(new VirtualFile[roots.size()])));
+  myLibComponentsList.setCellRenderer(new DefaultListCellRenderer(){
+    @Override public Component getListCellRendererComponent(    JList list,    Object value,    int index,    boolean isSelected,    boolean cellHasFocus){
+      final JLabel component=(JLabel)super.getListCellRendererComponent(list,value,index,isSelected,cellHasFocus);
+      final VirtualFile file=(VirtualFile)value;
+      component.setText(FileUtil.toSystemDependentName(file.getPath()));
+      if (file.isDirectory() && file.isInLocalFileSystem()) {
+        component.setIcon(AllIcons.Nodes.JarDirectory);
+      }
+ else {
+        final VirtualFile localFile=JarFileSystem.getInstance().getLocalVirtualFileFor(file);
+        if (localFile != null) {
+          component.setText(FileUtil.toSystemDependentName(localFile.getPath()));
+          component.setIcon(IconUtil.getIcon(localFile,0,null));
+        }
+      }
+      return component;
+    }
+  }
+);
+  myLibComponentsList.setVisibleRowCount(myLibComponentsList.getItemsCount());
+  init();
+}

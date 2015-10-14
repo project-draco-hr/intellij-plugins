@@ -1,0 +1,27 @@
+{
+switch (instanceRef.getKind()) {
+case Null:
+case Bool:
+    node.setPresentation(AllIcons.Debugger.Db_primitive,new XKeywordValuePresentation(instanceRef.getValueAsString()),false);
+  break;
+case Double:
+case Int:
+node.setPresentation(AllIcons.Debugger.Db_primitive,new XNumericValuePresentation(instanceRef.getValueAsString()),false);
+break;
+case String:
+final String suffix=instanceRef.getValueAsStringIsTruncated() ? "... (truncated value)" : "";
+final String presentableValue=StringUtil.replace(instanceRef.getValueAsString() + suffix,"\"","\\\"");
+node.setPresentation(AllIcons.Debugger.Db_primitive,new XStringValuePresentation(presentableValue),false);
+break;
+case Float32x4:
+case Float64x2:
+case Int32x4:
+case StackTrace:
+node.setFullValueEvaluator(new ImmediateFullValueEvaluator("Click to see stack trace...",instanceRef.getValueAsString()));
+node.setPresentation(AllIcons.Debugger.Value,instanceRef.getClassRef().getName(),"",true);
+break;
+default :
+return false;
+}
+return true;
+}

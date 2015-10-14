@@ -1,0 +1,28 @@
+{
+  DebuggerCommand command=commandsToWrite.removeFirst();
+  final boolean currentlyExecuting=!suspended && startupDone;
+  if (command.getStartVMState() == VMState.RUNNING) {
+    if (!currentlyExecuting) {
+      if (command instanceof SuspendDebuggerCommand)       ((SuspendDebuggerCommand)command).doCommandAfterSuspend();
+      if (command.getOutputProcessingMode() != CommandOutputProcessingType.DEFAULT_PROCESSING)       return null;
+    }
+    command.post(this);
+    return command;
+  }
+ else   if (!currentlyExecuting) {
+    if (command.getEndVMState() == VMState.RUNNING) {
+      final DebuggerCommand nextCommand=commandsToWrite.peek();
+      if (nextCommand != null && nextCommand.getStartVMState() == VMState.SUSPENDED) {
+        command=commandsToWrite.removeFirst();
+        if (nextCommand.getEndVMState() == VMState.SUSPENDED && !(nextCommand instanceof QuitCommand)) {
+          insertCommand(new ContinueCommand());
+        }
+      }
+    }
+  }
+  if (currentlyExecuting) {
+    command=new SuspendResumeDebuggerCommand(command);
+  }
+  command.post(this);
+  return command;
+}

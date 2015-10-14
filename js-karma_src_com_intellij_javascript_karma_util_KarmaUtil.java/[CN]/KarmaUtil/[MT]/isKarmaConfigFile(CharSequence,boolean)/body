@@ -1,0 +1,29 @@
+{
+  int len=filename.length();
+  int extensionInd=StringUtil.lastIndexOf(filename,'.',0,len);
+  if (extensionInd == -1) {
+    return false;
+  }
+  boolean extMatched=false;
+  for (  String ext : EXTENSIONS) {
+    if (ext.length() == len - extensionInd - 1 && StringUtil.endsWith(filename,ext)) {
+      extMatched=true;
+      break;
+    }
+  }
+  if (matchMostRelevantNamesOnly) {
+    return isStartingPartMatched(filename,MOST_RELEVANT_NAMES);
+  }
+  if (!extMatched) {
+    return false;
+  }
+  for (  String beforeExtPart : BEFORE_EXT_PARTS) {
+    int startOffset=extensionInd - beforeExtPart.length();
+    if (startOffset > 0 && CharArrayUtil.regionMatches(filename,startOffset,beforeExtPart)) {
+      if (NAME_PART_DELIMITERS.indexOf(filename.charAt(startOffset - 1)) >= 0) {
+        return true;
+      }
+    }
+  }
+  return isStartingPartMatched(filename,STARTING_PARTS);
+}

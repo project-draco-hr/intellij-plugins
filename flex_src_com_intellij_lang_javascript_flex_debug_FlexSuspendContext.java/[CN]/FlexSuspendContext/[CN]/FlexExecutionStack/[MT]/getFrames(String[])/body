@@ -1,0 +1,21 @@
+{
+  final XStackFrame[] allFrames=new XStackFrame[frames.length];
+  int i=0;
+  final FlexDebugProcess flexDebugProcess=myTopFrame.getDebugProcess();
+  if (frames.length == 0) {
+    return Collections.emptyList();
+  }
+  String frameText=frames[i];
+  myTopFrame.setScope(extractScope(frameText));
+  myTopFrame.setFrameIndex(0);
+  allFrames[i++]=myTopFrame;
+  while (i < frames.length) {
+    frameText=frames[i];
+    final FlexStackFrame flexStackFrame=createStackFrame(flexDebugProcess,frameText);
+    allFrames[i]=flexStackFrame;
+    flexStackFrame.setScope(extractScope(frameText));
+    flexStackFrame.setFrameIndex(i);
+    i++;
+  }
+  return Arrays.asList(allFrames);
+}

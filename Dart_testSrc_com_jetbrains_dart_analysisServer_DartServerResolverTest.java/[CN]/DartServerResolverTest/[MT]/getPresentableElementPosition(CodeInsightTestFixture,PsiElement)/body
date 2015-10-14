@@ -1,0 +1,22 @@
+{
+  if (element == null)   return "";
+  final StringBuilder buf=new StringBuilder(element.getText());
+  DartComponent component=PsiTreeUtil.getParentOfType(element,DartComponent.class);
+  while (component != null) {
+    final DartComponentName componentName=component.getComponentName();
+    if (componentName != null && componentName != element) {
+      buf.insert(0,component.getName() + " -> ");
+    }
+    component=PsiTreeUtil.getParentOfType(component,DartComponent.class);
+  }
+  String path=element instanceof PsiDirectoryImpl ? ((PsiDirectoryImpl)element).getVirtualFile().getPath() : element.getContainingFile().getVirtualFile().getPath();
+  final String contentRoot=ModuleRootManager.getInstance(fixture.getModule()).getContentRoots()[0].getPath();
+  if (path.equals(contentRoot))   path="[content root]";
+  final String contentRootWithSlash=contentRoot + "/";
+  if (path.startsWith(contentRootWithSlash))   path=path.substring(contentRootWithSlash.length());
+  final DartSdk sdk=DartSdk.getDartSdk(element.getProject());
+  if (sdk != null && path.startsWith(sdk.getHomePath()))   path="[Dart SDK]" + path.substring(sdk.getHomePath().length());
+  if (buf.length() > 0)   buf.insert(0," -> ");
+  buf.insert(0,path);
+  return buf.toString();
+}

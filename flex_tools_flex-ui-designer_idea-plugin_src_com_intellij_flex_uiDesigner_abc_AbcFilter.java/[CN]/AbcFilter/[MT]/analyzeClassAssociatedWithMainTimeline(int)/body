@@ -1,0 +1,28 @@
+{
+  int numSymbols=buffer.getShort();
+  if (numSymbols == 0) {
+    symbolsClassTagLengthWithoutUselessMainClass=-1;
+    sA=0;
+    sB=0;
+    return 0;
+  }
+  for (int i=0; i < numSymbols; i++) {
+    int id=buffer.getShort();
+    final int position=buffer.position();
+    if (id == 0) {
+      readAbcName(position);
+      numSymbols--;
+      symbolsClassTagLengthWithoutUselessMainClass=length - (transientNameString.length() + 1 + 2);
+      sA=position - 2;
+      sB=position + transientNameString.length() + 1;
+      return numSymbols;
+    }
+ else {
+      if (exportAssets != null && !exportAssets.isEmpty()) {
+        exportAssets.remove(id);
+      }
+      buffer.position(position + skipAbcName(position) + 1);
+    }
+  }
+  return numSymbols;
+}

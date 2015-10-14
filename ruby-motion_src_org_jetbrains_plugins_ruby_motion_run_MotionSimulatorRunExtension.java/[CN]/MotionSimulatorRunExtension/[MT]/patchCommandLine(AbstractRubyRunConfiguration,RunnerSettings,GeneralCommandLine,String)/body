@@ -1,0 +1,19 @@
+{
+  final Map<String,String> env=cmdLine.getEnvironment();
+  final String originalRunnerId=cmdLine.getUserData(RakeConsoleModifier.ORIGINAL_RUNNER_ID);
+  if (RubyDebugRunner.ID.equals(originalRunnerId)) {
+    env.put("SIM_WAIT_FOR_DEBUGGER","1");
+  }
+  if (configuration instanceof RakeRunConfiguration && ((RakeRunConfiguration)configuration).getTaskName().contains("device")) {
+    final boolean enableDebugger=RubyDebugRunner.ID.equals(originalRunnerId);
+    if (enableDebugger) {
+      env.put("debug","1");
+      env.put("no_start","1");
+    }
+  }
+  final MotionFileOutputReaders readers=new MotionFileOutputReaders(RubyProcessHandler.getOutputEncoding());
+  env.put("SIM_STDOUT_PATH",readers.getOutFileAbsolutePath());
+  env.put("SIM_STDERR_PATH",readers.getErrFileAbsolutePath());
+  env.put("output","rubymine");
+  cmdLine.putUserData(FILE_OUTPUT_READERS,readers);
+}

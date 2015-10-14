@@ -1,0 +1,33 @@
+{
+  final CompilerMessagesBuffer messagesBuffer=new CompilerMessagesBuffer(context,true);
+  Result result=sendCommand(incrementalCommand != null ? incrementalCommand : fullCommand,messagesBuffer);
+  if (result != Result.OUT_OF_MEMORY && messagesBuffer.containsOutOfMemoryError()) {
+    result=Result.OUT_OF_MEMORY;
+  }
+switch (result) {
+case OK:
+    messagesBuffer.flush();
+  return !messagesBuffer.containsErrors();
+case TARGET_NOT_FOUND:
+messagesBuffer.flush();
+commandToIdMap.remove(fullCommand);
+return sendCompilationCommand(context,flexSdk,null,fullCommand,true);
+case NEED_TO_REPEAT_COMMAND:
+messagesBuffer.flush();
+consumeOutput(null,messagesBuffer);
+return sendCompilationCommand(context,flexSdk,null,fullCommand,true);
+case OUT_OF_MEMORY:
+quitCompilerShell();
+messagesBuffer.removeErrorsAndStackTrace();
+messagesBuffer.flush();
+addOutOfMemoryMessage(context,relaunchIfOutOfMemory);
+if (relaunchIfOutOfMemory) {
+launchFcshIfNeeded(context,flexSdk);
+return sendCompilationCommand(context,flexSdk,null,fullCommand,false);
+}
+ else {
+return false;
+}
+}
+return false;
+}

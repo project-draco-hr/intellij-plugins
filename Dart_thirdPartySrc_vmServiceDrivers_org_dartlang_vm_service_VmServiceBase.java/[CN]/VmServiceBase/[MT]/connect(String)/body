@@ -1,0 +1,87 @@
+{
+  URI uri;
+  try {
+    uri=new URI(url);
+  }
+ catch (  URISyntaxException e) {
+    throw new IOException("Invalid URL: " + url,e);
+  }
+  String wsScheme=uri.getScheme();
+  if (!"ws".equals(wsScheme) && !"wss".equals(wsScheme)) {
+    throw new IOException("Unsupported URL scheme: " + wsScheme);
+  }
+  WebSocket webSocket;
+  try {
+    webSocket=new WebSocket(uri);
+  }
+ catch (  WebSocketException e) {
+    throw new IOException("Failed to create websocket: " + url,e);
+  }
+  final VmService vmService=new VmService();
+  webSocket.setEventHandler(new WebSocketEventHandler(){
+    @Override public void onClose(){
+      Logging.getLogger().logInformation("VM connection closed: " + url);
+    }
+    @Override public void onMessage(    WebSocketMessage message){
+      Logging.getLogger().logInformation("VM message: " + message.getText());
+      try {
+        vmService.processResponse(message.getText());
+      }
+ catch (      Exception e) {
+        Logging.getLogger().logError(e.getMessage(),e);
+      }
+    }
+    @Override public void onOpen(){
+      Logging.getLogger().logInformation("VM connection open: " + url);
+    }
+    @Override public void onPing(){
+    }
+    @Override public void onPong(){
+    }
+  }
+);
+  try {
+    webSocket.connect();
+  }
+ catch (  WebSocketException e) {
+    throw new IOException("Failed to connect: " + url,e);
+  }
+  vmService.requestSink=new WebSocketRequestSink(webSocket);
+  final CountDownLatch latch=new CountDownLatch(1);
+  final String[] errMsg=new String[1];
+  vmService.getVersion(new VersionConsumer(){
+    @Override public void onError(    RPCError error){
+      String msg="Failed to determine protocol version: " + error.getCode() + "\n  message: "+ error.getMessage()+ "\n  details: "+ error.getDetails();
+      Logging.getLogger().logInformation(msg);
+      errMsg[0]=msg;
+    }
+    @Override public void received(    Version response){
+      int major=response.getMajor();
+      int minor=response.getMinor();
+      if (major != VmService.versionMajor || minor != VmService.versionMinor) {
+        if (major == 2 || major == 3) {
+          Logging.getLogger().logInformation("Difference in protocol version: client=" + VmService.versionMajor + "."+ VmService.versionMinor+ " vm="+ major+ "."+ minor);
+        }
+ else {
+          String msg="Incompatible protocol version: client=" + VmService.versionMajor + "."+ VmService.versionMinor+ " vm="+ major+ "."+ minor;
+          Logging.getLogger().logError(msg);
+          errMsg[0]=msg;
+        }
+      }
+      latch.countDown();
+    }
+  }
+);
+  try {
+    if (!latch.await(5,TimeUnit.SECONDS)) {
+      throw new IOException("Failed to determine protocol version");
+    }
+    if (errMsg[0] != null) {
+      throw new IOException(errMsg[0]);
+    }
+  }
+ catch (  InterruptedException e) {
+    throw new RuntimeException("Interrupted while waiting for response",e);
+  }
+  return vmService;
+}

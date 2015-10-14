@@ -1,0 +1,29 @@
+{
+  final JSChangeInfo jsChangeInfo=(JSChangeInfo)changeInfo;
+  JSMethodDescriptor descriptor=new JSMethodDescriptor(jsChangeInfo.getMethod(),false){
+    @Override public String getName(){
+      return jsChangeInfo.getNewName();
+    }
+    @Override public List<JSParameterInfo> getParameters(){
+      return Arrays.asList(jsChangeInfo.getNewParameters());
+    }
+    @Override public int getParametersCount(){
+      return getParameters().size();
+    }
+    @Override public String getVisibility(){
+      return jsChangeInfo.getNewVisibility().name();
+    }
+    @Override public JSFunction getMethod(){
+      return jsChangeInfo.getMethod();
+    }
+  }
+;
+  JSChangeSignatureDialog d=new JSChangeSignatureDialog(descriptor,changeInfo.getMethod()){
+    @Override protected void invokeRefactoring(    BaseRefactoringProcessor processor){
+      revertChanges(jsChangeInfo.getMethod(),oldText);
+      super.invokeRefactoring(processor);
+    }
+  }
+;
+  return d.showAndGet();
+}

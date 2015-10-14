@@ -1,0 +1,40 @@
+{
+  InputStream helpStream=Help.getResourceAsStream();
+  if (helpStream == null)   return getLocalizationManager().getLocalizedTextString("noHelpFileFound");
+  topic="[" + topic + "]";
+  Vector<String> lines=new Vector<String>();
+  BufferedReader r=null;
+  try {
+    r=new BufferedReader(new InputStreamReader(helpStream,"UTF-8"));
+    String line;
+    while ((line=r.readLine()) != null) {
+      if (line.startsWith(topic))       break;
+    }
+    while ((line=r.readLine()) != null) {
+      if (line.startsWith("["))       break;
+      lines.add(line);
+    }
+  }
+ catch (  FileNotFoundException fnf) {
+    err(fnf.getLocalizedMessage());
+  }
+catch (  IOException e) {
+    err(e.getLocalizedMessage());
+  }
+ finally {
+    if (r != null)     try {
+      r.close();
+    }
+ catch (    IOException e) {
+      e.printStackTrace();
+    }
+  }
+  StringBuilder helpText=new StringBuilder();
+  int n=lines.size();
+  for (int i=1; i < n - 1; i++) {
+    String line=lines.get(i);
+    helpText.append(line);
+    if (i != n - 2)     helpText.append(m_newline);
+  }
+  return helpText.toString();
+}

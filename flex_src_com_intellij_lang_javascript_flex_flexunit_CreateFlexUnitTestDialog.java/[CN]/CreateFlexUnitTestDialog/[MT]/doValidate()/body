@@ -1,0 +1,20 @@
+{
+  if (myCreateTestSourceFolderCheckBox.isVisible() && myCreateTestSourceFolderCheckBox.isSelected()) {
+    final String path=FileUtil.toSystemIndependentName(myTestSourceFolderTextField.getText().trim());
+    if (path.isEmpty())     return new ValidationInfo("Path is empty",myTestSourceFolderTextField);
+    if (LocalFileSystem.getInstance().findFileByPath(path) != null) {
+      return new ValidationInfo("File or folder already exists",myTestSourceFolderTextField);
+    }
+    boolean underContentRoot=false;
+    for (    VirtualFile contentRoot : ModuleRootManager.getInstance(myModule).getContentRoots()) {
+      if (path.startsWith(contentRoot.getPath() + "/")) {
+        underContentRoot=true;
+        break;
+      }
+    }
+    if (!underContentRoot) {
+      return new ValidationInfo("Test source folder must be under module content root",myTestSourceFolderTextField);
+    }
+  }
+  return null;
+}

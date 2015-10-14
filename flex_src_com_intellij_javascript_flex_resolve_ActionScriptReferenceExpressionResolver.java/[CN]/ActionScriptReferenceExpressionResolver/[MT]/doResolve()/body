@@ -1,0 +1,84 @@
+{
+  if (myReferencedName == null)   return ResolveResult.EMPTY_ARRAY;
+  PsiElement currentParent=JSResolveUtil.getTopReferenceParent(myParent);
+  if (JSResolveUtil.isSelfReference(currentParent,myRef)) {
+    if (!(currentParent instanceof JSPackageStatement) || myParent == currentParent) {
+      return new ResolveResult[]{new JSResolveResult(currentParent)};
+    }
+  }
+  if (isConditionalVariableReference(currentParent,myRef)) {
+    if (ModuleUtilCore.findModuleForPsiElement(myRef) == null) {
+      return new ResolveResult[]{new JSResolveResult(myRef)};
+    }
+ else {
+      return resolveConditionalCompilationVariable(myRef);
+    }
+  }
+  if (myRef.isAttributeReference()) {
+    return dummyResult(myRef);
+  }
+  if (JSCommonTypeNames.ANY_TYPE.equals(myReferencedName)) {
+    if (currentParent instanceof JSImportStatement && myQualifier instanceof JSReferenceExpression)     return ((JSReferenceExpression)myQualifier).multiResolve(false);
+    if (myParent instanceof JSE4XNamespaceReference)     return dummyResult(myRef);
+  }
+  if (myParent instanceof JSReferenceList && myParent.getNode().getElementType() == JSElementTypes.IMPLEMENTS_LIST && myRef.getQualifier() == null && myContainingFile instanceof JSFile && XmlBackedJSClassImpl.isImplementsAttribute((JSFile)myContainingFile)) {
+    PsiElement byQName=ActionScriptClassResolver.findClassByQNameStatic(myRef.getText(),myRef);
+    if (byQName != null)     return new ResolveResult[]{new JSResolveResult(byQName)};
+    return ResolveResult.EMPTY_ARRAY;
+  }
+  SinkResolveProcessor<ResolveResultSink> localProcessor;
+  if (myLocalResolve) {
+    final PsiElement topParent=JSResolveUtil.getTopReferenceParent(myParent);
+    localProcessor=new SinkResolveProcessor<ResolveResultSink>(myReferencedName,myRef,new ResolveResultSink(myRef,myReferencedName)){
+      @Override public boolean needPackages(){
+        if (myParent instanceof JSReferenceExpression && topParent instanceof JSImportStatement) {
+          return true;
+        }
+        return super.needPackages();
+      }
+    }
+;
+    localProcessor.setToProcessHierarchy(true);
+    JSReferenceExpressionImpl.doProcessLocalDeclarations(myRef,myQualifier,localProcessor,true,false,null);
+    PsiElement jsElement=localProcessor.getResult();
+    if (myQualifier instanceof JSThisExpression && localProcessor.processingEncounteredAnyTypeAccess() && jsElement != null) {
+      localProcessor.getResults().clear();
+      jsElement=null;
+    }
+    if (myQualifier == null) {
+      final JSReferenceExpression namespaceReference=JSReferenceExpressionImpl.getNamespaceReference(myRef);
+      ResolveResult[] resolveResultsAsConditionalCompilationVariable=null;
+      if (namespaceReference != null && (namespaceReference == myRef || namespaceReference.resolve() == namespaceReference)) {
+        if (jsElement == null && ModuleUtilCore.findModuleForPsiElement(myRef) == null) {
+          return new ResolveResult[]{new JSResolveResult(myRef)};
+        }
+        resolveResultsAsConditionalCompilationVariable=resolveConditionalCompilationVariable(myRef);
+      }
+      if (resolveResultsAsConditionalCompilationVariable != null && resolveResultsAsConditionalCompilationVariable.length > 0 && (jsElement == null || resolveResultsAsConditionalCompilationVariable[0].isValidResult())) {
+        return resolveResultsAsConditionalCompilationVariable;
+      }
+    }
+    if (jsElement != null || localProcessor.isEncounteredDynamicClasses() && myQualifier == null || !localProcessor.processingEncounteredAnyTypeAccess() && !localProcessor.isEncounteredDynamicClasses()) {
+      return localProcessor.getResultsAsResolveResults();
+    }
+  }
+ else {
+    final QualifiedItemProcessor<ResolveResultSink> processor=new QualifiedItemProcessor<ResolveResultSink>(new ResolveResultSink(myRef,myReferencedName),myContainingFile);
+    processor.setTypeContext(JSResolveUtil.isExprInTypeContext(myRef));
+    JSTypeEvaluator.evaluateTypes(myQualifier,myContainingFile,processor);
+    if (processor.resolved == QualifiedItemProcessor.TypeResolveState.PrefixUnknown) {
+      return dummyResult(myRef);
+    }
+    if (processor.resolved == QualifiedItemProcessor.TypeResolveState.Resolved || processor.resolved == QualifiedItemProcessor.TypeResolveState.Undefined || processor.getResult() != null) {
+      return processor.getResultsAsResolveResults();
+    }
+ else {
+      localProcessor=processor;
+    }
+  }
+  ResolveResult[] results=resolveFromIndices(localProcessor);
+  if (results.length == 0 && localProcessor.isEncounteredXmlLiteral()) {
+    return dummyResult(myRef);
+  }
+  return results;
+}

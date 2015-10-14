@@ -1,0 +1,29 @@
+{
+  if (fdbText == null)   return Pair.create(null,null);
+  String type=null;
+  String additionalInfo=null;
+  final int classIndex=fdbText.indexOf(FlexStackFrame.CLASS_MARKER);
+  final int lastQuoteIndex=fdbText.lastIndexOf("'");
+  if (classIndex != -1 && lastQuoteIndex > classIndex) {
+    int typeStart=classIndex + FlexStackFrame.CLASS_MARKER.length();
+    final String inQuotes=fdbText.substring(typeStart,lastQuoteIndex);
+    final int atIndex=inQuotes.indexOf("@");
+    if (atIndex > 0) {
+      type=inQuotes.substring(0,atIndex);
+      final int spaceIndex=inQuotes.indexOf(" ",atIndex);
+      if (spaceIndex != -1) {
+        additionalInfo=inQuotes.substring(spaceIndex,inQuotes.length());
+      }
+    }
+ else {
+      type=inQuotes;
+    }
+  }
+  if ("[]".equals(type)) {
+    type="Array";
+  }
+  if (type != null) {
+    type=StringUtil.replace(type,VECTOR_PREFIX,"");
+  }
+  return Pair.create(type,additionalInfo);
+}

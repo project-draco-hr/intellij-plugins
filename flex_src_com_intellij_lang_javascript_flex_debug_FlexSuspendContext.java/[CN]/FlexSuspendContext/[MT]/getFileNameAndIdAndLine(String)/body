@@ -1,0 +1,36 @@
+{
+  final int atPos=text.lastIndexOf(AT_MARKER);
+  if (atPos == -1)   return Trinity.create(null,null,0);
+  final String fileName;
+  String fileId=null;
+  int line=0;
+  final int eolIndex=Math.min(text.indexOf("\r",atPos),text.indexOf("\n",atPos));
+  final String fileNameAndFurther=text.substring(atPos + AT_MARKER.length(),eolIndex > atPos ? eolIndex : text.length());
+  final int hashIndex=fileNameAndFurther.indexOf('#');
+  final int colonIndex=fileNameAndFurther.indexOf(':',hashIndex);
+  if (hashIndex != -1) {
+    fileName=fileNameAndFurther.substring(0,hashIndex);
+    if (colonIndex > hashIndex) {
+      fileId=fileNameAndFurther.substring(hashIndex + 1,colonIndex);
+      try {
+        line=Integer.parseInt(fileNameAndFurther.substring(colonIndex + 1));
+      }
+ catch (      NumberFormatException e) {
+      }
+    }
+  }
+ else {
+    if (colonIndex != -1) {
+      fileName=fileNameAndFurther.substring(0,colonIndex);
+      try {
+        line=Integer.parseInt(fileNameAndFurther.substring(colonIndex + 1));
+      }
+ catch (      NumberFormatException e) {
+      }
+    }
+ else {
+      fileName=fileNameAndFurther;
+    }
+  }
+  return Trinity.create(fileName,fileId,line);
+}

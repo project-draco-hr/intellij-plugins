@@ -1,0 +1,24 @@
+{
+  if (!defaultPropertyDescriptorInitialized) {
+    PsiElement element=predefined ? null : JSResolveUtil.unwrapProxy(getDeclaration());
+    if (element instanceof XmlFile) {
+      element=XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)element);
+    }
+    if (element instanceof JSClass) {
+      JSClass jsClass=(JSClass)element;
+      do {
+        AnnotationBackedDescriptor descriptor=getDefaultPropertyDescriptor(jsClass);
+        if (descriptor == null) {
+          jsClass=ArrayUtil.getFirstElement(jsClass.getSuperClasses());
+        }
+ else {
+          defaultPropertyDescriptor=descriptor;
+          break;
+        }
+      }
+ while (jsClass != null);
+    }
+    defaultPropertyDescriptorInitialized=true;
+  }
+  return defaultPropertyDescriptor;
+}

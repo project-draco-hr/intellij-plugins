@@ -1,0 +1,25 @@
+{
+  DiagramBuilder diagramBuilder=getBuilder(e);
+  if (diagramBuilder == null)   return null;
+  final Project project=CommonDataKeys.PROJECT.getData(e.getDataContext());
+  if (project == null) {
+    return null;
+  }
+  Pair<PsiDirectory,String> dirAndPackage=getPackageToCreateIn((FlashUmlDataModel)diagramBuilder.getDataModel());
+  if (dirAndPackage.first == null) {
+    Collection<VirtualFile> dirs=DirectoryIndex.getInstance(project).getDirectoriesByPackageName(dirAndPackage.second,false).findAll();
+    final PsiManager psiManager=PsiManager.getInstance(project);
+    PsiDirectory[] psiDirs=ContainerUtil.map2Array(dirs,PsiDirectory.class,new Function<VirtualFile,PsiDirectory>(){
+      @Override public PsiDirectory fun(      final VirtualFile virtualFile){
+        return psiManager.findDirectory(virtualFile);
+      }
+    }
+);
+    PsiDirectory dir=DirectoryChooserUtil.selectDirectory(project,psiDirs,null,null);
+    if (dir == null) {
+      return null;
+    }
+    dirAndPackage=Pair.create(dir,dirAndPackage.second);
+  }
+  return showDialog(project,dirAndPackage);
+}

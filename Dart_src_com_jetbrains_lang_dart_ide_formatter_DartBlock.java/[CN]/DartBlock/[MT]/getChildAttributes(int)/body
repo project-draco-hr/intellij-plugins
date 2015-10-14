@@ -28,5 +28,14 @@
   if (previousBlock == null) {
     return new ChildAttributes(Indent.getNoneIndent(),null);
   }
+  if (myParent instanceof DartBlock && ((DartBlock)myParent).isIncomplete()) {
+    ASTNode child=myNode.getFirstChildNode();
+    if (child == null || !(child.getElementType() == OPEN_QUOTE && child.getText().length() == 3)) {
+      return new ChildAttributes(Indent.getContinuationIndent(),null);
+    }
+  }
+  if (myParent == null && isIncomplete()) {
+    return new ChildAttributes(Indent.getContinuationIndent(),null);
+  }
   return new ChildAttributes(previousBlock.getIndent(),previousBlock.getAlignment());
 }

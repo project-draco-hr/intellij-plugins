@@ -1,0 +1,23 @@
+{
+  final VirtualFile contentRoot=contentEntry.getFile();
+  if (contentRoot == null)   return null;
+  VirtualFile sourceRoot=VfsUtil.findRelativeFile(contentRoot,"src");
+  if (sourceRoot == null) {
+    sourceRoot=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+      public VirtualFile compute(){
+        try {
+          return contentRoot.createChildDirectory(this,"src");
+        }
+ catch (        IOException e) {
+          return null;
+        }
+      }
+    }
+);
+  }
+  if (sourceRoot != null) {
+    contentEntry.addSourceFolder(sourceRoot,false);
+    return sourceRoot;
+  }
+  return null;
+}

@@ -1,0 +1,18 @@
+{
+  JsonObject elementObject=outlineObject.get("element").getAsJsonObject();
+  Element element=Element.fromJson(elementObject);
+  int offset=outlineObject.get("offset").getAsInt();
+  int length=outlineObject.get("length").getAsInt();
+  Outline outline=new Outline(parent,element,offset,length);
+  List<Outline> childrenList=Lists.newArrayList();
+  JsonElement childrenJsonArray=outlineObject.get("children");
+  if (childrenJsonArray instanceof JsonArray) {
+    Iterator<JsonElement> childrenElementIterator=((JsonArray)childrenJsonArray).iterator();
+    while (childrenElementIterator.hasNext()) {
+      JsonObject childObject=childrenElementIterator.next().getAsJsonObject();
+      childrenList.add(fromJson(outline,childObject));
+    }
+  }
+  outline.setChildren(childrenList);
+  return outline;
+}

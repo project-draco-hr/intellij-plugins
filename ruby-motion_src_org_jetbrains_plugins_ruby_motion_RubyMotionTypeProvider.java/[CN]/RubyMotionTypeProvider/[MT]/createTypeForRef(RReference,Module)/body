@@ -1,0 +1,25 @@
+{
+  final RPsiElement value=ref.getValue();
+  if (value instanceof RPossibleCall) {
+    final String shortName=((RPossibleCall)value).getPossibleCommand();
+    final String sdkVersion=RubyMotionUtil.getInstance().getSdkVersion(module);
+    final String[] frameworks=RubyMotionUtil.getInstance().getRequiredFrameworks(module);
+    boolean isIdSelector=false;
+    for (    String framework : frameworks) {
+      if (BridgeSupportLoader.getInstance().isIdSelector(shortName,sdkVersion,framework)) {
+        isIdSelector=true;
+        break;
+      }
+    }
+    if (isIdSelector) {
+      final Symbol callSymbol=ResolveUtil.resolveToSymbolWithCaching(ref.getReference());
+      if (callSymbol instanceof FunctionSymbol) {
+        final Function function=((FunctionSymbol)callSymbol).getFunction();
+        if ("id".equals(function.getReturnValue())) {
+          return RTypeUtil.createTypeSameAsReceiverInstance(ref);
+        }
+      }
+    }
+  }
+  return null;
+}

@@ -1,0 +1,16 @@
+{
+  final ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  for (  final VirtualFile root : ProjectRootManager.getInstance(project).getContentSourceRoots()) {
+    final boolean b=projectFileIndex.iterateContentUnderDirectory(root,new ContentIterator(){
+      public boolean processFile(      final VirtualFile fileOrDir){
+        if (scope.contains(fileOrDir) && JavaScriptSupportLoader.isMxmlOrFxgFile(fileOrDir) && (nameHint == null || nameHint.equals(fileOrDir.getNameWithoutExtension()))) {
+          if (!processor.processFile(fileOrDir,root))           return false;
+        }
+        return true;
+      }
+    }
+);
+    if (!b)     return false;
+  }
+  return true;
+}

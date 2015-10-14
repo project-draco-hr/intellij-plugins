@@ -1,0 +1,19 @@
+{
+  final String legacyFdbPath=myDebuggerSdkHome + "/lib/legacy/fdb.jar";
+  if (new File(legacyFdbPath).isFile()) {
+    return legacyFdbPath;
+  }
+  String classpath=myDebuggerSdkHome + "/lib/fdb.jar";
+  if (isDebuggerFromSdk3()) {
+    classpath=FlexCommonUtils.getPathToBundledJar("idea-fdb-3-fix.jar") + File.pathSeparator + classpath;
+  }
+ else   if (!myDebuggerVersion.startsWith(FlexCommonUtils.AIR_SDK_VERSION_PREFIX)) {
+    if (StringUtil.compareVersionNumbers(myDebuggerVersion,"4.0") >= 0 && StringUtil.compareVersionNumbers(myDebuggerVersion,"4.1.1") < 0) {
+      classpath=FlexCommonUtils.getPathToBundledJar("idea-fdb-4.0.0.14159-fix.jar") + File.pathSeparator + classpath;
+    }
+ else     if (myDebuggerVersion.startsWith("4.6.b") || (StringUtil.compareVersionNumbers(myDebuggerVersion,"4.5") >= 0 && StringUtil.compareVersionNumbers(myDebuggerVersion,"4.6.1") < 0) || (StringUtil.compareVersionNumbers(myDebuggerVersion,"4.8") >= 0 && StringUtil.compareVersionNumbers(myDebuggerVersion,"4.12") < 0)) {
+      classpath=FlexCommonUtils.getPathToBundledJar("idea-fdb-4.5.0.20967-fix.jar") + File.pathSeparator + classpath;
+    }
+  }
+  return classpath;
+}

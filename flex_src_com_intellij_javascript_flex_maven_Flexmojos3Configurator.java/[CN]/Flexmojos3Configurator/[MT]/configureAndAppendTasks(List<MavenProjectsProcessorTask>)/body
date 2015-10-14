@@ -1,0 +1,35 @@
+{
+  final ModifiableFlexBuildConfiguration[] oldBCs=myFlexEditor.getConfigurations(myModule);
+  if (oldBCs.length == 1 && oldBCs[0].getName().equals(FlexBuildConfiguration.UNNAMED)) {
+    myFlexEditor.configurationRemoved(oldBCs[0]);
+  }
+  final String mainBCName=myModule.getName();
+  final ModifiableFlexBuildConfiguration existingBC=ContainerUtil.find(oldBCs,new Condition<ModifiableFlexBuildConfiguration>(){
+    public boolean value(    final ModifiableFlexBuildConfiguration bc){
+      return mainBCName.equals(bc.getName());
+    }
+  }
+);
+  final ModifiableFlexBuildConfiguration mainBC=setupMainBuildConfiguration(existingBC);
+  final Collection<RLMInfo> rlmInfos=FlexmojosImporter.isFlexApp(myMavenProject) ? getRLMInfos() : Collections.<RLMInfo>emptyList();
+  for (  final RLMInfo info : rlmInfos) {
+    final ModifiableFlexBuildConfiguration existingRlmBC=ContainerUtil.find(oldBCs,new Condition<ModifiableFlexBuildConfiguration>(){
+      public boolean value(      final ModifiableFlexBuildConfiguration bc){
+        return bc.getName().equals(info.myRLMName);
+      }
+    }
+);
+    configureRuntimeLoadedModule(mainBC,info,existingRlmBC);
+  }
+  if (FlexCompilerProjectConfiguration.getInstance(myModule.getProject()).GENERATE_FLEXMOJOS_CONFIGS) {
+    if (StringUtil.compareVersionNumbers(myFlexmojosPlugin.getVersion(),"3.4") >= 0) {
+      appendGenerateConfigTask(postTasks,mainBC.getCompilerOptions().getAdditionalConfigFilePath());
+      if (!rlmInfos.isEmpty()) {
+        postTasks.add(new RuntimeModulesGenerateConfigTask(myModule,myMavenProject,myMavenTree,mainBC.getCompilerOptions().getAdditionalConfigFilePath(),rlmInfos));
+      }
+    }
+ else {
+      myInformer.showFlexConfigWarningIfNeeded(myModule.getProject());
+    }
+  }
+}

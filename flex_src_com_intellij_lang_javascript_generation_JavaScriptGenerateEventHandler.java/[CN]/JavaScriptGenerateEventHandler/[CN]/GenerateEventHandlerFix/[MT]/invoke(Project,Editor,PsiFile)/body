@@ -1,0 +1,26 @@
+{
+  if (userCancelled)   return;
+  final PsiElement referenceElement=insertEventHandlerReference(editor,file);
+  evalAnchor(editor,file);
+  final String eventClassShortName=StringUtil.getShortName(eventClassFqn);
+  final String functionText="private function " + eventHandlerName + "(event:"+ eventClassShortName+ "):void{"+ methodBody+ "\n}\n";
+  JSFunction addedElement=(JSFunction)doAddOneMethod(project,functionText,anchor);
+  addedElement=(JSFunction)ImportUtils.importAndShortenReference(eventClassFqn,addedElement,true,false).second;
+  final PsiElement templateBaseElement=referenceElement == null ? addedElement : myJsClass;
+  final TemplateBuilderImpl templateBuilder=new TemplateBuilderImpl(templateBaseElement);
+  final PsiElement lastElement=PsiTreeUtil.getDeepestLast(addedElement);
+  final PsiElement prevElement=lastElement.getPrevSibling();
+  templateBuilder.setEndVariableBefore((prevElement != null ? prevElement : lastElement));
+  templateBuilder.replaceElement(addedElement.getAttributeList().findAccessTypeElement(),new MyExpression("private","protected","public"));
+  templateBuilder.replaceElement(addedElement.findNameIdentifier().getPsi(),"handlerName",new MyExpression(eventHandlerName,eventHandlerName2),true);
+  templateBuilder.replaceElement(addedElement.getParameterList().getParameters()[0].findNameIdentifier().getPsi(),new MyExpression("event","e"));
+  if (referenceElement != null && referenceElement.isValid()) {
+    templateBuilder.replaceElement(referenceElement,"handlerReference","handlerName",false);
+  }
+  final Editor topEditor=InjectedLanguageUtil.getTopLevelEditor(editor);
+  PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(topEditor.getDocument());
+  final Template template=templateBuilder.buildInlineTemplate();
+  final int startOffset=templateBaseElement.getTextRange().getStartOffset();
+  topEditor.getCaretModel().moveToOffset(InjectedLanguageManager.getInstance(project).injectedToHost(templateBaseElement,startOffset));
+  TemplateManager.getInstance(project).startTemplate(topEditor,template);
+}

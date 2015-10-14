@@ -1,0 +1,19 @@
+{
+  assert(configuration != null);
+  final flex2.compiler.as3.Compiler asc=new flex2.compiler.as3.Compiler(configuration.getCompilerConfiguration());
+  asc.addCompilerExtension(SignatureExtension.getInstance());
+  CompilationUnit u=null;
+  final Logger original=ThreadLocalToolkit.getLogger();
+  ThreadLocalToolkit.setLogger(new LocalLogger(null));
+{
+    final Source tmpSource=asc.preprocess(Source.newSource(source.getBackingFile(),source.getFileTime(),source.getPathRoot(),source.getRelativePath(),source.getShortName(),source.getOwner(),source.isInternal(),source.isRoot(),source.isDebuggable(),source.getFileIncludesSet(),source.getFileIncludeTimes(),source.getLogger()));
+    final String tmp=SignatureExtension.signatureDirectory;
+    SignatureExtension.signatureDirectory=null;
+{
+      u=asc.parse1(tmpSource,SymbolTable.newSymbolTable(configuration));
+    }
+    SignatureExtension.signatureDirectory=tmp;
+  }
+  ThreadLocalToolkit.setLogger(original);
+  return ((u != null) ? u.getSignatureChecksum() : null);
+}

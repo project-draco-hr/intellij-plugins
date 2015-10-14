@@ -1,0 +1,22 @@
+{
+  if (MxmlJSClass.isTagOrInsideTagThatAllowsAnyXmlContent(context)) {
+    return false;
+  }
+  if (MxmlLanguageTagsUtil.isFxLibraryTag(context)) {
+    return JavaScriptSupportLoader.MXML_URI3.equals(namespace);
+  }
+  final XmlElementDescriptor _descriptor=context.getDescriptor();
+  if (_descriptor instanceof ClassBackedElementDescriptor) {
+    final ClassBackedElementDescriptor descriptor=(ClassBackedElementDescriptor)_descriptor;
+    if (context.getParent() instanceof XmlDocument && JavaScriptSupportLoader.isLanguageNamespace(namespace)) {
+      return true;
+    }
+    if (MxmlLanguageTagsUtil.isComponentTag(context) || (descriptor.getDefaultPropertyDescriptor() != null && descriptor.defaultPropertyDescriptor.getType() != null)) {
+      return true;
+    }
+    if (!descriptor.predefined && !isContainerClass(descriptor)) {
+      return false;
+    }
+  }
+  return true;
+}

@@ -1,0 +1,32 @@
+{
+  super(project);
+  myUsedNames=usedNames;
+  setTitle(dialogTitle);
+  initCombos();
+  myTargetPlatformCombo.setSelectedItem(defaultNature.targetPlatform);
+  myPureActionScriptCheckBox.setSelected(defaultNature.pureAS);
+  myOutputTypeCombo.setSelectedItem(defaultNature.outputType);
+  myBCNameTextField.setEditable(bcNameEditable);
+  myUpDownHint.setVisible(bcNameEditable);
+  if (bcNameEditable) {
+    myUpDownHint.setIcon(PlatformIcons.UP_DOWN_ARROWS);
+    myUpDownHint.setToolTipText(FlexBundle.message("bc.dialog.up.down.tooltip"));
+    final AnAction arrow=new AnAction(){
+      @Override public void actionPerformed(      AnActionEvent e){
+        if (e.getInputEvent() instanceof KeyEvent) {
+          KeyEvent keyEvent=(KeyEvent)e.getInputEvent();
+          final int code=keyEvent.getKeyCode();
+          scrollBy(code == KeyEvent.VK_DOWN ? 1 : code == KeyEvent.VK_UP ? -1 : 0,(keyEvent.getModifiers() & Event.SHIFT_MASK) != 0);
+        }
+      }
+    }
+;
+    final KeyboardShortcut up=new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_UP,0),null);
+    final KeyboardShortcut upShift=new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_UP,InputEvent.SHIFT_DOWN_MASK),null);
+    final KeyboardShortcut down=new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,0),null);
+    final KeyboardShortcut downShift=new KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN,InputEvent.SHIFT_DOWN_MASK),null);
+    arrow.registerCustomShortcutSet(new CustomShortcutSet(up,down,upShift,downShift),myBCNameTextField);
+  }
+  init();
+  updateControls();
+}

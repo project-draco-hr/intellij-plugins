@@ -1,0 +1,34 @@
+{
+  String filename=getTestName(false).replaceAll("\\d+","");
+  configureByFiles(null,BASE_PATH + filename + "_2.mxml",BASE_PATH + filename + "_3.mxml");
+  final Sdk sdk=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.5"),null,true);
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    @Override public void consume(    final FlexProjectConfigurationEditor e){
+{
+        final ModifiableFlexBuildConfiguration bc=e.getConfigurations(myModule)[0];
+        bc.setName("Flex");
+        bc.setNature(new BuildConfigurationNature(TargetPlatform.Web,false,OutputType.Application));
+        JSTestUtils.setSdk(bc,sdk);
+      }
+{
+        final ModifiableFlexBuildConfiguration bc=e.createConfiguration(myModule);
+        bc.setName("AIR");
+        bc.setNature(new BuildConfigurationNature(TargetPlatform.Desktop,false,OutputType.Application));
+        JSTestUtils.setSdk(bc,sdk);
+      }
+    }
+  }
+);
+  final FlexBuildConfigurationManager manager=FlexBuildConfigurationManager.getInstance(myModule);
+  manager.setActiveBuildConfiguration(manager.findConfigurationByName(activeBcName));
+  final ModuleWithDependenciesScope scope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,manager.findConfigurationByName(selectedBcName),false);
+  PublicInheritorFilter filter=new PublicInheritorFilter(myProject,FlashRunConfigurationForm.SPRITE_CLASS_NAME,scope,true);
+  PsiFile fragment=JSReferenceEditor.forClassName("",myProject,null,GlobalSearchScope.moduleScope(myModule),null,filter,"").getPsiFile();
+  doTestForEditorTextField((JSExpressionCodeFragment)fragment,"","js2",BASE_PATH + filename + ".txt");
+  if (numberOfVariants == 0) {
+    assertNull(myItems);
+  }
+ else {
+    assertEquals(numberOfVariants,myItems.length);
+  }
+}

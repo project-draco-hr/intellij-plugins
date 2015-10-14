@@ -1,0 +1,47 @@
+{
+  SourceFile[] ar=m_fileInfo.getFileList();
+  if (ar == null) {
+    err(getLocalizationManager().getLocalizedTextString("noSourceFilesFound"));
+    return;
+  }
+  Vector<String> authoredFiles=new Vector<String>();
+  Vector<String> frameworkFiles=new Vector<String>();
+  Vector<String> syntheticFiles=new Vector<String>();
+  Vector<String> actionsFiles=new Vector<String>();
+  for (int i=0; i < ar.length; i++) {
+    SourceFile m=ar[i];
+    int fileType=getFileType(m);
+    int id=m.getId();
+    String entry=m.getName() + "#" + id;
+switch (fileType) {
+case SYNTHETIC_FILE:
+      syntheticFiles.add(entry);
+    break;
+case FRAMEWORK_FILE:
+  frameworkFiles.add(entry);
+break;
+case ACTIONS_FILE:
+actionsFiles.add(entry);
+break;
+case AUTHORED_FILE:
+authoredFiles.add(entry);
+break;
+}
+}
+int wrapAt=propertyGet(FILE_LIST_WRAP);
+if (!authoredFilesOnly) {
+if (actionsFiles.size() > 0) {
+appendStrings(sb,actionsFiles,(actionsFiles.size() > wrapAt));
+}
+if (frameworkFiles.size() > 0) {
+sb.append("---" + m_newline);
+appendStrings(sb,frameworkFiles,(frameworkFiles.size() > wrapAt));
+}
+if (syntheticFiles.size() > 0) {
+sb.append("---" + m_newline);
+appendStrings(sb,syntheticFiles,(syntheticFiles.size() > wrapAt));
+}
+sb.append("---" + m_newline);
+}
+appendStrings(sb,authoredFiles,(authoredFiles.size() > wrapAt));
+}

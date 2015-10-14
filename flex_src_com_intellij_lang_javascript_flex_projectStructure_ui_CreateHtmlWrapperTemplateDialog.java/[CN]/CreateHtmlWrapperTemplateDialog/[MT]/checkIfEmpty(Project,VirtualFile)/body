@@ -1,0 +1,34 @@
+{
+  final VirtualFile[] children=folder.getChildren();
+  if (children.length > 0) {
+    final String[] options={FlexBundle.message("folder.not.empty.clear.option"),FlexBundle.message("folder.not.empty.keep.option"),FlexBundle.message("folder.not.empty.cancel.option")};
+    final int choice=Messages.showDialog(project,FlexBundle.message("folder.not.empty.clear.or.overwrite"),TITLE,options,0,Messages.getWarningIcon());
+switch (choice) {
+case 0:
+      final IOException exception=ApplicationManager.getApplication().runWriteAction(new NullableComputable<IOException>(){
+        public IOException compute(){
+          try {
+            for (            VirtualFile child : children) {
+              child.delete(this);
+            }
+          }
+ catch (          IOException e) {
+            return e;
+          }
+          return null;
+        }
+      }
+);
+    if (exception != null) {
+      Messages.showErrorDialog(project,FlexBundle.message("failed.to.delete",exception.getMessage()),TITLE);
+      return false;
+    }
+  return true;
+case 1:
+return true;
+case 2:
+return false;
+}
+}
+return true;
+}

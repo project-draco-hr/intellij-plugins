@@ -1,0 +1,45 @@
+{
+  String originQname=origin.getQualifiedName();
+  if (link.length() == 0) {
+    return originQname;
+  }
+ else   if (StringUtil.startsWithChar(link,'#')) {
+    if (origin instanceof JSClass) {
+      return originQname + "." + link.substring(1);
+    }
+ else {
+      String aPackage=StringUtil.getPackageName(originQname);
+      return aPackage + "." + link.substring(1);
+    }
+  }
+ else {
+    String linkFile=link.contains("#") ? link.substring(0,link.lastIndexOf('#')) : link;
+    String linkAnchor=link.contains("#") ? link.substring(link.lastIndexOf('#') + 1) : null;
+    final String qname;
+    if (StringUtil.endsWithIgnoreCase(linkFile,HTML_EXTENSION)) {
+      String prefix=StringUtil.getPackageName(originQname);
+      while (linkFile.startsWith("../")) {
+        linkFile=linkFile.substring("../".length());
+        prefix=StringUtil.getPackageName(prefix);
+      }
+      String linkFilename;
+      if (linkFile.endsWith(PACKAGE_FILE)) {
+        linkFilename=StringUtil.trimEnd(linkFile,PACKAGE_FILE);
+        linkFilename=StringUtil.trimEnd(linkFilename,"/");
+      }
+ else {
+        linkFilename=linkFile.substring(0,linkFile.lastIndexOf("."));
+      }
+      if (linkFilename.length() > 0) {
+        qname=(prefix.length() > 0 ? prefix + "." : prefix) + linkFilename.replaceAll("/",".");
+      }
+ else {
+        qname=prefix;
+      }
+    }
+ else {
+      qname=linkFile;
+    }
+    return linkAnchor != null ? (qname.length() > 0 ? qname + "." : qname) + linkAnchor : qname;
+  }
+}

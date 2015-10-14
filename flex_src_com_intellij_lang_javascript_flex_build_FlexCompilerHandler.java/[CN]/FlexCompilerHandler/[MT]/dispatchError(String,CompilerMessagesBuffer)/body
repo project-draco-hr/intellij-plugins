@@ -1,0 +1,26 @@
+{
+  final Matcher matcher=FlexCommonUtils.ERROR_PATTERN.matcher(errLine);
+  if (matcher.matches()) {
+    final String file=matcher.group(1);
+    final String additionalInfo=matcher.group(2);
+    final String line=matcher.group(3);
+    final String column=matcher.group(4);
+    final String type=matcher.group(5);
+    final String message=matcher.group(6);
+    final CompilerMessageCategory messageCategory="Warning".equals(type) ? CompilerMessageCategory.WARNING : CompilerMessageCategory.ERROR;
+    final VirtualFile relativeFile=VfsUtil.findRelativeFile(file,null);
+    final StringBuilder fullMessage=new StringBuilder();
+    if (relativeFile == null)     fullMessage.append(file).append(": ");
+    if (additionalInfo != null)     fullMessage.append(additionalInfo).append(' ');
+    fullMessage.append(message);
+    messagesBuffer.addMessage(messageCategory,fullMessage.toString(),relativeFile != null ? relativeFile.getUrl() : null,line != null ? Integer.parseInt(line) : 0,column != null ? Integer.parseInt(column) : 0);
+  }
+ else   if (isErrorMessage(errLine)) {
+    final String errorPrefix="Error: ";
+    final String errorText=errLine.startsWith(errorPrefix) ? errLine.substring(errorPrefix.length()) : errLine;
+    messagesBuffer.addMessage(CompilerMessageCategory.ERROR,errorText,null,-1,-1);
+  }
+ else {
+    messagesBuffer.addMessage(CompilerMessageCategory.INFORMATION,errLine,null,-1,-1);
+  }
+}

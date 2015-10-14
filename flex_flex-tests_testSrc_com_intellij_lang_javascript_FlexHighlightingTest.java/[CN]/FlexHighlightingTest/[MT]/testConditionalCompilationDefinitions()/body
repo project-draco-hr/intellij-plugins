@@ -1,0 +1,18 @@
+{
+  final String testName=getTestName(false);
+  JSTestUtils.modifyBuildConfiguration(myModule,new Consumer<ModifiableFlexBuildConfiguration>(){
+    public void consume(    final ModifiableFlexBuildConfiguration bc){
+      bc.getCompilerOptions().setAdditionalConfigFilePath(getTestDataPath() + "/" + getBasePath()+ "/"+ testName+ "_custom_config.xml");
+      bc.getCompilerOptions().setAdditionalOptions("-some_path=\"with space\" -define=CONFIG::Object,'string_value' -define+=CONFIG::defined2,true -define CONFIG::defined3 -1");
+      bc.getCompilerOptions().setAllOptions(Collections.singletonMap("compiler.define","CONFIG::defined4\tfalse\nCONFIG::defined5\t"));
+    }
+  }
+);
+  final ModuleOrProjectCompilerOptions projectLevelOptions=FlexProjectLevelCompilerOptionsHolder.getInstance(myProject).getProjectLevelCompilerOptions();
+  final ModuleOrProjectCompilerOptions moduleLevelOptions=FlexBuildConfigurationManager.getInstance(myModule).getModuleLevelCompilerOptions();
+  moduleLevelOptions.setAdditionalOptions("-define=CONFIG::defined6,true");
+  projectLevelOptions.setAdditionalOptions("-define=CONFIG::defined7,true -debug");
+  moduleLevelOptions.setAllOptions(Collections.singletonMap("compiler.define","CONFIG::not_defined1\tfalse"));
+  projectLevelOptions.setAllOptions(Collections.singletonMap("compiler.define","CONFIG::not_defined2\tfalse"));
+  doTestFor(true,testName + ".mxml");
+}

@@ -1,0 +1,24 @@
+{
+  final String hostComponent;
+  final PsiDirectory targetDirectory;
+  final JSClass hostComponentClass=getHostComponentClass();
+  final String defaultHostComponent=hostComponentClass == null ? "" : hostComponentClass.getQualifiedName();
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    hostComponent=defaultHostComponent;
+    targetDirectory=ApplicationManager.getApplication().runWriteAction(new Computable<PsiDirectory>(){
+      public PsiDirectory compute(){
+        return CreateClassOrInterfaceFix.findOrCreateDirectory(myPackageName,myElement);
+      }
+    }
+);
+  }
+ else {
+    final CreateFlexSkinDialog dialog=new CreateFlexSkinDialog(module,myClassName,myPackageName,defaultHostComponent,myElement.getContainingFile());
+    if (!dialog.showAndGet()) {
+      return Pair.empty();
+    }
+    hostComponent=dialog.getHostComponent();
+    targetDirectory=dialog.getTargetDirectory();
+  }
+  return Pair.create(getSkinContent(hostComponent,myElement),targetDirectory);
+}

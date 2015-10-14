@@ -1,0 +1,44 @@
+{
+  myRubyLabel.setDisplayedMnemonic('S');
+  myRubyInterpreterComboBox.setRenderer(new RubySdkRenderer(myRubyInterpreterComboBox.getRenderer(),true,true));
+  refreshSdkList();
+  if (mySettingsHolder.getSdk() != null) {
+    myRubyInterpreterComboBox.setSelectedItem(mySettingsHolder.getSdk());
+  }
+  myRubyInterpreterComboBox.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      if (!SpeedSearchBase.hasActiveSpeedSearch(myRubyInterpreterComboBox)) {
+        final Object selectedItem=myRubyInterpreterComboBox.getSelectedItem();
+        if (ADD_RUBY_SDK.equals(selectedItem)) {
+          addSdk();
+          return;
+        }
+        final Sdk sdk=(Sdk)selectedItem;
+        if (sdk != null) {
+          mySettingsHolder.setSdk(sdk);
+        }
+      }
+    }
+  }
+);
+  myUseCalabash.setSelected(mySettingsHolder.isUseCalabash());
+  myUseCalabash.addPropertyChangeListener(new PropertyChangeListener(){
+    @Override public void propertyChange(    PropertyChangeEvent event){
+      mySettingsHolder.setUseCalabash(myUseCalabash.isSelected());
+    }
+  }
+);
+  myProjectTypeLabel.setDisplayedMnemonic('T');
+  myProjectType.setModel(new EnumComboBoxModel<RubyMotionUtilImpl.ProjectType>(RubyMotionUtilImpl.ProjectType.class));
+  myProjectType.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent event){
+      final RubyMotionUtilImpl.ProjectType projectType=(RubyMotionUtilImpl.ProjectType)myProjectType.getSelectedItem();
+      mySettingsHolder.setProjectType(projectType);
+      myUseCalabash.setSelected(projectType == RubyMotionUtilImpl.ProjectType.IOS);
+      myUseCalabash.setEnabled(projectType == RubyMotionUtilImpl.ProjectType.IOS);
+    }
+  }
+);
+  myProjectType.setSelectedIndex(0);
+  return myContentPane;
+}

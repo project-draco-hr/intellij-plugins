@@ -1,0 +1,44 @@
+{
+  String version=sdk.getVersionString();
+  if (StringUtil.isEmpty(version)) {
+    LOG.warn("Flex SDK " + sdk.getName() + " version is empty, try to read flex-sdk-description.xml");
+    VirtualFile sdkHomeDirectory=sdk.getHomeDirectory();
+    if (sdkHomeDirectory == null) {
+      LOG.warn("Flex SDK " + sdk.getName() + " home directory is null, cannot read flex-sdk-description.xml");
+      return false;
+    }
+    version=FlexSdkUtils.doReadFlexSdkVersion(sdkHomeDirectory);
+    if (StringUtil.isEmpty(version)) {
+      LOG.warn("Flex SDK " + sdk.getName() + " version is empty and result of read flex-sdk-description.xml is also empty");
+      return false;
+    }
+    final AccessToken token=WriteAction.start();
+    try {
+      SdkModificator modificator=sdk.getSdkModificator();
+      modificator.setVersionString(version);
+      modificator.commitChanges();
+    }
+  finally {
+      token.finish();
+    }
+  }
+  if (StringUtil.compareVersionNumbers(version,"4.5.1") >= 0) {
+    return true;
+  }
+  if (version.length() < 5 || version.charAt(0) < '4') {
+    return false;
+  }
+  if (version.charAt(0) == '4') {
+    int build=FlexSdkUtils.getFlexSdkRevision(version);
+    if (version.charAt(2) == '1') {
+      return build == 16076;
+    }
+ else     if (version.charAt(2) == '5' && version.charAt(4) == '0') {
+      return build == 20967;
+    }
+ else {
+      return version.charAt(2) >= '5';
+    }
+  }
+  return true;
+}

@@ -1,0 +1,19 @@
+{
+  PsiFile file=myElement.getContainingFile();
+  if (!(file instanceof XmlFile)) {
+    PsiElement context=InjectedLanguageManager.getInstance(file.getProject()).getTopLevelFile(file);
+    if (context instanceof XmlFile) {
+      file=(XmlFile)context;
+    }
+  }
+  if (file instanceof XmlFile) {
+    CssResolveManager.getInstance().getNewResolver().processOneFile((XmlFile)file,processor,true);
+  }
+ else   if (file instanceof CssFile) {
+    processOneCssFile((CssFile)file,processor);
+  }
+  Module module=ModuleUtilCore.findModuleForPsiElement(file);
+  if (module != null) {
+    CssResolverImpl.processStyles(module,processor,file);
+  }
+}

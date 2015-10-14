@@ -1,0 +1,20 @@
+{
+  if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return;
+  }
+  Collection<ModifiableFlexBuildConfiguration> configsToRemove=ContainerUtil.findAll(myConfigurablesMap.keySet(),new Condition<ModifiableFlexBuildConfiguration>(){
+    @Override public boolean value(    ModifiableFlexBuildConfiguration bc){
+      return myConfigEditor.getModule(bc) == module;
+    }
+  }
+);
+  final ProjectStructureDaemonAnalyzer daemonAnalyzer=ProjectStructureConfigurable.getInstance(myConfigEditor.getProject()).getContext().getDaemonAnalyzer();
+  for (  ModifiableFlexBuildConfiguration bc : configsToRemove) {
+    CompositeConfigurable configurable=myConfigurablesMap.remove(bc);
+    myBCToOutputPathMap.remove(bc);
+    daemonAnalyzer.removeElement(configurable.getProjectStructureElement());
+    daemonAnalyzer.queueUpdateForAllElementsWithErrors();
+    configurable.disposeUIResources();
+  }
+  myEventDispatcher.getMulticaster().moduleRemoved(module);
+}

@@ -1,0 +1,18 @@
+{
+  ArrayList<LocalInspectionTool> tools=new ArrayList<LocalInspectionTool>(Arrays.asList(super.configureLocalInspectionTools()));
+  new FlexUnitInspectionToolProvider();
+  for (  Class aClass : FlexUnitInspectionToolProvider.getInspectionClasses()) {
+    try {
+      if (aClass != FlexUnitClassInProductSourceInspection.class || CHECK_TEST_IN_PRODUCT_SOURCES_FOR.contains(getTestName(false))) {
+        tools.add((LocalInspectionTool)aClass.newInstance());
+      }
+    }
+ catch (    InstantiationException e) {
+      fail(e.getMessage());
+    }
+catch (    IllegalAccessException e) {
+      fail(e.getMessage());
+    }
+  }
+  return tools.toArray(new LocalInspectionTool[tools.size()]);
+}

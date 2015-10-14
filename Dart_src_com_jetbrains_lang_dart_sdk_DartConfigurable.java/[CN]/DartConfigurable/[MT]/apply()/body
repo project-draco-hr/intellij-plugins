@@ -3,20 +3,11 @@
     @Override public void run(){
       if (myEnableDartSupportCheckBox.isSelected()) {
         final String sdkHomePath=FileUtilRt.toSystemIndependentName(mySdkPathTextWithBrowse.getText().trim());
-        final String initialSdkHomePath=mySdkInitial == null ? "" : mySdkInitial.getHomePath();
         if (DartSdkUtil.isDartSdkHome(sdkHomePath)) {
-          final String dartSdkGlobalLibName;
-          if (mySdkInitial == null) {
-            dartSdkGlobalLibName=DartSdkGlobalLibUtil.createDartSdkGlobalLib(myProject,sdkHomePath);
-          }
- else {
-            dartSdkGlobalLibName=mySdkInitial.getGlobalLibName();
-            if (!sdkHomePath.equals(initialSdkHomePath)) {
-              DartSdkGlobalLibUtil.updateDartSdkGlobalLib(myProject,dartSdkGlobalLibName,sdkHomePath);
-            }
-          }
+          DartSdkGlobalLibUtil.ensureDartSdkConfigured(sdkHomePath);
+          DaemonCodeAnalyzer.getInstance(myProject).restart();
           final Module[] modules=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModulesCheckboxTreeTable.getCheckedNodes(Module.class) : ModuleManager.getInstance(myProject).getModules();
-          DartSdkGlobalLibUtil.updateDependencyOnDartSdkGlobalLib(myProject,modules,dartSdkGlobalLibName);
+          DartSdkGlobalLibUtil.enableDartSdkForSpecifiedModulesAndDisableForOthers(myProject,modules);
           for (          Module module : ModuleManager.getInstance(myProject).getModules()) {
             if (ArrayUtil.contains(module,modules)) {
               final String customPackageRoot=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() || myCustomPackageRootCheckBox.isSelected() ? myModuleToCustomPackageRootCurrent.get(module) : null;
@@ -34,7 +25,7 @@
       }
  else {
         if (myModulesWithDartSdkLibAttachedInitial.size() > 0 && mySdkInitial != null) {
-          DartSdkGlobalLibUtil.detachDartSdkGlobalLib(myModulesWithDartSdkLibAttachedInitial,mySdkInitial.getGlobalLibName());
+          DartSdkGlobalLibUtil.disableDartSdk(myModulesWithDartSdkLibAttachedInitial);
         }
         for (        final Module module : ModuleManager.getInstance(myProject).getModules()) {
           setCustomPackageRootPath(module,null);
@@ -43,11 +34,6 @@
     }
   }
 ;
-  ApplicationManager.getApplication().runWriteAction(new Runnable(){
-    @Override public void run(){
-      DumbService.allowStartingDumbModeInside(DumbModePermission.MAY_START_BACKGROUND,runnable);
-    }
-  }
-);
+  ApplicationManager.getApplication().runWriteAction(runnable);
   reset();
 }

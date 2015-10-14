@@ -1,0 +1,17 @@
+{
+  if (runConfiguration instanceof FlexUnitRunConfiguration) {
+    final FlexUnitRunnerParameters params=((FlexUnitRunConfiguration)runConfiguration).getRunnerParameters();
+    if (params.getScope() == FlexUnitRunnerParameters.Scope.Package) {
+      params.setPackageName(newPackage);
+    }
+ else {
+      final String oldFqn=params.getClassName();
+      params.setClassName(StringUtil.getQualifiedName(newPackage,StringUtil.getShortName(oldFqn)));
+    }
+  }
+ else {
+    final FlashRunnerParameters params=((FlashRunConfiguration)runConfiguration).getRunnerParameters();
+    final String oldFqn=params.getOverriddenMainClass();
+    params.setOverriddenMainClass(StringUtil.getQualifiedName(newPackage,StringUtil.getShortName(oldFqn)));
+  }
+}

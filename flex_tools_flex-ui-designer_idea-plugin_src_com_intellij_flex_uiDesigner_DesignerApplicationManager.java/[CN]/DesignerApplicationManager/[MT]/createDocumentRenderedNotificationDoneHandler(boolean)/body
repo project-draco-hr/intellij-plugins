@@ -1,0 +1,14 @@
+{
+  return new Consumer<DocumentInfo>(){
+    @Override public void consume(    DocumentInfo info){
+      Document document=FileDocumentManager.getInstance().getCachedDocument(info.getElement());
+      if (document != null) {
+        if (syncTimestamp) {
+          info.documentModificationStamp=document.getModificationStamp();
+        }
+        ApplicationManager.getApplication().getMessageBus().syncPublisher(MESSAGE_TOPIC).documentRendered(info);
+      }
+    }
+  }
+;
+}

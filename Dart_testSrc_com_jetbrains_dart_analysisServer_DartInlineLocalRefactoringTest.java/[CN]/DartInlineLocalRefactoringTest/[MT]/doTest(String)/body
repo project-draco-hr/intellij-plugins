@@ -1,0 +1,23 @@
+{
+  final ServerInlineLocalRefactoring refactoring=createInlineLocalRefactoring(filePath);
+  final RefactoringStatus initialConditions=refactoring.checkInitialConditions();
+  assertNotNull(initialConditions);
+  assertTrue(initialConditions.isOK());
+  final RefactoringStatus finalConditions=refactoring.checkFinalConditions();
+  assertNotNull(finalConditions);
+  assertTrue(finalConditions.isOK());
+  final SourceChange change=refactoring.getChange();
+  assertNotNull(change);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      try {
+        AssistUtils.applySourceChange(myFixture.getProject(),change);
+      }
+ catch (      DartSourceEditException e) {
+        fail(e.getMessage());
+      }
+    }
+  }
+);
+  myFixture.checkResultByFile(getTestName(false) + ".after.dart");
+}

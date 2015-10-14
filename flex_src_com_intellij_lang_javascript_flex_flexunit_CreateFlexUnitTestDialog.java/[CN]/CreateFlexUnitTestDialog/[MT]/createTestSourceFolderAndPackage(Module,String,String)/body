@@ -1,0 +1,41 @@
+{
+  final String path=FileUtil.toSystemIndependentName(srcRootPath);
+  VirtualFile contentRoot=null;
+  for (  VirtualFile root : ModuleRootManager.getInstance(module).getContentRoots()) {
+    if (path.startsWith(root.getPath() + "/")) {
+      contentRoot=root;
+      break;
+    }
+  }
+  if (contentRoot != null) {
+    final ModifiableRootModel model=ModuleRootManager.getInstance(module).getModifiableModel();
+    try {
+      final VirtualFile finalContentRoot=contentRoot;
+      final VirtualFile folder=ApplicationManager.getApplication().runWriteAction(new NullableComputable<VirtualFile>(){
+        public VirtualFile compute(){
+          try {
+            final VirtualFile srcRoot=VfsUtil.createDirectoryIfMissing(finalContentRoot,path.substring((finalContentRoot.getPath() + "/").length()));
+            final VirtualFile folder=packageName.isEmpty() ? srcRoot : VfsUtil.createDirectoryIfMissing(srcRoot,packageName.replace('.','/'));
+            final ContentEntry contentEntry=MarkRootActionBase.findContentEntry(model,folder);
+            if (contentEntry != null) {
+              contentEntry.addSourceFolder(srcRoot,true);
+              model.commit();
+              return folder;
+            }
+          }
+ catch (          IOException ignore) {
+          }
+          return null;
+        }
+      }
+);
+      return folder == null ? null : PsiManager.getInstance(module.getProject()).findDirectory(folder);
+    }
+  finally {
+      if (model.isWritable()) {
+        model.dispose();
+      }
+    }
+  }
+  return null;
+}

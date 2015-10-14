@@ -1,0 +1,18 @@
+{
+  if (mySourcePosition == null) {
+    navigatable.setSourcePosition(null);
+    return;
+  }
+  final boolean isObject=myResult.contains(OBJECT_MARKER);
+  if (isObject) {
+    final Pair<String,String> typeAndAdditionalInfo=getTypeAndAdditionalInfo(myResult);
+    final String typeFromFlexValueResult=typeAndAdditionalInfo.first;
+    if (typeFromFlexValueResult != null) {
+      final Project project=myDebugProcess.getSession().getProject();
+      final JSClass jsClass=findJSClass(project,ModuleUtilCore.findModuleForFile(mySourcePosition.getFile(),project),typeFromFlexValueResult);
+      navigatable.setSourcePosition(DebuggerSupportUtils.calcSourcePosition(jsClass));
+      return;
+    }
+  }
+  navigatable.setSourcePosition(null);
+}

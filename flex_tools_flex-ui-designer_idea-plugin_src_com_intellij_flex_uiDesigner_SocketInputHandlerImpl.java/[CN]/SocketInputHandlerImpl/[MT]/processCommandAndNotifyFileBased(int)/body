@@ -1,0 +1,27 @@
+{
+  final String resultReadyFilename=isFileBased(command) ? reader.readUTF() : null;
+  try {
+    processCommand(command);
+  }
+ catch (  RuntimeException e) {
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      LOG.error(e);
+    }
+ else {
+      throw e;
+    }
+  }
+catch (  AssertionError e) {
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      LOG.error(e);
+    }
+ else {
+      throw e;
+    }
+  }
+ finally {
+    if (resultReadyFilename != null) {
+      new File(appDir,resultReadyFilename).createNewFile();
+    }
+  }
+}

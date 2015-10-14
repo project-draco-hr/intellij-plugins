@@ -1,0 +1,14 @@
+{
+  final PsiElement context=scope.getContext();
+  if (context != null) {
+    XmlTag tag=PsiTreeUtil.getParentOfType(context,XmlTag.class,false);
+    boolean flex4ns=tag != null && ArrayUtil.contains(JavaScriptSupportLoader.MXML_URI3,tag.knownNamespaces());
+    ScopedImportSet flexImplicitImports=flex4ns ? flex4ImplicitImports : flex3ImplicitImports;
+    if (!flexImplicitImports.tryResolveImportedClass(scope,resolveProcessor))     return false;
+    if (!standardMxmlImports.tryResolveImportedClass(scope,resolveProcessor))     return false;
+    if (isAirImportsNeeded(scope)) {
+      if (!airOnlyImplicitImports.tryResolveImportedClass(scope,resolveProcessor))       return false;
+    }
+  }
+  return true;
+}

@@ -1,0 +1,21 @@
+{
+  for (Iterator iterator=sources.iterator(); iterator.hasNext(); ) {
+    Source s=(Source)iterator.next();
+    CompilationUnit u=(s != null) ? s.getCompilationUnit() : null;
+    if (u != null && u.resourceBundleHistory.size() > 0) {
+      for (Iterator it=u.resourceBundleHistory.iterator(); it.hasNext(); ) {
+        String rbName=(String)it.next();
+        Source rbSource=symbolTable.findSourceByResourceBundleName(rbName);
+        if (rbSource != null) {
+          CompilationUnit rbUnit=rbSource.getCompilationUnit();
+          for (int j=0, size=rbUnit == null ? 0 : rbUnit.topLevelDefinitions.size(); j < size; j++) {
+            u.resourceBundles.add(rbUnit.topLevelDefinitions.get(j).toString());
+          }
+        }
+      }
+    }
+  }
+  if (ThreadLocalToolkit.errorCount() > 0) {
+    throw new CompilerException();
+  }
+}

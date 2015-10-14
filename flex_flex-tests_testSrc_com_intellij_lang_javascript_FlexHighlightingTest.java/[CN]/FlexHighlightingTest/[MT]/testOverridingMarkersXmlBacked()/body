@@ -1,0 +1,20 @@
+{
+  doTestFor(true,getTestName(false) + "_B.mxml",getTestName(false) + "_A.mxml",getTestName(false) + "_C.mxml",getTestName(false) + "_D.as",getTestName(false) + "_MyInterface.as");
+  int offset=myEditor.getCaretModel().getOffset();
+  PsiElement source=InjectedLanguageUtil.findElementAtNoCommit(myFile,offset);
+  source=PsiTreeUtil.getParentOfType(source,JSFunction.class);
+  PsiElement[] functions=new ImplementationSearcher().searchImplementations(source,myEditor,offset,true,true);
+  assertEquals(3,functions.length);
+  Collection<String> classNames=new ArrayList<String>();
+  for (  PsiElement function : functions) {
+    assertEquals("foo",((JSFunction)function).getName());
+    PsiElement clazz=function.getParent();
+    if (clazz instanceof JSFile) {
+      clazz=JSResolveUtil.getXmlBackedClass((JSFile)clazz);
+    }
+    classNames.add(((JSClass)clazz).getName());
+  }
+  assertTrue(classNames.contains(getTestName(false) + "_B"));
+  assertTrue(classNames.contains(getTestName(false) + "_C"));
+  assertTrue(classNames.contains(getTestName(false) + "_D"));
+}

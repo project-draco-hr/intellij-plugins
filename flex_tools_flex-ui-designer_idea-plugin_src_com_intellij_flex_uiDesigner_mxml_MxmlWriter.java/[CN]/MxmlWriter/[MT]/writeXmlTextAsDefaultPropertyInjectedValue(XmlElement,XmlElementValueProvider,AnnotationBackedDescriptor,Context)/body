@@ -1,0 +1,22 @@
+{
+  final int beforePosition=writer.getBlockOut().size();
+  try {
+    ValueWriter valueWriter=propertyProcessor.processInjected(valueProvider,descriptor,descriptor.isStyle(),context);
+    if (valueWriter == null) {
+      return false;
+    }
+    if (valueWriter != InjectedASWriter.IGNORE) {
+      writePropertyHeader(descriptor.getName(),element,context,descriptor.isStyle());
+      valueWriter.write(descriptor,valueProvider,out,writer,propertyProcessor.isStyle(),context);
+    }
+    return true;
+  }
+ catch (  RuntimeException e) {
+    problemsHolder.add(element,e,descriptor.getName());
+  }
+catch (  Throwable e) {
+    problemsHolder.add(e);
+  }
+  writer.getBlockOut().setPosition(beforePosition);
+  return true;
+}

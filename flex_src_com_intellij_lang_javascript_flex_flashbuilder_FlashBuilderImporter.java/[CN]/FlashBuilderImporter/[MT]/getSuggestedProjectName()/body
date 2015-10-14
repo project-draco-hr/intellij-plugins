@@ -1,0 +1,20 @@
+{
+  final String path=getInitiallySelectedPath();
+  final VirtualFile file=path.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(path);
+  if (file == null) {
+    return PathUtil.getFileName(path);
+  }
+  if (file.isDirectory()) {
+    final VirtualFile dotProjectFile=file.findChild(DOT_PROJECT);
+    if (dotProjectFile != null && FlashBuilderProjectFinder.isFlashBuilderProject(dotProjectFile)) {
+      return FlashBuilderProjectLoadUtil.readProjectName(dotProjectFile.getPath());
+    }
+  }
+ else   if (FlashBuilderProjectFinder.hasArchiveExtension(path)) {
+    return file.getNameWithoutExtension();
+  }
+  if (DOT_PROJECT.equalsIgnoreCase(file.getName())) {
+    return FlashBuilderProjectLoadUtil.readProjectName(file.getPath());
+  }
+  return PathUtil.getFileName(path);
+}

@@ -1,0 +1,35 @@
+{
+  final PsiElement element=JSResolveUtil.getClassReferenceForXmlFromContext(parent);
+  if (!JSImportHandlingUtil.ourPsiScopedImportSet.tryResolveImportedClass(parent,resolveProcessor))   return false;
+  if (parent instanceof JSPackageStatement) {
+    final JSNamedElement jsClass=resolveTypeNameInTheSamePackage(resolveProcessor.getName(),parent);
+    return jsClass == null || resolveProcessor.execute(jsClass,ResolveState.initial());
+  }
+ else   if (parent instanceof JSFile && parent.getLanguage().isKindOf(JavaScriptSupportLoader.ECMA_SCRIPT_L4)) {
+    if (element instanceof XmlBackedJSClassImpl) {
+      JSNamedElement jsClass=resolveTypeNameInTheSamePackage(resolveProcessor.getName(),element);
+      if (jsClass == null) {
+        final JSClass parentClass=(JSClass)element;
+        final JSClass[] classes=parentClass.getSuperClasses();
+        if (classes != null && classes.length > 0 && resolveProcessor.getName().equals(classes[0].getName())) {
+          jsClass=classes[0];
+        }
+      }
+      if (jsClass != null && !resolveProcessor.execute(jsClass,ResolveState.initial()))       return false;
+    }
+ else {
+      JSNamedElement jsClass=resolveTypeNameInTheSamePackage(resolveProcessor.getName(),element);
+      return jsClass == null || resolveProcessor.execute(jsClass,ResolveState.initial());
+    }
+  }
+ else   if (parent instanceof XmlBackedJSClassImpl) {
+    JSNamedElement jsClass=resolveTypeNameInTheSamePackage(resolveProcessor.getName(),parent);
+    if (jsClass != null && !resolveProcessor.execute(jsClass,ResolveState.initial()))     return false;
+  }
+  for (  JSResolveHelper helper : Extensions.getExtensions(JSResolveHelper.EP_NAME)) {
+    if (!helper.resolveTypeNameUsingImports(resolveProcessor,parent)) {
+      return false;
+    }
+  }
+  return true;
+}

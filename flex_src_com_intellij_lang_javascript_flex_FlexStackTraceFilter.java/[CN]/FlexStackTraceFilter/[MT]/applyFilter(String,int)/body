@@ -1,0 +1,43 @@
+{
+  final String trimmed=StringUtil.trimStart(line,"[trace]").trim();
+  final int bracketOpenIndex=line.lastIndexOf('[');
+  if (!trimmed.startsWith(AT) || bracketOpenIndex < 0 || !trimmed.endsWith("]"))   return null;
+  final int bracketCloseIndex=line.lastIndexOf(']');
+  final String pathAndLineNumber=FileUtil.toSystemIndependentName(line.substring(bracketOpenIndex + 1,bracketCloseIndex));
+  String filePath=pathAndLineNumber;
+  int lineNumber=-1;
+  final int colonIndex=pathAndLineNumber.lastIndexOf(':');
+  if (colonIndex > 0) {
+    try {
+      lineNumber=Integer.parseInt(pathAndLineNumber.substring(colonIndex + 1)) - 1;
+      filePath=pathAndLineNumber.substring(0,colonIndex);
+    }
+ catch (    NumberFormatException ignore) {
+    }
+  }
+  if (filePath.startsWith("//"))   return null;
+  final String fileName=PathUtil.getFileName(filePath);
+  if (!FlexCommonUtils.isSourceFile(fileName))   return null;
+  final int atIndex=line.indexOf(AT);
+  String fqnInfo=line.substring(atIndex + AT.length(),bracketOpenIndex).trim();
+  fqnInfo=StringUtil.trimStart(fqnInfo,GLOBAL_PREFIX);
+  final int slashOrParenIndex=StringUtil.indexOfAny(fqnInfo,"/(");
+  if (slashOrParenIndex > 0) {
+    String somethingLikeFqn=fqnInfo.substring(0,slashOrParenIndex);
+    if (somethingLikeFqn.endsWith("$")) {
+      somethingLikeFqn=somethingLikeFqn.substring(0,somethingLikeFqn.length() - 1);
+    }
+    final int dotIndex=fileName.lastIndexOf('.');
+    final String dotExtension=dotIndex < 0 ? "" : fileName.substring(dotIndex);
+    final String fileNameWithoutExtension=FileUtil.getNameWithoutExtension(fileName);
+    if (somethingLikeFqn.equals(fileNameWithoutExtension) || somethingLikeFqn.endsWith("::" + fileNameWithoutExtension)) {
+      final String relativePath=StringUtil.replace(somethingLikeFqn,"::","/").replace('.','/') + dotExtension;
+      if (filePath.endsWith(relativePath)) {
+        final int textStartOffset=entireLength - line.length();
+        final int highlightEndOffset=textStartOffset + bracketCloseIndex;
+        return applyFlexStackTraceFilter(filePath,relativePath,lineNumber,highlightEndOffset);
+      }
+    }
+  }
+  return null;
+}

@@ -1,0 +1,18 @@
+{
+  final PrimitiveAmfOutputStream out=writer.getOut();
+  out.write(states.size());
+  if (states.isEmpty()) {
+    return;
+  }
+  for (  State state : states) {
+    writer.property(NAME).string(state.name);
+    if (!state.overrides.isEmpty()) {
+      writer.property(OVERRIDES).arrayHeader(state.overrides.size());
+      for (      OverrideBase override : state.overrides) {
+        override.write(writer,this);
+      }
+    }
+    writer.endObject();
+  }
+  reset();
+}

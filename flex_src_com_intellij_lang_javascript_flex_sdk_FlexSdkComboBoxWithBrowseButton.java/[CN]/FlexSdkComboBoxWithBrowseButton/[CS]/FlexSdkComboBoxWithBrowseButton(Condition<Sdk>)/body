@@ -1,0 +1,76 @@
+{
+  mySdkFilter=sdkFilter;
+  rebuildSdkListAndSelectSdk(null);
+  final JComboBox sdkCombo=getComboBox();
+  sdkCombo.setRenderer(new ListCellRendererWrapper(){
+    @Override public void customize(    JList list,    Object value,    int index,    boolean selected,    boolean hasFocus){
+      if (value instanceof BCSdk) {
+        final Sdk sdk=((BCSdk)value).mySdk;
+        if (sdk == null) {
+          if (sdkCombo.isEnabled()) {
+            setText("<html>SDK set for the build configuration <font color='red'>[not set]</font></html>");
+            setIcon(null);
+          }
+ else {
+            setText("SDK set for the build configuration [not set]");
+            setIcon(null);
+          }
+        }
+ else {
+          setText("SDK set for the build configuration [" + sdk.getName() + "]");
+          setIcon(((SdkType)((BCSdk)value).mySdk.getSdkType()).getIcon());
+        }
+      }
+ else       if (value instanceof String) {
+        if (sdkCombo.isEnabled()) {
+          setText("<html><font color='red'>" + value + " [Invalid]</font></html>");
+          setIcon(null);
+        }
+ else {
+          setText(value + " [Invalid]");
+          setIcon(null);
+        }
+      }
+ else       if (value instanceof Sdk) {
+        setText(((Sdk)value).getName());
+        setIcon(((SdkType)((Sdk)value).getSdkType()).getIcon());
+      }
+ else {
+        if (sdkCombo.isEnabled()) {
+          setText("<html><font color='red'>[none]</font></html>");
+        }
+ else {
+          setText("[none]");
+        }
+      }
+    }
+  }
+);
+  addActionListener(new ActionListener(){
+    public void actionPerformed(    ActionEvent e){
+      Project project=CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext());
+      if (project == null) {
+        project=ProjectManager.getInstance().getDefaultProject();
+      }
+      final FlexProjectConfigurationEditor currentFlexEditor=FlexBuildConfigurationsExtension.getInstance().getConfigurator().getConfigEditor();
+      ProjectSdksModel sdksModel=ProjectStructureConfigurable.getInstance(project).getProjectJdksModel();
+      if (currentFlexEditor != null) {
+        sdksModel=new NonCommittingWrapper(sdksModel,JdkListConfigurable.getInstance(project));
+      }
+      final ProjectJdksEditor editor=new ProjectJdksEditor(null,FlexSdkComboBoxWithBrowseButton.this,new ProjectJdksConfigurable(project,sdksModel));
+      if (editor.showAndGet()) {
+        final Sdk selectedSdk=editor.getSelectedJdk();
+        if (mySdkFilter.value(selectedSdk)) {
+          rebuildSdkListAndSelectSdk(selectedSdk);
+        }
+ else {
+          rebuildSdkListAndSelectSdk(null);
+          if (selectedSdk != null) {
+            Messages.showErrorDialog(FlexSdkComboBoxWithBrowseButton.this,FlexBundle.message("sdk.can.not.be.selected",selectedSdk.getName()),FlexBundle.message("select.flex.sdk"));
+          }
+        }
+      }
+    }
+  }
+);
+}

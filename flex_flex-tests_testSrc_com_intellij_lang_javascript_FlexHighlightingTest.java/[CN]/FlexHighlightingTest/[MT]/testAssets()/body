@@ -1,0 +1,26 @@
+{
+  final String testName=getTestName(false);
+  final String fileRelPath="pack/" + testName + ".mxml";
+  final VirtualFile swcFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "/"+ testName+ ".swc");
+  final SdkModificator modificator=JSTestUtils.getFlexSdkModificator(getModule());
+  modificator.addRoot(JarFileSystem.getInstance().getJarRootForLocalFile(swcFile),OrderRootType.CLASSES);
+  modificator.commitChanges();
+  final Module dependentModule=doCreateRealModule("dependent");
+  final VirtualFile contentRoot=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "_dependent_module");
+  PsiTestUtil.addSourceRoot(dependentModule,contentRoot);
+  final String absPath=LocalFileSystem.getInstance().findFileByPath("").getPath();
+  myAfterCommitRunnable=new Runnable(){
+    @Override public void run(){
+      AccessToken l=WriteAction.start();
+      try {
+        replaceText(fileRelPath,"${SOME_ABSOLUTE_PATH}",absPath);
+        ModuleRootModificationUtil.addDependency(myModule,dependentModule);
+      }
+  finally {
+        l.finish();
+      }
+    }
+  }
+;
+  doTestFor(true,getDefaultProjectRoot(testName),(Runnable)null,testName + "/" + fileRelPath);
+}

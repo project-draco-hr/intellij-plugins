@@ -1,0 +1,39 @@
+{
+  int colonAt=arg.indexOf(':');
+  int wasFunc=0;
+  if (colonAt < 0) {
+    char firstChar=arg.charAt(0);
+    if (Character.isDigit(firstChar) || firstChar == '-') {
+      line=parseLineNumber(arg);
+    }
+ else     if (firstChar == '#') {
+      module=parseFileNumber(arg.substring(1));
+      line=1;
+    }
+ else {
+      try {
+        int[] moduleAndLine=parseFunctionName(module,arg,false);
+        module=moduleAndLine[0];
+        line=moduleAndLine[1];
+        wasFunc=1;
+      }
+ catch (      NoMatchException pe) {
+        try {
+          module=parseFileName(arg);
+          line=1;
+        }
+ catch (        NoMatchException pee) {
+          Map<String,Object> args=new HashMap<String,Object>();
+          args.put("token",arg);
+          throw new NoMatchException(getLocalizationManager().getLocalizedTextString("noSuchFileOrFunction",args));
+        }
+      }
+    }
+  }
+ else {
+    module=parseFileArg(module,arg.substring(0,colonAt));
+    line=parseLineArg(module,arg.substring(colonAt + 1));
+    wasFunc=(arg.substring(colonAt + 1).length() > 1 && Character.isDigit(arg.substring(colonAt + 1).charAt(0))) ? 0 : 1;
+  }
+  return new int[]{module,line,wasFunc};
+}

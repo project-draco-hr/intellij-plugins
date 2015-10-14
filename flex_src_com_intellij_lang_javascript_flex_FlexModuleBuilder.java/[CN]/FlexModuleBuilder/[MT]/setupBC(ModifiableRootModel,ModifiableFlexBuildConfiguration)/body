@@ -1,0 +1,44 @@
+{
+  final Module module=modifiableRootModel.getModule();
+  bc.setName(module.getName());
+  bc.setTargetPlatform(myTargetPlatform);
+  bc.setPureAs(isPureActionScript);
+  bc.setOutputType(myOutputType);
+  final BuildConfigurationNature nature=bc.getNature();
+  if (myCreateSampleApp) {
+    final String className=FileUtil.getNameWithoutExtension(mySampleAppName);
+    bc.setMainClass(className);
+    bc.setOutputFileName(className + (myOutputType == OutputType.Library ? ".swc" : ".swf"));
+    if (nature.isApp()) {
+      if (nature.isDesktopPlatform()) {
+        bc.getAirDesktopPackagingOptions().setPackageFileName(className);
+      }
+ else       if (nature.isMobilePlatform()) {
+        bc.getAndroidPackagingOptions().setEnabled(myAndroidEnabled);
+        bc.getAndroidPackagingOptions().setPackageFileName(className);
+        bc.getIosPackagingOptions().setEnabled(myIOSEnabled);
+        bc.getIosPackagingOptions().setPackageFileName(className);
+      }
+    }
+  }
+ else {
+    final String fileName=PathUtil.suggestFileName(module.getName());
+    bc.setOutputFileName(fileName + (myOutputType == OutputType.Library ? ".swc" : ".swf"));
+    if (nature.isApp()) {
+      if (nature.isDesktopPlatform()) {
+        bc.getAirDesktopPackagingOptions().setPackageFileName(fileName);
+      }
+ else       if (nature.isMobilePlatform()) {
+        bc.getAndroidPackagingOptions().setEnabled(myAndroidEnabled);
+        bc.getAndroidPackagingOptions().setPackageFileName(fileName);
+        bc.getIosPackagingOptions().setEnabled(myIOSEnabled);
+        bc.getIosPackagingOptions().setPackageFileName(fileName);
+      }
+    }
+  }
+  bc.setOutputFolder(VfsUtilCore.urlToPath(modifiableRootModel.getModuleExtension(CompilerModuleExtension.class).getCompilerOutputUrl()));
+  bc.getDependencies().setSdkEntry(myFlexSdk != null ? Factory.createSdkEntry(myFlexSdk.getName()) : null);
+  if (myTargetPlayer != null) {
+    bc.getDependencies().setTargetPlayer(myTargetPlayer);
+  }
+}

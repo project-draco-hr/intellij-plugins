@@ -1,0 +1,30 @@
+{
+  if (ApplicationManager.getApplication().isUnitTestMode()) {
+    return Collections.singletonList(createTestAdlRunConfiguration());
+  }
+  final List<Sdk> sdks=new ArrayList<Sdk>();
+  for (  Sdk sdk : FlexSdkUtils.getFlexAndFlexmojosSdks()) {
+    if (StringUtil.compareVersionNumbers(sdk.getVersionString(),"4.5") >= 0) {
+      sdks.add(sdk);
+    }
+  }
+  Collections.sort(sdks,new Comparator<Sdk>(){
+    @Override public int compare(    @NotNull Sdk o1,    @NotNull Sdk o2){
+      return StringUtil.compareVersionNumbers(o2.getVersionString(),o1.getVersionString());
+    }
+  }
+);
+  final String installedRuntime=findInstalledRuntime();
+  final List<AdlRunConfiguration> result=new ArrayList<AdlRunConfiguration>(sdks.size());
+  for (  Sdk sdk : sdks) {
+    final String adlPath=FlexSdkUtils.getAdlPath(sdk);
+    if (!checkAdl(adlPath)) {
+      continue;
+    }
+    String runtime=FlexSdkUtils.getAirRuntimePath(sdk);
+    if (checkRuntime(runtime) || checkRuntime((runtime=installedRuntime))) {
+      result.add(new AdlRunConfiguration(adlPath,runtime,StringUtil.compareVersionNumbers(sdk.getVersionString(),"4.6") < 0 ? "2.6" : "3.0"));
+    }
+  }
+  return result;
+}

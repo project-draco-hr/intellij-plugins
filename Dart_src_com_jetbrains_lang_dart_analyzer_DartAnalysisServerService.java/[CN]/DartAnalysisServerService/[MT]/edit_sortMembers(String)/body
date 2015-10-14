@@ -1,4 +1,5 @@
 {
+  final String filePath=FileUtil.toSystemDependentName(_filePath);
   final Ref<SourceFileEdit> resultRef=new Ref<SourceFileEdit>();
   final Semaphore semaphore=new Semaphore();
 synchronized (myLock) {
@@ -20,17 +21,7 @@ synchronized (myLock) {
       }
     }
 ;
-    final AnalysisServer server=myServer;
-    final boolean ok=runInPooledThreadAndWait(new Runnable(){
-      @Override public void run(){
-        server.edit_sortMembers(filePath,consumer);
-      }
-    }
-,"edit_sortMembers(" + filePath + ")",SEND_REQUEST_TIMEOUT);
-    if (!ok) {
-      stopServer();
-      return null;
-    }
+    myServer.edit_sortMembers(filePath,consumer);
   }
   final long t0=System.currentTimeMillis();
   semaphore.waitFor(EDIT_SORT_MEMBERS_TIMEOUT);

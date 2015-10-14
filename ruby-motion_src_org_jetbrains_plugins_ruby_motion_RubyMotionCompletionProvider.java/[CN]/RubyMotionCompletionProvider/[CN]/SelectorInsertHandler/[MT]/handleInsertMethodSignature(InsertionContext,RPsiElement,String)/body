@@ -1,0 +1,37 @@
+{
+  final String[] split=myFunction.getName().split(":");
+  final Document document=context.getDocument();
+  final int initialOffset=context.getStartOffset();
+  int offset=initialOffset;
+  document.deleteString(offset,context.getTailOffset());
+  document.insertString(offset,split[0]);
+  offset+=split[0].length();
+  final boolean insertParentheses=CodeStyleSettingsManager.getSettings(context.getProject()).PARENTHESES_AROUND_METHOD_ARGUMENTS;
+  final List<TextRange> argRanges=new ArrayList<TextRange>(split.length);
+  document.insertString(offset,insertParentheses ? "(" : " ");
+  offset++;
+  int offsetBefore=offset;
+  offset+=insertArg(document,offset,0);
+  argRanges.add(new TextRange(offsetBefore,offset));
+  for (int i=1; i < split.length; i++) {
+    document.insertString(offset,", ");
+    offset+=2;
+    final String argName=split[i];
+    document.insertString(offset,argName + ": ");
+    offset+=argName.length() + 2;
+    offsetBefore=offset;
+    offset+=insertArg(document,offset,i);
+    argRanges.add(new TextRange(offsetBefore,offset));
+  }
+  document.insertString(offset,insertParentheses ? ")" : "");
+  PsiDocumentManager.getInstance(context.getProject()).commitDocument(document);
+  if (ApplicationManager.getApplication().isUnitTestMode())   return;
+  final PsiElement element=context.getFile().findElementAt(initialOffset);
+  final RCall call=PsiTreeUtil.getParentOfType(element,RCall.class);
+  final TemplateBuilder builder=TemplateBuilderFactory.getInstance().createTemplateBuilder(call);
+  for (int i=0; i < argRanges.size(); i++) {
+    TextRange range=argRanges.get(i);
+    builder.replaceRange(range.shiftRight(-call.getTextOffset()),myFunction.getArguments().get(i).first);
+  }
+  builder.run(context.getEditor(),false);
+}

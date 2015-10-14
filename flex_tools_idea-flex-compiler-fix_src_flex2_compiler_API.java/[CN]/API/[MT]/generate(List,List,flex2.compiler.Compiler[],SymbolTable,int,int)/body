@@ -1,0 +1,27 @@
+{
+  boolean result=true;
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    CompilationUnit u=(s != null) ? s.getCompilationUnit() : (CompilationUnit)units.get(i);
+    if ((u.getWorkflow() & generate) != 0) {
+      continue;
+    }
+ else {
+      u.setWorkflow(generate);
+    }
+    if (!u.isBytecodeAvailable() && !generate(u,compilers,symbolTable)) {
+      result=false;
+      u.getSource().disconnectLogger();
+    }
+    calculateProgress(sources,symbolTable);
+    if (tooManyErrors()) {
+      ThreadLocalToolkit.log(new TooManyErrors());
+      break;
+    }
+    if (forcedToStop()) {
+      ThreadLocalToolkit.log(new ForcedToStop());
+      break;
+    }
+  }
+  return result;
+}

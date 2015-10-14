@@ -1,0 +1,35 @@
+{
+  for (  final JpsFlexDependencyEntry entry : myBC.getDependencies().getEntries()) {
+    LinkageType linkageType=entry.getLinkageType();
+    if (linkageType == LinkageType.Test) {
+      if (myFlexUnit) {
+        linkageType=LinkageType.Merged;
+      }
+ else {
+        continue;
+      }
+    }
+    if (myCSS && linkageType == LinkageType.Include)     linkageType=LinkageType.Merged;
+    if (entry instanceof JpsFlexBCDependencyEntry) {
+      if (linkageType == LinkageType.LoadInRuntime)       continue;
+      final JpsFlexBuildConfiguration dependencyBC=((JpsFlexBCDependencyEntry)entry).getBC();
+      if (dependencyBC != null && FlexCommonUtils.checkDependencyType(myBC.getOutputType(),dependencyBC.getOutputType(),linkageType)) {
+        addLib(rootElement,dependencyBC.getActualOutputFilePath(),linkageType);
+      }
+    }
+ else     if (entry instanceof JpsLibraryDependencyEntry) {
+      final JpsLibrary library=((JpsLibraryDependencyEntry)entry).getLibrary();
+      if (library != null) {
+        addLibraryRoots(rootElement,library.getRootUrls(JpsOrderRootType.COMPILED),linkageType);
+      }
+    }
+  }
+  if (myFlexUnit) {
+    final Collection<String> flexUnitLibNames=FlexCommonUtils.getFlexUnitSupportLibNames(myBC.getNature(),myBC.getDependencies().getComponentSet(),getPathToFlexUnitMainClass(myProjectDescriptor,myBC.getNature(),myBC.getMainClass()));
+    for (    String libName : flexUnitLibNames) {
+      final String libPath=FlexCommonUtils.getPathToBundledJar(libName);
+      final String flexUnitSwcUrl=JpsPathUtil.pathToUrl(FileUtil.toSystemIndependentName(libPath));
+      addLibraryRoots(rootElement,Collections.singletonList(flexUnitSwcUrl),LinkageType.Merged);
+    }
+  }
+}

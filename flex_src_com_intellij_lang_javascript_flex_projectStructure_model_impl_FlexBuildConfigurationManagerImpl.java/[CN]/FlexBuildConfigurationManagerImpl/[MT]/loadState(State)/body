@@ -1,0 +1,14 @@
+{
+  if (myModule == null) {
+    throw new IllegalStateException("Cannot load state of a dummy config manager instance");
+  }
+  Collection<FlexBuildConfigurationImpl> configurations=new ArrayList<FlexBuildConfigurationImpl>(state.CONFIGURATIONS.size());
+  for (  FlexBuildConfigurationState configurationState : state.CONFIGURATIONS) {
+    FlexBuildConfigurationImpl configuration=new FlexBuildConfigurationImpl();
+    configuration.loadState(configurationState,myModule.getProject());
+    configurations.add(configuration);
+  }
+  doSetBuildConfigurations(getValidatedConfigurations(configurations));
+  updateActiveConfiguration(state.myActiveConfigurationName);
+  myModuleLevelCompilerOptions.loadState(state.myModuleLevelCompilerOptions);
+}

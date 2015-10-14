@@ -1,0 +1,33 @@
+{
+  final InjectedPsiVisitor visitor=new InjectedPsiVisitor(host,type,problemsHolder);
+  InjectedLanguageUtil.enumerate(host,visitor);
+  if (visitor.getInvalidPropertyException() != null) {
+    throw visitor.getInvalidPropertyException();
+  }
+ else {
+    final Binding binding=visitor.getBinding();
+    if (binding != null) {
+      if (binding instanceof VariableBinding) {
+        JSVariable variable=((VariableBinding)binding).variable;
+        VariableReference variableReference=variableReferenceMap.get(variable);
+        if (variableReference == null) {
+          variableReferenceMap.put(variable,new VariableReference(variable));
+        }
+ else {
+          variableReference.markAsMultipleReferred();
+        }
+      }
+      if (mxmlObjectReferenceProvider instanceof Context && ((Context)mxmlObjectReferenceProvider).getParentScope().staticObjectPointToScope || mxmlObjectReferenceProvider instanceof InnerComponentContext) {
+        MxmlWriter.LOG.warn("IDEA-86372 " + host.getText());
+      }
+ else {
+        binding.setTarget(mxmlObjectReferenceProvider.getMxmlObjectReference(),writer.getNameReference(name),isStyle);
+        bindingItems.add(binding);
+      }
+      return IGNORE;
+    }
+ else {
+      return visitor.getValueWriter();
+    }
+  }
+}

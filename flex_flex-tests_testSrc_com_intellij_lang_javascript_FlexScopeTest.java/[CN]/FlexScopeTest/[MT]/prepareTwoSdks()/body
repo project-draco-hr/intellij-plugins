@@ -1,0 +1,23 @@
+{
+  final Sdk sdk1=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.5"),null,true);
+  final Sdk sdk2=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.6"),null,false);
+  AccessToken writeAction=WriteAction.start();
+  try {
+    JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+      @Override public void consume(      final FlexProjectConfigurationEditor editor){
+        final ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+        bc1.setName("1");
+        JSTestUtils.setSdk(bc1,sdk1);
+        final ModifiableFlexBuildConfiguration bc2=editor.createConfiguration(myModule);
+        bc2.setNature(new BuildConfigurationNature(TargetPlatform.Web,false,OutputType.Application));
+        bc2.setName("2");
+        JSTestUtils.setSdk(bc2,sdk2);
+      }
+    }
+);
+  }
+  finally {
+    writeAction.finish();
+  }
+  return Pair.create(sdk1,sdk2);
+}

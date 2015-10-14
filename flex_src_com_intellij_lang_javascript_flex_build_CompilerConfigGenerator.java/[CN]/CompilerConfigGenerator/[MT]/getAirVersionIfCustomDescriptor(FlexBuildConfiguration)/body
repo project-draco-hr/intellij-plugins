@@ -1,0 +1,27 @@
+{
+  if (bc.getTargetPlatform() == TargetPlatform.Desktop) {
+    final AirDesktopPackagingOptions packagingOptions=bc.getAirDesktopPackagingOptions();
+    if (!packagingOptions.isUseGeneratedDescriptor()) {
+      return FlexCommonUtils.parseAirVersionFromDescriptorFile(packagingOptions.getCustomDescriptorPath());
+    }
+  }
+ else   if (bc.getTargetPlatform() == TargetPlatform.Mobile) {
+    final AndroidPackagingOptions androidOptions=bc.getAndroidPackagingOptions();
+    final IosPackagingOptions iosPackagingOptions=bc.getIosPackagingOptions();
+    if (androidOptions.isEnabled() && androidOptions.isUseGeneratedDescriptor() || iosPackagingOptions.isEnabled() && iosPackagingOptions.isUseGeneratedDescriptor()) {
+      return null;
+    }
+    String androidAirVersion=null;
+    String iosAirVersion=null;
+    if (androidOptions.isEnabled() && !androidOptions.isUseGeneratedDescriptor()) {
+      androidAirVersion=FlexCommonUtils.parseAirVersionFromDescriptorFile(androidOptions.getCustomDescriptorPath());
+    }
+    if (iosPackagingOptions.isEnabled() && !iosPackagingOptions.isUseGeneratedDescriptor()) {
+      iosAirVersion=FlexCommonUtils.parseAirVersionFromDescriptorFile(iosPackagingOptions.getCustomDescriptorPath());
+    }
+    if (androidAirVersion == null)     return iosAirVersion;
+    if (iosAirVersion == null)     return androidAirVersion;
+    return StringUtil.compareVersionNumbers(androidAirVersion,iosAirVersion) > 0 ? iosAirVersion : androidAirVersion;
+  }
+  return null;
+}

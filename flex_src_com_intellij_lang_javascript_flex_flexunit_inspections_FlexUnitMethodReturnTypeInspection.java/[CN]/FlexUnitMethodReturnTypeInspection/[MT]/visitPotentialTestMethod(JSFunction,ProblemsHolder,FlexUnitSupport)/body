@@ -1,0 +1,15 @@
+{
+  if (FlexUnitSupport.getCustomRunner((JSClass)method.getParent()) != null)   return;
+  if (method.getKind() != JSFunction.FunctionKind.SIMPLE)   return;
+  if (support.isFlexUnit1Subclass((JSClass)method.getParent()) || support.isFlunitSubclass((JSClass)method.getParent())) {
+    return;
+  }
+  final JSType returnType=method.getReturnType();
+  if (returnType != null && !(returnType instanceof JSVoidType)) {
+    final ASTNode nameIdentifier=method.findNameIdentifier();
+    if (nameIdentifier != null) {
+      LocalQuickFix[] fix=canFix(method) ? new LocalQuickFix[]{new ChangeTypeFix(method,"void","javascript.fix.set.method.return.type")} : LocalQuickFix.EMPTY_ARRAY;
+      holder.registerProblem(nameIdentifier.getPsi(),FlexBundle.message("flexunit.inspection.testmethodreturntype.message"),ProblemHighlightType.GENERIC_ERROR_OR_WARNING,fix);
+    }
+  }
+}

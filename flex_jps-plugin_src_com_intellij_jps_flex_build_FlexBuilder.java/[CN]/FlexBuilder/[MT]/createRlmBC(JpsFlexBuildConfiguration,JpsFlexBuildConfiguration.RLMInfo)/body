@@ -1,0 +1,23 @@
+{
+  final JpsFlexBuildConfiguration rlmBC=mainBC.getModule().getProperties().createTemporaryCopyForCompilation(mainBC);
+  rlmBC.setOutputType(OutputType.RuntimeLoadedModule);
+  rlmBC.setOptimizeFor(rlm.OPTIMIZE ? mainBC.getName() : "");
+  final String subdir=PathUtilRt.getParentPath(rlm.OUTPUT_FILE);
+  final String outputFileName=PathUtilRt.getFileName(rlm.OUTPUT_FILE);
+  rlmBC.setMainClass(rlm.MAIN_CLASS);
+  rlmBC.setOutputFileName(outputFileName);
+  if (!subdir.isEmpty()) {
+    final String outputFolder=PathUtilRt.getParentPath(mainBC.getActualOutputFilePath());
+    rlmBC.setOutputFolder(outputFolder + "/" + subdir);
+  }
+  rlmBC.setUseHtmlWrapper(false);
+  rlmBC.setRLMs(Collections.<JpsFlexBuildConfiguration.RLMInfo>emptyList());
+  rlmBC.setCssFilesToCompile(Collections.<String>emptyList());
+  final JpsFlexCompilerOptions compilerOptions=rlmBC.getCompilerOptions();
+  compilerOptions.setResourceFilesMode(JpsFlexCompilerOptions.ResourceFilesMode.None);
+  String additionalOptions=compilerOptions.getAdditionalOptions();
+  additionalOptions=FlexCommonUtils.removeOptions(additionalOptions,"link-report");
+  additionalOptions=FlexCommonUtils.fixSizeReportOption(additionalOptions,StringUtil.getShortName(rlmBC.getMainClass()));
+  compilerOptions.setAdditionalOptions(additionalOptions);
+  return rlmBC;
+}

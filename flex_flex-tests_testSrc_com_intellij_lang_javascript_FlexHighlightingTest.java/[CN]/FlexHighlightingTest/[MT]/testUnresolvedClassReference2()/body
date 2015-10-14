@@ -1,0 +1,15 @@
+{
+  enableInspectionTool(new CssInvalidElementInspection());
+  JSTestUtils.disableFileHeadersInTemplates(getProject());
+  final String testName=getTestName(false);
+  doHighlightingWithInvokeFixAndCheckResult("Create MXML Component 'Missing'","mxml");
+  final VirtualFile expectedFile=LocalFileSystem.getInstance().findFileByPath(getTestDataPath() + getBasePath() + "/"+ testName+ "_2.mxml");
+  final VirtualFile createdFile=VfsUtilCore.findRelativeFile("/foo/boo2/Missing.mxml",ModuleRootManager.getInstance(myModule).getSourceRoots()[0]);
+  assertNotNull(expectedFile);
+  assertNotNull(createdFile);
+  FileDocumentManager.getInstance().saveAllDocuments();
+  String expected=StringUtil.convertLineSeparators(VfsUtilCore.loadText(expectedFile));
+  Properties properties=FileTemplateManager.getInstance(getProject()).getDefaultProperties();
+  expected=FileTemplateUtil.mergeTemplate(properties,expected,false);
+  assertEquals(expected,StringUtil.convertLineSeparators(VfsUtilCore.loadText(createdFile)));
+}

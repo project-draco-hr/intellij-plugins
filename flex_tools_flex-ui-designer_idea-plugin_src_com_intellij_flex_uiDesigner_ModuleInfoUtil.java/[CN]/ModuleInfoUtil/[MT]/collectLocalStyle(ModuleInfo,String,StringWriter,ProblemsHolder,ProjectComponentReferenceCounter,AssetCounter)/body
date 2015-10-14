@@ -1,0 +1,38 @@
+{
+  Project project=moduleInfo.getModule().getProject();
+  DumbService dumbService=DumbService.getInstance(project);
+  if (dumbService.isDumb()) {
+    dumbService.waitForSmartMode();
+  }
+  final PsiDocumentManager psiDocumentManager=PsiDocumentManager.getInstance(project);
+  if (psiDocumentManager.hasUncommitedDocuments()) {
+    final Semaphore semaphore=new Semaphore();
+    semaphore.down();
+    Application application=ApplicationManager.getApplication();
+    LogMessageUtil.LOG.assertTrue(!application.isReadAccessAllowed());
+    application.invokeLater(new Runnable(){
+      @Override public void run(){
+        psiDocumentManager.performWhenAllCommitted(new Runnable(){
+          @Override public void run(){
+            semaphore.up();
+          }
+        }
+);
+      }
+    }
+);
+    semaphore.waitFor();
+  }
+  final AccessToken token=ReadAction.start();
+  try {
+    if (moduleInfo.isApp()) {
+      return collectApplicationLocalStyle(moduleInfo.getModule(),flexSdkVersion,problemsHolder,stringWriter,projectComponentReferenceCounter,assetCounter);
+    }
+ else {
+      return collectLibraryLocalStyle(moduleInfo.getModule(),stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter);
+    }
+  }
+  finally {
+    token.finish();
+  }
+}

@@ -1,0 +1,41 @@
+{
+  if (file.getLanguage() != DartLanguage.INSTANCE && !HtmlUtil.isHtmlFile(file))   return Result.Continue;
+  int caretOffset=caretOffsetRef.get().intValue();
+  PsiElement psiAtOffset=file.findElementAt(caretOffset);
+  if (psiAtOffset == null || psiAtOffset.getTextOffset() > caretOffset) {
+    return Result.Continue;
+  }
+  Document document=editor.getDocument();
+  ASTNode token=psiAtOffset.getNode();
+  IElementType type=token.getElementType();
+  if (type == DartTokenTypes.RAW_TRIPLE_QUOTED_STRING) {
+    return Result.DefaultSkipIndent;
+  }
+  if (type == DartTokenTypes.RAW_SINGLE_QUOTED_STRING) {
+    char quote=token.getText().charAt(1);
+    breakString("r" + quote,String.valueOf(quote),caretOffsetRef,caretAdvanceRef,document);
+    return Result.Default;
+  }
+  if ((token=token.getTreeParent()) != null) {
+    type=token.getElementType();
+    if (type == DartTokenTypes.SHORT_TEMPLATE_ENTRY || type == DartTokenTypes.LONG_TEMPLATE_ENTRY) {
+      token=token.getTreeParent();
+      if (token == null)       return Result.Continue;
+      type=token.getElementType();
+    }
+    if (type == DartTokenTypes.STRING_LITERAL_EXPRESSION) {
+      token=token.getFirstChildNode();
+      if (token == null)       return Result.Continue;
+      type=token.getElementType();
+      if (type == DartTokenTypes.OPEN_QUOTE) {
+        String quote=token.getText().trim();
+        if (quote.length() == 1) {
+          breakString(quote,quote,caretOffsetRef,caretAdvanceRef,document);
+          return Result.Default;
+        }
+        return Result.DefaultSkipIndent;
+      }
+    }
+  }
+  return Result.Continue;
+}

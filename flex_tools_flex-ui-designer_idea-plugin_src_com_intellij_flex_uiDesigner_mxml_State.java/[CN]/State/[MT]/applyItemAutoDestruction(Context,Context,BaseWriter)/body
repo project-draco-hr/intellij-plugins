@@ -1,0 +1,28 @@
+{
+  AddItems override=getActiveAddItems(parentContext);
+  if (override == null) {
+    return;
+  }
+  int size=override.getItemDeferredInstances().size();
+  int lastIndex=size - 1;
+  if (!override.isAutoDestruction() && override.getItemDeferredInstances().get(lastIndex) == context) {
+    if (size == 1) {
+      AddItems next=(AddItems)overrides.getNext(override);
+      if (next != null && next.isAutoDestruction()) {
+        next.addItemDeferredInstance(override.getItemDeferredInstances().get(0));
+        writer.getBlockOut().removeLastMarkerAndAssert(override.dataRange);
+        overrides.remove(override);
+        setActiveAddItems(next,parentContext);
+      }
+ else {
+        override.setAutoDestruction(true);
+      }
+    }
+ else {
+      override.getItemDeferredInstances().remove(lastIndex);
+      AddItems separatedAddItems=stateWriter.createAddItems((DynamicObjectContext)context,parentContext,true);
+      overrides.addBefore(override,separatedAddItems);
+      setActiveAddItems(separatedAddItems,parentContext);
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  final ColumnInfo methodsColumn=new ColumnInfo("Methods"){
+    @Override public Class getColumnClass(){
+      return TreeTableModel.class;
+    }
+    @Override public Object valueOf(    final Object o){
+      return o;
+    }
+    @Override public Comparator getComparator(){
+      return new FrameNameComparator();
+    }
+  }
+;
+  final ColumnInfo countColumn=new AbstractCallColumnInfo("Cumulative time, ms"){
+    @Override public Comparator<DefaultMutableTreeNode> getComparator(){
+      return new CumulativeTimeComparator();
+    }
+    @Override protected long extractValueFromCallInfo(    CallInfo value){
+      return value.getCumulativeTime();
+    }
+  }
+;
+  final ColumnInfo selfColumn=new AbstractCallColumnInfo("Self time, ms"){
+    @Override public Comparator<DefaultMutableTreeNode> getComparator(){
+      return new SelfTimeComparator();
+    }
+    @Override protected long extractValueFromCallInfo(    CallInfo value){
+      return value.getSelfTime();
+    }
+  }
+;
+  return new ColumnInfo[]{methodsColumn,countColumn,selfColumn};
+}

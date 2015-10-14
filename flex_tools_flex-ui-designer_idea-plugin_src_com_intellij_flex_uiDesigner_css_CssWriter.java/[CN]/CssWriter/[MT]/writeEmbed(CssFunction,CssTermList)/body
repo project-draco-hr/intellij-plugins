@@ -1,0 +1,75 @@
+{
+  VirtualFile source=null;
+  String symbol=null;
+  String mimeType=null;
+  for (PsiElement child=termList.getFirstChild(); child != null; child=child.getNextSibling()) {
+    if (child instanceof CssTerm) {
+      PsiElement firstChild=child.getFirstChild();
+      if (firstChild instanceof XmlToken && ((XmlToken)firstChild).getTokenType() == CssElementTypes.CSS_IDENT) {
+        CharSequence name=firstChild.getNode().getChars();
+        @SuppressWarnings("ConstantConditions") PsiElement valueElement=child.getLastChild().getFirstChild();
+        if (StringUtil.equals(name,"source")) {
+          source=InjectionUtil.getReferencedFile(valueElement);
+        }
+ else {
+          String value=((CssString)valueElement).getValue();
+          if (StringUtil.equals(name,"symbol")) {
+            symbol=value;
+          }
+ else           if (StringUtil.equals(name,"mimeType")) {
+            mimeType=value;
+          }
+ else {
+            LOG.warn("unsupported embed param: " + name + "="+ value);
+          }
+        }
+      }
+ else       if (firstChild instanceof CssTermList) {
+        CssTerm[] terms=((CssTermList)firstChild).getTerms();
+        if (terms.length == 2) {
+          CharSequence name=terms[0].getNode().getChars();
+          if (StringUtil.equals(name,"source")) {
+            source=InjectionUtil.getReferencedFile(terms[1].getFirstChild());
+          }
+ else {
+            String value=((CssString)terms[1].getFirstChild()).getValue();
+            if (StringUtil.equals(name,"symbol")) {
+              symbol=value;
+            }
+ else             if (StringUtil.equals(name,"mimeType")) {
+              mimeType=value;
+            }
+ else {
+              LOG.warn("unsupported embed param: " + name + "="+ value);
+            }
+          }
+        }
+ else {
+          LOG.warn("unsupported embed: " + firstChild.getText());
+        }
+      }
+ else       if (firstChild instanceof CssString) {
+        source=InjectionUtil.getReferencedFile(firstChild);
+      }
+ else {
+        LOG.warn("unsupported embed statement: " + cssFunction.getNode().getChars());
+      }
+    }
+  }
+  if (source == null) {
+    throw new InvalidPropertyException(cssFunction,FlashUIDesignerBundle.message("embed.source.not.specified",cssFunction.getText()));
+  }
+  final int fileId;
+  final boolean isSwf=InjectionUtil.isSwf(source,mimeType);
+  if (isSwf) {
+    fileId=EmbedSwfManager.getInstance().add(source,symbol,assetCounter);
+  }
+ else   if (InjectionUtil.isImage(source,mimeType)) {
+    fileId=EmbedImageManager.getInstance().add(source,mimeType,assetCounter);
+  }
+ else {
+    throw new InvalidPropertyException(cssFunction,FlashUIDesignerBundle.message("unsupported.embed.asset.type",cssFunction.getText()));
+  }
+  propertyOut.write(isSwf ? AmfExtendedTypes.SWF : AmfExtendedTypes.IMAGE);
+  propertyOut.writeUInt29(fileId);
+}

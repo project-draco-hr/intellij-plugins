@@ -1,0 +1,25 @@
+{
+  final VirtualFile[] files=new VirtualFile[libraries.size()];
+  for (int i=0, librariesSize=libraries.size(); i < librariesSize; i++) {
+    files[i]=libraries.get(i).getFile();
+  }
+  Arrays.sort(files,new Comparator<VirtualFile>(){
+    @Override public int compare(    VirtualFile o1,    VirtualFile o2){
+      return StringUtil.compare(o1.getPath(),o2.getPath(),false);
+    }
+  }
+);
+  final StringBuilder stringBuilder=StringBuilderSpinAllocator.alloc();
+  try {
+    if (isSdk) {
+      stringBuilder.append('_');
+    }
+    for (    VirtualFile file : files) {
+      stringBuilder.append(file.getTimeStamp()).append(file.getPath()).append(':');
+    }
+    return stringBuilder.toString();
+  }
+  finally {
+    StringBuilderSpinAllocator.dispose(stringBuilder);
+  }
+}

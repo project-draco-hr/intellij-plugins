@@ -1,0 +1,43 @@
+{
+  if (SUPPORTED_TYPES.contains(token) || KEEP.equals(token) || BY_NAME.equals(token)|| StdArrangementTokens.Regexp.NAME.equals(token)) {
+    return true;
+  }
+  if (current == null) {
+    return SUPPORTED_MODIFIERS.contains(token);
+  }
+  ArrangementSettingsToken type=ArrangementUtil.parseType(current);
+  if (type == null) {
+    return true;
+  }
+  if (STATIC_INIT.equals(type)) {
+    return false;
+  }
+ else   if (CONST.equals(type)) {
+    return PUBLIC.equals(token) || PROTECTED.equals(token) || PACKAGE_PRIVATE.equals(token)|| PRIVATE.equals(token);
+  }
+ else   if (VAR.equals(type)) {
+    return STATIC.equals(token) || PUBLIC.equals(token) || PROTECTED.equals(token)|| PACKAGE_PRIVATE.equals(token)|| PRIVATE.equals(token);
+  }
+ else   if (CONSTRUCTOR.equals(type)) {
+    return false;
+  }
+ else   if (METHOD.equals(type) || PROPERTY.equals(type) || EVENT_HANDLER.equals(type)) {
+    Map<ArrangementSettingsToken,Object> tokens=ArrangementUtil.extractTokens(current);
+    if (OVERRIDE.equals(token) && tokens.keySet().contains(STATIC)) {
+      return false;
+    }
+ else     if (STATIC.equals(token) && (tokens.keySet().contains(OVERRIDE) || tokens.keySet().contains(FINAL))) {
+      return false;
+    }
+ else     if (FINAL.equals(token) && tokens.keySet().contains(STATIC)) {
+      return false;
+    }
+ else {
+      return true;
+    }
+  }
+ else {
+    LOG.error(type);
+    return true;
+  }
+}

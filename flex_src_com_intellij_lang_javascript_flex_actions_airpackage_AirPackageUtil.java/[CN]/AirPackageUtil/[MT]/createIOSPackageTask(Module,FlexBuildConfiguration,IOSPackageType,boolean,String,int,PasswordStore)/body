@@ -1,0 +1,76 @@
+{
+  final IosPackagingOptions packagingOptions=bc.getIosPackagingOptions();
+  final AirSigningOptions signingOptions=packagingOptions.getSigningOptions();
+  final boolean simulator=packageType == IOSPackageType.TestOnSimulator || packageType == IOSPackageType.DebugOnSimulator;
+  final String keystorePassword=simulator ? TEMP_KEYSTORE_PASSWORD : passwords.getKeystorePassword(signingOptions.getKeystorePath());
+  final String keyPassword=simulator ? null : passwords.getKeyPassword(signingOptions.getKeystorePath(),signingOptions.getKeyAlias());
+  final String outputFolder=PathUtil.getParentPath(bc.getActualOutputFilePath());
+  final String packageFilePath=outputFolder + "/" + packagingOptions.getPackageFileName()+ ".ipa";
+  return new AdtPackageTask(module.getProject(),bc.getSdk(),packageFilePath){
+    protected void appendAdtOptions(    List<String> command){
+      command.add("-package");
+      final String adtOptions=packagingOptions.getSigningOptions().getADTOptions();
+      if (!adtOptions.isEmpty()) {
+        final String undocumentedOptions=FlexCommonUtils.removeOptions(adtOptions,"sampler","hideAneLibSymbols","useLegacyAOT");
+        command.addAll(StringUtil.split(undocumentedOptions," "));
+      }
+      command.add("-target");
+switch (packageType) {
+case Test:
+        command.add(fastPackaging ? "ipa-test-interpreter" : "ipa-test");
+      break;
+case DebugOverUSB:
+    command.add(fastPackaging ? "ipa-debug-interpreter" : "ipa-debug");
+  command.add("-listen");
+command.add(String.valueOf(usbDebugPort));
+break;
+case DebugOverNetwork:
+command.add(fastPackaging ? "ipa-debug-interpreter" : "ipa-debug");
+command.add("-connect");
+break;
+case TestOnSimulator:
+command.add("ipa-test-interpreter-simulator");
+break;
+case DebugOnSimulator:
+command.add("ipa-debug-interpreter-simulator");
+break;
+case AdHoc:
+command.add("ipa-ad-hoc");
+break;
+case AppStore:
+command.add("ipa-app-store");
+break;
+}
+if (!adtOptions.isEmpty() && (adtOptions.equals("-sampler") || adtOptions.startsWith("-sampler ") || adtOptions.endsWith(" -sampler")|| adtOptions.contains(" -sampler "))) {
+command.add("-sampler");
+}
+final List<String> hideAneLibSymbols=FlexCommonUtils.getOptionValues(adtOptions,"hideAneLibSymbols");
+if (!hideAneLibSymbols.isEmpty()) {
+command.add("-hideAneLibSymbols");
+command.add(hideAneLibSymbols.get(0));
+}
+final List<String> useLegacyAOT=FlexCommonUtils.getOptionValues(adtOptions,"useLegacyAOT");
+if (!useLegacyAOT.isEmpty()) {
+command.add("-useLegacyAOT");
+command.add(useLegacyAOT.get(0));
+}
+if (simulator) {
+command.add("-storetype");
+command.add("PKCS12");
+command.add("-keystore");
+command.add(getTempKeystorePath());
+command.add("-storepass");
+command.add(TEMP_KEYSTORE_PASSWORD);
+}
+ else {
+appendSigningOptions(command,packagingOptions,keystorePassword,keyPassword);
+}
+if (!simulator) {
+command.add("-provisioning-profile");
+command.add(FileUtil.toSystemDependentName(signingOptions.getProvisioningProfilePath()));
+}
+appendPaths(command,module,bc,packagingOptions,iosSDKPath,".ipa");
+}
+}
+;
+}

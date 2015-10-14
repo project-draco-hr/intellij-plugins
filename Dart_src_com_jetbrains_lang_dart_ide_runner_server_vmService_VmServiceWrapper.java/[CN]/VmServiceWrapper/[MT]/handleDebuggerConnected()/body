@@ -1,0 +1,30 @@
+{
+  streamListen(VmService.DEBUG_STREAM_ID,new VmServiceConsumers.SuccessConsumerWrapper(){
+    @Override public void received(    final Success success){
+      myVmServiceReceiverThreadId=Thread.currentThread().getId();
+      streamListen(VmService.ISOLATE_STREAM_ID,new VmServiceConsumers.SuccessConsumerWrapper(){
+        @Override public void received(        final Success success){
+          getVm(new VmServiceConsumers.VmConsumerWrapper(){
+            @Override public void received(            final VM vm){
+              if (vm.getIsolates().size() != 1) {
+                Logging.getLogger().logError("Unexpected number of isolates after VM start: " + vm.getIsolates().size());
+              }
+              final IsolateRef isolateRef=vm.getIsolates().get(0);
+              getIsolate(isolateRef.getId(),new VmServiceConsumers.GetIsolateConsumerWrapper(){
+                @Override public void received(                final Isolate isolate){
+                  if (isolate.getPauseEvent().getKind() == EventKind.PauseStart) {
+                    handleIsolatePausedOnStart(isolateRef);
+                  }
+                }
+              }
+);
+            }
+          }
+);
+        }
+      }
+);
+    }
+  }
+);
+}

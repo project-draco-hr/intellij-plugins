@@ -1,0 +1,635 @@
+{
+  int originalPos=in.position();
+  in.seek(start);
+  int end=start + length;
+  w:   while (in.position() < end) {
+    int pos=in.position();
+    int opcode=in.readU8();
+    if (opcode == OP_label) {
+      addTarget(pos);
+    }
+    if (targetSetExists && targetSet.contains(pos)) {
+      v.target(pos);
+    }
+switch (opcode) {
+case OP_ifnlt:
+{
+        int offset=in.readS24();
+        addTarget(offset + in.position());
+        v.OP_ifnlt(offset,in.position());
+        continue;
+      }
+case OP_ifnle:
+{
+      int offset=in.readS24();
+      addTarget(offset + in.position());
+      v.OP_ifnle(offset,in.position());
+      continue;
+    }
+case OP_ifngt:
+{
+    int offset=in.readS24();
+    addTarget(offset + in.position());
+    v.OP_ifngt(offset,in.position());
+    continue;
+  }
+case OP_ifnge:
+{
+  int offset=in.readS24();
+  addTarget(offset + in.position());
+  v.OP_ifnge(offset,in.position());
+  continue;
+}
+case OP_newcatch:
+{
+v.OP_newcatch(in.readU32());
+continue;
+}
+case OP_setlocal1:
+v.OP_setlocal1();
+continue;
+case OP_setlocal2:
+v.OP_setlocal2();
+continue;
+case OP_setlocal3:
+v.OP_setlocal3();
+continue;
+case OP_returnvoid:
+if (v.opcodePass == 1) {
+v.beginop(OP_returnvoid);
+}
+continue;
+case OP_returnvalue:
+v.OP_returnvalue();
+continue;
+case OP_nop:
+if (v.opcodePass == 1) {
+v.beginop(OP_nop);
+}
+continue;
+case OP_bkpt:
+if (v.opcodePass == 1) {
+v.beginop(OP_bkpt);
+}
+continue;
+case OP_timestamp:
+if (v.opcodePass == 1) {
+v.beginop(OP_timestamp);
+}
+continue;
+case OP_debugline:
+v.OP_debugline(in.readU32());
+continue;
+case OP_bkptline:
+in.readU32();
+if (v.opcodePass == 1) {
+v.beginop(OP_bkptline);
+}
+continue;
+case OP_debug:
+{
+v.OP_debug(in.readU8(),in.readU32(),in.readU8(),in.readU32());
+continue;
+}
+case OP_debugfile:
+v.OP_debugfile(in);
+continue;
+case OP_jump:
+{
+int jump=in.readS24();
+addTarget(jump + in.position());
+v.OP_jump(jump,in.position());
+continue;
+}
+case OP_pushstring:
+v.OP_pushstring(in.readU32());
+continue;
+case OP_pushnamespace:
+v.OP_pushnamespace(in.readU32());
+continue;
+case OP_pushint:
+v.OP_pushint(in.readU32());
+continue;
+case OP_pushuint:
+v.OP_pushuint(in.readU32());
+continue;
+case OP_pushdouble:
+v.OP_pushdouble(in.readU32());
+continue;
+case OP_getlocal:
+v.OP_getlocal(in.readU32());
+continue;
+case OP_pop:
+{
+v.OP_pop();
+continue;
+}
+case OP_convert_s:
+{
+v.OP_convert_s();
+continue;
+}
+case OP_convert_b:
+{
+v.OP_convert_b();
+continue;
+}
+case OP_pushnull:
+case OP_pushundefined:
+case OP_pushtrue:
+case OP_pushfalse:
+case OP_pushnan:
+case OP_pushdnan:
+case OP_dup:
+case OP_swap:
+case OP_checkfilter:
+case OP_convert_d:
+case OP_newactivation:
+case OP_deldescendants:
+case OP_getglobalscope:
+case OP_getlocal0:
+case OP_getlocal1:
+case OP_getlocal2:
+case OP_getlocal3:
+case OP_setlocal0:
+case OP_pushscope:
+case OP_popscope:
+case OP_coerce_b:
+case OP_esc_xelem:
+case OP_esc_xattr:
+case OP_negate:
+case OP_convert_o:
+case OP_convert_m:
+case OP_nextname:
+case OP_nextvalue:
+case OP_astypelate:
+case OP_coerce_o:
+case OP_hasnext:
+case OP_increment:
+case OP_increment_i:
+case OP_typeof:
+case OP_not:
+case OP_bitnot:
+case OP_lshift:
+case OP_rshift:
+case OP_urshift:
+case OP_bitand:
+case OP_bitor:
+case OP_bitxor:
+case OP_equals:
+case OP_strictequals:
+case OP_negate_i:
+case OP_decrement_i:
+case OP_add_i:
+case OP_multiply_i:
+case OP_divide:
+case OP_multiply:
+case OP_lessthan:
+case OP_lessequals:
+case OP_greaterthan:
+case OP_greaterequals:
+case OP_pushwith:
+case OP_instanceof:
+case OP_in:
+case OP_dxnslate:
+case OP_li8:
+case OP_li16:
+case OP_li32:
+case OP_lf32:
+case OP_lf64:
+case OP_si8:
+case OP_si16:
+case OP_si32:
+case OP_sf32:
+case OP_sf64:
+case OP_sxi1:
+case OP_sxi8:
+case OP_sxi16:
+case OP_convert_u:
+case OP_throw:
+if (v.opcodePass == 1) {
+v.beginop(opcode);
+}
+continue;
+case OP_convert_m_p:
+{
+v.OP_convert_m_p(in.readU32());
+continue;
+}
+case OP_negate_p:
+{
+v.OP_negate_p(in.readU32());
+continue;
+}
+case OP_increment_p:
+{
+v.OP_increment_p(in.readU32());
+continue;
+}
+case OP_inclocal:
+{
+v.OP_inclocal(in.readU32());
+continue;
+}
+case OP_inclocal_p:
+{
+v.OP_inclocal_p(in.readU32(),in.readU32());
+continue;
+}
+case OP_kill:
+{
+v.OP_kill(in.readU32());
+continue;
+}
+case OP_label:
+{
+v.OP_label();
+continue;
+}
+case OP_inclocal_i:
+{
+v.OP_inclocal_i(in.readU32());
+continue;
+}
+case OP_decrement:
+{
+v.OP_decrement();
+continue;
+}
+case OP_decrement_p:
+{
+int param=in.readU32();
+v.OP_decrement_p(param);
+continue;
+}
+case OP_declocal:
+{
+int index=in.readU32();
+v.OP_declocal(index);
+continue;
+}
+case OP_declocal_p:
+{
+v.OP_declocal_p(in.readU32(),in.readU32());
+continue;
+}
+case OP_declocal_i:
+{
+v.OP_declocal_i(in.readU32());
+continue;
+}
+case OP_setlocal:
+{
+int index=in.readU32();
+v.OP_setlocal(index);
+continue;
+}
+case OP_add:
+{
+v.OP_add();
+continue;
+}
+case OP_add_p:
+{
+int param=in.readU32();
+v.OP_add_p(param);
+continue;
+}
+case OP_subtract:
+{
+v.OP_subtract();
+continue;
+}
+case OP_subtract_p:
+{
+v.OP_subtract_p(in.readU32());
+continue;
+}
+case OP_subtract_i:
+{
+v.OP_subtract_i();
+continue;
+}
+case OP_multiply_p:
+{
+v.OP_multiply_p(in.readU32());
+continue;
+}
+case OP_divide_p:
+{
+v.OP_divide_p(in.readU32());
+continue;
+}
+case OP_modulo:
+{
+v.OP_modulo();
+continue;
+}
+case OP_modulo_p:
+{
+v.OP_modulo_p(in.readU32());
+continue;
+}
+case OP_lookupswitch:
+{
+int opPos=in.position() - 1;
+int defaultPos=in.readS24();
+addTarget(defaultPos + opPos);
+int size_1=in.readU32();
+int[] casePos=new int[size_1 + 1];
+int caseTablePos=in.position();
+for (int i=0, size=casePos.length; i < size; i++) {
+casePos[i]=in.readS24();
+addTarget(casePos[i] + opPos);
+}
+v.OP_lookupswitch(defaultPos,casePos,opPos,caseTablePos);
+continue;
+}
+case OP_iftrue:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_iftrue(offset,in.position());
+continue;
+}
+case OP_iffalse:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_iffalse(offset,in.position());
+continue;
+}
+case OP_ifeq:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifeq(offset,in.position());
+continue;
+}
+case OP_ifne:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifne(offset,in.position());
+continue;
+}
+case OP_ifstricteq:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifstricteq(offset,in.position());
+continue;
+}
+case OP_ifstrictne:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifstrictne(offset,in.position());
+continue;
+}
+case OP_iflt:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_iflt(offset,in.position());
+continue;
+}
+case OP_ifle:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifle(offset,in.position());
+continue;
+}
+case OP_ifgt:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifgt(offset,in.position());
+continue;
+}
+case OP_ifge:
+{
+int offset=in.readS24();
+addTarget(offset + in.position());
+v.OP_ifge(offset,in.position());
+continue;
+}
+case OP_newobject:
+{
+v.OP_newobject(in.readU32());
+continue;
+}
+case OP_newarray:
+{
+v.OP_newarray(in.readU32());
+continue;
+}
+case OP_getproperty:
+{
+v.OP_getproperty(in.readU32());
+continue;
+}
+case OP_setproperty:
+{
+v.OP_setproperty(in.readU32());
+continue;
+}
+case OP_initproperty:
+{
+v.OP_initproperty(in.readU32());
+continue;
+}
+case OP_getlex:
+case OP_getdescendants:
+case OP_finddef:
+case OP_findproperty:
+case OP_findpropstrict:
+case OP_deleteproperty:
+case OP_getsuper:
+case OP_setsuper:
+v.op32(in.readU32(),opcode);
+continue;
+case OP_hasnext2:
+{
+v.OP_hasnext2(in.readU32(),in.readU32());
+continue;
+}
+case OP_setslot:
+{
+v.OP_setslot(in.readU32());
+continue;
+}
+case OP_getslot:
+{
+v.OP_getslot(in.readU32());
+continue;
+}
+case OP_setglobalslot:
+{
+v.OP_setglobalslot(in.readU32());
+continue;
+}
+case OP_getglobalslot:
+{
+v.OP_getglobalslot(in.readU32());
+continue;
+}
+case OP_call:
+{
+v.OP_call(in.readU32());
+continue;
+}
+case OP_construct:
+{
+v.OP_construct(in.readU32());
+continue;
+}
+case OP_applytype:
+{
+v.OP_applytype(in.readU32());
+continue;
+}
+case OP_newfunction:
+{
+v.OP_newfunction(in.readU32());
+continue;
+}
+case OP_newclass:
+{
+v.OP_newclass(in.readU32());
+continue;
+}
+case OP_callstatic:
+{
+v.OP_callstatic(in.readU32(),in.readU32());
+continue;
+}
+case OP_callmethod:
+{
+v.OP_callmethod(in.readU32(),in.readU32());
+continue;
+}
+case OP_callproperty:
+{
+v.OP_callproperty(in.readU32(),in.readU32());
+continue;
+}
+case OP_callproplex:
+{
+v.OP_callproplex(in.readU32(),in.readU32());
+continue;
+}
+case OP_constructprop:
+{
+v.OP_constructprop(in.readU32(),in.readU32());
+continue;
+}
+case OP_callsuper:
+{
+v.OP_callsuper(in.readU32(),in.readU32());
+continue;
+}
+case OP_constructsuper:
+v.OP_constructsuper(in.readU32());
+if (stopAfterConstructSuper) {
+if (v.opcodePass == 1) {
+v.beginop(OP_returnvoid);
+}
+break w;
+}
+continue;
+case OP_pushshort:
+{
+int n=in.readU32();
+v.OP_pushshort(n);
+continue;
+}
+case OP_astype:
+{
+v.OP_astype(in.readU32());
+continue;
+}
+case OP_coerce:
+{
+v.OP_coerce(in.readU32());
+continue;
+}
+case OP_coerce_a:
+{
+v.OP_coerce_a();
+continue;
+}
+case OP_coerce_i:
+{
+v.OP_coerce_i();
+continue;
+}
+case OP_coerce_u:
+{
+v.OP_coerce_u();
+continue;
+}
+case OP_coerce_d:
+{
+v.OP_coerce_d();
+continue;
+}
+case OP_coerce_s:
+{
+v.OP_coerce_s();
+continue;
+}
+case OP_istype:
+{
+v.OP_istype(in.readU32());
+continue;
+}
+case OP_istypelate:
+{
+v.OP_istypelate();
+continue;
+}
+case OP_pushbyte:
+{
+v.OP_pushbyte(in.readU8());
+continue;
+}
+case OP_getscopeobject:
+{
+v.OP_getscopeobject(in.readU8());
+continue;
+}
+case OP_convert_i:
+{
+v.OP_convert_i();
+continue;
+}
+case OP_dxns:
+{
+v.OP_dxns(in.readU32());
+continue;
+}
+case OP_pushuninitialized:
+{
+v.OP_pushconstant(in.readU32());
+continue;
+}
+case OP_callsupervoid:
+{
+v.OP_callsupervoid(in.readU32(),in.readU32());
+continue;
+}
+case OP_callpropvoid:
+{
+v.OP_callpropvoid(in.readU32(),in.readU32());
+continue;
+}
+default :
+{
+throw new DecoderException("unknown opcode:" + opcode);
+}
+}
+}
+in.seek(originalPos);
+}

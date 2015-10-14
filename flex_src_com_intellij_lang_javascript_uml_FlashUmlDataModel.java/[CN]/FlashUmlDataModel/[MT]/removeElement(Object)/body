@@ -1,0 +1,43 @@
+{
+  DiagramNode node=findNode(element);
+  if (node == null) {
+    classesAddedByUser.remove(getFqn(element));
+    return;
+  }
+  Collection<DiagramEdge> edgesToRemove=new ArrayList<DiagramEdge>();
+  for (  DiagramEdge edge : myEdges) {
+    if (node.equals(edge.getTarget()) || node.equals(edge.getSource())) {
+      edgesToRemove.add(edge);
+    }
+  }
+  myEdges.removeAll(edgesToRemove);
+  Collection<DiagramEdge> dependencyEdgesToRemove=new ArrayList<DiagramEdge>();
+  for (  DiagramEdge edge : myDependencyEdges) {
+    if (node.equals(edge.getTarget()) || node.equals(edge.getSource())) {
+      dependencyEdgesToRemove.add(edge);
+    }
+  }
+  myDependencyEdges.removeAll(dependencyEdgesToRemove);
+  myNodes.remove(node);
+  if (element instanceof JSClass) {
+    final JSClass psiClass=(JSClass)element;
+    classesRemovedByUser.put(psiClass.getQualifiedName(),spManager.createSmartPsiElementPointer(psiClass));
+    classesAddedByUser.remove(psiClass.getQualifiedName());
+  }
+  if (element instanceof String) {
+    String p=(String)element;
+    packages.remove(p);
+    packagesRemovedByUser.add(p);
+    Set<String> toDelete=new HashSet<String>();
+    for (    String key : classesAddedByUser.keySet()) {
+      final SmartPsiElementPointer<JSClass> pointer=classesAddedByUser.get(key);
+      final JSClass psiClass=pointer.getElement();
+      if (p.equals(StringUtil.getPackageName(psiClass.getQualifiedName()))) {
+        toDelete.add(key);
+      }
+    }
+    for (    String key : toDelete) {
+      classesAddedByUser.remove(key);
+    }
+  }
+}

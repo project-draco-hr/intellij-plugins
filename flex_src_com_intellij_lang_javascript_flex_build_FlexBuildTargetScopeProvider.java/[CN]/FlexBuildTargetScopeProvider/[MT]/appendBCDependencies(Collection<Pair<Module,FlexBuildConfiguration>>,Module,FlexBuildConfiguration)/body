@@ -1,0 +1,18 @@
+{
+  for (  final DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      final BuildConfigurationEntry bcEntry=(BuildConfigurationEntry)entry;
+      final Module dependencyModule=bcEntry.findModule();
+      final FlexBuildConfiguration dependencyBC=dependencyModule == null ? null : bcEntry.findBuildConfiguration();
+      if (dependencyModule == null || dependencyBC == null) {
+        throw new ConfigurationException(FlexBundle.message("bc.dependency.does.not.exist",bcEntry.getBcName(),bcEntry.getModuleName(),bc.getName(),module.getName()));
+      }
+      final Pair<Module,FlexBuildConfiguration> dependencyModuleAndBC=Pair.create(dependencyModule,dependencyBC);
+      if (!dependencyBC.isSkipCompile()) {
+        if (modulesAndBCs.add(dependencyModuleAndBC)) {
+          appendBCDependencies(modulesAndBCs,dependencyModule,dependencyBC);
+        }
+      }
+    }
+  }
+}

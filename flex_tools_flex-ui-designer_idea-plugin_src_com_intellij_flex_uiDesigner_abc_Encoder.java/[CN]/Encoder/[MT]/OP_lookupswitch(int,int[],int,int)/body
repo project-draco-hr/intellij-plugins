@@ -1,0 +1,19 @@
+{
+  if (opcodePass == 1) {
+    opcodes.mapOffsets(oldPos);
+    beginop(OP_lookupswitch);
+    opcodes.mapOffsets(oldPos + 1);
+    opcodes.writeS24(defaultPos);
+    opcodes.writeU32(casePos.length == 0 ? 0 : casePos.length - 1);
+    for (int i=0, size=casePos.length; i < size; i++) {
+      opcodes.mapOffsets(oldTablePos + 3 * i);
+      opcodes.writeS24(casePos[i]);
+    }
+  }
+ else   if (opcodePass == 2) {
+    opcodes.updateOffset(oldPos + 1,oldPos,oldPos + defaultPos);
+    for (int i=0, size=casePos.length; i < size; i++) {
+      opcodes.updateOffset(oldTablePos + (3 * i),oldPos,oldPos + casePos[i]);
+    }
+  }
+}

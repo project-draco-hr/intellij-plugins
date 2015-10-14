@@ -1,0 +1,37 @@
+{
+  @NonNls String[] enumerationValues=myEnumeratedValues;
+  if (enumerationValues == null) {
+    enumerationValues=ArrayUtil.EMPTY_STRING_ARRAY;
+    if (myEnumerated) {
+      if (JSCommonTypeNames.BOOLEAN_CLASS_NAME.equals(type)) {
+        enumerationValues=TRUE_FALSE;
+      }
+ else {
+        final PsiElement element=getDeclaration();
+        JSAttributeNameValuePair pair=null;
+        if (element instanceof JSAttributeNameValuePair) {
+          pair=((JSAttribute)element.getParent()).getValueByName(ENUMERATION_ATTR_NAME);
+        }
+ else         if (element instanceof JSAttributeListOwner) {
+          JSAttribute inspectableAttr=findInspectableAttr(element);
+          if (inspectableAttr != null) {
+            pair=inspectableAttr.getValueByName(ENUMERATION_ATTR_NAME);
+          }
+        }
+        if (pair != null) {
+          final String simpleValue=pair.getSimpleValue();
+          if (simpleValue != null) {
+            StringTokenizer tokenizer=new StringTokenizer(simpleValue,", ");
+            enumerationValues=new String[tokenizer.countTokens()];
+            int i=0;
+            while (tokenizer.hasMoreElements()) {
+              enumerationValues[i++]=tokenizer.nextElement();
+            }
+          }
+        }
+      }
+    }
+    myEnumeratedValues=enumerationValues;
+  }
+  return enumerationValues;
+}

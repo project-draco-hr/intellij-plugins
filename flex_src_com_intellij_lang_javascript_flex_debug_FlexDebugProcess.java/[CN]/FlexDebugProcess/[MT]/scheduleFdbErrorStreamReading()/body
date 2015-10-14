@@ -1,0 +1,27 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      InputStreamReader myErrorStreamReader=new InputStreamReader(fdbProcess.getErrorStream());
+      try {
+        char[] buf=new char[1024];
+        int read;
+        while ((read=myErrorStreamReader.read(buf,0,buf.length)) >= 0) {
+          String message=new String(buf,0,read);
+          LOG.debug("[fdb error stream]: " + message);
+          myConsoleView.print(message,ConsoleViewContentType.ERROR_OUTPUT);
+        }
+      }
+ catch (      IOException e) {
+        LOG.debug("fdb error stream reading error",e);
+      }
+ finally {
+        try {
+          myErrorStreamReader.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+);
+}

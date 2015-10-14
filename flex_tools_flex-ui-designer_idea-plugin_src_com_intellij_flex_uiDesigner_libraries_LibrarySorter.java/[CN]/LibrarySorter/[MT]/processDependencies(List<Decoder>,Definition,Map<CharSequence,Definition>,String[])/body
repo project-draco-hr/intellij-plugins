@@ -1,0 +1,23 @@
+{
+  definition.resolved=ResolvedState.YES;
+  final String[] dependencies;
+  if (definition.dependency == null) {
+    dependencies=definition.dependencies;
+  }
+ else {
+    dependencies=singleStringArray;
+    dependencies[0]=definition.dependency;
+  }
+  for (  String dependencyId : dependencies) {
+    final Definition dependency=definitionMap.get(dependencyId);
+    if (dependency == null || dependency.resolved == ResolvedState.NO || (dependency.resolved == ResolvedState.UNKNOWN && !processDependencies(decoders,dependency,definitionMap,singleStringArray))) {
+      definition.markAsUnresolved();
+      definition.resolved=ResolvedState.NO;
+      return false;
+    }
+    if (dependency.doAbcData != null) {
+      decoders.add(createDecoder(dependency));
+    }
+  }
+  return true;
+}

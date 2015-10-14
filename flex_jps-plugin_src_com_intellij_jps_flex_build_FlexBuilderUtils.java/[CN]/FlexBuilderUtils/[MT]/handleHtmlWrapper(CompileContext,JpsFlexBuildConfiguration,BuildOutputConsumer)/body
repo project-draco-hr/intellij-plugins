@@ -1,0 +1,78 @@
+{
+  final File templateDir=new File(bc.getWrapperTemplatePath());
+  if (!templateDir.isDirectory()) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("html.wrapper.dir.not.found",bc.getWrapperTemplatePath())));
+    return;
+  }
+  final File templateFile=new File(templateDir,FlexCommonUtils.HTML_WRAPPER_TEMPLATE_FILE_NAME);
+  if (!templateFile.isFile()) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("no.index.template.html.file",bc.getWrapperTemplatePath())));
+    return;
+  }
+  final InfoFromConfigFile info=InfoFromConfigFile.getInfoFromConfigFile(bc.getCompilerOptions().getAdditionalConfigFilePath());
+  final String outputFolderPath=StringUtil.notNullize(info.getOutputFolderPath(),bc.getOutputFolder());
+  final String outputFileName=bc.isTempBCForCompilation() ? bc.getOutputFileName() : StringUtil.notNullize(info.getOutputFileName(),bc.getOutputFileName());
+  final String targetPlayer=StringUtil.notNullize(info.getTargetPlayer(),bc.getDependencies().getTargetPlayer());
+  final File outputDir=new File(outputFolderPath);
+  if (!outputDir.isDirectory()) {
+    context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("output.folder.does.not.exist",outputFolderPath)));
+    return;
+  }
+  for (  File file : templateDir.listFiles()) {
+    if (FlexCommonUtils.HTML_WRAPPER_TEMPLATE_FILE_NAME.equals(file.getName())) {
+      final JpsEncodingProjectConfiguration encodingConfiguration=JpsEncodingConfigurationService.getInstance().getEncodingConfiguration(bc.getModule().getProject());
+      final String encoding=encodingConfiguration == null ? null : encodingConfiguration.getEncoding(file);
+      String wrapperText;
+      try {
+        try {
+          wrapperText=FileUtil.loadFile(file,encoding);
+        }
+ catch (        UnsupportedEncodingException e) {
+          wrapperText=FileUtil.loadFile(file);
+        }
+      }
+ catch (      IOException e) {
+        context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.load.template.file",file.getPath(),e.getMessage())));
+        return;
+      }
+      if (!wrapperText.contains(FlexCommonUtils.SWF_MACRO)) {
+        context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("no.swf.macro",file.getPath())));
+        return;
+      }
+      final String mainClass=StringUtil.notNullize(info.getMainClass(bc.getModule()),bc.getMainClass());
+      final String fixedText=replaceMacros(wrapperText,FileUtil.getNameWithoutExtension(outputFileName),targetPlayer,FlexCommonUtils.getPathToMainClassFile(mainClass,bc.getModule()));
+      final String wrapperFileName=FlexCommonUtils.getWrapperFileName(bc);
+      try {
+        byte[] bytes;
+        try {
+          bytes=encoding == null ? fixedText.getBytes() : fixedText.getBytes(encoding);
+        }
+ catch (        UnsupportedEncodingException e) {
+          bytes=fixedText.getBytes();
+        }
+        final File outputFile=new File(outputDir,wrapperFileName);
+        FileUtil.writeToFile(outputFile,bytes);
+        outputConsumer.registerOutputFile(outputFile,Collections.singletonList(file.getPath()));
+      }
+ catch (      IOException e) {
+        context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.create.file.in",wrapperFileName,outputDir.getPath(),e.getMessage())));
+      }
+    }
+ else {
+      try {
+        final File outputFile=new File(outputDir,file.getName());
+        if (file.isDirectory()) {
+          FileUtil.createDirectory(outputFile);
+          FileUtil.copyDir(file,outputFile);
+        }
+ else {
+          FileUtil.copy(file,outputFile);
+        }
+        outputConsumer.registerOutputFile(outputFile,Collections.singletonList(file.getPath()));
+      }
+ catch (      IOException e) {
+        context.processMessage(new CompilerMessage(getCompilerName(bc),BuildMessage.Kind.ERROR,FlexCommonBundle.message("failed.to.copy.file",file.getName(),templateDir.getPath(),outputDir.getPath(),e.getMessage())));
+      }
+    }
+  }
+}

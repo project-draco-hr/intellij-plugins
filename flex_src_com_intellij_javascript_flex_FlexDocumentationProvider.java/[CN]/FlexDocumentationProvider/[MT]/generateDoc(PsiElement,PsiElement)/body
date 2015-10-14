@@ -1,0 +1,153 @@
+{
+  String doc=super.generateDoc(_element,originalElement);
+  if (doc != null) {
+    return doc;
+  }
+  if (_element instanceof JSOffsetBasedImplicitElement)   _element=((JSOffsetBasedImplicitElement)_element).getElementAtOffset();
+  XmlTag parent=null;
+  if (_element instanceof XmlBackedJSClassImpl) {
+    parent=((XmlBackedJSClassImpl)_element).getParent();
+  }
+ else   if (_element instanceof XmlToken) {
+    parent=PsiTreeUtil.getParentOfType(_element,XmlTag.class);
+  }
+  if (parent != null) {
+    PsiElement prev=PsiTreeUtil.prevLeaf(parent);
+    while (prev instanceof PsiWhiteSpace || (prev instanceof XmlComment && !prev.getText().startsWith("<!---"))) {
+      prev=PsiTreeUtil.prevLeaf(prev);
+      if (prev instanceof XmlToken)       prev=prev.getParent();
+    }
+    if (prev instanceof XmlComment) {
+      return doGetCommentTextFromComment((PsiComment)prev,originalElement);
+    }
+  }
+  final PsiElement elementToShowDoc=findElementToShowDoc(_element);
+  AbstractExternalFilter docFilter=new AbstractExternalFilter(){
+    private final RefConvertor[] myReferenceConvertors=new RefConvertor[]{new RefConvertor(ourHREFselector){
+      protected String convertReference(      String origin,      String link){
+        if (BrowserUtil.isAbsoluteURL(link)) {
+          return link;
+        }
+        String resolved=getSeeAlsoLinkResolved(elementToShowDoc,link);
+        if (resolved != null) {
+          return DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + resolved;
+        }
+        String originFile=ourAnchorSuffix.matcher(origin).replaceAll("");
+        if (StringUtil.startsWithChar(link,'#')) {
+          return originFile + link;
+        }
+ else {
+          String originPath=originFile.contains("/") ? originFile.substring(0,originFile.lastIndexOf("/")) : originFile;
+          return doAnnihilate(originPath + "/" + link);
+        }
+      }
+    }
+,new RefConvertor(ourIMGselector){
+      protected String convertReference(      String root,      String href){
+        if (StringUtil.startsWithChar(href,'#')) {
+          return root + href;
+        }
+        if (root.startsWith("file://") && SystemInfo.isWindows) {
+          root="file:///" + root.substring("file://".length());
+        }
+        return doAnnihilate(ourHtmlFileSuffix.matcher(root).replaceAll("/") + href);
+      }
+    }
+};
+    @Override protected AbstractExternalFilter.RefConvertor[] getRefConverters(){
+      return myReferenceConvertors;
+    }
+    @Override public String getExternalDocInfoForElement(    final String docURL,    final PsiElement element) throws Exception {
+      String result=super.getExternalDocInfoForElement(docURL,element);
+      if (StringUtil.isNotEmpty(result)) {
+        result=result.replace(DISPLAY_NAME_MARKER,ApplicationManager.getApplication().runReadAction(new Computable<CharSequence>(){
+          public CharSequence compute(){
+            return getDisplayName(element);
+          }
+        }
+));
+      }
+      return result;
+    }
+    @Override protected void doBuildFromStream(    String url,    Reader reader,    StringBuilder result) throws IOException {
+      String input=StreamUtil.readTextFrom(reader);
+      Matcher anchorMatcher=ourAnchorSuffix.matcher(url);
+      final int startOffset;
+      Pair<Pattern,Pattern> mainContentPatterns=Pair.create(ourOpeningDiv,ourClosingDiv);
+      if (anchorMatcher.find()) {
+        String name=anchorMatcher.group(1);
+        Pattern detailPattern=ourDetailBodyDiv;
+        for (        Map.Entry<String,String> e : DOCUMENTED_ATTRIBUTES.entrySet()) {
+          if (name.startsWith(e.getValue())) {
+            if (!"Event".equals(e.getKey())) {
+              detailPattern=ourEventDetailTd;
+              mainContentPatterns=Pair.create(ourOpeningTd,ourClosingTd);
+            }
+            break;
+          }
+        }
+        name=name.replaceAll("\\)","\\\\)").replaceAll("\\(","\\\\(");
+        Matcher m=Pattern.compile("<a name=\"" + name + "\"").matcher(input);
+        if (!m.find()) {
+          return;
+        }
+        int offset=m.end();
+        m=detailPattern.matcher(input);
+        if (!m.find(offset)) {
+          return;
+        }
+        startOffset=m.start();
+      }
+ else {
+        Matcher m=ourMainContentDiv.matcher(input);
+        if (!m.find()) {
+          return;
+        }
+        startOffset=m.start();
+      }
+      TextRange description=getRangeBetweenNested(input,new TextRange(startOffset,input.length()),mainContentPatterns.first,mainContentPatterns.second);
+      if (description == null) {
+        return;
+      }
+      Matcher m=ourSeeAlsoDiv.matcher(input);
+      final TextRange seeAlso;
+      if (findIn(m,description)) {
+        seeAlso=getRangeBetweenNested(input,new TextRange(m.start(),description.getEndOffset()),ourOpeningDiv,ourClosingDiv);
+        description=new TextRange(description.getStartOffset(),m.start());
+      }
+ else {
+        seeAlso=null;
+      }
+      String text=description.substring(input);
+      text=ourDetailHeaderTable.matcher(text).replaceAll("");
+      text=ourClassHeaderTable.matcher(text).replaceAll("");
+      result.append(HTML).append("<PRE><b>").append(DISPLAY_NAME_MARKER);
+      result.append("</b></PRE>");
+      result.append(prettyPrint(text));
+      if (seeAlso != null) {
+        result.append("<DL><DT><b>See also:</b></DT>");
+        int pos=seeAlso.getStartOffset();
+        Matcher br=Pattern.compile("<br/?>",Pattern.CASE_INSENSITIVE).matcher(input);
+        while (findIn(br,new TextRange(pos,seeAlso.getEndOffset()))) {
+          TextRange item=new TextRange(pos,br.start());
+          result.append("<DD>").append(makeLink(item.substring(input))).append("</DD>");
+          pos=br.end();
+        }
+        result.append("<DD>").append(makeLink(input.substring(pos,seeAlso.getEndOffset()))).append("</DD></DL>");
+      }
+      result.append(HTML_CLOSE);
+    }
+  }
+;
+  for (  String docURL : findUrls(elementToShowDoc)) {
+    try {
+      String javadoc=docFilter.getExternalDocInfoForElement(docURL,elementToShowDoc);
+      if (StringUtil.isNotEmpty(javadoc)) {
+        return javadoc;
+      }
+    }
+ catch (    Exception e) {
+    }
+  }
+  return null;
+}

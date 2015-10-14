@@ -1,0 +1,28 @@
+{
+  if (isFileBased(command) || command == ServerMethod.SAVE_PROJECT_WINDOW_BOUNDS || command == ServerMethod.CALLBACK || command == ServerMethod.UNREGISTER_LIBRARY_SETS || command == ServerMethod.LOG_WARNING) {
+    super.processCommand(command);
+    return;
+  }
+switch (command) {
+case ServerMethod.SHOW_ERROR:
+    final String errorMessage=reader.readUTF();
+  if (expectedError == null) {
+    throw new TraceLessAssertionError(errorMessage);
+  }
+ else {
+    if (!errorMessage.startsWith(expectedError)) {
+      throw new TraceLessAssertionError("Expected error message " + expectedError + ", but got "+ errorMessage);
+    }
+    expectedError=null;
+  }
+break;
+default :
+if (customMessageHandler != null && customMessageHandler.getExpectedCommand() == command) {
+customMessageHandler.process();
+customMessageHandler=null;
+}
+ else {
+throw new TraceLessAssertionError("Unexpected server command: " + command);
+}
+}
+}

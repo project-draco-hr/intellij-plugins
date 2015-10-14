@@ -1,0 +1,18 @@
+{
+  prepareSdkTest();
+  importProject("<actionScriptProperties>\n" + "  <compiler useApolloConfig='true'>\n" + "    <libraryPath>\n"+ "      <libraryPathEntry kind='4' path='does not matter'/>\n"+ "    </libraryPath>"+ "  </compiler>\n"+ "  <buildTargets>\n"+ "    <buildTarget buildTargetName=\"com.adobe.flexide.multiplatform.android.platform\">\n"+ "      <airSettings airCertificatePath=\"android_cert.p12\"/>"+ "      <multiPlatformSettings enabled=\"true\"/>"+ "    </buildTarget>\n"+ "    <buildTarget buildTargetName=\"default\">\n"+ "      <airSettings airCertificatePath=\"not_applicable\"/>"+ "    </buildTarget>\n"+ "    <buildTarget buildTargetName=\"com.adobe.flexide.multiplatform.ios.platform\" "+ "                 provisioningFile=\"ios.mobileprovision\">"+ "      <airSettings airCertificatePath=\"ios_cert.p12\"/>"+ "      <multiPlatformSettings enabled=\"false\"/>"+ "    </buildTarget>\n"+ "  </buildTargets>\n"+ "</actionScriptProperties>",myFlashBuilderProjectDir.getPath() + "/Flash_Builder_workspace");
+  final FlexBuildConfiguration bc=getBC();
+  assertEquals(TargetPlatform.Mobile,bc.getTargetPlatform());
+  assertTrue(bc.isPureAs());
+  assertEquals(OutputType.Application,bc.getOutputType());
+  assertTrue(bc.getAndroidPackagingOptions().isEnabled());
+  assertFalse(bc.getAndroidPackagingOptions().getSigningOptions().isUseTempCertificate());
+  assertEquals("android_cert.p12",bc.getAndroidPackagingOptions().getSigningOptions().getKeystorePath());
+  assertFalse(bc.getIosPackagingOptions().isEnabled());
+  assertEquals("ios.mobileprovision",bc.getIosPackagingOptions().getSigningOptions().getProvisioningProfilePath());
+  assertEquals("ios_cert.p12",bc.getIosPackagingOptions().getSigningOptions().getKeystorePath());
+  final Sdk flexSdk=bc.getSdk();
+  assertNotNull(flexSdk);
+  assertInstanceOf(flexSdk.getSdkType(),FlexSdkType2.class);
+  assertEquals(myFlashBuilderProjectDir.getPath() + "/default_sdk",flexSdk.getHomePath());
+}

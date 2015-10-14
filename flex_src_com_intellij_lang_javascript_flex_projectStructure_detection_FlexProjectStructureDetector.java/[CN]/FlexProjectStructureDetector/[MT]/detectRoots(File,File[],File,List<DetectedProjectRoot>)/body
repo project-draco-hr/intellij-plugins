@@ -1,0 +1,23 @@
+{
+  for (  File child : children) {
+    if (child.isFile()) {
+      if (isActionScriptFile(child)) {
+        Pair<File,String> root=CommonSourceRootDetectionUtil.IO_FILE.suggestRootForFileWithPackageStatement(child,base,PACKAGE_NAME_FETCHER,false);
+        if (root != null) {
+          result.add(new FlexModuleSourceRoot(root.getFirst()));
+          return DirectoryProcessingResult.skipChildrenAndParentsUpTo(root.getFirst());
+        }
+ else {
+          return DirectoryProcessingResult.SKIP_CHILDREN;
+        }
+      }
+ else       if (JavaScriptSupportLoader.isFlexMxmFile(child.getName())) {
+        result.add(new FlexModuleSourceRoot(dir));
+      }
+    }
+    if ("node_modules".equals(child.getName())) {
+      return DirectoryProcessingResult.SKIP_CHILDREN;
+    }
+  }
+  return DirectoryProcessingResult.PROCESS_CHILDREN;
+}

@@ -1,0 +1,54 @@
+{
+  final boolean isNewBC=existingBC == null;
+  final ModifiableFlexBuildConfiguration mainBC=isNewBC ? myFlexEditor.createConfiguration(myModule) : existingBC;
+  mainBC.setName(myModule.getName());
+  final TargetPlatform guessedTargetPlatform=handleDependencies(mainBC);
+  final boolean producesAirPackage="air".equals(myMavenProject.getPackaging()) || containsSignAirGoal(myFlexmojosPlugin);
+  if (isNewBC) {
+    final TargetPlatform targetPlatform=producesAirPackage ? TargetPlatform.Desktop : guessedTargetPlatform;
+    mainBC.setTargetPlatform(targetPlatform);
+    mainBC.setPureAs(false);
+  }
+  final OutputType outputType=FlexmojosImporter.isFlexApp(myMavenProject) ? OutputType.Application : OutputType.Library;
+  if (!(outputType == OutputType.Application && mainBC.getOutputType() == OutputType.RuntimeLoadedModule)) {
+    if (outputType != mainBC.getOutputType()) {
+      mainBC.setOutputType(outputType);
+      FlexProjectConfigurationEditor.resetNonApplicableValuesToDefaults(mainBC);
+    }
+  }
+  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
+  if (FlexmojosImporter.isFlexApp(myMavenProject)) {
+    final String sourceFile=configurationElement == null ? null : configurationElement.getChildTextNormalize("sourceFile");
+    if (sourceFile != null && (sourceFile.endsWith(".as") || sourceFile.endsWith(".mxml"))) {
+      mainBC.setMainClass(sourceFile.substring(0,sourceFile.lastIndexOf(".")).replace("/",".").replace("\\","."));
+    }
+    if (producesAirPackage) {
+      setupPackagingOptions(mainBC.getAirDesktopPackagingOptions(),configurationElement);
+    }
+  }
+  final String outputFilePath=FlexmojosImporter.getOutputFilePath(myMavenProject);
+  final String fileName=PathUtil.getFileName(outputFilePath);
+  mainBC.setOutputFileName(fileName);
+  mainBC.setOutputFolder(PathUtil.getParentPath(outputFilePath));
+  final BuildConfigurationNature nature=mainBC.getNature();
+  if (nature.isApp() && isNewBC) {
+    final String packageFileName=FileUtil.getNameWithoutExtension(fileName);
+    if (nature.isDesktopPlatform()) {
+      mainBC.getAirDesktopPackagingOptions().setPackageFileName(packageFileName);
+    }
+ else     if (nature.isMobilePlatform()) {
+      mainBC.getAndroidPackagingOptions().setPackageFileName(packageFileName);
+      mainBC.getIosPackagingOptions().setPackageFileName(packageFileName);
+    }
+  }
+  setupSdk(mainBC);
+  final String locales=StringUtil.join(myCompiledLocales,CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+  final Map<String,String> options=new THashMap<String,String>(mainBC.getCompilerOptions().getAllOptions());
+  options.put("compiler.locale",locales);
+  mainBC.getCompilerOptions().setAllOptions(options);
+  if (BCUtils.canHaveResourceFiles(nature) && isNewBC) {
+    mainBC.getCompilerOptions().setResourceFilesMode(CompilerOptions.ResourceFilesMode.None);
+  }
+  mainBC.getCompilerOptions().setAdditionalConfigFilePath(getCompilerConfigFilePath());
+  return mainBC;
+}

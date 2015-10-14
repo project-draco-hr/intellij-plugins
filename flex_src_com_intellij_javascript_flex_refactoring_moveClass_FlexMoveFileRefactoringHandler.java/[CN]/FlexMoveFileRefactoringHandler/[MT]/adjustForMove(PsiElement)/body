@@ -1,0 +1,36 @@
+{
+  element=JSResolveUtil.unwrapProxy(element);
+  PsiFile file=element.getContainingFile();
+  if (file == null || !file.getLanguage().is(JavaScriptSupportLoader.ECMA_SCRIPT_L4) && !JavaScriptSupportLoader.isFlexMxmFile(file)) {
+    return null;
+  }
+  if (element instanceof JSPackageStatement) {
+    return null;
+  }
+  if (element instanceof XmlBackedJSClassImpl) {
+    return (JSQualifiedNamedElement)element;
+  }
+  if (element instanceof JSQualifiedNamedElement) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    if (parent instanceof JSPackageStatement || (parent instanceof JSFile && JSResolveUtil.getXmlBackedClass((JSFile)parent) == null)) {
+      return (JSQualifiedNamedElement)element;
+    }
+  }
+  if (element instanceof JSVarStatement && ((JSVarStatement)element).getVariables().length == 1) {
+    final PsiElement parent=JSResolveUtil.findParent(element);
+    if (parent instanceof JSPackageStatement || (parent instanceof JSFile && JSResolveUtil.getXmlBackedClass((JSFile)parent) == null)) {
+      return ((JSVarStatement)element).getVariables()[0];
+    }
+  }
+  if (element instanceof JSFile) {
+    final XmlBackedJSClass xmlBackedClass=JSResolveUtil.getXmlBackedClass((JSFile)element);
+    if (xmlBackedClass != null) {
+      return xmlBackedClass;
+    }
+    return JSPsiImplUtils.findQualifiedElement((JSFile)element);
+  }
+  if (element instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+    return XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)element);
+  }
+  return null;
+}

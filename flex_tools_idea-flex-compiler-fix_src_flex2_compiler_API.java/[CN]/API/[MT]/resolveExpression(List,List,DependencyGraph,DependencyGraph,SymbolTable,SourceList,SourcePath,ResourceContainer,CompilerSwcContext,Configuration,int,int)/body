@@ -1,0 +1,37 @@
+{
+  Set qNames=new HashSet();
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    CompilationUnit u=(s != null) ? s.getCompilationUnit() : (CompilationUnit)units.get(i);
+    if (u.expressions.size() == 0) {
+      continue;
+    }
+    qNames.clear();
+    String head=u.getSource().getName();
+    String name=u.getSource().getNameForReporting();
+    for (Iterator k=u.expressions.iterator(); k.hasNext(); ) {
+      Object unresolved=k.next();
+      if (unresolved instanceof MultiName) {
+        MultiName mName=(MultiName)unresolved;
+        QName qName=resolveMultiName(name,mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+        if (qName != null) {
+          qNames.add(qName);
+          u.expressionHistory.put(mName,qName);
+          Source tailSource=symbolTable.findSourceByQName(qName);
+          String tail=tailSource.getName();
+          addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+          addEdgeToGraphs(null,dgraph,head,tail);
+        }
+ else {
+          if (configuration.getCompilerConfiguration().showDependencyWarnings()) {
+            ThreadLocalToolkit.log(new UnableToResolveDependency(mName.getLocalPart()),u.getSource());
+          }
+        }
+        k.remove();
+      }
+    }
+    if (qNames.size() > 0) {
+      u.expressions.addAll(qNames);
+    }
+  }
+}

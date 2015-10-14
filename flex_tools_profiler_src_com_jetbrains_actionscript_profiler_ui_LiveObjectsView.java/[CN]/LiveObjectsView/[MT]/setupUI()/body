@@ -1,0 +1,24 @@
+{
+  liveObjectsTreeTable.getTree().setRootVisible(false);
+  setColumnWidth(liveObjectsTreeTable.getColumnModel().getColumn(1),MS_COLUMN_WIDTH);
+  setColumnWidth(liveObjectsTreeTable.getColumnModel().getColumn(2),MS_COLUMN_WIDTH);
+  new TreeTableSpeedSearch(liveObjectsTreeTable).setComparator(new SpeedSearchComparator(false));
+  PopupHandler.installPopupHandler(liveObjectsTreeTable,PROFILER_VIEW_GROUP_ID,ActionPlaces.UNKNOWN);
+  liveObjectsTreeTable.getEmptyText().setText(ProfilerBundle.message("live.objects.loading"));
+  liveObjectsTreeTable.getTree().setCellRenderer(new SizeInfoCellRenderer(){
+    @Override public void customizeCellRenderer(    Object value,    boolean selected){
+      Icon icon=AllIcons.General.Information;
+      if (value instanceof SizeInfoNode) {
+        icon=((SizeInfoNode)value).isMethod() ? AllIcons.Nodes.Method : AllIcons.Nodes.Class;
+      }
+      setPaintFocusBorder(false);
+      setIcon(icon);
+      super.customizeCellRenderer(value,selected);
+    }
+  }
+);
+  final ComboBoxModel model=filterScope.getComboBox().getModel();
+  if (model instanceof DefaultComboBoxModel) {
+    ((DefaultComboBoxModel)model).insertElementAt(new ScopeDescriptor(new AllSearchScope(getProject())),0);
+  }
+}

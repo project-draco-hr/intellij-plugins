@@ -1,0 +1,11 @@
+{
+  final VirtualFile file=directory.getVirtualFile();
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(directory.getProject()).getFileIndex();
+  VirtualFile rootForFile=projectFileIndex.getSourceRootForFile(file);
+  if (rootForFile == null)   return false;
+  String packageName=VfsUtilCore.getRelativePath(file,rootForFile,'.');
+  if (packageName == null || !JSUtils.packageExists(packageName,GlobalSearchScope.moduleScope(module)))   return false;
+  params.setPackageName(packageName);
+  params.setScope(FlexUnitRunnerParameters.Scope.Package);
+  return true;
+}

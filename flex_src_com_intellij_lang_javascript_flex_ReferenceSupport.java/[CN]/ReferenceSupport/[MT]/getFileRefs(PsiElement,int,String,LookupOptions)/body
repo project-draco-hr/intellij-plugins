@@ -1,0 +1,47 @@
+{
+  if (lookupOptions.IGNORE_TEXT_AFTER_HASH) {
+    int hashIndex=str.indexOf('#');
+    if (hashIndex != -1)     str=str.substring(0,hashIndex);
+  }
+  final RelativeToWhat relativeToWhat=relativeToWhat(str,elt,lookupOptions);
+  final boolean startsWithSlash=str.startsWith("/");
+  final FileReferenceSet base=new FileReferenceSet(str,elt,offset,null,SystemInfo.isFileSystemCaseSensitive){
+    @Override public boolean isAbsolutePathReference(){
+      return relativeToWhat == RelativeToWhat.Absolute;
+    }
+    @Override public boolean couldBeConvertedTo(    final boolean relative){
+      return ((relative && lookupOptions.RELATIVE_TO_FILE) || (!relative && lookupOptions.ABSOLUTE)) && super.couldBeConvertedTo(relative);
+    }
+    @Override public FileReference createFileReference(    final TextRange range,    final int index,    final String text){
+      return new JSFileReference(this,range,index,text,relativeToWhat);
+    }
+    @NotNull @Override public Collection<PsiFileSystemItem> computeDefaultContexts(){
+      PsiFile psiFile=getContainingFile();
+      if (psiFile == null)       return Collections.emptyList();
+      PsiElement context=psiFile.getContext();
+      if (context instanceof PsiLanguageInjectionHost) {
+        psiFile=context.getContainingFile();
+      }
+      psiFile=psiFile.getOriginalFile();
+      final List<VirtualFile> dirs=new ArrayList<VirtualFile>();
+      if (lookupOptions.RELATIVE_TO_FILE && !startsWithSlash) {
+        appendFileLocation(dirs,psiFile);
+      }
+      if ((lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITH_SLASH && startsWithSlash) || (lookupOptions.RELATIVE_TO_SOURCE_ROOTS_START_WITHOUT_SLASH && !startsWithSlash)) {
+        appendSourceRoots(dirs,psiFile);
+      }
+      if (lookupOptions.ABSOLUTE) {
+        appendFileSystemRoots(dirs);
+      }
+      if (lookupOptions.RELATIVE_TO_PROJECT_BASE_DIR) {
+        dirs.add(psiFile.getProject().getBaseDir());
+      }
+      if (lookupOptions.IN_ROOTS_OF_MODULE_DEPENDENCIES) {
+        appendRootsOfModuleDependencies(dirs,ModuleUtilCore.findModuleForPsiElement(psiFile));
+      }
+      return toFileSystemItems(dirs);
+    }
+  }
+;
+  return base.getAllReferences();
+}

@@ -1,0 +1,29 @@
+{
+  PsiElement anchor=descriptor.getPsiElement();
+  final PsiFile containingFile=anchor.getContainingFile();
+  if (!FileModificationService.getInstance().prepareFileForWrite(containingFile))   return;
+  PsiElement parent=anchor.getParent();
+  if (parent instanceof JSFunction) {
+    anchor=((JSFunction)parent).getParameterList();
+  }
+  OpenFileDescriptor openDescriptor=new OpenFileDescriptor(project,containingFile.getVirtualFile(),anchor.getTextRange().getEndOffset());
+  openDescriptor.navigate(true);
+  Editor textEditor=FileEditorManager.getInstance(project).getSelectedTextEditor();
+  TemplateManager templateManager=TemplateManager.getInstance(project);
+  final Template t=templateManager.createTemplate("","");
+  t.addTextSegment(":");
+  JSType detectedTypeFromUsage=TypeFromUsageDetector.detectTypeFromUsage(parent,containingFile);
+  if (detectedTypeFromUsage != null) {
+    BaseCreateFix.addTypeVar(t,"a",anchor,detectedTypeFromUsage.getTypeText(JSType.TypeTextFormat.CODE));
+  }
+ else {
+    String defaultValue="uint";
+    if (ApplicationManager.getApplication().isUnitTestMode()) {
+      t.addTextSegment(defaultValue);
+    }
+ else {
+      t.addVariable("a",new MacroCallNode(MacroFactory.createMacro("complete")),new BaseCreateFix.MyExpression(defaultValue),true);
+    }
+  }
+  templateManager.startTemplate(textEditor,t);
+}

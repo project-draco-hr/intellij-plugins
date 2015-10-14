@@ -1,19 +1,20 @@
 {
   extend(CompletionType.BASIC,psiElement().withLanguage(DartLanguage.INSTANCE),new CompletionProvider<CompletionParameters>(){
-    @Override protected void addCompletions(    @NotNull final CompletionParameters parameters,    @NotNull final ProcessingContext context,    @NotNull final CompletionResultSet result){
+    @Override protected void addCompletions(    @NotNull final CompletionParameters parameters,    @NotNull final ProcessingContext context,    @NotNull final CompletionResultSet originalResultSet){
       final VirtualFile file=DartResolveUtil.getRealVirtualFile(parameters.getOriginalFile());
       if (file == null)       return;
       final Project project=parameters.getOriginalFile().getProject();
       final DartSdk sdk=DartSdk.getDartSdk(project);
       if (sdk == null || !DartAnalysisServerService.isDartSdkVersionSufficient(sdk))       return;
       DartAnalysisServerService.getInstance().updateFilesContent();
-      final String filePath=FileUtil.toSystemDependentName(file.getPath());
-      final String completionId=DartAnalysisServerService.getInstance().completion_getSuggestions(filePath,parameters.getOffset());
+      final String completionId=DartAnalysisServerService.getInstance().completion_getSuggestions(file.getPath(),parameters.getOffset());
       if (completionId == null)       return;
+      final String uriPrefix=getPrefixIfCompletingUri(parameters);
+      final CompletionResultSet resultSet=uriPrefix != null ? originalResultSet.withPrefixMatcher(uriPrefix) : originalResultSet;
       DartAnalysisServerService.getInstance().addCompletions(completionId,new Consumer<CompletionSuggestion>(){
         @Override public void consume(        CompletionSuggestion suggestion){
           final LookupElement lookupElement=createLookupElement(project,suggestion);
-          result.addElement(lookupElement);
+          resultSet.addElement(lookupElement);
         }
       }
 );

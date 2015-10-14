@@ -1,0 +1,27 @@
+{
+  VirtualFile file=LocalFileSystem.getInstance().findFileByPath(myBridgeSupportPath);
+  if (file == null)   return Trinity.create(null,null,null);
+  Set<String> idSelectorNames=null;
+  Set<String> selectorNames=null;
+  Framework framework=null;
+  try {
+    framework=BridgeSupportReader.read(myName,myVersion,file.getInputStream(),myOSX);
+    idSelectorNames=ContainerUtil.newHashSet();
+    selectorNames=ContainerUtil.newHashSet();
+    for (    Class clazz : framework.getClasses()) {
+      for (      Function function : clazz.getFunctions()) {
+        if ("id".equals(function.getReturnValue())) {
+          idSelectorNames.addAll(MotionSymbolUtil.getSelectorNames(function));
+        }
+        selectorNames.add(function.getName());
+      }
+    }
+  }
+ catch (  IOException e) {
+    LOG.error("Failed to load bridgesupport file",e);
+  }
+  myFramework=framework != null ? new SoftReference<Framework>(framework) : null;
+  myIdSelectorNames=idSelectorNames != null ? new SoftReference<Set<String>>(idSelectorNames) : null;
+  mySelectorNames=selectorNames != null ? new SoftReference<Set<String>>(selectorNames) : null;
+  return Trinity.create(framework,idSelectorNames,selectorNames);
+}

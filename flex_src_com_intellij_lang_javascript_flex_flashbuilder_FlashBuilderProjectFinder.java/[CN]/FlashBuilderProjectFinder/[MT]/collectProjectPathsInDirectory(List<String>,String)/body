@@ -1,0 +1,18 @@
+{
+  final ProgressIndicator progressIndicator=ProgressManager.getInstance().getProgressIndicator();
+  if (progressIndicator != null) {
+    progressIndicator.checkCanceled();
+    progressIndicator.setText2(dirPath);
+  }
+  final File dotProjectFile=new File(dirPath,FlashBuilderImporter.DOT_PROJECT);
+  if (isFlashBuilderProject(dotProjectFile)) {
+    projectPaths.add(dotProjectFile.getPath());
+  }
+ else {
+    final File root=new File(dirPath);
+    final File[] subdirs=root.listFiles(FileUtilRt.ALL_DIRECTORIES);
+    for (    final File subdir : subdirs) {
+      collectProjectPathsInDirectory(projectPaths,subdir.getPath());
+    }
+  }
+}

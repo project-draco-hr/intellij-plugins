@@ -1,0 +1,19 @@
+{
+  String moduleName=link.substring(0,link.indexOf(":"));
+  Module module=ModuleManager.getInstance(project).findModuleByName(moduleName);
+  link=link.substring(link.indexOf(":") + 1);
+  final JavaScriptIndex index=JavaScriptIndex.getInstance(project);
+  PsiElement element=ActionScriptClassResolver.findClassByQName(link,index,module);
+  if (element instanceof JSClass) {
+    return (JSElement)element;
+  }
+  if (element == null && link.contains(".") && link.endsWith("()")) {
+    String qname=link.substring(0,link.lastIndexOf('.'));
+    element=ActionScriptClassResolver.findClassByQName(qname,index,module);
+    if (element instanceof JSClass) {
+      String methodName=link.substring(link.lastIndexOf('.') + 1,link.length() - 2);
+      return ((JSClass)element).findFunctionByNameAndKind(methodName,JSFunction.FunctionKind.SIMPLE);
+    }
+  }
+  return null;
+}

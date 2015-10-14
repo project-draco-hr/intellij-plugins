@@ -1,0 +1,72 @@
+{
+  super(session);
+  myModule=ModuleManager.getInstance(session.getProject()).findModuleByName(params.getModuleName());
+  myBC=bc;
+  myRunnerParameters=params;
+  LOG.assertTrue(myModule != null);
+  final Sdk sdk=bc.getSdk();
+  LOG.assertTrue(sdk != null);
+  myAppSdkHome=FileUtil.toSystemIndependentName(sdk.getHomePath());
+  final Sdk sdkForDebugger=params instanceof FlashRunnerParameters && bc.getTargetPlatform() == TargetPlatform.Web ? getDebuggerSdk(((FlashRunnerParameters)params).getDebuggerSdkRaw(),sdk) : sdk;
+  myDebuggerSdkHome=FileUtil.toSystemIndependentName(sdkForDebugger.getHomePath());
+  myDebuggerVersion=sdkForDebugger.getVersionString();
+  myBreakpointsHandler=new FlexBreakpointsHandler(this);
+  final List<String> fdbLaunchCommand=FlexSdkUtils.getCommandLineForSdkTool(session.getProject(),sdkForDebugger,getFdbClasspath(),"flex.tools.debugger.cli.DebugCLI",null);
+  if (isFlexSdk_4_12plus_IdeMode()) {
+    fdbLaunchCommand.add("-ide");
+  }
+  if (params instanceof FlashRunnerParameters && bc.getTargetPlatform() == TargetPlatform.Mobile && (((FlashRunnerParameters)params).getMobileRunTarget() == AirMobileRunTarget.AndroidDevice || ((FlashRunnerParameters)params).getMobileRunTarget() == AirMobileRunTarget.iOSDevice) && ((FlashRunnerParameters)params).getDebugTransport() == AirMobileDebugTransport.USB) {
+    fdbLaunchCommand.add("-p");
+    fdbLaunchCommand.add(String.valueOf(((FlashRunnerParameters)params).getUsbDebugPort()));
+  }
+  if (params instanceof RemoteFlashRunnerParameters && (((RemoteFlashRunnerParameters)params).getRemoteDebugTarget() == RemoteDebugTarget.AndroidDevice || ((RemoteFlashRunnerParameters)params).getRemoteDebugTarget() == RemoteDebugTarget.iOSDevice) && ((RemoteFlashRunnerParameters)params).getDebugTransport() == AirMobileDebugTransport.USB) {
+    fdbLaunchCommand.add("-p");
+    fdbLaunchCommand.add(String.valueOf(((RemoteFlashRunnerParameters)params).getUsbDebugPort()));
+  }
+  fdbProcess=launchFdb(fdbLaunchCommand);
+  if (params instanceof FlashRunnerParameters) {
+    final FlashRunnerParameters appParams=(FlashRunnerParameters)params;
+switch (bc.getTargetPlatform()) {
+case Web:
+      final String urlOrPath=appParams.isLaunchUrl() ? appParams.getUrl() : bc.isUseHtmlWrapper() ? PathUtil.getParentPath(bc.getActualOutputFilePath()) + "/" + BCUtils.getWrapperFileName(bc) : bc.getActualOutputFilePath();
+    sendCommand(new LaunchBrowserCommand(urlOrPath,appParams.getLauncherParameters()));
+  break;
+case Desktop:
+sendAdlStartingCommand(bc,appParams);
+break;
+case Mobile:
+switch (appParams.getMobileRunTarget()) {
+case Emulator:
+sendAdlStartingCommand(bc,appParams);
+break;
+case AndroidDevice:
+final String androidAppId=FlexBaseRunner.getApplicationId(FlexBaseRunner.getAirDescriptorPath(bc,bc.getAndroidPackagingOptions()));
+sendCommand(new StartAppOnAndroidDeviceCommand(bc.getSdk(),appParams.getDeviceInfo(),androidAppId));
+break;
+case iOSSimulator:
+final String iosSimulatorAppId=FlexBaseRunner.getApplicationId(FlexBaseRunner.getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+sendCommand(new StartAppOnIosSimulatorCommand(bc.getSdk(),iosSimulatorAppId,((FlashRunnerParameters)params).getIOSSimulatorSdkPath()));
+break;
+case iOSDevice:
+final String iosAppName=FlexBaseRunner.getApplicationName(FlexBaseRunner.getAirDescriptorPath(bc,bc.getIosPackagingOptions()));
+sendCommand(new StartAppOnIosDeviceCommand(iosAppName));
+break;
+}
+}
+}
+ else if (params instanceof FlexUnitRunnerParameters) {
+final FlexUnitRunnerParameters flexUnitParams=(FlexUnitRunnerParameters)params;
+openFlexUnitConnections(flexUnitParams.getSocketPolicyPort(),flexUnitParams.getPort());
+if (bc.getTargetPlatform() == TargetPlatform.Web) {
+sendCommand(new LaunchBrowserCommand(bc.getActualOutputFilePath(),flexUnitParams.getLauncherParameters()));
+}
+ else {
+sendAdlStartingCommand(bc,params);
+}
+}
+ else {
+sendCommand(new StartDebuggingCommand());
+}
+reader=new MyFdbOutputReader(fdbProcess.getInputStream());
+startCommandProcessingThread();
+}

@@ -1,0 +1,24 @@
+{
+  if (StringUtil.isEmpty(commandLine)) {
+    return Collections.emptyList();
+  }
+  final List<String> result=new LinkedList<String>();
+  for (CommandLineTokenizer tokenizer=new CommandLineTokenizer(commandLine); tokenizer.hasMoreTokens(); ) {
+    final String token=tokenizer.nextToken();
+    for (    String option : optionAndAliases) {
+      if (token.startsWith("-" + option + "=") || token.startsWith("-" + option + "+=")) {
+        result.addAll(StringUtil.split(token.substring(token.indexOf("=") + 1),","));
+      }
+ else       if (token.equals("-" + option) && tokenizer.countTokens() > 0) {
+        if (tokenizer.countTokens() > 0) {
+          String nextToken;
+          while (tokenizer.hasMoreTokens() && canBeCompilerOptionValue(nextToken=tokenizer.peekNextToken())) {
+            tokenizer.nextToken();
+            result.add(nextToken);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}

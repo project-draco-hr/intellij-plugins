@@ -1,0 +1,41 @@
+{
+  int insertionIndex=history.getMapIndex(IndexHistory.STRING,oldIndex);
+  int newIndex=history.getNewIndex(insertionIndex);
+  if (newIndex == 0) {
+    final int originalPosition=in.position();
+    final int start=history.getRawPartPoolPositions(IndexHistory.STRING)[oldIndex];
+    in.seek(start);
+    int stringLength=in.readU32();
+    byte[] data=in.data;
+    int c;
+    int actualStart=-1;
+    for (int i=0; i < stringLength; i++) {
+      c=data[in.position + in.offset + i];
+      if (c > 127) {
+        break;
+      }
+      if (c == ';') {
+        if (i < debugBasepath.length) {
+          break;
+        }
+        actualStart=in.position + i - debugBasepath.length;
+        final int p=in.offset + actualStart;
+        data[p]='$';
+        stringLength=stringLength - i + debugBasepath.length;
+        if (stringLength < 128) {
+          actualStart--;
+          data[p - 1]=(byte)stringLength;
+        }
+ else {
+          actualStart-=2;
+          data[p - 2]=(byte)((stringLength & 0x7F) | 0x80);
+          data[p - 1]=(byte)((stringLength >> 7) & 0x7F);
+        }
+        break;
+      }
+    }
+    in.seek(originalPosition);
+    newIndex=history.getIndex(IndexHistory.STRING,oldIndex,insertionIndex,actualStart);
+  }
+  opcodes.writeU32(newIndex);
+}

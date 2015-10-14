@@ -1,0 +1,12 @@
+{
+  final CompilerConfigGeneratorRt generator=new CompilerConfigGeneratorRt(bc,bc.getModule().getProperties().getModuleLevelCompilerOptions(),JpsFlexProjectLevelCompilerOptionsExtension.getProjectLevelCompilerOptions(bc.getModule().getProject()),projectDescriptor);
+  String text=generator.generateConfigFileText();
+  if (bc.isTempBCForCompilation()) {
+    final JpsFlexBuildConfiguration originalBC=bc.getModule().getProperties().findConfigurationByName(bc.getName());
+    final boolean makeExternalLibsMerged=FlexCommonUtils.isFlexUnitBC(bc) || (originalBC != null && originalBC.getOutputType() == OutputType.Library);
+    final boolean makeIncludedLibsMerged=FlexCommonUtils.isRuntimeStyleSheetBC(bc);
+    text=FlexCompilerConfigFileUtilBase.mergeWithCustomConfigFile(text,bc.getCompilerOptions().getAdditionalConfigFilePath(),makeExternalLibsMerged,makeIncludedLibsMerged);
+  }
+  final String name=getConfigFileName(bc,FlexCommonUtils.getBCSpecifier(bc));
+  return getOrCreateConfigFile(name,text);
+}

@@ -1,0 +1,55 @@
+{
+  String ns=nsset[0];
+  if (ns.length() == 0)   return PUBLIC_NS_IN_SOURCE;
+  if (Abc.PRIVATE_NS.equals(ns))   return ns;
+  if (mi.parentTraits.name == mi.name)   return PUBLIC_NS_IN_SOURCE;
+  Traits parentTraits=mi.parentTraits;
+  if (ns.equals(parentTraits.protectedNs) || (parentTraits.itraits != null && ns.equals(parentTraits.itraits.protectedNs))) {
+    return "protected";
+  }
+  if (parentTraits.name instanceof Multiname) {
+    Multiname parentName=(Multiname)parentTraits.name;
+    String parentNs=parentName.nsset[0];
+    if (parentNs.equals(ns)) {
+      return "internal";
+    }
+ else {
+      int i=ns.indexOf(':');
+      if (i != -1 && ns.regionMatches(0,parentNs,0,parentNs.length()) && ns.regionMatches(parentNs.length() + 1,parentName.name,0,parentName.name.length()) && ns.charAt(parentNs.length()) == ':' && ns.length() == parentNs.length() + parentName.name.length() + 1) {
+        return "";
+      }
+ else       if (i == -1 && ns.equals(parentName.name) && parentNs.length() == 0) {
+        return "";
+      }
+    }
+  }
+ else   if (parentTraits.name instanceof String) {
+    String parentName=(String)parentTraits.name;
+    if (parentName.startsWith(Abc.SCRIPT_PREFIX)) {
+      if (mi.kind == Abc.TraitType.Const) {
+        SlotInfo slotInfo=(SlotInfo)mi;
+        if (slotInfo.type.isStarReference() && slotInfo.value instanceof String) {
+          return PUBLIC_NS_IN_SOURCE;
+        }
+      }
+      String predefinedNs=predefined.get(ns);
+      if (predefinedNs != null)       return predefinedNs;
+      return "public";
+    }
+    if (ns.regionMatches(0,parentName,0,ns.length())) {
+      if (ns.length() < parentName.length() && parentName.charAt(ns.length()) == ':') {
+        return "internal";
+      }
+    }
+  }
+  if (parentTraits.staticTrait != null)   parentTraits=parentTraits.staticTrait;
+  if (parentTraits.usedNamespacesToNamesMap == null) {
+    parentTraits.usedNamespacesToNamesMap=new BidirectionalMap<String,String>();
+  }
+  String varName=parentTraits.usedNamespacesToNamesMap.get(ns);
+  if (varName == null) {
+    varName=makeNsIdentifier(ns,parentTraits);
+    parentTraits.usedNamespacesToNamesMap.put(ns,varName);
+  }
+  return varName;
+}

@@ -1,0 +1,31 @@
+{
+  if (!DialectDetector.isActionScript(node))   return;
+  JSFunction fun=PsiTreeUtil.getParentOfType(node,JSFunction.class);
+  if (fun != null)   return;
+  ASTNode nameIdentifier=node.findNameIdentifier();
+  if (nameIdentifier == null)   return;
+  JSClass clazz=JSResolveUtil.getClassOfContext(node);
+  if (clazz == null) {
+    PsiElement parent=JSResolveUtil.findParent(node);
+    if (!(parent instanceof JSPackageStatement))     return;
+  }
+  JSAttributeList attributeList=((JSAttributeListOwner)node).getAttributeList();
+  JSAttributeList.AccessType accessType=attributeList != null ? attributeList.getAccessType() : null;
+  if (accessType == JSAttributeList.AccessType.PACKAGE_LOCAL && attributeList.findAccessTypeElement() == null && attributeList.getNamespaceElement() == null && !(node instanceof JSFunction && ((JSFunction)node).isConstructor())) {
+    holder.registerProblem(nameIdentifier.getPsi(),FlexBundle.message("js.implicitly.internal.declaration.problem"),new LocalQuickFix(){
+      @NotNull @Override public String getName(){
+        return FlexBundle.message("js.implicitly.internal.declaration.problem.add.internal.fix");
+      }
+      @NotNull @Override public String getFamilyName(){
+        return getName();
+      }
+      @Override public void applyFix(      @NotNull Project project,      @NotNull ProblemDescriptor descriptor){
+        PsiElement anchor=descriptor.getPsiElement();
+        PsiFile containingFile=anchor.getContainingFile();
+        if (!FileModificationService.getInstance().prepareFileForWrite(containingFile))         return;
+        JSVisibilityUtil.setVisibility((JSAttributeListOwner)anchor.getParent(),JSAttributeList.AccessType.PACKAGE_LOCAL);
+      }
+    }
+);
+  }
+}

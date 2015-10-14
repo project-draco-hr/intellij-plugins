@@ -1,0 +1,21 @@
+{
+  State state=new State();
+  state.TARGET_PLAYER=myTargetPlayer;
+  state.COMPONENT_SET=myComponentSet;
+  state.FRAMEWORK_LINKAGE=myFrameworkLinkage.getSerializedText();
+  state.ENTRIES=ContainerUtil.mapNotNull(myEntries.toArray(new ModifiableDependencyEntry[myEntries.size()]),new Function<ModifiableDependencyEntry,EntryState>(){
+    @Override public EntryState fun(    ModifiableDependencyEntry entry){
+      if (entry instanceof StatefulDependencyEntry) {
+        return ((StatefulDependencyEntry)entry).getState();
+      }
+ else {
+        throw new RuntimeException("Unexpected entry type: " + entry);
+      }
+    }
+  }
+,new EntryState[0]);
+  if (mySdk != null) {
+    state.SDK=mySdk.getState();
+  }
+  return state;
+}

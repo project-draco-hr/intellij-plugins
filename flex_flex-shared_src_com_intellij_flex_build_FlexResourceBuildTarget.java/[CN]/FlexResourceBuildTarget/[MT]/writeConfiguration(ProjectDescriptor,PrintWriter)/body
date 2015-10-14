@@ -1,0 +1,17 @@
+{
+  out.println("Module: " + getModule().getName());
+  for (  JpsFlexBuildConfiguration bc : getModule().getProperties().getBuildConfigurations()) {
+    if (!bc.isSkipCompile() && FlexCommonUtils.canHaveResourceFiles(bc.getNature()) && bc.getCompilerOptions().getResourceFilesMode() != JpsFlexCompilerOptions.ResourceFilesMode.None) {
+      out.print("BC: " + bc.getName());
+      out.print(", output folder: " + PathUtilRt.getParentPath(bc.getActualOutputFilePath()));
+      out.print(", mode: " + bc.getCompilerOptions().getResourceFilesMode());
+      if (bc.getCompilerOptions().getResourceFilesMode() == JpsFlexCompilerOptions.ResourceFilesMode.ResourcePatterns) {
+        final JpsJavaCompilerConfiguration c=JpsJavaExtensionService.getInstance().getCompilerConfiguration(getModule().getProject());
+        if (c != null) {
+          out.print(", patterns: " + StringUtil.join(c.getResourcePatterns()," "));
+        }
+      }
+      out.println();
+    }
+  }
+}

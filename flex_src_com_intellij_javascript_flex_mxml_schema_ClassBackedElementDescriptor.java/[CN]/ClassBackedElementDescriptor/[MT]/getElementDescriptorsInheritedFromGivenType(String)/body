@@ -1,0 +1,34 @@
+{
+  final PsiElement declaration=getDeclaration();
+  if (declaration == null) {
+    return EMPTY_ARRAY;
+  }
+  final PsiElement clazz=JSResolveUtil.unwrapProxy(ActionScriptClassResolver.findClassByQNameStatic(arrayElementType,declaration));
+  if (!(clazz instanceof JSClass)) {
+    return EMPTY_ARRAY;
+  }
+  final JSClass jsClass=(JSClass)clazz;
+  final JSAttributeList attributeList=jsClass.getAttributeList();
+  final boolean isFinalClass=attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.FINAL);
+  final List<XmlElementDescriptor> result=new ArrayList<XmlElementDescriptor>();
+  if (isFinalClass) {
+    final String jsClassName=jsClass.getName();
+    if (jsClassName != null) {
+      final XmlElementDescriptor descriptor=context.getElementDescriptor(jsClassName,jsClass.getQualifiedName());
+      if (descriptor instanceof ClassBackedElementDescriptor && CodeContext.checkDeclaration((ClassBackedElementDescriptor)descriptor)) {
+        result.add(descriptor);
+      }
+    }
+  }
+ else {
+    for (    final XmlElementDescriptor descriptor : context.getDescriptorsWithAllowedDeclaration()) {
+      if (descriptor instanceof ClassBackedElementDescriptor && !((ClassBackedElementDescriptor)descriptor).predefined) {
+        final PsiElement decl=descriptor.getDeclaration();
+        if (decl instanceof JSClass && JSInheritanceUtil.isParentClass((JSClass)decl,jsClass,false)) {
+          result.add(descriptor);
+        }
+      }
+    }
+  }
+  return result.toArray(new XmlElementDescriptor[result.size()]);
+}

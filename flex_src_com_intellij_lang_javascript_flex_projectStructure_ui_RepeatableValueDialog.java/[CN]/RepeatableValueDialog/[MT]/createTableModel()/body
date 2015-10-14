@@ -1,0 +1,33 @@
+{
+  return new TableModelBase(){
+    public int getColumnCount(){
+      return myInfo.LIST_ELEMENTS.length;
+    }
+    @Nullable public String getColumnName(    final int column){
+      return myInfo.LIST_ELEMENTS.length == 1 ? null : myInfo.LIST_ELEMENTS[column].DISPLAY_NAME;
+    }
+    public Class getColumnClass(    final int column){
+      final ListElementType type=myInfo.LIST_ELEMENTS[column].LIST_ELEMENT_TYPE;
+      return (type == ListElementType.File || type == ListElementType.FileOrFolder) ? VirtualFile.class : type == ListElementType.Boolean ? Boolean.class : String.class;
+    }
+    protected Object getValue(    final StringBuilder s,    final int column){
+      final String value=StringUtil.split(s.toString(),CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR,true,false).get(column);
+      final ListElementType type=myInfo.LIST_ELEMENTS[column].LIST_ELEMENT_TYPE;
+      return (type == ListElementType.File || type == ListElementType.FileOrFolder) ? FileUtil.toSystemDependentName(value) : type == ListElementType.Boolean ? Boolean.valueOf(value) : value;
+    }
+    protected void setValue(    final StringBuilder s,    final int column,    final Object aValue){
+      final List<String> parts=StringUtil.split(s.toString(),String.valueOf(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR),true,false);
+      s.delete(0,s.length());
+      for (int i=0; i < column; i++) {
+        s.append(parts.get(i)).append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR);
+      }
+      final ListElementType type=myInfo.LIST_ELEMENTS[column].LIST_ELEMENT_TYPE;
+      final String fixedValue=(type == ListElementType.File || type == ListElementType.FileOrFolder) ? FileUtil.toSystemIndependentName(String.valueOf(aValue)) : String.valueOf(aValue);
+      s.append(fixedValue);
+      for (int i=column + 1; i < myInfo.LIST_ELEMENTS.length; i++) {
+        s.append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR).append(parts.get(i));
+      }
+    }
+  }
+;
+}

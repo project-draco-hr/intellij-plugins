@@ -1,0 +1,54 @@
+{
+  final ProblemsHolder problemsHolder=new ProblemsHolder();
+  final ProjectComponentReferenceCounter projectComponentReferenceCounter=new ProjectComponentReferenceCounter();
+  localStyleSources.forEachEntry(new TObjectObjectProcedure<ModuleInfo,List<LocalStyleHolder>>(){
+    @Override public boolean execute(    ModuleInfo moduleInfo,    List<LocalStyleHolder> b){
+      try {
+        List<LocalStyleHolder> oldList=moduleInfo.getLocalStyleHolders();
+        if (oldList == null) {
+          oldList=Collections.emptyList();
+        }
+        FlexLibrarySet flexLibrarySet=moduleInfo.getFlexLibrarySet();
+        final StringRegistry.StringWriter stringWriter=new StringRegistry.StringWriter();
+        stringWriter.startChange();
+        try {
+          List<LocalStyleHolder> list=ModuleInfoUtil.collectLocalStyle(moduleInfo,flexLibrarySet.getVersion(),stringWriter,problemsHolder,projectComponentReferenceCounter,flexLibrarySet.assetCounterInfo.demanded);
+          boolean hasChanges=true;
+          if (list.size() == oldList.size()) {
+            int diff=list.size();
+            for (            LocalStyleHolder holder : list) {
+              if (oldList.contains(holder)) {
+                diff--;
+              }
+            }
+            hasChanges=diff != 0;
+          }
+          if (hasChanges) {
+            moduleInfo.setLocalStyleHolders(list);
+            client.fillAssetClassPoolIfNeed(flexLibrarySet);
+            client.updateLocalStyleHolders(localStyleSources,stringWriter);
+            if (projectComponentReferenceCounter.hasUnregistered()) {
+              client.registerDocumentReferences(projectComponentReferenceCounter.unregistered,null,problemsHolder);
+            }
+          }
+ else {
+            stringWriter.rollback();
+            localStyleSources.remove(moduleInfo);
+          }
+        }
+ catch (        Throwable e) {
+          stringWriter.rollback();
+          LOG.error(e);
+        }
+      }
+ catch (      Throwable e) {
+        LOG.error(e);
+      }
+      return true;
+    }
+  }
+);
+  if (!problemsHolder.isEmpty() && reportProblems) {
+    DocumentProblemManager.getInstance().report(null,problemsHolder);
+  }
+}

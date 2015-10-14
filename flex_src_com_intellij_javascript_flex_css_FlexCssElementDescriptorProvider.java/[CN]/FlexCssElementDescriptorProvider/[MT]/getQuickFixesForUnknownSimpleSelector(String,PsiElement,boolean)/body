@@ -1,0 +1,22 @@
+{
+  if (!isOnTheFly) {
+    return LocalQuickFix.EMPTY_ARRAY;
+  }
+  final VirtualFile vFile=checkForQuickFixAndGetVFile(context);
+  if (vFile == null) {
+    return LocalQuickFix.EMPTY_ARRAY;
+  }
+  final CssDialect dialect=CssDialectMappings.getInstance(context.getProject()).getMapping(vFile);
+  if (dialect == CssDialect.CLASSIC) {
+    if (isPossibleSelector(selectorName,context)) {
+      return new LocalQuickFix[]{new SwitchToCssDialectQuickFix(FlexCSSDialect.getInstance())};
+    }
+  }
+ else {
+    final CssElementDescriptorProviderImpl classicCssDescriptorProvider=CssElementDescriptorProvider.EP_NAME.findExtension(CssElementDescriptorProviderImpl.class);
+    if (classicCssDescriptorProvider != null && classicCssDescriptorProvider.isPossibleSelector(selectorName,context)) {
+      return new LocalQuickFix[]{new SwitchToCssDialectQuickFix(CssDialect.CLASSIC)};
+    }
+  }
+  return LocalQuickFix.EMPTY_ARRAY;
+}

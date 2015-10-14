@@ -1,0 +1,44 @@
+{
+  final Module module=ModuleUtilCore.findModuleForPsiElement(nameIdentifier);
+  if (module == null || ModuleType.get(module) != FlexModuleType.getInstance())   return null;
+  final String conditionalCompilerDefinitionName=getPotentialConditionalCompilerDefinitionName(nameIdentifier);
+  if (conditionalCompilerDefinitionName != null) {
+    return new DeclareConditionalCompilerDefinitionFix(module,conditionalCompilerDefinitionName);
+  }
+  final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(nameIdentifier,JSCallExpression.class);
+  if (callExpression == null)   return null;
+  if (JSResolveUtil.isEventListenerCall(callExpression)) {
+    final JSExpression[] params=callExpression.getArguments();
+    if (params.length >= 2 && PsiTreeUtil.isAncestor(params[1],nameIdentifier,true)) {
+      return new CreateJSEventMethod(nameIdentifier.getText(),new Computable<String>(){
+        @Override public String compute(){
+          PsiElement responsibleElement=null;
+          if (params[0] instanceof JSReferenceExpression) {
+            responsibleElement=((JSReferenceExpression)params[0]).getQualifier();
+          }
+          return responsibleElement == null ? FlexCommonTypeNames.FLASH_EVENT_FQN : responsibleElement.getText();
+        }
+      }
+);
+    }
+  }
+ else   if (needsFlexMobileViewAsFirstArgument(callExpression)) {
+    final JSExpression[] params=callExpression.getArguments();
+    if (params.length >= 1 && PsiTreeUtil.isAncestor(params[0],nameIdentifier,true)) {
+      final String contextPackage=JSResolveUtil.getPackageNameFromPlace(callExpression);
+      final String fqn=StringUtil.getQualifiedName(contextPackage,nameIdentifier.getText());
+      final CreateFlexMobileViewIntentionAndFix fix=new CreateFlexMobileViewIntentionAndFix(fqn,nameIdentifier,true);
+      fix.setCreatedClassFqnConsumer(new Consumer<String>(){
+        public void consume(        final String fqn){
+          final String packageName=StringUtil.getPackageName(fqn);
+          if (StringUtil.isNotEmpty(packageName) && !packageName.equals(contextPackage)) {
+            ImportUtils.doImport(nameIdentifier,fqn,true);
+          }
+        }
+      }
+);
+      return fix;
+    }
+  }
+  return null;
+}

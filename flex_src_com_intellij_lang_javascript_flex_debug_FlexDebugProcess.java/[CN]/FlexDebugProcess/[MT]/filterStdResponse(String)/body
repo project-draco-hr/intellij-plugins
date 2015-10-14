@@ -1,0 +1,19 @@
+{
+  ResponseLineIterator iterator=new ResponseLineIterator(line);
+  boolean stdcontent=true;
+  while (iterator.hasNext()) {
+    String s=iterator.next();
+    if (s.startsWith("$")) {
+      stdcontent=false;
+      break;
+    }
+    if (s.length() > 0 && Character.isDigit(s.charAt(0))) {
+      sendCommand(new DumpSourceLocationCommand(this));
+    }
+ else     if (!handleStdResponse(line,iterator)) {
+      stdcontent=false;
+    }
+  }
+  if (stdcontent)   return true;
+  return false;
+}

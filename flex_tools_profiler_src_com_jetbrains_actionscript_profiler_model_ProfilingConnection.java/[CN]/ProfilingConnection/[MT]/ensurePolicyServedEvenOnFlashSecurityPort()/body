@@ -1,0 +1,21 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      try {
+        myPolicyServerSocket=new ServerSocket(843);
+        while (true) {
+          final Socket socket=myPolicyServerSocket.accept();
+          final OutputStream outputStream=socket.getOutputStream();
+          outputStream.write(policyFileRequestAnswer(myPort).getBytes());
+          LOG.debug("policy served from 843");
+          outputStream.close();
+        }
+      }
+ catch (      IOException e) {
+        if (e instanceof SocketException && myAbortingSocketConnection)         return;
+        if (myPolicyServerSocket != null)         LOG.error(e);
+      }
+    }
+  }
+);
+}

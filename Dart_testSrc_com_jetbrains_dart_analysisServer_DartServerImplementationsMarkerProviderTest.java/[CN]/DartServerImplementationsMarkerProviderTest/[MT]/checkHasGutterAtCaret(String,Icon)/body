@@ -1,0 +1,18 @@
+{
+  final String testName=getTestName(false);
+  myFixture.configureByFile(testName + ".dart");
+  myFixture.doHighlighting();
+  final List<GutterMark> gutters=myFixture.findGuttersAtCaret();
+  if (!gutters.isEmpty()) {
+    DartServerOverrideMarkerProviderTest.checkGutter(gutters,expectedText,expectedIcon);
+  }
+ else {
+    new Alarm(Alarm.ThreadToUse.SWING_THREAD,myTestRootDisposable).addRequest(new Runnable(){
+      @Override public void run(){
+        myFixture.doHighlighting();
+        DartServerOverrideMarkerProviderTest.checkGutter(myFixture.findGuttersAtCaret(),expectedText,expectedIcon);
+      }
+    }
+,500,ModalityState.NON_MODAL);
+  }
+}

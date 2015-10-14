@@ -1,0 +1,20 @@
+{
+  if (line.startsWith(TRACE_MARKER)) {
+    myConsoleView.print(line + "\n",ConsoleViewContentType.NORMAL_OUTPUT);
+    return true;
+  }
+ else   if (line.startsWith(FAULT_MARKER)) {
+    myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    while (iterator.hasNext() && iterator.getNext().startsWith("at ")) {
+      myConsoleView.print(iterator.next() + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    }
+    return true;
+  }
+ else   if (line.startsWith("[SWF]") || line.startsWith("[UnloadSWF]")) {
+    if (!FilterSwfLoadUnloadMessagesAction.isFilterEnabled(getSession().getProject())) {
+      myConsoleView.print(line + "\n",ConsoleViewContentType.SYSTEM_OUTPUT);
+    }
+    return true;
+  }
+  return false;
+}

@@ -1,0 +1,28 @@
+{
+  ProgressManager.getInstance().run(new Task.Backgroundable(task.myProject,progressTitle,true){
+    public void run(    @NotNull final ProgressIndicator indicator){
+      createRunnable(task).run();
+    }
+    public void onSuccess(){
+      if (task.checkMessages()) {
+        if (onSuccess != null) {
+          ApplicationManager.getApplication().invokeLater(new Runnable(){
+            public void run(){
+              onSuccess.consume(task.getMessages());
+            }
+          }
+);
+        }
+      }
+ else       if (onFailure != null) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          public void run(){
+            onFailure.consume(task.getMessages());
+          }
+        }
+);
+      }
+    }
+  }
+);
+}

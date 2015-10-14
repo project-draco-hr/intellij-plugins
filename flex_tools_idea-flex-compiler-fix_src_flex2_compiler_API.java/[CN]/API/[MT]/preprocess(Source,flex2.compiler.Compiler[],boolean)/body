@@ -1,0 +1,30 @@
+{
+  if (!s.isCompiled()) {
+    if (s.getLogger() != null && s.getLogger().warningCount() > 0 && !s.getLogger().isConnected() && !suppressWarnings) {
+      s.getLogger().displayWarnings(ThreadLocalToolkit.getLogger());
+    }
+    flex2.compiler.Compiler c=getCompiler(s,compilers);
+    if (c != null) {
+      Logger original=ThreadLocalToolkit.getLogger();
+      LocalLogger local=new LocalLogger(original,s);
+      local.setLocalizationManager(ThreadLocalToolkit.getLocalizationManager());
+      s.setLogger(local);
+      ThreadLocalToolkit.setLogger(local);
+      s=c.preprocess(s);
+      ThreadLocalToolkit.setLogger(original);
+      if (local.errorCount() > 0) {
+        if (s != null) {
+          s.disconnectLogger();
+        }
+        s=null;
+      }
+ else {
+        s.setPreprocessed();
+      }
+    }
+ else {
+      s=null;
+    }
+  }
+  return s;
+}

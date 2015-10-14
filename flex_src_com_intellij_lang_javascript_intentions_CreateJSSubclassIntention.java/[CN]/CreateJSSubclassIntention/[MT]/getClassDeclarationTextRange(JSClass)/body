@@ -1,0 +1,32 @@
+{
+  int start=jsClass.getTextRange().getStartOffset();
+  final JSAttributeList attributeList=jsClass.getAttributeList();
+  if (attributeList != null) {
+    final PsiElement accessTypeElement=attributeList.findAccessTypeElement();
+    if (accessTypeElement != null) {
+      start=accessTypeElement.getTextRange().getStartOffset();
+    }
+ else {
+      final ASTNode node=jsClass.getNode();
+      final ASTNode classKeyWordNode=node == null ? null : node.findChildByType(JSTokenTypes.CLASS_KEYWORD);
+      if (classKeyWordNode != null) {
+        start=classKeyWordNode.getTextRange().getStartOffset();
+      }
+    }
+  }
+  int end=start;
+  JSReferenceList jsReferenceList=jsClass.getImplementsList();
+  if (jsReferenceList == null) {
+    jsReferenceList=jsClass.getExtendsList();
+  }
+  if (jsReferenceList != null) {
+    end=jsReferenceList.getTextRange().getEndOffset();
+  }
+ else {
+    final PsiElement nameIdentifier=jsClass.getNameIdentifier();
+    if (nameIdentifier != null) {
+      end=nameIdentifier.getTextRange().getEndOffset();
+    }
+  }
+  return new TextRange(start,end);
+}

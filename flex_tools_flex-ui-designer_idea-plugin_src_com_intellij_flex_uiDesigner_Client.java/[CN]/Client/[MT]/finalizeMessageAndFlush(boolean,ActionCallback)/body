@@ -1,0 +1,27 @@
+{
+  if (hasError) {
+    try {
+      blockOut.rollback();
+    }
+  finally {
+      outLock.unlock();
+      if (callback != null) {
+        callback.setRejected();
+      }
+    }
+  }
+ else {
+    try {
+      out.flush();
+    }
+ catch (    IOException e) {
+      if (callback != null) {
+        callback.setRejected();
+      }
+      LogMessageUtil.processInternalError(e);
+    }
+ finally {
+      outLock.unlock();
+    }
+  }
+}

@@ -7,8 +7,12 @@
   final VirtualFile file;
 switch (info.type) {
 case FILE:
-    file=LocalFileSystem.getInstance().findFileByPath(URLUtil.unescapePercentSequences(info.path));
-  break;
+    String path=URLUtil.unescapePercentSequences(info.path);
+  if (SystemInfo.isWindows) {
+    path=StringUtil.trimLeading(path,'/');
+  }
+file=LocalFileSystem.getInstance().findFileByPath(path);
+break;
 case DART:
 file=DartUrlResolver.findFileInDartSdkLibFolder(myProject,mySdk,DART_PREFIX + info.path);
 break;
@@ -24,7 +28,7 @@ VirtualFile inPackage=null;
 for (VirtualFile yamlFile : myAllPubspecYamlFiles) {
 inPackage=DartUrlResolver.getInstance(myProject,yamlFile).findFileByDartUrl(PACKAGE_PREFIX + info.path);
 if (inPackage != null) {
-  break;
+break;
 }
 }
 file=inPackage;

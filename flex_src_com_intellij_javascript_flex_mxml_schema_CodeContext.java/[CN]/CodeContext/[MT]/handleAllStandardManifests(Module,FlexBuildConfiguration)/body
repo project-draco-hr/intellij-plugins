@@ -1,0 +1,15 @@
+{
+  final Sdk sdk=bc.getSdk();
+  final String homePath=sdk == null ? null : sdk.getHomePath();
+  final VirtualFile sdkHome=homePath == null ? null : LocalFileSystem.getInstance().findFileByPath(homePath);
+  if (sdkHome == null || sdk.getSdkType() == FlexmojosSdkType.getInstance())   return;
+  FlexSdkUtils.processStandardNamespaces(bc,new PairConsumer<String,String>(){
+    public void consume(    final String namespace,    final String relativePath){
+      final VirtualFile manifestFile=VfsUtil.findRelativeFile(relativePath,sdkHome);
+      if (manifestFile != null) {
+        handleStandardManifest(module,namespace,manifestFile,sdkHome);
+      }
+    }
+  }
+);
+}

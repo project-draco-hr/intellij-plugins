@@ -1,0 +1,44 @@
+{
+  MojoExecution flexmojosMojoExecution=null;
+  MojoExecution flexmojosGeneratorMojoExecution=null;
+  for (  Plugin plugin : project.getBuildPlugins()) {
+    if (plugin.getGroupId().equals("org.sonatype.flexmojos")) {
+      if (flexmojosMojoExecution == null && plugin.getArtifactId().equals("flexmojos-maven-plugin")) {
+        flexmojosMojoExecution=createMojoExecution(plugin,getCompileGoalName(project),project);
+      }
+ else       if (flexmojosGeneratorMojoExecution == null && plugin.getArtifactId().equals("flexmojos-generator-mojo")) {
+        flexmojosGeneratorMojoExecution=createMojoExecution(plugin,"generate",project);
+      }
+      if (flexmojosMojoExecution != null && flexmojosGeneratorMojoExecution != null) {
+        break;
+      }
+    }
+  }
+  if (flexmojosMojoExecution == null) {
+    return;
+  }
+  ClassRealm flexmojosPluginRealm=pluginManager.getPluginRealm(session,flexmojosMojoExecution.getMojoDescriptor().getPluginDescriptor());
+  final ClassLoader classLoader=getClass().getClassLoader();
+  flexmojosPluginRealm.addURL(new URL(session.getLocalRepository().getUrl() + "com/intellij/flex/maven/idea-configurator/1.5.4/idea-configurator-1.5.4.jar"));
+  flexmojosPluginRealm.importFrom(classLoader,"com.intellij.flex.maven.FlexConfigGenerator");
+  flexmojosPluginRealm.importFrom(classLoader,"com.intellij.flex.maven.Utils");
+  Mojo mojo=null;
+  try {
+    mojo=mavenPluginManager.getConfiguredMojo(Mojo.class,session,flexmojosMojoExecution);
+    for (    String configuratorClassName : configurators) {
+      Class configuratorClass=flexmojosPluginRealm.loadClass(configuratorClassName);
+      FlexConfigGenerator configurator=(FlexConfigGenerator)configuratorClass.getConstructor(MavenSession.class,File.class).newInstance(session,null);
+      configurator.preGenerate(project,Flexmojos.getClassifier(mojo));
+      if ("swc".equals(project.getPackaging())) {
+        configurator.generate(mojo);
+      }
+ else {
+        configurator.generate(mojo,Flexmojos.getSourceFileForSwf(mojo));
+      }
+      configurator.postGenerate(project);
+    }
+  }
+  finally {
+    mavenPluginManager.releaseMojo(mojo,mojoExecution);
+  }
+}

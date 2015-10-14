@@ -1,0 +1,46 @@
+{
+  if (DumbService.isDumb(element.getProject())) {
+    return null;
+  }
+  JSQualifiedNamedElement mainElement=JSUtils.getMemberContainingClass(element);
+  if (mainElement == null) {
+    mainElement=element;
+  }
+  final String qName=mainElement.getQualifiedName();
+  if (qName == null) {
+    return null;
+  }
+  VirtualFile elementVFile=mainElement.getContainingFile().getVirtualFile();
+  if (elementVFile == null) {
+    return null;
+  }
+  ProjectFileIndex projectFileIndex=ProjectRootManager.getInstance(mainElement.getProject()).getFileIndex();
+  GlobalSearchScope searchScope=JSResolveUtil.getResolveScope(mainElement);
+  Collection<JSQualifiedNamedElement> candidates=StubIndex.getElements(JSQualifiedElementIndex.KEY,qName.hashCode(),mainElement.getProject(),searchScope,JSQualifiedNamedElement.class);
+  List<OrderEntry> sourceFileEntries=projectFileIndex.getOrderEntriesForFile(elementVFile);
+  for (  JSQualifiedNamedElement candidate : candidates) {
+    if (candidate == mainElement || !qName.equals(candidate.getQualifiedName())) {
+      continue;
+    }
+    VirtualFile vFile=candidate.getContainingFile().getVirtualFile();
+    if (vFile != null && projectFileIndex.getClassRootForFile(vFile) != null) {
+      List<OrderEntry> candidateEntries=projectFileIndex.getOrderEntriesForFile(vFile);
+      if (ContainerUtil.intersects(sourceFileEntries,candidateEntries)) {
+        if (element == mainElement) {
+          return candidate;
+        }
+ else {
+          LOG.assertTrue(candidate instanceof JSClass,candidate);
+          if (element instanceof JSVariable) {
+            return ((JSClass)candidate).findFieldByName(element.getName());
+          }
+ else {
+            LOG.assertTrue(element instanceof JSFunction,element);
+            return ((JSClass)candidate).findFunctionByNameAndKind(element.getName(),((JSFunction)element).getKind());
+          }
+        }
+      }
+    }
+  }
+  return null;
+}

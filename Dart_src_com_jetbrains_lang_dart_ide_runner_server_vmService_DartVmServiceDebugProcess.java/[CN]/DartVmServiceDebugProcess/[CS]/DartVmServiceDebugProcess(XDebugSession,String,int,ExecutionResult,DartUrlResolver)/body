@@ -1,0 +1,21 @@
+{
+  super(session);
+  myExecutionResult=executionResult;
+  myDartUrlResolver=dartUrlResolver;
+  myObservatoryPort=observatoryPort;
+  myIsolatesInfo=new IsolatesInfo();
+  final DartVmServiceBreakpointHandler breakpointHandler=new DartVmServiceBreakpointHandler(this);
+  myBreakpointHandlers=new XBreakpointHandler[]{breakpointHandler};
+  setLogger();
+  session.addSessionListener(new XDebugSessionAdapter(){
+    @Override public void sessionPaused(){
+      stackFrameChanged();
+    }
+    @Override public void stackFrameChanged(){
+      final XStackFrame stackFrame=getSession().getCurrentStackFrame();
+      myLatestCurrentIsolateId=stackFrame instanceof DartVmServiceStackFrame ? ((DartVmServiceStackFrame)stackFrame).getIsolateId() : null;
+    }
+  }
+);
+  scheduleConnect();
+}

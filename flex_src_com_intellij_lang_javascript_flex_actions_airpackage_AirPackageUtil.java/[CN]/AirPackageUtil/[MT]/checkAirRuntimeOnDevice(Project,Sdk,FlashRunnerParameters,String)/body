@@ -1,0 +1,24 @@
+{
+  if (StringUtil.compareVersionNumbers(adtVersion,"3.7") >= 0) {
+    return true;
+  }
+  try {
+    final String airRuntimeVersion=getAirRuntimeVersionOnDevice(project,sdk,runnerParameters);
+    final String adtVersionTruncated=truncateVersionString(adtVersion);
+    final String airRuntimeVersionTruncated=truncateVersionString(airRuntimeVersion);
+    if (airRuntimeVersion.isEmpty() || StringUtil.compareVersionNumbers(adtVersionTruncated,airRuntimeVersionTruncated) > 0) {
+      final String message=airRuntimeVersion.isEmpty() ? FlexBundle.message("air.runtime.not.installed",sdk.getName(),adtVersionTruncated) : FlexBundle.message("update.air.runtime.question",airRuntimeVersionTruncated,sdk.getName(),adtVersionTruncated);
+      final int answer=Messages.showYesNoDialog(project,message,FlexBundle.message("air.runtime.version.title"),Messages.getQuestionIcon());
+      if (answer == -1) {
+        return false;
+      }
+      if (answer == Messages.YES) {
+        installAirRuntimeOnDevice(project,sdk,runnerParameters.getDeviceInfo(),adtVersionTruncated,!airRuntimeVersion.isEmpty());
+      }
+    }
+    return true;
+  }
+ catch (  AdtException ignore) {
+    return false;
+  }
+}

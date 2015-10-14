@@ -1,0 +1,25 @@
+{
+  for (  Traits t : scripts) {
+    processor.dumpTopLevelTraits(this,t,indent);
+  }
+  for (  MethodInfo m : methods) {
+    if (m.anon) {
+      processor.dumpToplevelAnonymousMethod(this,m);
+    }
+  }
+  processor.dumpStat("OPCODE\tSIZE\t% OF " + totalSize + "\n");
+  final Set<Integer> done=new HashSet<Integer>();
+  while (true) {
+    int max=-1;
+    int maxsize=0;
+    for (int i=0; i < 256; i++) {
+      if (opSizes[i] > maxsize && !done.contains(i)) {
+        max=i;
+        maxsize=opSizes[i];
+      }
+    }
+    if (max == -1)     break;
+    done.add(max);
+    processor.dumpStat(opNames[max] + "\t" + opSizes[max]+ "\t"+ (int)(100f * opSizes[max] / totalSize)+ "%\n");
+  }
+}

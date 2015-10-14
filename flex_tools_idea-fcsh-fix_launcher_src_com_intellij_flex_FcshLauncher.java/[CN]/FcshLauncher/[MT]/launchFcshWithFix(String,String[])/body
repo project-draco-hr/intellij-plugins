@@ -1,0 +1,29 @@
+{
+  final Class entryPointClass=getEntryPointClass(flexSdkVersion);
+  if (entryPointClass == null) {
+    launchFcshWithoutFix(args);
+  }
+ else {
+    try {
+      final Method main=entryPointClass.getMethod("main",args.getClass());
+      try {
+        main.invoke(null,new Object[]{args});
+      }
+ catch (      InvocationTargetException e) {
+        if (e.getCause() instanceof VirtualMachineError) {
+          throw (VirtualMachineError)e.getCause();
+        }
+ else {
+          throw e;
+        }
+      }
+    }
+ catch (    VirtualMachineError e) {
+      throw e;
+    }
+catch (    Throwable t) {
+      System.out.println("(fcsh) need to repeat command");
+      launchFcshWithoutFix(args);
+    }
+  }
+}

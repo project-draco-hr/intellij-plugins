@@ -1,0 +1,15 @@
+{
+  final XmlAttribute typeAttribute=tag.getAttribute("type");
+  final String type;
+  if (typeAttribute == null || StringUtil.isEmpty((type=typeAttribute.getDisplayValue()))) {
+    LOG.warn("Skip " + tag + ", attribute type must be specified");
+    return false;
+  }
+  final XmlAttribute fixedAttribute=tag.getAttribute("fixed");
+  out.write(AmfExtendedTypes.MXML_VECTOR);
+  writer.classOrPropertyName(type);
+  String displayValue=fixedAttribute == null ? null : StringUtil.nullize(fixedAttribute.getDisplayValue());
+  out.write(displayValue != null && displayValue.charAt(0) == 't');
+  processTagChildren(tag,processIdAttributeOfFxTag(tag,parentContext,allowIncludeInExcludeFrom),parentContext,false,PropertyKind.VECTOR);
+  return true;
+}

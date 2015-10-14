@@ -1,0 +1,30 @@
+{
+  this.indicator=indicator;
+  try {
+    Throwable error=null;
+    beforeRun();
+    boolean result=false;
+    try {
+      result=doRun(indicator);
+    }
+ catch (    ProcessCanceledException ignored) {
+    }
+catch (    Throwable e) {
+      error=e;
+    }
+    if (!result || indicator.isCanceled()) {
+      problemsHolder.disableLog();
+      processErrorOrCancel();
+    }
+    if (error != null) {
+      try {
+        LOG.error(error);
+      }
+ catch (      AssertionError ignored) {
+      }
+    }
+  }
+  finally {
+    Disposer.dispose(postTask);
+  }
+}

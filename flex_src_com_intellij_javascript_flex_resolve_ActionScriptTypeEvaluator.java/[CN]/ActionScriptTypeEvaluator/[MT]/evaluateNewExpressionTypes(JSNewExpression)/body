@@ -1,0 +1,29 @@
+{
+  JSExpression methodExpr=newExpression.getMethodExpression();
+  if (methodExpr != null) {
+    if (methodExpr instanceof JSArrayLiteralExpression) {
+      JSTypeSource source=JSTypeSourceFactory.createTypeSource(methodExpr);
+      JSType type=JSNamedType.createType(VECTOR_CLASS_NAME,source,JSContext.INSTANCE);
+      PsiElement arrayInitializingType=newExpression.getArrayInitializingType();
+      if (arrayInitializingType != null) {
+        JSType argType=JSTypeUtils.createType(JSImportHandlingUtil.resolveTypeName(arrayInitializingType.getText(),newExpression),source);
+        type=new JSGenericTypeImpl(source,type,argType);
+      }
+      addType(type,methodExpr);
+    }
+ else {
+      JSType type=JSAnyType.get(methodExpr,false);
+      if (methodExpr instanceof JSReferenceExpression) {
+        PsiElement resolve=((JSReferenceExpression)methodExpr).resolve();
+        if (resolve instanceof JSFunction && ((JSFunction)resolve).isConstructor() && resolve.getParent() instanceof JSClass) {
+          resolve=resolve.getParent();
+        }
+        if (resolve instanceof JSClass || resolve == null) {
+          JSType typeFromText=JSTypeUtils.createType(methodExpr.getText(),JSTypeSourceFactory.createTypeSource(methodExpr,false));
+          if (typeFromText != null)           type=typeFromText;
+        }
+      }
+      addType(type,methodExpr);
+    }
+  }
+}

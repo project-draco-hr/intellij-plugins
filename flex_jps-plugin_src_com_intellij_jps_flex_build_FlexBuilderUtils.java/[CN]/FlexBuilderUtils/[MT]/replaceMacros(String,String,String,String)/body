@@ -1,0 +1,42 @@
+{
+  final Map<String,String> replacementMap=new THashMap<String,String>();
+  replacementMap.put(FlexCommonUtils.SWF_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.TITLE_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.APPLICATION_MACRO,outputFileName);
+  replacementMap.put(FlexCommonUtils.BG_COLOR_MACRO,"#ffffff");
+  replacementMap.put(FlexCommonUtils.WIDTH_MACRO,"100%");
+  replacementMap.put(FlexCommonUtils.HEIGHT_MACRO,"100%");
+  final List<String> versionParts=StringUtil.split(targetPlayer,".");
+  replacementMap.put(FlexCommonUtils.VERSION_MAJOR_MACRO,versionParts.size() >= 1 ? versionParts.get(0) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_MINOR_MACRO,versionParts.size() >= 2 ? versionParts.get(1) : "0");
+  replacementMap.put(FlexCommonUtils.VERSION_REVISION_MACRO,versionParts.size() >= 3 ? versionParts.get(2) : "0");
+  String swfMetadata=null;
+  final File mainClassFile=new File(mainClassPath);
+  if (mainClassFile.isFile()) {
+    try {
+      if (FileUtilRt.extensionEquals(mainClassPath,"mxml")) {
+        final Element rootElement=JDOMUtil.load(mainClassFile);
+        Element metadataElement=rootElement.getChild("Metadata",Namespace.getNamespace("http://www.adobe.com/2006/mxml"));
+        if (metadataElement == null) {
+          metadataElement=rootElement.getChild("Metadata",Namespace.getNamespace("http://ns.adobe.com/mxml/2009"));
+        }
+        if (metadataElement != null) {
+          swfMetadata=getSwfMetadata(metadataElement.getTextNormalize());
+        }
+      }
+ else       if (FileUtilRt.extensionEquals(mainClassPath,"as")) {
+        swfMetadata=getSwfMetadata(FileUtil.loadFile(mainClassFile));
+      }
+    }
+ catch (    JDOMException ignore) {
+    }
+catch (    IOException ignore) {
+    }
+  }
+  final Map<String,String> attributesMap=getAttributesMap(swfMetadata);
+  ContainerUtil.putIfNotNull(FlexCommonUtils.TITLE_MACRO,attributesMap.get(FlexCommonUtils.TITLE_ATTR),replacementMap);
+  ContainerUtil.putIfNotNull(FlexCommonUtils.BG_COLOR_MACRO,attributesMap.get(FlexCommonUtils.BG_COLOR_ATTR),replacementMap);
+  ContainerUtil.putIfNotNull(FlexCommonUtils.WIDTH_MACRO,attributesMap.get(FlexCommonUtils.WIDTH_ATTR),replacementMap);
+  ContainerUtil.putIfNotNull(FlexCommonUtils.HEIGHT_MACRO,attributesMap.get(FlexCommonUtils.HEIGHT_ATTR),replacementMap);
+  return FlexCommonUtils.replace(wrapperText,replacementMap);
+}

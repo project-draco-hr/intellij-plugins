@@ -1,0 +1,15 @@
+{
+  LocalizationManager l10n=ThreadLocalToolkit.getLocalizationManager();
+  PersistenceStore store=new PersistenceStore(configuration,f,fontManager);
+  int count=-1;
+  try {
+    if ((count=store.read(fileSpec,sourceList,sourcePath,resources,bundlePath,sources,units,checksums,swcDefSignatureChecksums,swcFileChecksums,archiveFiles)) < 0) {
+      throw new IOException(l10n.getLocalizedTextString(new FailedToMatchCacheFile(cacheName)));
+    }
+  }
+  finally {
+    if (count >= 0 && ThreadLocalToolkit.getBenchmark() != null) {
+      ThreadLocalToolkit.getBenchmark().benchmark(l10n.getLocalizedTextString(new LoadingCompilationUnits(count)));
+    }
+  }
+}

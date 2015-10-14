@@ -1,0 +1,29 @@
+{
+  if (DesignerApplicationManager.getInstance().isApplicationClosed()) {
+    changeServicesImplementation();
+    new DesignerApplicationLauncher(myModule,new DesignerApplicationLauncher.PostTask(){
+      @Override public boolean run(      Module module,      ProjectComponentReferenceCounter projectComponentReferenceCounter,      ProgressIndicator indicator,      ProblemsHolder problemsHolder){
+        assertTrue(DocumentProblemManager.getInstance().toString(problemsHolder.getProblems()),problemsHolder.isEmpty());
+        client=(TestClient)Client.getInstance();
+        client.flush();
+        try {
+          assertAfterInitLibrarySets(projectComponentReferenceCounter.unregistered);
+        }
+ catch (        IOException e) {
+          throw new AssertionError(e);
+        }
+        return true;
+      }
+    }
+).run(new EmptyProgressIndicator());
+  }
+ else {
+    client=(TestClient)Client.getInstance();
+    ProblemsHolder problemsHolder=new ProblemsHolder();
+    ProjectComponentReferenceCounter projectComponentReferenceCounter=LibraryManager.getInstance().registerModule(myModule,problemsHolder,isRequireLocalStyleHolder());
+    assertTrue(problemsHolder.isEmpty());
+    assertAfterInitLibrarySets(projectComponentReferenceCounter.unregistered);
+  }
+  socketInputHandler=(TestSocketInputHandler)SocketInputHandler.getInstance();
+  applicationLaunchedAndInitialized();
+}

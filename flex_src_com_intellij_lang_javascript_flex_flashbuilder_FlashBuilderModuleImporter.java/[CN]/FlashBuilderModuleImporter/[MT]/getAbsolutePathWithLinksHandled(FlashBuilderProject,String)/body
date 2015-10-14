@@ -1,0 +1,34 @@
+{
+  if (!myPathVariablesInitialized) {
+    initPathVariables();
+    myPathVariablesInitialized=true;
+  }
+  final int slashIndex=path.indexOf('/');
+  final String potentialLink=slashIndex >= 0 ? path.substring(0,slashIndex) : path;
+  if (potentialLink.startsWith("${") && potentialLink.endsWith("}")) {
+    final String pathVarName=potentialLink.substring(2,potentialLink.length() - 1);
+    final PathMacros pathMacros=PathMacros.getInstance();
+    final String pathValue=pathMacros.getValue(pathVarName);
+    if (pathValue != null) {
+      return pathValue + (slashIndex >= 0 ? path.substring(slashIndex) : "");
+    }
+ else {
+      return "$" + pathVarName + "$"+ (slashIndex >= 0 ? path.substring(slashIndex) : "");
+    }
+  }
+ else {
+    final Map<String,String> linkedResources=project.getLinkedResources();
+    if (!linkedResources.isEmpty()) {
+      final String linkValue=linkedResources.get(potentialLink);
+      if (linkValue != null) {
+        final PathMacros pathMacros=PathMacros.getInstance();
+        if (pathMacros.getValue(potentialLink) == null) {
+          pathMacros.setMacro(potentialLink,linkValue);
+        }
+        return linkValue + (slashIndex >= 0 ? path.substring(slashIndex) : "");
+      }
+    }
+  }
+  final boolean absolute=FileUtil.isAbsolute(path) && (SystemInfo.isWindows || new File(path).exists());
+  return absolute ? path : project.getProjectRootPath() + (slashIndex == 0 ? "" : "/") + path;
+}

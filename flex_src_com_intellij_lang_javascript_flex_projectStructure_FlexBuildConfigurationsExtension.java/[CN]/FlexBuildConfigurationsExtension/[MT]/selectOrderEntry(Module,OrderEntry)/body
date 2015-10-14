@@ -1,0 +1,26 @@
+{
+  if (ModuleType.get(module) != FlexModuleType.getInstance()) {
+    return null;
+  }
+  if (entry instanceof LibraryOrderEntry) {
+    final Library library=((LibraryOrderEntry)entry).getLibrary();
+    if (library != null && library.getTable() == null && ((LibraryEx)library).getKind() == FlexLibraryType.FLEX_LIBRARY) {
+      final String libraryId=FlexProjectRootsUtil.getLibraryId(library);
+      final List<CompositeConfigurable> configurables=myConfigurator.getBCConfigurables(module);
+      for (      CompositeConfigurable configurable : configurables) {
+        final FlexBCConfigurable bcConfigurable=FlexBCConfigurable.unwrap(configurable);
+        final Dependencies dependencies=bcConfigurable.getDependenciesConfigurable().getEditableObject();
+        for (        DependencyEntry e : dependencies.getEntries()) {
+          if (!(e instanceof ModuleLibraryEntry) || !((ModuleLibraryEntry)e).getLibraryId().equals(libraryId)) {
+            continue;
+          }
+          final Place p=FlexProjectStructureUtil.createPlace(bcConfigurable,DependenciesConfigurable.TAB_NAME);
+          final DependenciesConfigurable.Location.TableEntry tableEntry=DependenciesConfigurable.Location.TableEntry.forModuleLibrary(libraryId);
+          p.putPath(FlexBCConfigurable.LOCATION_ON_TAB,tableEntry);
+          return ProjectStructureConfigurable.getInstance(module.getProject()).navigateTo(p,true);
+        }
+      }
+    }
+  }
+  return ProjectStructureConfigurable.getInstance(module.getProject()).select(module.getName(),null,true);
+}

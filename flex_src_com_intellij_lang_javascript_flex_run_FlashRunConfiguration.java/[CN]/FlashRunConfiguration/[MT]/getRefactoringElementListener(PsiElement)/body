@@ -1,0 +1,21 @@
+{
+  if (!myRunnerParameters.isOverrideMainClass()) {
+    return null;
+  }
+  final Module module=ModuleManager.getInstance(getProject()).findModuleByName(myRunnerParameters.getModuleName());
+  if (!(element instanceof PsiDirectoryContainer) && !(element instanceof JSPackage) && !(element instanceof JSPackageStatement)&& (module == null || !module.equals(ModuleUtilCore.findModuleForPsiElement(element)))) {
+    return null;
+  }
+  final String currentPackage=StringUtil.getPackageName(myRunnerParameters.getOverriddenMainClass());
+  if ((element instanceof PsiDirectoryContainer || element instanceof JSPackage || element instanceof JSPackageStatement) && Comparing.strEqual(FlexRefactoringListenerProvider.getPackageName(element),currentPackage)) {
+    return new FlexRunConfigRefactoringListener.PackageRefactoringListener(this);
+  }
+  if (element instanceof PsiDirectory && containsClass(module,((PsiDirectory)element),myRunnerParameters.getOverriddenMainClass())) {
+    return new FlexRunConfigRefactoringListener.PsiDirectoryRefactoringListener(this);
+  }
+  final JSClass jsClass=FlexRefactoringListenerProvider.getJSClass(element);
+  if (jsClass != null && Comparing.strEqual(jsClass.getQualifiedName(),myRunnerParameters.getOverriddenMainClass())) {
+    return new FlexRunConfigRefactoringListener.JSClassRefactoringListener(this);
+  }
+  return null;
+}

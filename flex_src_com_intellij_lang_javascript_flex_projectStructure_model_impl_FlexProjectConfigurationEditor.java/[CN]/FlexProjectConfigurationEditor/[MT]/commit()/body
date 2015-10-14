@@ -1,0 +1,130 @@
+{
+  final Map<Pair<String,String>,String> renamedConfigs=new HashMap<Pair<String,String>,String>();
+  for (  Module module : myModule2Editors.keySet()) {
+    ModifiableRootModel modifiableModel=myProvider.getModuleModifiableModel(module);
+    Collection<String> usedModulesLibrariesIds=new ArrayList<String>();
+    Map<Library,Boolean> librariesToAdd=new LinkedHashMap<Library,Boolean>();
+    final Collection<String> sdkNames=new HashSet<String>();
+    for (    Editor editor : myModule2Editors.get(module)) {
+      final SdkEntry sdkEntry=editor.getDependencies().getSdkEntry();
+      if (sdkEntry != null) {
+        sdkNames.add(sdkEntry.getName());
+      }
+      for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
+        if (dependencyEntry instanceof ModuleLibraryEntry) {
+          ModuleLibraryEntry moduleLibraryEntry=(ModuleLibraryEntry)dependencyEntry;
+          usedModulesLibrariesIds.add(moduleLibraryEntry.getLibraryId());
+        }
+        if (dependencyEntry instanceof SharedLibraryEntry) {
+          SharedLibraryEntry sharedLibraryEntry=(SharedLibraryEntry)dependencyEntry;
+          Library library=myProvider.findSourceLibraryForLiveName(sharedLibraryEntry.getLibraryName(),sharedLibraryEntry.getLibraryLevel());
+          if (library != null) {
+            librariesToAdd.put(library,true);
+          }
+        }
+      }
+      String originalName=editor.getOriginalName();
+      if (originalName != null && !originalName.equals(editor.getName())) {
+        renamedConfigs.put(Pair.create(module.getName(),originalName),editor.getName());
+      }
+    }
+    final Sdk sdk;
+    if (sdkNames.isEmpty()) {
+      sdk=null;
+    }
+ else     if (sdkNames.size() == 1) {
+      sdk=FlexSdkUtils.findFlexOrFlexmojosSdk(sdkNames.iterator().next());
+    }
+ else {
+      sdk=new FlexCompositeSdk(ArrayUtil.toStringArray(sdkNames));
+    }
+    modifiableModel.setSdk(sdk);
+    Collection<OrderEntry> entriesToRemove=new ArrayList<OrderEntry>();
+    for (    OrderEntry orderEntry : modifiableModel.getOrderEntries()) {
+      if (orderEntry instanceof LibraryOrderEntry) {
+        if (((LibraryOrderEntry)orderEntry).isModuleLevel()) {
+          LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+          if (FlexProjectRootsUtil.isFlexLibrary(library) && !usedModulesLibrariesIds.contains(FlexProjectRootsUtil.getLibraryId(library))) {
+            entriesToRemove.add(orderEntry);
+          }
+        }
+ else {
+          LibraryEx library=(LibraryEx)((LibraryOrderEntry)orderEntry).getLibrary();
+          if (librariesToAdd.containsKey(library)) {
+            librariesToAdd.put(library,false);
+          }
+ else           if (library != null && FlexProjectRootsUtil.isFlexLibrary(library)) {
+            entriesToRemove.add(orderEntry);
+          }
+        }
+      }
+    }
+    for (    OrderEntry e : entriesToRemove) {
+      modifiableModel.removeOrderEntry(e);
+    }
+    for (    Library library : librariesToAdd.keySet()) {
+      if (!((LibraryEx)library).isDisposed() && librariesToAdd.get(library) && myProvider.findSourceLibrary(library.getName(),library.getTable().getTableLevel()) != null) {
+        modifiableModel.addLibraryEntry(library);
+      }
+    }
+    final Set<Module> modulesToAdd=new THashSet<Module>();
+    for (    Editor editor : myModule2Editors.get(module)) {
+      for (      DependencyEntry dependencyEntry : editor.getDependencies().getEntries()) {
+        if (dependencyEntry instanceof BuildConfigurationEntry) {
+          final Module dependencyModule=findModuleWithBC((BuildConfigurationEntry)dependencyEntry);
+          if (dependencyModule != null && dependencyModule != module) {
+            modulesToAdd.add(dependencyModule);
+          }
+        }
+      }
+    }
+    List<OrderEntry> moduleOrderEntriesToRemove=ContainerUtil.filter(modifiableModel.getOrderEntries(),new Condition<OrderEntry>(){
+      @Override public boolean value(      OrderEntry orderEntry){
+        return orderEntry instanceof ModuleOrderEntry && !modulesToAdd.remove(((ModuleOrderEntry)orderEntry).getModule());
+      }
+    }
+);
+    for (    OrderEntry orderEntry : moduleOrderEntriesToRemove) {
+      modifiableModel.removeOrderEntry(orderEntry);
+    }
+    for (    Module moduleToAdd : modulesToAdd) {
+      modifiableModel.addModuleOrderEntry(moduleToAdd);
+    }
+    for (    OrderEntry entry : modifiableModel.getOrderEntries()) {
+      if (entry instanceof ExportableOrderEntry) {
+        ((ExportableOrderEntry)entry).setExported(true);
+      }
+    }
+  }
+  Collection<Module> modulesWithChangedModifiableModel=ContainerUtil.findAll(myModule2Editors.keySet(),new Condition<Module>(){
+    @Override public boolean value(    Module module){
+      return myProvider.getModuleModifiableModel(module).isChanged();
+    }
+  }
+);
+  if (!modulesWithChangedModifiableModel.isEmpty()) {
+    myProvider.commitModifiableModels();
+    myModulesModelChangeEventDispatcher.getMulticaster().modulesModelsChanged(modulesWithChangedModifiableModel);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    public void run(){
+      for (      Module module : myModule2Editors.keySet()) {
+        Function<Editor,FlexBuildConfigurationImpl> f=new Function<Editor,FlexBuildConfigurationImpl>(){
+          @Override public FlexBuildConfigurationImpl fun(          Editor editor){
+            return editor.commit();
+          }
+        }
+;
+        FlexBuildConfigurationImpl[] current=ContainerUtil.map2Array(myModule2Editors.get(module),FlexBuildConfigurationImpl.class,f);
+        ((FlexBuildConfigurationManagerImpl)FlexBuildConfigurationManager.getInstance(module)).setBuildConfigurations(current);
+      }
+      if (myProject != null) {
+        FlexBuildConfigurationManagerImpl.resetHighlighting(myProject);
+        if (!renamedConfigs.isEmpty()) {
+          myProject.getMessageBus().syncPublisher(FlexBuildConfigurationChangeListener.TOPIC).buildConfigurationsRenamed(renamedConfigs);
+        }
+      }
+    }
+  }
+);
+}

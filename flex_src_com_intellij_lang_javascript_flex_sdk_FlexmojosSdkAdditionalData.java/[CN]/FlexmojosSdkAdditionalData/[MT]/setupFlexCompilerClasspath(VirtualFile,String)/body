@@ -1,0 +1,19 @@
+{
+  myFlexCompilerClasspath.clear();
+  try {
+    final Element rootElement=JDOMUtil.load(compilerPomFile.getInputStream());
+    if (!rootElement.getName().equals("project"))     return;
+    for (    final Object dependenciesElement : rootElement.getChildren("dependencies",rootElement.getNamespace())) {
+      for (      final Object dependencyElement : ((Element)dependenciesElement).getChildren("dependency",rootElement.getNamespace())) {
+        final String groupId=((Element)dependencyElement).getChildText("groupId",rootElement.getNamespace());
+        final String artifactId=((Element)dependencyElement).getChildText("artifactId",rootElement.getNamespace());
+        final String version=((Element)dependencyElement).getChildText("version",rootElement.getNamespace());
+        addClasspathEntry(repositoryRootPath,groupId,artifactId,version);
+      }
+    }
+  }
+ catch (  IOException ignored) {
+  }
+catch (  JDOMException ignored) {
+  }
+}

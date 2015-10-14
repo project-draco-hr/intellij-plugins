@@ -1,0 +1,15 @@
+{
+  prepareSdkTest();
+  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_FLEX_PROPERTIES,"",myFlashBuilderProjectDir);
+  importProject("<actionScriptProperties>\n" + "  <compiler useApolloConfig='true'>\n" + "    <libraryPath>\n"+ "      <libraryPathEntry kind='4' path='does not matter'/>\n"+ "    </libraryPath>"+ "  </compiler>\n"+ "  <buildTargets>\n"+ "    <buildTarget buildTargetName=\"com.adobe.flexide.multiplatform.android.platform\">\n"+ "      <multiPlatformSettings enabled=\"false\"/>"+ "    </buildTarget>\n"+ "    <buildTarget buildTargetName=\"com.adobe.flexide.multiplatform.ios.platform\">\n"+ "      <multiPlatformSettings enabled=\"true\"/>"+ "    </buildTarget>\n"+ "  </buildTargets>\n"+ "</actionScriptProperties>",myFlashBuilderProjectDir.getPath() + "/Flash_Builder_workspace");
+  final FlexBuildConfiguration bc=getBC();
+  assertEquals(TargetPlatform.Mobile,bc.getTargetPlatform());
+  assertFalse(bc.isPureAs());
+  assertEquals(OutputType.Application,bc.getOutputType());
+  assertFalse(bc.getAndroidPackagingOptions().isEnabled());
+  assertTrue(bc.getIosPackagingOptions().isEnabled());
+  final Sdk flexSdk=bc.getSdk();
+  assertNotNull(flexSdk);
+  assertInstanceOf(flexSdk.getSdkType(),FlexSdkType2.class);
+  assertEquals(myFlashBuilderProjectDir.getPath() + "/default_sdk",flexSdk.getHomePath());
+}

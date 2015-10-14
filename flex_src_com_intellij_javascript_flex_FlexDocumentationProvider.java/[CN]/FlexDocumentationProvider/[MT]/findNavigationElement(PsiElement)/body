@@ -1,0 +1,36 @@
+{
+  JSQualifiedNamedElement parentQualifiedElement=findParentQualifiedElement(element);
+  if (parentQualifiedElement == null) {
+    return null;
+  }
+  PsiElement navElement=findTopLevelNavigationElement(parentQualifiedElement);
+  if (element instanceof JSClass) {
+    return navElement;
+  }
+  if (element instanceof JSFunction && JSResolveUtil.findParent(element) instanceof JSClass && navElement instanceof JSClass) {
+    return ((JSClass)navElement).findFunctionByNameAndKind(((JSFunction)element).getName(),((JSFunction)element).getKind());
+  }
+  if (element instanceof JSVariable && JSResolveUtil.findParent(element) instanceof JSClass && navElement instanceof JSClass) {
+    return ((JSClass)navElement).findFieldByName(((JSVariable)element).getName());
+  }
+  JSAttribute attribute=null;
+  if (element instanceof JSAttributeNameValuePair) {
+    attribute=(JSAttribute)element.getParent();
+  }
+  if (element instanceof JSAttribute) {
+    attribute=(JSAttribute)element;
+  }
+  if (attribute != null && navElement instanceof JSClass) {
+    final String type=attribute.getName();
+    if (DOCUMENTED_ATTRIBUTES.containsKey(type)) {
+      JSAttributeNameValuePair namePair=attribute.getValueByName("name");
+      if (namePair != null) {
+        return findNamedAttribute((JSClass)navElement,type,namePair.getSimpleValue());
+      }
+    }
+  }
+  if (element.getClass() == navElement.getClass()) {
+    return navElement;
+  }
+  return null;
+}

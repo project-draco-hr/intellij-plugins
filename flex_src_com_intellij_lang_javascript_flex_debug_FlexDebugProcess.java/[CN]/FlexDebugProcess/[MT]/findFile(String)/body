@@ -1,0 +1,20 @@
+{
+  final GlobalSearchScope bcScope=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,myBC,isFlexUnit());
+  Collection<VirtualFile> files=getFilesByName(getSession().getProject(),bcScope,fileName);
+  if (files.isEmpty()) {
+    files=getFilesByName(getSession().getProject(),GlobalSearchScope.allScope(getSession().getProject()),fileName);
+  }
+  if (!files.isEmpty()) {
+    return files.iterator().next();
+  }
+  final Collection<String> paths=myKnownFilesInfo.getPathsByName(myCurrentWorker,fileName);
+  if (paths != null) {
+    for (    final String path : paths) {
+      final VirtualFile file=LocalFileFinder.findFile(path);
+      if (file != null) {
+        return file;
+      }
+    }
+  }
+  return null;
+}

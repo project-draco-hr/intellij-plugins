@@ -1,0 +1,17 @@
+{
+  doTestFor(true,null,new Runnable(){
+    @Override public void run(){
+      HighlightUsagesHandlerBase<PsiElement> handler=HighlightUsagesHandler.createCustomHandler(myEditor,myFile);
+      assertNotNull(handler);
+      List<PsiElement> targets=handler.getTargets();
+      assertEquals(1,targets.size());
+      assertTrue(targets.get(0).getText().indexOf("class Foo") != -1);
+      handler.computeUsages(targets);
+      List<TextRange> readUsages=handler.getReadUsages();
+      assertEquals(1,readUsages.size());
+      String text=myFile.getText();
+      assertEquals("foo",fileTextOfRange(readUsages.get(0)));
+    }
+  }
+,getTestName(false) + ".js2");
+}

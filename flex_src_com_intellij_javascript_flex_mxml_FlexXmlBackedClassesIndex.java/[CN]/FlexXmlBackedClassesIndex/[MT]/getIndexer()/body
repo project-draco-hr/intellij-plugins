@@ -1,0 +1,20 @@
+{
+  return new DataIndexer<String,Void,FileContent>(){
+    @Override @NotNull public Map<String,Void> map(    @NotNull FileContent inputData){
+      final XmlFile file=(XmlFile)inputData.getPsiFile();
+      final Map<String,Void> result=new HashMap<String,Void>();
+      for (      JSClass clazz : XmlBackedJSClassImpl.getClasses(file)) {
+        JSReferenceList supers=getSupers(clazz);
+        if (supers != null) {
+          final JSExpression[] expressions=supers.getExpressions();
+          for (          JSExpression expr : expressions) {
+            String s=expr instanceof JSReferenceExpression ? ((JSReferenceExpression)expr).getReferenceName() : null;
+            if (s != null)             result.put(s,null);
+          }
+        }
+      }
+      return result;
+    }
+  }
+;
+}

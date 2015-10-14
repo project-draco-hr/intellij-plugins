@@ -1,0 +1,20 @@
+{
+  boolean result=true;
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    CompilationUnit u=(s != null) ? s.getCompilationUnit() : (CompilationUnit)units.get(i);
+    if (!postprocess(u,compilers,symbolTable)) {
+      result=false;
+      u.getSource().disconnectLogger();
+    }
+    if (tooManyErrors()) {
+      ThreadLocalToolkit.log(new TooManyErrors());
+      break;
+    }
+    if (forcedToStop()) {
+      ThreadLocalToolkit.log(new ForcedToStop());
+      break;
+    }
+  }
+  return result;
+}

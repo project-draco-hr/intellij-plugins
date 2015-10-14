@@ -1,0 +1,21 @@
+{
+  final List<FlexBuildTarget> result=new ArrayList<FlexBuildTarget>();
+  final JpsProject project=model.getProject();
+  for (  JpsTypedRunConfiguration<JpsFlashRunnerParameters> runConfig : project.getRunConfigurations(JpsFlashRunConfigurationType.INSTANCE)) {
+    ContainerUtilRt.addIfNotNull(result,FlexBuildTarget.create(project,runConfig.getType(),runConfig.getName()));
+  }
+  for (  JpsTypedRunConfiguration<JpsFlexUnitRunnerParameters> runConfig : project.getRunConfigurations(JpsFlexUnitRunConfigurationType.INSTANCE)) {
+    ContainerUtilRt.addIfNotNull(result,FlexBuildTarget.create(project,runConfig.getType(),runConfig.getName()));
+  }
+  for (  JpsTypedModule<JpsFlexBuildConfigurationManager> module : project.getModules(JpsFlexModuleType.INSTANCE)) {
+    for (    JpsFlexBuildConfiguration bc : module.getProperties().getBuildConfigurations()) {
+      result.add(FlexBuildTarget.create(bc,null));
+      final BuildConfigurationNature nature=bc.getNature();
+      if (nature.isApp() && (nature.isDesktopPlatform() || nature.isMobilePlatform())) {
+        result.add(FlexBuildTarget.create(bc,Boolean.TRUE));
+        result.add(FlexBuildTarget.create(bc,Boolean.FALSE));
+      }
+    }
+  }
+  return result;
+}

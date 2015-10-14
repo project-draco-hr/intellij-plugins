@@ -1,0 +1,31 @@
+{
+  final JSClassResolver resolver=JSDialectSpecificHandlersFactory.forLanguage(JavaScriptSupportLoader.ECMA_SCRIPT_L4).getClassResolver();
+  final JSClass sourceClass=(JSClass)resolver.findClassByQName(from,GlobalSearchScope.projectScope(getProject()));
+  assertNotNull("source class not found: " + sourceClass,sourceClass);
+  final JSClass targetClass=(JSClass)resolver.findClassByQName(to,GlobalSearchScope.projectScope(getProject()));
+  assertNotNull("target class not found: " + targetClass,targetClass);
+  assertTrue("Source should be a subclass of target",JSInheritanceUtil.isParentClass(sourceClass,targetClass));
+  final List<JSMemberInfo> memberInfos=getMemberInfos(toPullUp,sourceClass,false);
+  final JSMemberInfo[] infosArray=JSMemberInfo.getSelected(memberInfos,sourceClass,Conditions.<JSMemberInfo>alwaysTrue());
+  MultiMap<PsiElement,String> conflicts=JSPullUpConflictsUtil.checkConflicts(infosArray,sourceClass,targetClass,new JSInterfaceContainmentVerifier(){
+    @Override public boolean checkedInterfacesContain(    JSFunction psiMethod){
+      return JSPullUpHelper.checkedInterfacesContain(memberInfos,psiMethod);
+    }
+  }
+,JSVisibilityUtil.DEFAULT_OPTIONS);
+  ArrayList<String> messages=new ArrayList<String>(conflicts.values());
+  for (int i=0; i < messages.size(); i++) {
+    messages.set(i,messages.get(i).replaceAll("<[^>]+>",""));
+  }
+  assertSameElements(messages,expectedConflicts);
+  if (conflicts.isEmpty()) {
+    WriteCommandAction.runWriteCommandAction(null,new Runnable(){
+      public void run(){
+        new JSPullUpHelper(sourceClass,targetClass,infosArray,docCommentPolicy).moveMembersToBase();
+        myProject.getComponent(PostprocessReformattingAspect.class).doPostponedFormatting();
+      }
+    }
+);
+    FileDocumentManager.getInstance().saveAllDocuments();
+  }
+}

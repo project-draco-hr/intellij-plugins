@@ -1,0 +1,143 @@
+{
+  boolean parentTagWritten=configurationName == null;
+  final Method[] methods=configClass.getMethods();
+  Arrays.sort(methods,new Comparator<Method>(){
+    @Override public int compare(    Method o1,    Method o2){
+      return o1.getName().compareTo(o2.getName());
+    }
+  }
+);
+  for (  Method method : methods) {
+    method.setAccessible(true);
+    if (method.getParameterTypes().length != 0) {
+      continue;
+    }
+    final String methodName=method.getName();
+    if (methodName.equals("getLoadConfig") || methodName.equals("getDumpConfig") || "metadata".equals(configurationName) && methodName.equals("getDate")) {
+      continue;
+    }
+    final Object value=method.invoke(configuration);
+    if (value == null) {
+      continue;
+    }
+    if ((methodName.equals("getFixedLiteralVector") || methodName.equals("getHeadlessServer")) && !((Boolean)value)) {
+      continue;
+    }
+    if (!staticLinkRuntimeSharedLibrariesSpecified && methodName.equals("getStaticLinkRuntimeSharedLibraries")) {
+      staticLinkRuntimeSharedLibrariesSpecified=true;
+    }
+    if (!parentTagWritten) {
+      parentTagWritten=true;
+      out.append(indent,0,indent.length() - 1).append('<').append(configurationName).append('>');
+    }
+    final Class<?> returnType=method.getReturnType();
+    final String name=camelCaseToSnake(methodName,true);
+    if (value instanceof IFlexConfiguration) {
+      build(value,returnType,indent + '\t',name.substring(0,name.length() - 14));
+    }
+ else     if (configuration instanceof IASDocConfiguration && "footer".equals(name)) {
+      throw new UnsupportedOperationException();
+    }
+ else     if (value instanceof IRuntimeSharedLibraryPath || value instanceof IRuntimeSharedLibraryPath[]) {
+      final IRuntimeSharedLibraryPath[] values;
+      if (returnType.isArray()) {
+        values=(IRuntimeSharedLibraryPath[])value;
+      }
+ else {
+        values=new IRuntimeSharedLibraryPath[]{(IRuntimeSharedLibraryPath)value};
+      }
+      for (      IRuntimeSharedLibraryPath arg : values) {
+        out.append("\n\t<").append(name).append(">\n\t\t<path-element>").append(arg.pathElement()).append("</path-element>");
+        for (        Map.Entry<String,String> entry : (Set<Map.Entry<String,String>>)arg.rslUrl().entrySet()) {
+          out.append("\n\t\t<rsl-url>").append(entry.getKey()).append("</rsl-url>");
+          if (entry.getValue() != null) {
+            out.append("\n\t\t<policy-file-url>").append(entry.getValue()).append("</policy-file-url>");
+          }
+        }
+        out.append("\n\t</").append(name).append('>');
+      }
+    }
+ else     if (value instanceof IFlexArgument || value instanceof IFlexArgument[]) {
+      IFlexArgument[] values;
+      Class<?> type=returnType;
+      if (type.isArray()) {
+        values=(IFlexArgument[])value;
+        type=returnType.getComponentType();
+      }
+ else {
+        values=new IFlexArgument[]{(IFlexArgument)value};
+        type=returnType;
+      }
+      String[] order=(String[])type.getField("ORDER").get(returnType);
+      for (      IFlexArgument iFlexArgument : values) {
+        out.append(indent).append('<').append(name).append('>');
+        for (        String argMethodName : order) {
+          Object argValue=type.getDeclaredMethod(argMethodName).invoke(iFlexArgument);
+          if (argValue instanceof Collection<?> || argValue.getClass().isArray()) {
+            Object[] subValues=argValue.getClass().isArray() ? (Object[])argValue : ((Collection<?>)argValue).toArray();
+            for (            Object subArgValue : subValues) {
+              writeTag(indent,argMethodName,subArgValue.toString(),name);
+            }
+          }
+ else           if (argValue instanceof Map<?,?>) {
+            Map<?,?> map=(Map<?,?>)argValue;
+            for (            Object argValue1 : map.entrySet()) {
+              @SuppressWarnings("unchecked") Map.Entry<String,?> entry=(Map.Entry<String,?>)argValue1;
+              if (entry.getValue() != null) {
+                writeTag(indent,entry.getKey(),entry.getValue().toString(),name);
+              }
+            }
+          }
+ else           if (argValue != null) {
+            String xmlSrgMethodName;
+            if (argMethodName.equals("serialNumber") || name.equals("default-script-limits")) {
+              xmlSrgMethodName=camelCaseToSnake(argMethodName,false);
+            }
+ else {
+              xmlSrgMethodName=argMethodName;
+            }
+            writeTag(indent,xmlSrgMethodName,(String)argValue,name);
+          }
+        }
+        out.append(indent).append("</").append(name).append('>');
+      }
+    }
+ else     if (name.equals("load-externs") || configuration instanceof IMetadataConfiguration && (name.equals("language") || name.equals("creator") || name.equals("publisher")|| name.equals("contributor"))) {
+      for (      String v : (String[])value) {
+        out.append(indent).append('<').append(name).append('>').append(v).append("</").append(name).append('>');
+      }
+    }
+ else     if (returnType.isArray() || value instanceof Collection<?>) {
+      Object[] values=returnType.isArray() ? (Object[])value : ((Collection<?>)value).toArray();
+      if (values.length == 0) {
+        if (name.equals("theme") || name.equals("locale")) {
+          out.append(indent).append('<').append(name).append("/>");
+        }
+      }
+ else {
+        out.append(indent).append('<').append(name).append('>');
+        String childTagName=Utils.CHILD_TAG_NAME_MAP.get(name);
+        if (childTagName == null) {
+          childTagName=PATH_ELEMENT;
+        }
+        for (        Object v : values) {
+          if (v == null) {
+            System.out.print('\n' + childTagName + " child value for "+ name+ " is null\n");
+          }
+ else {
+            writeTag(indent,childTagName,v.toString(),name);
+          }
+        }
+        out.append(indent).append("</").append(name).append('>');
+      }
+    }
+ else {
+      out.append(indent).append('<').append(name).append('>');
+      processValue(value.toString(),name);
+      out.append("</").append(name).append('>');
+    }
+  }
+  if (parentTagWritten && configurationName != null) {
+    out.append(indent,0,indent.length() - 1).append("</").append(configurationName).append('>');
+  }
+}

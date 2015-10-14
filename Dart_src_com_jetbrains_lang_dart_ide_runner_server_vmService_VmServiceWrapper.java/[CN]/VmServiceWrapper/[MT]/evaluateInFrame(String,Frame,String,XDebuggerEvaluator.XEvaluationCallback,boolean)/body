@@ -1,0 +1,23 @@
+{
+  addRequest(new Runnable(){
+    @Override public void run(){
+      myVmService.evaluateInFrame(isolateId,vmFrame.getIndex(),expression,new EvaluateInFrameConsumer(){
+        @Override public void received(        InstanceRef instanceRef){
+          callback.evaluated(new DartVmServiceValue(myDebugProcess,isolateId,"result",instanceRef));
+        }
+        @Override public void received(        ErrorRef errorRef){
+          if (reportIfError) {
+            callback.errorOccurred(DartDebuggerEvaluator.getPresentableError(errorRef.getMessage()));
+          }
+        }
+        @Override public void onError(        RPCError error){
+          if (reportIfError) {
+            callback.errorOccurred(error.getMessage());
+          }
+        }
+      }
+);
+    }
+  }
+);
+}

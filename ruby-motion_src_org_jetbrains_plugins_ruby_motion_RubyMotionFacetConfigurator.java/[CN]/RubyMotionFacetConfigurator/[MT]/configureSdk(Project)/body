@@ -1,0 +1,16 @@
+{
+  final ProjectRootManager manager=ProjectRootManager.getInstance(project);
+  final Sdk sdk=manager.getProjectSdk();
+  if (!RubySdkUtil.isNativeRuby19(sdk)) {
+    for (    final Sdk newSdk : ProjectJdkTable.getInstance().getSdksOfType(RubySdkType.getInstance())) {
+      if (RubySdkUtil.isNativeRuby19(newSdk) && !RubySdkUtil.isNativeRuby20(newSdk) && !RubyRemoteInterpreterManager.getInstance().isRemoteSdk(newSdk)) {
+        new WriteAction(){
+          @Override protected void run(          @NotNull Result result) throws Throwable {
+            ProjectRootManager.getInstance(project).setProjectSdk(newSdk);
+          }
+        }
+.execute();
+      }
+    }
+  }
+}

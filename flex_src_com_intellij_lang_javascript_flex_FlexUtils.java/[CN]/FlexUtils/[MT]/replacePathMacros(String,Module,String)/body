@@ -1,0 +1,35 @@
+{
+  final StringBuilder builder=new StringBuilder(text);
+  int startIndex;
+  int endIndex=0;
+  while ((startIndex=builder.indexOf("${",endIndex)) >= 0) {
+    endIndex=builder.indexOf("}",startIndex);
+    if (endIndex > startIndex) {
+      final String macroName=builder.substring(startIndex + 2,endIndex);
+      final String macroValue;
+      if (PathMacrosImpl.MODULE_DIR_MACRO_NAME.equals(macroName)) {
+        macroValue=ModuleUtilCore.getModuleDirPath(module);
+      }
+ else       if (PathMacrosImpl.PROJECT_DIR_MACRO_NAME.equals(macroName)) {
+        macroValue=module.getProject().getBasePath();
+      }
+ else       if (PathMacrosImpl.USER_HOME_MACRO_NAME.equals(macroName)) {
+        macroValue=StringUtil.trimEnd((StringUtil.trimEnd(SystemProperties.getUserHome(),"/")),"\\");
+      }
+ else       if (CompilerOptionInfo.FLEX_SDK_MACRO_NAME.equals(macroName)) {
+        macroValue=sdkRootPath;
+      }
+ else {
+        macroValue=PathMacros.getInstance().getValue(macroName);
+      }
+      if (macroValue != null && !StringUtil.isEmptyOrSpaces(macroValue)) {
+        builder.replace(startIndex,endIndex + 1,macroValue);
+        endIndex=endIndex + macroValue.length() - (macroName.length() + 3);
+      }
+    }
+ else {
+      break;
+    }
+  }
+  return builder.toString();
+}

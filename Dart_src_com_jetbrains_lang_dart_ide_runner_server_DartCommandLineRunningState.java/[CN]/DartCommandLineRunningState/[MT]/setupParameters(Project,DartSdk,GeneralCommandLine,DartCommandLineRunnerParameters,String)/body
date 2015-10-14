@@ -1,0 +1,45 @@
+{
+  commandLine.addParameter("--ignore-unrecognized-flags");
+  final String vmOptions=runnerParameters.getVMOptions();
+  if (vmOptions != null) {
+    final StringTokenizer vmOptionsTokenizer=new CommandLineTokenizer(vmOptions);
+    while (vmOptionsTokenizer.hasMoreTokens()) {
+      commandLine.addParameter(vmOptionsTokenizer.nextToken());
+    }
+  }
+  if (runnerParameters.isCheckedMode()) {
+    commandLine.addParameter(DartiumUtil.CHECKED_MODE_OPTION);
+  }
+  final VirtualFile dartFile;
+  try {
+    dartFile=runnerParameters.getDartFile();
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e);
+  }
+  final VirtualFile packageRoot=DartUrlResolver.getInstance(project,dartFile).getPackageRoot();
+  if (packageRoot != null) {
+    commandLine.addParameter("--package-root=" + FileUtil.toSystemDependentName(packageRoot.getPath()));
+  }
+  if (DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId())) {
+    if (StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0) {
+      myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
+      commandLine.addParameter("--debug:" + myDebuggingPort);
+      commandLine.addParameter("--break-at-isolate-spawn");
+    }
+ else {
+      commandLine.addParameter("--pause_isolates_on_start");
+    }
+  }
+  myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
+  commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
+  commandLine.addParameter("--trace_service_pause_events");
+  commandLine.addParameter(FileUtil.toSystemDependentName(overriddenMainFilePath == null ? dartFile.getPath() : overriddenMainFilePath));
+  final String arguments=runnerParameters.getArguments();
+  if (arguments != null) {
+    StringTokenizer argumentsTokenizer=new CommandLineTokenizer(arguments);
+    while (argumentsTokenizer.hasMoreTokens()) {
+      commandLine.addParameter(argumentsTokenizer.nextToken());
+    }
+  }
+}

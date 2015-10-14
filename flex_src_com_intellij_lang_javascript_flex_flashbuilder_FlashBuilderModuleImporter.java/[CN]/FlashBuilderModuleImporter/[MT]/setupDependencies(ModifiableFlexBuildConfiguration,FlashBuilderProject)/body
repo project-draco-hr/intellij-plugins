@@ -1,0 +1,35 @@
+{
+  OUTER:   for (  final String libraryPathOrig : fbProject.getLibraryPaths()) {
+    for (    FlashBuilderProject otherProject : myAllFBProjects) {
+      if (otherProject != fbProject && libraryPathOrig.startsWith("/" + otherProject.getName() + "/")) {
+        final ModifiableBuildConfigurationEntry bcEntry=myFlexConfigEditor.createBcEntry(bc.getDependencies(),otherProject.getName(),suggestMainBCName(otherProject));
+        bc.getDependencies().getModifiableEntries().add(0,bcEntry);
+        continue OUTER;
+      }
+    }
+    final LibraryTable.ModifiableModel libraryModel=myFlexConfigEditor.getLibraryModel(bc.getDependencies());
+    final Library library=libraryModel.createLibrary(null,FlexLibraryType.FLEX_LIBRARY);
+    final LibraryEx.ModifiableModelEx libraryModifiableModel=((LibraryEx.ModifiableModelEx)library.getModifiableModel());
+    final String libraryId=UUID.randomUUID().toString();
+    libraryModifiableModel.setProperties(new FlexLibraryProperties(libraryId));
+    final String libraryPath=getAbsolutePathWithLinksHandled(fbProject,libraryPathOrig);
+    if (libraryPath.toLowerCase().endsWith(".swc") || libraryPath.toLowerCase().endsWith(".ane")) {
+      libraryModifiableModel.addRoot(VirtualFileManager.constructUrl(JarFileSystem.PROTOCOL,libraryPath) + JarFileSystem.JAR_SEPARATOR,OrderRootType.CLASSES);
+    }
+ else {
+      libraryModifiableModel.addJarDirectory(VfsUtilCore.pathToUrl(libraryPath),false);
+    }
+    for (    final String librarySourcePath : fbProject.getLibrarySourcePaths(libraryPathOrig)) {
+      libraryModifiableModel.addRoot(VfsUtilCore.pathToUrl(getAbsolutePathWithLinksHandled(fbProject,librarySourcePath)),OrderRootType.SOURCES);
+    }
+    ApplicationManager.getApplication().runWriteAction(new Runnable(){
+      public void run(){
+        libraryModifiableModel.commit();
+      }
+    }
+);
+    final ModifiableModuleLibraryEntry libraryEntry=myFlexConfigEditor.createModuleLibraryEntry(bc.getDependencies(),libraryId);
+    libraryEntry.getDependencyType().setLinkageType(LinkageType.Merged);
+    bc.getDependencies().getModifiableEntries().add(libraryEntry);
+  }
+}

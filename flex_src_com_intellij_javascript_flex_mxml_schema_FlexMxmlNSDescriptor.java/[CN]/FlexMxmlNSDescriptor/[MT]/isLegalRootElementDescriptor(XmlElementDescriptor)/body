@@ -1,0 +1,17 @@
+{
+  if (_descriptor instanceof ClassBackedElementDescriptor) {
+    final ClassBackedElementDescriptor descriptor=(ClassBackedElementDescriptor)_descriptor;
+    final PsiElement element=descriptor.getDeclaration();
+    if (element instanceof JSClass) {
+      final JSAttributeList attributeList=((JSClass)element).getAttributeList();
+      if (attributeList != null && attributeList.hasModifier(JSAttributeList.ModifierType.FINAL)) {
+        return false;
+      }
+    }
+    if (JavaScriptSupportLoader.isLanguageNamespace(descriptor.context.namespace)) {
+      final String tagName=_descriptor.getName();
+      return !descriptor.isPredefined() && !ArrayUtil.contains(tagName,ILLEGAL_LANGUAGE_ROOT_TAGS);
+    }
+  }
+  return true;
+}

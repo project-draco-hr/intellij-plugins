@@ -1,0 +1,34 @@
+{
+  final Element configurationElement=myFlexmojosPlugin.getConfigurationElement();
+  final Element modulesElement=configurationElement == null ? null : configurationElement.getChild("modules",configurationElement.getNamespace());
+  if (modulesElement == null) {
+    return Collections.emptyList();
+  }
+  final List<RLMInfo> result=new ArrayList<RLMInfo>();
+  for (  final Element moduleElement : (Iterable<Element>)modulesElement.getChildren()) {
+    if (moduleElement.getChildren().size() > 0) {
+      final String mainClassRelativePath=moduleElement.getChildTextNormalize("sourceFile",moduleElement.getNamespace());
+      final String finalName=moduleElement.getChildTextNormalize("finalName",moduleElement.getNamespace());
+      final String destinationPath=moduleElement.getChildTextNormalize("destinationPath",moduleElement.getNamespace());
+      final String mainClass=FileUtil.getNameWithoutExtension(mainClassRelativePath.replace('/','.'));
+      final String rlmName=StringUtil.notNullize(finalName,StringUtil.getShortName(mainClass));
+      final String outputFileName=finalName != null ? finalName + ".swf" : myMavenProject.getFinalName() + "-" + rlmName.toLowerCase()+ ".swf";
+      final String outputFolderPath=FileUtil.toSystemIndependentName(myMavenProject.getBuildDirectory() + (destinationPath == null ? "" : ("/" + destinationPath)));
+      final String configFilePath=getCompilerConfigFilePath(rlmName);
+      result.add(new RLMInfo(rlmName,mainClass,mainClassRelativePath,outputFileName,outputFolderPath,configFilePath));
+    }
+ else {
+      final String path=moduleElement.getTextNormalize();
+      if (path.endsWith(".mxml") || path.endsWith(".as")) {
+        final String mainClassRelativePath=FileUtil.toSystemIndependentName(path);
+        final String mainClass=FileUtil.getNameWithoutExtension(mainClassRelativePath.replace('/','.'));
+        final String rlmName=StringUtil.getShortName(mainClass);
+        final String outputFileName=myMavenProject.getFinalName() + "-" + rlmName.toLowerCase()+ ".swf";
+        final String outputFolderPath=FileUtil.toSystemIndependentName(myMavenProject.getBuildDirectory());
+        final String configFilePath=getCompilerConfigFilePath(rlmName);
+        result.add(new RLMInfo(rlmName,mainClass,mainClassRelativePath,outputFileName,outputFolderPath,configFilePath));
+      }
+    }
+  }
+  return result;
+}

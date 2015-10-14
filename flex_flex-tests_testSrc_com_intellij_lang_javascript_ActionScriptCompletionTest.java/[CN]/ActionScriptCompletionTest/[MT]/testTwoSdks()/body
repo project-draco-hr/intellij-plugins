@@ -1,0 +1,36 @@
+{
+  final Sdk sdk45=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.5"),null,true);
+  final Sdk sdk46=FlexTestUtils.createSdk(FlexTestUtils.getPathToCompleteFlexSdk("4.6"),null,false);
+  JSTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    public void consume(    final FlexProjectConfigurationEditor editor){
+      ModifiableFlexBuildConfiguration bc1=editor.getConfigurations(myModule)[0];
+      bc1.setName("1");
+      JSTestUtils.setSdk(bc1,sdk45);
+      ModifiableFlexBuildConfiguration bc2=editor.createConfiguration(myModule);
+      bc2.setName("2");
+      JSTestUtils.setSdk(bc2,sdk46);
+    }
+  }
+);
+  final FlexBuildConfigurationManager m=FlexBuildConfigurationManager.getInstance(myModule);
+class TestZZ implements ThrowableRunnable<Exception> {
+    private final String myBcName;
+    private final String myExpectedTypeText;
+    TestZZ(    final String bcName,    final String expectedTypeText){
+      myBcName=bcName;
+      myExpectedTypeText=expectedTypeText;
+    }
+    @Override public void run() throws Exception {
+      m.setActiveBuildConfiguration(m.findConfigurationByName(myBcName));
+      defaultTest();
+      for (      LookupElement item : myItems) {
+        final LookupElementPresentation p=new LookupElementPresentation();
+        item.renderElement(p);
+        assertEquals(myExpectedTypeText,p.getTypeText());
+      }
+    }
+  }
+  new TestZZ("1",sdk45.getName()).run();
+  new TestZZ("2",sdk46.getName()).run();
+  new TestZZ("1",sdk45.getName()).run();
+}

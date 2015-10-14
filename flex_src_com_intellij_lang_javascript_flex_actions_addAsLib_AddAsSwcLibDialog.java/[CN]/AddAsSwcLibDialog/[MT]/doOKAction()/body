@@ -1,0 +1,32 @@
+{
+  final Collection<Pair<Module,FlexBuildConfiguration>> modulesAndBCs=myBCTree.getSelectedBCs();
+  final Map<Module,ModifiableRootModel> moduleToModifiableModelMap=new THashMap<Module,ModifiableRootModel>();
+  for (  Pair<Module,FlexBuildConfiguration> moduleAndBC : modulesAndBCs) {
+    moduleToModifiableModelMap.put(moduleAndBC.first,ModuleRootManager.getInstance(moduleAndBC.first).getModifiableModel());
+  }
+  final LibraryTable.ModifiableModel projectLibsModel=ProjectLibraryTable.getInstance(myProject).getModifiableModel();
+  final LibraryTable.ModifiableModel globalLibsModel=ApplicationLibraryTable.getApplicationTable().getModifiableModel();
+  final FlexProjectConfigurationEditor flexConfigEditor=FlexProjectConfigurationEditor.createEditor(myProject,moduleToModifiableModelMap,projectLibsModel,globalLibsModel);
+  addLib(flexConfigEditor,modulesAndBCs,myRoots);
+  try {
+    flexConfigEditor.commit();
+  }
+ catch (  ConfigurationException e) {
+    Logger.getInstance(AddAsSwcLibDialog.class).error(e);
+  }
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      globalLibsModel.commit();
+      projectLibsModel.commit();
+      for (      ModifiableRootModel modifiableRootModel : moduleToModifiableModelMap.values()) {
+        modifiableRootModel.commit();
+      }
+    }
+  }
+);
+  if (myOpenProjectStructureCheckBox.isSelected()) {
+    final Pair<Module,FlexBuildConfiguration> moduleAndBc=modulesAndBCs.iterator().next();
+    openProjectStructure(moduleAndBc.first,moduleAndBc.second);
+  }
+  super.doOKAction();
+}

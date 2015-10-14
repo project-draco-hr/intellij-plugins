@@ -1,0 +1,64 @@
+{
+  final PsiElement[] result=new PsiElement[1];
+  final PsiElement parentDescriptorDeclaration=parentDescriptor.getDeclaration();
+  PsiElement element=parentDescriptorDeclaration;
+  if (predefined)   return element;
+  if (myOriginatingElementType == OriginatingElementType.IdAttribute) {
+    return findDeclarationByIdAttributeValue(parentDescriptorDeclaration,new THashSet<JSClass>());
+  }
+  while (element instanceof XmlFile) {
+    XmlTag rootTag=((XmlFile)element).getDocument().getRootTag();
+    element=JSResolveUtil.getClassFromTagNameInMxml(rootTag.getFirstChild());
+    if (element instanceof XmlBackedJSClassImpl) {
+      element=element.getParent().getContainingFile();
+    }
+  }
+  final JSNamedElement jsClass=(JSNamedElement)element;
+  final ClassBackedElementDescriptor.AttributedItemsProcessor itemsProcessor=new ClassBackedElementDescriptor.AttributedItemsProcessor(){
+    @Override public boolean process(    final JSNamedElement jsNamedElement,    final boolean isPackageLocalVisibility){
+      if (myOriginatingElementType != OriginatingElementType.Metadata && name.equals(jsNamedElement.getName())) {
+        result[0]=jsNamedElement;
+        return false;
+      }
+      return true;
+    }
+    @Override public boolean process(    final JSAttributeNameValuePair pair,    final String annotationName,    final boolean included){
+      if (myOriginatingElementType == OriginatingElementType.Metadata && name.equals(pair.getSimpleValue()) && included) {
+        result[0]=pair;
+        return false;
+      }
+      return true;
+    }
+  }
+;
+  boolean b=jsClass == null || ClassBackedElementDescriptor.processAttributes(jsClass,itemsProcessor);
+  if (b && jsClass != null) {
+    final PsiElement _clazz=JSResolveUtil.unwrapProxy(jsClass);
+    final JSClass clazz=_clazz instanceof JSClass ? (JSClass)_clazz : null;
+    if (clazz != null) {
+      final JSClass[] classes=clazz.getSuperClasses();
+      if (classes.length > 0 && clazz.getName().equals(classes[0].getName()) && clazz != classes[0]) {
+        b=ClassBackedElementDescriptor.processAttributes(classes[0],itemsProcessor);
+      }
+    }
+  }
+  if (b && parentDescriptorDeclaration instanceof XmlFile) {
+    final JSResolveUtil.JSInjectedFilesVisitor injectedFilesVisitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+      @Override protected void process(      final JSFile file){
+        ClassBackedElementDescriptor.processAttributes(file,itemsProcessor);
+      }
+    }
+;
+    element=parentDescriptorDeclaration;
+    while (element instanceof XmlFile) {
+      XmlTag rootTag=((XmlFile)element).getDocument().getRootTag();
+      FlexUtils.processMxmlTags(rootTag,true,injectedFilesVisitor);
+      if (result[0] != null)       break;
+      element=JSResolveUtil.getClassFromTagNameInMxml(rootTag.getFirstChild());
+      if (element instanceof XmlBackedJSClassImpl) {
+        element=element.getParent().getContainingFile();
+      }
+    }
+  }
+  return result[0];
+}

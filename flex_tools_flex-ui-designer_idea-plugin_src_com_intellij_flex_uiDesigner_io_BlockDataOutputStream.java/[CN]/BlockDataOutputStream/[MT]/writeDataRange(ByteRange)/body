@@ -1,0 +1,25 @@
+{
+  ByteRange possibleChild=dataRange;
+  int start=dataRange.getStart();
+  final int ownEnd=dataRange.getEnd();
+  while (true) {
+    TLinkable next=possibleChild.getNext();
+    while (next != null && !(next instanceof ByteRange)) {
+      next=next.getNext();
+    }
+    possibleChild=(ByteRange)next;
+    if (possibleChild == null || possibleChild.getEnd() > ownEnd) {
+      out.write(buffer,start,ownEnd - start);
+      break;
+    }
+ else {
+      int length=possibleChild.getStart() - start;
+      if (length > -1) {
+        if (length != 0) {
+          out.write(buffer,start,length);
+        }
+        start=possibleChild.getEnd();
+      }
+    }
+  }
+}

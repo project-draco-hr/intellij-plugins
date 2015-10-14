@@ -1,0 +1,58 @@
+{
+  GlobalSearchScope moduleWithDependenciesAndLibrariesScope=module.getModuleWithDependenciesAndLibrariesScope(false);
+  final List<JSClass> holders=new ArrayList<JSClass>(2);
+  if (flexSdkVersion.charAt(0) > '3') {
+    JSClass clazz=((JSClass)ActionScriptClassResolver.findClassByQNameStatic(FlexCommonTypeNames.SPARK_APPLICATION,moduleWithDependenciesAndLibrariesScope));
+    if (clazz != null) {
+      holders.add(clazz);
+    }
+  }
+  JSClass mxApplicationClass=((JSClass)ActionScriptClassResolver.findClassByQNameStatic(FlexCommonTypeNames.MX_APPLICATION,moduleWithDependenciesAndLibrariesScope));
+  if (mxApplicationClass != null) {
+    holders.add(mxApplicationClass);
+  }
+  if (holders.isEmpty()) {
+    return null;
+  }
+  final StyleTagWriter styleTagWriter=new StyleTagWriter(new LocalCssWriter(stringWriter,problemsHolder,projectComponentReferenceCounter,assetCounter));
+  final List<LocalStyleHolder> result=new ArrayList<LocalStyleHolder>();
+  final Processor<JSClass> processor=new Processor<JSClass>(){
+    @Override public boolean process(    JSClass jsClass){
+      PsiFile psiFile=jsClass.getNavigationElement().getContainingFile();
+      if (!(psiFile instanceof XmlFile)) {
+        return true;
+      }
+      XmlTag rootTag=((XmlFile)psiFile).getRootTag();
+      if (rootTag == null) {
+        return true;
+      }
+      final VirtualFile virtualFile=psiFile.getVirtualFile();
+      problemsHolder.setCurrentFile(virtualFile);
+      try {
+        for (        final XmlTag subTag : rootTag.getSubTags()) {
+          if (subTag.getNamespace().equals(JavaScriptSupportLoader.MXML_URI3) && subTag.getLocalName().equals(FlexPredefinedTagNames.STYLE)) {
+            try {
+              LocalStyleHolder localStyleHolder=styleTagWriter.write(subTag,module,virtualFile);
+              if (localStyleHolder != null) {
+                result.add(localStyleHolder);
+              }
+            }
+ catch (            InvalidPropertyException e) {
+              problemsHolder.add(e);
+            }
+          }
+        }
+      }
+  finally {
+        problemsHolder.setCurrentFile(null);
+      }
+      return true;
+    }
+  }
+;
+  final GlobalSearchScope moduleScope=module.getModuleScope(false);
+  for (  JSClass holder : holders) {
+    JSClassSearch.searchClassInheritors(holder,true,moduleScope).forEach(processor);
+  }
+  return result;
+}

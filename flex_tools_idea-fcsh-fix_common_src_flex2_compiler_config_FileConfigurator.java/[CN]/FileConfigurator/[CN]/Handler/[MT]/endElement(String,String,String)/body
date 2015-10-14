@@ -1,0 +1,54 @@
+{
+  String element=qName;
+  ParseContext ctx=contextStack.peek();
+  if (ctx.ignore) {
+    if (ctx.item.equals(element)) {
+      contextStack.pop();
+      text=new StringBuilder();
+    }
+    return;
+  }
+  final String trimmedText=text.toString().trim();
+  if (element.equals(rootElement)) {
+  }
+ else   if (ctx.item != null) {
+    ParseValue v=new ParseValue();
+    v.name=element;
+    v.value=trimmedText;
+    v.line=locator.getLineNumber();
+    ctx.argList.add(v);
+    text=new StringBuilder();
+    ctx.item=null;
+  }
+ else   if (ctx.var != null) {
+    if ((ctx.varArgCount > 1) && (ctx.argList.size() == 0)) {
+      throw new SAXConfigurationException(new ConfigurationException.IncorrectArgumentCount(ctx.varArgCount,0,ctx.var,source,locator.getLineNumber()),locator);
+    }
+    if (ctx.varArgCount == 1) {
+      ParseValue v=new ParseValue();
+      v.name=null;
+      v.value=trimmedText;
+      v.line=locator.getLineNumber();
+      ctx.argList.add(v);
+      text=new StringBuilder();
+    }
+ else {
+      if (trimmedText.length() > 0) {
+        throw new SAXConfigurationException(new ConfigurationException.UnexpectedCDATA(source,locator.getLineNumber()),locator);
+      }
+    }
+    try {
+      setVar(ctx.var,ctx.argList,locator.getLineNumber(),ctx.append);
+      ctx.var=null;
+      ctx.argList.clear();
+      ctx.item=null;
+      ctx.append=false;
+    }
+ catch (    ConfigurationException e) {
+      throw new SAXConfigurationException(e,locator);
+    }
+  }
+ else {
+    contextStack.pop();
+  }
+}

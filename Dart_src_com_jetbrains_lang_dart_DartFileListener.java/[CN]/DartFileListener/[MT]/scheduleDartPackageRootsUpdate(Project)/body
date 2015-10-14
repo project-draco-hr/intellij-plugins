@@ -1,4 +1,5 @@
 {
+  if (Registry.is("dart.projects.without.pubspec",false))   return;
   if (project.getUserData(DART_PACKAGE_ROOTS_UPDATE_SCHEDULED_OR_IN_PROGRESS) == Boolean.TRUE) {
     return;
   }
@@ -12,7 +13,13 @@
           removeDartPackagesLibraryAndDependencies(project);
         }
  else {
-          updateDependenciesOnDartPackagesLibrary(project,sdk,library);
+          final Condition<Module> moduleFilter=new Condition<Module>(){
+            @Override public boolean value(            final Module module){
+              return DartSdkGlobalLibUtil.isDartSdkEnabled(module);
+            }
+          }
+;
+          updateDependenciesOnDartPackagesLibrary(project,moduleFilter,library);
         }
       }
   finally {

@@ -1,0 +1,43 @@
+{
+  final String mainContentEntryUrl=VfsUtilCore.pathToUrl(fbProject.getProjectRootPath());
+  final ContentEntry mainContentEntry=rootModel.addContentEntry(mainContentEntryUrl);
+  final Collection<ContentEntry> otherContentEntries=new ArrayList<ContentEntry>();
+  final Collection<String> sourcePaths=fbProject.getSourcePaths();
+  if (sourcePaths.isEmpty()) {
+    final VirtualFile contentRoot=mainContentEntry.getFile();
+    final String mainClass=fbProject.getMainAppClassName();
+    if (contentRoot != null && !StringUtil.isEmpty(mainClass) && (contentRoot.findChild(mainClass + ".mxml") != null || contentRoot.findChild(mainClass + ".as") != null)) {
+      mainContentEntry.addSourceFolder(mainContentEntry.getUrl(),false);
+    }
+  }
+ else {
+    final List<String> locales=FlexCommonUtils.getOptionValues(fbProject.getAdditionalCompilerOptions(),"locale","compiler.locale");
+    final List<String> moreSourcePaths=FlexCommonUtils.getOptionValues(fbProject.getAdditionalCompilerOptions(),"source-path","compiler.source-path");
+    for (    final String rawSourcePath : sourcePaths) {
+      if (rawSourcePath.contains(FlexCommonUtils.LOCALE_TOKEN)) {
+        for (        String locale : locales) {
+          handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,rawSourcePath.replace(FlexCommonUtils.LOCALE_TOKEN,locale));
+        }
+      }
+ else {
+        handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,rawSourcePath);
+      }
+    }
+    for (    String sourcePath : moreSourcePaths) {
+      if (sourcePath.contains(FlexCommonUtils.LOCALE_TOKEN)) {
+        for (        String locale : locales) {
+          final String path=getPathToSourceRootSetInAdditionalOptions(sourcePath.replace(FlexCommonUtils.LOCALE_TOKEN,locale),mainContentEntryUrl,mainContentEntry);
+          if (path != null) {
+            handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,path);
+          }
+        }
+      }
+ else {
+        final String path=getPathToSourceRootSetInAdditionalOptions(sourcePath,mainContentEntryUrl,mainContentEntry);
+        if (path != null) {
+          handleRawSourcePath(rootModel,fbProject,mainContentEntryUrl,mainContentEntry,otherContentEntries,path);
+        }
+      }
+    }
+  }
+}

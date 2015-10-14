@@ -1,0 +1,26 @@
+{
+  boolean result=true;
+  for (int i=start; i < end; i++) {
+    Source s=(Source)sources.get(i);
+    CompilationUnit u;
+    if ((u=parse1(s,compilers,symbolTable)) == null) {
+      result=false;
+      s.disconnectLogger();
+    }
+    for (int j=units.size(); j < i + 1; j++) {
+      units.add(null);
+    }
+    units.set(i,u);
+    addVertexToGraphs(s,u,igraph,dgraph);
+    calculateProgress(sources,symbolTable);
+    if (tooManyErrors()) {
+      ThreadLocalToolkit.log(new TooManyErrors());
+      break;
+    }
+    if (forcedToStop()) {
+      ThreadLocalToolkit.log(new ForcedToStop());
+      break;
+    }
+  }
+  return result;
+}

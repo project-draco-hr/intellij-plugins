@@ -1,0 +1,32 @@
+{
+  if (oldConfig.USE_CUSTOM_CONFIG_FILE) {
+    final String customConfigFilePath=PathUtil.getCanonicalPath(module.expandPath(oldConfig.CUSTOM_CONFIG_FILE));
+    newCompilerOptions.setAdditionalConfigFilePath(customConfigFilePath);
+  }
+  newCompilerOptions.setAdditionalOptions(oldConfig.ADDITIONAL_COMPILER_OPTIONS);
+  final Map<String,String> options=new THashMap<String,String>(newCompilerOptions.getAllOptions());
+  if (oldConfig.USE_LOCALE_SETTINGS) {
+    options.put("compiler.locale",oldConfig.LOCALE.replace(",",CompilerOptionInfo.LIST_ENTRIES_SEPARATOR));
+  }
+  if (!oldConfig.CONDITIONAL_COMPILATION_DEFINITION_LIST.isEmpty()) {
+    final StringBuilder b=new StringBuilder();
+    for (    FlexBuildConfiguration.ConditionalCompilationDefinition def : oldConfig.CONDITIONAL_COMPILATION_DEFINITION_LIST) {
+      if (b.length() > 0)       b.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+      b.append(def.NAME).append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR).append(def.VALUE);
+    }
+    options.put("compiler.define",b.toString());
+  }
+  if (!oldConfig.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST.isEmpty()) {
+    final StringBuilder b=new StringBuilder();
+    for (    FlexBuildConfiguration.NamespaceAndManifestFileInfo info : oldConfig.NAMESPACE_AND_MANIFEST_FILE_INFO_LIST) {
+      if (b.length() > 0)       b.append(CompilerOptionInfo.LIST_ENTRIES_SEPARATOR);
+      b.append(info.NAMESPACE).append(CompilerOptionInfo.LIST_ENTRY_PARTS_SEPARATOR).append(PathUtil.getCanonicalPath(module.expandPath(info.MANIFEST_FILE_PATH)));
+    }
+    options.put("compiler.namespaces.namespace",b.toString());
+  }
+  if (!oldConfig.PATH_TO_SERVICES_CONFIG_XML.isEmpty()) {
+    options.put("compiler.services",oldConfig.PATH_TO_SERVICES_CONFIG_XML);
+    options.put("compiler.context-root",oldConfig.CONTEXT_ROOT);
+  }
+  return options;
+}

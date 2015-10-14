@@ -1,0 +1,53 @@
+{
+  final Project project=myField.getProject();
+  final JSBlockStatement anchorBlock=findAnchorBlock(references);
+  if (anchorBlock == null)   return false;
+  final PsiElement firstElement=getFirstElement(references);
+  final PsiElement anchorElement=getAnchorElement(anchorBlock,firstElement);
+  final String typeString=myField.getTypeString();
+  StringBuilder text=new StringBuilder("var ").append(myField.getName());
+  if (!StringUtil.isEmpty(typeString)) {
+    text.append(":").append(typeString);
+  }
+  final boolean assignment=isAssignment(anchorElement,firstElement);
+  if (assignment) {
+    final JSExpression expression=((JSExpressionStatement)anchorElement).getExpression();
+    final JSExpression rOperand=((JSAssignmentExpression)expression).getROperand();
+    text.append("=").append(rOperand.getText());
+  }
+ else {
+    final JSExpression initializer=myField.getInitializer();
+    if (initializer != null) {
+      text.append("=").append(initializer.getText());
+    }
+  }
+  text.append(JSCodeStyleSettings.getSemicolon(anchorBlock.getContainingFile()));
+  final PsiElement varStatement=JSChangeUtil.createJSTreeFromText(project,text.toString(),JavaScriptSupportLoader.ECMA_SCRIPT_L4).getPsi();
+  if (varStatement == null)   return false;
+  final PsiElement newDeclaration;
+  if (assignment) {
+    newDeclaration=anchorElement.replace(varStatement);
+  }
+ else {
+    newDeclaration=anchorBlock.addBefore(varStatement,anchorElement);
+  }
+  CodeStyleManager.getInstance(project).reformatNewlyAddedElement(anchorBlock.getParent().getNode(),anchorBlock.getNode());
+  if (newDeclaration != null) {
+    PsiFile psiFile=myField.getContainingFile();
+    int offset=newDeclaration.getTextOffset();
+    final PsiElement context=psiFile.getContext();
+    if (context != null) {
+      psiFile=context.getContainingFile();
+      offset=InjectedLanguageManager.getInstance(project).injectedToHost(newDeclaration,offset);
+    }
+    final Editor editor=FileEditorManager.getInstance(project).getSelectedTextEditor();
+    if (editor != null) {
+      final PsiFile file=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+      if (file == psiFile) {
+        editor.getCaretModel().moveToOffset(offset);
+        editor.getScrollingModel().scrollToCaret(ScrollType.RELATIVE);
+      }
+    }
+  }
+  return true;
+}

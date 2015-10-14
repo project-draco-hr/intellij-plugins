@@ -1,0 +1,15 @@
+{
+  final PlexusConfiguration parentConfiguration=new XmlPlexusConfiguration(mojoExecution.getConfiguration());
+  final PlexusConfiguration configuration=parentConfiguration.getChild("sources");
+  if (configuration == null) {
+    return;
+  }
+  final PlexusConfiguration[] sources=configuration.getChildren();
+  if (sources == null) {
+    return;
+  }
+  final ExpressionEvaluator expressionEvaluator=new PluginParameterExpressionEvaluator(session,mojoExecution);
+  for (  PlexusConfiguration source : sources) {
+    addFile(evaluate(expressionEvaluator,source.getValue(),logger),project,expressionEvaluator);
+  }
+}

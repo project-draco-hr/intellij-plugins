@@ -1,0 +1,15 @@
+{
+  final Set<String> names=new HashSet<String>();
+  ResolveProcessor processor=new ResolveProcessor(null){
+    @Override public boolean execute(    @NotNull final PsiElement element,    @NotNull final ResolveState state){
+      if (element instanceof JSNamedElementBase) {
+        names.add(((JSNamedElementBase)element).getName());
+      }
+      return true;
+    }
+  }
+;
+  processor.setLocalResolve(true);
+  JSResolveUtil.treeWalkUp(processor,context,context.getParent(),context);
+  return names;
+}

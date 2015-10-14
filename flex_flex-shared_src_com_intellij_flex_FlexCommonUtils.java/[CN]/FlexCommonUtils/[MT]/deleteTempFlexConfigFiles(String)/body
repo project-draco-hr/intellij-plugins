@@ -1,0 +1,17 @@
+{
+  if (KEEP_TEMP_FILES)   return;
+  final String hash1=Integer.toHexString((SystemProperties.getUserName() + projectName).hashCode()).toUpperCase();
+  final File dir=new File(getTempFlexConfigsDirPath());
+  if (!dir.isDirectory())   return;
+  final File[] filesToDelete=dir.listFiles(new FilenameFilter(){
+    public boolean accept(    final File file,    final String name){
+      return name.startsWith("idea-" + hash1) && name.endsWith(".xml");
+    }
+  }
+);
+  if (filesToDelete != null) {
+    for (    final File file : filesToDelete) {
+      FileUtil.delete(file);
+    }
+  }
+}

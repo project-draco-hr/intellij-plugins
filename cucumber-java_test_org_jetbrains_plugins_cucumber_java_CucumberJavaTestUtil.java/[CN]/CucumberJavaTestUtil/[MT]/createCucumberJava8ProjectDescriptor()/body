@@ -1,0 +1,17 @@
+{
+  return new DefaultLightProjectDescriptor(){
+    @Override public void configureModule(    @NotNull Module module,    @NotNull ModifiableRootModel model,    @NotNull ContentEntry contentEntry){
+      attachCucumberLibraries(module,model);
+      LanguageLevelModuleExtension extension=model.getModuleExtension(LanguageLevelModuleExtension.class);
+      if (extension != null) {
+        extension.setLanguageLevel(LanguageLevel.JDK_1_8);
+      }
+      VirtualFile sourceRoot=VirtualFileManager.getInstance().refreshAndFindFileByUrl("temp:///src");
+      if (sourceRoot != null) {
+        contentEntry.removeSourceFolder(contentEntry.getSourceFolders()[0]);
+        contentEntry.addSourceFolder(sourceRoot,true);
+      }
+    }
+  }
+;
+}

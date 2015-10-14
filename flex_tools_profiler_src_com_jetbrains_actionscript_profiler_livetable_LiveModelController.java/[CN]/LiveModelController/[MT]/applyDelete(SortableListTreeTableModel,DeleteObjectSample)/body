@@ -1,0 +1,23 @@
+{
+  final List<SizeInfoNode> nodesForUpdate=new ArrayList<SizeInfoNode>();
+  final String className=sample.className;
+  final DefaultMutableTreeNode root=(DefaultMutableTreeNode)model.getRoot();
+  SizeInfoNode classNode=findChildByValue(root,className);
+  if (classNode == null) {
+    return false;
+  }
+  nodesForUpdate.add(classNode);
+  SizeInfoNode node=classNode;
+  for (  FrameInfo frameInfo : sample.frames) {
+    final SizeInfoNode frameNode=findChildByValue(node,frameInfo.getQName());
+    if (frameNode == null) {
+      return false;
+    }
+    nodesForUpdate.add(frameNode);
+    node=frameNode;
+  }
+  for (  SizeInfoNode sizeInfoNode : nodesForUpdate) {
+    sizeInfoNode.decSize(sample.size);
+  }
+  return true;
+}

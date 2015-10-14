@@ -1,0 +1,56 @@
+{
+  final JSExpression[] params=callExpression.getArguments();
+  String eventName="event";
+  if (params.length > 0) {
+    handlerCallerAnchorInArgumentList=params[0];
+    PsiElement sibling=params[0];
+    while ((sibling=sibling.getNextSibling()) != null) {
+      final ASTNode node=sibling.getNode();
+      if (node != null && node.getElementType() == JSTokenTypes.COMMA) {
+        handlerCallerAnchorInArgumentList=sibling;
+        if (params.length >= 2) {
+          handlerCallerAnchorInArgumentList=null;
+          if (isUnresolvedReference(params[1])) {
+            myExistingUnresolvedReverence=(JSReferenceExpression)params[1];
+            eventHandlerName=myExistingUnresolvedReverence.getReferencedName();
+          }
+        }
+        break;
+      }
+    }
+    if (params[0] instanceof JSReferenceExpression) {
+      final JSReferenceExpression referenceExpression=(JSReferenceExpression)params[0];
+      final JSExpression qualifier=referenceExpression.getQualifier();
+      if (qualifier != null) {
+        final PsiReference[] references=qualifier.getReferences();
+        PsiElement resolveResult;
+        if (references.length == 1 && ((resolveResult=references[0].resolve()) instanceof JSClass) && isEventClass((JSClass)resolveResult)) {
+          eventClassFqn=((JSClass)resolveResult).getQualifiedName();
+        }
+      }
+      final PsiReference reference=referenceExpression.getReference();
+      final PsiElement resolved=reference == null ? null : reference.resolve();
+      if (resolved instanceof JSVariable && ((JSVariable)resolved).hasInitializer()) {
+        eventName=initializerToPartialMethodName(((JSVariable)resolved).getInitializer().getText());
+      }
+    }
+ else     if (params[0] instanceof JSLiteralExpression) {
+      eventName=initializerToPartialMethodName(params[0].getText());
+    }
+  }
+  if (handlerCallerAnchorInArgumentList != null) {
+    final JSExpression qualifier=((JSReferenceExpression)callExpression.getMethodExpression()).getQualifier();
+    final NamesValidator validator=LanguageNamesValidation.INSTANCE.forLanguage(JavaScriptSupportLoader.JAVASCRIPT.getLanguage());
+    if (qualifier != null && validator.isIdentifier(qualifier.getText(),null)) {
+      String qualifierText=qualifier.getText();
+      if (qualifierText.length() > 1 && qualifierText.charAt(0) == '_' && validator.isIdentifier(qualifierText.substring(1),null)) {
+        qualifierText=qualifierText.substring(1);
+      }
+      eventHandlerName=MessageFormat.format(METHOD_NAME_PATTERN,qualifierText,eventName);
+    }
+ else {
+      eventHandlerName=eventName + "Handler";
+    }
+  }
+  eventHandlerName2="on" + (eventName.isEmpty() ? "Event" : Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1));
+}

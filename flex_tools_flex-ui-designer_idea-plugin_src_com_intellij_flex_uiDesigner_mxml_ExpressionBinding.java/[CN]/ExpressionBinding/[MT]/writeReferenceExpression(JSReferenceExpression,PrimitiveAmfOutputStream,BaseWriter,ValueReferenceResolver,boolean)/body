@@ -1,0 +1,89 @@
+{
+  final PsiElement element;
+  List<String> qualifiers=null;
+  JSExpression expressionQualifier=expression.getQualifier();
+  JSReferenceExpression qualifier;
+  if (expressionQualifier instanceof JSReferenceExpression) {
+    qualifier=(JSReferenceExpression)expressionQualifier;
+  }
+ else   if (expressionQualifier instanceof JSIndexedPropertyAccessExpression) {
+    qualifier=(JSReferenceExpression)((JSIndexedPropertyAccessExpression)expressionQualifier).getQualifier();
+  }
+ else   if (expressionQualifier != null && !(expressionQualifier instanceof JSThisExpression)) {
+    throw new UnsupportedOperationException("unknown qualifier " + expressionQualifier.toString() + " "+ expression.getText());
+  }
+ else {
+    qualifier=null;
+  }
+  if (qualificatorSupportedForMxmlBinding && qualifier != null) {
+    JSReferenceExpression topElement;
+    qualifiers=new ArrayList<String>();
+    do {
+      qualifiers.add(qualifier.getReferencedName());
+      topElement=qualifier;
+    }
+ while ((qualifier=(JSReferenceExpression)qualifier.getQualifier()) != null);
+    element=resolveReferenceExpression(topElement,true);
+  }
+ else {
+    element=resolveReferenceExpression(expression,false);
+  }
+  if (element instanceof JSClass) {
+    if (qualifiers == null) {
+      writer.classReference(((JSClass)element).getQualifiedName());
+    }
+ else {
+      PsiElement possibleVariable=resolveReferenceExpression(expression,true);
+      if (possibleVariable instanceof JSVariable) {
+        JSVariable variable=(JSVariable)possibleVariable;
+        if (variable.isConst()) {
+          JSExpression initializer=((JSVariable)possibleVariable).getInitializer();
+          if (initializer != null) {
+            writeExpression(initializer,out,writer,valueReferenceResolver);
+            return;
+          }
+ else {
+            throw new InvalidPropertyException(expression,"const.without.initializer",expression.getText());
+          }
+        }
+      }
+      throw new UnsupportedOperationException(expression.getText());
+    }
+  }
+ else   if (element instanceof JSVariable) {
+    checkQualifier(expression);
+    VariableReference valueReference=valueReferenceResolver.getNullableValueReference((JSVariable)element);
+    if (valueReference != null) {
+      out.write(ExpressionMessageTypes.VARIABLE_REFERENCE);
+      valueReference.write(out,writer,valueReferenceResolver);
+    }
+ else {
+      writeJSVariable(((JSVariable)element),out,writer,valueReferenceResolver);
+    }
+  }
+ else   if (element instanceof JSFunction) {
+    writeFunction((JSFunction)element,writer,valueReferenceResolver,true);
+  }
+ else {
+    final String hostObjectId;
+    if (qualifiers == null) {
+      out.write(ExpressionMessageTypes.MXML_OBJECT_REFERENCE);
+      hostObjectId=expression.getReferencedName();
+    }
+ else {
+      out.write(ExpressionMessageTypes.MXML_OBJECT_CHAIN);
+      writer.classOrPropertyName(expression.getReferencedName());
+      for (int i=qualifiers.size() - 2; i >= 0; i--) {
+        writer.classOrPropertyName(qualifiers.get(i));
+      }
+      writer.endObject();
+      hostObjectId=qualifiers.get(qualifiers.size() - 1);
+    }
+    try {
+      valueReferenceResolver.getValueReference(hostObjectId).write(out,writer,valueReferenceResolver);
+    }
+ catch (    IllegalStateException ignored) {
+      throw new UnsupportedOperationException(expression.getText());
+    }
+  }
+}

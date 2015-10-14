@@ -1,0 +1,25 @@
+{
+  if (!(method.getParent() instanceof JSClass) || method.getParent() instanceof XmlBackedJSClassImpl)   return false;
+  JSClass clazz=(JSClass)method.getParent();
+  if (method.getName() == null)   return false;
+  if (flexUnit4Present && getCustomRunner(clazz) != null)   return true;
+  if (method.getAttributeList() == null)   return false;
+  if (method.getAttributeList().getAccessType() != JSAttributeList.AccessType.PUBLIC)   return false;
+  if (method.getKind() != JSFunction.FunctionKind.SIMPLE)   return false;
+  if (method.getAttributeList().hasModifier(JSAttributeList.ModifierType.STATIC))   return false;
+  if (ValidateTypesUtil.hasRequiredParameters(method))   return false;
+  if (isFlexUnit1Subclass(clazz)) {
+    if (!method.getName().startsWith("test"))     return false;
+  }
+ else   if (isFlunitSubclass(clazz)) {
+    if (!method.getName().startsWith("test") && method.getAttributeList().getAttributesByName(TEST_ATTRIBUTE).length == 0)     return false;
+  }
+ else {
+    if (!flexUnit4Present)     return false;
+    final JSType returnType=method.getReturnType();
+    if (returnType != null && !(returnType instanceof JSVoidType))     return false;
+    if (method.getAttributeList().getAttributesByName(IGNORE_ATTRIBUTE).length > 0)     return false;
+    if (method.getAttributeList().getAttributesByName(TEST_ATTRIBUTE).length == 0)     return false;
+  }
+  return true;
+}

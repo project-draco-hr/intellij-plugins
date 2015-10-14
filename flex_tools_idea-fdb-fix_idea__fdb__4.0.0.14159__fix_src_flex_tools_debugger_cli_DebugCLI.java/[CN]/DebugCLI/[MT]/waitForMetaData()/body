@@ -1,0 +1,16 @@
+{
+  int metadatatries=propertyGet(METADATA_ATTEMPTS);
+  int maxPerCall=8;
+  int tries=Math.min(maxPerCall,metadatatries);
+  if (tries > 0) {
+    int remain=metadatatries - tries;
+    try {
+      tries=waitForMetaData(tries);
+      remain=metadatatries - tries;
+    }
+ catch (    InProgressException ipe) {
+      propertyPut(METADATA_ATTEMPTS,remain);
+      throw ipe;
+    }
+  }
+}

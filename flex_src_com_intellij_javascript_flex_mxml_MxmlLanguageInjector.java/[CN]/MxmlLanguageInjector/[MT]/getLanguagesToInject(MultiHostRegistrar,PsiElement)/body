@@ -1,0 +1,71 @@
+{
+  if (!host.getContainingFile().getLanguage().isKindOf(MxmlLanguage.INSTANCE)) {
+    return;
+  }
+  if (host instanceof XmlAttributeValue) {
+    final PsiElement attribute=host.getParent();
+    final PsiElement tag=attribute.getParent();
+    if (attribute instanceof XmlAttribute && tag instanceof XmlTag) {
+      if (isFxPrivateTag((XmlTag)tag) || isInsideFxPrivateTag((XmlTag)tag)) {
+        return;
+      }
+      if (host.getTextLength() == 0)       return;
+      @NonNls String attrName=((XmlAttribute)attribute).getName();
+      if ("implements".equals(attrName)) {
+        TextRange range=new TextRange(1,host.getTextLength() - 1);
+        registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace("class Foo implements "," {}",(PsiLanguageInjectionHost)host,range).doneInjecting();
+      }
+ else       if ("source".equals(attrName) && FlexPredefinedTagNames.BINDING.equals(((XmlTag)tag).getLocalName()) && JavaScriptSupportLoader.isLanguageNamespace(((XmlTag)tag).getNamespace())&& !host.textContains('{')) {
+        TextRange range=new TextRange(1,host.getTextLength() - 1);
+        registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace(FUNCTION_CALL_PREFIX,FUNCTION_CALL_SUFFIX,(PsiLanguageInjectionHost)host,range).doneInjecting();
+      }
+ else       if (attrName.equals("expression") && "RegExpValidator".equals(((XmlTag)tag).getLocalName()) && regexpLanguage != null) {
+        String hostText=host.getText();
+        int startPos=hostText.indexOf('/');
+        int endPos=hostText.lastIndexOf('/');
+        if (startPos != -1) {
+          if (endPos > startPos) {
+            TextRange range=new TextRange(startPos + 1,endPos);
+            registrar.startInjecting(regexpLanguage).addPlace(null,null,(PsiLanguageInjectionHost)host,range).doneInjecting();
+          }
+        }
+ else {
+          injectInMxmlFile(registrar,host,((XmlAttribute)attribute).getDescriptor(),(XmlTag)tag);
+        }
+      }
+ else {
+        injectInMxmlFile(registrar,host,((XmlAttribute)attribute).getDescriptor(),(XmlTag)tag);
+      }
+    }
+  }
+ else   if (host instanceof XmlText) {
+    final PsiElement _tag=host.getParent();
+    if (_tag instanceof XmlTag) {
+      final XmlTag tag=(XmlTag)_tag;
+      if (isFxPrivateTag(tag) || isInsideFxPrivateTag(tag) || tag instanceof HtmlTag) {
+        return;
+      }
+      final @NonNls String localName=tag.getLocalName();
+      if ((XmlBackedJSClassImpl.SCRIPT_TAG_NAME.equals(localName) || FlexPredefinedTagNames.METADATA.equals(localName)) && tag.getAttributeValue("source") == null) {
+        JSLanguageInjector.injectToXmlText(registrar,host,JavaScriptSupportLoader.ECMA_SCRIPT_L4,null,null);
+      }
+ else       if (FlexPredefinedTagNames.STYLE.equals(localName) && FlexUtils.isMxmlNs(tag.getNamespace()) && cssLanguage != null) {
+        JSLanguageInjector.injectToXmlText(registrar,host,cssLanguage,null,null);
+      }
+ else       if (tag.getSubTags().length == 0) {
+        injectInMxmlFile(registrar,host,tag.getDescriptor(),tag);
+      }
+    }
+  }
+ else   if (host instanceof XmlComment) {
+    final String text=host.getText();
+    final String marker="<!---";
+    if (text.startsWith(marker)) {
+      final String marker2="-->";
+      int end=text.endsWith(marker2) ? host.getTextLength() - marker2.length() : host.getTextLength();
+      if (end < marker.length())       return;
+      TextRange range=new TextRange(marker.length(),end);
+      registrar.startInjecting(JavaScriptSupportLoader.ECMA_SCRIPT_L4).addPlace("/***","*/",(PsiLanguageInjectionHost)host,range).doneInjecting();
+    }
+  }
+}

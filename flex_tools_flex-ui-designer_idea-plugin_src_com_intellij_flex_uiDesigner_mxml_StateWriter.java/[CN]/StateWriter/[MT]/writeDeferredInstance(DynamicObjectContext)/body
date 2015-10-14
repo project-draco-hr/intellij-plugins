@@ -1,0 +1,25 @@
+{
+  PrimitiveAmfOutputStream out=writer.getOut();
+  if (instance.isWritten()) {
+    writeDeferredInstanceKind(AmfExtendedTypes.OBJECT_REFERENCE,instance);
+    out.writeUInt29(instance.id);
+  }
+ else {
+    if (instance.overrideUserCount > 0) {
+      instance.getOrAllocateId();
+    }
+    if (instance.id == -1) {
+      writeDeferredInstanceKind(ObjectMetadata.NEVER_REFERRED,instance);
+    }
+ else {
+      writeDeferredInstanceKind(ObjectMetadata.REFERRED,instance);
+      instance.markAsWritten();
+    }
+    out.writeUInt29(BlockDataOutputStream.getDataRangeOwnLength(instance.getDataRange()) + 2);
+    out.writeShort(instance.getReferredObjectsCount());
+    writer.getBlockOut().append(instance.getDataRange());
+    if (instance.id != -1) {
+      out.writeUInt29(instance.id);
+    }
+  }
+}

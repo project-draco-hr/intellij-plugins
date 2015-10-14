@@ -1,0 +1,37 @@
+{
+  return new DataIndexer<String,Set<FlexStyleIndexInfo>,FileContent>(){
+    @Override @NotNull public Map<String,Set<FlexStyleIndexInfo>> map(    @NotNull FileContent inputData){
+      final THashMap<String,Set<FlexStyleIndexInfo>> map=new THashMap<String,Set<FlexStyleIndexInfo>>();
+      if (JavaScriptSupportLoader.isFlexMxmFile(inputData.getFileName())) {
+        PsiFile file=inputData.getPsiFile();
+        VirtualFile virtualFile=inputData.getFile();
+        if (file instanceof XmlFile) {
+          indexMxmlFile((XmlFile)file,virtualFile,map);
+        }
+      }
+ else {
+        StubTree tree=JSPackageIndex.getStubTree(inputData);
+        if (tree != null) {
+          for (          StubElement e : tree.getPlainList()) {
+            if (e instanceof JSClassStub) {
+              final PsiElement psiElement=e.getPsi();
+              if (psiElement instanceof JSClass) {
+                final String qName=((JSClass)psiElement).getQualifiedName();
+                indexAttributes(psiElement,qName,true,map);
+              }
+            }
+ else             if (e instanceof PsiFileStub) {
+              PsiElement psiElement=e.getPsi();
+              if (psiElement instanceof JSFile) {
+                String name=((JSFile)psiElement).getName();
+                indexAttributes(psiElement,name,false,map);
+              }
+            }
+          }
+        }
+      }
+      return map;
+    }
+  }
+;
+}

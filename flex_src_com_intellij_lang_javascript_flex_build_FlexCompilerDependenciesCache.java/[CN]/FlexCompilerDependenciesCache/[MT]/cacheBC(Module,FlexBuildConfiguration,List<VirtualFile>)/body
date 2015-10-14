@@ -1,0 +1,41 @@
+{
+  Collection<BCInfo> infosForModule=myCache.get(module);
+  if (infosForModule == null) {
+    infosForModule=new ArrayList<BCInfo>();
+    myCache.put(module,infosForModule);
+  }
+ else {
+    final BCInfo existingInfo=findCacheForBC(infosForModule,bc);
+    if (existingInfo != null) {
+      infosForModule.remove(existingInfo);
+    }
+  }
+  final VirtualFile outputFile=FlexCompilationManager.refreshAndFindFileInWriteAction(bc.getActualOutputFilePath());
+  if (outputFile == null)   return;
+  final BCInfo bcInfo=new BCInfo(Factory.getCopy(bc),ModuleRootManager.getInstance(module).getSourceRootUrls());
+  infosForModule.add(bcInfo);
+  bcInfo.addFileDependency(outputFile.getPath());
+  final String workDirPath=FlexUtils.getFlexCompilerWorkDirPath(module.getProject(),null);
+  for (  VirtualFile configFile : configFiles) {
+    addFileDependencies(bcInfo,configFile,workDirPath);
+  }
+  if (bc.isTempBCForCompilation() && !bc.getCompilerOptions().getAdditionalConfigFilePath().isEmpty()) {
+    bcInfo.addFileDependency(bc.getCompilerOptions().getAdditionalConfigFilePath());
+  }
+  final BuildConfigurationNature nature=bc.getNature();
+  if (nature.isApp() && !nature.isWebPlatform()) {
+    if (nature.isDesktopPlatform()) {
+      if (!bc.getAirDesktopPackagingOptions().isUseGeneratedDescriptor()) {
+        bcInfo.addFileDependency(bc.getAirDesktopPackagingOptions().getCustomDescriptorPath());
+      }
+    }
+ else {
+      if (bc.getAndroidPackagingOptions().isEnabled() && !bc.getAndroidPackagingOptions().isUseGeneratedDescriptor()) {
+        bcInfo.addFileDependency(bc.getAndroidPackagingOptions().getCustomDescriptorPath());
+      }
+      if (bc.getIosPackagingOptions().isEnabled() && !bc.getIosPackagingOptions().isUseGeneratedDescriptor()) {
+        bcInfo.addFileDependency(bc.getIosPackagingOptions().getCustomDescriptorPath());
+      }
+    }
+  }
+}

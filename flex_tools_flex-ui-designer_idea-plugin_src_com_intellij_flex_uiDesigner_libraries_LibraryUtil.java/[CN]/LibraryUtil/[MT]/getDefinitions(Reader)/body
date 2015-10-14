@@ -1,0 +1,23 @@
+{
+  final THashSet<CharSequence> set=new THashSet<CharSequence>(512,AbcTranscoder.HASHING_STRATEGY);
+  NanoXmlUtil.parse(reader,new NanoXmlUtil.IXMLBuilderAdapter(){
+    private boolean processingDef;
+    @Override public void startElement(    String name,    String nsPrefix,    String nsURI,    String systemID,    int lineNr) throws Exception {
+      if (name.equals("def")) {
+        processingDef=true;
+      }
+    }
+    @Override public void endElement(    String name,    String nsPrefix,    String nsURI) throws Exception {
+      if (name.equals("def")) {
+        processingDef=false;
+      }
+    }
+    @Override public void addAttribute(    String name,    String nsPrefix,    String nsURI,    String value,    String type) throws Exception {
+      if (processingDef && name.equals("id")) {
+        set.add(value);
+      }
+    }
+  }
+);
+  return set;
+}

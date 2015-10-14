@@ -1,0 +1,46 @@
+{
+  if (isPrivateAttribute(attributeName,context)) {
+    return new AnyXmlAttributeDescriptor(attributeName);
+  }
+  if (context != null && context.getParent() instanceof XmlDocument) {
+    if (FlexMxmlLanguageAttributeNames.ID.equals(attributeName) || ArrayUtil.contains(attributeName,CodeContext.GUMBO_ATTRIBUTES)) {
+      return null;
+    }
+  }
+  PsiElement element=getDeclaration();
+  if (element == null)   return null;
+  attributeName=skipStateNamePart(attributeName);
+  ensureDescriptorsMapsInitialized(element,null);
+  AnnotationBackedDescriptor descriptor=myDescriptors.get(attributeName);
+  if (descriptor == null && context != null) {
+    final String prefix=context.getNamespacePrefix();
+    if (StringUtil.isNotEmpty(prefix) && attributeName.startsWith(prefix + ":")) {
+      descriptor=myDescriptors.get(attributeName.substring(prefix.length() + 1));
+    }
+  }
+  if (descriptor == null && context != null && !myPackageToInternalDescriptors.isEmpty()) {
+    final String contextPackage=JSResolveUtil.getPackageNameFromPlace(context);
+    final Map<String,AnnotationBackedDescriptor> internalDescriptors=myPackageToInternalDescriptors.get(contextPackage);
+    if (internalDescriptors != null) {
+      descriptor=internalDescriptors.get(attributeName);
+    }
+  }
+  if (descriptor == null && myPredefinedDescriptors != null) {
+    descriptor=myPredefinedDescriptors.get(attributeName);
+  }
+  if (descriptor == null) {
+    if (IMPLEMENTS_ATTR_NAME.equals(attributeName) && context != null) {
+      final PsiElement parent=context.getParent();
+      if (parent instanceof XmlDocument || (parent instanceof XmlTag && MxmlLanguageTagsUtil.isComponentTag((XmlTag)parent))) {
+        descriptor=new AnnotationBackedDescriptorImpl(IMPLEMENTS_ATTR_NAME,this,true,null,null,null);
+      }
+    }
+ else     if (XmlBackedJSClassImpl.CLASS_NAME_ATTRIBUTE_NAME.equals(attributeName) && MxmlLanguageTagsUtil.isComponentTag(context)) {
+      descriptor=new ClassNameAttributeDescriptor(this);
+    }
+ else     if (!predefined && !FlexMxmlLanguageAttributeNames.ID.equals(attributeName) && !MxmlLanguageTagsUtil.isXmlOrXmlListTag(context)&& isDynamicClass(element)) {
+      return new AnyXmlAttributeDescriptor(attributeName);
+    }
+  }
+  return descriptor;
+}

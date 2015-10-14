@@ -1,0 +1,21 @@
+{
+  initResultFile();
+  int assetId=reader.readUnsignedShort();
+  EmbedAssetInfo assetInfo=isSwf ? EmbedSwfManager.getInstance().getInfo(assetId) : EmbedImageManager.getInstance().getInfo(assetId);
+  ByteArrayOutputStreamEx byteOut=new ByteArrayOutputStreamEx(1024);
+  PrimitiveAmfOutputStream out=new PrimitiveAmfOutputStream(byteOut);
+  Client.writeVirtualFile(assetInfo.file,out);
+  out.writeNullableString(assetInfo instanceof SwfAssetInfo ? ((SwfAssetInfo)assetInfo).symbolName : null);
+  FileOutputStream fileOut=new FileOutputStream(resultFile);
+  try {
+    byteOut.writeTo(fileOut);
+  }
+ catch (  IOException e) {
+    LOG.error(LogMessageUtil.createEvent(FlashUIDesignerBundle.message("problem.opening.0",assetInfo.file.getName()),ExceptionUtil.getThrowableText(e),assetInfo.file));
+    fileOut.getChannel().truncate(0);
+  }
+ finally {
+    out.close();
+    fileOut.close();
+  }
+}

@@ -1,0 +1,32 @@
+{
+  return new ProjectModifiableModelProvider(){
+    public Module[] getModules(){
+      final Set<Module> modules=moduleToModifiableModel.keySet();
+      return modules.toArray(new Module[modules.size()]);
+    }
+    public ModifiableRootModel getModuleModifiableModel(    final Module module){
+      final ModifiableRootModel model=moduleToModifiableModel.get(module);
+      LOG.assertTrue(model != null,"No model for module " + module.getName());
+      return model;
+    }
+    public void addListener(    final FlexBCConfigurator.Listener listener,    final Disposable parentDisposable){
+    }
+    public void commitModifiableModels() throws ConfigurationException {
+    }
+    @Nullable public Library findSourceLibrary(    final String name,    final String level){
+      if (LibraryTablesRegistrar.APPLICATION_LEVEL.equals(level)) {
+        return globalLibrariesModel.getLibraryByName(name);
+      }
+ else       if (LibraryTablesRegistrar.PROJECT_LEVEL.equals(level)) {
+        LOG.assertTrue(projectLibrariesModel != null);
+        return projectLibrariesModel.getLibraryByName(name);
+      }
+      LOG.error("Unexpected argument: " + level);
+      return null;
+    }
+    public Library findSourceLibraryForLiveName(    final String name,    final String level){
+      return findSourceLibrary(name,level);
+    }
+  }
+;
+}

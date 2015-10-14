@@ -1,0 +1,21 @@
+{
+  final VirtualFile virtualFile=componentName.getContainingFile().getVirtualFile();
+  if (virtualFile == null || !virtualFile.isInLocalFileSystem()) {
+    return null;
+  }
+  final List<DartServerData.DartOverrideMember> overrideMembers=DartAnalysisServerService.getInstance().getOverrideMembers(virtualFile);
+  final Project project=componentName.getProject();
+  DartComponent superclassComponent=null;
+  List<DartComponent> interfaceComponents=Lists.newArrayList();
+  for (  DartServerData.DartOverrideMember overrideMember : overrideMembers) {
+    if (overrideMember.getOffset() == componentName.getTextOffset()) {
+      superclassComponent=findDartComponent(project,overrideMember.getSuperclassMember());
+      if (overrideMember.getInterfaceMembers() != null) {
+        for (        OverriddenMember overriddenMember : overrideMember.getInterfaceMembers()) {
+          addDartComponent(interfaceComponents,project,overriddenMember);
+        }
+      }
+    }
+  }
+  return tryCreateOverrideMarker(componentName,superclassComponent,interfaceComponents);
+}

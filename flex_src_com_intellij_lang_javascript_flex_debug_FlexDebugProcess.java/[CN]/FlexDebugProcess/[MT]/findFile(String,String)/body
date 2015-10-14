@@ -1,0 +1,24 @@
+{
+  final String packagePath=packageName.replace('.','/');
+  final Collection<String> paths=myKnownFilesInfo.getPathsByName(myCurrentWorker,fileName);
+  if (paths != null) {
+    for (    final String path : paths) {
+      final String folderPath=PathUtil.getParentPath(path);
+      if (folderPath.endsWith(packagePath)) {
+        final VirtualFile file=LocalFileFinder.findFile(path);
+        if (file != null) {
+          return getThisOrSimilarFileInProject(file,packageName);
+        }
+      }
+    }
+  }
+  final GlobalSearchScope bcScopeBase=FlexUtils.getModuleWithDependenciesAndLibrariesScope(myModule,myBC,isFlexUnit());
+  final GlobalSearchScope bcScope=uniteWithLibrarySourcesOfBC(bcScopeBase,myModule,myBC,new THashSet<FlexBuildConfiguration>());
+  Collection<VirtualFile> files=getFilesByName(getSession().getProject(),bcScope,fileName);
+  VirtualFile file=getFileMatchingPackageName(getSession().getProject(),files,packageName);
+  if (file == null) {
+    files=getFilesByName(getSession().getProject(),GlobalSearchScope.allScope(getSession().getProject()),fileName);
+    file=getFileMatchingPackageName(getSession().getProject(),files,packageName);
+  }
+  return file != null ? file : findFile(fileName);
+}

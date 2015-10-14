@@ -1,0 +1,19 @@
+{
+  getObject(isolateId,libraryId,new GetObjectConsumer(){
+    @Override public void onError(    RPCError error){
+      consumer.onError(error);
+    }
+    @Override public void received(    Obj response){
+      if (response instanceof Library) {
+        consumer.received((Library)response);
+      }
+ else {
+        onError(RPCError.unexpected("Library",response));
+      }
+    }
+    @Override public void received(    Sentinel response){
+      onError(RPCError.unexpected("Library",response));
+    }
+  }
+);
+}

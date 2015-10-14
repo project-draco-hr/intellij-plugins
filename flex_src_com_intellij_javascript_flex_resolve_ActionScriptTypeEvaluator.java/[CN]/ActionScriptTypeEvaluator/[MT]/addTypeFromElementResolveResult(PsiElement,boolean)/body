@@ -1,0 +1,38 @@
+{
+  if (resolveResult instanceof JSOffsetBasedImplicitElement && JavaScriptSupportLoader.isFlexMxmFile(resolveResult.getContainingFile())) {
+    resolveResult=((JSOffsetBasedImplicitElement)resolveResult).getElementAtOffset();
+  }
+  if (resolveResult instanceof XmlToken) {
+    final XmlToken xmlToken=(XmlToken)resolveResult;
+    final XmlAttribute xmlAttribute=PsiTreeUtil.getParentOfType(xmlToken,XmlAttribute.class);
+    final XmlTag xmlTag=PsiTreeUtil.getParentOfType(xmlToken,XmlTag.class);
+    if (xmlToken.getTokenType() == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN && xmlAttribute != null && "id".equals(xmlAttribute.getName()) && xmlTag != null && isInsideRepeaterTag(xmlTag)) {
+      final PsiElement arrayClass=ActionScriptClassResolver.findClassByQNameStatic(ARRAY_CLASS_NAME,xmlToken);
+      if (arrayClass != null) {
+        final String arrayType=new BaseJSSymbolProcessor.TagContextBuilder(resolveResult,null).typeName;
+        JSTypeSource source=JSTypeSourceFactory.createTypeSource(resolveResult);
+        JSType type;
+        if (arrayType != null) {
+          JSType baseType=JSNamedType.createType(arrayType,source,JSContext.INSTANCE);
+          type=new JSArrayTypeImpl(baseType,source);
+        }
+ else {
+          type=new JSPrimitiveArrayType(source,JSTypeContext.INSTANCE);
+        }
+        addType(type,arrayClass);
+      }
+    }
+ else {
+      final XmlTag tag=PsiTreeUtil.getParentOfType(resolveResult,XmlTag.class,false);
+      final JSClass clazz=JSResolveUtil.getClassFromTagNameInMxml(tag);
+      if (clazz != null) {
+        final String name=clazz.getQualifiedName();
+        if (name != null) {
+          addType(name,clazz);
+        }
+      }
+    }
+    return hasSomeType;
+  }
+  return super.addTypeFromElementResolveResult(resolveResult,hasSomeType);
+}

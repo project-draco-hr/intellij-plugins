@@ -1,0 +1,18 @@
+{
+  final Map<TodoIndexEntry,Integer> map=new THashMap<TodoIndexEntry,Integer>(super.map(inputData));
+  FlexXmlBackedMembersIndex.visitScriptTagInjectedFilesForIndexing((XmlFile)inputData.getPsiFile(),new JSResolveUtil.JSInjectedFilesVisitor(){
+    @Override protected void process(    JSFile file){
+      VirtualFile injectedFile=file.getViewProvider().getVirtualFile();
+      final DataIndexer<TodoIndexEntry,Integer,FileContent> indexer=PlatformIdTableBuilding.getTodoIndexer(file.getFileType(),injectedFile);
+      if (indexer != null) {
+        Map<TodoIndexEntry,Integer> injectedMap=indexer.map(new FileContentImpl(injectedFile,file.getText(),null));
+        for (        Map.Entry<TodoIndexEntry,Integer> e : injectedMap.entrySet()) {
+          Integer integer=map.get(e.getKey());
+          map.put(e.getKey(),integer == null ? e.getValue() : e.getValue() + integer);
+        }
+      }
+    }
+  }
+,false);
+  return map;
+}

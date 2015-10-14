@@ -1,0 +1,31 @@
+{
+  if (element == null) {
+    return null;
+  }
+  if (element instanceof PsiElement) {
+    if (((PsiElement)element).getProject().isDisposed()) {
+      return null;
+    }
+    if (element instanceof JSQualifiedNamedElement) {
+      JSQualifiedNamedElement qualifiedNamedElement=(JSQualifiedNamedElement)element;
+      String qName=qualifiedNamedElement.getQualifiedName();
+      if (qName == null)       return null;
+      return combineWithModuleName(qualifiedNamedElement,fixVectorTypeName(qName));
+    }
+ else     if (element instanceof JSFile) {
+      return getQualifiedNameStatic(JSPsiImplUtils.findQualifiedElement((JSFile)element));
+    }
+ else     if (element instanceof XmlFile && JavaScriptSupportLoader.isFlexMxmFile((PsiFile)element)) {
+      return getQualifiedNameStatic(XmlBackedJSClassFactory.getXmlBackedClass((XmlFile)element));
+    }
+ else     if (element instanceof PsiDirectory) {
+      PsiDirectory directory=(PsiDirectory)element;
+      return JSResolveUtil.getExpectedPackageNameFromFile(directory.getVirtualFile(),directory.getProject());
+    }
+  }
+ else   if (element instanceof String) {
+    return (String)element;
+  }
+  LOG.error("can't get qualified name of " + element);
+  return null;
+}

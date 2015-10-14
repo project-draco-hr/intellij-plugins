@@ -1,0 +1,30 @@
+{
+  final List<DeviceInfo> result=new ArrayList<DeviceInfo>();
+  ExternalTask.runWithProgress(new ExternalTask(project,sdk){
+    protected List<String> createCommandLine(){
+      final ArrayList<String> command=new ArrayList<String>();
+      command.add(sdk.getHomePath() + AirPackageUtil.ADB_RELATIVE_PATH);
+      command.add("devices");
+      return command;
+    }
+    protected boolean checkMessages(){
+      if (myMessages.size() < 2)       return true;
+      if (!myMessages.get(0).trim().contains("List of devices attached"))       return true;
+      for (int i=1; i < myMessages.size(); i++) {
+        final String line=myMessages.get(i).trim();
+        if (!line.isEmpty()) {
+          final int index=StringUtil.indexOfAny(line," \t");
+          if (index > 0) {
+            result.add(new DeviceInfo(-1,null,line.substring(0,index),line.substring(index).trim()));
+          }
+ else {
+            result.add(new DeviceInfo(-1,null,line,"unnamed"));
+          }
+        }
+      }
+      return true;
+    }
+  }
+,"Looking for Android devices","Looking for Android devices");
+  return result;
+}

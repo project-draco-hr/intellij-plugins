@@ -1,0 +1,40 @@
+{
+  ModuleSettings moduleSettings=myContext.getModuleSettings(moduleName);
+  if (moduleSettings == null)   return Collections.emptyList();
+  if (FlexModuleConverter.isFlexModule(moduleSettings)) {
+    Element flexBuildConfigurationElement=moduleSettings.getComponentElement(FlexBuildConfiguration.COMPONENT_NAME);
+    if (flexBuildConfigurationElement != null) {
+      FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(flexBuildConfigurationElement,FlexBuildConfiguration.class);
+      if (oldConfiguration != null && FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+        return Collections.singletonList(FlexModuleConverter.generateModuleBcName(moduleSettings));
+      }
+    }
+ else {
+      Element buildConfigManagerElement=moduleSettings.getComponentElement(FlexBuildConfigurationManagerImpl.COMPONENT_NAME);
+      if (buildConfigManagerElement != null) {
+        FlexBuildConfigurationManagerImpl.State s=XmlSerializer.deserialize(buildConfigManagerElement,FlexBuildConfigurationManagerImpl.State.class);
+        return ContainerUtil.mapNotNull(s.CONFIGURATIONS,new Function<FlexBuildConfigurationState,String>(){
+          @Nullable @Override public String fun(          final FlexBuildConfigurationState bcState){
+            return bcState.OUTPUT_TYPE == OutputType.Library ? bcState.NAME : null;
+          }
+        }
+);
+      }
+    }
+    return Collections.emptyList();
+  }
+  final List<Element> facets=FlexModuleConverter.getFlexFacets(moduleSettings);
+  return ContainerUtil.mapNotNull(facets,new Function<Element,String>(){
+    @Nullable @Override public String fun(    Element facet){
+      Element oldConfigurationElement=facet.getChild(JpsFacetSerializer.CONFIGURATION_TAG);
+      if (oldConfigurationElement != null) {
+        FlexBuildConfiguration oldConfiguration=XmlSerializer.deserialize(oldConfigurationElement,FlexBuildConfiguration.class);
+        if (oldConfiguration != null && FlexBuildConfiguration.LIBRARY.equals(oldConfiguration.OUTPUT_TYPE)) {
+          return FlexModuleConverter.generateFacetBcName(facets,facet);
+        }
+      }
+      return null;
+    }
+  }
+);
+}

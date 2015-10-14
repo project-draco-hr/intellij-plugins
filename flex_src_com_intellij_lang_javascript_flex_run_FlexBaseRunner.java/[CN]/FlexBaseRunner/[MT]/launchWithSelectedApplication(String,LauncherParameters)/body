@@ -1,0 +1,52 @@
+{
+switch (launcherParams.getLauncherType()) {
+case OSDefault:
+    BrowserUtil.open(urlOrPath);
+  break;
+case Browser:
+final Runnable runnable1=new Runnable(){
+  @Override public void run(){
+    BrowserLauncher.getInstance().browse(BrowserUtil.isAbsoluteURL(urlOrPath) ? urlOrPath : VfsUtilCore.pathToUrl(urlOrPath),launcherParams.getBrowser());
+  }
+}
+;
+final Application application1=ApplicationManager.getApplication();
+if (application1.isDispatchThread()) {
+runnable1.run();
+}
+ else {
+application1.invokeLater(runnable1);
+}
+break;
+case Player:
+try {
+if (SystemInfo.isMac) {
+if (launcherParams.isNewPlayerInstance()) {
+Runtime.getRuntime().exec(new String[]{ExecUtil.getOpenCommandPath(),"-n","-a",launcherParams.getPlayerPath(),urlOrPath});
+}
+ else {
+Runtime.getRuntime().exec(new String[]{ExecUtil.getOpenCommandPath(),"-a",launcherParams.getPlayerPath(),urlOrPath});
+}
+}
+ else {
+Runtime.getRuntime().exec(new String[]{launcherParams.getPlayerPath(),urlOrPath});
+}
+}
+ catch (final IOException e) {
+final Runnable runnable2=new Runnable(){
+@Override public void run(){
+Messages.showErrorDialog(FlexBundle.message("cant.launch",urlOrPath,launcherParams.getPlayerPath(),e.getMessage()),CommonBundle.getErrorTitle());
+}
+}
+;
+final Application application2=ApplicationManager.getApplication();
+if (application2.isDispatchThread()) {
+runnable2.run();
+}
+ else {
+application2.invokeLater(runnable2);
+}
+}
+break;
+}
+}

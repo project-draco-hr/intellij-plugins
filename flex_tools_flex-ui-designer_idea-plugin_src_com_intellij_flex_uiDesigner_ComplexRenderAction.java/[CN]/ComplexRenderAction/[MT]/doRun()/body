@@ -1,0 +1,16 @@
+{
+  renderDocumentsAndCheckLocalStyleModification(result);
+  result.doWhenDone(new Consumer<List<DocumentFactoryManager.DocumentInfo>>(){
+    @Override public void consume(    List<DocumentFactoryManager.DocumentInfo> infos){
+      Application application=ApplicationManager.getApplication();
+      if (application.isDisposed()) {
+        return;
+      }
+      MessageBus messageBus=application.getMessageBus();
+      for (      DocumentFactoryManager.DocumentInfo info : infos) {
+        messageBus.syncPublisher(DesignerApplicationManager.MESSAGE_TOPIC).documentRendered(info);
+      }
+    }
+  }
+);
+}

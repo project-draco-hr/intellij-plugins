@@ -1,7 +1,17 @@
 {
   if (xmlTag != null) {
-    final Project project=xmlTag.getProject();
     final Map<String,XmlAttributeDescriptor> result=new LinkedHashMap<String,XmlAttributeDescriptor>();
+    final Project project=xmlTag.getProject();
+    final XmlElementDescriptor descriptor=xmlTag.getDescriptor();
+    if (descriptor instanceof HtmlElementDescriptorImpl && AngularIndexUtil.hasAngularJS2(project)) {
+      final XmlAttributeDescriptor[] descriptors=((HtmlElementDescriptorImpl)descriptor).getDefaultAttributeDescriptors(xmlTag);
+      for (      XmlAttributeDescriptor attributeDescriptor : descriptors) {
+        final String name=attributeDescriptor.getName();
+        if (name.startsWith("on")) {
+          addAttributes(project,result,"(" + name.substring(2) + ")");
+        }
+      }
+    }
     final Collection<String> docDirectives=AngularIndexUtil.getAllKeys(AngularDirectivesDocIndex.KEY,project);
     for (    String directiveName : docDirectives) {
       if (isApplicable(project,directiveName,xmlTag,AngularDirectivesDocIndex.KEY) == ThreeState.YES) {

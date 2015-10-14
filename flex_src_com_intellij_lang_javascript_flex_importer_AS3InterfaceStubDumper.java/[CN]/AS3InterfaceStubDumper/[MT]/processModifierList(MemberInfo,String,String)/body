@@ -1,0 +1,39 @@
+{
+  StringTokenizer tokenizer=new StringTokenizer(attr," ");
+  List<JSAttributeList.ModifierType> modifiers=new SmartList<JSAttributeList.ModifierType>();
+  JSAttributeList.AccessType accessType=null;
+  String ns=null;
+  while (tokenizer.hasMoreTokens()) {
+    String next=tokenizer.nextToken();
+    boolean foundModifier=false;
+    for (    JSAttributeList.AccessType type : ourAccessTypes) {
+      if (next.equalsIgnoreCase(type.name())) {
+        accessType=type;
+        foundModifier=true;
+        break;
+      }
+    }
+    if (!foundModifier) {
+      for (      JSAttributeList.ModifierType type : ourModifierTypes) {
+        if (next.equalsIgnoreCase(type.name())) {
+          modifiers.add(type);
+          foundModifier=true;
+          break;
+        }
+      }
+    }
+    if (!foundModifier)     ns=next;
+  }
+  Traits parentTraits=memberInfo.parentTraits;
+  if (parentTraits.staticTrait != null) {
+    parentTraits=parentTraits.staticTrait;
+  }
+  String resolvedNs=null;
+  if (parentTraits.usedNamespacesToNamesMap != null) {
+    List<String> keysByValue=parentTraits.usedNamespacesToNamesMap.getKeysByValue(ns);
+    resolvedNs=keysByValue != null && keysByValue.size() > 0 ? keysByValue.get(0) : null;
+  }
+  parents.add(new JSAttributeListStubImpl(parents.getLast(),ns,resolvedNs,accessType,modifiers.toArray(new JSAttributeList.ModifierType[modifiers.size()])));
+  super.processModifierList(memberInfo,attr,indent);
+  parents.removeLast();
+}

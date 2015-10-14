@@ -1,0 +1,19 @@
+{
+  java.lang.management.ThreadMXBean th=ManagementFactory.getThreadMXBean();
+  ThreadInfo[] thInfos=th.getThreadInfo(th.getAllThreadIds(),Integer.MAX_VALUE);
+  instrumentation.metric("threads-count",thInfos.length);
+  for (  ThreadInfo thInfo : thInfos) {
+    if (thInfo == null) {
+      instrumentation.metric("Thread-Name","<unknown>");
+      continue;
+    }
+    instrumentation.metric("Thread-Name",thInfo.getThreadName());
+    instrumentation.metric("Thread-ID",thInfo.getThreadId());
+    instrumentation.metric("Thread-State",thInfo.getThreadState().toString());
+    instrumentation.metric("Blocked-Count",thInfo.getBlockedCount());
+    instrumentation.metric("Blocked-Time",thInfo.getBlockedTime());
+    instrumentation.metric("Waited-Count",thInfo.getWaitedCount());
+    instrumentation.metric("Waited-Time",thInfo.getWaitedTime());
+    instrumentation.data("Thread-ST",Base64.encodeBytes(stackTraceToString(thInfo.getStackTrace()).getBytes()));
+  }
+}

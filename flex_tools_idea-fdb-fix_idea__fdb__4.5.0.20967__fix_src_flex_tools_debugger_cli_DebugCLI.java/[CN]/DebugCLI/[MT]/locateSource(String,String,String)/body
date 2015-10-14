@@ -1,0 +1,29 @@
+{
+  File f=null;
+  boolean exists=false;
+  String pkgPlusName;
+  if ((pkg != null && pkg.length() > 0))   pkgPlusName=pkg + File.separator + name;
+ else   pkgPlusName=null;
+  Iterator<String> iter=m_sourceDirectories.iterator();
+  while (iter.hasNext()) {
+    String dir=iter.next();
+    if (dir.equals(""))     dir=".";
+    if (pkgPlusName != null) {
+      f=new File(dir,pkgPlusName);
+      exists=f.exists();
+    }
+    if (!exists) {
+      f=new File(dir,name);
+      exists=f.exists();
+    }
+    if (exists) {
+      try {
+        return new FileInputStream(f);
+      }
+ catch (      FileNotFoundException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  return null;
+}

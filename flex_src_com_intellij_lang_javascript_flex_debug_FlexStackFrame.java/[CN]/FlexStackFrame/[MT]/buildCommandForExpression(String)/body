@@ -1,0 +1,26 @@
+{
+  if (_expression.indexOf('=') != -1) {
+    String evalCommand=ApplicationManager.getApplication().runReadAction(new Computable<String>(){
+      @Override public String compute(){
+        final PsiFile fromText=PsiFileFactory.getInstance(myDebugProcess.getSession().getProject()).createFileFromText("A.js2",JavaScriptSupportLoader.ECMA_SCRIPT_L4,_expression);
+        final PsiElement[] elements=fromText.getChildren();
+        if (elements.length == 1 && elements[0] instanceof JSExpressionStatement) {
+          final JSExpression expression=((JSExpressionStatement)elements[0]).getExpression();
+          if (expression instanceof JSAssignmentExpression) {
+            JSAssignmentExpression expr=(JSAssignmentExpression)expression;
+            final JSExpression lOperand=expr.getLOperand();
+            final String lOperandText=lOperand == null ? null : lOperand.getText();
+            final JSExpression rOperand=expr.getROperand();
+            if (lOperandText != null && rOperand != null) {
+              return addFrameOffset("set " + lOperandText + " = "+ rOperand.getText()+ "\nprint "+ lOperandText);
+            }
+          }
+        }
+        return null;
+      }
+    }
+);
+    if (evalCommand != null)     return evalCommand;
+  }
+  return addFrameOffset("print " + _expression);
+}

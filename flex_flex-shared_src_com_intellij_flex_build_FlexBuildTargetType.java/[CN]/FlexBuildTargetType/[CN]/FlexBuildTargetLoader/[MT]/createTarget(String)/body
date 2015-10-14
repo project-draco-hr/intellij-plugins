@@ -1,0 +1,29 @@
+{
+  final JpsProject project=myModel.getProject();
+  final Pair<String,String> runConfigTypeIdAndName=FlexCommonUtils.getRunConfigTypeIdAndNameByBuildTargetId(buildTargetId);
+  if (runConfigTypeIdAndName != null) {
+    final String runConfigTypeId=runConfigTypeIdAndName.first;
+    final String runConfigName=runConfigTypeIdAndName.second;
+    if (JpsFlashRunConfigurationType.ID.equals(runConfigTypeId)) {
+      return FlexBuildTarget.create(project,JpsFlashRunConfigurationType.INSTANCE,runConfigName);
+    }
+ else     if (JpsFlexUnitRunConfigurationType.ID.equals(runConfigTypeId)) {
+      return FlexBuildTarget.create(project,JpsFlexUnitRunConfigurationType.INSTANCE,runConfigName);
+    }
+  }
+ else {
+    final Trinity<String,String,Boolean> moduleAndBCNameAndForcedDebugStatus=FlexCommonUtils.getModuleAndBCNameAndForcedDebugStatusByBuildTargetId(buildTargetId);
+    if (moduleAndBCNameAndForcedDebugStatus != null) {
+      final String moduleName=moduleAndBCNameAndForcedDebugStatus.first;
+      final String bcName=moduleAndBCNameAndForcedDebugStatus.second;
+      final Boolean forcedDebugStatus=moduleAndBCNameAndForcedDebugStatus.third;
+      for (      JpsTypedModule<JpsFlexBuildConfigurationManager> module : project.getModules(JpsFlexModuleType.INSTANCE)) {
+        if (module.getName().equals(moduleName)) {
+          final JpsFlexBuildConfiguration bc=module.getProperties().findConfigurationByName(bcName);
+          return bc != null ? FlexBuildTarget.create(bc,forcedDebugStatus) : null;
+        }
+      }
+    }
+  }
+  return null;
+}

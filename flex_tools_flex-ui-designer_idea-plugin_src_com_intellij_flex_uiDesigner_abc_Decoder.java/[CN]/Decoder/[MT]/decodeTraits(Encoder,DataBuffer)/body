@@ -1,0 +1,28 @@
+{
+  int count=in.readU32();
+  visitor.traitCount(count);
+  for (int i=0; i < count; i++) {
+    int name=in.readU32();
+    int kind=in.readU8();
+    int valueId;
+switch (kind & 0x0f) {
+case TRAIT_Var:
+case TRAIT_Const:
+      visitor.slotTrait(kind,name,in.readU32(),in.readU32(),(valueId=in.readU32()),valueId != 0 ? in.readU8() : 0,decodeTraitsMetadata(kind,in),in);
+    break;
+case TRAIT_Method:
+case TRAIT_Getter:
+case TRAIT_Setter:
+  visitor.methodTrait(kind,name,in.readU32(),in.readU32(),decodeTraitsMetadata(kind,in),in);
+break;
+case TRAIT_Class:
+visitor.classTrait(kind,name,in.readU32(),in.readU32(),decodeTraitsMetadata(kind,in));
+break;
+case TRAIT_Function:
+visitor.functionTrait(kind,name,in.readU32(),in.readU32(),decodeTraitsMetadata(kind,in));
+break;
+default :
+throw new DecoderException("Unknown trait kind " + kind);
+}
+}
+}

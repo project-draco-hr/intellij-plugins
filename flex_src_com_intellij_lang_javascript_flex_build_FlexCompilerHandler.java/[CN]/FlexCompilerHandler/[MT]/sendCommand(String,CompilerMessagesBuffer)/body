@@ -1,0 +1,20 @@
+{
+  trace(TraceType.IN,command);
+  messagesBuffer.addMessage(CompilerMessageCategory.INFORMATION,command,null,-1,-1);
+  if (processIsAlive()) {
+    is.write((command + "\n").getBytes());
+    is.flush();
+    final Runnable runnable=new Runnable(){
+      public void run(){
+        if (myCancelledReadErrStream)         return;
+        scanErrorStream(messagesBuffer);
+        myReadErrStreamAlarm.addRequest(this,100);
+      }
+    }
+;
+    if ("quit".equals(command))     return Result.OK;
+    myCancelledReadErrStream=false;
+    myReadErrStreamAlarm.addRequest(runnable,100);
+  }
+  return consumeOutput(command,messagesBuffer);
+}

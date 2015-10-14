@@ -1,0 +1,34 @@
+{
+  if (module == null) {
+    return;
+  }
+  final String title=FlexBundle.message("add.build.configuration.title",module.getName());
+  final AddBuildConfigurationDialog dialog=new AddBuildConfigurationDialog(module.getProject(),title,getUsedNames(module),BuildConfigurationNature.DEFAULT,true);
+  if (!dialog.showAndGet()) {
+    return;
+  }
+  final ModifiableFlexBuildConfiguration bc=myConfigEditor.createConfiguration(module);
+  final String bcName=dialog.getBCName();
+  final String fileName=PathUtil.suggestFileName(bcName);
+  final BuildConfigurationNature nature=dialog.getNature();
+  bc.setName(bcName);
+  bc.setNature(nature);
+  final ModifiableFlexBuildConfiguration someExistingConfig=myConfigEditor.getConfigurations(module)[0];
+  bc.setOutputFileName(fileName + (bc.getOutputType() == OutputType.Library ? ".swc" : ".swf"));
+  bc.setOutputFolder(someExistingConfig.getOutputFolder());
+  updatePackageFileName(bc,fileName);
+  if (nature.isApp() && nature.isMobilePlatform()) {
+    bc.getAndroidPackagingOptions().setEnabled(dialog.isAndroidEnabled());
+    bc.getIosPackagingOptions().setEnabled(dialog.isIOSEnabled());
+  }
+  final SdkEntry sdkEntry=someExistingConfig.getDependencies().getSdkEntry();
+  final SdkEntry newSdkEntry;
+  if (sdkEntry != null && FlexSdkUtils.findFlexOrFlexmojosSdk(sdkEntry.getName()) != null) {
+    newSdkEntry=Factory.createSdkEntry(sdkEntry.getName());
+  }
+ else {
+    newSdkEntry=findAnySdk();
+  }
+  bc.getDependencies().setSdkEntry(newSdkEntry);
+  createConfigurableNode(bc,module,treeNodeNameUpdater);
+}

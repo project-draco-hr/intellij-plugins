@@ -3,7 +3,10 @@
   VirtualFileManager.getInstance().addVirtualFileListener(new DartFileListener(project),project);
   project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
     @Override public void rootsChanged(    ModuleRootEvent event){
-      DartFileListener.scheduleDartPackageRootsUpdate(myProject);
+      myProjectRootsModificationTracker.incModificationCount();
+      if (!Registry.is("dart.projects.without.pubspec",false)) {
+        DartFileListener.scheduleDartPackageRootsUpdate(myProject);
+      }
     }
   }
 );

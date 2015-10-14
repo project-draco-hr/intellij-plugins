@@ -1,0 +1,19 @@
+{
+  String name=e.getAttributeValue("selector");
+  name=name == null ? e.getAttributeValue(NAME) : name;
+  final Function function=new Function(name,"true".equals(e.getAttributeValue("variadic")),"true".equals(e.getAttributeValue("class_method")));
+  final String type=e.getAttributeValue("type");
+  for (  Object o : e.getChildren()) {
+    final Element child=(Element)o;
+    if ("arg".equals(child.getName())) {
+      function.addArgument(child.getAttributeValue(NAME),getDeclaredType(child));
+    }
+ else     if ("retval".equals(child.getName())) {
+      function.setReturnValue(getDeclaredType(child));
+    }
+  }
+  if (function.getReturnValue() == null && type != null) {
+    readAndroidTypeAndArguments(function,type);
+  }
+  holder.addFunction(function);
+}

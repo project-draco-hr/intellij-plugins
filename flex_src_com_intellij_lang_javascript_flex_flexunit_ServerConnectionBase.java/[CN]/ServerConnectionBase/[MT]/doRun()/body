@@ -1,0 +1,32 @@
+{
+  try {
+    setStatus(ConnectionStatus.WAITING_FOR_CONNECTION);
+    LOG.debug("listening port " + myServerSocket.getLocalPort() + ", timeout: "+ myServerSocket.getSoTimeout()+ " ms");
+    Socket socket=null;
+    while (!isStopped() && socket == null) {
+      try {
+        socket=myServerSocket.accept();
+      }
+ catch (      SocketTimeoutException e) {
+      }
+    }
+    if (socket == null) {
+      return;
+    }
+    try {
+      setStatus(ConnectionStatus.CONNECTED);
+      LOG.debug("connected");
+      myWriter=new OutputStreamWriter(socket.getOutputStream());
+      run(socket.getInputStream());
+    }
+  finally {
+      LOG.debug("closing client socket");
+      socket.close();
+      myWriter.close();
+      myWriter=null;
+    }
+  }
+  finally {
+    myServerSocket.close();
+  }
+}

@@ -1,0 +1,16 @@
+{
+  try {
+    myConfigFiles=createConfigFiles();
+    final String outputFilePath=myBC.getActualOutputFilePath();
+    if (compilationManager.isRebuild()) {
+      FlexCompilationUtils.deleteCacheForFile(outputFilePath);
+    }
+    FlexCompilationUtils.ensureOutputFileWritable(myModule.getProject(),outputFilePath);
+    doStart(compilationManager);
+  }
+ catch (  IOException e) {
+    compilationManager.addMessage(this,CompilerMessageCategory.ERROR,e.getMessage(),null,-1,-1);
+    myCompilationFailed=true;
+    cancel();
+  }
+}

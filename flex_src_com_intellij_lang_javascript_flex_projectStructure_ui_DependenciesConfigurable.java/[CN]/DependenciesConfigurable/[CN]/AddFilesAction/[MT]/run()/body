@@ -1,0 +1,39 @@
+{
+  final Collection<Library> usedLibraries=new ArrayList<Library>();
+  List<MyTableItem> items=myTable.getItems();
+  for (  MyTableItem item : items) {
+    if (item instanceof ModuleLibraryItem) {
+      LibraryOrderEntry orderEntry=((ModuleLibraryItem)item).orderEntry;
+      if (orderEntry != null) {
+        ContainerUtil.addIfNotNull(usedLibraries,orderEntry.getLibrary());
+      }
+    }
+  }
+  Condition<Library> filter=new Condition<Library>(){
+    @Override public boolean value(    Library library){
+      return usedLibraries.contains(library);
+    }
+  }
+;
+  LibraryTable.ModifiableModel modifiableModel=myConfigEditor.getLibraryModel(myDependencies);
+  LibraryTable.ModifiableModel librariesModelWrapper=new LibraryTableModifiableModelWrapper(modifiableModel,filter);
+  Module module=myConfigEditor.getModule(myDependencies);
+  List<? extends FlexLibraryType> libraryTypes=Collections.singletonList(FlexLibraryType.getInstance());
+  CreateModuleLibraryChooser c=new CreateModuleLibraryChooser(libraryTypes,myMainPanel,module,librariesModelWrapper,new Function<LibraryType,LibraryProperties>(){
+    @Override public LibraryProperties fun(    LibraryType type){
+      return new FlexLibraryProperties(FlexLibraryIdGenerator.generateId());
+    }
+  }
+);
+  final List<Library> libraries=c.chooseElements();
+  if (libraries.isEmpty()) {
+    return;
+  }
+  DefaultMutableTreeNode rootNode=myTable.getRoot();
+  for (  Library library : libraries) {
+    String libraryId=FlexProjectRootsUtil.getLibraryId(library);
+    LibraryOrderEntry libraryEntry=myConfigEditor.findLibraryOrderEntry(myDependencies,library);
+    rootNode.add(new DefaultMutableTreeNode(new ModuleLibraryItem(libraryId,libraryEntry,myProject),false));
+  }
+  updateTableOnItemsAdded(libraries.size());
+}

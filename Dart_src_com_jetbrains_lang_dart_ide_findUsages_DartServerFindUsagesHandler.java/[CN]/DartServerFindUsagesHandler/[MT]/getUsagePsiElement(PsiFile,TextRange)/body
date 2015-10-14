@@ -1,0 +1,34 @@
+{
+  PsiElement element=psiFile.findElementAt(textRange.getStartOffset());
+  if (element == null)   return null;
+  boolean rangeOk=element.getTextRange().contains(textRange);
+  if (rangeOk && element instanceof DartReference)   return element;
+  TextRange previousRange=element.getTextRange();
+  PsiElement parent;
+  while ((parent=element.getParent()) != null) {
+    final TextRange parentRange=parent.getTextRange();
+    if (rangeOk) {
+      if (!parentRange.equals(previousRange)) {
+        return element;
+      }
+      if (parent instanceof DartReference) {
+        return parent;
+      }
+ else {
+        previousRange=parentRange;
+        element=parent;
+      }
+    }
+ else {
+      rangeOk=parent.getTextRange().contains(textRange);
+      if (rangeOk && parent instanceof DartReference) {
+        return parent;
+      }
+ else {
+        previousRange=parentRange;
+        element=parent;
+      }
+    }
+  }
+  return null;
+}

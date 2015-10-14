@@ -1,0 +1,19 @@
+{
+  final JpsSdk<?> sdk=bc.getSdk();
+  if (bc.isPureAs() || sdk == null || sdk.getSdkType() != JpsFlexSdkType.INSTANCE)   return;
+  if (StringUtil.compareVersionNumbers(sdk.getVersionString(),"4") < 0) {
+    processor.consume("http://www.adobe.com/2006/mxml","frameworks/mxml-manifest.xml");
+  }
+ else {
+    processor.consume("http://ns.adobe.com/mxml/2009","frameworks/mxml-2009-manifest.xml");
+    if (bc.getTargetPlatform() == TargetPlatform.Mobile || bc.getDependencies().getComponentSet() == ComponentSet.SparkAndMx || bc.getDependencies().getComponentSet() == ComponentSet.SparkOnly) {
+      processor.consume("library://ns.adobe.com/flex/spark","frameworks/spark-manifest.xml");
+    }
+    if (bc.getTargetPlatform() != TargetPlatform.Mobile) {
+      if (bc.getDependencies().getComponentSet() == ComponentSet.SparkAndMx || bc.getDependencies().getComponentSet() == ComponentSet.MxOnly) {
+        processor.consume("library://ns.adobe.com/flex/mx","frameworks/mx-manifest.xml");
+      }
+      processor.consume("http://www.adobe.com/2006/mxml","frameworks/mxml-manifest.xml");
+    }
+  }
+}

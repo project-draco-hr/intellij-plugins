@@ -1,0 +1,18 @@
+{
+  final FlexStackFrame.EvaluateCommand command=myFlexStackFrame.new EvaluateCommand(myExpression + ".toXMLString()",new XDebuggerEvaluator.XEvaluationCallback(){
+    @Override public void evaluated(    @NotNull XValue result){
+      setResult(((FlexValue)result).myResult,node,type,true);
+    }
+    @Override public void errorOccurred(    @NotNull String errorMessage){
+      setResult(errorMessage,node,type,true);
+    }
+    private void setResult(    String value,    XValueNode node,    String type,    boolean hasChildren){
+      if (!node.isObsolete()) {
+        value=setFullValueEvaluatorIfNeeded(node,value,true);
+        node.setPresentation(getIcon(),type,value,hasChildren);
+      }
+    }
+  }
+);
+  myDebugProcess.addPendingCommand(new CompositeDebuggerCommand(node,command),700);
+}

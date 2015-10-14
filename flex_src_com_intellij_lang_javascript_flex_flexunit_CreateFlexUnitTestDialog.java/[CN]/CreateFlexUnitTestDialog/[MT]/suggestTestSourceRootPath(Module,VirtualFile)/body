@@ -1,0 +1,22 @@
+{
+  if (file != null) {
+    final ContentEntry contentEntry=MarkRootActionBase.findContentEntry(ModuleRootManager.getInstance(module),file);
+    if (contentEntry != null) {
+      boolean mavenStyle=false;
+      for (      VirtualFile srcRoot : contentEntry.getSourceFolderFiles()) {
+        if (srcRoot.getUrl().equals(contentEntry.getUrl() + "/src/main/flex")) {
+          mavenStyle=true;
+          break;
+        }
+      }
+      final String basePath=VfsUtilCore.urlToPath(contentEntry.getUrl()) + (mavenStyle ? "/src/test/flex" : "/testSrc");
+      String path=basePath;
+      int i=0;
+      while (LocalFileSystem.getInstance().findFileByPath(path) != null) {
+        path=basePath + (++i);
+      }
+      return path;
+    }
+  }
+  return "";
+}

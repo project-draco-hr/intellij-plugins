@@ -1,0 +1,43 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    @Override public void run(){
+      myDebuggerManagerThread=Thread.currentThread();
+synchronized (FlexDebugProcess.this) {
+        if (!debugSessionInitialized) {
+          try {
+            FlexDebugProcess.this.wait();
+          }
+ catch (          InterruptedException e) {
+          }
+        }
+      }
+      try {
+        while (true) {
+          processOneCommandLoop();
+        }
+      }
+ catch (      IOException ex) {
+        myConsoleView.print(ex.toString(),ConsoleViewContentType.ERROR_OUTPUT);
+        getProcessHandler().detachProcess();
+        fdbProcess.destroy();
+        LOG.warn(ex);
+      }
+catch (      InterruptedException e) {
+        return;
+      }
+catch (      RuntimeException ex) {
+        final Throwable throwable=ex.getCause();
+        if (throwable instanceof InterruptedException)         return;
+        throw ex;
+      }
+ finally {
+        try {
+          fdbProcess.getInputStream().close();
+        }
+ catch (        IOException ex) {
+        }
+      }
+    }
+  }
+);
+}

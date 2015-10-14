@@ -1,0 +1,21 @@
+{
+  int actualLength=0;
+  for (  MavenProject mavenProject : mavenProjects) {
+    if (ArrayUtil.contains(mavenProject.getPackaging(),FlexmojosImporter.SUPPORTED_PACKAGINGS)) {
+      actualLength++;
+    }
+  }
+  out.writeShort(actualLength);
+  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed") ObjectOutputStream objectOutputStream=new ObjectOutputStream(out);
+  for (  MavenProject mavenProject : mavenProjects) {
+    if (!ArrayUtil.contains(mavenProject.getPackaging(),FlexmojosImporter.SUPPORTED_PACKAGINGS)) {
+      continue;
+    }
+    final MavenId mavenId=mavenProject.getMavenId();
+    objectOutputStream.writeObject(mavenId.getGroupId());
+    objectOutputStream.writeObject(mavenId.getArtifactId());
+    objectOutputStream.writeObject(mavenId.getVersion());
+    objectOutputStream.writeObject(mavenProject.getFile().getPath());
+  }
+  objectOutputStream.flush();
+}

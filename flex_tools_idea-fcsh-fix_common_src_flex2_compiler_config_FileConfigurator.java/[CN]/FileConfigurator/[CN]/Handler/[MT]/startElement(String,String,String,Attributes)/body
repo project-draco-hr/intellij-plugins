@@ -1,0 +1,72 @@
+{
+  String element=qName;
+  if (contextStack.size() == 0) {
+    if (!element.equals(rootElement)) {
+      throw new SAXConfigurationException(new ConfigurationException.IncorrectElement(rootElement,qName,this.source,locator.getLineNumber()),locator);
+    }
+    ParseContext ctx=new ParseContext();
+    contextStack.push(ctx);
+    return;
+  }
+  ParseContext ctx=contextStack.peek();
+  if (ctx.ignore) {
+    return;
+  }
+  final String trimmedText=text.toString().trim();
+  if (trimmedText.length() > 0) {
+    throw new SAXConfigurationException(new ConfigurationException.UnexpectedCDATA(this.source,locator.getLineNumber()),locator);
+  }
+  String fullname=name(element,ctx.base);
+  if (ctx.item != null) {
+    throw new SAXConfigurationException(new ConfigurationException.UnexpectedElement(element,contextPath,locator.getLineNumber()),locator);
+  }
+ else   if (ctx.var != null) {
+    if (ctx.varArgCount == 1) {
+      throw new SAXConfigurationException(new ConfigurationException.UnexpectedElement(element,source,locator.getLineNumber()),locator);
+    }
+    ctx.item=element;
+  }
+ else   if (cfgbuf.isValidVar(fullname)) {
+    ctx.var=fullname;
+    ctx.varArgCount=cfgbuf.getVarArgCount(ctx.var);
+    ctx.append=false;
+    String a=attributes.getValue("","append");
+    if (a != null) {
+      try {
+        if (a.equalsIgnoreCase("true") || a.equalsIgnoreCase("false"))         ctx.append=Boolean.valueOf(a).booleanValue();
+ else         throw new SAXConfigurationException(new ConfigurationException.BadAppendValue(ctx.var,source,locator.getLineNumber()),locator);
+      }
+ catch (      Exception e) {
+        throw new SAXConfigurationException(new ConfigurationException.BadAppendValue(ctx.var,source,locator.getLineNumber()),locator);
+      }
+    }
+  }
+ else   if (cfgbuf.isChildConfig(fullname)) {
+    String src=attributes.getValue("","file-path");
+    if (src != null) {
+      try {
+        Class childClass=cfgbuf.getChildConfigClass(fullname);
+        ConfigurationBuffer childBuf=new ConfigurationBuffer(childClass);
+        cfgbuf.setVar(element + "-file-path",getFilePath(src,contextPath),contextPath,locator.getLineNumber());
+        FileConfigurator.load(childBuf,src,contextPath,locator.getLineNumber(),element);
+        cfgbuf.mergeChild(element,childBuf);
+      }
+ catch (      final ConfigurationException e) {
+        throw new SAXConfigurationException(e,locator);
+      }
+    }
+    ParseContext newctx=new ParseContext();
+    newctx.base=fullname;
+    contextStack.push(newctx);
+  }
+ else {
+    if (ignoreUnknownItems) {
+      ParseContext newctx=new ParseContext();
+      newctx.item=element;
+      newctx.ignore=true;
+      contextStack.push(newctx);
+      return;
+    }
+    throw new SAXConfigurationException(new ConfigurationException.UnknownVariable(fullname,source,locator.getLineNumber()),locator);
+  }
+}

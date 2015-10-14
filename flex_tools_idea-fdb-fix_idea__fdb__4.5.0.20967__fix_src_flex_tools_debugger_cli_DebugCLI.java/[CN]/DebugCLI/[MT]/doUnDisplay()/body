@@ -1,0 +1,32 @@
+{
+  try {
+    if (!hasMoreTokens()) {
+      if (yesNoQuery(getLocalizationManager().getLocalizedTextString("askDeleteAllAutoDisplay"))) {
+        int count=displayCount();
+        for (int i=count - 1; i > -1; i--) {
+          displayRemoveAt(i);
+        }
+      }
+    }
+ else {
+      while (hasMoreTokens()) {
+        int id=nextIntToken();
+        int at=displayIndexOf(id);
+        displayRemoveAt(at);
+      }
+    }
+  }
+ catch (  IndexOutOfBoundsException iob) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("displayNumber",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("noDisplayNumber",args));
+  }
+catch (  NumberFormatException nfe) {
+    Map<String,Object> args=new HashMap<String,Object>();
+    args.put("token",m_currentToken);
+    err(getLocalizationManager().getLocalizedTextString("badDisplayNumber",args));
+  }
+catch (  NullPointerException npe) {
+    err(getLocalizationManager().getLocalizedTextString("commandFailed"));
+  }
+}

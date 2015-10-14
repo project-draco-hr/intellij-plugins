@@ -1,0 +1,49 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(info.myFilePath);
+  final Ref<AnalysisError[]> resultRef=new Ref<AnalysisError[]>();
+  final Semaphore semaphore=new Semaphore();
+  try {
+synchronized (myLock) {
+      if (myServer == null)       return null;
+      semaphore.down();
+      LOG.debug("analysis_getErrors(" + filePath + ")");
+      final GetErrorsConsumer consumer=new GetErrorsConsumer(){
+        @Override public void computedErrors(        final AnalysisError[] errors){
+          if (semaphore.tryUp()) {
+            resultRef.set(errors);
+          }
+ else {
+            LOG.info("analysis_getErrors() took too long for file " + filePath + ", restarting daemon");
+            ApplicationManager.getApplication().runReadAction(new Runnable(){
+              @Override public void run(){
+                final VirtualFile vFile=info.myProject.isDisposed() ? null : LocalFileSystem.getInstance().findFileByPath(info.myFilePath);
+                final PsiFile psiFile=vFile == null ? null : PsiManager.getInstance(info.myProject).findFile(vFile);
+                if (psiFile != null) {
+                  DaemonCodeAnalyzer.getInstance(info.myProject).restart(psiFile);
+                }
+              }
+            }
+);
+          }
+        }
+        @Override public void onError(        final RequestError error){
+          if (RequestErrorCode.GET_ERRORS_INVALID_FILE.equals(error.getCode())) {
+            LOG.info(getShortErrorMessage("analysis_getErrors()",filePath,error));
+          }
+ else {
+            logError("analysis_getErrors()",filePath,error);
+          }
+          semaphore.up();
+        }
+      }
+;
+      myServer.analysis_getErrors(filePath,consumer);
+    }
+    final long timeout=info.isLongerAnalysisTimeout() || ApplicationManager.getApplication().isUnitTestMode() ? GET_ERRORS_LONGER_TIMEOUT : GET_ERRORS_TIMEOUT;
+    semaphore.waitFor(timeout);
+  }
+  finally {
+    semaphore.up();
+  }
+  return resultRef.get();
+}

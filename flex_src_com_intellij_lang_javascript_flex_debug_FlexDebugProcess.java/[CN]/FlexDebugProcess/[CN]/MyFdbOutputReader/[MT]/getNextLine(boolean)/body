@@ -1,0 +1,26 @@
+{
+  String result;
+  String marker=FDB_MARKER;
+  int i=lastText.indexOf(marker,lastTextMarkerScanningStart);
+  if (i == -1) {
+    marker="(y or n)";
+    i=lastText.indexOf(marker,lastTextMarkerScanningStart);
+  }
+  if (i == -1 && (allowEmptyMarker || lastText.indexOf(WAITING_PLAYER_MARKER_1,lastTextMarkerScanningStart) >= 0 || lastText.indexOf(WAITING_PLAYER_MARKER_2,lastTextMarkerScanningStart) >= 0) && lastText.length() > 0) {
+    i=lastText.length();
+    marker="";
+  }
+  if (i != -1) {
+    result=lastText.substring(0,i);
+    lastText.delete(0,i + marker.length());
+    lastTextMarkerScanningStart=0;
+    if (isBlank(lastText))     lastText.setLength(0);
+    setSuspended(marker.length() != 0);
+    return result;
+  }
+ else {
+    lastTextMarkerScanningStart=lastText.length();
+    result=null;
+  }
+  return result;
+}

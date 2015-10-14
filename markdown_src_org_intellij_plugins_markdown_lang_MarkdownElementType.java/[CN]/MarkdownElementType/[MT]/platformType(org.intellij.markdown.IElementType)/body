@@ -5,7 +5,13 @@
   if (markdownToPlatformTypeMap.containsKey(markdownType)) {
     return markdownToPlatformTypeMap.get(markdownType);
   }
-  final MarkdownElementType result=new MarkdownElementType(markdownType.toString());
+  final IElementType result;
+  if (markdownType == MarkdownElementTypes.PARAGRAPH || markdownType == MarkdownTokenTypes.ATX_CONTENT || markdownType == MarkdownTokenTypes.SETEXT_CONTENT) {
+    result=new MarkdownLazyElementType(markdownType.toString());
+  }
+ else {
+    result=new MarkdownElementType(markdownType.toString());
+  }
   markdownToPlatformTypeMap.put(markdownType,result);
   platformToMarkdownTypeMap.put(result,markdownType);
   return result;

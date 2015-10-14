@@ -1,0 +1,48 @@
+{
+  ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+    public void run(){
+      boolean usageStarted=false;
+      final InputStreamReader reader=FlexCommonUtils.createInputStreamReader(myProcess.getInputStream());
+      try {
+        char[] buf=new char[4096];
+        int read;
+        while ((read=reader.read(buf,0,buf.length)) >= 0) {
+          final String output=new String(buf,0,read);
+          debug("Process output: " + output);
+          if (!usageStarted) {
+            final StringTokenizer tokenizer=new StringTokenizer(output,"\r\n");
+            while (tokenizer.hasMoreElements()) {
+              final String message=tokenizer.nextElement();
+              if (!StringUtil.isEmptyOrSpaces(message)) {
+                if (message.trim().toLowerCase().startsWith("usage:")) {
+                  usageStarted=true;
+                  break;
+                }
+                if (message.trim().endsWith("password:")) {
+                  final OutputStream outputStream=myProcess.getOutputStream();
+                  outputStream.write("\n".getBytes());
+                  outputStream.flush();
+                }
+ else {
+                  myMessages.add(message);
+                }
+              }
+            }
+          }
+        }
+      }
+ catch (      IOException e) {
+        myMessages.add(e.getMessage());
+      }
+ finally {
+        cancel();
+        try {
+          reader.close();
+        }
+ catch (        IOException e) {
+        }
+      }
+    }
+  }
+);
+}

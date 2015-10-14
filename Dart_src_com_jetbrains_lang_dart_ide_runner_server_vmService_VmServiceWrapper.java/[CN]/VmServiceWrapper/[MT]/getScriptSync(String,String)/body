@@ -1,0 +1,26 @@
+{
+  assertSyncRequestAllowed();
+  final Semaphore semaphore=new Semaphore();
+  semaphore.down();
+  final Ref<Script> resultRef=Ref.create();
+  addRequest(new Runnable(){
+    @Override public void run(){
+      myVmService.getObject(isolateId,scriptId,new GetObjectConsumer(){
+        @Override public void received(        Obj script){
+          resultRef.set((Script)script);
+          semaphore.up();
+        }
+        @Override public void received(        Sentinel response){
+          semaphore.up();
+        }
+        @Override public void onError(        RPCError error){
+          semaphore.up();
+        }
+      }
+);
+    }
+  }
+);
+  semaphore.waitFor(RESPONSE_WAIT_TIMEOUT);
+  return resultRef.get();
+}

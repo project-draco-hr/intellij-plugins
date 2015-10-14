@@ -1,0 +1,16 @@
+{
+  final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(element,JSCallExpression.class);
+  if (callExpression != null && JSResolveUtil.isEventListenerCall(callExpression)) {
+    final PsiElement parent=callExpression.getParent();
+    if (parent instanceof JSExpressionStatement) {
+      final PsiElement lastChild=parent.getLastChild();
+      if (lastChild == callExpression) {
+        final PsiElement psi=JSChangeUtil.createJSTreeFromText(psiFile.getProject(),";").getPsi();
+        final PsiElement semicolon=psi.getFirstChild();
+        if (semicolon != null && semicolon.getNode().getElementType() == JSTokenTypes.SEMICOLON) {
+          parent.addAfter(semicolon,callExpression);
+        }
+      }
+    }
+  }
+}

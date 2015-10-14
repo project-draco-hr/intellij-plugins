@@ -1,0 +1,18 @@
+{
+  if (myDataOutputStream == null) {
+    listener.textAvailable("Error: Compiler process is not started.");
+    listener.compilationFinished();
+    return;
+  }
+  try {
+    final String prefix=String.valueOf(commandNumber++) + ":";
+    final String commandToSend=prefix + command + "\n";
+    LOG.debug("SENDING: [" + commandToSend + "]");
+    myDataOutputStream.writeUTF(commandToSend);
+    myActiveListeners.put(prefix,listener);
+  }
+ catch (  IOException e) {
+    listener.textAvailable("Error: Can't start compilation: " + e.toString());
+    listener.compilationFinished();
+  }
+}

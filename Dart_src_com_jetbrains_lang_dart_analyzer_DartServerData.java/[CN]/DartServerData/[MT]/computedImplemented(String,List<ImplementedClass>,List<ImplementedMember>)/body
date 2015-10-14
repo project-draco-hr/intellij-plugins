@@ -1,0 +1,25 @@
+{
+  if (myFilePathsWithUnsentChanges.contains(filePath))   return;
+  final List<DartRegion> newImplementedClasses=new ArrayList<DartRegion>(implementedClasses.size());
+  for (  ImplementedClass implementedClass : implementedClasses) {
+    newImplementedClasses.add(new DartRegion(implementedClass.getOffset(),implementedClass.getLength()));
+  }
+  final List<DartRegion> newImplementedMembers=new ArrayList<DartRegion>(implementedMembers.size());
+  for (  ImplementedMember implementedMember : implementedMembers) {
+    newImplementedMembers.add(new DartRegion(implementedMember.getOffset(),implementedMember.getLength()));
+  }
+  boolean hasChanges=false;
+  final List<DartRegion> oldClasses=myImplementedClassData.get(filePath);
+  if (oldClasses == null || !oldClasses.equals(newImplementedClasses)) {
+    hasChanges=true;
+    myImplementedClassData.put(filePath,newImplementedClasses);
+  }
+  final List<DartRegion> oldMembers=myImplementedMemberData.get(filePath);
+  if (oldMembers == null || !oldMembers.equals(newImplementedMembers)) {
+    hasChanges=true;
+    myImplementedMemberData.put(filePath,newImplementedMembers);
+  }
+  if (hasChanges) {
+    forceFileAnnotation(filePath,false);
+  }
+}

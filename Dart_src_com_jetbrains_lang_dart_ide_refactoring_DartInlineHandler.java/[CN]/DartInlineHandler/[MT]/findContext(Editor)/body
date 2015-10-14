@@ -1,0 +1,26 @@
+{
+  if (editor == null) {
+    return null;
+  }
+  final Project project=editor.getProject();
+  if (project == null) {
+    return null;
+  }
+  final Document document=editor.getDocument();
+  final PsiFile psiFile=PsiDocumentManager.getInstance(project).getPsiFile(document);
+  if (psiFile == null) {
+    return null;
+  }
+  final VirtualFile virtualFile=psiFile.getVirtualFile();
+  final String filePath=virtualFile.getPath();
+  final int offset=editor.getCaretModel().getOffset();
+  final List<DartNavigationRegion> navigationRegions=DartAnalysisServerService.getInstance().getNavigation(virtualFile);
+  for (  DartNavigationRegion region : navigationRegions) {
+    if (region.getOffset() <= offset && offset <= region.getOffset() + region.getLength()) {
+      final List<DartNavigationTarget> targets=region.getTargets();
+      final String kind=targets.get(0).getKind();
+      return new InlineRefactoringContext(virtualFile,filePath,offset,kind);
+    }
+  }
+  return null;
+}

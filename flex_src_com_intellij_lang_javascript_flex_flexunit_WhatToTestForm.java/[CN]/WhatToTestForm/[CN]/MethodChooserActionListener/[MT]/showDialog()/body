@@ -1,0 +1,34 @@
+{
+  if (StringUtil.isEmpty(myClassField.getText())) {
+    Messages.showInfoMessage(getProject(),ExecutionBundle.message("set.class.name.message"),ExecutionBundle.message("choose.test.method.dialog.title"));
+    return null;
+  }
+  final Module module;
+  final FlexUnitSupport support;
+  try {
+    module=myModuleComputable.compute();
+    support=myFlexUnitSupportComputable.compute();
+  }
+ catch (  RuntimeConfigurationError e) {
+    Messages.showErrorDialog(getProject(),e.getMessage(),ExecutionBundle.message("choose.test.method.dialog.title"));
+    return null;
+  }
+  final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(myClassField.getText(),GlobalSearchScope.moduleScope(module));
+  if (!(clazz instanceof JSClass)) {
+    Messages.showErrorDialog(getProject(),FlexBundle.message("class.not.found",myClassField.getText()),ExecutionBundle.message("choose.test.method.dialog.title"));
+    return null;
+  }
+  FlexMethodChooserDialog dialog=new FlexMethodChooserDialog((JSClass)clazz,new Condition<JSFunction>(){
+    public boolean value(    JSFunction jsFunction){
+      return support.isTestMethod(jsFunction);
+    }
+  }
+,myMainPanel,myMethodField.getText());
+  if (dialog.showAndGet()) {
+    final JSFunction method=dialog.getSelectedMethod();
+    return method != null ? method.getName() : null;
+  }
+ else {
+    return null;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  JSTestUtils.modifyBuildConfiguration(myModule,new Consumer<ModifiableFlexBuildConfiguration>(){
+    public void consume(    final ModifiableFlexBuildConfiguration bc){
+      bc.setMainClass("foo.SomeClass");
+    }
+  }
+);
+  final RunManagerEx runManager=RunManagerEx.getInstanceEx(myProject);
+  JSTestUtils.createFlexUnitRunConfig(runManager,"SomeClass.testSomething()",myModule,FlexUnitRunnerParameters.Scope.Method,"","foo.SomeClass","testSomething",true);
+  JSTestUtils.createFlexUnitRunConfig(runManager,"SomeClass",myModule,FlexUnitRunnerParameters.Scope.Class,"","foo.SomeClass","",true);
+  JSTestUtils.createFlexUnitRunConfig(runManager,"foo",myModule,FlexUnitRunnerParameters.Scope.Package,"foo","","",true);
+  JSTestUtils.createFlashRunConfig(runManager,myModule,"SomeClass","foo.SomeClass",true);
+  doTest("foo","bar");
+  assertEquals("bar.foo.SomeClass",FlexBuildConfigurationManager.getInstance(myModule).getActiveConfiguration().getMainClass());
+  JSTestUtils.checkFlexUnitRunConfig(runManager,myModule,"SomeClass.testSomething()","","bar.foo.SomeClass","testSomething");
+  JSTestUtils.checkFlexUnitRunConfig(runManager,myModule,"SomeClass","","bar.foo.SomeClass","");
+  JSTestUtils.checkFlexUnitRunConfig(runManager,myModule,"bar.foo","bar.foo","","");
+  JSTestUtils.checkFlashRunConfig(runManager,myModule,"SomeClass","bar.foo.SomeClass");
+}

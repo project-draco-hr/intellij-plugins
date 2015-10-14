@@ -1,0 +1,17 @@
+{
+  if (!(psiFile instanceof JSFile)) {
+    return null;
+  }
+  final PsiElement elementAtCursor=psiFile.findElementAt(editor.getCaretModel().getOffset());
+  final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(elementAtCursor,JSCallExpression.class);
+  if (callExpression == null || !JSResolveUtil.isEventListenerCall(callExpression)) {
+    return null;
+  }
+  final JSExpression[] params=callExpression.getArguments();
+  if (params.length > 0 && ((params[0] instanceof JSReferenceExpression && ((JSReferenceExpression)params[0]).getQualifier() != null) || (params[0] instanceof JSLiteralExpression && ((JSLiteralExpression)params[0]).isQuotedLiteral()))) {
+    if (params.length == 1 || params.length > 1 && isUnresolvedReference(params[1])) {
+      return callExpression;
+    }
+  }
+  return null;
+}

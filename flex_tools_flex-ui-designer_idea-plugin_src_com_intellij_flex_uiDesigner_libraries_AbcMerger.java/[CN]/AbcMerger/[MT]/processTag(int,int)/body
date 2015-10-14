@@ -1,0 +1,51 @@
+{
+  if (super.processTag(type,length) == 1 || type == TagTypes.FileAttributes || type == TagTypes.ShowFrame) {
+    return 1;
+  }
+  int characterIdPosition=-1;
+switch (type) {
+case TagTypes.DefineScalingGrid:
+case TagTypes.DefineSprite:
+case TagTypes.DefineShape:
+case TagTypes.DefineShape2:
+case TagTypes.DefineShape3:
+case TagTypes.DefineShape4:
+case TagTypes.DefineBinaryData:
+case TagTypes.DefineBitsLossless2:
+case TagTypes.DefineBitsLossless:
+case TagTypes.DefineBitsJPEG2:
+case TagTypes.DefineBitsJPEG3:
+case TagTypes.DefineBitsJPEG4:
+case TagTypes.DefineBits:
+case TagTypes.PlaceObject:
+case TagTypes.DefineFont:
+case TagTypes.DefineFont2:
+case TagTypes.DefineFont3:
+case TagTypes.DefineText:
+case TagTypes.DefineEditText:
+case TagTypes.DefineButton:
+case TagTypes.DefineButton2:
+case TagTypes.DefineMorphShape:
+case TagTypes.DefineMorphShape2:
+    characterIdPosition=buffer.position();
+  break;
+case TagTypes.PlaceObject2:
+case TagTypes.PlaceObject3:
+if (updatePlaceObject2Or3Reference(type == TagTypes.PlaceObject2)) {
+  return 0;
+}
+break;
+case TagTypes.DefineFontName:
+case TagTypes.DefineFontAlignZones:
+case TagTypes.DefineFontInfo:
+updateReferenceById(buffer.position());
+return 0;
+}
+if (characterIdPosition != -1) {
+changeCharacterId(characterIdPosition);
+if (type == TagTypes.DefineSprite) {
+processDefineSprite(length);
+}
+}
+return 0;
+}

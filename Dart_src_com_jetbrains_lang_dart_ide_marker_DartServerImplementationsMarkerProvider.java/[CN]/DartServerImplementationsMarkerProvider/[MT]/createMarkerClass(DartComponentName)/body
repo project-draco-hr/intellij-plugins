@@ -1,0 +1,20 @@
+{
+  final VirtualFile file=name.getContainingFile().getVirtualFile();
+  final int nameOffset=name.getTextOffset();
+  return new LineMarkerInfo<PsiElement>(name,name.getTextRange(),AllIcons.Gutter.OverridenMethod,Pass.UPDATE_ALL,new Function<PsiElement,String>(){
+    @Override public String fun(    PsiElement element){
+      return DaemonBundle.message("class.is.subclassed.too.many");
+    }
+  }
+,new GutterIconNavigationHandler<PsiElement>(){
+    @Override public void navigate(    MouseEvent e,    PsiElement elt){
+      final List<TypeHierarchyItem> items=DartAnalysisServerService.getInstance().search_getTypeHierarchy(file,nameOffset,false);
+      if (items.isEmpty()) {
+        return;
+      }
+      final List<DartComponent> components=DartInheritorsSearcher.getSubClasses(name.getProject(),GlobalSearchScope.allScope(name.getProject()),items);
+      PsiElementListNavigator.openTargets(e,DartResolveUtil.getComponentNameArray(components),DaemonBundle.message("navigation.title.subclass",name.getName(),components.size()),"Subclasses of " + name.getName(),new DefaultPsiElementCellRenderer());
+    }
+  }
+,GutterIconRenderer.Alignment.RIGHT);
+}

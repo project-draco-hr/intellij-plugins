@@ -1,0 +1,57 @@
+{
+  final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
+  final DocumentFactoryManager documentFactoryManager=DocumentFactoryManager.getInstance();
+  final Client client=Client.getInstance();
+  for (  Document document : documents) {
+    final VirtualFile file=fileDocumentManager.getFile(document);
+    if (file == null) {
+      continue;
+    }
+    boolean isMxml=JavaScriptSupportLoader.isFlexMxmFile(file);
+    if (isMxml || file.getFileType() == CssFileType.INSTANCE) {
+      if (!collectChangedLocalStyleSources(localStyleSources,file) && onlyStyle) {
+        Project p=ProjectUtil.guessProjectForFile(file);
+        if (p != null) {
+          ModuleInfo info=client.getRegisteredModules().getNullableInfo(ModuleUtilCore.findModuleForFile(file,p));
+          if (info != null) {
+            localStyleSources.put(info,Collections.<LocalStyleHolder>emptyList());
+          }
+        }
+      }
+    }
+    final DocumentFactoryManager.DocumentInfo info=isMxml ? documentFactoryManager.getNullableInfo(file) : null;
+    if (info == null) {
+      continue;
+    }
+ else     if (onlyStyle) {
+      info.documentModificationStamp=document.getModificationStamp();
+      continue;
+    }
+    if (info.documentModificationStamp == document.getModificationStamp()) {
+      continue;
+    }
+    final Project project=ProjectUtil.guessProjectForFile(file);
+    if (project == null) {
+      continue;
+    }
+    final Module module=ModuleUtilCore.findModuleForFile(file,project);
+    if (module == null) {
+      continue;
+    }
+    final XmlFile psiFile;
+    final AccessToken token=ReadAction.start();
+    try {
+      psiFile=(XmlFile)PsiDocumentManager.getInstance(project).getPsiFile(document);
+      if (psiFile == null) {
+        continue;
+      }
+    }
+  finally {
+      token.finish();
+    }
+    if (client.updateDocumentFactory(info.getId(),module,psiFile,reportProblems)) {
+      info.documentModificationStamp=document.getModificationStamp();
+      documentInfos.add(info);
+    }
+  }
+}

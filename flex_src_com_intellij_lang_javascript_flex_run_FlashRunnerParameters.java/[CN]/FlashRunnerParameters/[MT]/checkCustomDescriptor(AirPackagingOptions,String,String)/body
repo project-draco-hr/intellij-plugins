@@ -1,0 +1,23 @@
+{
+  final boolean android=packagingOptions instanceof AndroidPackagingOptions;
+  final boolean ios=packagingOptions instanceof IosPackagingOptions;
+  if (android && !((AndroidPackagingOptions)packagingOptions).isEnabled()) {
+    throw new RuntimeConfigurationError(FlexBundle.message("android.disabled.in.bc",bcName,moduleName));
+  }
+  if (ios && !((IosPackagingOptions)packagingOptions).isEnabled()) {
+    throw new RuntimeConfigurationError(FlexBundle.message("ios.disabled.in.bc",bcName,moduleName));
+  }
+  if (!packagingOptions.isUseGeneratedDescriptor()) {
+    if (packagingOptions.getCustomDescriptorPath().isEmpty()) {
+      final String key=android ? "bc.0.module.1.android.custom.descriptor.not.set" : ios ? "bc.0.module.1.ios.custom.descriptor.not.set" : "bc.0.module.1.custom.descriptor.not.set";
+      throw new RuntimeConfigurationError(FlexBundle.message(key,bcName,moduleName));
+    }
+ else {
+      final VirtualFile descriptorFile=LocalFileSystem.getInstance().findFileByPath(packagingOptions.getCustomDescriptorPath());
+      if (descriptorFile == null || descriptorFile.isDirectory()) {
+        final String key=android ? "bc.0.module.1.android.custom.descriptor.not.found" : ios ? "bc.0.module.1.ios.custom.descriptor.not.found" : "bc.0.module.1.custom.descriptor.not.found";
+        throw new RuntimeConfigurationError(FlexBundle.message(key,bcName,moduleName,FileUtil.toSystemDependentName(packagingOptions.getCustomDescriptorPath())));
+      }
+    }
+  }
+}

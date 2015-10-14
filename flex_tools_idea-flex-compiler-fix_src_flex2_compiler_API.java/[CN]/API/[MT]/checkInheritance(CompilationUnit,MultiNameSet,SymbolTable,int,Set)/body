@@ -1,0 +1,27 @@
+{
+  processed.add(unit.getSource().getName());
+  if (!check(unit,types,symbolTable,workflow)) {
+    return false;
+  }
+  for (Iterator i=types.iterator(); i.hasNext(); ) {
+    Object name=i.next();
+    if (name instanceof flex2.compiler.util.QName) {
+      flex2.compiler.util.QName qName=(flex2.compiler.util.QName)name;
+      Source s=symbolTable.findSourceByQName(qName);
+      CompilationUnit u=(s != null) ? s.getCompilationUnit() : null;
+      if (u == null) {
+        return false;
+      }
+      if (unit == u || processed.contains(s.getName())) {
+        continue;
+      }
+      if (!checkInheritance(u,u.inheritance,symbolTable,workflow,processed)) {
+        return false;
+      }
+    }
+ else {
+      return false;
+    }
+  }
+  return true;
+}

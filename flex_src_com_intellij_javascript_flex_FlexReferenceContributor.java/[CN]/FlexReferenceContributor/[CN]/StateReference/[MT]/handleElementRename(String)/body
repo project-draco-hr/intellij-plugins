@@ -1,0 +1,16 @@
+{
+  if (myElement instanceof XmlTag) {
+    final XmlToken startTagNameElement=XmlTagUtil.getStartTagNameElement((XmlTag)myElement);
+    if (startTagNameElement != null) {
+      final TextRange rangeInTagNameElement=myRange.shiftRight(-(startTagNameElement.getTextOffset() - myElement.getTextOffset()));
+      final TextRange startTagNameElementRange=startTagNameElement.getTextRange().shiftRight(-myElement.getTextRange().getStartOffset());
+      if (startTagNameElementRange.contains(rangeInTagNameElement)) {
+        final StringBuilder newName=new StringBuilder(startTagNameElement.getText());
+        newName.replace(rangeInTagNameElement.getStartOffset(),rangeInTagNameElement.getEndOffset(),newElementName);
+        ((XmlTag)myElement).setName(newName.toString());
+      }
+    }
+    return myElement;
+  }
+  return super.handleElementRename(newElementName);
+}

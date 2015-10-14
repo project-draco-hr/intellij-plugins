@@ -1,0 +1,21 @@
+{
+  final PsiElement element=reference.getElement();
+  if (!(reference instanceof JSFileReference) || !(element instanceof JSAttributeNameValuePair))   return Collections.emptyList();
+  final PsiElement parent=element.getParent();
+  if (!(parent instanceof JSAttribute) || !FlexAnnotationNames.EMBED.equals(((JSAttribute)parent).getName())) {
+    return Collections.emptyList();
+  }
+  final String value=((JSAttributeNameValuePair)element).getSimpleValue();
+  if (value.startsWith("/"))   return Collections.emptyList();
+  final Module module=ModuleUtil.findModuleForPsiElement(element);
+  if (module == null)   return Collections.emptyList();
+  final ModuleRootManager rootManager=ModuleRootManager.getInstance(module);
+  final VirtualFile virtualFile=element.getContainingFile().getVirtualFile();
+  final boolean testSourceRoot=virtualFile != null && rootManager.getFileIndex().isInTestSourceContent(virtualFile);
+  for (  VirtualFile sourceRoot : rootManager.getSourceRoots(testSourceRoot)) {
+    if (sourceRoot.findFileByRelativePath(value) != null) {
+      return Collections.singletonList(new AddLeadingSlashFix((JSAttributeNameValuePair)element));
+    }
+  }
+  return Collections.emptyList();
+}

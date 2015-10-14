@@ -1,0 +1,37 @@
+{
+  final PsiElement nodeParent=node.getParent();
+  final JSExpression qualifier=node.getQualifier();
+  PsiElement nameIdentifier=node.getReferenceNameElement();
+  final String referencedName=nameIdentifier.getText();
+  inTypeContext=super.addCreateFromUsageFixes(node,resolveResults,fixes,inTypeContext,ecma);
+  if (!(nodeParent instanceof JSArgumentList) && nodeParent.getParent() instanceof JSCallExpression) {
+    inTypeContext=true;
+  }
+  if (!inTypeContext) {
+    boolean getter=!(node.getParent() instanceof JSDefinitionExpression);
+    String invokedName=nameIdentifier.getText();
+    fixes.add(new CreateJSPropertyAccessorIntentionAction(invokedName,getter));
+  }
+  if (qualifier == null) {
+    boolean canHaveTypeFix=false;
+    JSClass contextClass=JSResolveUtil.getClassOfContext(node);
+    if (nodeParent instanceof JSReferenceList) {
+      canHaveTypeFix=true;
+      fixes.add(new CreateClassOrInterfaceFix(node,contextClass.isInterface() || node.getParent().getNode().getElementType() == JSStubElementTypes.IMPLEMENTS_LIST,null,null));
+    }
+ else     if (!(nodeParent instanceof JSDefinitionExpression) && resolveResults.length == 0) {
+      canHaveTypeFix=true;
+      fixes.add(new CreateClassOrInterfaceFix(node,false,null,null));
+      fixes.add(new CreateClassOrInterfaceFix(node,true,null,null));
+    }
+    if (!inTypeContext && JSReadWriteAccessDetector.ourInstance.getExpressionAccess(node) == ReadWriteAccessDetector.Access.Read) {
+      canHaveTypeFix=true;
+      fixes.add(new CreateJSFunctionIntentionAction(referencedName,true));
+    }
+    if (canHaveTypeFix)     fixes.add(new AddImportECMAScriptClassOrFunctionAction(null,node));
+  }
+ else   if (canHaveImportTo(resolveResults)) {
+    fixes.add(new AddImportECMAScriptClassOrFunctionAction(null,node));
+  }
+  return inTypeContext;
+}

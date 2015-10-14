@@ -1,0 +1,26 @@
+{
+  int start=data.getPosition();
+  int count=readU32();
+  for (int i=0; i < count; i++) {
+    MethodInfo m=methods[readU32()];
+    m.max_stack=readU32();
+    m.local_count=readU32();
+    int initScopeDepth=readU32();
+    int maxScopeDepth=readU32();
+    m.max_scope=maxScopeDepth - initScopeDepth;
+    int code_length=readU32();
+    m.code=new ByteBuffer();
+    m.code.setLittleEndian();
+    if (code_length > 0)     data.readBytes(m.code,code_length);
+    int ex_count=readU32();
+    for (int j=0; j < ex_count; j++) {
+      int from=readU32();
+      int to=readU32();
+      int target=readU32();
+      Multiname type=names[readU32()];
+      Multiname name=names[readU32()];
+    }
+    parseTraits(m.activation=new Traits());
+  }
+  reportAboutPercentage("MethodBodies size ",data,start,processor);
+}

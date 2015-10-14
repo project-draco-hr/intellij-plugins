@@ -1,0 +1,14 @@
+{
+  String expectedDataFileName=getTestName(false) + (StringUtil.isEmpty(expectedPrefix) ? ".expected.xml" : ".expected." + expectedPrefix + ".xml");
+  CharSequence expectedText=LoadTextUtil.loadText(getVirtualFile(BASE_PATH + expectedDataFileName));
+  final Document expected=JDOMUtil.loadDocument(expectedText);
+  final String expectedOriginFqn=expected.getRootElement().getAttributeValue("origin");
+  assertEquals(expectedDataFileName + ": Invalid origin element",expectedOriginFqn,actualOriginFqn);
+  JDOMResult actual=new JDOMResult();
+  UmlDataModelDumper.dump(actual,provider,model);
+  actual.getDocument().getRootElement().setAttribute("origin",actualOriginFqn);
+  String difference=JDOMCompare.diffDocuments(expected,actual.getDocument());
+  if (difference != null) {
+    assertEquals(expectedDataFileName + ": " + difference,JDOMUtil.writeDocument(expected,"\n"),JDOMUtil.writeDocument(actual.getDocument(),"\n").trim());
+  }
+}

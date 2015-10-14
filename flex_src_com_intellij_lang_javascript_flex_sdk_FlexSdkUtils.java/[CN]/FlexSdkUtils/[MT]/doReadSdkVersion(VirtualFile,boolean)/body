@@ -1,0 +1,20 @@
+{
+  if (sdkRoot == null) {
+    return null;
+  }
+  final VirtualFile flexSdkDescriptionFile=sdkRoot.findChild(airSdk ? "air-sdk-description.xml" : "flex-sdk-description.xml");
+  if (flexSdkDescriptionFile == null) {
+    return null;
+  }
+  try {
+    final String versionElement=airSdk ? "<air-sdk-description><version>" : "<flex-sdk-description><version>";
+    final String buildElement=airSdk ? "<air-sdk-description><build>" : "<flex-sdk-description><build>";
+    final Map<String,List<String>> versionInfo=FlexUtils.findXMLElements(flexSdkDescriptionFile.getInputStream(),Arrays.asList(versionElement,buildElement));
+    final List<String> majorMinor=versionInfo.get(versionElement);
+    final List<String> revision=versionInfo.get(buildElement);
+    return majorMinor.isEmpty() ? null : majorMinor.get(0) + (revision.isEmpty() ? "" : ("." + revision.get(0)));
+  }
+ catch (  IOException e) {
+    return null;
+  }
+}

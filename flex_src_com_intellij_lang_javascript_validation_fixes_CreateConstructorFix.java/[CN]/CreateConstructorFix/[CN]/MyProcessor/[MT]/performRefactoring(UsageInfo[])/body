@@ -1,0 +1,28 @@
+{
+  final Collection<String> toImport=new ArrayList<String>();
+  for (  JSExpression argument : myNode.getArguments()) {
+    String type=JSResolveUtil.getQualifiedExpressionType(argument,argument.getContainingFile());
+    if (StringUtil.isNotEmpty(type) && ImportUtils.needsImport(myClass,StringUtil.getPackageName(type))) {
+      toImport.add(type);
+    }
+  }
+  StringBuilder newConstuctorText=new StringBuilder();
+  if (constructorShouldBePublic()) {
+    newConstuctorText.append("public ");
+  }
+  newConstuctorText.append("function ").append(myClass.getName());
+  JSChangeSignatureDialog.buildParameterListText(Arrays.asList(myParameters),newConstuctorText,true,DialectDetector.dialectOfElement(myClass));
+  newConstuctorText.append("{}");
+  JSFunction constructorPrototype=(JSFunction)JSChangeUtil.createStatementFromText(myProject,newConstuctorText.toString(),JavaScriptSupportLoader.ECMA_SCRIPT_L4).getPsi();
+  PsiElement newConstuctor=myClass.add(constructorPrototype);
+  FormatFixer.create(newConstuctor,FormatFixer.Mode.Reformat).fixFormat();
+  if (!toImport.isEmpty()) {
+    FormatFixer formatFixer=ImportUtils.insertImportStatements(myClass,toImport);
+    if (formatFixer != null) {
+      formatFixer.fixFormat();
+    }
+    List<FormatFixer> fixers=ECMAScriptImportOptimizer.executeNoFormat(myClass.getContainingFile());
+    FormatFixer.fixAll(fixers);
+  }
+  super.performRefactoring(usageInfos);
+}

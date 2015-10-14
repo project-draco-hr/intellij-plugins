@@ -1,0 +1,33 @@
+{
+  mySdkLabel.setLabelFor(mySdkCombo.getChildComponent());
+  BCUtils.initTargetPlatformCombo(myTargetPlatformCombo);
+  BCUtils.initOutputTypeCombo(myOutputTypeCombo);
+  final ActionListener listener=new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+    }
+  }
+;
+  myTargetPlatformCombo.addActionListener(listener);
+  myOutputTypeCombo.addActionListener(listener);
+  mySampleAppCheckBox.addActionListener(listener);
+  myHtmlWrapperCheckBox.addActionListener(listener);
+  myCheckPlayerVersionCheckBox.addActionListener(listener);
+  mySdkCombo.addComboboxListener(new FlexSdkComboBoxWithBrowseButton.Listener(){
+    public void stateChanged(){
+      BCUtils.updateAvailableTargetPlayers(mySdkCombo.getSelectedSdk(),myTargetPlayerCombo);
+      updateControls();
+    }
+  }
+);
+  myPureActionScriptCheckBox.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      final String sampleApp=mySampleAppTextField.getText().trim();
+      if (sampleApp.endsWith(".as") || sampleApp.endsWith(".mxml")) {
+        mySampleAppTextField.setText(FileUtil.getNameWithoutExtension(sampleApp) + (myPureActionScriptCheckBox.isSelected() ? ".as" : ".mxml"));
+      }
+    }
+  }
+);
+  reset();
+}

@@ -1,0 +1,22 @@
+{
+  final String fullValue=value;
+  final int lfIndex=fullValue.indexOf('\n');
+  final int crIndex=fullValue.indexOf('\r');
+  if (fullValue.length() > XValueNode.MAX_VALUE_LENGTH || lfIndex > -1 && lfIndex < fullValue.length() - 1 || crIndex > -1 && crIndex < fullValue.length() - 1) {
+    final boolean quoted=fullValue.charAt(0) == '\'' && fullValue.charAt(fullValue.length() - 1) == '\'';
+    final boolean doubleQuoted=fullValue.charAt(0) == '\"' && fullValue.charAt(fullValue.length() - 1) == '\"';
+    if (value.length() > XValueNode.MAX_VALUE_LENGTH) {
+      final String ending=doubleQuoted ? "\" " : quoted ? "\' " : " ";
+      value=value.substring(0,XValueNode.MAX_VALUE_LENGTH).concat(ending);
+    }
+    value=value.trim();
+    final String unquoted=quoted || doubleQuoted ? fullValue.substring(1,fullValue.length() - 1) : fullValue;
+    node.setFullValueEvaluator(new XFullValueEvaluator(){
+      @Override public void startEvaluation(      @NotNull XFullValueEvaluationCallback callback){
+        callback.evaluated(StringUtil.convertLineSeparators(unquoted),isXml ? XmlObjectEvaluator.MONOSPACED_FONT : null);
+      }
+    }
+);
+  }
+  return value;
+}

@@ -1,0 +1,43 @@
+{
+  int size=0;
+  int preferredSize=0;
+  int[] poolPartLengths=new int[7];
+  for (  Decoder decoder : decoders) {
+    if (decoder == null) {
+      continue;
+    }
+    final ConstantPool pool=decoder.constantPool;
+    pool.totalSize=size;
+    size+=pool.size();
+    preferredSize+=pool.ends[MULTINAME] - pool.ends[STRING];
+    for (int j=0; j < 7; j++) {
+      poolPartLengths[j]+=pool.positions[j].length;
+    }
+  }
+  map=new int[size];
+  in_ns=new WritableDataBuffer(preferredSize);
+  in_ns_set=new WritableDataBuffer(preferredSize);
+  in_multiname=new WritableDataBuffer(preferredSize);
+  for (int i=0; i < 7; i++) {
+    final int poolPartLength=poolPartLengths[i];
+    if (poolPartLength == 0) {
+      continue;
+    }
+    if (i < NS) {
+      poolParts[i]=new PoolPart(poolPartLength);
+    }
+ else {
+switch (i) {
+case NS:
+        poolParts[i]=new NSPool(poolPartLength);
+      break;
+case NS_SET:
+    poolParts[i]=new NSSPool(poolPartLength);
+  break;
+case MULTINAME:
+poolParts[i]=new MultiNamePool(poolPartLength);
+break;
+}
+}
+}
+}

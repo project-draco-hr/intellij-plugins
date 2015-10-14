@@ -1,0 +1,65 @@
+{
+  int estimatedSize=0, total=0;
+  final int n=decoders.size();
+  for (int i=0; i < n; i++) {
+    Decoder decoder=decoders.get(i);
+    if (excludedName != null && decoder.name != null && excludedName.same(decoder.name)) {
+      decoders.set(i,null);
+      continue;
+    }
+    estimatedSize+=decoder.methodInfo.estimatedSize;
+    total+=decoder.methodInfo.size();
+  }
+  methodInfo=new DataBuffer2(estimatedSize);
+  methodInfo.writeU32(total);
+  total=0;
+  for (  Decoder decoder : decoders) {
+    if (decoder == null) {
+      continue;
+    }
+    total+=decoder.metadataInfo.size();
+  }
+  metadataInfo=new MetadataInfoByteArray(total);
+  estimatedSize=0;
+  int classEstimatedSize=0;
+  total=0;
+  for (  Decoder decoder : decoders) {
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.classInfo.instanceEstimatedSize;
+    classEstimatedSize+=decoder.classInfo.classEstimatedSize;
+    total+=decoder.classInfo.size();
+  }
+  instanceInfo=new DataBuffer2(estimatedSize);
+  classInfo=new DataBuffer2(classEstimatedSize);
+  instanceInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  for (  Decoder decoder : decoders) {
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.scriptInfo.estimatedSize;
+    total+=decoder.scriptInfo.size();
+  }
+  scriptInfo=new DataBuffer2(estimatedSize);
+  scriptInfo.writeU32(total);
+  estimatedSize=0;
+  total=0;
+  for (  Decoder decoder : decoders) {
+    if (decoder == null) {
+      continue;
+    }
+    estimatedSize+=decoder.methodBodies.estimatedSize;
+    total+=decoder.methodBodies.size();
+  }
+  methodBodies=new DataBuffer2(estimatedSize);
+  methodBodies.writeU32(total);
+  opcodes=new DataBuffer3(decoders,4096);
+  exceptions=new WritableDataBuffer(4096);
+  history=new IndexHistory(decoders);
+  if (disableDebugging) {
+    history.disableDebugging();
+  }
+}

@@ -1,0 +1,16 @@
+{
+  Query<VirtualFile> packageFiles=DirectoryIndex.getInstance(project).getDirectoriesByPackageName(packageName,scope.isSearchInLibraries());
+  final PsiManager manager=PsiManager.getInstance(project);
+  for (  VirtualFile packageFile : packageFiles) {
+    if (!scope.contains(packageFile))     continue;
+    PsiDirectory dir=manager.findDirectory(packageFile);
+    if (dir == null)     continue;
+    processor.addDependency(dir);
+    for (    PsiFile file : dir.getFiles()) {
+      if (JavaScriptSupportLoader.isMxmlOrFxgFile(file)) {
+        if (!processor.processFile(file.getVirtualFile(),null))         return false;
+      }
+    }
+  }
+  return true;
+}

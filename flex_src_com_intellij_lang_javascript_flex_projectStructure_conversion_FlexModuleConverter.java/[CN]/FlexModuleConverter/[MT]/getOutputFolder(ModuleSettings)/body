@@ -1,0 +1,17 @@
+{
+  final Element rootManagerElement=moduleSettings.getComponentElement(ModuleSettings.MODULE_ROOT_MANAGER_COMPONENT);
+  if (rootManagerElement != null) {
+    final boolean inheritOutput="true".equals(rootManagerElement.getAttributeValue("inherit-compiler-output"));
+    if (!inheritOutput) {
+      final Element outputElement=rootManagerElement.getChild("output");
+      final String outputUrl=outputElement == null ? null : outputElement.getAttributeValue("url");
+      if (outputUrl != null) {
+        String path=PathUtil.getCanonicalPath(VfsUtilCore.urlToPath(moduleSettings.expandPath(outputUrl)));
+        return moduleSettings.collapsePath(path);
+      }
+    }
+  }
+  final String projectOutputUrl=moduleSettings.getProjectOutputUrl();
+  String path=projectOutputUrl == null ? "" : VfsUtilCore.urlToPath(moduleSettings.expandPath(projectOutputUrl) + "/" + CompilerModuleExtension.PRODUCTION+ "/"+ moduleSettings.getModuleName());
+  return moduleSettings.collapsePath(path);
+}

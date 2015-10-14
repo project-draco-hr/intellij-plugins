@@ -1,0 +1,50 @@
+{
+  final VirtualFile configFile=configFilePath.isEmpty() ? null : LocalFileSystem.getInstance().findFileByPath(configFilePath);
+  if (configFile == null) {
+    return InfoFromConfigFile.DEFAULT;
+  }
+  Pair<Long,InfoFromConfigFile> data=configFile.getUserData(MOD_STAMP_AND_INFO_FROM_CONFIG_FILE);
+  final FileDocumentManager documentManager=FileDocumentManager.getInstance();
+  final Document cachedDocument=documentManager.getCachedDocument(configFile);
+  final Long currentTimestamp=cachedDocument != null ? cachedDocument.getModificationStamp() : configFile.getModificationCount();
+  final Long cachedTimestamp=data == null ? null : data.first;
+  if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
+    data=null;
+    configFile.putUserData(MOD_STAMP_AND_INFO_FROM_CONFIG_FILE,data);
+    final List<String> xmlElements=Arrays.asList(FILE_SPEC_ELEMENT,OUTPUT_ELEMENT,TARGET_PLAYER_ELEMENT);
+    String mainClassPath=null;
+    String outputPath=null;
+    String targetPlayer=null;
+    try {
+      final InputStream inputStream=cachedDocument == null ? configFile.getInputStream() : new ByteArrayInputStream(cachedDocument.getText().getBytes());
+      final Map<String,List<String>> map=FlexUtils.findXMLElements(inputStream,xmlElements);
+      final List<String> fileSpecList=map.get(FILE_SPEC_ELEMENT);
+      if (!fileSpecList.isEmpty()) {
+        mainClassPath=fileSpecList.get(0).trim();
+      }
+      final List<String> outputList=map.get(OUTPUT_ELEMENT);
+      if (!outputList.isEmpty()) {
+        outputPath=outputList.get(0).trim();
+        if (!FileUtil.isAbsolute(outputPath)) {
+          try {
+            outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent().getPath() + "/" + outputPath).getCanonicalPath());
+          }
+ catch (          IOException e) {
+            outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent().getPath() + "/" + outputPath).getAbsolutePath());
+          }
+        }
+      }
+      final List<String> targetPlayerList=map.get(TARGET_PLAYER_ELEMENT);
+      if (!targetPlayerList.isEmpty()) {
+        targetPlayer=targetPlayerList.get(0).trim();
+      }
+    }
+ catch (    IOException ignore) {
+    }
+    final String outputFileName=outputPath == null ? null : PathUtil.getFileName(outputPath);
+    final String outputFolderPath=outputPath == null ? null : PathUtil.getParentPath(outputPath);
+    data=Pair.create(currentTimestamp,new InfoFromConfigFile(configFile,mainClassPath,outputFileName,outputFolderPath,targetPlayer));
+    configFile.putUserData(MOD_STAMP_AND_INFO_FROM_CONFIG_FILE,data);
+  }
+  return data.second;
+}

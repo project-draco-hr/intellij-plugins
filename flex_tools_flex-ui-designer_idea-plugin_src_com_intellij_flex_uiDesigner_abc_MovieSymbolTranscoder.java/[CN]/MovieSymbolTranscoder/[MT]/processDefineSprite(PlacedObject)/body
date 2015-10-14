@@ -1,0 +1,41 @@
+{
+  buffer.position(placedObject.start + 4);
+  final int endPosition=placedObject.start + placedObject.length;
+  while (true) {
+    final int tagStart=buffer.position();
+    final int tagCodeAndLength=buffer.getShort();
+    final int type=tagCodeAndLength >> 6;
+    int length=tagCodeAndLength & 0x3F;
+    if (length == 63) {
+      length=buffer.getInt();
+    }
+    final int start=buffer.position();
+switch (type) {
+case TagTypes.DoAction:
+case TagTypes.DoInitAction:
+      placedObject.prepareSparseWrite();
+    if (placedObject.positions == null) {
+      placedObject.positions=new TIntArrayList();
+      placedObject.actualLength=placedObject.length;
+    }
+  placedObject.positions.add(tagStart);
+final int fullLength=length + (start - tagStart);
+placedObject.positions.add(tagStart + fullLength);
+placedObject.actualLength-=fullLength;
+continue;
+case TagTypes.PlaceObject:
+case TagTypes.PlaceObject3:
+throw new IOException("PlaceObject and PlaceObject3 are not supported");
+case TagTypes.PlaceObject2:
+processPlaceObject2(placedObject,length,start);
+break;
+}
+final int newPosition=start + length;
+if (newPosition < endPosition) {
+buffer.position(newPosition);
+}
+ else {
+break;
+}
+}
+}

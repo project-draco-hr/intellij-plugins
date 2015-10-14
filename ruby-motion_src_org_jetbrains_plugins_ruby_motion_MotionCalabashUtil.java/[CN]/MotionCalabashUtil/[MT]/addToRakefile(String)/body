@@ -1,0 +1,19 @@
+{
+  final File file=new File(applicationHomePath,RakeUtilBase.RAKE_FILE);
+  final VirtualFile virtualFile=LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file);
+  if (virtualFile == null) {
+    LOG.warn("Unable add motion-calabash support: no " + RakeUtilBase.RAKE_FILE + " in "+ applicationHomePath);
+    return;
+  }
+  String text=VfsUtilCore.loadText(virtualFile);
+  int pos=text.indexOf("require");
+  pos=text.indexOf("\n",pos);
+  text=text.substring(0,pos) + "require 'motion-calabash'\n" + text.substring(pos + 1);
+  final String finalText=text;
+  new WriteAction(){
+    @Override protected void run(    @NotNull Result result) throws Throwable {
+      VfsUtil.saveText(virtualFile,finalText);
+    }
+  }
+.execute().throwException();
+}

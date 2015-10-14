@@ -1,0 +1,66 @@
+{
+  XmlAttribute flex3NamespaceDeclaration=null;
+  XmlAttribute flex4NamespaceDeclaration=null;
+  XmlAttribute itemCreationPolicyAttr=null;
+  XmlAttribute itemDestructionPolicyAttr=null;
+  boolean includeInOrExcludeFromAttrPresent=false;
+  for (  final XmlAttribute attribute : tag.getAttributes()) {
+    final String name=attribute.getName();
+    if (attribute.isNamespaceDeclaration()) {
+      final String namespace=attribute.getValue();
+      if (MXML_URI.equals(namespace)) {
+        flex3NamespaceDeclaration=attribute;
+      }
+ else       if (MXML_URI3.equals(namespace)) {
+        flex4NamespaceDeclaration=attribute;
+      }
+    }
+ else     if (checkStateSpecificAttrs) {
+      if (FlexStateElementNames.INCLUDE_IN.equals(name) || FlexStateElementNames.EXCLUDE_FROM.equals(name)) {
+        includeInOrExcludeFromAttrPresent=true;
+      }
+ else       if (FlexStateElementNames.ITEM_CREATION_POLICY.equals(name)) {
+        itemCreationPolicyAttr=attribute;
+      }
+ else       if (FlexStateElementNames.ITEM_DESTRUCTION_POLICY.equals(name)) {
+        itemDestructionPolicyAttr=attribute;
+      }
+    }
+  }
+  if (tag.getParent() instanceof XmlDocument) {
+    if (flex3NamespaceDeclaration == null && flex4NamespaceDeclaration == null) {
+      final String[] knownNamespaces=tag.knownNamespaces();
+      boolean suggestFlex3Namespace=true;
+      for (      final String flex4Namespace : MxmlJSClass.FLEX_4_NAMESPACES) {
+        if (ArrayUtil.contains(flex4Namespace,knownNamespaces)) {
+          suggestFlex3Namespace=false;
+          break;
+        }
+      }
+      final DeclareNamespaceIntention flex4Intention=new DeclareNamespaceIntention(tag,"fx",MXML_URI3);
+      final IntentionAction[] intentions=suggestFlex3Namespace ? new IntentionAction[]{flex4Intention,new DeclareNamespaceIntention(tag,"mx",MXML_URI)} : new IntentionAction[]{flex4Intention};
+      addErrorMessage(tag,FlexBundle.message("root.tag.must.contain.language.namespace"),host,intentions);
+    }
+ else     if (flex3NamespaceDeclaration != null && flex4NamespaceDeclaration != null) {
+      addErrorMessage(flex3NamespaceDeclaration.getValueElement(),FlexBundle.message("different.language.namespaces"),host,new RemoveNamespaceDeclarationIntention(flex3NamespaceDeclaration));
+      addErrorMessage(flex4NamespaceDeclaration.getValueElement(),FlexBundle.message("different.language.namespaces"),host,new RemoveNamespaceDeclarationIntention(flex4NamespaceDeclaration));
+    }
+  }
+ else {
+    final String[] knownNamespaces=tag.knownNamespaces();
+    if (flex3NamespaceDeclaration != null && ArrayUtil.contains(MXML_URI3,knownNamespaces)) {
+      addErrorMessage(flex3NamespaceDeclaration.getValueElement(),FlexBundle.message("different.language.namespaces"),host,new RemoveNamespaceDeclarationIntention(flex3NamespaceDeclaration));
+    }
+    if (flex4NamespaceDeclaration != null && ArrayUtil.contains(MXML_URI,knownNamespaces)) {
+      addErrorMessage(flex4NamespaceDeclaration.getValueElement(),FlexBundle.message("different.language.namespaces"),host,new RemoveNamespaceDeclarationIntention(flex4NamespaceDeclaration));
+    }
+  }
+  if (checkStateSpecificAttrs && !includeInOrExcludeFromAttrPresent) {
+    if (itemCreationPolicyAttr != null) {
+      addErrorMessage(itemCreationPolicyAttr,FlexBundle.message("must.accompany.includein.or.excludefrom.attribute",itemCreationPolicyAttr.getName()),host);
+    }
+    if (itemDestructionPolicyAttr != null) {
+      addErrorMessage(itemDestructionPolicyAttr,FlexBundle.message("must.accompany.includein.or.excludefrom.attribute",itemDestructionPolicyAttr.getName()),host);
+    }
+  }
+}

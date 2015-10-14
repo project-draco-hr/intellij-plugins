@@ -1,0 +1,30 @@
+{
+  while (true) {
+    try {
+      JsonObject response=stream.take();
+      if (response == null) {
+        return;
+      }
+      lastResponseTime.set(System.currentTimeMillis());
+      try {
+        processResponse(response);
+      }
+  finally {
+        stream.lastRequestProcessed();
+      }
+    }
+ catch (    Throwable e) {
+      if (shutdownRequested) {
+        return;
+      }
+      if (e instanceof IOException) {
+        String message=e.getMessage();
+        if (message != null && message.contains("closed")) {
+          Logging.getLogger().logError("AnalysisServer stream unexpected closed",e);
+          return;
+        }
+      }
+      Logging.getLogger().logError(e.getMessage(),e);
+    }
+  }
+}

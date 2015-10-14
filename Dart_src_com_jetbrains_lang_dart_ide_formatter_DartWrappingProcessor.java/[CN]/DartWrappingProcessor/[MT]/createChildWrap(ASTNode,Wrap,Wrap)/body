@@ -96,19 +96,7 @@
     return wrap != null ? wrap : Wrap.createWrap(WrapType.NORMAL,true);
   }
   if (elementType == MAP_LITERAL_EXPRESSION) {
-    Wrap wrap=null;
-    if (myNode.getFirstChildNode() == child) {
-      wrap=Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
-      if (myNode.getLastChildNode() != child) {
-        myNode.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,wrap);
-      }
-    }
- else {
-      wrap=myNode.getUserData(DART_EXPRESSION_LIST_WRAP_KEY);
-      if (myNode.getLastChildNode() == child) {
-        myNode.putUserData(DART_EXPRESSION_LIST_WRAP_KEY,null);
-      }
-    }
+    Wrap wrap=sharedWrap(child,DART_EXPRESSION_LIST_WRAP_KEY);
     if (childType == LBRACE || childType == LBRACKET) {
       return Wrap.createWrap(WrapType.NONE,false);
     }
@@ -207,6 +195,15 @@
   if (elementType == ENUM_DEFINITION) {
     if (childType == ENUM_CONSTANT_DECLARATION) {
       return Wrap.createWrap(WrapType.CHOP_DOWN_IF_LONG,true);
+    }
+  }
+  if (elementType == TYPE_LIST) {
+    if (childType == TYPE) {
+      Wrap wrap=sharedWrap(child,DART_TYPE_LIST_WRAP_KEY);
+      if (childType == MULTI_LINE_COMMENT) {
+        return Wrap.createWrap(WrapType.NONE,false);
+      }
+      return wrap == null ? Wrap.createWrap(WrapType.NORMAL,true) : wrap;
     }
   }
   if (elementType == REFERENCE_EXPRESSION && (childType == DOT || childType == QUEST_DOT)) {

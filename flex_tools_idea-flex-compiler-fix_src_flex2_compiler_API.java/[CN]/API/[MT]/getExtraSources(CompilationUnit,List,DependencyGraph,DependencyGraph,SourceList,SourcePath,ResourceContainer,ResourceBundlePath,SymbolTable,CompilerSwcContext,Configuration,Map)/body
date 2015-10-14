@@ -1,0 +1,90 @@
+{
+  if ((u.getWorkflow() & extraSources) != 0)   return;
+  if (u.loaderClass != null) {
+    String className=u.loaderClass;
+    MultiName mName=new MultiName(className);
+    QName qName=resolveMultiName(u.getSource().getNameForReporting(),mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+    if (qName != null) {
+      Source tailSource=symbolTable.findSourceByQName(qName);
+      addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+    }
+ else {
+      ThreadLocalToolkit.log(new UnableToResolveClass("factoryClass",className));
+    }
+  }
+  configuration.getResourceBundles().addAll(u.resourceBundleHistory);
+  boolean processResourceBundles=configuration.getCompilerConfiguration().useResourceBundleMetadata() && u.resourceBundleHistory.size() > 0;
+  if (processResourceBundles) {
+    String[] locales=configuration.getCompilerConfiguration().getLocales();
+    for (Iterator it=u.resourceBundleHistory.iterator(); it.hasNext(); ) {
+      String rbName=NameFormatter.toColon((String)it.next());
+      Source source=null;
+      QName[] qNames=resolveResourceBundleName(rbName,sources,null,bundlePath,null,swcContext,symbolTable,locales);
+      if (qNames != null) {
+        source=symbolTable.findSourceByResourceBundleName(rbName);
+        addVertexToGraphs(source,source.getCompilationUnit(),igraph,dgraph);
+        continue;
+      }
+      MultiName mName=new MultiName(rbName);
+      QName qName=resolveMultiName(u.getSource().getNameForReporting(),mName,sources,null,sourcePath,null,null,symbolTable);
+      if (qName != null) {
+        source=symbolTable.findSourceByQName(qName);
+        addVertexToGraphs(source,source.getCompilationUnit(),igraph,dgraph);
+        symbolTable.register(rbName,qNames,source);
+        continue;
+      }
+      mName=new MultiName(rbName + I18nUtils.CLASS_SUFFIX);
+      qName=resolveMultiName(u.getSource().getNameForReporting(),mName,sources,null,null,null,swcContext,symbolTable);
+      if (qName != null) {
+        source=symbolTable.findSourceByQName(qName);
+        addVertexToGraphs(source,source.getCompilationUnit(),igraph,dgraph);
+        symbolTable.register(rbName,qNames,source);
+      }
+ else       if (locales.length == 1) {
+        ThreadLocalToolkit.log(new UnableToResolveResourceBundleForLocale(rbName,locales[0]));
+      }
+ else       if (locales.length > 1) {
+        ThreadLocalToolkit.log(new UnableToResolveResourceBundle(rbName));
+      }
+    }
+  }
+  if ((u.licensedClassReqs != null) && (u.licensedClassReqs.size() > 0)) {
+    for (Iterator it=u.licensedClassReqs.entrySet().iterator(); it.hasNext(); ) {
+      Map.Entry e=(Map.Entry)it.next();
+      String id=(String)e.getKey();
+      String handler=(String)e.getValue();
+      if (!hasValidLicense(licenseMap,id)) {
+        MultiName mName=new MultiName(handler);
+        QName qName=resolveMultiName(u.getSource().getNameForReporting(),mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+        configuration.getIncludes().add(handler);
+        configuration.getExterns().remove(handler);
+        if (qName != null) {
+          Source tailSource=symbolTable.findSourceByQName(qName);
+          addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+        }
+ else {
+          ThreadLocalToolkit.log(new UnableToResolveClass("RequiresLicense handler",handler));
+        }
+      }
+ else {
+        configuration.getIncludes().remove(handler);
+        configuration.getExterns().add(handler);
+      }
+    }
+  }
+  if ((u.extraClasses != null) && (u.extraClasses.size() > 0)) {
+    for (Iterator it=u.extraClasses.iterator(); it.hasNext(); ) {
+      String className=(String)it.next();
+      MultiName mName=new MultiName(className);
+      QName qName=resolveMultiName(u.getSource().getNameForReporting(),mName,sources,sourceList,sourcePath,resources,swcContext,symbolTable);
+      if (qName != null) {
+        Source tailSource=symbolTable.findSourceByQName(qName);
+        addVertexToGraphs(tailSource,tailSource.getCompilationUnit(),igraph,dgraph);
+      }
+ else {
+        ThreadLocalToolkit.log(new UnableToResolveNeededClass(className));
+      }
+    }
+  }
+  u.setWorkflow(extraSources);
+}

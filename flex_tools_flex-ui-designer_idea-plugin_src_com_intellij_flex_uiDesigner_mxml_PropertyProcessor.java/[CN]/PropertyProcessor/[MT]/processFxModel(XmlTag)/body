@@ -1,0 +1,21 @@
+{
+  final MxmlObjectReference objectReference=processFxDeclarationId(tag,null,false);
+  if (objectReference == null) {
+    return false;
+  }
+  writer.referableHeader(objectReference.id);
+  final XmlTag[] subTags=tag.getSubTags();
+  if (subTags.length == 1) {
+    final ModelObjectReferenceProvider modelObjectReference=new ModelObjectReferenceProvider(writer);
+    modelObjectReference.reference=objectReference;
+    processFxModelTagChildren(subTags[0],modelObjectReference);
+  }
+ else {
+    writer.objectHeader("mx.utils.ObjectProxy");
+    writer.endObject();
+    if (subTags.length > 1) {
+      LOG.warn("Skip model, only one root tag is allowed: " + tag.getText());
+    }
+  }
+  return true;
+}

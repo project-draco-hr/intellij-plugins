@@ -1,0 +1,20 @@
+{
+  initServerDataTest();
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=getFile().getVirtualFile();
+  checkServerDataInitialState(file);
+  getEditor().getCaretModel().moveToOffset(27);
+  myFixture.type('\b');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(26,37),TextRange.create(46,57));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,38),TextRange.create(20,26),TextRange.create(26,37),TextRange.create(39,58),TextRange.create(39,45),TextRange.create(46,57));
+  undoAndUpdateHighlighting(file);
+  getEditor().getCaretModel().moveToOffset(29);
+  myFixture.type('\b');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(46,57));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,38),TextRange.create(20,26),TextRange.create(27,37),TextRange.create(39,58),TextRange.create(39,45),TextRange.create(46,57));
+  undoAndUpdateHighlighting(file);
+  getEditor().getCaretModel().moveToOffset(39);
+  myFixture.type('\b');
+  checkRegions(service.getNavigation(file),TextRange.create(7,18),TextRange.create(27,38),TextRange.create(46,57));
+  checkRegions(service.getHighlight(file),TextRange.create(0,19),TextRange.create(0,6),TextRange.create(7,18),TextRange.create(20,38),TextRange.create(20,26),TextRange.create(27,38),TextRange.create(39,58),TextRange.create(39,45),TextRange.create(46,57));
+}

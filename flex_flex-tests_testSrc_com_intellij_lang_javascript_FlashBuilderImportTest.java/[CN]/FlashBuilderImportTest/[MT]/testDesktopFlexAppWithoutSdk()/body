@@ -1,0 +1,20 @@
+{
+  prepareSdkTest();
+  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_FLEX_PROPERTIES,"",myFlashBuilderProjectDir);
+  final VirtualFile srcDir=myFlashBuilderProjectDir.createChildDirectory(this,"src");
+  final VirtualFile locale1Dir=srcDir.createChildDirectory(this,"locale");
+  locale1Dir.createChildDirectory(this,"en_US");
+  final VirtualFile locale2=myFlashBuilderProjectDir.createChildDirectory(this,"locale");
+  locale2.createChildDirectory(this,"ja_JP");
+  importProject("<actionScriptProperties>\n" + "  <compiler useApolloConfig='true' flexSDK='custom sdk name' sourceFolderPath=\"src\"" + "            additionalCompilerArguments='-locale en_US ja_JP -source-path locale/{locale} -allow-source-path-overlap true' />\n"+ "</actionScriptProperties>",myFlashBuilderProjectDir.getPath() + "/Flash_Builder_installation");
+  final FlexBuildConfiguration bc=getBC();
+  assertEquals(TargetPlatform.Desktop,bc.getTargetPlatform());
+  assertFalse(bc.isPureAs());
+  assertEquals(OutputType.Application,bc.getOutputType());
+  assertNull(bc.getSdk());
+  assertEquals("-allow-source-path-overlap true",bc.getCompilerOptions().getAdditionalOptions());
+  assertEquals(1,bc.getCompilerOptions().getAllOptions().size());
+  assertEquals("en_US\nja_JP",bc.getCompilerOptions().getOption("compiler.locale"));
+  final String contentRootUrl=myFlashBuilderProjectDir.getUrl();
+  checkSourceRoots(contentRootUrl + "/src",contentRootUrl + "/src/locale/en_US",contentRootUrl + "/locale/ja_JP");
+}
