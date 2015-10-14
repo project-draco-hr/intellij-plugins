@@ -1,0 +1,51 @@
+{
+  AnalysisServer server=myServer;
+  if (server == null) {
+    return;
+  }
+  final Map<String,Object> filesToUpdate=new THashMap<String,Object>();
+  ApplicationManager.getApplication().assertReadAccessAllowed();
+synchronized (myLock) {
+    final Set<String> oldTrackedFiles=new THashSet<String>(myFilePathWithOverlaidContentToTimestamp.keySet());
+    final FileDocumentManager fileDocumentManager=FileDocumentManager.getInstance();
+    final Set<Document> documents=new THashSet<Document>(myChangedDocuments);
+    myChangedDocuments.clear();
+    ContainerUtil.addAll(documents,fileDocumentManager.getUnsavedDocuments());
+    for (    Document document : documents) {
+      final VirtualFile file=fileDocumentManager.getFile(document);
+      if (isLocalDartOrHtmlFile(file)) {
+        oldTrackedFiles.remove(file.getPath());
+        final Long oldTimestamp=myFilePathWithOverlaidContentToTimestamp.get(file.getPath());
+        if (oldTimestamp == null || document.getModificationStamp() != oldTimestamp) {
+          filesToUpdate.put(FileUtil.toSystemDependentName(file.getPath()),new AddContentOverlay(document.getText()));
+          myFilePathWithOverlaidContentToTimestamp.put(file.getPath(),document.getModificationStamp());
+        }
+      }
+    }
+    for (    String oldPath : oldTrackedFiles) {
+      final Long removed=myFilePathWithOverlaidContentToTimestamp.remove(oldPath);
+      LOG.assertTrue(removed != null,oldPath);
+      filesToUpdate.put(FileUtil.toSystemDependentName(oldPath),new RemoveContentOverlay());
+    }
+    if (LOG.isDebugEnabled()) {
+      final Set<String> overlaid=new THashSet<String>(filesToUpdate.keySet());
+      for (      String removeOverlaid : oldTrackedFiles) {
+        overlaid.remove(FileUtil.toSystemDependentName(removeOverlaid));
+      }
+      if (!overlaid.isEmpty()) {
+        LOG.debug("Sending overlaid content: " + StringUtil.join(overlaid,",\n"));
+      }
+      if (!oldTrackedFiles.isEmpty()) {
+        LOG.debug("Removing overlaid content: " + StringUtil.join(oldTrackedFiles,",\n"));
+      }
+    }
+  }
+  if (!filesToUpdate.isEmpty()) {
+    server.analysis_updateContent(filesToUpdate,new UpdateContentConsumer(){
+      @Override public void onResponse(){
+        myServerData.onFilesContentUpdated();
+      }
+    }
+);
+  }
+}

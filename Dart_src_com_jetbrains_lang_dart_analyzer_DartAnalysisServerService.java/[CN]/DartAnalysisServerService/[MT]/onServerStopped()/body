@@ -8,16 +8,17 @@ synchronized (myLock) {
     myVisibleFiles.clear();
     myChangedDocuments.clear();
     myServerData.clearData();
-    ApplicationManager.getApplication().runReadAction(new Runnable(){
+    final Set<Project> projects=myRootsHandler.getTrackedProjects();
+    myRootsHandler.reset();
+    ApplicationManager.getApplication().invokeLater(new Runnable(){
       @Override public void run(){
-        for (        final Project project : myRootsHandler.getTrackedProjects()) {
+        for (        final Project project : projects) {
           if (!project.isDisposed()) {
             DartProblemsViewImpl.getInstance(project).clearAll();
           }
         }
       }
     }
-);
-    myRootsHandler.reset();
+,ModalityState.NON_MODAL);
   }
 }
