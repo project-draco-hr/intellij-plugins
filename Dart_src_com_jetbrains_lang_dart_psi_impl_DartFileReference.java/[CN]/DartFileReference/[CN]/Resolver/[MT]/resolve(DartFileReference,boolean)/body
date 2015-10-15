@@ -1,0 +1,33 @@
+{
+  final PsiFile refPsiFile=reference.getElement().getContainingFile();
+  final int refOffset=reference.getElement().getTextOffset();
+  final int refLength=reference.getElement().getTextLength();
+  DartNavigationRegion region=DartResolver.findRegion(refPsiFile,refOffset,refLength);
+  if (region == null) {
+    final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile(refPsiFile);
+    if (virtualFile != null && DartAnalysisServerService.getInstance().getNavigation(virtualFile).isEmpty() && DartAnalysisServerService.getInstance().getHighlight(virtualFile).isEmpty()) {
+      final PsiElement parent=reference.getElement().getParent();
+      final int parentOffset=parent.getTextOffset();
+      final int parentLength=parent.getTextLength();
+      final List<DartNavigationRegion> regions=DartAnalysisServerService.getInstance().analysis_getNavigation(virtualFile,parentOffset,parentLength);
+      if (regions != null) {
+        region=DartResolver.findRegion(regions,refOffset,refLength);
+      }
+    }
+  }
+  if (region != null) {
+    final List<DartNavigationTarget> targets=region.getTargets();
+    if (!targets.isEmpty()) {
+      final DartNavigationTarget target=targets.get(0);
+      final String targetPath=target.getFile();
+      final VirtualFile targetVirtualFile=LocalFileSystem.getInstance().findFileByPath(targetPath);
+      if (targetVirtualFile != null) {
+        final PsiFile targetFile=reference.getElement().getManager().findFile(targetVirtualFile);
+        if (targetFile != null) {
+          return new ResolveResult[]{new PsiElementResolveResult(targetFile)};
+        }
+      }
+    }
+  }
+  return ResolveResult.EMPTY_ARRAY;
+}

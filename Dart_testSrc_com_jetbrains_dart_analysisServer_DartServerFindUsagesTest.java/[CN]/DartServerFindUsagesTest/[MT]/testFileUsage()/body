@@ -1,0 +1,15 @@
+{
+  final PsiFile barFile=myFixture.configureByText("bar.dart","");
+  myFixture.addFileToProject("foo.dart","import '" + barFile.getName() + "';");
+  myFixture.doHighlighting();
+  final FindUsagesManager manager=((FindManagerImpl)FindManager.getInstance(getProject())).getFindUsagesManager();
+  final FindUsagesHandler handler=manager.getFindUsagesHandler(getFile(),false);
+  assertNotNull(handler);
+  assertFalse(handler instanceof DartServerFindUsagesHandler);
+  final Collection<PsiReference> usages=handler.findReferencesToHighlight(getFile(),GlobalSearchScope.allScope(getProject()));
+  assertSize(1,usages);
+  final PsiReference reference=usages.iterator().next();
+  assertInstanceOf(reference,DartFileReference.class);
+  assertEquals("foo.dart",reference.getElement().getContainingFile().getName());
+  assertEquals("import '" + barFile.getName() + "';",reference.getElement().getParent().getText());
+}

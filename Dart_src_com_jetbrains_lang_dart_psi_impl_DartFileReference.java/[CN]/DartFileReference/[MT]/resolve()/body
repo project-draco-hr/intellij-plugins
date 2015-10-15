@@ -1,21 +1,4 @@
 {
-  if (!myResolveDone) {
-    final PsiFile refPsiFile=myElement.getContainingFile();
-    final int refOffset=myElement.getTextOffset();
-    final int refLength=myElement.getTextLength();
-    final DartNavigationRegion region=DartResolver.findRegion(refPsiFile,refOffset,refLength);
-    if (region != null) {
-      final List<DartNavigationTarget> targets=region.getTargets();
-      if (!targets.isEmpty()) {
-        final DartNavigationTarget target=targets.get(0);
-        final String targetPath=target.getFile();
-        final VirtualFile targetVirtualFile=LocalFileSystem.getInstance().findFileByPath(targetPath);
-        if (targetVirtualFile != null) {
-          myTargetPsiFile=myElement.getManager().findFile(targetVirtualFile);
-        }
-      }
-    }
-    myResolveDone=true;
-  }
-  return myTargetPsiFile;
+  final ResolveResult[] resolveResults=multiResolve(false);
+  return resolveResults.length == 0 || resolveResults.length > 1 || !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
 }
