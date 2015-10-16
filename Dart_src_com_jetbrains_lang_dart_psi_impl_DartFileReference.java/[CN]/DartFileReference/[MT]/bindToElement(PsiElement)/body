@@ -1,3 +1,19 @@
 {
-  return element;
+  if (element instanceof PsiFile) {
+    final VirtualFile contextFile=DartResolveUtil.getRealVirtualFile(myUriElement.getContainingFile());
+    final VirtualFile targetFile=DartResolveUtil.getRealVirtualFile(((PsiFile)element));
+    if (contextFile != null && targetFile != null) {
+      final String newUri=DartUrlResolver.getInstance(myUriElement.getProject(),contextFile).getDartUrlForFile(targetFile);
+      if (newUri.startsWith(DartUrlResolver.PACKAGE_PREFIX)) {
+        return updateUri(newUri);
+      }
+ else       if (newUri.startsWith(DartUrlResolver.FILE_PREFIX)) {
+        final String relativePath=FileUtil.getRelativePath(contextFile.getParent().getPath(),targetFile.getPath(),'/');
+        if (relativePath != null) {
+          return updateUri(relativePath);
+        }
+      }
+    }
+  }
+  return myUriElement;
 }
