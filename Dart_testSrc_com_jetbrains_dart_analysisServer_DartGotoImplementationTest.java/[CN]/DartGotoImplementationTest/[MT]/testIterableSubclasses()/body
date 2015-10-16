@@ -1,0 +1,18 @@
+{
+  myFixture.configureByText("foo.dart","");
+  myFixture.doHighlighting();
+  final DartSdk sdk=DartSdk.getDartSdk(getProject());
+  assertNotNull(sdk);
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(sdk.getHomePath() + "/lib/core/iterable.dart");
+  assertNotNull(file);
+  myFixture.openFileInEditor(file);
+  final DartClass iterableClass=PsiTreeUtil.findChildOfType(getFile(),DartClass.class);
+  assertNotNull(iterableClass);
+  assertEquals("Iterable",iterableClass.getName());
+  final PsiElement nameIdentifier=iterableClass.getNameIdentifier();
+  assertNotNull(nameIdentifier);
+  getEditor().getCaretModel().moveToOffset(nameIdentifier.getTextOffset());
+  final GotoTargetHandler.GotoData data=new GotoImplementationHandler().getSourceAndTargetElements(myFixture.getEditor(),myFixture.getFile());
+  assertNotNull(data);
+  assertTrue(String.valueOf(data.targets.length),data.targets.length > 50);
+}
