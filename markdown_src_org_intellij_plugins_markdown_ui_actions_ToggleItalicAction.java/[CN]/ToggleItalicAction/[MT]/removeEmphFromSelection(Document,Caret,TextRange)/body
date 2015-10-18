@@ -1,29 +1,36 @@
 {
-  if (range.getStartOffset() + 1 == caret.getSelectionStart() && range.getEndOffset() - 1 == caret.getSelectionEnd()) {
-    document.deleteString(range.getEndOffset() - 1,range.getEndOffset());
-    document.deleteString(range.getStartOffset(),range.getStartOffset() + 1);
+  final CharSequence text=document.getCharsSequence();
+  final String boundString=getExistingBoundString(text,nodeRange.getStartOffset());
+  if (boundString == null) {
+    LOG.warn("Could not fetch bound string from found node");
     return;
   }
-  final CharSequence text=document.getCharsSequence();
-  char emphChar=text.charAt(range.getStartOffset());
+  final int boundLength=boundString.length();
+  if (nodeRange.getStartOffset() + boundLength == caret.getSelectionStart() && nodeRange.getEndOffset() - boundLength == caret.getSelectionEnd()) {
+    document.deleteString(nodeRange.getEndOffset() - boundLength,nodeRange.getEndOffset());
+    document.deleteString(nodeRange.getStartOffset(),nodeRange.getStartOffset() + boundLength);
+    return;
+  }
   int from=caret.getSelectionStart();
   int to=caret.getSelectionEnd();
-  while (from > range.getStartOffset() && Character.isWhitespace(text.charAt(from - 1))) {
-    from--;
+  if (shouldMoveToWordBounds()) {
+    while (from - boundLength > nodeRange.getStartOffset() && Character.isWhitespace(text.charAt(from - 1))) {
+      from--;
+    }
+    while (to + boundLength < nodeRange.getEndOffset() && Character.isWhitespace(text.charAt(to))) {
+      to++;
+    }
   }
-  while (to + 1 < range.getEndOffset() && Character.isWhitespace(text.charAt(to))) {
-    to++;
-  }
-  if (to + 1 == range.getEndOffset()) {
-    document.deleteString(range.getEndOffset() - 1,range.getEndOffset());
-  }
- else {
-    document.insertString(to,String.valueOf(emphChar));
-  }
-  if (from - 1 == range.getStartOffset()) {
-    document.deleteString(range.getStartOffset(),range.getStartOffset() + 1);
+  if (to + boundLength == nodeRange.getEndOffset()) {
+    document.deleteString(nodeRange.getEndOffset() - boundLength,nodeRange.getEndOffset());
   }
  else {
-    document.insertString(from,String.valueOf(emphChar));
+    document.insertString(to,boundString);
+  }
+  if (from - boundLength == nodeRange.getStartOffset()) {
+    document.deleteString(nodeRange.getStartOffset(),nodeRange.getStartOffset() + boundLength);
+  }
+ else {
+    document.insertString(from,boundString);
   }
 }

@@ -12,7 +12,11 @@
       final Document document=editor.getDocument();
       for (      Caret caret : ContainerUtil.reverse(editor.getCaretModel().getAllCarets())) {
         if (!state) {
-          final PsiElement closestEmph=MarkdownActionUtil.getCommonParentOfType(psiFile,caret,MarkdownElementTypes.EMPH);
+          final Couple<PsiElement> elements=MarkdownActionUtil.getElementsUnderCaretOrSelection(psiFile,caret);
+          if (elements == null) {
+            continue;
+          }
+          final PsiElement closestEmph=MarkdownActionUtil.getCommonParentOfType(elements.getFirst(),elements.getSecond(),getTargetNodeType());
           if (closestEmph == null) {
             LOG.warn("Could not find enclosing element on its destruction");
             continue;

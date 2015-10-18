@@ -4,23 +4,27 @@
   if (editor == null || psiFile == null) {
     return false;
   }
-  MarkdownActionUtil.SelectionState lastState=null;
+  SelectionState lastState=null;
   for (  Caret caret : editor.getCaretModel().getAllCarets()) {
-    final MarkdownActionUtil.SelectionState state=MarkdownActionUtil.getCommonState(psiFile,caret,MarkdownElementTypes.EMPH);
+    final Couple<PsiElement> elements=MarkdownActionUtil.getElementsUnderCaretOrSelection(psiFile,caret);
+    if (elements == null) {
+      continue;
+    }
+    final SelectionState state=getCommonState(elements.getFirst(),elements.getSecond());
     if (lastState == null) {
       lastState=state;
     }
  else     if (lastState != state) {
-      lastState=MarkdownActionUtil.SelectionState.INCONSISTENT;
+      lastState=SelectionState.INCONSISTENT;
       break;
     }
   }
-  if (lastState == MarkdownActionUtil.SelectionState.INCONSISTENT) {
+  if (lastState == SelectionState.INCONSISTENT) {
     e.getPresentation().setEnabled(false);
     return false;
   }
  else {
     e.getPresentation().setEnabled(true);
-    return lastState == MarkdownActionUtil.SelectionState.YES;
+    return lastState == SelectionState.YES;
   }
 }
