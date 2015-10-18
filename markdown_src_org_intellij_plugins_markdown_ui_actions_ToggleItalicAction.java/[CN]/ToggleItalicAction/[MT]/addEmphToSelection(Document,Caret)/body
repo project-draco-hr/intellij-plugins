@@ -1,0 +1,21 @@
+{
+  int from=caret.getSelectionStart();
+  int to=caret.getSelectionEnd();
+  final CharSequence text=document.getCharsSequence();
+  while (from < to && Character.isWhitespace(text.charAt(from))) {
+    from++;
+  }
+  while (to > from && Character.isWhitespace(text.charAt(to - 1))) {
+    to--;
+  }
+  if (from == to) {
+    from=caret.getSelectionStart();
+    to=caret.getSelectionEnd();
+  }
+  final char emphChar=isWord(text,from,to) ? '_' : '*';
+  document.insertString(to,String.valueOf(emphChar));
+  document.insertString(from,String.valueOf(emphChar));
+  if (caret.getSelectionStart() == caret.getSelectionEnd()) {
+    caret.moveCaretRelatively(1,0,false,false);
+  }
+}

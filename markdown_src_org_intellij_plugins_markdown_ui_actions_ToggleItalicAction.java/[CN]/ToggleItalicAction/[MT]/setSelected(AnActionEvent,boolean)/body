@@ -1,0 +1,31 @@
+{
+  final Editor editor=MarkdownActionUtil.findMarkdownTextEditor(e);
+  final PsiFile psiFile=e.getData(CommonDataKeys.PSI_FILE);
+  if (editor == null || psiFile == null) {
+    return;
+  }
+  WriteCommandAction.runWriteCommandAction(psiFile.getProject(),new Runnable(){
+    @Override public void run(){
+      if (!psiFile.isValid()) {
+        return;
+      }
+      final Document document=editor.getDocument();
+      for (      Caret caret : ContainerUtil.reverse(editor.getCaretModel().getAllCarets())) {
+        if (!state) {
+          final PsiElement closestEmph=MarkdownActionUtil.getCommonParentOfType(psiFile,caret,MarkdownElementTypes.EMPH);
+          if (closestEmph == null) {
+            LOG.warn("Could not find enclosing element on its destruction");
+            continue;
+          }
+          final TextRange range=closestEmph.getTextRange();
+          removeEmphFromSelection(document,caret,range);
+        }
+ else {
+          addEmphToSelection(document,caret);
+        }
+      }
+      PsiDocumentManager.getInstance(psiFile.getProject()).commitDocument(document);
+    }
+  }
+);
+}

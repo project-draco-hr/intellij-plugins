@@ -1,0 +1,29 @@
+{
+  if (range.getStartOffset() + 1 == caret.getSelectionStart() && range.getEndOffset() - 1 == caret.getSelectionEnd()) {
+    document.deleteString(range.getEndOffset() - 1,range.getEndOffset());
+    document.deleteString(range.getStartOffset(),range.getStartOffset() + 1);
+    return;
+  }
+  final CharSequence text=document.getCharsSequence();
+  char emphChar=text.charAt(range.getStartOffset());
+  int from=caret.getSelectionStart();
+  int to=caret.getSelectionEnd();
+  while (from > range.getStartOffset() && Character.isWhitespace(text.charAt(from - 1))) {
+    from--;
+  }
+  while (to + 1 < range.getEndOffset() && Character.isWhitespace(text.charAt(to))) {
+    to++;
+  }
+  if (to + 1 == range.getEndOffset()) {
+    document.deleteString(range.getEndOffset() - 1,range.getEndOffset());
+  }
+ else {
+    document.insertString(to,String.valueOf(emphChar));
+  }
+  if (from - 1 == range.getStartOffset()) {
+    document.deleteString(range.getStartOffset(),range.getStartOffset() + 1);
+  }
+ else {
+    document.insertString(from,String.valueOf(emphChar));
+  }
+}

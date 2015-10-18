@@ -1,0 +1,21 @@
+{
+  final PsiElement base;
+  if (caret.getSelectionStart() == caret.getSelectionEnd()) {
+    base=file.findElementAt(caret.getOffset());
+  }
+ else {
+    final PsiElement startElement=file.findElementAt(caret.getSelectionStart());
+    final PsiElement endElement=file.findElementAt(caret.getSelectionEnd());
+    if (startElement == null || endElement == null) {
+      return null;
+    }
+    base=PsiTreeUtil.findCommonParent(startElement,endElement);
+  }
+  return PsiTreeUtil.findFirstParent(base,false,new Condition<PsiElement>(){
+    @Override public boolean value(    PsiElement element){
+      final ASTNode node=element.getNode();
+      return node != null && node.getElementType() == elementType;
+    }
+  }
+);
+}
