@@ -3,6 +3,10 @@
   myRefactoring=refactoring;
   setTitle("Extract Method");
   init();
+  final String name=StringUtil.notNullize(ArrayUtil.getFirstElement(refactoring.getNames()),"name");
+  myRefactoring.setName(name);
+  myMethodNameField.setText(name);
+  myMethodNameField.selectAll();
   myMethodNameField.getDocument().addDocumentListener(new DocumentAdapter(){
     @Override protected void textChanged(    DocumentEvent e){
       final String name=myMethodNameField.getText();
@@ -13,8 +17,9 @@
 );
   if (myRefactoring.getOccurrences() != 1) {
     myAllCheckBox.setSelected(true);
-    myAllCheckBox.addChangeListener(new ChangeListener(){
-      @Override public void stateChanged(      ChangeEvent e){
+    myAllCheckBox.setText("Extract all " + myRefactoring.getOccurrences() + " occurrences");
+    myAllCheckBox.addActionListener(new ActionListener(){
+      @Override public void actionPerformed(      ActionEvent e){
         myRefactoring.setExtractAll(myAllCheckBox.isSelected());
       }
     }
@@ -24,9 +29,11 @@
     myAllCheckBox.setEnabled(false);
   }
   if (myRefactoring.canExtractGetter()) {
-    myGetterCheckBox.addChangeListener(new ChangeListener(){
-      @Override public void stateChanged(      ChangeEvent e){
+    myGetterCheckBox.setSelected(true);
+    myGetterCheckBox.addActionListener(new ActionListener(){
+      @Override public void actionPerformed(      ActionEvent e){
         myRefactoring.setCreateGetter(myGetterCheckBox.isSelected());
+        mySignatureLabel.setText(myRefactoring.getSignature());
       }
     }
 );
@@ -34,4 +41,5 @@
  else {
     myGetterCheckBox.setEnabled(false);
   }
+  mySignatureLabel.setText(myRefactoring.getSignature());
 }
