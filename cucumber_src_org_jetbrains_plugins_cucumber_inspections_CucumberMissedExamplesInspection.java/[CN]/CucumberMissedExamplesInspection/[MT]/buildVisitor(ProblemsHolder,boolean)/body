@@ -4,7 +4,10 @@
       super.visitScenarioOutline(outline);
       final GherkinExamplesBlockImpl block=PsiTreeUtil.getChildOfType(outline,GherkinExamplesBlockImpl.class);
       if (block == null) {
-        holder.registerProblem(outline,new TextRange(0,outline.getTextOffset()),CucumberBundle.message("inspection.missed.example.msg.name"),new CucumberCreateExamplesSectionFix());
+        ASTNode[] keyword=outline.getNode().getChildren(GherkinTokenTypes.KEYWORDS);
+        if (keyword.length > 0) {
+          holder.registerProblem(outline,keyword[0].getTextRange().shiftRight(-outline.getTextOffset()),CucumberBundle.message("inspection.missed.example.msg.name"),new CucumberCreateExamplesSectionFix());
+        }
       }
     }
   }
