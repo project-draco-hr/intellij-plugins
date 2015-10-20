@@ -7,9 +7,18 @@
   actionGroup.add(ActionManager.getInstance().getAction("org.intellij.plugins.markdown.ui.actions.ExpandSplitAction"));
   actionGroup.addSeparator();
   actionGroup.addAll(createToolbarActions());
-  final ActionToolbar editorToolbar=ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR,actionGroup,true);
+  final ActionToolbarImpl editorToolbar=((ActionToolbarImpl)ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR,actionGroup,true));
+  editorToolbar.setOpaque(false);
+  editorToolbar.setBorder(new JBEmptyBorder(0,2,0,2));
+  myToolbarWrapper=new SplitEditorToolbar(editorToolbar.getComponent());
+  if (myMainEditor instanceof TextEditor) {
+    myToolbarWrapper.addGutterToTrack(((EditorGutterComponentEx)((TextEditor)myMainEditor).getEditor().getGutter()));
+  }
+  if (mySecondEditor instanceof TextEditor) {
+    myToolbarWrapper.addGutterToTrack(((EditorGutterComponentEx)((TextEditor)mySecondEditor).getEditor().getGutter()));
+  }
   final JPanel result=new JPanel(new BorderLayout());
-  result.add(editorToolbar.getComponent(),BorderLayout.SOUTH);
+  result.add(myToolbarWrapper,BorderLayout.NORTH);
   result.add(splitter,BorderLayout.CENTER);
   editorToolbar.setTargetComponent(splitter);
   return result;
