@@ -75,11 +75,23 @@ return Indent.getNoneIndent();
 }
 return Indent.getNormalIndent();
 }
-if (elementType == LPAREN && superParentType == METADATA) {
+if (elementType == LPAREN && (superParentType == METADATA || parentType == ARGUMENTS)) {
 return Indent.getContinuationIndent();
+}
+if (elementType == RPAREN && parentType == ARGUMENTS) {
+if (prevSiblingType == ARGUMENT_LIST) {
+ASTNode[] childs=prevSibling.getChildren(null);
+int n=childs.length;
+if (n > 2 && childs[n - 1] instanceof PsiErrorElement && childs[n - 2].getElementType() == COMMA) {
+return Indent.getContinuationIndent();
+}
+}
 }
 if (parentType == ARGUMENT_LIST) {
 if (EXPRESSIONS.contains(elementType) && elementType != FUNCTION_EXPRESSION) {
+return Indent.getContinuationIndent();
+}
+if (elementType == NAMED_ARGUMENT) {
 return Indent.getContinuationIndent();
 }
 }
