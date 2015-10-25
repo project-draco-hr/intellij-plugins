@@ -17,9 +17,15 @@
     }
 ,this);
   }
-  myPanel=new MarkdownHtmlPanel();
+  myPanel=new LoboHtmlPanel();
   myPanel.setHtml("<html></html>");
   MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
-  settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,mySettingsChangedListener);
-  mySettingsChangedListener.onSettingsChange(MarkdownApplicationSettings.getInstance());
+  MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MarkdownApplicationSettings.SettingsChangedListener(){
+    @Override public void onSettingsChange(    @NotNull MarkdownApplicationSettings settings){
+      updatePanelCssSettings(settings.getMarkdownCssSettings());
+    }
+  }
+;
+  settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,settingsChangedListener);
+  settingsChangedListener.onSettingsChange(MarkdownApplicationSettings.getInstance());
 }
