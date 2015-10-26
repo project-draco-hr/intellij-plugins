@@ -1,5 +1,15 @@
 {
   if (myIsolatesInfo.addIsolate(isolateRef)) {
-    setInitialBreakpointsAndResume(isolateRef.getId());
+    addRequest(new Runnable(){
+      @Override public void run(){
+        myVmService.setExceptionPauseMode(isolateRef.getId(),ExceptionPauseMode.Unhandled,new VmServiceConsumers.SuccessConsumerWrapper(){
+          @Override public void received(          Success response){
+            setInitialBreakpointsAndResume(isolateRef.getId());
+          }
+        }
+);
+      }
+    }
+);
   }
 }

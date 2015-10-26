@@ -1,47 +1,49 @@
 {
 switch (event.getKind()) {
-case IsolateStart:
+case BreakpointAdded:
     break;
-case IsolateRunnable:
+case BreakpointRemoved:
   break;
+case BreakpointResolved:
+myBreakpointHandler.breakpointResolved(event.getBreakpoint());
+break;
+case GC:
+break;
 case IsolateExit:
 myDebugProcess.isolateExit(event.getIsolate());
 break;
+case IsolateRunnable:
+break;
+case IsolateStart:
+break;
 case IsolateUpdate:
 break;
-case PauseStart:
-myDebugProcess.getVmServiceWrapper().handleIsolatePausedOnStart(event.getIsolate());
-break;
-case PauseExit:
-break;
 case PauseBreakpoint:
+case PauseException:
+case PauseInterrupted:
 myDebugProcess.isolateSuspended(event.getIsolate());
 ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
 @Override public void run(){
-onPauseBreakpoint(event.getIsolate(),event.getPauseBreakpoints(),event.getTopFrame());
+final ElementList<Breakpoint> breakpoints=event.getKind() == EventKind.PauseBreakpoint ? event.getPauseBreakpoints() : null;
+final InstanceRef exception=event.getKind() == EventKind.PauseException ? event.getException() : null;
+onIsolatePaused(event.getIsolate(),breakpoints,exception,event.getTopFrame());
 }
 }
 );
 break;
-case PauseInterrupted:
-myDebugProcess.isolateSuspended(event.getIsolate());
+case PauseExit:
 break;
-case PauseException:
-myDebugProcess.isolateSuspended(event.getIsolate());
+case PauseStart:
+myDebugProcess.getVmServiceWrapper().handleIsolatePausedOnStart(event.getIsolate());
 break;
 case Resume:
 myDebugProcess.isolateResumed(event.getIsolate());
 break;
-case BreakpointAdded:
-break;
-case BreakpointResolved:
-myBreakpointHandler.breakpointResolved(event.getBreakpoint());
-break;
-case BreakpointRemoved:
-break;
-case GC:
+case VMUpdate:
 break;
 case WriteEvent:
+break;
+case Unknown:
 break;
 }
 }

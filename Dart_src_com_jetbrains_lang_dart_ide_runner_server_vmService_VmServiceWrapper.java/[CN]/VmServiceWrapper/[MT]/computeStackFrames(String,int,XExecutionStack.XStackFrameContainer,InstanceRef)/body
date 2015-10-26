@@ -5,9 +5,14 @@
         @Override public void received(        final Stack vmStack){
           ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
             @Override public void run(){
+              InstanceRef exceptionToAddToFrame=exception;
               final List<XStackFrame> result=new ArrayList<XStackFrame>(vmStack.getFrames().size());
-              for (              Frame frame : vmStack.getFrames()) {
-                result.add(new DartVmServiceStackFrame(myDebugProcess,isolateId,frame));
+              for (              Frame vmFrame : vmStack.getFrames()) {
+                final DartVmServiceStackFrame stackFrame=new DartVmServiceStackFrame(myDebugProcess,isolateId,vmFrame,exceptionToAddToFrame);
+                result.add(stackFrame);
+                if (!stackFrame.isInDartSdkPatchFile()) {
+                  exceptionToAddToFrame=null;
+                }
               }
               container.addStackFrames(firstFrameIndex == 0 ? result : result.subList(firstFrameIndex,result.size()),true);
             }

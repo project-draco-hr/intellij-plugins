@@ -1,8 +1,14 @@
 {
-  final DartVmServiceSuspendedContext suspendContext=new DartVmServiceSuspendedContext(myDebugProcess,isolateRef,topFrame);
+  if (topFrame == null) {
+    myDebugProcess.getSession().positionReached(new XSuspendContext(){
+    }
+);
+    return;
+  }
+  final DartVmServiceSuspendContext suspendContext=new DartVmServiceSuspendContext(myDebugProcess,isolateRef,topFrame,exception);
   final XStackFrame xTopFrame=suspendContext.getActiveExecutionStack().getTopFrame();
   final XSourcePosition sourcePosition=xTopFrame == null ? null : xTopFrame.getSourcePosition();
-  if (vmBreakpoints.isEmpty()) {
+  if (vmBreakpoints == null || vmBreakpoints.isEmpty()) {
     final StepOption latestStep=myDebugProcess.getVmServiceWrapper().getLatestStep();
     if (latestStep != null && equalSourcePositions(myLatestSourcePosition,sourcePosition)) {
       myDebugProcess.getVmServiceWrapper().resumeIsolate(isolateRef.getId(),latestStep);
