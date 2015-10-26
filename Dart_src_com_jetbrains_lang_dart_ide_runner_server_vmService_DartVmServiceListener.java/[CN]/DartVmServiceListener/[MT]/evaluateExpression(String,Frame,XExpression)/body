@@ -5,13 +5,14 @@
   final Semaphore semaphore=new Semaphore();
   semaphore.down();
   myDebugProcess.getVmServiceWrapper().evaluateInFrame(isolateId,vmTopFrame,evalText,new XDebuggerEvaluator.XEvaluationCallback(){
-    @Override public void evaluated(    @NotNull XValue result){
+    @Override public void evaluated(    @NotNull final XValue result){
       if (result instanceof DartVmServiceValue) {
         evalResult.set(getSimpleStringPresentation(((DartVmServiceValue)result).getInstanceRef()));
       }
       semaphore.up();
     }
-    @Override public void errorOccurred(    @NotNull String errorMessage){
+    @Override public void errorOccurred(    @NotNull final String errorMessage){
+      evalResult.set("Failed to evaluate log expression [" + evalText + "]: "+ errorMessage);
       semaphore.up();
     }
   }

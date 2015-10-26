@@ -28,6 +28,10 @@
       return;
     }
     myLatestSourcePosition=sourcePosition;
-    myDebugProcess.getSession().breakpointReached(xBreakpoint,null,suspendContext);
+    final String logExpression=evaluateExpression(isolateRef.getId(),vmTopFrame,xBreakpoint.getLogExpressionObject());
+    final boolean suspend=myDebugProcess.getSession().breakpointReached(xBreakpoint,logExpression,suspendContext);
+    if (!suspend) {
+      myDebugProcess.getVmServiceWrapper().resumeIsolate(isolateRef.getId(),null);
+    }
   }
 }
