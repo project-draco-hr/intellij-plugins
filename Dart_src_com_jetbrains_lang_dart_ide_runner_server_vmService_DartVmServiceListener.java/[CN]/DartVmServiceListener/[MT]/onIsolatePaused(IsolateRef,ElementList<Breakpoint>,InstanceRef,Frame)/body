@@ -1,11 +1,11 @@
 {
-  if (topFrame == null) {
+  if (vmTopFrame == null) {
     myDebugProcess.getSession().positionReached(new XSuspendContext(){
     }
 );
     return;
   }
-  final DartVmServiceSuspendContext suspendContext=new DartVmServiceSuspendContext(myDebugProcess,isolateRef,topFrame,exception);
+  final DartVmServiceSuspendContext suspendContext=new DartVmServiceSuspendContext(myDebugProcess,isolateRef,vmTopFrame,exception);
   final XStackFrame xTopFrame=suspendContext.getActiveExecutionStack().getTopFrame();
   final XSourcePosition sourcePosition=xTopFrame == null ? null : xTopFrame.getSourcePosition();
   if (vmBreakpoints == null || vmBreakpoints.isEmpty()) {
@@ -23,6 +23,10 @@
       LOG.error(vmBreakpoints.size() + " breakpoints hit in one shot.");
     }
     final XLineBreakpoint<XBreakpointProperties> xBreakpoint=myBreakpointHandler.getXBreakpoint(vmBreakpoints.get(0));
+    if ("false".equals(evaluateExpression(isolateRef.getId(),vmTopFrame,xBreakpoint.getConditionExpression()))) {
+      myDebugProcess.getVmServiceWrapper().resumeIsolate(isolateRef.getId(),null);
+      return;
+    }
     myLatestSourcePosition=sourcePosition;
     myDebugProcess.getSession().breakpointReached(xBreakpoint,null,suspendContext);
   }

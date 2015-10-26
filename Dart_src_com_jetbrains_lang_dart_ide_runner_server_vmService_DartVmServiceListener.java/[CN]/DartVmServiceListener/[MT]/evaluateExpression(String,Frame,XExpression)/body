@@ -1,0 +1,21 @@
+{
+  final String evalText=xExpression == null ? null : xExpression.getExpression();
+  if (vmTopFrame == null || StringUtil.isEmptyOrSpaces(evalText))   return null;
+  final Ref<String> evalResult=new Ref<String>();
+  final Semaphore semaphore=new Semaphore();
+  semaphore.down();
+  myDebugProcess.getVmServiceWrapper().evaluateInFrame(isolateId,vmTopFrame,evalText,new XDebuggerEvaluator.XEvaluationCallback(){
+    @Override public void evaluated(    @NotNull XValue result){
+      if (result instanceof DartVmServiceValue) {
+        evalResult.set(getSimpleStringPresentation(((DartVmServiceValue)result).getInstanceRef()));
+      }
+      semaphore.up();
+    }
+    @Override public void errorOccurred(    @NotNull String errorMessage){
+      semaphore.up();
+    }
+  }
+,true);
+  semaphore.waitFor(1000);
+  return evalResult.get();
+}
