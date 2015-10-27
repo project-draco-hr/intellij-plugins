@@ -1,35 +1,19 @@
 {
   final PsiElement original=CompletionUtil.getOriginalOrSelf(element);
   final PsiFile hostFile=FileContextUtil.getContextFile(original != element ? original : element.getContainingFile().getOriginalFile());
-  if (hostFile == null)   return;
+  if (!(hostFile instanceof XmlFile))   return;
   final XmlFile file=(XmlFile)hostFile;
-  final JSResolveUtil.JSInjectedFilesVisitor visitor=new JSResolveUtil.JSInjectedFilesVisitor(){
-    @Override protected void process(    JSFile file){
-      file.accept(new AngularJSRecursiveVisitor(){
-        @Override public void visitJSDefinitionExpression(        JSDefinitionExpression node){
-          if (scopeMatches(original,node)) {
-            consumer.consume(node);
-          }
-          super.visitJSDefinitionExpression(node);
-        }
-        @Override public void visitAngularJSAsExpression(        AngularJSAsExpression asExpression){
-          final JSDefinitionExpression def=asExpression.getDefinition();
-          if (def != null && scopeMatches(original,asExpression)) {
-            consumer.consume(def);
-          }
-        }
-        @Override public void visitAngularJSRepeatExpression(        AngularJSRepeatExpression repeatExpression){
-          if (scopeMatches(original,repeatExpression)) {
-            for (            Map.Entry<String,String> entry : NG_REPEAT_IMPLICITS.entrySet()) {
-              consumer.consume(new ImplicitJSVariableImpl(entry.getKey(),entry.getValue(),repeatExpression));
-            }
-          }
-          super.visitAngularJSRepeatExpression(repeatExpression);
-        }
-      }
-);
+  final Collection<JSNamedElement> cache=CachedValuesManager.getCachedValue(file,new CachedValueProvider<Collection<JSNamedElement>>(){
+    @Nullable @Override public Result<Collection<JSNamedElement>> compute(){
+      final Collection<JSNamedElement> result=new ArrayList<JSNamedElement>();
+      processDocument(file.getDocument(),result);
+      return Result.create(result,PsiModificationTracker.MODIFICATION_COUNT);
     }
   }
-;
-  processDocument(visitor,file.getDocument());
+);
+  for (  JSNamedElement namedElement : cache) {
+    if (scopeMatches(original,namedElement)) {
+      consumer.consume(namedElement);
+    }
+  }
 }

@@ -1,0 +1,32 @@
+{
+  if (document == null)   return;
+  final JSResolveUtil.JSInjectedFilesVisitor visitor=new JSResolveUtil.JSInjectedFilesVisitor(){
+    @Override protected void process(    JSFile file){
+      file.accept(new AngularJSRecursiveVisitor(){
+        @Override public void visitJSDefinitionExpression(        JSDefinitionExpression node){
+          result.add(node);
+          super.visitJSDefinitionExpression(node);
+        }
+        @Override public void visitAngularJSRepeatExpression(        AngularJSRepeatExpression repeatExpression){
+          for (          Map.Entry<String,String> entry : NG_REPEAT_IMPLICITS.entrySet()) {
+            result.add(new ImplicitJSVariableImpl(entry.getKey(),entry.getValue(),repeatExpression));
+          }
+          super.visitAngularJSRepeatExpression(repeatExpression);
+        }
+      }
+);
+    }
+  }
+;
+  for (  XmlTag tag : PsiTreeUtil.getChildrenOfTypeAsList(document,XmlTag.class)) {
+    new XmlBackedJSClassImpl.InjectedScriptsVisitor(tag,null,true,true,visitor,true){
+      @Override public boolean execute(      @NotNull PsiElement element){
+        if (element instanceof HtmlEmbeddedContentImpl) {
+          processDocument(PsiTreeUtil.findChildOfType(element,XmlDocument.class),result);
+        }
+        return super.execute(element);
+      }
+    }
+.go();
+  }
+}
