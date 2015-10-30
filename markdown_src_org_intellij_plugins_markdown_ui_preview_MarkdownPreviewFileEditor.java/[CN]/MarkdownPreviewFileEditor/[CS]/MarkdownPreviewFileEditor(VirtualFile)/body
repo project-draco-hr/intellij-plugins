@@ -4,10 +4,10 @@
   if (myDocument != null) {
     myDocument.addDocumentListener(new DocumentAdapter(){
       @Override public void beforeDocumentChange(      DocumentEvent e){
-        myAlarm.cancelAllRequests();
+        myPooledAlarm.cancelAllRequests();
       }
       @Override public void documentChanged(      final DocumentEvent e){
-        myAlarm.addRequest(new Runnable(){
+        myPooledAlarm.addRequest(new Runnable(){
           @Override public void run(){
             updateHtml(true);
           }
@@ -20,8 +20,6 @@
   myHtmlPanelWrapper=new JPanel(new BorderLayout());
   final MarkdownApplicationSettings settings=MarkdownApplicationSettings.getInstance();
   setUpPanel(settings);
-  getPanelGuaranteed().setHtml("<html></html>");
-  getPanelGuaranteed().render();
   MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
   MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MarkdownApplicationSettings.SettingsChangedListener(){
     @Override public void onSettingsChange(    @NotNull MarkdownApplicationSettings settings){

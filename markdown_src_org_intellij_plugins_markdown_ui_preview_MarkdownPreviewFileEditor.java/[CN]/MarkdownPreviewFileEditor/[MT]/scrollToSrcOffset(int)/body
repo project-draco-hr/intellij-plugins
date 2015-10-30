@@ -1,13 +1,18 @@
 {
-  if (myLastScrollRequest != null) {
-    myAlarm.cancelRequest(myLastScrollRequest);
-  }
-  myLastScrollRequest=new Runnable(){
-    @Override public void run(){
-      myLastScrollOffset=offset;
-      getPanelGuaranteed().scrollToMarkdownSrcOffset(myLastScrollOffset);
+synchronized (REQUESTS_LOCK) {
+    if (myLastScrollRequest != null) {
+      mySwingAlarm.cancelRequest(myLastScrollRequest);
     }
-  }
+    myLastScrollRequest=new Runnable(){
+      @Override public void run(){
+        myLastScrollOffset=offset;
+        getPanelGuaranteed().scrollToMarkdownSrcOffset(myLastScrollOffset);
+synchronized (REQUESTS_LOCK) {
+          myLastScrollRequest=null;
+        }
+      }
+    }
 ;
-  myAlarm.addRequest(myLastScrollRequest,PARSING_CALL_TIMEOUT_MS);
+    mySwingAlarm.addRequest(myLastScrollRequest,RENDERING_DELAY_MS,ModalityState.stateForComponent(getComponent()));
+  }
 }

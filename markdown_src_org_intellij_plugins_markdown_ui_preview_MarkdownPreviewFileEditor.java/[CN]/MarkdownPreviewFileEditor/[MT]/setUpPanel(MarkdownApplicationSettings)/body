@@ -1,11 +1,20 @@
 {
-  final MarkdownHtmlPanel newPanel=retrievePanel(settings);
-  if (newPanel == myPanel) {
+  final MarkdownHtmlPanelProvider newPanelProvider=retrievePanelProvider(settings);
+  if (newPanelProvider == null) {
     return;
   }
-  if (myPanel != null) {
-    myHtmlPanelWrapper.remove(myPanel.getComponent());
+  mySwingAlarm.addRequest(new Runnable(){
+    @Override public void run(){
+      final MarkdownHtmlPanel newPanel=newPanelProvider.createHtmlPanel();
+      if (myPanel != null) {
+        myHtmlPanelWrapper.remove(myPanel.getComponent());
+        Disposer.dispose(myPanel);
+      }
+      myPanel=newPanel;
+      myHtmlPanelWrapper.add(myPanel.getComponent(),BorderLayout.CENTER);
+      myPanel.setHtml(myLastRenderedHtml);
+      myHtmlPanelWrapper.repaint();
+    }
   }
-  myPanel=newPanel;
-  myHtmlPanelWrapper.add(myPanel.getComponent(),BorderLayout.CENTER);
+,0,ModalityState.stateForComponent(myHtmlPanelWrapper));
 }

@@ -5,8 +5,27 @@
   String text=myDocument.getText();
   final ASTNode parsedTree=new MarkdownParser(MarkdownParserManager.FLAVOUR).buildMarkdownTreeFromString(text);
   final String html=new HtmlGenerator(text,parsedTree,MarkdownParserManager.FLAVOUR,LinkMap.Builder.buildLinkMap(parsedTree,text),true).generateHtml();
-  getPanelGuaranteed().setHtml("<html><head></head>" + html + "</html>");
-  if (preserveScrollOffset) {
-    getPanelGuaranteed().scrollToMarkdownSrcOffset(myLastScrollOffset);
+synchronized (REQUESTS_LOCK) {
+    if (myLastHtmlOrRefreshRequest != null) {
+      mySwingAlarm.cancelRequest(myLastHtmlOrRefreshRequest);
+    }
+    myLastHtmlOrRefreshRequest=new Runnable(){
+      @Override public void run(){
+        final String currentHtml="<html><head></head>" + html + "</html>";
+        if (!currentHtml.equals(myLastRenderedHtml)) {
+          myLastRenderedHtml=currentHtml;
+          getPanelGuaranteed().setHtml(myLastRenderedHtml);
+          if (preserveScrollOffset) {
+            getPanelGuaranteed().scrollToMarkdownSrcOffset(myLastScrollOffset);
+          }
+        }
+        getPanelGuaranteed().render();
+synchronized (REQUESTS_LOCK) {
+          myLastHtmlOrRefreshRequest=null;
+        }
+      }
+    }
+;
+    mySwingAlarm.addRequest(myLastHtmlOrRefreshRequest,RENDERING_DELAY_MS,ModalityState.stateForComponent(getComponent()));
   }
 }
