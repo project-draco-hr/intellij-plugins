@@ -2,12 +2,14 @@
   if (!(context instanceof MarkdownCodeFenceImpl)) {
     return;
   }
-  final TemporaryPlacesRegistry registry=TemporaryPlacesRegistry.getInstance(context.getProject());
-  final InjectedLanguage language=registry.getLanguageFor(((MarkdownCodeFenceImpl)context),context.getContainingFile());
-  if (language == null || language.getLanguage() == null) {
+  if (PsiTreeUtil.findChildOfType(context,MarkdownCodeFenceContentImpl.class) == null) {
     return;
   }
-  registrar.startInjecting(language.getLanguage());
+  final Language language=findLangForInjection(((MarkdownCodeFenceImpl)context));
+  if (language == null) {
+    return;
+  }
+  registrar.startInjecting(language);
   boolean isFirst=true;
   for (  MarkdownCodeFenceContentImpl content : PsiTreeUtil.findChildrenOfType(context,MarkdownCodeFenceContentImpl.class)) {
     registrar.addPlace(isFirst ? null : "\n",null,((MarkdownCodeFenceImpl)context),TextRange.create(content.getStartOffsetInParent(),content.getStartOffsetInParent() + content.getTextLength()));
