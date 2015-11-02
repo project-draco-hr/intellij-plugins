@@ -3,9 +3,14 @@
   if (myTrackedProjects.isEmpty()) {
     DartAnalysisServerService.getInstance().addDocumentListener();
   }
-  myTrackedProjects.add(project);
-  updateRoots();
-  DartAnalysisServerService.getInstance().updateVisibleFiles();
+  ProgressManager.getInstance().executeNonCancelableSection(new Runnable(){
+    @Override public void run(){
+      myTrackedProjects.add(project);
+      updateRoots();
+      DartAnalysisServerService.getInstance().updateVisibleFiles();
+    }
+  }
+);
   project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS,new ModuleRootAdapter(){
     @Override public void rootsChanged(    final ModuleRootEvent event){
       updateRoots();
