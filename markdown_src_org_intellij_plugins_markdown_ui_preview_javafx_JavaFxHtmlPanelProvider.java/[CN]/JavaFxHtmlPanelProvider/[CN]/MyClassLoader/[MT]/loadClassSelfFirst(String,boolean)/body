@@ -4,7 +4,14 @@
   }
   Class<?> loadedClass=findLoadedClass(s);
   if (loadedClass == null) {
-    loadedClass=findClass(s);
+    try {
+      loadedClass=findClass(s);
+    }
+ catch (    ClassNotFoundException ignore) {
+    }
+    if (loadedClass == null) {
+      loadedClass=getParent().loadClass(s);
+    }
   }
   if (b) {
     resolveClass(loadedClass);
