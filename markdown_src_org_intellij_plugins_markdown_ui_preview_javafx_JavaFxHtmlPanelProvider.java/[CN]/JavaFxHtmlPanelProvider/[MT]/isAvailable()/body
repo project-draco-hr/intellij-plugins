@@ -1,8 +1,17 @@
 {
-  try {
-    return Class.forName("javafx.scene.web.WebView") != null && Class.forName("org.intellij.plugins.markdown.ui.preview.javafx.JavaFxHtmlPanel") != null;
+  if (hasClass("javafx.scene.web.WebView",true)) {
+    return AvailabilityInfo.AVAILABLE;
   }
- catch (  ClassNotFoundException e) {
-    return false;
+  if (SystemInfo.isJetbrainsJvm && SystemInfo.isMac) {
+    return new AvailabilityInfo(){
+      @Override public boolean checkAvailability(      @NotNull JComponent parentComponent){
+        if (!installOpenJFXAndReport(parentComponent)) {
+          return false;
+        }
+        return hasClass("javafx.scene.web.WebView",true);
+      }
+    }
+;
   }
+  return AvailabilityInfo.UNAVAILABLE;
 }

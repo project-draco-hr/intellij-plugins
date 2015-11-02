@@ -1,6 +1,9 @@
 {
-  final List<MarkdownHtmlPanelProvider.ProviderInfo> providerInfos=ContainerUtil.map(MarkdownHtmlPanelProvider.getProviders(),new Function<MarkdownHtmlPanelProvider,MarkdownHtmlPanelProvider.ProviderInfo>(){
+  final List<MarkdownHtmlPanelProvider.ProviderInfo> providerInfos=ContainerUtil.mapNotNull(MarkdownHtmlPanelProvider.getProviders(),new Function<MarkdownHtmlPanelProvider,MarkdownHtmlPanelProvider.ProviderInfo>(){
     @Override public MarkdownHtmlPanelProvider.ProviderInfo fun(    MarkdownHtmlPanelProvider provider){
+      if (provider.isAvailable() == MarkdownHtmlPanelProvider.AvailabilityInfo.UNAVAILABLE) {
+        return null;
+      }
       return provider.getProviderInfo();
     }
   }
@@ -9,4 +12,22 @@
   myPreviewProvider=new ComboBox(myPreviewPanelModel);
   mySplitLayoutModel=new EnumComboBoxModel<SplitFileEditor.SplitEditorLayout>(SplitFileEditor.SplitEditorLayout.class);
   myDefaultSplitLayout=new ComboBox(mySplitLayoutModel);
+  myLastItem=myPreviewProvider.getSelectedItem();
+  myPreviewProvider.addItemListener(new ItemListener(){
+    @Override public void itemStateChanged(    ItemEvent e){
+      final Object item=e.getItem();
+      if (e.getStateChange() != ItemEvent.SELECTED || !(item instanceof MarkdownHtmlPanelProvider.ProviderInfo)) {
+        return;
+      }
+      final MarkdownHtmlPanelProvider provider=MarkdownHtmlPanelProvider.createFromInfo((MarkdownHtmlPanelProvider.ProviderInfo)item);
+      final MarkdownHtmlPanelProvider.AvailabilityInfo availability=provider.isAvailable();
+      if (!availability.checkAvailability(myMainPanel)) {
+        myPreviewProvider.setSelectedItem(myLastItem);
+      }
+ else {
+        myLastItem=item;
+      }
+    }
+  }
+);
 }

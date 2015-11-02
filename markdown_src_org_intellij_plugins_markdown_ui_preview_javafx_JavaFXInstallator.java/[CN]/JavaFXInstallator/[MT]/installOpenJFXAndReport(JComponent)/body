@@ -1,0 +1,29 @@
+{
+  final DownloadableFileService fileService=DownloadableFileService.getInstance();
+  final DownloadableFileDescription fileDescription=fileService.createFileDescription(URL.getValue(),"javafx-sdk-overlay.zip");
+  final FileDownloader downloader=fileService.createDownloader(Collections.singletonList(fileDescription),"OpenJFX");
+  final List<Pair<VirtualFile,DownloadableFileDescription>> progress=downloader.downloadWithProgress(locateInstallationPath(),null,parentComponent);
+  if (progress == null) {
+    return false;
+  }
+  boolean success=false;
+  for (  Pair<VirtualFile,DownloadableFileDescription> pair : progress) {
+    if (!pair.getSecond().equals(fileDescription)) {
+      Logger.getInstance(JavaFXInstallator.class).warn("Another file downloaded: " + pair);
+      continue;
+    }
+    final VirtualFile file=pair.getFirst();
+    if (file == null) {
+      continue;
+    }
+    final File archiveFile=VfsUtilCore.virtualToIoFile(file);
+    try {
+      ZipUtil.extract(archiveFile,archiveFile.getParentFile(),null,true);
+      Logger.getInstance(JavaFXInstallator.class).info("Downloaded and installed OpenJFX in " + archiveFile.getParent());
+      success=true;
+    }
+ catch (    IOException ignore) {
+    }
+  }
+  return success;
+}
