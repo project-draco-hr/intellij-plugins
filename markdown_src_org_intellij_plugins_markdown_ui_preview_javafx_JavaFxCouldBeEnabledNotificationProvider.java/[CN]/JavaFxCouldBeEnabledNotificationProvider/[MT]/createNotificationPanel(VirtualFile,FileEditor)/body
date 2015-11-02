@@ -1,0 +1,40 @@
+{
+  if (file.getFileType() != MarkdownFileType.INSTANCE) {
+    return null;
+  }
+  if (PropertiesComponent.getInstance().getBoolean(DONT_ASK_TO_CHANGE_PROVIDER_TYPE_KEY)) {
+    return null;
+  }
+  final MarkdownApplicationSettings markdownApplicationSettings=MarkdownApplicationSettings.getInstance();
+  final MarkdownPreviewSettings oldPreviewSettings=markdownApplicationSettings.getMarkdownPreviewSettings();
+  if (oldPreviewSettings.getHtmlPanelProviderInfo().getClassName().equals(JavaFxHtmlPanelProvider.class.getName())) {
+    return null;
+  }
+  final MarkdownHtmlPanelProvider.AvailabilityInfo availabilityInfo=new JavaFxHtmlPanelProvider().isAvailable();
+  if (availabilityInfo == MarkdownHtmlPanelProvider.AvailabilityInfo.UNAVAILABLE) {
+    return null;
+  }
+  final EditorNotificationPanel panel=new EditorNotificationPanel();
+  panel.setText("JavaFX WebKit-based preview renderer is available.");
+  panel.createActionLabel("Change preview browser to JavaFX",new Runnable(){
+    @Override public void run(){
+      final boolean isSuccess=availabilityInfo.checkAvailability(panel);
+      if (isSuccess) {
+        markdownApplicationSettings.setMarkdownPreviewSettings(new MarkdownPreviewSettings(oldPreviewSettings.getSplitEditorLayout(),new JavaFxHtmlPanelProvider().getProviderInfo()));
+        EditorNotifications.updateAll();
+      }
+ else {
+        Logger.getInstance(JavaFxCouldBeEnabledNotificationProvider.class).warn("Could not install and apply OpenJFX");
+      }
+    }
+  }
+);
+  panel.createActionLabel("Do not show again",new Runnable(){
+    @Override public void run(){
+      PropertiesComponent.getInstance().setValue(DONT_ASK_TO_CHANGE_PROVIDER_TYPE_KEY,true);
+      EditorNotifications.updateAll();
+    }
+  }
+);
+  return panel;
+}
