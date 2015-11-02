@@ -1,0 +1,32 @@
+{
+  final ConsoleView console=createConsole(project);
+  KarmaServerLogComponent component=new KarmaServerLogComponent(console,server);
+  final Content content=ui.createContent("KarmaServer",component,"Karma Server",null,console.getPreferredFocusableComponent());
+  content.setCloseable(false);
+  ui.addContent(content,4,PlaceInGrid.bottom,false);
+  if (requestFocus && !server.isPortBound()) {
+    ui.selectAndFocus(content,false,false);
+  }
+  server.onTerminated(new KarmaServerTerminatedListener(){
+    @Override public void onTerminated(    int exitCode){
+      KarmaUtil.selectAndFocusIfNotDisposed(ui,content,false,false);
+    }
+  }
+);
+  server.getProcessOutputArchive().addOutputListener(new ArchivedOutputListener(){
+    @Override public void onOutputAvailable(    @NotNull String text,    Key outputType,    boolean archived){
+      ConsoleViewContentType contentType=ConsoleViewContentType.getConsoleViewType(outputType);
+      console.print(text,contentType);
+      if (!archived && text.startsWith("ERROR ")) {
+        ApplicationManager.getApplication().invokeLater(new Runnable(){
+          @Override public void run(){
+            content.fireAlert();
+          }
+        }
+,ModalityState.any());
+      }
+    }
+  }
+,content);
+  Disposer.register(content,console);
+}

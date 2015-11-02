@@ -1,6 +1,12 @@
 {
-synchronized (myTexts) {
-    myTexts.add(Pair.create(text,outputType));
+synchronized (myArchivedTexts) {
+    myArchivedTexts.addLast(Pair.create(text,outputType));
+    myArchivedTextsLength+=text.length();
+    while (myArchivedTextsLength > MAX_ARCHIVED_TEXTS_LENGTH) {
+      Pair<String,Key> pair=myArchivedTexts.removeFirst();
+      myArchivedTextsLength-=pair.getFirst().length();
+      myArchiveTextsTruncated=true;
+    }
     for (    ArchivedOutputListener listener : myOutputListeners) {
       listener.onOutputAvailable(text,outputType,false);
     }

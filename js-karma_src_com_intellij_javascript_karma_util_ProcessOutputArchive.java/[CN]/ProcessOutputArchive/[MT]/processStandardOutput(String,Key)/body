@@ -1,36 +1,28 @@
 {
-  int newLineInd=text.indexOf(NEW_LINE);
-  if (newLineInd == -1) {
-    myStdOutCurrentLineBuffer.append(text);
-    myStdOutCurrentLineChunks.add(Pair.create(text,type));
-    return;
-  }
-  String beforeNewLineText=text.substring(0,newLineInd + 1);
-  myStdOutCurrentLineBuffer.append(beforeNewLineText);
-  myStdOutCurrentLineChunks.add(Pair.create(beforeNewLineText,type));
-  String line=myStdOutCurrentLineBuffer.toString();
-  if (!handleLineAsEvent(line)) {
-    onStandardOutputLineAvailable(line);
-    for (    Pair<String,Key> chunk : myStdOutCurrentLineChunks) {
-      addText(chunk.getFirst(),chunk.getSecond());
-    }
-  }
-  myStdOutCurrentLineBuffer.setLength(0);
-  myStdOutCurrentLineChunks.clear();
-  int prevNewLineInd=newLineInd;
-  newLineInd=text.indexOf(NEW_LINE,prevNewLineInd + 1);
+  int lineStartInd=0;
+  int newLineInd=text.indexOf(NEW_LINE,lineStartInd);
   while (newLineInd != -1) {
-    line=text.substring(prevNewLineInd + 1,newLineInd + 1);
+    String line=text.substring(lineStartInd,newLineInd + 1);
+    if (!myStdOutCurrentLineChunks.isEmpty()) {
+      myStdOutCurrentLineChunks.add(Pair.create(line,type));
+      line=concatCurrentLineChunks();
+    }
     if (!handleLineAsEvent(line)) {
       onStandardOutputLineAvailable(line);
-      addText(line,type);
+      if (!myStdOutCurrentLineChunks.isEmpty()) {
+        for (        Pair<String,Key> chunk : myStdOutCurrentLineChunks) {
+          addText(chunk.getFirst(),chunk.getSecond());
+        }
+      }
+ else {
+        addText(line,type);
+      }
     }
-    prevNewLineInd=newLineInd;
-    newLineInd=text.indexOf(NEW_LINE,prevNewLineInd + 1);
+    myStdOutCurrentLineChunks.clear();
+    lineStartInd=newLineInd + 1;
+    newLineInd=text.indexOf(NEW_LINE,lineStartInd);
   }
-  if (prevNewLineInd + 1 < text.length()) {
-    String rest=text.substring(prevNewLineInd + 1);
-    myStdOutCurrentLineBuffer.append(rest);
-    myStdOutCurrentLineChunks.add(Pair.create(rest,type));
+  if (lineStartInd < text.length()) {
+    myStdOutCurrentLineChunks.add(Pair.create(text.substring(lineStartInd),type));
   }
 }
