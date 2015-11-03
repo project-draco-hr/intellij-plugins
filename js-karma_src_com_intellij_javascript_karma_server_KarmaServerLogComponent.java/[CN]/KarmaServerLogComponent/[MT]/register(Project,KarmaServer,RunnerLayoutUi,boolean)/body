@@ -7,13 +7,14 @@
   if (requestFocus && !server.isPortBound()) {
     ui.selectAndFocus(content,false,false);
   }
-  server.onTerminated(new KarmaServerTerminatedListener(){
+  final KarmaServerTerminatedListener terminationCallback=new KarmaServerTerminatedListener(){
     @Override public void onTerminated(    int exitCode){
       KarmaUtil.selectAndFocusIfNotDisposed(ui,content,false,false);
     }
   }
-);
-  server.getProcessOutputManager().addOutputListener(new ArchivedOutputListener(){
+;
+  server.onTerminated(terminationCallback);
+  final ArchivedOutputListener outputListener=new ArchivedOutputListener(){
     @Override public void onOutputAvailable(    @NotNull String text,    Key outputType,    boolean archived){
       ConsoleViewContentType contentType=ConsoleViewContentType.getConsoleViewType(outputType);
       console.print(text,contentType);
@@ -27,6 +28,14 @@
       }
     }
   }
-,content);
+;
+  server.getProcessOutputManager().addOutputListener(outputListener);
   Disposer.register(content,console);
+  Disposer.register(console,new Disposable(){
+    @Override public void dispose(){
+      server.removeTerminatedListener(terminationCallback);
+      server.getProcessOutputManager().removeOutputListener(outputListener);
+    }
+  }
+);
 }

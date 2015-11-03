@@ -11,21 +11,25 @@
     myServer.onPortBound(new Runnable(){
       @Override public void run(){
         KarmaUtil.selectAndFocusIfNotDisposed(ui,consoleContent,false,false);
-        scheduleBrowserCapturingSuggestion(consoleContent);
+        scheduleBrowserCapturingSuggestion();
       }
     }
 );
   }
-  myServer.onTerminated(new KarmaServerTerminatedListener(){
-    @Override public void onTerminated(    int exitCode){
-      rootFormatter.onServerProcessTerminated();
-      printServerFinishedInfo(exitCode);
+  final ProcessAdapter listener=new ProcessAdapter(){
+    @Override public void processTerminated(    ProcessEvent event){
+      if (myServer.getProcessHandler().isProcessTerminated()) {
+        rootFormatter.onServerProcessTerminated();
+        printServerFinishedInfo();
+      }
+      rootFormatter.onTestRunProcessTerminated();
     }
   }
-);
-  myExecutionSession.getProcessHandler().addProcessListener(new ProcessAdapter(){
-    @Override public void processTerminated(    ProcessEvent event){
-      rootFormatter.onTestRunProcessTerminated();
+;
+  myExecutionSession.getProcessHandler().addProcessListener(listener);
+  Disposer.register(this,new Disposable(){
+    @Override public void dispose(){
+      myExecutionSession.getProcessHandler().removeProcessListener(listener);
     }
   }
 );
