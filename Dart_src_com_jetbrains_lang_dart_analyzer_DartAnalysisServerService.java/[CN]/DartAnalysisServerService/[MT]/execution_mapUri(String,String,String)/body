@@ -1,0 +1,37 @@
+{
+  if ((_filePath == null && _uri == null) || (_filePath != null && _uri != null)) {
+    logError("execution_createContext()",null,"One of _filePath and _uri must be non-null.");
+    return null;
+  }
+  final String filePath=_filePath != null ? FileUtil.toSystemDependentName(_filePath) : null;
+  final Ref<String> resultRef=new Ref<String>();
+  final Semaphore semaphore=new Semaphore();
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    final MapUriConsumer consumer=new MapUriConsumer(){
+      @Override public void computedFileOrUri(      final String file,      final String uri){
+        if (uri != null) {
+          resultRef.set(uri);
+        }
+ else {
+          resultRef.set(file);
+        }
+        semaphore.up();
+      }
+      @Override public void onError(      final RequestError error){
+        logError("execution_mapUri()",filePath,error);
+        semaphore.up();
+      }
+    }
+;
+    myServer.execution_mapUri(_id,filePath,_uri,consumer);
+  }
+  final long t0=System.currentTimeMillis();
+  semaphore.waitFor(EXECUTION_MAP_URI);
+  if (semaphore.tryUp()) {
+    LOG.info("execution_mapUri() took too long for contextID " + _id + " and file or uri "+ (filePath != null ? filePath : _uri)+ ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    return null;
+  }
+  return resultRef.get();
+}
