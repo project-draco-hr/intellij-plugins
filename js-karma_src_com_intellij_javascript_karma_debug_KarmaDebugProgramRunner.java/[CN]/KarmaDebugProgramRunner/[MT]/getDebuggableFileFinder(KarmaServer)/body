@@ -2,11 +2,11 @@
   BiMap<String,VirtualFile> mappings=HashBiMap.create();
   KarmaConfig karmaConfig=karmaServer.getKarmaConfig();
   if (karmaConfig != null) {
-    File basePath=new File(karmaConfig.getBasePath());
-    VirtualFile vBasePath=VfsUtil.findFileByIoFile(basePath,false);
-    if (vBasePath != null && vBasePath.isValid()) {
-      String baseUrl=karmaServer.formatUrlWithoutUrlRoot("/base");
-      mappings.put(baseUrl,vBasePath);
+    String systemDependentBasePath=FileUtil.toSystemDependentName(karmaConfig.getBasePath());
+    VirtualFile basePath=LocalFileSystem.getInstance().findFileByPath(systemDependentBasePath);
+    if (basePath != null && basePath.isValid()) {
+      String baseUrl=karmaConfig.isWebpack() ? "webpack:///." : karmaServer.formatUrlWithoutUrlRoot("/base");
+      mappings.put(baseUrl,basePath);
     }
   }
   if (SystemInfo.isWindows) {
