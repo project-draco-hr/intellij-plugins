@@ -1,0 +1,22 @@
+{
+  if (!stackItems.add(item)) {
+    descriptor.setCachedChildren(ArrayUtil.EMPTY_OBJECT_ARRAY);
+    return;
+  }
+  List<HierarchyNodeDescriptor> subDescriptors=Lists.newArrayList();
+  try {
+    for (    int index : item.getSubclasses()) {
+      final TypeHierarchyItem subItem=items.get(index);
+      final DartClass subClass=findDartClass(project,subItem);
+      if (subClass != null) {
+        final HierarchyNodeDescriptor subDescriptor=new DartTypeHierarchyNodeDescriptor(project,descriptor,subClass,false);
+        subDescriptors.add(subDescriptor);
+        addSubClassHierarchy(stackItems,project,items,subItem,subDescriptor);
+      }
+    }
+  }
+  finally {
+    stackItems.remove(item);
+  }
+  descriptor.setCachedChildren(subDescriptors.toArray(new HierarchyNodeDescriptor[subDescriptors.size()]));
+}
