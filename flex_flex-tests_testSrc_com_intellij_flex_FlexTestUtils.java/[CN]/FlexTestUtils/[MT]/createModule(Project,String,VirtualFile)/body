@@ -1,0 +1,17 @@
+{
+  AccessToken writeAction=WriteAction.start();
+  try {
+    final ModifiableModuleModel m1=ModuleManager.getInstance(project).getModifiableModel();
+    final VirtualFile moduleDir=project.getBaseDir().createChildDirectory(JSTestUtils.class,moduleName);
+    final Module result=m1.newModule(moduleDir.getPath() + "/" + moduleName+ ".iml",FlexModuleType.getInstance().getId());
+    m1.commit();
+    if (moduleContent != null) {
+      VfsUtil.copyDirectory(JSTestUtils.class,moduleContent,moduleDir,null);
+      PsiTestUtil.addSourceRoot(result,moduleDir);
+    }
+    return result;
+  }
+  finally {
+    writeAction.finish();
+  }
+}

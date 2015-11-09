@@ -1,0 +1,14 @@
+{
+  createProjectPom(mavenProjectDescription("aggregator","pom") + "  <modules>\n" + "    <module>app</module>\n"+ "    <module>lib1</module>\n"+ "    <module>lib2</module>\n"+ "  </modules>\n"+ "<build>"+ "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "     </plugin>"+ "  </plugins>"+ "</build>"+ flexFrameworkDependency("3.2.0.3958"));
+  createModulePom("app",parent() + mavenProjectDescription("app","swf") + "  <dependencies>\n"+ "    <dependency>\n"+ "      <groupId>"+ TEST_GROUP_ID+ "</groupId>"+ "      <artifactId>lib1</artifactId>"+ "      <version>1.0</version>"+ "    </dependency>\n"+ "    <dependency>\n"+ "      <groupId>"+ TEST_GROUP_ID+ "</groupId>"+ "      <artifactId>lib1</artifactId>"+ "      <version>1.0</version>"+ "      <classifier>test</classifier>"+ "      <scope>test</scope>"+ "    </dependency>\n"+ "    <dependency>\n"+ "      <groupId>"+ TEST_GROUP_ID+ "</groupId>"+ "      <artifactId>lib2</artifactId>"+ "      <version>1.0</version>"+ "    </dependency>\n"+ "    <dependency>\n"+ "      <groupId>com.adobe.flex.compiler</groupId>\n"+ "      <artifactId>flex-fontkit</artifactId>\n"+ "      <version>4.0.0.14159</version>\n"+ "      <type>jar</type>\n"+ "    </dependency>\n"+ "  </dependencies>");
+  createModulePom("lib1",parent() + "  <artifactId>lib1</artifactId>\n" + "  <packaging>swc</packaging>");
+  createModulePom("lib2",parent() + "  <artifactId>lib2</artifactId>\n" + "  <packaging>jar</packaging>");
+  importProject();
+  checkBC("app","app",new BuildConfigurationNature(Web,false,Application),"","app-1.0.swf","target","3.2.0.3958","en_US","target/app-1.0-config-report.xml");
+  assertModules("aggregator","app","lib1","lib2");
+  assertModuleType("aggregator",StdModuleTypes.JAVA);
+  assertModuleType("app",FlexModuleType.getInstance());
+  assertModuleType("lib1",FlexModuleType.getInstance());
+  assertModuleType("lib2",StdModuleTypes.JAVA);
+  checkBCOnBCDependencies("app","lib1:Merged");
+}

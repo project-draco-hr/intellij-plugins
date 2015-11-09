@@ -1,0 +1,18 @@
+{
+  createProjectPom(mavenProjectDescription("aggregator","pom") + "  <modules>\n" + "    <module>app</module>\n"+ "    <module>rlm</module>\n"+ "  </modules>\n"+ "<build>"+ "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "     </plugin>"+ "  </plugins>"+ "</build>"+ flexFrameworkDependency("3.2.0.3958"));
+  createModulePom("app",parent() + mavenProjectDescription("app","swf") + "  <dependencies>\n"+ "    <dependency>\n"+ "      <groupId>"+ TEST_GROUP_ID+ "</groupId>"+ "      <artifactId>rlm</artifactId>"+ "      <version>1.0</version>"+ "      <scope>runtime</scope>"+ "    </dependency>\n"+ "  </dependencies>");
+  createModulePom("rlm",parent() + mavenProjectDescription("rlm","swf"));
+  importProject();
+  checkBC("app","app",new BuildConfigurationNature(Web,false,Application),"","app-1.0.swf","target","3.2.0.3958","en_US","target/app-1.0-config-report.xml");
+  final FlexBuildConfiguration rlmBC=checkBC("rlm","rlm",new BuildConfigurationNature(Web,false,Application),"","rlm-1.0.swf","target","3.2.0.3958","en_US","target/rlm-1.0-config-report.xml");
+  assertModules("aggregator","app","rlm");
+  assertModuleType("aggregator",StdModuleTypes.JAVA);
+  assertModuleType("app",FlexModuleType.getInstance());
+  assertModuleType("rlm",FlexModuleType.getInstance());
+  checkBCOnBCDependencies("app","rlm:Loaded");
+  ((ModifiableFlexBuildConfiguration)rlmBC).setOutputType(RuntimeLoadedModule);
+  createModulePom("rlm",parent() + mavenProjectDescription("rlm","fake"));
+  createModulePom("rlm",parent() + mavenProjectDescription("rlm","swf"));
+  importProject();
+  checkBC("rlm","rlm",new BuildConfigurationNature(Web,false,RuntimeLoadedModule),"","rlm-1.0.swf","target","3.2.0.3958","en_US","target/rlm-1.0-config-report.xml");
+}

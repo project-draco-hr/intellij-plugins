@@ -1,0 +1,20 @@
+{
+  final File mavenHome=MavenUtil.resolveMavenHomeDirectory(myProjectsManager.getGeneralSettings().getMavenHome());
+  if (mavenHome == null || !MavenUtil.isValidMavenHome(mavenHome)) {
+    return;
+  }
+  createProjectPom("  <groupId>" + TEST_GROUP_ID + "</groupId>\n"+ "  <artifactId>testAdditionalCompileSourceRoots</artifactId>\n"+ "  <version>1.0</version>\n"+ "  <packaging>swc</packaging>\n"+ "  \n"+ "<properties>\n"+ "    <fdk.version>4.5.1.21328</fdk.version>\n"+ "  </properties>"+ "  <dependencies>\n"+ "    <dependency>\n"+ "      <groupId>com.adobe.flex.framework</groupId>\n"+ "      <artifactId>playerglobal</artifactId>\n"+ "      <type>swc</type>\n"+ "      <classifier>10.2</classifier>\n"+ "      <version>${fdk.version}</version>\n"+ "    </dependency>\n"+ "  </dependencies>"+ repository()+ plugins(null,"<plugin>\n" + "        <groupId>org.codehaus.mojo</groupId>\n" + "        <artifactId>build-helper-maven-plugin</artifactId>\n"+ "        <executions>\n"+ "          <execution>\n"+ "            <id>add-sources</id>\n"+ "            <phase>generate-sources</phase>\n"+ "            <goals>\n"+ "              <goal>add-source</goal>\n"+ "            </goals>\n"+ "            <configuration>\n"+ "              <sources>\n"+ "                <source>localAnotherSourceRoot</source>\n"+ "                <source>${env." + getEnvVar() + "}</source>\n"+ "              </sources>\n"+ "            </configuration>\n"+ "          </execution>\n"+ "        </executions>\n"+ "      </plugin>"));
+  createProjectSubDir("localAnotherSourceRoot");
+  createProjectSubDir(SOURCE_DIR);
+  importProject();
+  performPostImportTasks();
+  final String compilerConfigsDir=Flexmojos4Configurator.getCompilerConfigsDir(myProject);
+  final VirtualFile p=LocalFileSystem.getInstance().findFileByPath(compilerConfigsDir);
+  assertNotNull(p);
+  String s=loadContent(p,"testAdditionalCompileSourceRoots-" + TEST_GROUP_ID + ".xml");
+  final String rootDir=myProjectRoot.getPath();
+  String paths="\t\t\t<path-element>" + FileUtil.toSystemDependentName(rootDir + "/" + SOURCE_DIR) + "</path-element>\n"+ "\t\t\t<path-element>"+ FileUtil.toSystemDependentName(rootDir + "/localAnotherSourceRoot")+ "</path-element>\n"+ "\t\t\t<path-element>"+ new File(System.getenv(getEnvVar())).getCanonicalPath()+ "</path-element>\n";
+  int index=assertContains(s,"\t\t<source-path>\n" + paths + "\t\t</source-path>",0);
+  assertContains(s,"\t<include-sources>\n" + paths.replace("\t\t\t","\t\t") + "\t</include-sources>",index);
+  assertSources("testAdditionalCompileSourceRoots","localAnotherSourceRoot","src");
+}

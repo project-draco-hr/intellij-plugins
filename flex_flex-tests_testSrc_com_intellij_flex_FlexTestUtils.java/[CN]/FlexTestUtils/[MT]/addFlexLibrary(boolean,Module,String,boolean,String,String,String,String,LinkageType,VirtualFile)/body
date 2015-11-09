@@ -1,0 +1,78 @@
+{
+  if (copyTo != null) {
+    if (classesPath != null) {
+      classesPath=copyTo(copyTo,libraryRoot + classesPath).getName();
+    }
+    if (sourcesPath != null) {
+      sourcesPath=copyTo(copyTo,libraryRoot + sourcesPath).getName();
+    }
+    if (asdocPath != null) {
+      asdocPath=copyTo(copyTo,libraryRoot + asdocPath).getName();
+    }
+    libraryRoot=copyTo.getPath();
+  }
+  ModifiableRootModel moduleModifiableModel=ModuleRootManager.getInstance(module).getModifiableModel();
+  AccessToken l=WriteAction.start();
+  try {
+    final LibraryTable libraryTable;
+    if (isProjectLibrary) {
+      libraryTable=ProjectLibraryTable.getInstance(module.getProject());
+    }
+ else {
+      libraryTable=moduleModifiableModel.getModuleLibraryTable();
+    }
+    Library library=libraryTable.getLibraryByName(libraryName);
+    if (library != null && overwrite) {
+      libraryTable.removeLibrary(library);
+      library=null;
+    }
+    if (library == null) {
+      LibraryTable.ModifiableModel libraryTableModifiableModel=libraryTable.getModifiableModel();
+      library=libraryTableModifiableModel.createLibrary(libraryName,FlexLibraryType.FLEX_LIBRARY);
+      LibraryEx.ModifiableModelEx libraryModel=(LibraryEx.ModifiableModelEx)library.getModifiableModel();
+      libraryModel.setProperties(new FlexLibraryProperties(FlexLibraryIdGenerator.generateId()));
+      addRootIfNotNull(libraryRoot,classesPath,libraryModel,OrderRootType.CLASSES,".swc",".zip");
+      addRootIfNotNull(libraryRoot,sourcesPath,libraryModel,OrderRootType.SOURCES,".zip");
+      addRootIfNotNull(libraryRoot,asdocPath,libraryModel,JavadocOrderRootType.getInstance(),".zip");
+      libraryModel.commit();
+      libraryTableModifiableModel.commit();
+    }
+    moduleModifiableModel.commit();
+    final String committedLibraryId;
+    if (isProjectLibrary) {
+      committedLibraryId=FlexProjectRootsUtil.getLibraryId(ProjectLibraryTable.getInstance(module.getProject()).getLibraryByName(libraryName));
+    }
+ else {
+      final OrderEntry entry=ContainerUtil.find(ModuleRootManager.getInstance(module).getOrderEntries(),new Condition<OrderEntry>(){
+        @Override public boolean value(        final OrderEntry orderEntry){
+          return orderEntry instanceof LibraryOrderEntry && ((LibraryOrderEntry)orderEntry).getLibraryName().equals(libraryName);
+        }
+      }
+);
+      committedLibraryId=FlexProjectRootsUtil.getLibraryId(((LibraryOrderEntry)entry).getLibrary());
+    }
+    if (ModuleType.get(module) == FlexModuleType.getInstance()) {
+      modifyConfigs(module.getProject(),new Consumer<FlexProjectConfigurationEditor>(){
+        @Override public void consume(        final FlexProjectConfigurationEditor e){
+          final ModifiableFlexBuildConfiguration[] bcs=e.getConfigurations(module);
+          final ModifiableDependencyEntry dependencyEntry;
+          if (isProjectLibrary) {
+            dependencyEntry=e.createSharedLibraryEntry(bcs[0].getDependencies(),libraryName,LibraryTablesRegistrar.PROJECT_LEVEL);
+          }
+ else {
+            dependencyEntry=e.createModuleLibraryEntry(bcs[0].getDependencies(),committedLibraryId);
+          }
+          dependencyEntry.getDependencyType().setLinkageType(linkageType);
+          bcs[0].getDependencies().getModifiableEntries().add(dependencyEntry);
+        }
+      }
+);
+    }
+  }
+  finally {
+    if (!moduleModifiableModel.isDisposed()) {
+      moduleModifiableModel.dispose();
+    }
+    l.finish();
+  }
+}

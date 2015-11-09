@@ -1,0 +1,11 @@
+{
+  importProject(mavenProjectDescription("project","swf") + "<build>" + "  <sourceDirectory>src/main/flex</sourceDirectory>"+ "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "      <executions>\n"+ "        <execution>\n"+ "          <goals>\n"+ "            <goal>sign-air</goal>\n"+ "          </goals>\n"+ "        </execution>\n"+ "      </executions>\n"+ "      <dependencies>\n"+ "        <dependency>\n"+ "          <groupId>com.adobe.flex</groupId>\n"+ "          <artifactId>compiler</artifactId>\n"+ "          <version>3.5.0.12683</version>\n"+ "          <type>pom</type>\n"+ "        </dependency>\n"+ "      </dependencies>\n"+ "    </plugin>"+ "  </plugins>"+ "</build>"+ flexFrameworkDependency("3.5.0.12683"));
+  checkBCCount("project",1);
+  final FlexBuildConfiguration bc=checkBC("project","project",new BuildConfigurationNature(Desktop,false,Application),"","project-1.0.swf","target","3.5.0.12683","en_US","target/project-1.0-config-report.xml");
+  final Module module=ModuleManager.getInstance(myProject).findModuleByName("project");
+  final String basePath=PathUtil.getParentPath(module.getModuleFilePath());
+  assertFalse(bc.getAirDesktopPackagingOptions().isUseGeneratedDescriptor());
+  assertEquals(basePath + "/src/main/resources/descriptor.xml",bc.getAirDesktopPackagingOptions().getCustomDescriptorPath());
+  assertFalse(bc.getAirDesktopPackagingOptions().getSigningOptions().isUseTempCertificate());
+  assertEquals(basePath + "/src/main/resources/sign.p12",bc.getAirDesktopPackagingOptions().getSigningOptions().getKeystorePath());
+}

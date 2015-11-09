@@ -1,0 +1,12 @@
+{
+  final Module module=ModuleManager.getInstance(myProject).findModuleByName(moduleName);
+  final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(moduleName);
+  final List<String> realDependencyModuleNames=new ArrayList<String>();
+  for (  DependencyEntry entry : bc.getDependencies().getEntries()) {
+    if (entry instanceof BuildConfigurationEntry) {
+      assertEquals(((BuildConfigurationEntry)entry).getModuleName(),((BuildConfigurationEntry)entry).getBcName());
+      realDependencyModuleNames.add(((BuildConfigurationEntry)entry).getModuleName() + ":" + entry.getDependencyType().getLinkageType().getShortText());
+    }
+  }
+  assertSameElements(realDependencyModuleNames,dependencyModuleNames);
+}

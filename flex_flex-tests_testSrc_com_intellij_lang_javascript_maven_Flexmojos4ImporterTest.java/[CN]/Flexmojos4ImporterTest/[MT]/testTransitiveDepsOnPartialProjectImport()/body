@@ -1,0 +1,26 @@
+{
+  final File mavenHome=MavenUtil.resolveMavenHomeDirectory(myProjectsManager.getGeneralSettings().getMavenHome());
+  if (mavenHome == null || !MavenUtil.isValidMavenHome(mavenHome)) {
+    return;
+  }
+  createProjectPom("  <groupId>" + TEST_GROUP_ID + "</groupId>\n"+ "  <artifactId>aggregator</artifactId>\n"+ "  <version>1.0</version>\n"+ "  <packaging>pom</packaging>\n"+ "  \n"+ "<properties>\n"+ "    <fdk.version>4.5.1.21328</fdk.version>\n"+ "  </properties>"+ "  <modules>\n"+ "    <module>app</module>\n"+ "    <module>libA</module>\n"+ "    <module>libB</module>\n"+ "  </modules>\n"+ "  <dependencies>\n"+ "    <dependency>\n"+ "      <groupId>com.adobe.flex.framework</groupId>\n"+ "      <artifactId>playerglobal</artifactId>\n"+ "      <type>swc</type>\n"+ "      <classifier>10.2</classifier>\n"+ "      <version>${fdk.version}</version>\n"+ "    </dependency>\n"+ "  </dependencies>"+ repository()+ plugins());
+  final VirtualFile app=createModulePom("app",parent() + "  <artifactId>app</artifactId>\n" + "  <packaging>swf</packaging>\n"+ "\n"+ dependencies("libA"));
+  createProjectSubFile("app/src/Main.as","package {\n" + "import flash.display.Sprite;\n" + "\n"+ "public class Main extends Sprite {\n"+ "  public function Main() {\n"+ "    new B();\n"+ "  }\n"+ "}\n"+ "}");
+  createModulePom("libA",parent() + "  <artifactId>libA</artifactId>\n" + "  <packaging>swc</packaging>\n"+ "  \n"+ dependencies("libB"));
+  createModulePom("libB",parent() + "  <artifactId>libB</artifactId>\n" + "  <packaging>swc</packaging>");
+  importProject();
+  performPostImportTasks();
+  final String localRepoDir=myProjectsManager.getGeneralSettings().getEffectiveLocalRepository().getCanonicalPath();
+  final String rootDir=myProjectRoot.getPath();
+  final String compilerConfigsDir=Flexmojos4Configurator.getCompilerConfigsDir(myProject);
+  final VirtualFile p=LocalFileSystem.getInstance().findFileByPath(compilerConfigsDir);
+  assertNotNull(p);
+  String s=loadContent(p,"app-com.intellij.flex.maven.test.xml");
+  int index=assertContains(s,"\t\t<library-path>\n" + "\t\t\t<path-element>" + FileUtil.toSystemDependentName(rootDir + "/libA/target/libA-1.0.swc") + "</path-element>\n"+ "\t\t\t<path-element>"+ FileUtil.toSystemDependentName(rootDir + "/libB/target/libB-1.0.swc")+ "</path-element>\n"+ "\t\t</library-path>",0);
+  assertContains(s,"\t<file-specs>\n" + "\t\t<path-element>" + FileUtil.toSystemDependentName(rootDir + "/app/src/Main.as") + "</path-element>\n"+ "\t</file-specs>",index);
+  s=loadContent(p,"libA-com.intellij.flex.maven.test.xml");
+  final String playerGlobalPathElement="\t\t\t<path-element>" + FileUtil.toSystemDependentName(localRepoDir + "/com/adobe/flex/framework/playerglobal/4.5.1.21328/10.2/playerglobal.swc") + "</path-element>\n";
+  assertContains(s,"\t\t<external-library-path>\n" + "\t\t\t<path-element>" + FileUtil.toSystemDependentName(rootDir + "/libB/target/libB-1.0.swc") + "</path-element>\n"+ playerGlobalPathElement+ "\t\t</external-library-path>",0);
+  s=loadContent(p,"libB-com.intellij.flex.maven.test.xml");
+  assertContains(s,"\t\t<external-library-path>\n" + playerGlobalPathElement + "\t\t</external-library-path>",0);
+}

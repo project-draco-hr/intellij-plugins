@@ -1,0 +1,22 @@
+{
+  final String pomContent=mavenProjectDescription("project","swf") + "<properties>" + "  <my.suffix>zz</my.suffix>"+ "</properties>"+ "<build>"+ "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "      <configuration>"+ "        <sourceFile>\n   pack\\pack2/Main.as\n   </sourceFile>"+ "        <classifier>\n   ${my.suffix}\n   </classifier>"+ "        <output>\n   output.swf\n   </output>"+ "        <moduleFiles>"+ "          <a>\n  Module1.mxml\n  </a>"+ "          <moduleFile>ignore.txt</moduleFile>"+ "          <moduleFile>\n  pack\\Module2.as\n  </moduleFile>"+ "        </moduleFiles>"+ "      </configuration>"+ "     </plugin>"+ "     <plugin>"+ "       <groupId>org.codehaus.gmaven</groupId>"+ "       <artifactId>gmaven-plugin</artifactId>"+ "       <version>1.3</version>"+ "     </plugin>"+ "  </plugins>"+ "</build>"+ flexFrameworkDependency("3.2.0.3958");
+  importProject(pomContent);
+  checkBCCount("project",3);
+  checkBC("project","project",new BuildConfigurationNature(Web,false,Application),"pack.pack2.Main","output.swf","","3.2.0.3958","en_US","target/project-1.0-zz-config-report.xml");
+  checkBC("project","Module1",new BuildConfigurationNature(Web,false,RuntimeLoadedModule),"Module1","project-1.0-Module1.swf","target","3.2.0.3958","en_US","target/project-1.0-Module1-config-report.xml");
+  checkBC("project","Module2",new BuildConfigurationNature(Web,false,RuntimeLoadedModule),"pack.Module2","project-1.0-Module2.swf","target","3.2.0.3958","en_US","target/project-1.0-Module2-config-report.xml");
+  final Module module=ModuleManager.getInstance(myProject).findModuleByName("project");
+  FlexTestUtils.modifyConfigs(myProject,new Consumer<FlexProjectConfigurationEditor>(){
+    public void consume(    final FlexProjectConfigurationEditor editor){
+      for (      ModifiableFlexBuildConfiguration bc : editor.getConfigurations(module)) {
+        bc.getCompilerOptions().setAdditionalOptions("custom options");
+      }
+    }
+  }
+);
+  importProject(pomContent.replace("swf","swc"));
+  checkBCCount("project",3);
+  checkBC("project","project",new BuildConfigurationNature(Web,false,Library),"","output.swc","","3.2.0.3958","","target/project-1.0-zz-config-report.xml");
+  final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName("project");
+  assertEquals("custom options",bc.getCompilerOptions().getAdditionalOptions());
+}
