@@ -1,0 +1,21 @@
+{
+  final Module module=ModuleManager.getInstance(myProject).findModuleByName(moduleName);
+  assertNotNull("Module '" + moduleName + "' not found",module);
+  final FlexBuildConfiguration bc=FlexBuildConfigurationManager.getInstance(module).findConfigurationByName(bcName);
+  assertNotNull("Build configuration '" + bcName + "' not found",bc);
+  checkLibrariesOfFlexType(module,bc);
+  assertEquals(nature,bc.getNature());
+  assertEquals(mainClass,bc.getMainClass());
+  assertEquals(outputFileName,bc.getOutputFileName());
+  assertEquals(PathUtil.getParentPath(module.getModuleFilePath()) + (outputFolderRelPath.isEmpty() ? "" : "/") + outputFolderRelPath,bc.getOutputFolder());
+  assertFalse(bc.isUseHtmlWrapper());
+  assertFalse(bc.isSkipCompile());
+  assertEquals(locales,bc.getCompilerOptions().getOption("compiler.locale"));
+  assertEquals(getConfigFilesBasePath(module) + "/" + configFileRelPath,bc.getCompilerOptions().getAdditionalConfigFilePath());
+  final Sdk sdk=bc.getSdk();
+  assertNotNull(sdk);
+  assertInstanceOf(sdk.getSdkType(),FlexmojosSdkType.class);
+  assertEquals(sdk.getName(),"Flexmojos SDK " + sdkVersion);
+  assertEquals(sdk.getVersionString(),sdkVersion);
+  return bc;
+}

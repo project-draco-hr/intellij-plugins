@@ -1,0 +1,14 @@
+{
+  final List<LibraryOrderEntry> moduleLibEntries=ContainerUtil.filter(ModuleRootManager.getInstance(module).getOrderEntries(),new FilteringIterator.InstanceOf(LibraryOrderEntry.class));
+  final List<SharedLibraryEntry> bcLibEntries=ContainerUtil.filter(bc.getDependencies().getEntries(),new FilteringIterator.InstanceOf(SharedLibraryEntry.class));
+  assertTrue(bcLibEntries.size() > 0);
+  assertEquals(moduleLibEntries.size(),bcLibEntries.size());
+  for (  SharedLibraryEntry entry : bcLibEntries) {
+    assertTrue(entry.getLibraryName().contains(":swc:") || entry.getLibraryName().contains(":rb.swc:") || entry.getLibraryName().contains(":resource-bundle:"));
+    assertEquals(LibraryTablesRegistrar.PROJECT_LEVEL,entry.getLibraryLevel());
+    final Library library=FlexProjectRootsUtil.findOrderEntry(module.getProject(),entry);
+    assertNotNull(library);
+    assertTrue(((LibraryEx)library).getKind() == FlexLibraryType.FLEX_LIBRARY);
+    checkContainsLibrary(moduleLibEntries,library);
+  }
+}

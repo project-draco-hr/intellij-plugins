@@ -1,0 +1,16 @@
+{
+  final List<RunnerAndConfigurationSettings> settings=runManager.getConfigurationSettingsList(FlexUnitRunConfigurationType.getInstance());
+  RunnerAndConfigurationSettings settingsToCheck=null;
+  for (  RunnerAndConfigurationSettings setting : settings) {
+    if (configName.equals(setting.getName())) {
+      settingsToCheck=setting;
+      break;
+    }
+  }
+  Assert.assertNotNull("Run configuration not found: " + configName,settingsToCheck);
+  final FlexUnitRunnerParameters params=((FlexUnitRunConfiguration)settingsToCheck.getConfiguration()).getRunnerParameters();
+  Assert.assertEquals(packageName,params.getPackageName());
+  Assert.assertEquals(className,params.getClassName());
+  Assert.assertEquals(methodName,params.getMethodName());
+  Assert.assertEquals(FlexBuildConfigurationManager.getInstance(module).getActiveConfiguration().getName(),params.getBCName());
+}

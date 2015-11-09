@@ -1,0 +1,14 @@
+{
+  final VirtualFile file=createProjectSubFile("src/main/flex/SomeClass.mxml");
+  new WriteAction(){
+    @Override protected void run(    @NotNull Result result) throws Throwable {
+      VfsUtil.saveText(file,"<mx:Application xmlns:mx=\"http://www.adobe.com/2006/mxml\"/>");
+    }
+  }
+.execute().throwException();
+  PsiDocumentManager.getInstance(myProject).commitAllDocuments();
+  importProject(mavenProjectDescription("project","swf") + "<build>" + "  <finalName>foo</finalName>"+ "  <sourceDirectory>src/main/flex</sourceDirectory>"+ "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "      <dependencies>\n"+ "        <dependency>\n"+ "          <groupId>com.adobe.flex</groupId>\n"+ "          <artifactId>compiler</artifactId>\n"+ "          <version>3.5.0.12683</version>\n"+ "          <type>pom</type>\n"+ "        </dependency>\n"+ "      </dependencies>\n"+ "    </plugin>"+ "  </plugins>"+ "</build>"+ flexFrameworkDependency("3.5.0.12683"));
+  performPostImportTasks();
+  checkBCCount("project",1);
+  checkBC("project","project",new BuildConfigurationNature(Web,false,Application),"SomeClass","foo.swf","target","3.5.0.12683","en_US","target/foo-config-report.xml");
+}

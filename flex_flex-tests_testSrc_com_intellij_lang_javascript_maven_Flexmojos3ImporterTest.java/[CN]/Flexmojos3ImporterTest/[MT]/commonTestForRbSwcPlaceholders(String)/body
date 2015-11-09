@@ -1,0 +1,20 @@
+{
+  final String LIB_PATH_TEMPLATE="jar://" + getRepositoryPath() + "/com/adobe/flex/framework/framework/3.2.0.3958/framework-3.2.0.3958-{0}.rb.swc!/";
+  final List<String> expectedLibPaths=new ArrayList<String>();
+  final String localesConfiguration;
+  if (compiledLocales.length == 0) {
+    localesConfiguration="";
+    expectedLibPaths.add(MessageFormat.format(LIB_PATH_TEMPLATE,"en_US"));
+  }
+ else {
+    final StringBuilder builder=new StringBuilder("<compiledLocales>");
+    for (    final String locale : compiledLocales) {
+      builder.append("<locale>").append(locale).append("</locale>");
+      expectedLibPaths.add(MessageFormat.format(LIB_PATH_TEMPLATE,locale));
+    }
+    builder.append("</compiledLocales>");
+    localesConfiguration=builder.toString();
+  }
+  importProject(mavenProjectDescription("project","swf") + "<build>" + "  <plugins>"+ "    <plugin>"+ flexmojosPlugin()+ "      <configuration>"+ localesConfiguration+ "      </configuration>"+ "    </plugin>"+ "  </plugins>"+ "</build>"+ "<dependencies>"+ "  <dependency>"+ "    <groupId>com.adobe.flex.framework</groupId>"+ "    <artifactId>flex-framework</artifactId>"+ "    <version>3.2.0.3958</version>"+ "    <type>pom</type>"+ "  </dependency>"+ "</dependencies>");
+  assertModuleLibDep("project","Maven: com.adobe.flex.framework:framework:rb.swc:3.2.0.3958",expectedLibPaths,null,null);
+}
