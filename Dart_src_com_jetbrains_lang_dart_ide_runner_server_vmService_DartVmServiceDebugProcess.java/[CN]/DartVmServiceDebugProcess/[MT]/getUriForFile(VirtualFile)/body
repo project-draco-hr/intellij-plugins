@@ -1,3 +1,10 @@
 {
-  return threeslashize(myDartUrlResolver.getDartUrlForFile(file));
+  final String uriByIde=myDartUrlResolver.getDartUrlForFile(file);
+  if (myDASExecutionContextId != null && !uriByIde.startsWith(DartUrlResolver.DART_PREFIX)) {
+    final String uriByServer=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,file.getPath(),null);
+    if (uriByServer != null) {
+      return uriByServer;
+    }
+  }
+  return threeslashize(uriByIde);
 }
