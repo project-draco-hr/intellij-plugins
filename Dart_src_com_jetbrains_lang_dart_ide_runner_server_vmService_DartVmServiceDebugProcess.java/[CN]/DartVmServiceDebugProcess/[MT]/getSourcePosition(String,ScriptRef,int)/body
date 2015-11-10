@@ -1,6 +1,14 @@
 {
   VirtualFile file=ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
     @Override public VirtualFile compute(){
+      final String dasExecutionContextId=getDASExecutionContextId();
+      final String uri=scriptRef.getUri();
+      if (dasExecutionContextId != null && !uri.matches("dart:([a-zA-Z])+-patch/.*$")) {
+        final String path=DartAnalysisServerService.getInstance().execution_mapUri(dasExecutionContextId,null,scriptRef.getUri());
+        if (path != null) {
+          return LocalFileSystem.getInstance().findFileByPath(path);
+        }
+      }
       return myDartUrlResolver.findFileByDartUrl(scriptRef.getUri());
     }
   }

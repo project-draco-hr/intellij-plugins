@@ -1,0 +1,28 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(_filePath);
+  final Ref<String> resultRef=new Ref<String>();
+  final Semaphore semaphore=new Semaphore();
+synchronized (myLock) {
+    if (myServer == null)     return null;
+    semaphore.down();
+    final CreateContextConsumer consumer=new CreateContextConsumer(){
+      @Override public void computedExecutionContext(      final String contextId){
+        resultRef.set(contextId);
+        semaphore.up();
+      }
+      @Override public void onError(      final RequestError error){
+        logError("execution_createContext()",filePath,error);
+        semaphore.up();
+      }
+    }
+;
+    myServer.execution_createContext(filePath,consumer);
+  }
+  final long t0=System.currentTimeMillis();
+  semaphore.waitFor(EXECUTION_CREATE_CONTEXT);
+  if (semaphore.tryUp()) {
+    LOG.info("execution_createContext() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
+    return null;
+  }
+  return resultRef.get();
+}
