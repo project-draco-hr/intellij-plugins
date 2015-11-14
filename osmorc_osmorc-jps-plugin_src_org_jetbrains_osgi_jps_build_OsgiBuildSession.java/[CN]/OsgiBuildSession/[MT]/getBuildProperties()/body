@@ -2,7 +2,6 @@
   Map<String,String> properties=ContainerUtil.newHashMap();
   properties.put(Constants.IMPORT_PACKAGE,"*");
   properties.put(Constants.REMOVEHEADERS,Constants.INCLUDE_RESOURCE + ',' + Constants.PRIVATE_PACKAGE);
-  properties.put(Constants.CREATED_BY,"IntelliJ IDEA / OSGi Plugin");
   if (myExtension.isOsmorcControlsManifest()) {
     properties.putAll(myExtension.getAdditionalProperties());
     properties.put(Constants.BUNDLE_SYMBOLICNAME,myExtension.getBundleSymbolicName());
@@ -28,6 +27,9 @@
   }
   for (  OsmorcJarContentEntry contentEntry : myExtension.getAdditionalJarContents()) {
     resources.add(contentEntry.myDestination + '=' + contentEntry.mySource);
+  }
+  if (myExtension.isManifestManuallyEdited()) {
+    resources.add(myModuleOutputDir.getPath());
   }
   if (!resources.isEmpty()) {
     properties.put(Constants.INCLUDE_RESOURCE,StringUtil.join(resources,","));
