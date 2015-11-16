@@ -1,0 +1,17 @@
+{
+  BuildDataPaths dataPaths=context.getProjectDescriptor().dataManager.getDataPaths();
+  final MavenProjectConfiguration projectConfig=JpsMavenExtensionService.getInstance().getMavenProjectConfiguration(dataPaths);
+  if (projectConfig != null) {
+    JpsJavaExtensionService.dependencies(module).recursively().productionOnly().processModules(new Consumer<JpsModule>(){
+      @Override public void consume(      JpsModule module){
+        MavenModuleResourceConfiguration moduleConfig=projectConfig.moduleConfigurations.get(module.getName());
+        if (moduleConfig != null) {
+          for (          Map.Entry<String,String> entry : moduleConfig.properties.entrySet()) {
+            result.setProperty(entry.getKey(),entry.getValue());
+          }
+        }
+      }
+    }
+);
+  }
+}
