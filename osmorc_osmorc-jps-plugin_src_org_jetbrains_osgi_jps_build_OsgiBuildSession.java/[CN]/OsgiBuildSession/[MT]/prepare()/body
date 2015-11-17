@@ -14,24 +14,29 @@
   if (!FileUtil.createParentDirs(myOutputJarFile)) {
     throw new OsgiBuildException("Cannot create directory for bundle file '" + myOutputJarFile + "'.");
   }
-  List<File> classes=ContainerUtil.newSmartList(myModuleOutputDir);
+  List<File> classes=ContainerUtil.newSmartList();
+  if (myModuleOutputDir.exists()) {
+    classes.add(myModuleOutputDir);
+  }
   for (  JpsDependencyElement dependency : myModule.getDependenciesList().getDependencies()) {
     if (dependency instanceof JpsModuleDependency) {
       JpsModule module=((JpsModuleDependency)dependency).getModule();
       if (module != null && JpsOsmorcExtensionService.getExtension(module) == null) {
         File outputDir=JpsJavaExtensionService.getInstance().getOutputDirectory(module,false);
-        if (outputDir != null) {
+        if (outputDir != null && outputDir.exists()) {
           classes.add(outputDir);
         }
       }
     }
   }
-  myClasses=classes.toArray(new File[classes.size()]);
-  mySources=ContainerUtil.map2Array(myModule.getSourceRoots(),File.class,new Function<JpsModuleSourceRoot,File>(){
-    @Override public File fun(    JpsModuleSourceRoot root){
-      return root.getFile();
+  myClasses=classes.isEmpty() ? ArrayUtil.EMPTY_FILE_ARRAY : classes.toArray(new File[classes.size()]);
+  List<File> sources=ContainerUtil.newSmartList();
+  for (  JpsModuleSourceRoot sourceRoot : myModule.getSourceRoots()) {
+    File sourceDir=sourceRoot.getFile();
+    if (sourceDir.exists()) {
+      sources.add(sourceDir);
     }
   }
-);
+  mySources=sources.isEmpty() ? ArrayUtil.EMPTY_FILE_ARRAY : sources.toArray(new File[sources.size()]);
   myBndWrapper=new BndWrapper(this);
 }
