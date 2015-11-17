@@ -5,22 +5,22 @@
   }
 switch (myOutputPathType) {
 case CompilerOutputPath:
-    VirtualFile moduleCompilerOutputPath=CompilerPaths.getModuleOutputDirectory(myFacet.getModule(),false);
+    String moduleCompilerOutputPath=CompilerPaths.getModuleOutputPath(myFacet.getModule(),false);
   if (moduleCompilerOutputPath != null) {
-    return moduleCompilerOutputPath.getParent().getPath() + "/" + nullSafeLocation;
+    return PathUtil.getParentPath(moduleCompilerOutputPath) + '/' + nullSafeLocation;
   }
  else {
     return nullSafeLocation;
   }
 case OsgiOutputPath:
 ProjectSettings projectSettings=ModuleServiceManager.getService(myFacet.getModule(),ProjectSettings.class);
+if (projectSettings != null) {
 String bundlesOutputPath=projectSettings.getBundlesOutputPath();
 if (bundlesOutputPath != null && bundlesOutputPath.trim().length() != 0) {
-return bundlesOutputPath + "/" + nullSafeLocation;
+  return bundlesOutputPath + "/" + nullSafeLocation;
 }
- else {
+}
 return ProjectSettings.getDefaultBundlesOutputPath(myFacet.getModule().getProject()) + "/" + nullSafeLocation;
-}
 case SpecificOutputPath:
 default :
 return nullSafeLocation;

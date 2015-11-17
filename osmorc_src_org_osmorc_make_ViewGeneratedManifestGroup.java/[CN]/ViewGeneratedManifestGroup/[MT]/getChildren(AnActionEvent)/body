@@ -1,17 +1,24 @@
 {
-  if (e == null)   return EMPTY_ACTIONS_LIST;
-  Project project=e.getProject();
-  if (project == null)   return EMPTY_ACTIONS_LIST;
-  List<AnAction> actions=null;
-  for (  Module module : ModuleManager.getInstance(project).getModules()) {
-    OsmorcFacet facet=OsmorcFacet.getInstance(module);
-    if (facet != null) {
-      String jarFile=facet.getConfiguration().getJarFileLocation();
-      String fileName="[" + module.getName() + "] "+ jarFile.substring(jarFile.lastIndexOf('/') + 1);
-      ViewManifestAction action=new ViewManifestAction(fileName,jarFile);
-      if (actions == null)       actions=ContainerUtil.newSmartList();
-      actions.add(action);
+  if (e != null) {
+    Project project=e.getProject();
+    if (project != null) {
+      List<AnAction> actions=null;
+      for (      Module module : ModuleManager.getInstance(project).getModules()) {
+        OsmorcFacet facet=OsmorcFacet.getInstance(module);
+        if (facet != null) {
+          String jarFilePath=facet.getConfiguration().getJarFileLocation();
+          if (!jarFilePath.isEmpty()) {
+            String title="[" + module.getName() + "] "+ PathUtil.getFileName(jarFilePath);
+            ViewManifestAction action=new ViewManifestAction(title,jarFilePath);
+            if (actions == null)             actions=ContainerUtil.newSmartList();
+            actions.add(action);
+          }
+        }
+      }
+      if (actions != null) {
+        return actions.toArray(new AnAction[actions.size()]);
+      }
     }
   }
-  return actions == null ? EMPTY_ACTIONS_LIST : actions.toArray(new AnAction[actions.size()]);
+  return AnAction.EMPTY_ARRAY;
 }
