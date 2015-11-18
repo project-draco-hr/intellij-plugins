@@ -1,14 +1,13 @@
 {
   final Ref<Pair<YAMLKeyValue,DocumentFragment>> result=Ref.create(null);
-  yamlDocument.acceptChildren(new PsiElementVisitor(){
-    @Override public void visitElement(    PsiElement element){
-      YAMLKeyValue keyValue=ObjectUtils.tryCast(element,YAMLKeyValue.class);
+  final YAMLValue value=yamlDocument.getTopLevelValue();
+  if (value instanceof YAMLMapping) {
+    for (    YAMLKeyValue keyValue : ((YAMLMapping)value).getKeyValues()) {
       if (keyValue != null && isBasePathKey(keyValue) && result.isNull()) {
         DocumentFragment valueFragment=JstdConfigFileUtils.extractValueAsDocumentFragment(keyValue);
         result.set(Pair.create(keyValue,valueFragment));
       }
     }
   }
-);
   return result.get();
 }

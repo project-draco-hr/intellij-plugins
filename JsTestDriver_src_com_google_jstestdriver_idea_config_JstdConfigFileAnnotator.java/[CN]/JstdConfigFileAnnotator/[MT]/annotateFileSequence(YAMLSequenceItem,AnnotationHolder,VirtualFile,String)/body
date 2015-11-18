@@ -1,0 +1,24 @@
+{
+  checkSequenceIndent(sequence,holder,expectedIndent);
+  final YAMLValue value=sequence.getValue();
+  if (value == null) {
+    holder.createErrorAnnotation(sequence,"Sequence item is empty");
+    return;
+  }
+  if (value instanceof YAMLSequence) {
+    for (    YAMLSequenceItem item : ((YAMLSequence)value).getItems()) {
+      annotateFileSequence(item,holder,basePath,expectedIndent);
+    }
+  }
+  if (value instanceof YAMLScalar && ((YAMLScalar)value).isMultiline()) {
+    holder.createErrorAnnotation(sequence,"Unexpected multiline path");
+    return;
+  }
+  PsiElementFragment<YAMLSequenceItem> sequenceTextFragment=JstdConfigFileUtils.buildSequenceTextFragment(sequence);
+  if (basePath != null && sequenceTextFragment != null) {
+    DocumentFragment documentFragment=sequenceTextFragment.toDocumentFragment();
+    if (documentFragment != null) {
+      annotatePath(basePath,documentFragment,holder,true,false);
+    }
+  }
+}
