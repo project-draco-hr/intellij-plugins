@@ -1,0 +1,22 @@
+{
+  final VirtualFile dartFile=DartCommandLineRuntimeConfigurationProducer.getRunnableDartFileFromContext(context);
+  if (dartFile == null)   return false;
+  final DartUrlResolver urlResolver=DartUrlResolver.getInstance(context.getProject(),dartFile);
+  final VirtualFile dartUnitLib=urlResolver.findFileByDartUrl("package:test/test.dart");
+  if (dartUnitLib == null)   return false;
+  final VirtualFile yamlFile=urlResolver.getPubspecYamlFile();
+  if (yamlFile != null) {
+    final VirtualFile parent=yamlFile.getParent();
+    final VirtualFile testFolder=parent == null ? null : parent.findChild("test");
+    if (testFolder == null || !testFolder.isDirectory() || !VfsUtilCore.isAncestor(testFolder,dartFile,true)) {
+      return false;
+    }
+  }
+  final PsiElement testElement=TestUtil.findTestElement(context.getPsiLocation());
+  if (testElement == null || !setupRunConfiguration(configuration.getRunnerParameters(),testElement)) {
+    return false;
+  }
+  configuration.setGeneratedName();
+  sourceElement.set(testElement);
+  return true;
+}

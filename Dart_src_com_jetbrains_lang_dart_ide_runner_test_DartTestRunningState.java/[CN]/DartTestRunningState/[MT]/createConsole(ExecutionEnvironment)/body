@@ -1,0 +1,18 @@
+{
+  final Project project=env.getProject();
+  final DartTestRunConfiguration runConfiguration=(DartTestRunConfiguration)env.getRunProfile();
+  final DartTestRunnerParameters runnerParameters=runConfiguration.getRunnerParameters();
+  final TestConsoleProperties testConsoleProperties=new DartConsoleProperties(runConfiguration,env);
+  final ConsoleView consoleView=SMTestRunnerConnectionUtil.createConsole(DART_FRAMEWORK_NAME,testConsoleProperties);
+  try {
+    final VirtualFile dartFile=runnerParameters.getDartFile();
+    consoleView.addMessageFilter(new DartConsoleFilter(project,dartFile));
+    final String workingDir=StringUtil.isEmptyOrSpaces(runnerParameters.getWorkingDirectory()) ? dartFile.getParent().getPath() : runnerParameters.getWorkingDirectory();
+    consoleView.addMessageFilter(new DartRelativePathsConsoleFilter(project,workingDir));
+    consoleView.addMessageFilter(new UrlFilter());
+  }
+ catch (  RuntimeConfigurationError ignore) {
+  }
+  Disposer.register(project,consoleView);
+  return consoleView;
+}
