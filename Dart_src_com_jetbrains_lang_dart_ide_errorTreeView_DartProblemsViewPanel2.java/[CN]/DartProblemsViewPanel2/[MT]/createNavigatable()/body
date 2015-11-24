@@ -1,0 +1,14 @@
+{
+  final AnalysisError error=myTable.getSelectedObject();
+  if (error != null) {
+    final Location location=error.getLocation();
+    final String filePath=FileUtil.toSystemDependentName(location.getFile());
+    final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
+    if (file != null) {
+      final OpenFileDescriptor navigatable=new OpenFileDescriptor(myProject,file,error.getLocation().getOffset());
+      navigatable.setScrollType(ScrollType.MAKE_VISIBLE);
+      return navigatable;
+    }
+  }
+  return null;
+}
