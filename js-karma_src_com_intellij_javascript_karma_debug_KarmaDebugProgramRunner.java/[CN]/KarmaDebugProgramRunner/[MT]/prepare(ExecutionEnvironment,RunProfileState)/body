@@ -12,11 +12,11 @@
   if (karmaServer.areBrowsersReady()) {
     KarmaDebugBrowserSelector browserSelector=new KarmaDebugBrowserSelector(karmaServer.getCapturedBrowsers(),environment,consoleView);
     final DebuggableWebBrowser debuggableWebBrowser=browserSelector.selectDebugEngine();
+    if (debuggableWebBrowser == null) {
+      return Promise.resolve(KarmaUtil.createDefaultRunProfileStarter(executionResult));
+    }
     return prepareDebugger(environment.getProject(),debuggableWebBrowser,new RunProfileStarter(){
       @Nullable @Override public RunContentDescriptor execute(      @NotNull RunProfileState state,      @NotNull ExecutionEnvironment env) throws ExecutionException {
-        if (debuggableWebBrowser == null) {
-          return new RunContentBuilder(executionResult,env).showRunContent(env.getContentToReuse());
-        }
         final Url url=Urls.newFromEncoded(karmaServer.formatUrl("/debug.html"));
         final DebuggableFileFinder fileFinder=getDebuggableFileFinder(karmaServer);
         XDebugSession session=XDebuggerManager.getInstance(env.getProject()).startSession(env,new XDebugProcessStarter(){
