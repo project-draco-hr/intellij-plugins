@@ -3,8 +3,8 @@
   commandLine.withWorkDirectory(myWorkDir);
   commandLine.withParentEnvironmentType(myPassParentEnv ? ParentEnvironmentType.CONSOLE : ParentEnvironmentType.NONE);
   commandLine.withEnvironment(myEnv);
-  Process process=commandLine.createProcess();
-  OSProcessHandler processHandler=new ColoredProcessHandler(process,commandLine.getCommandLineString(),Charsets.UTF_8);
+  commandLine.setCharset(Charsets.UTF_8);
+  OSProcessHandler processHandler=new ColoredProcessHandler(commandLine);
   final ProcessOutput output=new ProcessOutput();
   processHandler.addProcessListener(new ProcessAdapter(){
     @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
@@ -19,7 +19,7 @@
 );
   processHandler.startNotify();
   if (processHandler.waitFor(TimeUnit.SECONDS.toMillis(120))) {
-    output.setExitCode(process.exitValue());
+    output.setExitCode(processHandler.getProcess().exitValue());
   }
  else {
     processHandler.destroyProcess();

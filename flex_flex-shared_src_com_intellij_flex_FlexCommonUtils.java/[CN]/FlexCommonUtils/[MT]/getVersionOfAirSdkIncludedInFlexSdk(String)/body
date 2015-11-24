@@ -10,8 +10,9 @@
   try {
     final Ref<String> versionRef=Ref.create();
     final String javaExecutable=FileUtil.toSystemDependentName((SystemProperties.getJavaHome() + "/bin/java" + (SystemInfo.isWindows ? ".exe" : "")));
-    final Process process=Runtime.getRuntime().exec(new String[]{javaExecutable,"-jar",adtFile.getPath(),"-version"});
-    final BaseOSProcessHandler handler=new BaseOSProcessHandler(process,"doesn't matter",Charset.defaultCharset());
+    String[] cmdarray={javaExecutable,"-jar",adtFile.getPath(),"-version"};
+    final Process process=Runtime.getRuntime().exec(cmdarray);
+    final BaseOSProcessHandler handler=new BaseOSProcessHandler(process,StringUtil.join(cmdarray," "),Charset.defaultCharset());
     handler.addProcessListener(new ProcessAdapter(){
       public void onTextAvailable(      ProcessEvent event,      Key outputType){
         if (outputType != ProcessOutputTypes.SYSTEM) {
