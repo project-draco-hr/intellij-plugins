@@ -1,0 +1,14 @@
+{
+  final List<AnalysisError> errorsToAdd=new ArrayList<AnalysisError>();
+  for (  Map.Entry<String,List<AnalysisError>> entry : filePathToErrors.entrySet()) {
+    final String filePath=entry.getKey();
+    final List<AnalysisError> errors=entry.getValue();
+    for (    AnalysisError error : errors) {
+      if (DartServerErrorsAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,error))       continue;
+      errorsToAdd.add(error);
+    }
+  }
+  if (!errorsToAdd.isEmpty()) {
+    addRows(errorsToAdd);
+  }
+}
