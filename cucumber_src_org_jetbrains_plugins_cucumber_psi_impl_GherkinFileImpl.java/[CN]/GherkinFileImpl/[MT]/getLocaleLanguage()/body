@@ -1,2 +1,20 @@
 {
+  final ASTNode node=getNode();
+  ASTNode child=node.getFirstChildNode();
+  while (child != null) {
+    if (child.getElementType() == GherkinTokenTypes.COMMENT) {
+      final String text=child.getText().substring(1).trim();
+      final String lang=GherkinLexer.fetchLocationLanguage(text);
+      if (lang != null) {
+        return lang;
+      }
+    }
+ else {
+      if (child.getElementType() != TokenType.WHITE_SPACE) {
+        break;
+      }
+    }
+    child=child.getTreeNext();
+  }
+  return getDefaultLocale();
 }
