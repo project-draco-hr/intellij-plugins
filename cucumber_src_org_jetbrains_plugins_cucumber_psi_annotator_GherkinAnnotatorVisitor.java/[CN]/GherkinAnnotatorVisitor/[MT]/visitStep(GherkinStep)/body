@@ -1,0 +1,16 @@
+{
+  final PsiReference[] references=step.getReferences();
+  if (references.length != 1 || !(references[0] instanceof CucumberStepReference))   return;
+  CucumberStepReference reference=(CucumberStepReference)references[0];
+  final AbstractStepDefinition definition=reference.resolveToDefinition();
+  if (definition != null) {
+    final List<TextRange> parameterRanges=GherkinPsiUtil.buildParameterRanges(step,definition,reference.getRangeInElement().getStartOffset());
+    if (parameterRanges == null)     return;
+    for (    TextRange range : parameterRanges) {
+      if (range.getLength() > 0) {
+        highlight(step,range,GherkinHighlighter.REGEXP_PARAMETER);
+      }
+    }
+    highlightOutlineParams(step,reference);
+  }
+}
