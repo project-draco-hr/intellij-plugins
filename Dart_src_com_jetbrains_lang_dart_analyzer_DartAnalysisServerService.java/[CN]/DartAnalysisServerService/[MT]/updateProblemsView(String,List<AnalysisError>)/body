@@ -1,18 +1,17 @@
 {
-  if (myRootsHandler.getTrackedProjects().isEmpty())   return;
-  ApplicationManager.getApplication().invokeLater(new Runnable(){
+  ApplicationManager.getApplication().runReadAction(new Runnable(){
     @Override public void run(){
       final VirtualFile vFile=LocalFileSystem.getInstance().findFileByPath(filePath);
       for (      final Project project : myRootsHandler.getTrackedProjects()) {
         if (project.isDisposed())         continue;
         if (vFile != null && ProjectRootManager.getInstance(project).getFileIndex().isInContent(vFile)) {
-          DartProblemsViewImpl.getInstance(project).updateErrorsForFile(vFile,errors);
+          DartProblemsView.getInstance(project).updateErrorsForFile(filePath,errors);
         }
  else {
-          DartProblemsViewImpl.getInstance(project).removeErrorsForFile(filePath);
+          DartProblemsView.getInstance(project).updateErrorsForFile(filePath,AnalysisError.EMPTY_LIST);
         }
       }
     }
   }
-,ModalityState.NON_MODAL);
+);
 }
