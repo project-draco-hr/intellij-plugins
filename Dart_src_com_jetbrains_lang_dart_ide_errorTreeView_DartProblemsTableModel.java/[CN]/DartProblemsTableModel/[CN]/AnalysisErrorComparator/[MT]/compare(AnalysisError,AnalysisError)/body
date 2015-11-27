@@ -1,26 +1,22 @@
 {
-{
-    final int s1=getSeverity(o1);
-    final int s2=getSeverity(o2);
+  if (myGroupBySeverity) {
+    final int s1=getSeverityIndex(error1);
+    final int s2=getSeverityIndex(error2);
     if (s1 != s2) {
-      return s1 - s2;
+      return mySortKey.getSortOrder() == SortOrder.ASCENDING ? s1 - s2 : s2 - s1;
     }
   }
   if (myColumn == MESSAGE_COLUMN_ID) {
-    final String m1=o1.getMessage();
-    final String m2=o2.getMessage();
-    return StringUtil.compare(m1,m2,false);
+    return StringUtil.compare(error1.getMessage(),error2.getMessage(),false);
   }
   if (myColumn == LOCATION_COLUMN_ID) {
-    final Location l1=o1.getLocation();
-    final Location l2=o2.getLocation();
-    final String n1=PathUtil.getFileName(l1.getFile());
-    final String n2=PathUtil.getFileName(l2.getFile());
-    final int c=StringUtil.compare(n1,n2,false);
-    if (c != 0) {
-      return c;
+    final int result=StringUtil.compare(getLocationPresentableTextWithoutLine(error1),getLocationPresentableTextWithoutLine(error2),false);
+    if (result != 0) {
+      return result;
     }
-    return l1.getStartLine() - l2.getStartLine();
+ else {
+      return mySortKey.getSortOrder() == SortOrder.ASCENDING ? error1.getLocation().getStartLine() - error2.getLocation().getStartLine() : error2.getLocation().getStartLine() - error1.getLocation().getStartLine();
+    }
   }
   return 0;
 }
