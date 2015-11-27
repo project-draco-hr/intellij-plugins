@@ -1,0 +1,35 @@
+{
+  if (myPresentableFilePath != null) {
+    return myPresentableFilePath;
+  }
+  final String dartPackageName;
+  final String presentableFilePath;
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(getSystemIndependentPath());
+  if (file == null) {
+    dartPackageName=null;
+    presentableFilePath=myAnalysisError.getLocation().getFile();
+  }
+ else {
+    final VirtualFile pubspec=PubspecYamlUtil.findPubspecYamlFile(myProject,file);
+    if (pubspec == null) {
+      dartPackageName=null;
+      final VirtualFile contentRoot=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(file,false);
+      if (contentRoot == null) {
+        presentableFilePath=myAnalysisError.getLocation().getFile();
+      }
+ else {
+        final String relativePath=VfsUtilCore.getRelativePath(file,contentRoot,File.separatorChar);
+        presentableFilePath=relativePath != null ? relativePath : myAnalysisError.getLocation().getFile();
+      }
+    }
+ else {
+      final String projectName=PubspecYamlUtil.getDartProjectName(pubspec);
+      dartPackageName=projectName != null ? projectName : "%unnamed%";
+      final String relativePath=VfsUtilCore.getRelativePath(file,pubspec.getParent(),File.separatorChar);
+      presentableFilePath=relativePath != null ? relativePath : myAnalysisError.getLocation().getFile();
+    }
+  }
+  myDartPackageName=dartPackageName;
+  myPresentableFilePath=presentableFilePath;
+  return myPresentableFilePath;
+}

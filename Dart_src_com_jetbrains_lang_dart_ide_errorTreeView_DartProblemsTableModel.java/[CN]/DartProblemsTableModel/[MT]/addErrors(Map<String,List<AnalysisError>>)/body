@@ -1,17 +1,18 @@
 {
-  final List<AnalysisError> errorsToAdd=new ArrayList<AnalysisError>();
+  final List<DartProblem> problemsToAdd=new ArrayList<DartProblem>();
   for (  Map.Entry<String,List<AnalysisError>> entry : filePathToErrors.entrySet()) {
     final String filePath=entry.getKey();
     final List<AnalysisError> errors=entry.getValue();
-    for (    AnalysisError error : errors) {
-      if (DartServerErrorsAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,error))       continue;
-      errorsToAdd.add(error);
-      if (AnalysisErrorSeverity.ERROR.equals(error.getSeverity()))       myErrorCount++;
-      if (AnalysisErrorSeverity.WARNING.equals(error.getSeverity()))       myWarningCount++;
-      if (AnalysisErrorSeverity.INFO.equals(error.getSeverity()))       myHintCount++;
+    for (    AnalysisError analysisError : errors) {
+      if (DartServerErrorsAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,analysisError))       continue;
+      final DartProblem problem=new DartProblem(myProject,analysisError);
+      problemsToAdd.add(problem);
+      if (AnalysisErrorSeverity.ERROR.equals(problem.getSeverity()))       myErrorCount++;
+      if (AnalysisErrorSeverity.WARNING.equals(problem.getSeverity()))       myWarningCount++;
+      if (AnalysisErrorSeverity.INFO.equals(problem.getSeverity()))       myHintCount++;
     }
   }
-  if (!errorsToAdd.isEmpty()) {
-    addRows(errorsToAdd);
+  if (!problemsToAdd.isEmpty()) {
+    addRows(problemsToAdd);
   }
 }
