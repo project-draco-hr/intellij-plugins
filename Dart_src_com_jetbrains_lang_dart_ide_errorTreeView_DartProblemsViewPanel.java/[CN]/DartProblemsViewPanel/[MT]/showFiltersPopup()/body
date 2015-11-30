@@ -1,0 +1,25 @@
+{
+  final DartProblemsFilterForm form=new DartProblemsFilterForm();
+  form.reset(myShowErrors,myShowWarnings,myShowHints,myFileFilterMode);
+  form.addListener(new DartProblemsFilterForm.FilterListener(){
+    @Override public void filtersChanged(){
+      myShowErrors=form.isShowErrors();
+      myShowWarnings=form.isShowWarnings();
+      myShowHints=form.isShowHints();
+      myFileFilterMode=form.getFileFilterMode();
+      myTable.getRowSorter().allRowsChanged();
+    }
+    @Override public void filtersResetRequested(){
+      myShowErrors=true;
+      myShowWarnings=true;
+      myShowHints=true;
+      myFileFilterMode=FileFilterMode.All;
+      assert(!areFiltersApplied());
+      form.reset(myShowErrors,myShowWarnings,myShowHints,myFileFilterMode);
+      myTable.getRowSorter().allRowsChanged();
+    }
+  }
+);
+  final Point tableTopLeft=new Point(myTable.getLocationOnScreen().x,myTable.getLocationOnScreen().y);
+  JBPopupFactory.getInstance().createComponentPopupBuilder(form.getMainPanel(),form.getMainPanel()).setProject(myProject).setTitle("Dart Problems Filter").setMovable(true).setRequestFocus(true).createPopup().show(RelativePoint.fromScreen(tableTopLeft));
+}
