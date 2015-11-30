@@ -1,21 +1,14 @@
 {
   final DartProblemsFilterForm form=new DartProblemsFilterForm();
-  form.reset(myShowErrors,myShowWarnings,myShowHints,myFileFilterMode);
+  form.reset(myFilter);
   form.addListener(new DartProblemsFilterForm.FilterListener(){
     @Override public void filtersChanged(){
-      myShowErrors=form.isShowErrors();
-      myShowWarnings=form.isShowWarnings();
-      myShowHints=form.isShowHints();
-      myFileFilterMode=form.getFileFilterMode();
+      myFilter.updateFromUI(form);
       myTable.getRowSorter().allRowsChanged();
     }
     @Override public void filtersResetRequested(){
-      myShowErrors=true;
-      myShowWarnings=true;
-      myShowHints=true;
-      myFileFilterMode=FileFilterMode.All;
-      assert(!areFiltersApplied());
-      form.reset(myShowErrors,myShowWarnings,myShowHints,myFileFilterMode);
+      myFilter.resetAllFilters();
+      form.reset(myFilter);
       myTable.getRowSorter().allRowsChanged();
     }
   }
