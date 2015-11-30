@@ -1,12 +1,13 @@
 {
-  if (myPresentableFilePath != null) {
-    return myPresentableFilePath;
-  }
+  if (myPresentableLocationWithoutLineNumber != null)   return;
+  final VirtualFile file;
   final String dartPackageName;
   final String presentableFilePath;
-  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(getSystemIndependentPath());
+  final VirtualFile packageRoot;
+  file=LocalFileSystem.getInstance().findFileByPath(getSystemIndependentPath());
   if (file == null) {
     dartPackageName=null;
+    packageRoot=null;
     presentableFilePath=myAnalysisError.getLocation().getFile();
   }
  else {
@@ -15,9 +16,11 @@
       dartPackageName=null;
       final VirtualFile contentRoot=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(file,false);
       if (contentRoot == null) {
+        packageRoot=null;
         presentableFilePath=myAnalysisError.getLocation().getFile();
       }
  else {
+        packageRoot=contentRoot;
         final String relativePath=VfsUtilCore.getRelativePath(file,contentRoot,File.separatorChar);
         presentableFilePath=relativePath != null ? relativePath : myAnalysisError.getLocation().getFile();
       }
@@ -25,11 +28,12 @@
  else {
       final String projectName=PubspecYamlUtil.getDartProjectName(pubspec);
       dartPackageName=projectName != null ? projectName : "%unnamed%";
+      packageRoot=pubspec.getParent();
       final String relativePath=VfsUtilCore.getRelativePath(file,pubspec.getParent(),File.separatorChar);
       presentableFilePath=relativePath != null ? relativePath : myAnalysisError.getLocation().getFile();
     }
   }
-  myDartPackageName=dartPackageName;
-  myPresentableFilePath=presentableFilePath;
-  return myPresentableFilePath;
+  myFile=file;
+  myPackageRoot=packageRoot;
+  myPresentableLocationWithoutLineNumber=dartPackageName == null ? presentableFilePath : ("[" + dartPackageName + "] "+ presentableFilePath);
 }
