@@ -1,0 +1,13 @@
+{
+  final PsiElement parentToTraverse=myElement instanceof MarkdownFile ? myElement.getFirstChild() : myElement;
+  if (hasTrivialChild(parentToTraverse))   return EMPTY_ARRAY;
+  List<TreeElement> result=new ArrayList<TreeElement>();
+  for (  PsiElement element : parentToTraverse.getChildren()) {
+    final IElementType type=element.getNode().getElementType();
+    if (!PRESENTABLE_TYPES.contains(type)) {
+      continue;
+    }
+    result.add(new MarkdownStructureElement(element));
+  }
+  return ArrayUtil.toObjectArray(result,TreeElement.class);
+}

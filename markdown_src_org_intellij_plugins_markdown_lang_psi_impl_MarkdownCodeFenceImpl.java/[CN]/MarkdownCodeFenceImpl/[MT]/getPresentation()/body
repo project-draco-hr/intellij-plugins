@@ -1,0 +1,30 @@
+{
+  return new MarkdownBasePresentation(){
+    @Nullable @Override public String getPresentableText(){
+      if (!isValid()) {
+        return null;
+      }
+      return "code fence";
+    }
+    @Nullable @Override public String getLocationString(){
+      if (!isValid()) {
+        return null;
+      }
+      final StringBuilder sb=new StringBuilder();
+      for (PsiElement child=getFirstChild(); child != null; child=child.getNextSibling()) {
+        if (!(child instanceof MarkdownCodeFenceContentImpl)) {
+          continue;
+        }
+        if (sb.length() > 0) {
+          sb.append("\\n");
+        }
+        sb.append(child.getText());
+        if (sb.length() >= MarkdownCompositePsiElementBase.PRESENTABLE_TEXT_LENGTH) {
+          break;
+        }
+      }
+      return sb.toString();
+    }
+  }
+;
+}
