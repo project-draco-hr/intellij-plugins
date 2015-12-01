@@ -1,0 +1,15 @@
+{
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
+  VirtualFile parent=contextFile.isDirectory() ? contextFile : contextFile.getParent();
+  while (parent != null && fileIndex.isInContent(parent)) {
+    final VirtualFile file=parent.findChild(BUILD_FILE_NAME);
+    if (file != null && !file.isDirectory()) {
+      final VirtualFile parent2=parent.getParent();
+      if (parent2 != null && parent2.findChild(LIB_DIR_NAME) == null) {
+        return file;
+      }
+    }
+    parent=parent.getParent();
+  }
+  return null;
+}

@@ -14,7 +14,7 @@
   }
  else {
     contentRoot=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(file,false);
-    final VirtualFile pubspec=PubspecYamlUtil.findPubspecYamlFile(myProject,file);
+    final VirtualFile pubspec=Registry.is("dart.projects.without.pubspec",false) ? DartBuildFileUtil.findPackageRootBuildFile(myProject,file) : PubspecYamlUtil.findPubspecYamlFile(myProject,file);
     if (pubspec == null) {
       dartPackageName=null;
       if (contentRoot == null) {
@@ -28,7 +28,7 @@
       }
     }
  else {
-      final String projectName=PubspecYamlUtil.getDartProjectName(pubspec);
+      final String projectName=Registry.is("dart.projects.without.pubspec",false) ? DartBuildFileUtil.getDartProjectName(pubspec) : PubspecYamlUtil.getDartProjectName(pubspec);
       dartPackageName=projectName != null ? projectName : "%unnamed%";
       packageRoot=pubspec.getParent();
       final String relativePath=VfsUtilCore.getRelativePath(file,pubspec.getParent(),File.separatorChar);
