@@ -1,0 +1,39 @@
+{
+  if (myInsideSelectExpression)   return false;
+  final PsiBuilder.Marker expr=builder.mark();
+  if (!isIdentifierToken(builder.getTokenType())) {
+    return rollback(expr);
+  }
+  final PsiBuilder.Marker refMark=builder.mark();
+  myInsideSelectExpression=true;
+  try {
+    if (!myJavaScriptParser.getExpressionParser().parseUnaryExpression()) {
+      return rollback(expr);
+    }
+  }
+  finally {
+    myInsideSelectExpression=false;
+  }
+  refMark.done(JSElementTypes.EXPRESSION_STATEMENT);
+  if (builder.getTokenType() != JSTokenTypes.COMMA) {
+    return rollback(expr);
+  }
+  builder.advanceLexer();
+  final String extensionText=builder.getTokenText();
+  if (!isKnownExtension(extensionText) || !isIdentifierToken(builder.getTokenType())) {
+    return rollback(expr);
+  }
+  collapseTokenElement(AngularJSElementTypes.MESSAGE_FORMAT_EXPRESSION_NAME);
+  if (builder.getTokenType() != JSTokenTypes.COMMA) {
+    return rollback(expr);
+  }
+  builder.advanceLexer();
+  if (SELECT.equals(extensionText)) {
+    parseOptionsTail();
+  }
+ else {
+    parsePluralTail();
+  }
+  expr.done(AngularJSElementTypes.MESSAGE_FORMAT_EXPRESSION);
+  return true;
+}

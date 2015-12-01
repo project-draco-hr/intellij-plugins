@@ -1,0 +1,45 @@
+{
+  final PsiBuilder.Marker mark=builder.mark();
+  PsiBuilder.Marker stringLiteralMark=null;
+  while (!builder.eof()) {
+    final IElementType type=builder.getTokenType();
+    if (JSTokenTypes.LBRACE == type || JSTokenTypes.RBRACE == type) {
+      if (stringLiteralMark != null) {
+        stringLiteralMark.collapse(JSTokenTypes.STRING_LITERAL);
+        stringLiteralMark=null;
+      }
+      if (JSTokenTypes.LBRACE == type) {
+        if (JSTokenTypes.LBRACE == builder.lookAhead(1)) {
+          builder.advanceLexer();
+          builder.advanceLexer();
+          myJavaScriptParser.getExpressionParser().parseExpression();
+          if (!isRBraceOrNull(builder.getTokenType()) || !isRBraceOrNull(builder.lookAhead(1))) {
+            builder.error("expected }}");
+            mark.drop();
+            return false;
+          }
+          builder.advanceLexer();
+          builder.advanceLexer();
+          continue;
+        }
+ else {
+          builder.error("expected reference");
+          mark.drop();
+          return false;
+        }
+      }
+ else       if (JSTokenTypes.RBRACE == type) {
+        mark.done(AngularJSElementTypes.MESSAGE_FORMAT_MESSAGE);
+        builder.advanceLexer();
+        return true;
+      }
+    }
+ else {
+      if (stringLiteralMark == null)       stringLiteralMark=builder.mark();
+      builder.advanceLexer();
+    }
+  }
+  if (stringLiteralMark != null)   stringLiteralMark.drop();
+  mark.drop();
+  return false;
+}

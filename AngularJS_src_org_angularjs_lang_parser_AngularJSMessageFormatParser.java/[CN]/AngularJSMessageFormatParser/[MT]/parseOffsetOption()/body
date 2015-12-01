@@ -1,0 +1,18 @@
+{
+  if (isIdentifierToken(builder.getTokenType()) && OFFSET_OPTION.equals(builder.getTokenText())) {
+    if (builder.lookAhead(1) != JSTokenTypes.COLON || builder.lookAhead(2) != JSTokenTypes.NUMERIC_LITERAL) {
+      return true;
+    }
+    final PsiBuilder.Marker mark=builder.mark();
+    builder.advanceLexer();
+    builder.advanceLexer();
+    builder.advanceLexer();
+    mark.done(AngularJSElementTypes.MESSAGE_FORMAT_OPTION);
+    if (builder.getTokenType() != JSTokenTypes.COMMA) {
+      builder.error("expected comma");
+      return false;
+    }
+    builder.advanceLexer();
+  }
+  return true;
+}
