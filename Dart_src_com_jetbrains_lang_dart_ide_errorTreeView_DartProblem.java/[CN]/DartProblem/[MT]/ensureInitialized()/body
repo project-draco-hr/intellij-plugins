@@ -4,17 +4,19 @@
   final String dartPackageName;
   final String presentableFilePath;
   final VirtualFile packageRoot;
+  final VirtualFile contentRoot;
   file=LocalFileSystem.getInstance().findFileByPath(getSystemIndependentPath());
   if (file == null) {
     dartPackageName=null;
     packageRoot=null;
+    contentRoot=null;
     presentableFilePath=myAnalysisError.getLocation().getFile();
   }
  else {
+    contentRoot=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(file,false);
     final VirtualFile pubspec=PubspecYamlUtil.findPubspecYamlFile(myProject,file);
     if (pubspec == null) {
       dartPackageName=null;
-      final VirtualFile contentRoot=ProjectRootManager.getInstance(myProject).getFileIndex().getContentRootForFile(file,false);
       if (contentRoot == null) {
         packageRoot=null;
         presentableFilePath=myAnalysisError.getLocation().getFile();
@@ -35,5 +37,6 @@
   }
   myFile=file;
   myPackageRoot=packageRoot;
+  myContentRoot=contentRoot;
   myPresentableLocationWithoutLineNumber=dartPackageName == null ? presentableFilePath : ("[" + dartPackageName + "] "+ presentableFilePath);
 }
