@@ -1,0 +1,43 @@
+{
+  final StringBuilder b=new StringBuilder();
+  b.append("Total: ");
+  b.append(myErrorCount == 0 ? "no errors, " : myErrorCount == 1 ? "1 error, " : myErrorCount + " errors, ");
+  b.append(myWarningCount == 0 ? "no warnings, " : myWarningCount == 1 ? "1 warning, " : myWarningCount + " warnings, ");
+  b.append(myHintCount == 0 ? "no hints. " : myHintCount == 1 ? "1 hint. " : myHintCount + " hints. ");
+  if (myFilter.areFiltersApplied()) {
+switch (myFilter.getFileFilterMode()) {
+case All:
+      if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
+        b.append("Filtered by severity: ").append(getHiddenSeveritiesText()).append(".");
+      }
+    break;
+case ContentRoot:
+  b.append("Filtered by current content root");
+if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
+  b.append(" and severity (").append(getHiddenSeveritiesText()).append(")");
+}
+break;
+case Package:
+b.append("Filtered by current package");
+if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
+b.append(" and severity (").append(getHiddenSeveritiesText()).append(")");
+}
+break;
+case File:
+b.append("Filtered by current file");
+if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
+b.append(" and severity (").append(getHiddenSeveritiesText()).append(")");
+}
+break;
+}
+if (myFilter.getFileFilterMode() != DartProblemsFilter.FileFilterMode.All) {
+if (!myFilter.isShowErrors() && !myFilter.isShowWarnings() && !myFilter.isShowHints()) {
+b.append(".");
+}
+ else {
+b.append(": ").append(getProblemsCountAfterFilterText()).append(".");
+}
+}
+}
+return b.toString();
+}

@@ -1,0 +1,21 @@
+{
+  if (!myShowErrors && AnalysisErrorSeverity.ERROR.equals(problem.getSeverity()))   return false;
+  if (!myShowWarnings && AnalysisErrorSeverity.WARNING.equals(problem.getSeverity()))   return false;
+  if (!myShowHints && AnalysisErrorSeverity.INFO.equals(problem.getSeverity()))   return false;
+  if (myFileFilterMode == FileFilterMode.File && (myCurrentFile == null || !myCurrentFile.equals(problem.getFile()))) {
+    return false;
+  }
+  if (myFileFilterMode == FileFilterMode.Package) {
+    ensurePackageRootUpToDate();
+    if (myCurrentPackageRoot == null || !myCurrentPackageRoot.equals(problem.getPackageRoot())) {
+      return false;
+    }
+  }
+  if (myFileFilterMode == FileFilterMode.ContentRoot) {
+    ensureContentRootUpToDate();
+    if (myCurrentContentRoot == null || !myCurrentContentRoot.equals(problem.getContentRoot())) {
+      return false;
+    }
+  }
+  return true;
+}
