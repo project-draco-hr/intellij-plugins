@@ -1,4 +1,5 @@
 {
+  DartProblem newSelectedProblem=null;
   final List<DartProblem> problemsToAdd=new ArrayList<DartProblem>();
   for (  Map.Entry<String,List<AnalysisError>> entry : filePathToErrors.entrySet()) {
     final String filePath=entry.getKey();
@@ -7,6 +8,9 @@
       if (DartServerErrorsAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,analysisError))       continue;
       final DartProblem problem=new DartProblem(myProject,analysisError);
       problemsToAdd.add(problem);
+      if (oldSelectedProblem != null && lookSimilar(problem,oldSelectedProblem) && (newSelectedProblem == null || (Math.abs(oldSelectedProblem.getLineNumber() - newSelectedProblem.getLineNumber()) >= Math.abs(oldSelectedProblem.getLineNumber() - problem.getLineNumber())))) {
+        newSelectedProblem=problem;
+      }
       if (AnalysisErrorSeverity.ERROR.equals(problem.getSeverity()))       myErrorCount++;
       if (AnalysisErrorSeverity.WARNING.equals(problem.getSeverity()))       myWarningCount++;
       if (AnalysisErrorSeverity.INFO.equals(problem.getSeverity()))       myHintCount++;
@@ -16,4 +20,5 @@
   if (!problemsToAdd.isEmpty()) {
     addRows(problemsToAdd);
   }
+  return newSelectedProblem;
 }

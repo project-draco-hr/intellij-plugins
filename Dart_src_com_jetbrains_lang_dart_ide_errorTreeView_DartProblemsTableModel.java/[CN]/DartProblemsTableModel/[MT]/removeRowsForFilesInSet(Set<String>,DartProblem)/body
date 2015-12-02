@@ -1,22 +1,32 @@
 {
+  boolean selectedProblemRemoved=false;
   int matchedFilesCount=0;
   for (int i=getRowCount() - 1; i >= 0; i--) {
     final DartProblem problem=getItem(i);
     if (filePaths.contains(problem.getSystemIndependentPath())) {
       matchedFilesCount++;
       final int lastRowToDelete=i;
+      if (problem == selectedProblem) {
+        selectedProblemRemoved=true;
+      }
       DartProblem lastProblemForCurrentFile=problem;
       int j=i - 1;
       while (j >= 0) {
         final DartProblem previousProblem=getItem(j);
         if (previousProblem.getSystemIndependentPath().equals(lastProblemForCurrentFile.getSystemIndependentPath())) {
           j--;
+          if (previousProblem == selectedProblem) {
+            selectedProblemRemoved=true;
+          }
           continue;
         }
         if (filePaths.contains(previousProblem.getSystemIndependentPath())) {
           matchedFilesCount++;
           lastProblemForCurrentFile=previousProblem;
           j--;
+          if (previousProblem == selectedProblem) {
+            selectedProblemRemoved=true;
+          }
           continue;
         }
         break;
@@ -29,4 +39,5 @@
       i=j + 1;
     }
   }
+  return selectedProblemRemoved;
 }
