@@ -1,0 +1,17 @@
+{
+  MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
+  MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MarkdownApplicationSettings.SettingsChangedListener(){
+    @Override public void onSettingsChange(    @NotNull final MarkdownApplicationSettings settings){
+      Platform.runLater(new Runnable(){
+        @Override public void run(){
+          if (myWebView != null) {
+            updateFontSmoothingType(myWebView,settings.getMarkdownPreviewSettings().isUseGrayscaleRendering());
+          }
+        }
+      }
+);
+    }
+  }
+;
+  settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,settingsChangedListener);
+}
