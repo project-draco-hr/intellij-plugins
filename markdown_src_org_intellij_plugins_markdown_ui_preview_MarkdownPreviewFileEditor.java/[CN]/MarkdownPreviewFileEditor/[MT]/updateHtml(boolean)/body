@@ -1,10 +1,13 @@
 {
-  if (!myFile.isValid() || myDocument == null) {
+  if (!myFile.isValid() || myDocument == null || Disposer.isDisposed(this)) {
     return;
   }
   String text=myDocument.getText();
   final ASTNode parsedTree=new MarkdownParser(MarkdownParserManager.FLAVOUR).buildMarkdownTreeFromString(text);
   final String html=new HtmlGenerator(text,parsedTree,MarkdownParserManager.FLAVOUR,LinkMap.Builder.buildLinkMap(parsedTree,text),true).generateHtml();
+  if (!myFile.isValid() || Disposer.isDisposed(this)) {
+    return;
+  }
 synchronized (REQUESTS_LOCK) {
     if (myLastHtmlOrRefreshRequest != null) {
       mySwingAlarm.cancelRequest(myLastHtmlOrRefreshRequest);
