@@ -4,18 +4,12 @@
   Platform.runLater(new Runnable(){
     @Override public void run(){
       myWebView=new WebView();
-      myWebView.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<State>(){
-        @Override public void changed(        ObservableValue<? extends State> observable,        State oldValue,        State newValue){
-          if (newValue == State.SUCCEEDED) {
-            JSObject win=(JSObject)getWebViewGuaranteed().getEngine().executeScript("window");
-            win.setMember("JavaPanelBridge",new JavaPanelBridge());
-          }
-        }
-      }
-);
       updateFontSmoothingType(myWebView,MarkdownApplicationSettings.getInstance().getMarkdownPreviewSettings().isUseGrayscaleRendering());
-      myWebView.getEngine().loadContent("<html><body>" + getScriptingLines() + "</body></html>");
       myWebView.setContextMenuEnabled(false);
+      final WebEngine engine=myWebView.getEngine();
+      engine.getLoadWorker().stateProperty().addListener(new BridgeSettingListener());
+      engine.getLoadWorker().stateProperty().addListener(new ScrollPreservingListener());
+      engine.loadContent("<html><body>" + getScriptingLines() + "</body></html>");
       final Scene scene=new Scene(myWebView);
       myPanel.setScene(scene);
     }
