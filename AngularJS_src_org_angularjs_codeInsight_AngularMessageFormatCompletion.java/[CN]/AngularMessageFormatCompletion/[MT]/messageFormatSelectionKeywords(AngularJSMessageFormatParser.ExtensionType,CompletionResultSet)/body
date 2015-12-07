@@ -1,0 +1,25 @@
+{
+  final CompletionResultSet set=result.withRelevanceSorter(CompletionSorter.emptySorter().weigh(MESSAGE_FORMAT_KEYWORD_WEIGHER));
+  if (AngularJSMessageFormatParser.ExtensionType.plural.equals(type)) {
+    final List<AngularJSPluralCategories> values=new ArrayList<AngularJSPluralCategories>(Arrays.asList(AngularJSPluralCategories.values()));
+    Collections.sort(values,PLURAL_CATEGORIES_COMPARATOR);
+    for (    AngularJSPluralCategories category : values) {
+      LookupElementBuilder element=LookupElementBuilder.create(category).withInsertHandler(MESSAGE_FORMAT_KEYWORD_INSERT_HANDLER);
+      if (AngularJSPluralCategories.other.equals(category)) {
+        element=element.withTypeText("Default selection keyword",true);
+      }
+ else {
+        element=element.withTypeText("Plural category",true);
+      }
+      set.addElement(element);
+    }
+    for (int i=0; i < 4; i++) {
+      final LookupElementBuilder element=LookupElementBuilder.create("=" + i).withInsertHandler(MESSAGE_FORMAT_KEYWORD_INSERT_HANDLER);
+      set.addElement(element);
+    }
+  }
+ else {
+    set.addElement(LookupElementBuilder.create("other").setTypeText("Default selection keyword",true).withInsertHandler(MESSAGE_FORMAT_KEYWORD_INSERT_HANDLER));
+  }
+  set.stopHere();
+}

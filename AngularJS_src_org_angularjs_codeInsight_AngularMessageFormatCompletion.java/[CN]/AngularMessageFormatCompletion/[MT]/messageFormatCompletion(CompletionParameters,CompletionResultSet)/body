@@ -1,0 +1,31 @@
+{
+  final PsiElement originalPosition=parameters.getOriginalPosition();
+  if (originalPosition == null)   return false;
+  final PsiElement parent=originalPosition.getParent();
+  if (parent instanceof JSReferenceExpression && parent.getParent() instanceof JSCommaExpression) {
+    final PsiElement[] children=parent.getParent().getChildren();
+    if (children.length >= 2 && children[1] == parent) {
+      messageFormatExtensions(result);
+      return true;
+    }
+  }
+  if (parent instanceof AngularJSMessageFormatExpression) {
+    final AngularJSMessageFormatExpression amfe=(AngularJSMessageFormatExpression)parent;
+    if (originalPosition == amfe.getExtensionTypeElement()) {
+      messageFormatExtensions(result);
+      return true;
+    }
+    if (originalPosition.getNode().getElementType() == AngularJSElementTypes.MESSAGE_FORMAT_SELECTION_KEYWORD) {
+      messageFormatSelectionKeywords(((AngularJSMessageFormatExpression)parent).getExtensionType(),result);
+      return true;
+    }
+  }
+  final PsiElement sibling=originalPosition.getPrevSibling();
+  if (sibling instanceof AngularJSMessageFormatExpression) {
+    messageFormatSelectionKeywords(((AngularJSMessageFormatExpression)sibling).getExtensionType(),result);
+  }
+ else   if (sibling instanceof JSExpressionStatement && sibling.getFirstChild() instanceof AngularJSMessageFormatExpression) {
+    messageFormatSelectionKeywords(((AngularJSMessageFormatExpression)sibling.getFirstChild()).getExtensionType(),result);
+  }
+  return false;
+}
