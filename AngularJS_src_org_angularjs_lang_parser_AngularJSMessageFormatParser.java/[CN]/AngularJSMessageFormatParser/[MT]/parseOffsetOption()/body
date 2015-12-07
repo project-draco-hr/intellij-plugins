@@ -1,12 +1,22 @@
 {
   if (isIdentifierToken(builder.getTokenType()) && OFFSET_OPTION.equals(builder.getTokenText())) {
-    if (builder.lookAhead(1) != JSTokenTypes.COLON || builder.lookAhead(2) != JSTokenTypes.NUMERIC_LITERAL) {
+    if (builder.lookAhead(1) != JSTokenTypes.COLON) {
+      return true;
+    }
+    final IElementType third=builder.lookAhead(2);
+    boolean commaIsAfterColon=third == JSTokenTypes.COMMA;
+    if (!commaIsAfterColon && builder.lookAhead(3) != JSTokenTypes.COMMA) {
+      return true;
+    }
+    if (!commaIsAfterColon && !JSTokenTypes.LITERALS.contains(third) && JSTokenTypes.IDENTIFIER != third) {
       return true;
     }
     final PsiBuilder.Marker mark=builder.mark();
     builder.advanceLexer();
     builder.advanceLexer();
-    builder.advanceLexer();
+    if (!commaIsAfterColon) {
+      builder.advanceLexer();
+    }
     mark.done(AngularJSElementTypes.MESSAGE_FORMAT_OPTION);
     if (builder.getTokenType() != JSTokenTypes.COMMA) {
       builder.error("expected comma");
