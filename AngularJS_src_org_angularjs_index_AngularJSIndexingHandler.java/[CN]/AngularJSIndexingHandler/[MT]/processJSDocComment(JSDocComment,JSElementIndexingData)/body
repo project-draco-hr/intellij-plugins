@@ -17,10 +17,12 @@
     }
     if (ngdocValue != null && name != null) {
       final String[] commentLines=StringUtil.splitByLines(comment.getText());
-      if (ngdocValue.contains(DIRECTIVE)) {
-        final String restrictions=calculateRestrictions(commentLines);
+      final boolean directive=ngdocValue.contains(DIRECTIVE);
+      final boolean component=ngdocValue.contains(COMPONENT);
+      if (directive || component) {
+        final String restrictions=calculateRestrictions(commentLines,directive ? DEFAULT_RESTRICTIONS : "E");
         if (outData == null)         outData=new JSElementIndexingDataImpl();
-        addImplicitElements(comment,DIRECTIVE,AngularDirectivesDocIndex.KEY,name,restrictions,outData);
+        addImplicitElements(comment,directive ? DIRECTIVE : COMPONENT,AngularDirectivesDocIndex.KEY,name,restrictions,outData);
       }
  else       if (ngdocValue.contains(FILTER)) {
         if (outData == null)         outData=new JSElementIndexingDataImpl();
