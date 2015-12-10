@@ -1,0 +1,51 @@
+{
+  final boolean hasContainingLibraryName=!StringUtil.isEmpty(containingLibraryName);
+  final boolean hasContainingClassDescription=!StringUtil.isEmpty(containingClassDescription);
+  final boolean hasStaticType=!StringUtil.isEmpty(staticType);
+  final boolean hasPropagatedType=!StringUtil.isEmpty(propagatedType);
+  final StringBuilder builder=new StringBuilder();
+  builder.append("<code>");
+  if (signature != null) {
+    builder.append("<b>Signature:</b> ");
+    if (signatureIsHtml) {
+      builder.append(signature);
+    }
+ else {
+      builder.append(StringUtil.escapeXml(signature));
+    }
+    builder.append("<br>");
+  }
+  if (hasContainingLibraryName || hasContainingClassDescription) {
+    builder.append("<br>");
+    if (hasContainingLibraryName) {
+      builder.append("<b>Containing library:</b> ");
+      builder.append(StringUtil.escapeXml(containingLibraryName));
+      builder.append("<br>");
+    }
+    if (hasContainingClassDescription) {
+      builder.append("<b>Containing class:</b> ");
+      builder.append(StringUtil.escapeXml(containingClassDescription));
+      builder.append("<br>");
+    }
+  }
+  if (hasStaticType || hasPropagatedType) {
+    builder.append("<br>");
+    if (hasStaticType) {
+      builder.append("<b>Static type:</b> ");
+      builder.append(StringUtil.escapeXml(staticType));
+      builder.append("<br>");
+    }
+    if (hasPropagatedType) {
+      builder.append("<b>Propagated type:</b> ");
+      builder.append(StringUtil.escapeXml(propagatedType));
+      builder.append("<br>");
+    }
+  }
+  builder.append("</code>");
+  if (docText != null) {
+    builder.append("<br>");
+    final MarkdownProcessor processor=new MarkdownProcessor();
+    builder.append(processor.markdown(docText));
+  }
+  return builder.toString();
+}

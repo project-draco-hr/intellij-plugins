@@ -3,19 +3,31 @@
     return null;
   }
   final DartComponent namedComponent=(DartComponent)(element instanceof DartComponent ? element : element.getParent());
-  final StringBuilder builder=new StringBuilder();
-  appendLibraryName(builder,element);
-  builder.append("<code>");
-  for (  DartMetadata metadata : namedComponent.getMetadataList()) {
-    builder.append(StringUtil.escapeXml(metadata.getText())).append("<br/>");
+  final String signatureHtml;
+{
+    final StringBuilder builder=new StringBuilder();
+    appendSignature(namedComponent,builder);
+    signatureHtml=builder.toString();
   }
-  appendSignature(namedComponent,builder);
-  builder.append("</code>");
+  final String containingLibraryName;
+  final PsiFile file=element.getContainingFile();
+  if (file != null) {
+    containingLibraryName=DartResolveUtil.getLibraryName(file);
+  }
+ else {
+    containingLibraryName=null;
+  }
+  final String containingClassDescription;
+  final DartClass dartClass=PsiTreeUtil.getParentOfType(namedComponent,DartClass.class);
+  if (dartClass != null) {
+    final StringBuilder builder=new StringBuilder();
+    builder.append(dartClass.getName());
+    appendTypeParams(builder,dartClass.getTypeParameters());
+    containingClassDescription=builder.toString();
+  }
+ else {
+    containingClassDescription=null;
+  }
   final String docText=getDocumentationText(namedComponent);
-  if (docText != null) {
-    builder.append("<br/><br/>");
-    final MarkdownProcessor processor=new MarkdownProcessor();
-    builder.append(processor.markdown(docText));
-  }
-  return builder.toString();
+  return generateDoc(signatureHtml,true,docText,containingLibraryName,containingClassDescription,null,null);
 }
