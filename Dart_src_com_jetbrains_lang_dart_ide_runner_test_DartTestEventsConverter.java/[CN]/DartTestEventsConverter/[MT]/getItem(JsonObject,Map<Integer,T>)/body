@@ -1,0 +1,33 @@
+{
+  if (obj == null)   throw new ParseException("Unexpected null json object",0);
+  T item;
+  JsonElement id=obj.get(JSON_ID);
+  if (id != null) {
+    if (items == myTestData) {
+      @SuppressWarnings("unchecked") T type=(T)Test.from(obj,myGroupData);
+      item=type;
+    }
+ else {
+      @SuppressWarnings("unchecked") T group=(T)Group.from(obj,myGroupData);
+      item=group;
+    }
+    items.put(id.getAsInt(),item);
+  }
+ else {
+    JsonElement testId=obj.get(JSON_TEST_ID);
+    if (testId != null) {
+      int baseId=testId.getAsInt();
+      item=items.get(baseId);
+    }
+ else {
+      JsonElement testObj=obj.get(DEF_TEST);
+      if (testObj != null) {
+        return getItem(testObj.getAsJsonObject(),items);
+      }
+ else {
+        throw new ParseException("No testId in json object",0);
+      }
+    }
+  }
+  return item;
+}

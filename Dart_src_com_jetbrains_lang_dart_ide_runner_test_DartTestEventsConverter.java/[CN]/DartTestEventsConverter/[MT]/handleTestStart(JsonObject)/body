@@ -1,0 +1,22 @@
+{
+  JsonObject testObj=obj.getAsJsonObject(DEF_TEST);
+  myTestId=getInitialTestID(testObj);
+  if (myTestId == 0)   return true;
+  Test test=getTest(obj);
+  String testName=test.getName();
+  ServiceMessageBuilder testStarted=ServiceMessageBuilder.testStarted(testName);
+  testStarted.addAttribute("locationHint","unknown");
+  myStartMillis=getTestMillis(obj);
+  myOutputAppeared=false;
+  myParentId=test.getValidParentId();
+  boolean result=finishMessage(testStarted);
+  if (result) {
+    Metadata metadata=Metadata.from(testObj.getAsJsonObject(DEF_METADATA));
+    if (metadata.skip) {
+      ServiceMessageBuilder message=ServiceMessageBuilder.testIgnored(testName);
+      if (metadata.skipReason != null)       message.addAttribute("message",metadata.skipReason);
+      return finishMessage(message);
+    }
+  }
+  return result;
+}

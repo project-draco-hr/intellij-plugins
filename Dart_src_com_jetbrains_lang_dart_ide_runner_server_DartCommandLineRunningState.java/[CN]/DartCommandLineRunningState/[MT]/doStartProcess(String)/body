@@ -1,6 +1,14 @@
 {
   final GeneralCommandLine commandLine=createCommandLine(overriddenMainFilePath);
-  final OSProcessHandler processHandler=new ColoredProcessHandler(commandLine);
+  final OSProcessHandler processHandler=new ColoredProcessHandler(commandLine){
+    @Override public void coloredTextAvailable(    String text,    Key attributes){
+      if (text.startsWith(OBSERVATORY_MESSAGE)) {
+        text+="\n";
+      }
+      super.coloredTextAvailable(text,attributes);
+    }
+  }
+;
   ProcessTerminatedListener.attach(processHandler,getEnvironment().getProject());
   return processHandler;
 }

@@ -6,19 +6,26 @@
   }
   String sdkPath=sdk.getHomePath();
   DartTestRunnerParameters params=(DartTestRunnerParameters)myRunnerParameters;
+  VirtualFile dartFile;
   final String filePath=params.getFilePath();
+  try {
+    dartFile=params.getDartFile();
+  }
+ catch (  RuntimeConfigurationError ex) {
+    throw new ExecutionException("Cannot find test file: " + filePath,ex);
+  }
   StringBuilder builder=new StringBuilder();
   builder.append(RUN_COMMAND).append(' ').append(TEST_PACKAGE_SPEC);
-  builder.append(EXPANDED_REPORTER_OPTION);
+  builder.append(' ').append(EXPANDED_REPORTER_OPTION);
   if (filePath != null) {
     builder.append(' ').append(filePath);
   }
   String testName=params.getTestName();
   if (testName != null && !testName.isEmpty() && params.getScope() != Scope.ALL) {
-    String safeName=StringUtil.escapeStringCharacters(testName);
-    builder.append(' ').append(NAME_REGEX_OPTION).append('"').append(safeName).append('"');
+    String safeName=StringUtil.escapeToRegexp(testName);
+    builder.append(' ').append(NAME_REGEX_OPTION).append(' ').append('"').append(safeName).append('"');
   }
   params.setArguments(builder.toString());
-  params.setWorkingDirectory(project.getBasePath());
+  params.setWorkingDirectory(DartProjectTemplate.getWorkingDirForDartScript(project,dartFile));
   return doStartProcess(pathToDartUrl(sdkPath + PUB_SNAPSHOT_PATH));
 }
