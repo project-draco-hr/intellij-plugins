@@ -1,0 +1,11 @@
+{
+  final int caretOffset=fileContents.indexOf("<caret>");
+  assertTrue(caretOffset != -1);
+  final String realContents=fileContents.substring(0,caretOffset) + fileContents.substring(caretOffset + "<caret>".length());
+  final PsiFile psiFile=myFixture.configureByText("test.dart",realContents);
+  myFixture.doHighlighting();
+  final HoverInformation hover=DartDocumentationProvider.getSingleHover(psiFile,caretOffset);
+  assertNotNull(hover);
+  final String doc=DartDocumentationProvider.generateDocServer(hover);
+  assertEquals(expectedDoc,doc);
+}
