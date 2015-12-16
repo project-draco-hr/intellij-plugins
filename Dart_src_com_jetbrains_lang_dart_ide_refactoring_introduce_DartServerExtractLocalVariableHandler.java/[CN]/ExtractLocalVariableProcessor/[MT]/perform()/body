@@ -1,0 +1,34 @@
+{
+  final SelectionModel selectionModel=editor.getSelectionModel();
+  final int offset=selectionModel.getSelectionStart();
+  final int length=selectionModel.getSelectionEnd() - offset;
+  createRefactoring(offset,length);
+  if (refactoring == null) {
+    return;
+  }
+  final java.util.List<DartExpression> expressions;
+{
+    final int[] offsets=refactoring.getCoveringExpressionOffsets();
+    final int[] lengths=refactoring.getCoveringExpressionLengths();
+    expressions=getDartExpressions(offsets,lengths);
+    if (expressions == null) {
+      return;
+    }
+  }
+  if (expressions.size() == 1 || ApplicationManager.getApplication().isUnitTestMode()) {
+    performOnExpression(expressions.get(0));
+  }
+ else   if (expressions.size() > 1) {
+    IntroduceTargetChooser.showChooser(editor,expressions,new Pass<DartExpression>(){
+      @Override public void pass(      DartExpression expression){
+        performOnExpression(expression);
+      }
+    }
+,new Function<DartExpression,String>(){
+      public String fun(      DartExpression expression){
+        return expression.getText();
+      }
+    }
+);
+  }
+}

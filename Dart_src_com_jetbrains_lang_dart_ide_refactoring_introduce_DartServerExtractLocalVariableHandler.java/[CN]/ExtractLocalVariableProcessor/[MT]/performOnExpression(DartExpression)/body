@@ -1,0 +1,24 @@
+{
+  final int offset=expression.getTextOffset();
+  final int length=expression.getTextLength();
+  createRefactoring(offset,length);
+  if (refactoring == null) {
+    return;
+  }
+  final java.util.List<DartExpression> occurrences;
+{
+    final int[] occurrencesOffsets=refactoring.getOccurrencesOffsets();
+    final int[] occurrencesLengths=refactoring.getOccurrencesLengths();
+    occurrences=getDartExpressions(occurrencesOffsets,occurrencesLengths);
+    if (occurrences == null) {
+      return;
+    }
+  }
+  OccurrencesChooser.<DartExpression>simpleChooser(editor).showChooser(expression,occurrences,new Pass<OccurrencesChooser.ReplaceChoice>(){
+    @Override public void pass(    OccurrencesChooser.ReplaceChoice replaceChoice){
+      refactoring.setExtractAll(replaceChoice == OccurrencesChooser.ReplaceChoice.ALL);
+      performOnElementOccurrences();
+    }
+  }
+);
+}
