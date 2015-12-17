@@ -1,12 +1,12 @@
 {
-  final List<String> elements=StringUtil.split(path,",");
-  if (elements.size() != 2) {
-    return NONE;
-  }
-  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(elements.get(0));
+  int commaIdx=path.indexOf(',');
+  if (commaIdx < 0)   return NONE;
+  String filePath=path.substring(0,commaIdx);
+  String names=path.substring(commaIdx + 1);
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   if (file == null) {
     return NONE;
   }
   final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
-  return getLocation(project,pathToNodes(elements.get(1)),psiFile);
+  return getLocation(project,pathToNodes(names),psiFile);
 }

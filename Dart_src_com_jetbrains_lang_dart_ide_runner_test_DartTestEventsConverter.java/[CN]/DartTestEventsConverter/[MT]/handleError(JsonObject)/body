@@ -2,13 +2,14 @@
   String message=getErrorMessage(obj);
   if (message.startsWith(FAILED_TO_LOAD)) {
     JsonElement elem=obj.get(JSON_TEST_ID);
-    if (elem != null && elem.isJsonPrimitive() && myTestData.get(elem.getAsInt()) == null) {
+    if (elem != null && elem.isJsonPrimitive() && (myTestData.get(elem.getAsInt()) == null || !myTestData.get(elem.getAsInt()).hasValidParent())) {
       return failedToLoad(message);
     }
   }
+  Test test=getTest(obj);
   String expectedText=null, actualText=null, failureMessage=message;
-  ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(getTestName(obj));
-  ServiceMessageBuilder msg=ServiceMessageBuilder.testStdErr(getTestName(obj));
+  ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(test.getBaseName());
+  ServiceMessageBuilder msg=ServiceMessageBuilder.testStdErr(test.getBaseName());
   int firstExpectedIndex=message.indexOf(EXPECTED);
   if (firstExpectedIndex >= 0) {
     Matcher matcher=EXPECTED_ACTUAL_RESULT.matcher(message);

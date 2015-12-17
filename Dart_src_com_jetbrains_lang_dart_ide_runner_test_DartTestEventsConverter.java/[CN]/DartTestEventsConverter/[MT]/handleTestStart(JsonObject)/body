@@ -1,11 +1,20 @@
 {
   JsonObject testObj=obj.getAsJsonObject(DEF_TEST);
   myTestId=getInitialTestID(testObj);
-  if (myTestId == 0)   return true;
   Test test=getTest(obj);
-  String testName=test.getName();
+  if (!test.hasValidParent() && test.getName().startsWith(LOADING_PREFIX)) {
+    String path=test.getName().substring(LOADING_PREFIX.length());
+    if (path.length() > 0)     myLocation=FILE_URL_PREFIX + path;
+    return true;
+  }
+  String testName=test.getBaseName();
   ServiceMessageBuilder testStarted=ServiceMessageBuilder.testStarted(testName);
-  testStarted.addAttribute("locationHint","unknown");
+  String location="unknown";
+  if (myLocation != null) {
+    String nameList=GSON.toJson(test.nameList(),DartTestLocationProvider.STRING_LIST_TYPE);
+    location=myLocation + "," + nameList;
+  }
+  testStarted.addAttribute("locationHint",location);
   myStartMillis=getTestMillis(obj);
   myOutputAppeared=false;
   myParentId=test.getValidParentId();
