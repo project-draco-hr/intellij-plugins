@@ -1,13 +1,12 @@
 {
   final Document document=FileDocumentManager.getInstance().getDocument(file);
   assertNotNull(document);
-  AccessToken token=WriteAction.start();
-  try {
-    document.insertString(offset,s);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      document.insertString(offset,s);
+    }
   }
-  finally {
-    token.finish();
-  }
+);
   semaphore.down();
   PsiDocumentManager.getInstance(myProject).commitAllDocuments();
   FileDocumentManager.getInstance().saveAllDocuments();

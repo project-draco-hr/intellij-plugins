@@ -11,14 +11,13 @@
   final String absPath=LocalFileSystem.getInstance().findFileByPath("").getPath();
   myAfterCommitRunnable=new Runnable(){
     @Override public void run(){
-      AccessToken l=WriteAction.start();
-      try {
-        replaceText(fileRelPath,"${SOME_ABSOLUTE_PATH}",absPath);
-        ModuleRootModificationUtil.addDependency(myModule,dependentModule);
+      ApplicationManager.getApplication().runWriteAction(new Runnable(){
+        @Override public void run(){
+          replaceText(fileRelPath,"${SOME_ABSOLUTE_PATH}",absPath);
+          ModuleRootModificationUtil.addDependency(myModule,dependentModule);
+        }
       }
-  finally {
-        l.finish();
-      }
+);
     }
   }
 ;

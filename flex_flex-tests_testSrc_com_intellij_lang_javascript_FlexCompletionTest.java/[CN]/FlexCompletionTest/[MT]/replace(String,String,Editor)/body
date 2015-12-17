@@ -1,12 +1,11 @@
 {
   final int offset=editor.getDocument().getText().indexOf(original);
   assertTrue(offset != -1);
-  AccessToken l=WriteAction.start();
-  try {
-    editor.getDocument().replaceString(offset,offset + original.length(),replacement);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      editor.getDocument().replaceString(offset,offset + original.length(),replacement);
+    }
   }
-  finally {
-    l.finish();
-  }
+);
   PsiDocumentManager.getInstance(editor.getProject()).commitDocument(editor.getDocument());
 }

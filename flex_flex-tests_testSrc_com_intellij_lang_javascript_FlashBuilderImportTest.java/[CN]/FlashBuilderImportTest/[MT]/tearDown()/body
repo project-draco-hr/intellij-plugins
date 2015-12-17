@@ -3,13 +3,12 @@
     if (myModule != null) {
       final Sdk sdk=FlexUtils.getSdkForActiveBC(myModule);
       if (sdk != null) {
-        final AccessToken token=WriteAction.start();
-        try {
-          ProjectJdkTable.getInstance().removeJdk(sdk);
+        ApplicationManager.getApplication().runWriteAction(new Runnable(){
+          @Override public void run(){
+            ProjectJdkTable.getInstance().removeJdk(sdk);
+          }
         }
-  finally {
-          token.finish();
-        }
+);
       }
     }
     if (myFlashBuilderProjectDir != null && myFlashBuilderProjectDir.exists()) {
