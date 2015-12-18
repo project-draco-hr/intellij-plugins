@@ -1,0 +1,15 @@
+{
+  JSTestUtils.testWithinLanguageLevel(JSLanguageLevel.ES6,getProject(),new ThrowableRunnable<Exception>(){
+    @Override public void run() throws Exception {
+      myFixture.configureByFiles("object_binding.after.html","angular2.js","object.ts");
+      int offsetBySignature=AngularTestUtil.findOffsetBySignature("[mod<caret>el]",myFixture.getFile());
+      PsiReference ref=myFixture.getFile().findReferenceAt(offsetBySignature);
+      assertNotNull(ref);
+      PsiElement resolve=ref.resolve();
+      assertNotNull(resolve);
+      assertEquals("object.ts",resolve.getContainingFile().getName());
+      assertInstanceOf(resolve,JSField.class);
+    }
+  }
+);
+}
