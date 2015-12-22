@@ -1,6 +1,6 @@
 {
-  final VirtualFile dotProjectFile=FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_PROJECT,dotProjectFileContent,myFlashBuilderProjectDir);
-  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_ACTION_SCRIPT_PROPERTIES,dotActionScriptPropertiesFileContent,myFlashBuilderProjectDir);
+  final VirtualFile dotProjectFile=addFileWithContent(FlashBuilderImporter.DOT_PROJECT,dotProjectFileContent,myFlashBuilderProjectDir);
+  addFileWithContent(FlashBuilderImporter.DOT_ACTION_SCRIPT_PROPERTIES,dotActionScriptPropertiesFileContent,myFlashBuilderProjectDir);
   final FlashBuilderProject flashBuilderProject=FlashBuilderProjectLoadUtil.loadProject(dotProjectFile,false);
   final Collection<FlashBuilderProject> allFBProjects=new ArrayList<FlashBuilderProject>();
   allFBProjects.add(flashBuilderProject);
@@ -15,5 +15,10 @@
   final FlexProjectConfigurationEditor flexEditor=FlexProjectConfigurationEditor.createEditor(myProject,Collections.singletonMap(myModule,rootModel),null,null);
   new FlashBuilderModuleImporter(myProject,flexEditor,allFBProjects,sdkFinder).setupModule(rootModel,flashBuilderProject);
   flexEditor.commit();
-  ModifiableModelCommitter.multiCommit(new ModifiableRootModel[]{rootModel},moduleModel);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      ModifiableModelCommitter.multiCommit(new ModifiableRootModel[]{rootModel},moduleModel);
+    }
+  }
+);
 }
