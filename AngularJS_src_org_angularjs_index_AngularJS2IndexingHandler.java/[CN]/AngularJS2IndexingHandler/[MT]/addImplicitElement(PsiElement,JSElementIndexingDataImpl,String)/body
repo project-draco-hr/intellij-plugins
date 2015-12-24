@@ -1,0 +1,30 @@
+{
+  if (selector == null)   return outData;
+  final String[] names=selector.split(",");
+  for (  String selectorName : names) {
+    final int not=selectorName.indexOf(":");
+    if (not >= 0) {
+      selectorName=selectorName.substring(0,not);
+    }
+    if (!StringUtil.isEmpty(selectorName)) {
+      final int start=selectorName.indexOf('[');
+      final int end=selectorName.indexOf(']');
+      if (start == 0 && end > 0 || start < 0 && end < 0) {
+        if (outData == null)         outData=new JSElementIndexingDataImpl();
+        JSImplicitElementImpl.Builder elementBuilder;
+        for (        String attr : StringUtil.split(selectorName,"]",false)) {
+          final String restrict=selectorName.startsWith("[") ? "A" : "E";
+          elementBuilder=new JSImplicitElementImpl.Builder(attr,decorator).setType(JSImplicitElement.Type.Class).setTypeString(restrict + ";template;;");
+          elementBuilder.setUserString("adi");
+          outData.addImplicitElement(elementBuilder.toImplicitElement());
+        }
+        if (end > 0) {
+          elementBuilder=new JSImplicitElementImpl.Builder("*" + selectorName.substring(1,end),decorator).setType(JSImplicitElement.Type.Class).setTypeString("A;;;");
+          elementBuilder.setUserString("adi");
+          outData.addImplicitElement(elementBuilder.toImplicitElement());
+        }
+      }
+    }
+  }
+  return outData;
+}

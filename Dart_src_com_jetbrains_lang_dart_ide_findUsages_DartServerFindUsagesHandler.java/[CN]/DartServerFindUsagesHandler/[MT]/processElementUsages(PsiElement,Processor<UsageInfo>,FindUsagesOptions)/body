@@ -10,16 +10,13 @@
       if (scope instanceof GlobalSearchScope && !((GlobalSearchScope)scope).contains(vFile))       return;
       final PsiFile psiFile=elementToSearch.getManager().findFile(vFile);
       if (psiFile == null)       return;
-      final PsiElement usageElement=getUsagePsiElement(psiFile,TextRange.create(location.getOffset(),location.getOffset() + location.getLength()));
-      if (usageElement == null)       return;
-      if (scope instanceof LocalSearchScope && !PsiSearchScopeUtil.isInScope((LocalSearchScope)scope,usageElement))       return;
-      int offset=location.getOffset();
-      int length=location.getLength();
-      offset-=usageElement.getTextRange().getStartOffset();
-      boolean nonCodeUsage=usageElement instanceof PsiComment || usageElement.getParent() instanceof PsiComment;
-      final UsageInfo usageInfo=new UsageInfo(usageElement,offset,offset + length,nonCodeUsage);
-      usageInfo.setDynamicUsage(result.isPotential());
-      processor.process(usageInfo);
+      final TextRange range=TextRange.create(location.getOffset(),location.getOffset() + location.getLength());
+      final boolean potentialUsage=result.isPotential();
+      final PsiElement usageElement=getUsagePsiElement(psiFile,range);
+      final UsageInfo usageInfo=usageElement == null ? null : getUsageInfo(usageElement,range,potentialUsage);
+      if (usageInfo != null && usageInfo.getElement() != null && (!(scope instanceof LocalSearchScope) || PsiSearchScopeUtil.isInScope((LocalSearchScope)scope,usageInfo.getElement()))) {
+        processor.process(usageInfo);
+      }
     }
   }
 ;
