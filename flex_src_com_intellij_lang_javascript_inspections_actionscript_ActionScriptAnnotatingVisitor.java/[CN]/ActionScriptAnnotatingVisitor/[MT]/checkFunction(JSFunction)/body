@@ -63,14 +63,14 @@
         String overrideNs=null;
         if (attributeList.getAccessType() != overrideAttrList.getAccessType() || (overrideNs=JSResolveUtil.getNamespaceValue(overrideAttrList)) != null && !overrideNs.equals(JSResolveUtil.getNamespaceValue(attributeList))) {
           String newVisibility;
-          SetElementVisibilityFix fix;
+          IntentionAction fix;
           if (overrideNs != null) {
             newVisibility=overrideNs;
-            fix=new SetElementVisibilityFix(node,overrideNs);
+            fix=JSFixFactory.getInstance().createChangeVisibilityFix(node,null,overrideNs);
           }
  else {
             newVisibility=JSFormatUtil.formatVisibility(overrideAttrList.getAccessType());
-            fix=new SetElementVisibilityFix(node,overrideAttrList.getAccessType());
+            fix=JSFixFactory.getInstance().createChangeVisibilityFix(node,overrideAttrList.getAccessType(),null);
           }
           final Annotation annotation=myHolder.createErrorAnnotation(findElementForAccessModifierError(node,attributeList),JSBundle.message("javascript.validation.message.function.override.incompatible.access.modifier",newVisibility));
           annotation.registerFix(fix);
