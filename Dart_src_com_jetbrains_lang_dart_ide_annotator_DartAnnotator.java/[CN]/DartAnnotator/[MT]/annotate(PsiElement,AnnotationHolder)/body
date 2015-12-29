@@ -7,6 +7,9 @@
     final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
     if (canBeAnalyzedByServer(element.getProject(),vFile) && service.serverReadyForRequest(element.getProject())) {
       service.updateFilesContent();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        service.waitForAnalysisToComplete_TESTS_ONLY(vFile);
+      }
       applyServerHighlighting(vFile,holder);
     }
   }
