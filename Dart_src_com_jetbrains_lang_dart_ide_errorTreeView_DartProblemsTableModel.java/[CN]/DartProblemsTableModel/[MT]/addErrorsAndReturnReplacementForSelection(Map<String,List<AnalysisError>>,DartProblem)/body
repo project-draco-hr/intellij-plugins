@@ -5,7 +5,9 @@
     final String filePath=entry.getKey();
     final List<AnalysisError> errors=entry.getValue();
     for (    AnalysisError analysisError : errors) {
-      if (DartServerErrorsAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,analysisError))       continue;
+      if (DartAnnotator.shouldIgnoreMessageFromDartAnalyzer(filePath,analysisError.getType(),analysisError.getLocation().getFile())) {
+        continue;
+      }
       final DartProblem problem=new DartProblem(myProject,analysisError);
       problemsToAdd.add(problem);
       if (oldSelectedProblem != null && lookSimilar(problem,oldSelectedProblem) && (newSelectedProblem == null || (Math.abs(oldSelectedProblem.getLineNumber() - newSelectedProblem.getLineNumber()) >= Math.abs(oldSelectedProblem.getLineNumber() - problem.getLineNumber())))) {

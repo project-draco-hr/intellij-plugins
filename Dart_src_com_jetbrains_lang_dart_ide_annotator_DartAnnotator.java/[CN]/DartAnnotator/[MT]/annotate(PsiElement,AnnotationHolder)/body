@@ -1,0 +1,40 @@
+{
+  if (holder.isBatchMode())   return;
+  final AnnotationSession session=holder.getCurrentAnnotationSession();
+  if (session.getUserData(DART_SERVER_DATA_HANDLED) != Boolean.TRUE) {
+    session.putUserData(DART_SERVER_DATA_HANDLED,Boolean.TRUE);
+    final VirtualFile vFile=element.getContainingFile().getVirtualFile();
+    final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+    if (canBeAnalyzedByServer(element.getProject(),vFile) && service.serverReadyForRequest(element.getProject())) {
+      service.updateFilesContent();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        service.waitForAnalysisToComplete_TESTS_ONLY(vFile);
+      }
+      applyServerHighlighting(vFile,holder);
+    }
+  }
+  if (DartTokenTypes.COLON == element.getNode().getElementType() && element.getParent() instanceof DartTernaryExpression) {
+    holder.createInfoAnnotation(element,null).setTextAttributes(DartSyntaxHighlighterColors.OPERATION_SIGN);
+    return;
+  }
+  if (DartTokenTypesSets.BUILT_IN_IDENTIFIERS.contains(element.getNode().getElementType())) {
+    if (element.getNode().getTreeParent().getElementType() != DartTokenTypes.ID) {
+      holder.createInfoAnnotation(element,null).setTextAttributes(DartSyntaxHighlighterColors.KEYWORD);
+      return;
+    }
+  }
+  if (DartTokenTypes.MUL == element.getNode().getElementType()) {
+    final ASTNode previous=element.getNode().getTreePrev();
+    if (previous != null && (previous.getElementType() == DartTokenTypes.SYNC || previous.getElementType() == DartTokenTypes.ASYNC || previous.getElementType() == DartTokenTypes.YIELD)) {
+      holder.createInfoAnnotation(element,null).setTextAttributes(DartSyntaxHighlighterColors.KEYWORD);
+    }
+  }
+  if (element.getNode().getElementType() == DartTokenTypes.REGULAR_STRING_PART) {
+    highlightEscapeSequences(element,holder);
+    return;
+  }
+  if (element instanceof DartSymbolLiteralExpression) {
+    holder.createInfoAnnotation(element,null).setTextAttributes(DartSyntaxHighlighterColors.SYMBOL_LITERAL);
+    return;
+  }
+}
