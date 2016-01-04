@@ -1,9 +1,23 @@
 {
-  final String attributeName=DirectiveUtil.getAttributeName(newName);
+  final boolean isAngular2=DirectiveUtil.isAngular2Directive(element);
+  final PsiNamedElement directive=(PsiNamedElement)element;
+  if (isAngular2 && directive.getName() != null && directive.getName().startsWith("[")) {
+    newName="[" + newName + "]";
+  }
+  final String attributeName=isAngular2 ? newName : DirectiveUtil.getAttributeName(newName);
   for (  UsageInfo usage : usages) {
     RenameUtil.rename(usage,attributeName);
   }
-  ((PsiNamedElement)element).setName(DirectiveUtil.attributeToDirective(element.getProject(),newName));
+  if (isAngular2) {
+    final JSProperty selector=AngularJS2IndexingHandler.getSelector(element.getParent());
+    final JSExpression value=selector != null ? selector.getValue() : null;
+    if (value != null) {
+      ElementManipulators.getManipulator(value).handleContentChange(value,newName);
+    }
+  }
+ else {
+    directive.setName(DirectiveUtil.attributeToDirective(element,newName));
+  }
   if (listener != null) {
     listener.elementRenamed(element);
   }
