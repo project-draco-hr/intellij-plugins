@@ -1,0 +1,16 @@
+{
+  if (myDaemonSettings.SHOW_METHOD_SEPARATORS) {
+    if (element instanceof DartMethodDeclaration || element instanceof DartFunctionDeclarationWithBody || element instanceof DartFunctionDeclarationWithBodyOrNative|| element instanceof DartGetterDeclaration|| element instanceof DartSetterDeclaration|| element instanceof DartFactoryConstructorDeclaration|| element instanceof AbstractDartMethodDeclarationImpl|| element instanceof DartNamedConstructorDeclaration|| element instanceof DartIncompleteDeclaration) {
+      PsiElement markerLocation=element;
+      while (markerLocation.getPrevSibling() != null && (markerLocation.getPrevSibling() instanceof PsiComment || (markerLocation.getPrevSibling() instanceof PsiWhiteSpace && markerLocation.getPrevSibling().getPrevSibling() != null && markerLocation.getPrevSibling().getPrevSibling() instanceof PsiComment))) {
+        markerLocation=markerLocation.getPrevSibling();
+      }
+      LineMarkerInfo info=new LineMarkerInfo<PsiElement>(markerLocation,markerLocation.getTextRange(),null,Pass.UPDATE_ALL,FunctionUtil.<Object,String>nullConstant(),null,GutterIconRenderer.Alignment.RIGHT);
+      EditorColorsScheme scheme=myColorsManager.getGlobalScheme();
+      info.separatorColor=scheme.getColor(CodeInsightColors.METHOD_SEPARATORS_COLOR);
+      info.separatorPlacement=SeparatorPlacement.TOP;
+      return info;
+    }
+  }
+  return null;
+}
