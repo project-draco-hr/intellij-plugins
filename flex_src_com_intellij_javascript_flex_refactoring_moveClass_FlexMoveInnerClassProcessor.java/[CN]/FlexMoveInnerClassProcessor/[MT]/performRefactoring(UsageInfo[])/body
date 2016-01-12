@@ -17,10 +17,18 @@
   for (Iterator<UsageInfo> i=usagesToProcess.iterator(); i.hasNext(); ) {
     UsageInfo usage=i.next();
     PsiElement element;
-    if (usage instanceof NonCodeUsageInfo || !((element=usage.getElement()) instanceof JSReferenceExpression) || !PsiTreeUtil.isAncestor(myElement,element,false)) {
+    if (usage instanceof NonCodeUsageInfo || (element=usage.getElement()) == null || !PsiTreeUtil.isAncestor(myElement,element,false)) {
       continue;
     }
-    ((JSReferenceExpression)element).bindToElement(myElement);
+    if (element instanceof JSReferenceExpression) {
+      ((JSReferenceExpression)element).bindToElement(myElement);
+    }
+ else     if (element instanceof PsiNamedElement) {
+      ((PsiNamedElement)element).setName(myClassName);
+    }
+ else {
+      continue;
+    }
     i.remove();
   }
   final PsiElement clazz=ActionScriptClassResolver.findClassByQNameStatic(StringUtil.getQualifiedName(myPackageName,myClassName),GlobalSearchScope.projectScope(myProject));

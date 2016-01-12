@@ -23,7 +23,7 @@
         query=JSClassSearch.searchInterfaceImplementations(clazz,true,location.getResolveScope());
       }
  else {
-        LookupElement lookupItem=JSLookupUtilImpl.createPrioritizedLookupItem(clazz,clazz.getName(),VariantsProcessor.LookupPriority.SMART_PROPRITY + 1,false,true);
+        LookupElement lookupItem=JSLookupUtilImpl.createPrioritizedLookupItem(clazz,clazz.getName(),JSLookupPriority.SMART_PRIORITY + 1,false,true);
         CompletionResultSet completionResultSet=JSCompletionContributor.getInstance().getCompletionResultSet();
         if (completionResultSet != null && !ApplicationManager.getApplication().isHeadlessEnvironment()) {
           ((LookupItem)lookupItem).setInsertHandler(new JSInsertHandler<LookupElement>());
@@ -48,11 +48,11 @@
  else {
       String typeText=expectedClassType.getTypeText();
       if (!(expectedClassType instanceof JSAnyType)) {
-        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(clazz,ImportUtils.importAndShortenReference(typeText,parent,false,true).first + "()",VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(clazz,ImportUtils.importAndShortenReference(typeText,parent,false,true).first + "()",JSLookupPriority.SMART_PRIORITY,true,true));
       }
       JSResolveUtil.GenericSignature signature=JSResolveUtil.extractGenericSignature(typeText);
       if (signature != null) {
-        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(createType(JSCommonTypeNames.ARRAY_CLASS_NAME,JSTypeSourceFactory.createTypeSource(parent),JSContext.INSTANCE).resolveClass(),"<" + ImportUtils.importAndShortenReference(signature.genericType,parent,false,true).first + ">"+ "[]",VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+        variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(createType(JSCommonTypeNames.ARRAY_CLASS_NAME,JSTypeSourceFactory.createTypeSource(parent),JSContext.INSTANCE).resolveClass(),"<" + ImportUtils.importAndShortenReference(signature.genericType,parent,false,true).first + ">"+ "[]",JSLookupPriority.SMART_PRIORITY,true,true));
       }
     }
     return variants.isEmpty() ? Collections.emptyList() : variants;
@@ -80,7 +80,7 @@
         final String qualifiedNameMatchingType=type != null ? JSTypeUtils.getQualifiedNameMatchingType(type,false) : null;
         if (qualifiedNameMatchingType != null) {
           String qName=JSDialectSpecificHandlersFactory.forElement(location).getImportHandler().resolveTypeName(qualifiedNameMatchingType,location).getQualifiedName();
-          variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(JSDialectSpecificHandlersFactory.forElement(location).getClassResolver().findClassByQName(qName,location),ImportUtils.importAndShortenReference(qName,parent,false,true).first,VariantsProcessor.LookupPriority.SMART_PROPRITY,true,true));
+          variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(JSDialectSpecificHandlersFactory.forElement(location).getClassResolver().findClassByQName(qName,location),ImportUtils.importAndShortenReference(qName,parent,false,true).first,JSLookupPriority.SMART_PRIORITY,true,true));
         }
       }
     }

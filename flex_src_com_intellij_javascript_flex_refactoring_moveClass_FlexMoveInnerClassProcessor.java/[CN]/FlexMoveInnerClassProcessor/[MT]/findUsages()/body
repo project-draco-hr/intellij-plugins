@@ -15,7 +15,11 @@
   }
 );
   if (myElement instanceof JSClass) {
-    JSRefactoringUtil.addConstructorUsages((JSClass)myElement,true,result);
+    final JSFunction constructor=((JSClass)myElement).getConstructor();
+    if (constructor != null) {
+      result.add(new UsageInfo(constructor));
+      JSRefactoringUtil.addConstructorUsages((JSClass)myElement,result);
+    }
   }
   TextOccurrencesUtil.findNonCodeUsages(myElement,myElement.getName(),mySearchInComments,mySearchTextOccurences,StringUtil.getQualifiedName(myPackageName,myClassName),result);
   return UsageViewUtil.removeDuplicatedUsages(result.toArray(new UsageInfo[result.size()]));
