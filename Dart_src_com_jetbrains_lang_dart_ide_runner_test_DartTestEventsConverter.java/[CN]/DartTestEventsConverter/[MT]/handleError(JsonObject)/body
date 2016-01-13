@@ -3,10 +3,11 @@
   if (message.startsWith(FAILED_TO_LOAD)) {
     JsonElement elem=obj.get(JSON_TEST_ID);
     if (elem != null && elem.isJsonPrimitive() && (myTestData.get(elem.getAsInt()) == null || !myTestData.get(elem.getAsInt()).hasValidParent())) {
-      return failedToLoad(message);
+      return failedToLoad(message,elem.getAsInt());
     }
   }
   Test test=getTest(obj);
+  test.isRunning=false;
   String expectedText=null, actualText=null, failureMessage=message;
   ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(test.getBaseName());
   ServiceMessageBuilder msg=ServiceMessageBuilder.testStdErr(test.getBaseName());
@@ -31,5 +32,5 @@
   msg.addAttribute("out",getStackTrace(obj));
   long duration=getTestMillis(obj) - myStartMillis;
   testError.addAttribute("duration",Long.toString(duration));
-  return finishMessage(testError) && finishMessage(msg);
+  return finishMessage(testError,test.getId(),test.getValidParentId()) && finishMessage(msg,test.getId(),test.getValidParentId());
 }

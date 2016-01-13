@@ -1,11 +1,9 @@
 {
   Test test=getTest(obj);
+  test.isRunning=false;
   if (test.getMetadata().skip)   return true;
-  if (test.hasValidParent()) {
-    myParentId=test.getParent().getId();
-  }
   long duration=getTestMillis(obj) - myStartMillis;
   ServiceMessageBuilder testFinished=ServiceMessageBuilder.testFinished(test.getBaseName());
   testFinished.addAttribute("duration",Long.toString(duration));
-  return finishMessage(testFinished);
+  return finishMessage(testFinished,test.getId(),test.getValidParentId());
 }

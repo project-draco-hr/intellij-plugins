@@ -1,10 +1,10 @@
 {
   JsonObject testObj=obj.getAsJsonObject(DEF_TEST);
-  myTestId=getInitialTestID(testObj);
   Test test=getTest(obj);
   if (!test.hasValidParent() && test.getName().startsWith(LOADING_PREFIX)) {
     String path=test.getName().substring(LOADING_PREFIX.length());
     if (path.length() > 0)     myLocation=FILE_URL_PREFIX + path;
+    test.isRunning=false;
     return true;
   }
   String testName=test.getBaseName();
@@ -12,14 +12,13 @@
   addLocationHint(testStarted,test);
   myStartMillis=getTestMillis(obj);
   myOutputAppeared=false;
-  myParentId=test.getValidParentId();
-  boolean result=finishMessage(testStarted);
+  boolean result=finishMessage(testStarted,test.getId(),test.getValidParentId());
   if (result) {
     Metadata metadata=Metadata.from(testObj.getAsJsonObject(DEF_METADATA));
     if (metadata.skip) {
       ServiceMessageBuilder message=ServiceMessageBuilder.testIgnored(testName);
       if (metadata.skipReason != null)       message.addAttribute("message",metadata.skipReason);
-      return finishMessage(message);
+      return finishMessage(message,test.getId(),test.getValidParentId());
     }
   }
   return result;
