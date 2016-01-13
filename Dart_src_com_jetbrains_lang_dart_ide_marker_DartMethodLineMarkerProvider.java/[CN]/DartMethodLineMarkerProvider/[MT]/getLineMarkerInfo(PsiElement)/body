@@ -1,16 +1,32 @@
 {
-  if (myDaemonSettings.SHOW_METHOD_SEPARATORS) {
-    if (element instanceof DartMethodDeclaration || element instanceof DartFunctionDeclarationWithBody || element instanceof DartFunctionDeclarationWithBodyOrNative|| element instanceof DartGetterDeclaration|| element instanceof DartSetterDeclaration|| element instanceof DartFactoryConstructorDeclaration|| element instanceof AbstractDartMethodDeclarationImpl|| element instanceof DartNamedConstructorDeclaration|| element instanceof DartIncompleteDeclaration) {
-      PsiElement markerLocation=element;
-      while (markerLocation.getPrevSibling() != null && (markerLocation.getPrevSibling() instanceof PsiComment || (markerLocation.getPrevSibling() instanceof PsiWhiteSpace && markerLocation.getPrevSibling().getPrevSibling() != null && markerLocation.getPrevSibling().getPrevSibling() instanceof PsiComment))) {
-        markerLocation=markerLocation.getPrevSibling();
+  if (!myDaemonSettings.SHOW_METHOD_SEPARATORS) {
+    return null;
+  }
+  if (isMarkableElement(element)) {
+    if (PsiTreeUtil.findFirstParent(element,true,new Condition<PsiElement>(){
+      @Override public boolean value(      final PsiElement e){
+        return isMarkableElement(e);
       }
-      LineMarkerInfo info=new LineMarkerInfo<PsiElement>(markerLocation,markerLocation.getTextRange(),null,Pass.UPDATE_ALL,FunctionUtil.<Object,String>nullConstant(),null,GutterIconRenderer.Alignment.RIGHT);
-      EditorColorsScheme scheme=myColorsManager.getGlobalScheme();
-      info.separatorColor=scheme.getColor(CodeInsightColors.METHOD_SEPARATORS_COLOR);
-      info.separatorPlacement=SeparatorPlacement.TOP;
-      return info;
     }
+) != null) {
+      return null;
+    }
+    PsiElement markerLocation=element;
+    while (markerLocation.getPrevSibling() != null && (markerLocation.getPrevSibling() instanceof PsiComment || (markerLocation.getPrevSibling() instanceof PsiWhiteSpace && markerLocation.getPrevSibling().getPrevSibling() != null && markerLocation.getPrevSibling().getPrevSibling() instanceof PsiComment))) {
+      markerLocation=markerLocation.getPrevSibling();
+    }
+    PsiElement prevElement=markerLocation;
+    while (prevElement.getPrevSibling() != null && prevElement.getPrevSibling() instanceof PsiWhiteSpace) {
+      prevElement=prevElement.getPrevSibling();
+    }
+    if (prevElement.getPrevSibling() == null) {
+      return null;
+    }
+    LineMarkerInfo info=new LineMarkerInfo<PsiElement>(markerLocation,markerLocation.getTextRange(),null,Pass.UPDATE_ALL,FunctionUtil.<Object,String>nullConstant(),null,GutterIconRenderer.Alignment.RIGHT);
+    EditorColorsScheme scheme=myColorsManager.getGlobalScheme();
+    info.separatorColor=scheme.getColor(CodeInsightColors.METHOD_SEPARATORS_COLOR);
+    info.separatorPlacement=SeparatorPlacement.TOP;
+    return info;
   }
   return null;
 }
