@@ -4,14 +4,13 @@
     throw new ExecutionException(DartBundle.message("dart.sdk.is.not.configured"));
   }
   final String dartExePath=DartSdkUtil.getDartExePath(sdk);
-  final VirtualFile dartFile;
+  final String workingDir;
   try {
-    dartFile=myRunnerParameters.getDartFile();
+    workingDir=myRunnerParameters.computeProcessWorkingDirectory();
   }
  catch (  RuntimeConfigurationError e) {
     throw new ExecutionException(e);
   }
-  final String workingDir=StringUtil.isEmptyOrSpaces(myRunnerParameters.getWorkingDirectory()) ? dartFile.getParent().getPath() : myRunnerParameters.getWorkingDirectory();
   final GeneralCommandLine commandLine=new GeneralCommandLine().withWorkDirectory(workingDir);
   commandLine.setCharset(CharsetToolkit.UTF8_CHARSET);
   commandLine.setExePath(FileUtil.toSystemDependentName(dartExePath));

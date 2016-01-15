@@ -1,6 +1,21 @@
 {
   myProject=project;
   DartCommandLineConfigurationEditorForm.initDartFileTextWithBrowse(project,myFileField);
+  myDirField.addBrowseFolderListener(DartBundle.message("choose.dart.directory"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myDirField.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      if (!isDirInProject(myDirField.getText(),project)) {
+        myDirField.getTextField().setForeground(JBColor.RED);
+        final String message=DartBundle.message("test.dir.not.in.project");
+        myDirField.getTextField().setToolTipText(message);
+      }
+ else {
+        myDirField.getTextField().setForeground(UIUtil.getFieldForegroundColor());
+        myDirField.getTextField().setToolTipText(null);
+      }
+    }
+  }
+);
   myWorkingDirectory.addBrowseFolderListener(ExecutionBundle.message("select.working.directory.message"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   myScopeCombo.setModel(new EnumComboBoxModel<Scope>(Scope.class));
   myScopeCombo.setRenderer(new ListCellRendererWrapper<Scope>(){
