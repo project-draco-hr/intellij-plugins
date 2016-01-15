@@ -1,14 +1,17 @@
 {
-  final String result=eval(expression,myDebugProcess);
+  if (expression == null || StringUtil.isEmptyOrSpaces(expression.getExpression())) {
+    return true;
+  }
+  final String result=frame.eval(expression.getExpression(),this);
   if (result != null && (result.equalsIgnoreCase("true") || result.equalsIgnoreCase("false"))) {
     return Boolean.valueOf(result);
   }
  else {
-    final String message=result == null || result.startsWith(CANNOT_EVALUATE_EXPRESSION) ? FlexBundle.message("failed.to.evaluate.breakpoint.condition",expression) : FlexBundle.message("not.boolean.breakpoint.condition",expression,result);
+    final String message=result == null || result.startsWith(FlexStackFrame.CANNOT_EVALUATE_EXPRESSION) ? FlexBundle.message("failed.to.evaluate.breakpoint.condition",expression) : FlexBundle.message("not.boolean.breakpoint.condition",expression,result);
     final Ref<Boolean> stopRef=new Ref<Boolean>(false);
     ApplicationManager.getApplication().invokeAndWait(new Runnable(){
       @Override public void run(){
-        final Project project=getDebugProcess().getSession().getProject();
+        final Project project=getSession().getProject();
         final int answer=Messages.showYesNoDialog(project,message,FlexBundle.message("breakpoint.condition.error"),Messages.getQuestionIcon());
         stopRef.set(answer == Messages.YES);
       }
