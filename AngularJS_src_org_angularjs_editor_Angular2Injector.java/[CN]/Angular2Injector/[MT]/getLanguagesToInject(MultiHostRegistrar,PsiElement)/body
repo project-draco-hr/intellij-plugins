@@ -1,9 +1,10 @@
 {
   final Project project=context.getProject();
   if (!AngularIndexUtil.hasAngularJS2(project))   return;
+  final PsiElement parent=context.getParent();
   if (context instanceof JSLiteralExpressionImpl && ((JSLiteralExpressionImpl)context).isQuotedLiteral()) {
-    if (!(context.getParent() instanceof JSArrayLiteralExpression))     return;
-    final JSProperty property=ObjectUtils.tryCast(context.getParent().getParent(),JSProperty.class);
+    if (!(parent instanceof JSArrayLiteralExpression))     return;
+    final JSProperty property=ObjectUtils.tryCast(parent.getParent(),JSProperty.class);
     if (property != null && "styles".equals(property.getName())) {
       final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(property,JSCallExpression.class);
       final JSExpression expression=callExpression != null ? callExpression.getMethodExpression() : null;
@@ -13,6 +14,14 @@
         final TextRange range=ElementManipulators.getValueTextRange(context);
         registrar.startInjecting(CSSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,range).doneInjecting();
       }
+    }
+    return;
+  }
+  if (context instanceof XmlAttributeValueImpl && parent instanceof XmlAttribute) {
+    final int length=context.getTextLength();
+    if ((AngularAttributesRegistry.isEventAttribute(((XmlAttribute)parent).getName(),project) || AngularAttributesRegistry.isVariableAttribute(((XmlAttribute)parent).getName(),project)) && length > 0) {
+      registrar.startInjecting(JavascriptLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,ElementManipulators.getValueTextRange(context)).doneInjecting();
+      return;
     }
   }
 }
