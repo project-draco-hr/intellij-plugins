@@ -1,0 +1,16 @@
+{
+  super(FileTypeRegistry.getInstance().findFileTypeByName("CSS"));
+  TokenHandler value=new TokenHandler(){
+    @Override public void handleElement(    Lexer lexer){
+      final String text=lexer.getTokenText();
+      if (text.startsWith("(") || text.startsWith("[")) {
+        if (!isHtmlTagState(lexer.getState())) {
+          seenAttribute=true;
+          seenStyle=true;
+        }
+      }
+    }
+  }
+;
+  registerHandler(XmlTokenType.XML_NAME,value);
+}
