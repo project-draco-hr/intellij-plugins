@@ -1,10 +1,6 @@
 {
   if (xmlTag != null) {
     final Project project=xmlTag.getProject();
-    final AngularAttributeDescriptor descriptor=getAngular2Descriptor(attrName,project);
-    if (descriptor != null) {
-      return descriptor;
-    }
     final String attributeName=DirectiveUtil.normalizeAttributeName(attrName);
     ThreeState attributeAvailable=isApplicable(project,attributeName,xmlTag,AngularDirectivesDocIndex.KEY);
     if (attributeAvailable == ThreeState.UNSURE) {
@@ -16,6 +12,10 @@
     if (AngularAttributesRegistry.isBindingAttribute(attrName,project)) {
       return new AngularBindingDescriptor(xmlTag,attrName);
     }
+    if (AngularAttributesRegistry.isEventAttribute(attrName,project)) {
+      return new AngularEventHandlerDescriptor(xmlTag,attrName);
+    }
+    return getAngular2Descriptor(attrName,project);
   }
   return null;
 }
