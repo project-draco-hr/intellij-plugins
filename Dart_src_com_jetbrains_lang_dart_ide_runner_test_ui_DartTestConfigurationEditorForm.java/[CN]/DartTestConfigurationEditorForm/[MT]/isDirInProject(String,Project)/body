@@ -1,11 +1,17 @@
 {
-  File root=new File(project.getBaseDir().getPath());
-  File file=new File(path);
+  VirtualFile file=LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+  if (file == null || !file.isDirectory()) {
+    return false;
+  }
+  ProjectFileIndex index=ProjectRootManager.getInstance(project).getFileIndex();
   while (file != null) {
-    if (FileUtil.filesEqual(file,root)) {
+    if (!index.isInContent(file)) {
+      return false;
+    }
+    if (file.findChild(PubspecYamlUtil.PUBSPEC_YAML) != null) {
       return true;
     }
-    file=file.getParentFile();
+    file=file.getParent();
   }
   return false;
 }

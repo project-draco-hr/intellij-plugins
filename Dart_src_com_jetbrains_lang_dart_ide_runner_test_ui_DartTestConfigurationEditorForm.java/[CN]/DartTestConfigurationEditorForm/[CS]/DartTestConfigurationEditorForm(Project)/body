@@ -4,15 +4,7 @@
   myDirField.addBrowseFolderListener(DartBundle.message("choose.dart.directory"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   myDirField.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
-      if (!isDirInProject(myDirField.getText(),project)) {
-        myDirField.getTextField().setForeground(JBColor.RED);
-        final String message=DartBundle.message("test.dir.not.in.project");
-        myDirField.getTextField().setToolTipText(message);
-      }
- else {
-        myDirField.getTextField().setForeground(UIUtil.getFieldForegroundColor());
-        myDirField.getTextField().setToolTipText(null);
-      }
+      onTestDirChanged(project);
     }
   }
 );
@@ -37,7 +29,14 @@
     }
   }
 ;
+  final DocumentAdapter dirListener=new DocumentAdapter(){
+    @Override protected void textChanged(    final DocumentEvent e){
+      onTestDirChanged(project);
+    }
+  }
+;
   myFileField.getTextField().getDocument().addDocumentListener(documentListener);
+  myDirField.getTextField().getDocument().addDocumentListener(dirListener);
   myTestNameField.getDocument().addDocumentListener(documentListener);
   myVMOptions.setDialogCaption(DartBundle.message("config.vmoptions.caption"));
   myArguments.setDialogCaption(DartBundle.message("config.progargs.caption"));
