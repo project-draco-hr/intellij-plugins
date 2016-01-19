@@ -12,6 +12,9 @@
     return outData;
   }
   final String command=((JSReferenceExpression)methodExpression).getReferenceName();
+  final PairProcessor<JSProperty,JSElementIndexingData> customProcessor=CUSTOM_PROPERTY_PROCESSORS.get(command);
+  JSElementIndexingData localOutData=null;
+  if (customProcessor != null && customProcessor.process(property,(localOutData=(outData == null ? new JSElementIndexingDataImpl() : outData))))   return localOutData;
   final StubIndexKey<String,JSImplicitElementProvider> index=INDEXERS.get(command);
   if (index == null)   return outData;
   if (((JSCallExpression)callExpression).getArguments()[0] != parent)   return outData;
