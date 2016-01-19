@@ -1,18 +1,17 @@
 {
   final Project project=context.getProject();
   if (!AngularIndexUtil.hasAngularJS2(project))   return;
+  final PsiElement parent=context.getParent();
   if (context instanceof JSLiteralExpressionImpl && ((JSLiteralExpressionImpl)context).isQuotedLiteral()) {
-    if (!(context.getParent() instanceof JSArrayLiteralExpression))     return;
-    final JSProperty property=ObjectUtils.tryCast(context.getParent().getParent(),JSProperty.class);
-    if (property != null && "styles".equals(property.getName())) {
-      final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(property,JSCallExpression.class);
-      final JSExpression expression=callExpression != null ? callExpression.getMethodExpression() : null;
-      if (expression instanceof JSReferenceExpression) {
-        final String name=((JSReferenceExpression)expression).getReferenceName();
-        if (!AngularJS2IndexingHandler.isDirective(name))         return;
-        final TextRange range=ElementManipulators.getValueTextRange(context);
-        registrar.startInjecting(CSSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,range).doneInjecting();
-      }
+    if (injectIntoDirectiveProperty(registrar,context,parent,"template",Angular2HTMLLanguage.INSTANCE))     return;
+    if (!(parent instanceof JSArrayLiteralExpression))     return;
+    final JSProperty property=ObjectUtils.tryCast(parent.getParent(),JSProperty.class);
+    if (injectIntoDirectiveProperty(registrar,context,property,"styles",CSSLanguage.INSTANCE))     return;
+  }
+  if (context instanceof XmlAttributeValueImpl && parent instanceof XmlAttribute) {
+    final int length=context.getTextLength();
+    if ((AngularAttributesRegistry.isEventAttribute(((XmlAttribute)parent).getName(),project) || AngularAttributesRegistry.isBindingAttribute(((XmlAttribute)parent).getName(),project)) && length > 0) {
+      registrar.startInjecting(JavascriptLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,ElementManipulators.getValueTextRange(context)).doneInjecting();
     }
   }
 }
