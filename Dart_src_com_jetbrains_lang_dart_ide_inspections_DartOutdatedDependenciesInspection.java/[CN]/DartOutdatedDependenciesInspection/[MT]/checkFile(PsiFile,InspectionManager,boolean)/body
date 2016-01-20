@@ -1,0 +1,23 @@
+{
+  if (!isOnTheFly)   return null;
+  if (!(psiFile instanceof DartFile))   return null;
+  final VirtualFile file=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (file == null || !file.isInLocalFileSystem())   return null;
+  final Project project=psiFile.getProject();
+  if (!ProjectRootManager.getInstance(project).getFileIndex().isInContent(file))   return null;
+  final DartSdk sdk=DartSdk.getDartSdk(project);
+  final Module module=ModuleUtilCore.findModuleForFile(file,project);
+  if (module == null || sdk == null || !DartSdkGlobalLibUtil.isDartSdkEnabled(module))   return null;
+  final VirtualFile pubspecFile=PubspecYamlUtil.findPubspecYamlFile(project,file);
+  if (pubspecFile == null || myIgnoredPubspecPaths.contains(pubspecFile.getPath()))   return null;
+  final String projectName=PubspecYamlUtil.getDartProjectName(pubspecFile);
+  if (projectName == null || !StringUtil.isJavaIdentifier(projectName))   return null;
+  final VirtualFile dotPackagesFile=pubspecFile.getParent().findChild(DotPackagesFileUtil.DOT_PACKAGES);
+  if (dotPackagesFile == null) {
+    return createProblemDescriptors(manager,psiFile,pubspecFile,DartBundle.message("pub.get.never.done.for.0",projectName));
+  }
+  if (FileDocumentManager.getInstance().isFileModified(pubspecFile) || pubspecFile.getTimeStamp() > dotPackagesFile.getTimeStamp()) {
+    return createProblemDescriptors(manager,psiFile,pubspecFile,DartBundle.message("pubspec.edited.in.0",projectName));
+  }
+  return null;
+}
