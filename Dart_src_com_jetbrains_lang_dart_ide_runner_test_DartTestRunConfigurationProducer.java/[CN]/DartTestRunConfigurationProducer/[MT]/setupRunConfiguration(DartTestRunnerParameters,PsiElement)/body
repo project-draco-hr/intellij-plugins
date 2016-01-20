@@ -15,13 +15,13 @@
   }
  else {
     final PsiFile psiFile=psiElement.getContainingFile();
-    if (psiFile instanceof DartFile) {
+    if (psiFile instanceof DartFile || psiFile.isDirectory()) {
       final VirtualFile virtualFile=DartResolveUtil.getRealVirtualFile((DartFile)psiElement);
       if (virtualFile == null || !DartResolveUtil.isLibraryRoot((DartFile)psiElement)) {
         return false;
       }
       runnerParams.setTestName(DartResolveUtil.getLibraryName((DartFile)psiElement));
-      runnerParams.setScope(Scope.FILE);
+      runnerParams.setScope(psiFile.isDirectory() ? Scope.FOLDER : Scope.FILE);
       final String dartFilePath=FileUtil.toSystemIndependentName(virtualFile.getPath());
       runnerParams.setFilePath(dartFilePath);
       runnerParams.setWorkingDirectory(DartProjectTemplate.getWorkingDirForDartScript(psiElement.getProject(),virtualFile));
