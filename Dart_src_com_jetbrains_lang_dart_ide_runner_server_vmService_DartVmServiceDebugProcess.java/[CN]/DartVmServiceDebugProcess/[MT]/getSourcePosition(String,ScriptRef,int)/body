@@ -15,9 +15,10 @@
   if (file == null) {
     file=myScriptIdToContentMap.get(scriptRef.getId());
   }
-  TIntIntHashMap tokenPosToLine=myScriptIdToLinesMap.get(scriptRef.getId());
-  if (file != null && tokenPosToLine != null) {
-    return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+  TIntObjectHashMap<Pair<Integer,Integer>> tokenPosToLineAndColumn=myScriptIdToLinesAndColumnsMap.get(scriptRef.getId());
+  if (file != null && tokenPosToLineAndColumn != null) {
+    final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+    return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
   }
   final Script script=myVmServiceWrapper.getScriptSync(isolateId,scriptRef.getId());
   if (script == null)   return null;
@@ -26,9 +27,10 @@
     ((LightVirtualFile)file).setWritable(false);
     myScriptIdToContentMap.put(scriptRef.getId(),(LightVirtualFile)file);
   }
-  if (tokenPosToLine == null) {
-    tokenPosToLine=createTokenPosToLineMap(script.getTokenPosTable());
-    myScriptIdToLinesMap.put(scriptRef.getId(),tokenPosToLine);
+  if (tokenPosToLineAndColumn == null) {
+    tokenPosToLineAndColumn=createTokenPosToLineAndColumnMap(script.getTokenPosTable());
+    myScriptIdToLinesAndColumnsMap.put(scriptRef.getId(),tokenPosToLineAndColumn);
   }
-  return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+  final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+  return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
 }

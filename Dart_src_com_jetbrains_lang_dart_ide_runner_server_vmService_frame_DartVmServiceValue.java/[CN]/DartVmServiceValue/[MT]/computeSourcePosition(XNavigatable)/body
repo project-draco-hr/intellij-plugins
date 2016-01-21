@@ -1,0 +1,33 @@
+{
+  if (myFieldRef == null) {
+    navigatable.setSourcePosition(null);
+    return;
+  }
+  myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,myFieldRef.getId(),new GetObjectConsumer(){
+    @Override public void received(    final Obj obj){
+      final SourceLocation location=((Field)obj).getLocation();
+      if (location == null) {
+        navigatable.setSourcePosition(null);
+        return;
+      }
+      ApplicationManager.getApplication().executeOnPooledThread(new Runnable(){
+        @Override public void run(){
+          ApplicationManager.getApplication().runReadAction(new Runnable(){
+            @Override public void run(){
+              navigatable.setSourcePosition(myDebugProcess.getSourcePosition(myIsolateId,location.getScript(),location.getTokenPos()));
+            }
+          }
+);
+        }
+      }
+);
+    }
+    @Override public void received(    final Sentinel sentinel){
+      navigatable.setSourcePosition(null);
+    }
+    @Override public void onError(    final RPCError error){
+      navigatable.setSourcePosition(null);
+    }
+  }
+);
+}
