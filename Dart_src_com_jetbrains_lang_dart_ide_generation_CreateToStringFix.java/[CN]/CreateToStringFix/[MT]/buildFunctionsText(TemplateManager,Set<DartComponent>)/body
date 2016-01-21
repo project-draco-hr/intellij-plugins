@@ -1,0 +1,27 @@
+{
+  final Template template=templateManager.createTemplate(getClass().getName(),DART_TEMPLATE_GROUP);
+  template.setToReformat(true);
+  if (CodeStyleSettingsManager.getSettings(myDartClass.getProject()).INSERT_OVERRIDE_ANNOTATION) {
+    template.addTextSegment("@override\n");
+  }
+  template.addTextSegment("String toString() {");
+  template.addTextSegment(DartTokenTypes.RETURN.toString());
+  template.addTextSegment(" ");
+  template.addTextSegment("'");
+  template.addTextSegment(myDartClass.getName());
+  template.addTextSegment("{");
+  for (Iterator<DartComponent> iterator=elementsToProcess.iterator(); iterator.hasNext(); ) {
+    DartComponent component=iterator.next();
+    template.addTextSegment(component.getName());
+    template.addTextSegment(": $");
+    template.addTextSegment(component.getName());
+    if (iterator.hasNext()) {
+      template.addTextSegment(", ");
+    }
+  }
+  template.addTextSegment("}';\n");
+  template.addTextSegment("}");
+  template.addEndVariable();
+  template.addTextSegment("\n");
+  return template;
+}
