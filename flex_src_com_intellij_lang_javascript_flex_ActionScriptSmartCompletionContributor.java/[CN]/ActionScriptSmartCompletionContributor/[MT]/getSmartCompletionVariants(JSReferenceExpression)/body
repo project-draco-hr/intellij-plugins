@@ -1,7 +1,7 @@
 {
   final PsiElement parent=location.getParent();
   List<Object> variants=new ArrayList<Object>();
-  if (parent instanceof JSArgumentList && ((JSArgumentList)parent).getArguments()[0] == location && ((JSReferenceExpression)location).getQualifier() == null) {
+  if (parent instanceof JSArgumentList && ((JSArgumentList)parent).getArguments()[0] == location && location.getQualifier() == null) {
     final JSExpression calledExpr=((JSCallExpression)parent.getParent()).getMethodExpression();
     if (calledExpr instanceof JSReferenceExpression) {
       final JSReferenceExpression expression=(JSReferenceExpression)calledExpr;
@@ -57,8 +57,8 @@
     }
     return variants.isEmpty() ? Collections.emptyList() : variants;
   }
- else   if (location instanceof JSReferenceExpression && ((JSReferenceExpression)location).getQualifier() == null) {
-    if (JSResolveUtil.isExprInStrictTypeContext((JSReferenceExpression)location)) {
+ else   if (location.getQualifier() == null) {
+    if (JSResolveUtil.isExprInStrictTypeContext(location)) {
       if (parent instanceof JSVariable || parent instanceof JSFunction) {
         JSType type=TypeFromUsageDetector.detectTypeFromUsage(parent,parent.getContainingFile());
         if (type == null && parent instanceof JSVariable) {
@@ -85,7 +85,7 @@
       }
     }
  else {
-      variants=addVariantsForUnqualifiedReference((JSReferenceExpression)location);
+      variants=addVariantsForUnqualifiedReference(location);
     }
   }
   return variants.isEmpty() ? null : variants;
