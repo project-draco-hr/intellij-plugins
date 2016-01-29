@@ -1,29 +1,14 @@
 {
-  final Set<XLineBreakpoint<XBreakpointProperties>> xBreakpoints=myBreakpointHandler.getXBreakpoints();
-  if (xBreakpoints.isEmpty()) {
-    resumeIsolate(isolateId,null);
-    return;
-  }
-  final AtomicInteger counter=new AtomicInteger(xBreakpoints.size());
-  for (  final XLineBreakpoint<XBreakpointProperties> xBreakpoint : xBreakpoints) {
-    addBreakpoint(isolateId,xBreakpoint,new VmServiceConsumers.BreakpointConsumerWrapper(){
-      @Override void sourcePositionNotApplicable(){
-        checkDone();
-      }
-      @Override public void received(      Breakpoint vmBreakpoint){
-        myBreakpointHandler.vmBreakpointAdded(xBreakpoint,isolateId,vmBreakpoint);
-        checkDone();
-      }
-      @Override public void onError(      RPCError error){
-        myBreakpointHandler.breakpointFailed(xBreakpoint);
-        checkDone();
-      }
-      private void checkDone(){
-        if (counter.decrementAndGet() == 0) {
-          resumeIsolate(isolateId,null);
-        }
+  if (myDebugProcess.isRemoteDebug() && myIsolatesInfo.getIsolateInfos().size() == 1) {
+    getIsolate(isolateId,new VmServiceConsumers.GetIsolateConsumerWrapper(){
+      @Override public void received(      final Isolate isolate){
+        myDebugProcess.guessRemoteProjectRoot(isolate.getLibraries());
+        doSetInitialBreakpointsAndResume(isolateId);
       }
     }
 );
+  }
+ else {
+    doSetInitialBreakpointsAndResume(isolateId);
   }
 }

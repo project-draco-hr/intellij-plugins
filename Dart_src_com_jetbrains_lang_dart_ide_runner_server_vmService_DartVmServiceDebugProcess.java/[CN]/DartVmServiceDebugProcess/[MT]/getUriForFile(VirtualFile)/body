@@ -1,10 +1,16 @@
 {
-  final String uriByIde=myDartUrlResolver.getDartUrlForFile(file);
+  String uriByIde=myDartUrlResolver.getDartUrlForFile(file);
   if (myDASExecutionContextId != null && !uriByIde.startsWith(DartUrlResolver.DART_PREFIX)) {
     final String uriByServer=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,file.getPath(),null);
     if (uriByServer != null) {
       return uriByServer;
     }
+  }
+  final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
+  if (myRemoteDebug && uriByIde.startsWith(DartUrlResolver.FILE_PREFIX) && myRemoteProjectRootUri != null && pubspec != null) {
+    final String localRootUri=StringUtil.trimEnd(myDartUrlResolver.getDartUrlForFile(pubspec.getParent()),'/');
+    LOG.assertTrue(uriByIde.startsWith(localRootUri),uriByIde + "," + localRootUri);
+    uriByIde=myRemoteProjectRootUri + uriByIde.substring(localRootUri.length());
   }
   return threeslashize(uriByIde);
 }

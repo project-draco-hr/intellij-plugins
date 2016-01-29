@@ -1,12 +1,18 @@
 {
   VirtualFile file=ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
     @Override public VirtualFile compute(){
-      final String uri=scriptRef.getUri();
+      String uri=scriptRef.getUri();
       if (myDASExecutionContextId != null && !isDartPatchUri(uri)) {
         final String path=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,null,uri);
         if (path != null) {
           return LocalFileSystem.getInstance().findFileByPath(path);
         }
+      }
+      final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
+      if (myRemoteDebug && myRemoteProjectRootUri != null && uri.startsWith(myRemoteProjectRootUri) && pubspec != null) {
+        final String localRootUri=StringUtil.trimEnd(myDartUrlResolver.getDartUrlForFile(pubspec.getParent()),'/');
+        LOG.assertTrue(localRootUri.startsWith(DartUrlResolver.FILE_PREFIX),localRootUri);
+        uri=localRootUri + uri.substring(myRemoteProjectRootUri.length());
       }
       return myDartUrlResolver.findFileByDartUrl(uri);
     }
