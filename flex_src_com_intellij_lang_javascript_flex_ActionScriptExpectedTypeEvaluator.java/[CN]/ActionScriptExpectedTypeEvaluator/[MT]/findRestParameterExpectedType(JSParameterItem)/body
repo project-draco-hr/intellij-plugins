@@ -13,30 +13,26 @@
   JSType classType=element instanceof JSClass ? JSNamedType.createType(((JSClass)element).getQualifiedName(),JSTypeSource.EMPTY,JSContext.INSTANCE) : null;
   if (classType != null && JSTypeUtils.isActionScriptVectorType(classType)) {
     String name=fun.getName();
-    String qualifiedExpressionType=null;
+    JSType qualifiedExpressionType=null;
     JSExpression methodExpression=((JSCallExpression)JSTypeUtils.getScopeInOriginalTree(myGrandParent).getParent()).getMethodExpression();
     if (methodExpression instanceof JSReferenceExpression) {
       JSExpression qualifier=((JSReferenceExpression)methodExpression).getQualifier();
       if (qualifier != null) {
-        qualifiedExpressionType=JSResolveUtil.getQualifiedExpressionType(qualifier,qualifier.getContainingFile());
+        qualifiedExpressionType=JSResolveUtil.getQualifiedExpressionJSType(qualifier,qualifier.getContainingFile());
       }
     }
     if (qualifiedExpressionType != null) {
       if ("push".equals(name) || "unshift".equals(name) || "splice".equals(name)) {
-        JSResolveUtil.GenericSignature signature=JSResolveUtil.extractGenericSignature(qualifiedExpressionType);
-        if (signature != null) {
-          myType=signature.genericType;
-          myScope=methodExpression;
+        if (qualifiedExpressionType instanceof JSGenericTypeImpl) {
+          myResult=ContainerUtil.getFirstItem(((JSGenericTypeImpl)qualifiedExpressionType).getArguments());
         }
       }
  else       if ("concat".equals(name)) {
-        myType=qualifiedExpressionType;
-        myScope=methodExpression;
+        myResult=qualifiedExpressionType;
       }
     }
   }
  else {
-    myType=JSCommonTypeNames.OBJECT_CLASS_NAME;
-    myScope=myParent;
+    myResult=createNamedType(JSCommonTypeNames.OBJECT_CLASS_NAME,myParent);
   }
 }

@@ -1,0 +1,20 @@
+{
+  String restrict=defaultRestrictions;
+  String tag="";
+  String param="";
+  StringBuilder attributes=new StringBuilder();
+  for (  String line : commentLines) {
+    restrict=getParamValue(restrict,line,RESTRICT);
+    tag=getParamValue(tag,line,ELEMENT);
+    final int start=line.indexOf(PARAM);
+    if (start >= 0) {
+      final JSDocumentationUtils.DocTag docTag=JSDocumentationUtils.getDocTag(line.substring(start));
+      if (docTag != null) {
+        param=docTag.matchValue != null ? docTag.matchValue : param;
+        if (attributes.length() > 0)         attributes.append(",");
+        attributes.append(docTag.matchName);
+      }
+    }
+  }
+  return restrict + ";" + tag+ ";"+ param.trim()+ ";"+ attributes.toString().trim();
+}

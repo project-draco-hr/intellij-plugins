@@ -14,22 +14,26 @@
         }
  else {
           progressIndicator.pushState();
-          process.run(new jetbrains.communicator.ide.ProgressIndicator(){
-            @Override public void setIndefinite(            boolean indefinite){
-              progressIndicator.setIndeterminate(indefinite);
+          try {
+            process.run(new jetbrains.communicator.ide.ProgressIndicator(){
+              @Override public void setIndefinite(              boolean indefinite){
+                progressIndicator.setIndeterminate(indefinite);
+              }
+              @Override public void setText(              String text){
+                progressIndicator.setText(text);
+              }
+              @Override public void setFraction(              double x){
+                progressIndicator.setFraction(x);
+              }
+              @Override public void checkCanceled(){
+                progressIndicator.checkCanceled();
+              }
             }
-            @Override public void setText(            String text){
-              progressIndicator.setText(text);
-            }
-            @Override public void setFraction(            double x){
-              progressIndicator.setFraction(x);
-            }
-            @Override public void checkCanceled(){
-              progressIndicator.checkCanceled();
-            }
-          }
 );
-          progressIndicator.popState();
+          }
+  finally {
+            progressIndicator.popState();
+          }
         }
       }
     }

@@ -1,0 +1,36 @@
+{
+  String message=getErrorMessage(obj);
+  if (message.startsWith(FAILED_TO_LOAD)) {
+    JsonElement elem=obj.get(JSON_TEST_ID);
+    if (elem != null && elem.isJsonPrimitive() && (myTestData.get(elem.getAsInt()) == null || !myTestData.get(elem.getAsInt()).hasValidParent())) {
+      return failedToLoad(message,elem.getAsInt());
+    }
+  }
+  Test test=getTest(obj);
+  setNotRunning(test);
+  String failureMessage=message;
+  ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(test.getBaseName());
+  ServiceMessageBuilder msg=ServiceMessageBuilder.testStdErr(test.getBaseName());
+  int firstExpectedIndex=message.indexOf(EXPECTED);
+  if (firstExpectedIndex >= 0) {
+    Matcher matcher=EXPECTED_ACTUAL_RESULT.matcher(message);
+    if (matcher.find(firstExpectedIndex + EXPECTED.length())) {
+      String expectedText=matcher.group(1);
+      String actualText=matcher.group(2);
+      testError.addAttribute("expected",expectedText);
+      testError.addAttribute("actual",actualText);
+      if (firstExpectedIndex == 0) {
+        failureMessage="Comparison failed";
+      }
+ else {
+        failureMessage=message.substring(0,firstExpectedIndex);
+      }
+    }
+  }
+  if (!getBoolean(obj,JSON_IS_FAILURE))   testError.addAttribute("error","true");
+  testError.addAttribute("message",failureMessage + NEWLINE);
+  msg.addAttribute("out",getStackTrace(obj));
+  long duration=getTestMillis(obj) - myStartMillis;
+  testError.addAttribute("duration",Long.toString(duration));
+  return finishMessage(testError,test.getId(),test.getValidParentId()) && finishMessage(msg,test.getId(),test.getValidParentId());
+}

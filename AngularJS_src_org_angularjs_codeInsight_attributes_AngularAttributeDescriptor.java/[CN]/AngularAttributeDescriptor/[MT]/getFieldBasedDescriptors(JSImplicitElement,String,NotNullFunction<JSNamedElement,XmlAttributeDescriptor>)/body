@@ -1,0 +1,19 @@
+{
+  final JSClass clazz=PsiTreeUtil.getParentOfType(declaration,JSClass.class);
+  if (clazz != null) {
+    JSVariable[] fields=clazz.getFields();
+    final List<XmlAttributeDescriptor> result=new ArrayList<XmlAttributeDescriptor>(fields.length);
+    for (    JSVariable field : fields) {
+      if (!hasDecorator(field,decorator))       continue;
+      result.add(factory.fun(field));
+    }
+    for (    JSFunction function : clazz.getFunctions()) {
+      if (!hasDecorator(function,decorator))       continue;
+      if (function.isSetProperty()) {
+        result.add(factory.fun(function));
+      }
+    }
+    return result.toArray(new XmlAttributeDescriptor[result.size()]);
+  }
+  return EMPTY;
+}

@@ -1,0 +1,20 @@
+{
+  final String componentName=component.getName();
+  if (componentName == null) {
+    return true;
+  }
+  if (!processor.execute(component)) {
+    return false;
+  }
+  if (component instanceof DartClass) {
+    for (    DartComponent subComponent : DartResolveUtil.getNamedSubComponents((DartClass)component)) {
+      if (subComponent.isConstructor() && componentName.equals(subComponent.getName())) {
+        continue;
+      }
+      if (!processor.execute(subComponent)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

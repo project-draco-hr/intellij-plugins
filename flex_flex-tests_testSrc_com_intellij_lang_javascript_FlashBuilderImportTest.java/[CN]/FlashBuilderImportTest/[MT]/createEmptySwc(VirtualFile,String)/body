@@ -1,5 +1,10 @@
 {
   final File jarFile=new File(dir.getPath(),name);
   new ZipOutputStream(new FileOutputStream(jarFile)).close();
-  return FlexUtils.addFileWithContent(name,FileUtil.loadFileBytes(jarFile),dir);
+  return ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile,IOException>(){
+    @Override public VirtualFile compute() throws IOException {
+      return FlexUtils.addFileWithContent(name,FileUtil.loadFileBytes(jarFile),dir);
+    }
+  }
+);
 }

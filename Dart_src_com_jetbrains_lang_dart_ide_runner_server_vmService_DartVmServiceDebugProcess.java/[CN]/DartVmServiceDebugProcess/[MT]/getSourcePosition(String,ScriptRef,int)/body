@@ -1,12 +1,18 @@
 {
   VirtualFile file=ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
     @Override public VirtualFile compute(){
-      final String uri=scriptRef.getUri();
+      String uri=scriptRef.getUri();
       if (myDASExecutionContextId != null && !isDartPatchUri(uri)) {
         final String path=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,null,uri);
         if (path != null) {
           return LocalFileSystem.getInstance().findFileByPath(path);
         }
+      }
+      final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
+      if (myRemoteDebug && myRemoteProjectRootUri != null && uri.startsWith(myRemoteProjectRootUri) && pubspec != null) {
+        final String localRootUri=StringUtil.trimEnd(myDartUrlResolver.getDartUrlForFile(pubspec.getParent()),'/');
+        LOG.assertTrue(localRootUri.startsWith(DartUrlResolver.FILE_PREFIX),localRootUri);
+        uri=localRootUri + uri.substring(myRemoteProjectRootUri.length());
       }
       return myDartUrlResolver.findFileByDartUrl(uri);
     }
@@ -15,9 +21,10 @@
   if (file == null) {
     file=myScriptIdToContentMap.get(scriptRef.getId());
   }
-  TIntIntHashMap tokenPosToLine=myScriptIdToLinesMap.get(scriptRef.getId());
-  if (file != null && tokenPosToLine != null) {
-    return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+  TIntObjectHashMap<Pair<Integer,Integer>> tokenPosToLineAndColumn=myScriptIdToLinesAndColumnsMap.get(scriptRef.getId());
+  if (file != null && tokenPosToLineAndColumn != null) {
+    final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+    return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
   }
   final Script script=myVmServiceWrapper.getScriptSync(isolateId,scriptRef.getId());
   if (script == null)   return null;
@@ -26,9 +33,10 @@
     ((LightVirtualFile)file).setWritable(false);
     myScriptIdToContentMap.put(scriptRef.getId(),(LightVirtualFile)file);
   }
-  if (tokenPosToLine == null) {
-    tokenPosToLine=createTokenPosToLineMap(script.getTokenPosTable());
-    myScriptIdToLinesMap.put(scriptRef.getId(),tokenPosToLine);
+  if (tokenPosToLineAndColumn == null) {
+    tokenPosToLineAndColumn=createTokenPosToLineAndColumnMap(script.getTokenPosTable());
+    myScriptIdToLinesAndColumnsMap.put(scriptRef.getId(),tokenPosToLineAndColumn);
   }
-  return XDebuggerUtil.getInstance().createPosition(file,tokenPosToLine.get(tokenPos));
+  final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+  return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
 }

@@ -1,0 +1,24 @@
+{
+  if (!myUnitTestMode) {
+    new Task.Backgroundable(myProject,message("bnd.import.resolve.task"),true){
+      @Override public void run(      @NotNull ProgressIndicator indicator){
+        if (resolve(indicator)) {
+          ApplicationManager.getApplication().invokeLater(new Runnable(){
+            @Override public void run(){
+              createProjectStructure();
+              if (refresh) {
+                VirtualFileManager.getInstance().asyncRefresh(null);
+              }
+            }
+          }
+,ModalityState.NON_MODAL);
+        }
+      }
+    }
+.queue();
+  }
+ else {
+    resolve(null);
+    createProjectStructure();
+  }
+}

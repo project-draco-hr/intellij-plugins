@@ -1,23 +1,22 @@
 {
   final DartComponent[] components=PsiTreeUtil.getChildrenOfType(context,DartComponent.class);
-  if (components == null) {
-    return;
-  }
-  for (  DartComponent component : components) {
-    final String componentName=component.getName();
-    if (componentName == null) {
-      continue;
-    }
-    if (component instanceof DartClass) {
-      for (      DartComponent subComponent : DartResolveUtil.getNamedSubComponents((DartClass)component)) {
-        if (!processor.execute(subComponent)) {
-          return;
-        }
+  if (components != null) {
+    for (    DartComponent component : components) {
+      if (!processComponent(processor,component)) {
+        return;
       }
     }
- else {
-      if (!processor.execute(component)) {
+  }
+  final DartVarDeclarationList[] varLists=PsiTreeUtil.getChildrenOfType(context,DartVarDeclarationList.class);
+  if (varLists != null) {
+    for (    DartVarDeclarationList varList : varLists) {
+      if (!processComponent(processor,varList.getVarAccessDeclaration())) {
         return;
+      }
+      for (      DartVarDeclarationListPart part : varList.getVarDeclarationListPartList()) {
+        if (!processComponent(processor,part)) {
+          return;
+        }
       }
     }
   }

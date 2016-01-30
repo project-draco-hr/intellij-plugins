@@ -1,0 +1,12 @@
+{
+  final VirtualFile file=DartResolveUtil.getRealVirtualFile(psiFile);
+  if (file == null || !file.isInLocalFileSystem())   return;
+  final VirtualFile pubspecFile=PubspecYamlUtil.findPubspecYamlFile(project,file);
+  if (pubspecFile == null)   return;
+  final Module module=ModuleUtilCore.findModuleForFile(file,project);
+  if (module == null)   return;
+  final AnAction pubGetAction=ActionManager.getInstance().getAction(myActionId);
+  if (pubGetAction instanceof DartPubActionBase) {
+    ((DartPubActionBase)pubGetAction).performPubAction(module,pubspecFile,false);
+  }
+}

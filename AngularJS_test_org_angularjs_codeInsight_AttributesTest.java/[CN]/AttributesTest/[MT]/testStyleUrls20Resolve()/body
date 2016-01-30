@@ -1,0 +1,14 @@
+{
+  JSTestUtils.testWithinLanguageLevel(JSLanguageLevel.ES6,myFixture.getProject(),new ThrowableRunnable<Exception>(){
+    @Override public void run() throws Exception {
+      myFixture.configureByFiles("custom.style.ts","angular2.js","custom.html");
+      int offsetBySignature=AngularTestUtil.findOffsetBySignature("styleUrls: ['<caret>",myFixture.getFile());
+      final PsiReference ref=myFixture.getFile().findReferenceAt(offsetBySignature);
+      assertNotNull(ref);
+      final PsiElement resolve=ref.resolve();
+      assertInstanceOf(resolve,PsiFile.class);
+      assertEquals("custom.html",((PsiFile)resolve).getName());
+    }
+  }
+);
+}

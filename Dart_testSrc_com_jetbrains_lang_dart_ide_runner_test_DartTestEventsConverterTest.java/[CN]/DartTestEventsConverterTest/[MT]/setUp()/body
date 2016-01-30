@@ -1,0 +1,18 @@
+{
+  super.setUp();
+  myNodes=new HashMap<Integer,DefaultMutableTreeNode>();
+  final ExecutionEnvironment environment=new ExecutionEnvironment();
+  myMockResettablePrinter=new MockPrinter(true);
+  TestConsoleProperties consoleProperties=createConsoleProperties();
+  myConsole=new MyConsoleView(consoleProperties,environment);
+  myConsole.initUI();
+  myResultsViewer=myConsole.getResultsViewer();
+  myEventsConverter=new DartTestEventsConverter(DartTestRunningState.DART_FRAMEWORK_NAME,consoleProperties);
+  myEventsProcessor=new DartTestEventsProcessor(consoleProperties.getProject(),DartTestRunningState.DART_FRAMEWORK_NAME);
+  myEventsProcessor.addEventsListener(myResultsViewer);
+  myEventsConverter.setProcessor(myEventsProcessor);
+  myTreeModel=myResultsViewer.getTreeView() == null ? null : (DefaultTreeModel)myResultsViewer.getTreeView().getModel();
+  assertNotNull(myTreeModel);
+  myParentNode=(DefaultMutableTreeNode)myTreeModel.getRoot();
+  myEventsProcessor.onStartTesting();
+}

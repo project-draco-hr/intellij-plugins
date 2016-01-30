@@ -1,0 +1,25 @@
+{
+  myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,vars.get(0).getValue().getClassRef().getId(),new GetObjectConsumer(){
+    @Override public void received(    Obj classObj){
+      final SmartList<FieldRef> staticFields=new SmartList<FieldRef>();
+      for (      FieldRef fieldRef : ((ClassObj)classObj).getFields()) {
+        if (fieldRef.isStatic()) {
+          staticFields.add(fieldRef);
+        }
+      }
+      if (!staticFields.isEmpty()) {
+        final XValueChildrenList list=new XValueChildrenList();
+        list.addTopGroup(new DartStaticFieldsGroup(myDebugProcess,myIsolateId,((ClassObj)classObj).getName(),staticFields));
+        node.addChildren(list,false);
+      }
+      addInstanceFieldsOfFirstVarAndOtherVars(node,vars);
+    }
+    @Override public void received(    Sentinel sentinel){
+      node.setErrorMessage(sentinel.getValueAsString());
+    }
+    @Override public void onError(    RPCError error){
+      node.setErrorMessage(error.getMessage());
+    }
+  }
+);
+}

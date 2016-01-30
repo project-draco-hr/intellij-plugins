@@ -10,17 +10,25 @@
     ourNotificationGroups.put(toolWindowId,notificationGroup);
   }
   myNotifications=notificationGroup;
-  File runFile=new File(myConfiguration.bndRunFile);
+  final File runFile=new File(myConfiguration.bndRunFile);
   if (!runFile.isFile()) {
-    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.invalid",runFile));
+    throw new CantRunException(message("bnd.run.configuration.invalid",runFile));
   }
   try {
-    myLauncher=Workspace.getRun(runFile).getProjectLauncher();
-    myLauncher.prepare();
+    String title=message("bnd.run.configuration.progress");
+    myLauncher=ProgressManager.getInstance().run(new Task.WithResult<ProjectLauncher,Exception>(myProject,title,false){
+      @Override protected ProjectLauncher compute(      @NotNull ProgressIndicator indicator) throws Exception {
+        indicator.setIndeterminate(true);
+        ProjectLauncher launcher=Workspace.getRun(runFile).getProjectLauncher();
+        launcher.prepare();
+        return launcher;
+      }
+    }
+);
   }
  catch (  Exception e) {
     LOG.info(e);
-    throw new CantRunException(OsmorcBundle.message("bnd.run.configuration.cannot.run",runFile,e.getMessage()));
+    throw new CantRunException(message("bnd.run.configuration.cannot.run",runFile,e.getMessage()));
   }
   myBundleStamps=ContainerUtil.newHashMap();
   bundlesChanged();

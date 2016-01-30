@@ -1,6 +1,16 @@
 {
-  FlexUtils.addFileWithContent(FlashBuilderImporter.DOT_FLEX_LIB_PROPERTIES,flexLibPropertiesFileContent,myFlashBuilderProjectDir);
-  importProject(actionScriptPropertiesFileContent);
+  ApplicationManager.getApplication().runWriteAction(new Runnable(){
+    @Override public void run(){
+      try {
+        addFileWithContent(FlashBuilderImporter.DOT_FLEX_LIB_PROPERTIES,flexLibPropertiesFileContent,myFlashBuilderProjectDir);
+        importProject(actionScriptPropertiesFileContent);
+      }
+ catch (      Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+);
   final String fbProjectName=getTestName(true);
   final FlexBuildConfiguration bc=getBC();
   assertEquals(expectedTargetPlatform,bc.getTargetPlatform());

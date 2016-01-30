@@ -1,0 +1,22 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(_filePath);
+  final List<HoverInformation> result=Lists.newArrayList();
+  final AnalysisServer server=myServer;
+  if (server == null) {
+    return HoverInformation.EMPTY_LIST;
+  }
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.analysis_getHover(filePath,offset,new GetHoverConsumer(){
+    @Override public void computedHovers(    HoverInformation[] hovers){
+      Collections.addAll(result,hovers);
+      latch.countDown();
+    }
+    @Override public void onError(    RequestError error){
+      logError("analysis_getHover()",filePath,error);
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_HOVER_TIMEOUT);
+  return result;
+}

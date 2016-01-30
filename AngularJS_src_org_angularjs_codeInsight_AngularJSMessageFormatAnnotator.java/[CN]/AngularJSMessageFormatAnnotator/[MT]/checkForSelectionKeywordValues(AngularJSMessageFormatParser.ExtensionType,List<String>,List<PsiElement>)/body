@@ -1,0 +1,31 @@
+{
+  if (AngularJSMessageFormatParser.ExtensionType.plural.equals(type)) {
+    final Map<String,String> errors=new HashMap<String,String>();
+    for (    String keyword : keywords) {
+      if (keyword.startsWith("=")) {
+        try {
+          Integer.parseInt(keyword.substring(1));
+        }
+ catch (        NumberFormatException e) {
+          errors.put(keyword,"Integer expected after =");
+        }
+      }
+ else {
+        try {
+          AngularJSPluralCategories.valueOf(keyword);
+        }
+ catch (        IllegalArgumentException e) {
+          errors.put(keyword,"Expected plural category");
+        }
+      }
+    }
+    if (!errors.isEmpty()) {
+      for (      PsiElement element : elements) {
+        final String errorText=errors.get(element.getText());
+        if (errorText != null) {
+          myHolder.createErrorAnnotation(element,errorText);
+        }
+      }
+    }
+  }
+}

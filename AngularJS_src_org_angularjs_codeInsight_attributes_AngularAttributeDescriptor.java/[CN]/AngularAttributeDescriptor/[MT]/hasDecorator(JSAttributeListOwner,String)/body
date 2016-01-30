@@ -1,0 +1,17 @@
+{
+  final JSAttributeList list=field.getAttributeList();
+  if (list != null) {
+    for (    PsiElement candidate : list.getChildren()) {
+      if (candidate instanceof ES7Decorator) {
+        final PsiElement child=candidate.getLastChild();
+        if (child instanceof JSCallExpression) {
+          final JSExpression expression=((JSCallExpression)child).getMethodExpression();
+          if (expression instanceof JSReferenceExpression && JSSymbolUtil.isAccurateReferenceExpressionName((JSReferenceExpression)expression,name)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}

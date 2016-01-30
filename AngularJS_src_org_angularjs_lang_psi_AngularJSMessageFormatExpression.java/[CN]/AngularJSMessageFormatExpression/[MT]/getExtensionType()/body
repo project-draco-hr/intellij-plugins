@@ -1,0 +1,19 @@
+{
+  final Ref<PsiElement> ref=new Ref<PsiElement>();
+  PsiTreeUtil.processElements(this,new PsiElementProcessor(){
+    @Override public boolean execute(    @NotNull PsiElement element){
+      final boolean isExpressionName=element.getNode().getElementType() == AngularJSElementTypes.MESSAGE_FORMAT_EXPRESSION_NAME;
+      ref.set(element);
+      return !isExpressionName;
+    }
+  }
+);
+  final PsiElement typeElement=getExtensionTypeElement();
+  if (typeElement == null)   return null;
+  try {
+    return AngularJSMessageFormatParser.ExtensionType.valueOf(typeElement.getText());
+  }
+ catch (  IllegalArgumentException e) {
+    return null;
+  }
+}

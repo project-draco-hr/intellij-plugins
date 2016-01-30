@@ -1,11 +1,13 @@
 {
-  final ElementList<BoundVariable> vars=myVmFrame.getVars();
-  final XValueChildrenList childrenList=new XValueChildrenList(vars.size() + 1);
   if (myException != null) {
-    childrenList.add(new DartVmServiceValue(myDebugProcess,myIsolateId,"exception",myException,true));
+    final DartVmServiceValue exception=new DartVmServiceValue(myDebugProcess,myIsolateId,"exception",myException,null,true);
+    node.addChildren(XValueChildrenList.singleton(exception),false);
   }
-  for (  BoundVariable var : vars) {
-    childrenList.add(new DartVmServiceValue(myDebugProcess,myIsolateId,var.getName(),var.getValue()));
+  final ElementList<BoundVariable> vars=myVmFrame.getVars();
+  if (vars.size() > 0 && "this".equals(vars.get(0).getName())) {
+    addStaticAndInstanceFieldsOfFirstVarAndOtherVars(node,vars);
   }
-  node.addChildren(childrenList,true);
+ else {
+    addVars(node,vars,0);
+  }
 }

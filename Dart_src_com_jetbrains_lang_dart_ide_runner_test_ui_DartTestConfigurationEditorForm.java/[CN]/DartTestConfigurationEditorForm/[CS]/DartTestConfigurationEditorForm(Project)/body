@@ -1,6 +1,13 @@
 {
   myProject=project;
   DartCommandLineConfigurationEditorForm.initDartFileTextWithBrowse(project,myFileField);
+  myDirField.addBrowseFolderListener(DartBundle.message("choose.dart.directory"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
+  myDirField.addActionListener(new ActionListener(){
+    @Override public void actionPerformed(    ActionEvent e){
+      onTestDirChanged(project);
+    }
+  }
+);
   myWorkingDirectory.addBrowseFolderListener(ExecutionBundle.message("select.working.directory.message"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   myScopeCombo.setModel(new EnumComboBoxModel<Scope>(Scope.class));
   myScopeCombo.setRenderer(new ListCellRendererWrapper<Scope>(){
@@ -22,10 +29,18 @@
     }
   }
 ;
+  final DocumentAdapter dirListener=new DocumentAdapter(){
+    @Override protected void textChanged(    final DocumentEvent e){
+      onTestDirChanged(project);
+    }
+  }
+;
   myFileField.getTextField().getDocument().addDocumentListener(documentListener);
+  myDirField.getTextField().getDocument().addDocumentListener(dirListener);
   myTestNameField.getDocument().addDocumentListener(documentListener);
   myVMOptions.setDialogCaption(DartBundle.message("config.vmoptions.caption"));
   myArguments.setDialogCaption(DartBundle.message("config.progargs.caption"));
   myTestFileLabel.setPreferredSize(myEnvironmentVariables.getLabel().getPreferredSize());
+  myDirLabel.setPreferredSize(myEnvironmentVariables.getLabel().getPreferredSize());
   myEnvironmentVariables.setAnchor(myTestFileLabel);
 }

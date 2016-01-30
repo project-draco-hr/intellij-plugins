@@ -1,0 +1,24 @@
+{
+  DartTestEventsConverter parser=myEventsConverter;
+  Key key=new Key("stdout");
+  for (  String event : jsonEvents) {
+    try {
+      parser.process(event,key);
+    }
+ catch (    JsonSyntaxException ex) {
+    }
+  }
+  assertEquals(signals.length,myEventsProcessor.signals.size());
+  int index=0;
+  for (  String signal : myEventsProcessor.signals) {
+    assertEquals(signals[index++],signal);
+  }
+  for (int childIdx=0; childIdx < parents.length; childIdx++) {
+    int parentIdx=parents[childIdx];
+    if (parentIdx > 0) {
+      DefaultMutableTreeNode child=myNodes.get(childIdx);
+      DefaultMutableTreeNode parent=myNodes.get(parentIdx);
+      assertEquals(parent,child.getParent());
+    }
+  }
+}

@@ -9,10 +9,10 @@
       commandLine.addParameter(vmOption);
       try {
         if (vmOption.startsWith("--enable-vm-service:")) {
-          customObservatoryPort=Integer.parseInt(vmOption.substring("--enable-vm-service:".length()));
+          customObservatoryPort=parseIntBeforeSlash(vmOption.substring("--enable-vm-service:".length()));
         }
         if (vmOption.startsWith("--observe:")) {
-          customObservatoryPort=Integer.parseInt(vmOption.substring("--observe:".length()));
+          customObservatoryPort=parseIntBeforeSlash(vmOption.substring("--observe:".length()));
         }
       }
  catch (      NumberFormatException ignore) {
@@ -24,7 +24,7 @@
   }
   final VirtualFile dartFile;
   try {
-    dartFile=runnerParameters.getDartFile();
+    dartFile=runnerParameters.getDartFileOrDirectory();
   }
  catch (  RuntimeConfigurationError e) {
     throw new ExecutionException(e);
@@ -46,7 +46,7 @@
   if (customObservatoryPort > 0) {
     myObservatoryPort=customObservatoryPort;
   }
- else {
+ else   if (!(myRunnerParameters instanceof DartTestRunnerParameters)) {
     myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
     commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
   }
