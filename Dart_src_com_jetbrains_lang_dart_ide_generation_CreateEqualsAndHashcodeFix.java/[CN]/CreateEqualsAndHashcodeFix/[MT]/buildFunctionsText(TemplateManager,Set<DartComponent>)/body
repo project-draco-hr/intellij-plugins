@@ -1,0 +1,38 @@
+{
+  final Template template=templateManager.createTemplate(getClass().getName(),DART_TEMPLATE_GROUP);
+  template.setToReformat(true);
+  final boolean doInsertOverrideAnnotation=CodeStyleSettingsManager.getSettings(myDartClass.getProject()).INSERT_OVERRIDE_ANNOTATION;
+  if (doInsertOverrideAnnotation) {
+    template.addTextSegment("@override\n");
+  }
+  template.addTextSegment("bool operator==(Object other) {\n");
+  template.addTextSegment("if (identical(this, other)) {\nreturn true;\n}\n");
+  template.addTextSegment("return other is " + myDartClass.getName());
+  for (  DartComponent component : elementsToProcess) {
+    template.addTextSegment(" &&\n");
+    template.addTextSegment("this." + component.getName() + " == other."+ component.getName());
+  }
+  template.addTextSegment(";\n}\n");
+  if (doInsertOverrideAnnotation) {
+    template.addTextSegment("@override\n");
+  }
+  template.addTextSegment("int get hashCode {\n");
+  if (elementsToProcess.isEmpty()) {
+    template.addTextSegment("return 0;");
+  }
+ else {
+    template.addTextSegment("return ");
+    for (Iterator<DartComponent> iterator=elementsToProcess.iterator(); iterator.hasNext(); ) {
+      DartComponent component=iterator.next();
+      template.addTextSegment(component.getName() + ".hashCode");
+      if (iterator.hasNext()) {
+        template.addTextSegment(" ^");
+      }
+    }
+    template.addTextSegment(";\n");
+  }
+  template.addTextSegment("}");
+  template.addEndVariable();
+  template.addTextSegment("\n");
+  return template;
+}
