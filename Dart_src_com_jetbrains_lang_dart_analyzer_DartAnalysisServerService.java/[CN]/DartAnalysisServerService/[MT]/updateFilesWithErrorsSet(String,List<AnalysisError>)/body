@@ -1,0 +1,33 @@
+{
+  boolean hasProblems=false;
+  for (  AnalysisError error : errors) {
+    if (AnalysisErrorSeverity.ERROR.equals(error.getSeverity()) || AnalysisErrorSeverity.WARNING.equals(error.getSeverity())) {
+      hasProblems=true;
+      break;
+    }
+  }
+synchronized (myFilePathsWithErrors) {
+    if (hasProblems) {
+      if (myFilePathsWithErrors.add(filePath)) {
+        String parentPath=PathUtil.getParentPath(filePath);
+        while (!parentPath.isEmpty()) {
+          final int count=myFolderPathsWithErrors.get(parentPath);
+          myFolderPathsWithErrors.put(parentPath,count + 1);
+          parentPath=PathUtil.getParentPath(parentPath);
+        }
+      }
+    }
+ else {
+      if (myFilePathsWithErrors.remove(filePath)) {
+        String parentPath=PathUtil.getParentPath(filePath);
+        while (!parentPath.isEmpty()) {
+          final int count=myFolderPathsWithErrors.remove(parentPath);
+          if (count > 1) {
+            myFolderPathsWithErrors.put(parentPath,count - 1);
+          }
+          parentPath=PathUtil.getParentPath(parentPath);
+        }
+      }
+    }
+  }
+}
