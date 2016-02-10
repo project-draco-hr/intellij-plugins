@@ -1,16 +1,13 @@
 {
   if (getBoolean(obj,JSON_HIDDEN))   return true;
   String result=getResult(obj);
-  if (result.equals(RESULT_SUCCESS)) {
-    return eventFinished(obj);
-  }
- else   if (result.equals(RESULT_FAILURE)) {
-    return true;
-  }
- else   if (result.equals(RESULT_ERROR)) {
-    return true;
-  }
- else {
+  if (!result.equals(RESULT_SUCCESS) && !result.equals(RESULT_FAILURE) && !result.equals(RESULT_ERROR)) {
     throw new ParseException("Unknown result: " + obj,0);
   }
+  Test test=getTest(obj);
+  setNotRunning(test);
+  long duration=getTestMillis(obj) - myStartMillis;
+  ServiceMessageBuilder testFinished=ServiceMessageBuilder.testFinished(test.getBaseName());
+  testFinished.addAttribute("duration",Long.toString(duration));
+  return finishMessage(testFinished,test.getId(),test.getValidParentId());
 }
