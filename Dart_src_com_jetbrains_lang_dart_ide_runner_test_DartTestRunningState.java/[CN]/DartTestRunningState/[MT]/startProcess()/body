@@ -15,15 +15,23 @@
     throw new ExecutionException("Cannot find test file: " + filePath,ex);
   }
   StringBuilder builder=new StringBuilder();
-  builder.append(RUN_COMMAND).append(' ').append(TEST_PACKAGE_SPEC);
-  builder.append(' ').append(EXPANDED_REPORTER_OPTION);
-  if (filePath != null) {
-    builder.append(' ').append(filePath);
+  builder.append(RUN_COMMAND);
+  final boolean projectWithoutPubspec=Registry.is("dart.projects.without.pubspec",false);
+  final String targetName=params.getTargetName();
+  if (projectWithoutPubspec && params.getScope() == Scope.FOLDER && targetName != null && !targetName.isEmpty()) {
+    builder.append(" ").append(":").append(targetName).append(" ").append(EXPANDED_REPORTER_OPTION);
   }
-  String testName=params.getTestName();
-  if (testName != null && !testName.isEmpty() && params.getScope().expectsTestName()) {
-    String safeName=StringUtil.escapeToRegexp(testName);
-    builder.append(' ').append(NAME_REGEX_OPTION).append(' ').append('"').append(safeName).append('"');
+ else {
+    builder.append(' ').append(TEST_PACKAGE_SPEC);
+    builder.append(' ').append(EXPANDED_REPORTER_OPTION);
+    if (filePath != null) {
+      builder.append(' ').append(filePath);
+    }
+    String testName=params.getTestName();
+    if (testName != null && !testName.isEmpty() && params.getScope().expectsTestName()) {
+      String safeName=StringUtil.escapeToRegexp(testName);
+      builder.append(' ').append(NAME_REGEX_OPTION).append(' ').append('"').append(safeName).append('"');
+    }
   }
   params.setArguments(builder.toString());
   params.setWorkingDirectory(DartProjectTemplate.getWorkingDirForDartScript(project,dartFile));
