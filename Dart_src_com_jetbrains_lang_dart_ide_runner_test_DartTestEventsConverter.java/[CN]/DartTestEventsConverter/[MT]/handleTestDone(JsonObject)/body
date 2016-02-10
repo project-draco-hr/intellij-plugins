@@ -5,9 +5,9 @@
     throw new ParseException("Unknown result: " + obj,0);
   }
   Test test=getTest(obj);
-  setNotRunning(test);
+  test.testDone();
   long duration=getTestMillis(obj) - myStartMillis;
   ServiceMessageBuilder testFinished=ServiceMessageBuilder.testFinished(test.getBaseName());
   testFinished.addAttribute("duration",Long.toString(duration));
-  return finishMessage(testFinished,test.getId(),test.getValidParentId());
+  return finishMessage(testFinished,test.getId(),test.getValidParentId()) && checkGroupDone(test.getParent());
 }
