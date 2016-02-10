@@ -1,0 +1,14 @@
+{
+  final JSClass clazz=PsiTreeUtil.getParentOfType(decorator,JSClass.class);
+  if (clazz != null) {
+    final JSFunction constructor=clazz.getConstructor();
+    final JSParameterList params=constructor != null ? constructor.getParameterList() : null;
+    return params != null && params.getText().contains(TEMPLATE_REF);
+  }
+  final PsiElement parent=decorator.getParent();
+  if (parent instanceof JSArrayLiteralExpression) {
+    final JSCallExpression metadata=PsiTreeUtil.getNextSiblingOfType(decorator,JSCallExpression.class);
+    return metadata != null && metadata.getText().contains(TEMPLATE_REF);
+  }
+  return false;
+}

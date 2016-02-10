@@ -1,0 +1,18 @@
+{
+  JSTestUtils.testWithinLanguageLevel(JSLanguageLevel.ES6,myFixture.getProject(),new ThrowableRunnable<Exception>(){
+    @Override public void run() throws Exception {
+      myFixture.configureByFiles("noTemplate.html","angular2.js","noTemplate.ts");
+      int offsetBySignature=AngularTestUtil.findOffsetBySignature("myHover<caret>List",myFixture.getFile());
+      PsiReference ref=myFixture.getFile().findReferenceAt(offsetBySignature);
+      assertNotNull(ref);
+      PsiElement resolve=ref.resolve();
+      assertNotNull(resolve);
+      assertEquals("noTemplate.ts",resolve.getContainingFile().getName());
+      offsetBySignature=AngularTestUtil.findOffsetBySignature("*myHover<caret>List",myFixture.getFile());
+      ref=myFixture.getFile().findReferenceAt(offsetBySignature);
+      assertNotNull(ref);
+      assertNull(ref.resolve());
+    }
+  }
+);
+}
