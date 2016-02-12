@@ -1,0 +1,16 @@
+{
+  final int idx=myFixture.getEditor().getDocument().getText().indexOf("ui-sref=\"" + state + "\"");
+  Assert.assertTrue(idx > 0);
+  final PsiElement inObj=file.findElementAt(idx);
+  Assert.assertNotNull(inObj);
+  Assert.assertEquals("ui-sref",inObj.getText());
+  Assert.assertTrue(inObj.getParent() instanceof XmlAttribute);
+  final XmlAttributeValue element=((XmlAttribute)inObj.getParent()).getValueElement();
+  Assert.assertNotNull(element);
+  final PsiReference reference=element.getReference();
+  Assert.assertEquals(state,reference.getCanonicalText());
+  final PsiElement resolve=reference.resolve();
+  Assert.assertNotNull(resolve);
+  Assert.assertEquals("appStates.js",resolve.getContainingFile().getName());
+  Assert.assertEquals(state,((JSPsiNamedElementBase)resolve).getName());
+}
