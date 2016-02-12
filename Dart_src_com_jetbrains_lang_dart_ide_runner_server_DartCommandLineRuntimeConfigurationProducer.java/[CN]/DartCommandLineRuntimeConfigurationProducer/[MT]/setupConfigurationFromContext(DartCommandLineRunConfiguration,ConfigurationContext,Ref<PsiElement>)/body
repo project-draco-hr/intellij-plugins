@@ -1,11 +1,11 @@
 {
   final VirtualFile dartFile=getRunnableDartFileFromContext(context,true);
-  if (dartFile != null) {
-    configuration.getRunnerParameters().setFilePath(dartFile.getPath());
-    configuration.getRunnerParameters().setWorkingDirectory(DartCommandLineRunnerParameters.suggestDartWorkingDir(context.getProject(),dartFile));
-    configuration.setGeneratedName();
-    sourceElement.set(sourceElement.isNull() ? null : sourceElement.get().getContainingFile());
-    return true;
+  if (dartFile == null || DartTestRunConfigurationProducer.isFileInTestDirAndTestPackageExists(context.getProject(),dartFile)) {
+    return false;
   }
-  return false;
+  configuration.getRunnerParameters().setFilePath(dartFile.getPath());
+  configuration.getRunnerParameters().setWorkingDirectory(DartCommandLineRunnerParameters.suggestDartWorkingDir(context.getProject(),dartFile));
+  configuration.setGeneratedName();
+  sourceElement.set(sourceElement.isNull() ? null : sourceElement.get().getContainingFile());
+  return true;
 }
