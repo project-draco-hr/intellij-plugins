@@ -1,8 +1,9 @@
 {
   super(env);
   myRunnerParameters=((DartRunConfigurationBase)env.getRunProfile()).getRunnerParameters().clone();
+  final Project project=env.getProject();
   try {
-    myRunnerParameters.check(env.getProject());
+    myRunnerParameters.check(project);
   }
  catch (  RuntimeConfigurationError e) {
     throw new ExecutionException(e);
@@ -12,12 +13,10 @@
     ((TextConsoleBuilderImpl)builder).setUsePredefinedMessageFilter(false);
   }
   try {
-    builder.addFilter(new DartConsoleFilter(env.getProject(),myRunnerParameters.getDartFileOrDirectory()));
-    final String workingDir=myRunnerParameters.computeProcessWorkingDirectory();
-    builder.addFilter(new DartRelativePathsConsoleFilter(env.getProject(),workingDir));
+    builder.addFilter(new DartConsoleFilter(project,myRunnerParameters.getDartFileOrDirectory()));
+    builder.addFilter(new DartRelativePathsConsoleFilter(project,myRunnerParameters.computeProcessWorkingDirectory(project)));
     builder.addFilter(new UrlFilter());
   }
  catch (  RuntimeConfigurationError e) {
-    builder.addFilter(new DartConsoleFilter(env.getProject(),null));
   }
 }

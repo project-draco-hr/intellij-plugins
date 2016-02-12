@@ -1,19 +1,8 @@
 {
   Project project=getEnvironment().getProject();
   DartSdk sdk=DartSdk.getDartSdk(project);
-  if (sdk == null) {
-    throw new ExecutionException("Dart SDK cannot be found");
-  }
-  String sdkPath=sdk.getHomePath();
+  if (sdk == null)   throw new ExecutionException("Dart SDK cannot be found");
   DartTestRunnerParameters params=(DartTestRunnerParameters)myRunnerParameters;
-  VirtualFile dartFile;
-  final String filePath=params.getFilePath();
-  try {
-    dartFile=params.getDartFileOrDirectory();
-  }
- catch (  RuntimeConfigurationError ex) {
-    throw new ExecutionException("Cannot find test file: " + filePath,ex);
-  }
   StringBuilder builder=new StringBuilder();
   builder.append(RUN_COMMAND);
   final boolean projectWithoutPubspec=Registry.is("dart.projects.without.pubspec",false);
@@ -24,9 +13,7 @@
  else {
     builder.append(' ').append(TEST_PACKAGE_SPEC);
     builder.append(' ').append(EXPANDED_REPORTER_OPTION);
-    if (filePath != null) {
-      builder.append(' ').append(filePath);
-    }
+    builder.append(' ').append(params.getFilePath());
     String testName=params.getTestName();
     if (testName != null && !testName.isEmpty() && params.getScope().expectsTestName()) {
       String safeName=StringUtil.escapeToRegexp(testName);
@@ -34,6 +21,6 @@
     }
   }
   params.setArguments(builder.toString());
-  params.setWorkingDirectory(DartProjectTemplate.getWorkingDirForDartScript(project,dartFile));
-  return doStartProcess(pathToDartUrl(sdkPath + PUB_SNAPSHOT_PATH));
+  params.setWorkingDirectory(params.computeProcessWorkingDirectory(project));
+  return doStartProcess(pathToDartUrl(sdk.getHomePath() + PUB_SNAPSHOT_PATH));
 }
