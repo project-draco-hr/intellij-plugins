@@ -1,0 +1,21 @@
+{
+  return PlatformPatterns.psiElement(JSProperty.class).and(new FilterPattern(new ElementFilter(){
+    @Override public boolean isAcceptable(    Object element,    @Nullable PsiElement context){
+      if (element instanceof JSProperty) {
+        final JSProperty property=(JSProperty)element;
+        final PsiElement mustBeObject=property.getParent();
+        if (mustBeObject instanceof JSObjectLiteralExpression) {
+          final PsiElement viewsProperty=mustBeObject.getParent();
+          if (viewsProperty instanceof JSProperty && "views".equals(((JSProperty)viewsProperty).getName())) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    @Override public boolean isClassAcceptable(    Class hintClass){
+      return true;
+    }
+  }
+));
+}

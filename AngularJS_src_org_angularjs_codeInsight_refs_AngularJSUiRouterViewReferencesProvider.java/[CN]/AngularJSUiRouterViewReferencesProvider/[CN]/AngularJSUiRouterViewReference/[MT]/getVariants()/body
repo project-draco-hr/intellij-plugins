@@ -1,0 +1,15 @@
+{
+  final FileBasedIndex instance=FileBasedIndex.getInstance();
+  final Project project=getElement().getProject();
+  final Collection<String> keys=instance.getAllKeys(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,project);
+  final List<LookupElement> elements=new ArrayList<LookupElement>();
+  for (  String key : keys) {
+    if (StringUtil.isEmptyOrSpaces(key)) {
+      continue;
+    }
+    final LookupElementBuilder builder=LookupElementBuilder.create(key).withTailText(" (angular-ui-router ui-view)",true);
+    final LookupElement item=PrioritizedLookupElement.withPriority(builder,JSLookupPriority.LOCAL_SCOPE_MAX_PRIORITY);
+    elements.add(item);
+  }
+  return elements.toArray(new LookupElement[elements.size()]);
+}

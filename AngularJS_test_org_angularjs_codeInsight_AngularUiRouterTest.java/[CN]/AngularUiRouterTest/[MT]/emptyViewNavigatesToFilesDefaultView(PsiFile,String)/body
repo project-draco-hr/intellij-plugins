@@ -1,0 +1,21 @@
+{
+  final int idx=myFixture.getEditor().getDocument().getText().indexOf(str);
+  Assert.assertTrue(idx > 0);
+  final PsiElement inObj=file.findElementAt(idx);
+  Assert.assertNotNull(inObj);
+  Assert.assertTrue(inObj.getParent() instanceof JSLiteralExpression);
+  Assert.assertTrue(inObj.getParent().getParent() instanceof JSProperty);
+  final JSProperty templateUrl=(JSProperty)inObj.getParent().getParent();
+  Assert.assertEquals("templateUrl",templateUrl.getName());
+  final PsiElement parentProperty=templateUrl.getParent().getParent();
+  Assert.assertTrue(parentProperty instanceof JSProperty);
+  final PsiReference reference=parentProperty.getReference();
+  Assert.assertNotNull(reference);
+  Assert.assertEquals("",reference.getCanonicalText());
+  final PsiElement resolve=reference.resolve();
+  Assert.assertNotNull(resolve);
+  Assert.assertEquals(StringUtil.unquoteString(str),resolve.getContainingFile().getName());
+  Assert.assertEquals("",((JSPsiNamedElementBase)resolve).getName());
+  final PsiElement element=((JSOffsetBasedImplicitElement)resolve).getElementAtOffset();
+  Assert.assertEquals("ui-view",element.getText());
+}
