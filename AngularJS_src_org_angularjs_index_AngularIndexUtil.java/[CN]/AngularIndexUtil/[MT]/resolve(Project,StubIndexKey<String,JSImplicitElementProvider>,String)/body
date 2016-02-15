@@ -1,11 +1,17 @@
 {
   final Ref<JSImplicitElement> result=new Ref<JSImplicitElement>(null);
-  final Consumer<JSImplicitElement> consumer=new Consumer<JSImplicitElement>(){
-    @Override public void consume(    JSImplicitElement element){
-      result.set(element);
+  final Processor<JSImplicitElement> processor=new Processor<JSImplicitElement>(){
+    @Override public boolean process(    JSImplicitElement element){
+      if (element.getName().equals(lookupKey) && (index == AngularInjectionDelimiterIndex.KEY || AngularJSIndexingHandler.isAngularRestrictions(element.getTypeString()))) {
+        result.set(element);
+        if (DialectDetector.isTypeScript(element)) {
+          return false;
+        }
+      }
+      return true;
     }
   }
 ;
-  multiResolve(project,index,lookupKey,consumer);
+  multiResolve(project,index,lookupKey,processor);
   return result.get();
 }
