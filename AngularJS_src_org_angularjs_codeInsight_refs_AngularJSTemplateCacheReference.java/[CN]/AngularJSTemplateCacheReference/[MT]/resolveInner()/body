@@ -16,5 +16,13 @@
     }
 );
   }
+  if (result.isNull()) {
+    final String normalized=id.replace('\\','/');
+    final String[] parts=normalized.split("/");
+    final PsiFile[] filesByName=FilenameIndex.getFilesByName(project,parts[parts.length - 1],GlobalSearchScope.projectScope(project));
+    for (    PsiFile file : filesByName) {
+      if (file.getVirtualFile().getPath().endsWith(normalized))       return file;
+    }
+  }
   return result.get();
 }
