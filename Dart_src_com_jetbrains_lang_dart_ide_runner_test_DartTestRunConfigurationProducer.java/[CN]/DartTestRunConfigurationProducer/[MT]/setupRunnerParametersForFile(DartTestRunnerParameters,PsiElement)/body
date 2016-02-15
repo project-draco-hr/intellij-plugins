@@ -1,12 +1,12 @@
 {
   if (psiElement instanceof DartCallExpression) {
-    final String testName=TestUtil.findTestName((DartCallExpression)psiElement);
+    final String testName=TestUtil.findGroupOrTestName((DartCallExpression)psiElement);
     final List<VirtualFile> virtualFiles=DartResolveUtil.findLibrary(psiElement.getContainingFile());
     if (testName == null || virtualFiles.isEmpty()) {
       return false;
     }
     runnerParams.setTestName(testName);
-    runnerParams.setScope(TestUtil.isTest((DartCallExpression)psiElement) ? Scope.METHOD : Scope.GROUP);
+    runnerParams.setScope(DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME);
     final VirtualFile dartFile=virtualFiles.iterator().next();
     final String dartFilePath=dartFile.getPath();
     runnerParams.setFilePath(dartFilePath);
@@ -20,7 +20,7 @@
         return false;
       }
       runnerParams.setTestName(DartResolveUtil.getLibraryName((DartFile)psiElement));
-      runnerParams.setScope(Scope.FILE);
+      runnerParams.setScope(DartTestRunnerParameters.Scope.FILE);
       final String dartFilePath=FileUtil.toSystemIndependentName(virtualFile.getPath());
       runnerParams.setFilePath(dartFilePath);
       return true;

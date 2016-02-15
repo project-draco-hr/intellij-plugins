@@ -1,5 +1,4 @@
 {
-  myProject=project;
   DartCommandLineConfigurationEditorForm.initDartFileTextWithBrowse(project,myFileField);
   myDirField.addBrowseFolderListener(DartBundle.message("choose.dart.directory"),null,project,FileChooserDescriptorFactory.createSingleFolderDescriptor());
   myDirField.addActionListener(new ActionListener(){
@@ -8,9 +7,9 @@
     }
   }
 );
-  myScopeCombo.setModel(new EnumComboBoxModel<Scope>(Scope.class));
-  myScopeCombo.setRenderer(new ListCellRendererWrapper<Scope>(){
-    @Override public void customize(    final JList list,    final Scope value,    final int index,    final boolean selected,    final boolean hasFocus){
+  myScopeCombo.setModel(new DefaultComboBoxModel<DartTestRunnerParameters.Scope>(new DartTestRunnerParameters.Scope[]{FOLDER,FILE,GROUP_OR_TEST_BY_NAME}));
+  myScopeCombo.setRenderer(new ListCellRendererWrapper<DartTestRunnerParameters.Scope>(){
+    @Override public void customize(    final JList list,    final DartTestRunnerParameters.Scope value,    final int index,    final boolean selected,    final boolean hasFocus){
       setText(value.getPresentableName());
     }
   }
@@ -18,25 +17,16 @@
   myScopeCombo.addActionListener(new ActionListener(){
     @Override public void actionPerformed(    ActionEvent e){
       onScopeChanged();
-      onTestNameChanged();
     }
   }
 );
-  final DocumentAdapter documentListener=new DocumentAdapter(){
-    @Override protected void textChanged(    final DocumentEvent e){
-      onTestNameChanged();
-    }
-  }
-;
   final DocumentAdapter dirListener=new DocumentAdapter(){
     @Override protected void textChanged(    final DocumentEvent e){
       onTestDirChanged(project);
     }
   }
 ;
-  myFileField.getTextField().getDocument().addDocumentListener(documentListener);
   myDirField.getTextField().getDocument().addDocumentListener(dirListener);
-  myTestNameField.getDocument().addDocumentListener(documentListener);
   myTestFileLabel.setPreferredSize(myEnvironmentVariables.getLabel().getPreferredSize());
   myDirLabel.setPreferredSize(myEnvironmentVariables.getLabel().getPreferredSize());
   myEnvironmentVariables.setAnchor(myTestFileLabel);
