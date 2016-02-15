@@ -1,0 +1,19 @@
+{
+  final String referenceText=StringUtil.unquoteString(element.getText());
+  final String normalized=referenceText.replace('\\','/');
+  final String[] parts=normalized.split("/");
+  final PsiFile[] byName=FilenameIndex.getFilesByName(element.getProject(),parts[parts.length - 1],GlobalSearchScope.projectScope(element.getProject()));
+  for (  PsiFile file : byName) {
+    PsiFileSystemItem current=file;
+    boolean found=true;
+    for (int i=parts.length - 1; i >= 0; i--) {
+      if (current == null || !parts[i].equals(current.getName())) {
+        found=false;
+        break;
+      }
+      current=current.getParent();
+    }
+    if (found)     return Collections.singleton(current);
+  }
+  return null;
+}
