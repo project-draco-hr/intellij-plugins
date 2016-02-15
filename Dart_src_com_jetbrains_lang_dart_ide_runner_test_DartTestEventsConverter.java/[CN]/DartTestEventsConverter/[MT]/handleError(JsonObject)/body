@@ -1,33 +1,46 @@
 {
-  String message=getErrorMessage(obj);
-  if (message.startsWith(FAILED_TO_LOAD)) {
-    JsonElement elem=obj.get(JSON_TEST_ID);
-    if (elem != null && elem.isJsonPrimitive() && (myTestData.get(elem.getAsInt()) == null || !myTestData.get(elem.getAsInt()).hasValidParent())) {
-      return failedToLoad(message,elem.getAsInt());
-    }
+  final Test test=getTest(obj);
+  final String message=getErrorMessage(obj);
+  boolean result=true;
+  if (!test.myTestStartReported) {
+    final ServiceMessageBuilder testStarted=ServiceMessageBuilder.testStarted(test.getBaseName());
+    test.myTestStartReported=true;
+    result=finishMessage(testStarted,test.getId(),test.getValidParentId());
   }
-  Test test=getTest(obj);
-  final ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(test.getBaseName());
-  String failureMessage=message;
-  int firstExpectedIndex=message.indexOf(EXPECTED);
-  if (firstExpectedIndex >= 0) {
-    Matcher matcher=EXPECTED_ACTUAL_RESULT.matcher(message);
-    if (matcher.find(firstExpectedIndex + EXPECTED.length())) {
-      String expectedText=matcher.group(1);
-      String actualText=matcher.group(2);
-      testError.addAttribute("expected",expectedText);
-      testError.addAttribute("actual",actualText);
-      if (firstExpectedIndex == 0) {
-        failureMessage="Comparison failed";
-      }
+  if (test.myTestErrorReported) {
+    final ServiceMessageBuilder testErrorMessage=ServiceMessageBuilder.testStdErr(test.getBaseName());
+    testErrorMessage.addAttribute("out",appendLineBreakIfNeeded(message));
+    result&=finishMessage(testErrorMessage,test.getId(),test.getValidParentId());
+  }
  else {
-        failureMessage=message.substring(0,firstExpectedIndex);
+    final ServiceMessageBuilder testError=ServiceMessageBuilder.testFailed(test.getBaseName());
+    test.myTestErrorReported=true;
+    String failureMessage=message;
+    int firstExpectedIndex=message.indexOf(EXPECTED);
+    if (firstExpectedIndex >= 0) {
+      Matcher matcher=EXPECTED_ACTUAL_RESULT.matcher(message);
+      if (matcher.find(firstExpectedIndex + EXPECTED.length())) {
+        String expectedText=matcher.group(1);
+        String actualText=matcher.group(2);
+        testError.addAttribute("expected",expectedText);
+        testError.addAttribute("actual",actualText);
+        if (firstExpectedIndex == 0) {
+          failureMessage="Comparison failed";
+        }
+ else {
+          failureMessage=message.substring(0,firstExpectedIndex);
+        }
       }
     }
+    if (!getBoolean(obj,JSON_IS_FAILURE))     testError.addAttribute("error","true");
+    testError.addAttribute("message",appendLineBreakIfNeeded(failureMessage));
+    result&=finishMessage(testError,test.getId(),test.getValidParentId());
   }
-  if (!getBoolean(obj,JSON_IS_FAILURE))   testError.addAttribute("error","true");
-  testError.addAttribute("message",failureMessage + NEWLINE);
-  final ServiceMessageBuilder testStdErr=ServiceMessageBuilder.testStdErr(test.getBaseName());
-  testStdErr.addAttribute("out",getStackTrace(obj));
-  return finishMessage(testError,test.getId(),test.getValidParentId()) && finishMessage(testStdErr,test.getId(),test.getValidParentId());
+  final String stackTrace=getStackTrace(obj);
+  if (!StringUtil.isEmptyOrSpaces(stackTrace)) {
+    final ServiceMessageBuilder stackTraceMessage=ServiceMessageBuilder.testStdErr(test.getBaseName());
+    stackTraceMessage.addAttribute("out",appendLineBreakIfNeeded(stackTrace));
+    result&=finishMessage(stackTraceMessage,test.getId(),test.getValidParentId());
+  }
+  return result;
 }

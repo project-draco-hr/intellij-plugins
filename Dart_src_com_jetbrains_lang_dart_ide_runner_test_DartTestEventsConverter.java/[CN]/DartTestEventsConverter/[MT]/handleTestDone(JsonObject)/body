@@ -1,10 +1,10 @@
 {
-  if (getBoolean(obj,JSON_HIDDEN))   return true;
+  final Test test=getTest(obj);
+  if (!test.myTestStartReported)   return true;
   String result=getResult(obj);
   if (!result.equals(RESULT_SUCCESS) && !result.equals(RESULT_FAILURE) && !result.equals(RESULT_ERROR)) {
     throw new ParseException("Unknown result: " + obj,0);
   }
-  Test test=getTest(obj);
   test.testDone();
   ServiceMessageBuilder testFinished=ServiceMessageBuilder.testFinished(test.getBaseName());
   long duration=getTimestamp(obj) - myTestIdToTimestamp.get(test.getId());

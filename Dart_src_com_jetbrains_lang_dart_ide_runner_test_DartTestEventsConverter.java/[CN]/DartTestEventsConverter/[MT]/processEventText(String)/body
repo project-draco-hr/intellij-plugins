@@ -6,7 +6,11 @@
   }
  catch (  JsonSyntaxException ex) {
     if (text.contains("\"json\" is not an allowed value for option \"reporter\"")) {
-      failedToLoad("Please update your pubspec.yaml dependency on package:test to version 0.12.7 or later.",0);
+      final ServiceMessageBuilder testStarted=ServiceMessageBuilder.testStarted("Failed to start");
+      final ServiceMessageBuilder testFailed=ServiceMessageBuilder.testFailed("Failed to start");
+      testFailed.addAttribute("message","Please update your pubspec.yaml dependency on package:test to version 0.12.9 or later.");
+      final ServiceMessageBuilder testFinished=ServiceMessageBuilder.testFinished("Failed to start");
+      return finishMessage(testStarted,1,0) & finishMessage(testFailed,1,0) & finishMessage(testFinished,1,0);
     }
     return doProcessServiceMessages(text);
   }
