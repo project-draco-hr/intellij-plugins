@@ -1,0 +1,16 @@
+{
+  if (myInterpolationLexer != null) {
+    myInterpolationLexer.advance();
+    if (myInterpolationLexer.getTokenType() != null) {
+      return;
+    }
+    myInterpolationLexer=null;
+  }
+  super.advance();
+  final IElementType type=super.getTokenType();
+  if (type == XmlTokenType.XML_DATA_CHARACTERS || type == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+    final Lexer lexer=createLexer(type);
+    lexer.start(super.getTokenText());
+    myInterpolationLexer=lexer;
+  }
+}
