@@ -13,6 +13,21 @@ synchronized (myLock) {
         Uninterruptibles.sleepUninterruptibly(CHECK_CANCELLED_PERIOD,TimeUnit.MILLISECONDS);
       }
     }
-    onServerStopped();
+    stopShowingServerProgress();
+    myServerSocket=null;
+    myServer=null;
+    mySdkHome=null;
+    myFilePathWithOverlaidContentToTimestamp.clear();
+    myVisibleFiles.clear();
+    myChangedDocuments.clear();
+    myServerData.clearData();
+    final List<Project> projects=new ArrayList<Project>(myRootsHandler.getTrackedProjects());
+    myRootsHandler.reset();
+    ApplicationManager.getApplication().invokeLater(new Runnable(){
+      @Override public void run(){
+        clearAllErrors(projects);
+      }
+    }
+,ModalityState.NON_MODAL);
   }
 }
