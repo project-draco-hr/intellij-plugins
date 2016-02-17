@@ -1,7 +1,7 @@
 {
   commandLine.addParameter("--ignore-unrecognized-flags");
   int customObservatoryPort=-1;
-  final String vmOptions=runnerParameters.getVMOptions();
+  final String vmOptions=myRunnerParameters.getVMOptions();
   if (vmOptions != null) {
     final StringTokenizer vmOptionsTokenizer=new CommandLineTokenizer(vmOptions);
     while (vmOptionsTokenizer.hasMoreTokens()) {
@@ -19,17 +19,17 @@
       }
     }
   }
-  if (runnerParameters.isCheckedMode()) {
+  if (myRunnerParameters.isCheckedMode()) {
     commandLine.addParameter(DartiumUtil.CHECKED_MODE_OPTION);
   }
   final VirtualFile dartFile;
   try {
-    dartFile=runnerParameters.getDartFileOrDirectory();
+    dartFile=myRunnerParameters.getDartFileOrDirectory();
   }
  catch (  RuntimeConfigurationError e) {
     throw new ExecutionException(e);
   }
-  final VirtualFile packageRoot=DartUrlResolver.getInstance(project,dartFile).getPackageRoot();
+  final VirtualFile packageRoot=DartUrlResolver.getInstance(getEnvironment().getProject(),dartFile).getPackageRoot();
   if (packageRoot != null) {
     commandLine.addParameter("--package-root=" + FileUtil.toSystemDependentName(packageRoot.getPath()));
   }
@@ -48,16 +48,14 @@
   }
  else   if (!(myRunnerParameters instanceof DartTestRunnerParameters)) {
     myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
-    if (runner instanceof DartCoverageProgramRunner) {
-      commandLine.addParameter("--observe:" + myObservatoryPort);
-    }
- else {
-      commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
+    commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
+    if (getEnvironment().getRunner() instanceof DartCoverageProgramRunner) {
+      commandLine.addParameter("--pause-isolates-on-exit");
     }
   }
   commandLine.addParameter("--trace_service_pause_events");
   commandLine.addParameter(FileUtil.toSystemDependentName(overriddenMainFilePath == null ? dartFile.getPath() : overriddenMainFilePath));
-  final String arguments=runnerParameters.getArguments();
+  final String arguments=myRunnerParameters.getArguments();
   if (arguments != null) {
     StringTokenizer argumentsTokenizer=new CommandLineTokenizer(arguments);
     while (argumentsTokenizer.hasMoreTokens()) {
