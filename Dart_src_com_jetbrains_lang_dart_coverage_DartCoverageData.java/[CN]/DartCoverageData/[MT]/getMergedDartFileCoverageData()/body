@@ -1,0 +1,29 @@
+{
+  Map<String,SortedMap<Integer,Integer>> mergedCoverageData=new HashMap<String,SortedMap<Integer,Integer>>();
+  List<DartFileCoverageData> coverageData=getCoverage();
+  if (coverageData != null) {
+    for (    DartFileCoverageData item : coverageData) {
+      String source=item.getSource();
+      if (source == null) {
+        continue;
+      }
+      if (!mergedCoverageData.containsKey(source)) {
+        mergedCoverageData.put(source,new TreeMap<Integer,Integer>());
+      }
+      SortedMap<Integer,Integer> fileData=mergedCoverageData.get(source);
+      List<Integer> hits=item.getHits();
+      if (hits == null) {
+        continue;
+      }
+      for (int i=0; i < hits.size(); i+=2) {
+        Integer lineNumber=hits.get(i);
+        Integer hitCount=hits.get(i + 1);
+        if (!fileData.containsKey(lineNumber)) {
+          fileData.put(lineNumber,0);
+        }
+        fileData.put(lineNumber,fileData.get(lineNumber) + hitCount);
+      }
+    }
+  }
+  return mergedCoverageData;
+}
