@@ -37,6 +37,10 @@
       return null;
     }
     DartCoverageData data=new Gson().fromJson(new BufferedReader(new FileReader(sessionDataFile)),DartCoverageData.class);
+    if (data == null) {
+      LOG.warn("Coverage file does not contain valid data.");
+      return null;
+    }
     ProjectData projectData=new ProjectData();
     for (    Map.Entry<String,SortedMap<Integer,Integer>> entry : data.getMergedDartFileCoverageData().entrySet()) {
       String filePath=getFileForUri(contextId,entry.getKey());
@@ -60,6 +64,10 @@
     return projectData;
   }
  catch (  FileNotFoundException e) {
+    LOG.warn(e);
+    return null;
+  }
+catch (  JsonSyntaxException e) {
     LOG.warn(e);
     return null;
   }
