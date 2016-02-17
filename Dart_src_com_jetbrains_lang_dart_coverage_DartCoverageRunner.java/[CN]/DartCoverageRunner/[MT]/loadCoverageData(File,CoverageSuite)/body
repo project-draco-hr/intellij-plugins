@@ -2,7 +2,7 @@
   if (baseCoverageSuite == null || !(baseCoverageSuite instanceof DartCoverageSuite)) {
     return null;
   }
-  DartCoverageSuite coverageSuite=(DartCoverageSuite)baseCoverageSuite;
+  final DartCoverageSuite coverageSuite=(DartCoverageSuite)baseCoverageSuite;
   VirtualFile contextFile=coverageSuite.getContextFile();
   if (contextFile == null) {
     return null;
@@ -12,17 +12,29 @@
     return null;
   }
   try {
-    for (int i=0; i < 10; i++) {
-      LOG.warn(new Date().getTime() + ":" + sessionDataFile.length()+ ","+ sessionDataFile.exists());
-      if (sessionDataFile.length() > 0) {
-        break;
+    final ProgressManager pm=ProgressManager.getInstance();
+    final ProcessHandler coverageProcess=coverageSuite.getCoverageProcess();
+    if (coverageProcess == null) {
+      return null;
+    }
+    boolean result=pm.runProcessWithProgressSynchronously(new Runnable(){
+      @Override public void run(){
+        ProgressIndicator progress=pm.getProgressIndicator();
+        for (int i=0; i < 10; ++i) {
+          if (progress.isCanceled()) {
+            return;
+          }
+          if (coverageProcess.waitFor(100)) {
+            return;
+          }
+        }
       }
-      try {
-        Thread.sleep(100);
-      }
- catch (      InterruptedException e) {
-        LOG.warn("Sleep interrupted.");
-      }
+    }
+,"Loading Coverage Data...",true,coverageSuite.getProject());
+    if (!result || !coverageProcess.isProcessTerminated()) {
+      coverageProcess.destroyProcess();
+      LOG.warn("Load coverage process didn't finish correctly.");
+      return null;
     }
     DartCoverageData data=new Gson().fromJson(new BufferedReader(new FileReader(sessionDataFile)),DartCoverageData.class);
     ProjectData projectData=new ProjectData();

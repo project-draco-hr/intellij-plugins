@@ -6,14 +6,16 @@
     throw new ExecutionException(DartBundle.message("dart.sdk.is.not.configured"));
   }
   final String dartPubPath=DartSdkUtil.getPubPath(sdk);
-  CoverageEnabledConfiguration coverageEnabledConfiguration=CoverageEnabledConfiguration.getOrCreate(runConfiguration);
-  String coverageFilePath=coverageEnabledConfiguration.getCoverageFilePath();
+  DartCoverageEnabledConfiguration config=(DartCoverageEnabledConfiguration)CoverageEnabledConfiguration.getOrCreate(runConfiguration);
+  String coverageFilePath=config.getCoverageFilePath();
   RunContentDescriptor result=super.doExecute(state,env);
   if (result == null) {
     return null;
   }
   GeneralCommandLine cmdline=new GeneralCommandLine().withExePath(dartPubPath).withParameters("global","run","coverage:collect_coverage","-p",Integer.toString(((DartCommandLineRunningState)state).getObservatoryPort()),"-o",coverageFilePath,"-r","-w");
-  cmdline.createProcess();
+  ProcessHandler coverageProcess=new OSProcessHandler(cmdline);
+  coverageProcess.startNotify();
+  config.setCoverageProcess(coverageProcess);
   ProcessHandler resultProcessHandler=result.getProcessHandler();
   if (resultProcessHandler != null) {
     CoverageHelper.attachToProcess(runConfiguration,resultProcessHandler,env.getRunnerSettings());
