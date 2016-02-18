@@ -3,12 +3,25 @@
     final Map<String,XmlAttributeDescriptor> result=new LinkedHashMap<String,XmlAttributeDescriptor>();
     final Project project=xmlTag.getProject();
     final XmlElementDescriptor descriptor=xmlTag.getDescriptor();
-    if (descriptor instanceof HtmlElementDescriptorImpl && AngularIndexUtil.hasAngularJS2(project)) {
-      final XmlAttributeDescriptor[] descriptors=((HtmlElementDescriptorImpl)descriptor).getDefaultAttributeDescriptors(xmlTag);
-      for (      XmlAttributeDescriptor attributeDescriptor : descriptors) {
-        final String name=attributeDescriptor.getName();
-        if (name.startsWith("on")) {
-          addAttributes(project,result,"(" + name.substring(2) + ")");
+    final Collection<String> directives=AngularIndexUtil.getAllKeys(AngularDirectivesIndex.KEY,project);
+    if (AngularIndexUtil.hasAngularJS2(project)) {
+      if (descriptor instanceof HtmlElementDescriptorImpl) {
+        final XmlAttributeDescriptor[] descriptors=((HtmlElementDescriptorImpl)descriptor).getDefaultAttributeDescriptors(xmlTag);
+        for (        XmlAttributeDescriptor attributeDescriptor : descriptors) {
+          final String name=attributeDescriptor.getName();
+          if (name.startsWith("on")) {
+            addAttributes(project,result,"(" + name.substring(2) + ")");
+          }
+        }
+      }
+      for (      XmlAttribute attribute : xmlTag.getAttributes()) {
+        final String name=attribute.getName();
+        if (isAngular2Attribute(name,project) || !directives.contains(name))         continue;
+        final PsiElement declaration=AngularIndexUtil.resolve(project,AngularDirectivesIndex.KEY,name);
+        if (declaration != null) {
+          for (          XmlAttributeDescriptor binding : AngularAttributeDescriptor.getFieldBasedDescriptors((JSImplicitElement)declaration)) {
+            result.put(binding.getName(),binding);
+          }
         }
       }
     }
@@ -18,7 +31,7 @@
         addAttributes(project,result,directiveName);
       }
     }
-    for (    String directiveName : AngularIndexUtil.getAllKeys(AngularDirectivesIndex.KEY,project)) {
+    for (    String directiveName : directives) {
       if (!docDirectives.contains(directiveName) && isApplicable(project,directiveName,xmlTag,AngularDirectivesIndex.KEY) == ThreeState.YES) {
         addAttributes(project,result,directiveName);
       }
