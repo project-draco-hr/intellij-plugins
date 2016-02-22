@@ -1,0 +1,17 @@
+{
+  final String mainFile="controllerRedefinitionSyntax.navigation.js";
+  final PsiFile[] files=myFixture.configureByFiles(mainFile,"one.html","two.html","angular.js");
+  myFixture.doHighlighting();
+  final String str="'testMe as something'";
+  final PsiElement element=getElement(files[0],str);
+  Assert.assertEquals(str,element.getText());
+  Assert.assertTrue(element.getParent() instanceof JSLiteralExpression);
+  Assert.assertTrue(element.getParent().getParent() instanceof JSProperty);
+  final PsiReference[] references=element.getParent().getReferences();
+  Assert.assertEquals(1,references.length);
+  Assert.assertEquals("testMe",references[0].getCanonicalText());
+  final PsiElement resolve=references[0].resolve();
+  Assert.assertNotNull(resolve);
+  Assert.assertEquals(mainFile,resolve.getContainingFile().getName());
+  Assert.assertEquals("testMe",((JSPsiNamedElementBase)resolve).getName());
+}
