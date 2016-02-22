@@ -1,14 +1,28 @@
 {
-  return PlatformPatterns.psiElement(JSProperty.class).and(new FilterPattern(new ElementFilter(){
+  return PlatformPatterns.psiElement(PsiElement.class).and(new FilterPattern(new ElementFilter(){
     @Override public boolean isAcceptable(    Object element,    @Nullable PsiElement context){
       if (element instanceof JSProperty) {
         final JSProperty property=(JSProperty)element;
-        final PsiElement mustBeObject=property.getParent();
-        if (mustBeObject instanceof JSObjectLiteralExpression) {
-          final PsiElement viewsProperty=mustBeObject.getParent();
-          if (viewsProperty instanceof JSProperty && "views".equals(((JSProperty)viewsProperty).getName())) {
-            return AngularIndexUtil.hasAngularJS(property.getProject());
-          }
+        if (checkParentViewsObject(property.getParent()))         return AngularIndexUtil.hasAngularJS(property.getProject());
+      }
+ else       if (element instanceof JSLiteralExpression || element instanceof LeafPsiElement && ((LeafPsiElement)element).getNode().getElementType() == JSTokenTypes.STRING_LITERAL) {
+        final PsiElement current=moveUpChain((PsiElement)element,JSLiteralExpression.class,JSReferenceExpression.class,JSProperty.class,JSObjectLiteralExpression.class);
+        if (current != null && checkParentViewsObject(current))         return AngularIndexUtil.hasAngularJS(current.getProject());
+      }
+      return false;
+    }
+    private PsiElement moveUpChain(    @Nullable final PsiElement element,    @NotNull final Class<? extends PsiElement>... clazz){
+      PsiElement current=element;
+      for (      Class<? extends PsiElement> aClass : clazz) {
+        current=current != null && aClass.isInstance(current.getParent()) ? current.getParent() : current;
+      }
+      return current;
+    }
+    private boolean checkParentViewsObject(    final PsiElement mustBeObject){
+      if (mustBeObject instanceof JSObjectLiteralExpression) {
+        final PsiElement viewsProperty=mustBeObject.getParent();
+        if (viewsProperty instanceof JSProperty && "views".equals(((JSProperty)viewsProperty).getName())) {
+          return true;
         }
       }
       return false;
