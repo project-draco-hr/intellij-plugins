@@ -1,9 +1,11 @@
 {
-  if (DartUrlResolver.DART_SCHEME.equals(url.getScheme())) {
-    return DartUrlResolver.findFileInDartSdkLibFolder(project,DartSdk.getDartSdk(project),DartUrlResolver.DART_PREFIX + url.getPath());
+  final String scheme=url.getScheme();
+  final String path=url.getPath();
+  if (DartUrlResolver.DART_SCHEME.equals(scheme)) {
+    return DartUrlResolver.findFileInDartSdkLibFolder(project,DartSdk.getDartSdk(project),DartUrlResolver.DART_PREFIX + path);
   }
-  if (DartUrlResolver.PACKAGE_SCHEME.equals(url.getScheme())) {
-    final String packageUrl=DartUrlResolver.PACKAGE_PREFIX + url.getPath();
+  if (DartUrlResolver.PACKAGE_SCHEME.equals(scheme)) {
+    final String packageUrl=DartUrlResolver.PACKAGE_PREFIX + path;
     final VirtualFile contextFile=findContextFile(project,requestor);
     if (contextFile != null) {
       return ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
@@ -24,6 +26,11 @@
       }
 );
     }
+  }
+  final int sdkUrlMarkerIndex=path.indexOf(SDK_URL_MARKER);
+  if ("http".equalsIgnoreCase(scheme) && sdkUrlMarkerIndex >= 0) {
+    final String relPath=path.substring(sdkUrlMarkerIndex + SDK_URL_MARKER.length());
+    return DartUrlResolver.findFileInDartSdkLibFolder(project,DartSdk.getDartSdk(project),DartUrlResolver.DART_PREFIX + relPath);
   }
   return null;
 }
