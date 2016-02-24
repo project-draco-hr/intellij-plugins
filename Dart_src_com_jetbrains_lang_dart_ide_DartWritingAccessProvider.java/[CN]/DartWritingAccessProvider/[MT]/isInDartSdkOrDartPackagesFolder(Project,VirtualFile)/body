@@ -1,4 +1,10 @@
 {
   final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(project).getFileIndex();
-  return !fileIndex.isInContent(file) || fileIndex.isExcluded(file) || isInDartPackagesFolder(fileIndex,file);
+  if (fileIndex.isInLibraryClasses(file) && !fileIndex.isInContent(file)) {
+    return true;
+  }
+  if (fileIndex.isExcluded(file) || (fileIndex.isInContent(file) && isInDartPackagesFolder(fileIndex,file))) {
+    return true;
+  }
+  return false;
 }
