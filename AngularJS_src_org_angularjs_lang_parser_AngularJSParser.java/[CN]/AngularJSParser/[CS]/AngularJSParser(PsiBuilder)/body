@@ -16,12 +16,25 @@
           return;
         }
       }
+      if (firstToken == AngularJSTokenTypes.HASH) {
+        parseNgForStatement();
+        return;
+      }
       if (builder.getTokenType() == JSTokenTypes.LPAR) {
         if (parseInStatement()) {
           return;
         }
       }
       super.doParseStatement(canHaveClasses);
+    }
+    private boolean parseNgForStatement(){
+      PsiBuilder.Marker statement=builder.mark();
+      if (!getExpressionParser().parseForExpression()) {
+        statement.drop();
+        return false;
+      }
+      statement.done(JSElementTypes.EXPRESSION_STATEMENT);
+      return true;
     }
     private boolean parseInStatement(){
       PsiBuilder.Marker statement=builder.mark();
