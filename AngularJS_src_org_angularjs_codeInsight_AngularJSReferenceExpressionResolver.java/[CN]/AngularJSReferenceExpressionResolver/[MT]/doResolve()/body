@@ -1,6 +1,16 @@
 {
   if (myReferencedName == null)   return ResolveResult.EMPTY_ARRAY;
   if (myRef.getParent() instanceof JSDefinitionExpression) {
+    final AngularJSRepeatExpression repeat=PsiTreeUtil.getParentOfType(myRef,AngularJSRepeatExpression.class);
+    if (repeat != null) {
+      for (      JSDefinitionExpression def : repeat.getDefinitions()) {
+        if (PsiTreeUtil.isAncestor(def,myRef,true))         return new JSResolveResult[]{new JSResolveResult(myRef)};
+      }
+    }
+    final AngularJSAsExpression as=PsiTreeUtil.getParentOfType(myRef,AngularJSAsExpression.class);
+    if (as != null) {
+      if (PsiTreeUtil.isAncestor(as.getDefinition(),myRef,true))       return new JSResolveResult[]{new JSResolveResult(myRef)};
+    }
     return ResolveResult.EMPTY_ARRAY;
   }
   if (AngularJSAsExpression.isAsControllerRef(myRef,myRef.getParent())) {
