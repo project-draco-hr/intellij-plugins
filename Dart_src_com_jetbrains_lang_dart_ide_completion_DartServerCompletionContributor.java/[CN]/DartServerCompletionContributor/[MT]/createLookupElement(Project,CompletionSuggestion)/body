@@ -2,9 +2,14 @@
   final Element element=suggestion.getElement();
   final Location location=element == null ? null : element.getLocation();
   final DartLookupObject lookupObject=new DartLookupObject(project,location,suggestion.getRelevance());
-  LookupElementBuilder lookup=LookupElementBuilder.create(lookupObject,suggestion.getCompletion());
+  final String lookupString=suggestion.getCompletion();
+  LookupElementBuilder lookup=LookupElementBuilder.create(lookupObject,lookupString);
   if (suggestion.getKind().equals(CompletionSuggestionKind.KEYWORD)) {
     lookup=lookup.bold();
+  }
+  final int dotIndex=lookupString.indexOf('.');
+  if (dotIndex > 0 && dotIndex < lookupString.length() - 1 && StringUtil.isJavaIdentifier(lookupString.substring(0,dotIndex)) && StringUtil.isJavaIdentifier(lookupString.substring(dotIndex + 1))) {
+    lookup=lookup.withLookupString(lookupString.substring(dotIndex + 1));
   }
   boolean shouldSetSelection=true;
   if (element != null) {
