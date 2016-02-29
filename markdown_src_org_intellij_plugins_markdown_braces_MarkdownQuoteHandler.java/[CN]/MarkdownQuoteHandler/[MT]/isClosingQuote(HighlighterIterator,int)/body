@@ -1,6 +1,13 @@
 {
   final CharSequence charsSequence=iterator.getDocument().getCharsSequence();
   final TextRange current=getRangeOfThisType(charsSequence,offset);
-  final int prev=locateNextPosition(charsSequence,charsSequence.charAt(offset),current.getStartOffset() - 1,-1);
-  return prev != -1 && getRangeOfThisType(charsSequence,prev).getLength() <= current.getLength();
+  final boolean isBacktick=iterator.getTokenType() == MarkdownTokenTypes.BACKTICK;
+  final boolean seekPrev=isBacktick || (current.getStartOffset() - 1 >= 0 && !Character.isWhitespace(charsSequence.charAt(current.getStartOffset() - 1)));
+  if (seekPrev) {
+    final int prev=locateNextPosition(charsSequence,charsSequence.charAt(offset),current.getStartOffset() - 1,-1);
+    if (prev != -1) {
+      return getRangeOfThisType(charsSequence,prev).getLength() <= current.getLength();
+    }
+  }
+  return current.getLength() % 2 == 0 && (!isBacktick || offset > (current.getStartOffset() + current.getEndOffset()) / 2);
 }

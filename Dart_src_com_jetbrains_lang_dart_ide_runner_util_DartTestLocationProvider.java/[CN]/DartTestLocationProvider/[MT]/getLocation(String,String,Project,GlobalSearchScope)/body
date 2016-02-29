@@ -8,5 +8,9 @@
     return NONE;
   }
   final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
-  return getLocation(project,pathToNodes(names),psiFile);
+  final List<String> nodes=pathToNodes(names);
+  if (psiFile instanceof DartFile && nodes.isEmpty()) {
+    return Collections.<Location>singletonList(new PsiLocation<PsiElement>(psiFile));
+  }
+  return getLocation(project,nodes,psiFile);
 }

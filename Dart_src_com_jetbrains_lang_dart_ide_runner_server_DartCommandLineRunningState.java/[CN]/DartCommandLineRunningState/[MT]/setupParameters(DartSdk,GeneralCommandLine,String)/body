@@ -1,0 +1,68 @@
+{
+  commandLine.addParameter("--ignore-unrecognized-flags");
+  int customObservatoryPort=-1;
+  final String vmOptions=myRunnerParameters.getVMOptions();
+  if (vmOptions != null) {
+    final StringTokenizer vmOptionsTokenizer=new CommandLineTokenizer(vmOptions);
+    while (vmOptionsTokenizer.hasMoreTokens()) {
+      final String vmOption=vmOptionsTokenizer.nextToken();
+      commandLine.addParameter(vmOption);
+      try {
+        if (vmOption.equals("--enable-vm-service") || vmOption.equals("--observe")) {
+          customObservatoryPort=8181;
+        }
+ else         if (vmOption.startsWith("--enable-vm-service:")) {
+          customObservatoryPort=parseIntBeforeSlash(vmOption.substring("--enable-vm-service:".length()));
+        }
+ else         if (vmOption.startsWith("--observe:")) {
+          customObservatoryPort=parseIntBeforeSlash(vmOption.substring("--observe:".length()));
+        }
+      }
+ catch (      NumberFormatException ignore) {
+      }
+    }
+  }
+  if (myRunnerParameters.isCheckedMode()) {
+    commandLine.addParameter(DartiumUtil.CHECKED_MODE_OPTION);
+  }
+  final VirtualFile dartFile;
+  try {
+    dartFile=myRunnerParameters.getDartFileOrDirectory();
+  }
+ catch (  RuntimeConfigurationError e) {
+    throw new ExecutionException(e);
+  }
+  final VirtualFile packageRoot=DartUrlResolver.getInstance(getEnvironment().getProject(),dartFile).getPackageRoot();
+  if (packageRoot != null) {
+    commandLine.addParameter("--package-root=" + FileUtil.toSystemDependentName(packageRoot.getPath()));
+  }
+  if (DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId())) {
+    if (StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0) {
+      myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
+      commandLine.addParameter("--debug:" + myDebuggingPort);
+      commandLine.addParameter("--break-at-isolate-spawn");
+    }
+ else {
+      commandLine.addParameter("--pause_isolates_on_start");
+    }
+  }
+  if (customObservatoryPort > 0) {
+    myObservatoryPort=customObservatoryPort;
+  }
+ else   if (!(myRunnerParameters instanceof DartTestRunnerParameters)) {
+    myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
+    commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
+    if (getEnvironment().getRunner() instanceof DartCoverageProgramRunner) {
+      commandLine.addParameter("--pause-isolates-on-exit");
+    }
+  }
+  commandLine.addParameter("--trace_service_pause_events");
+  commandLine.addParameter(FileUtil.toSystemDependentName(overriddenMainFilePath == null ? dartFile.getPath() : overriddenMainFilePath));
+  final String arguments=myRunnerParameters.getArguments();
+  if (arguments != null) {
+    StringTokenizer argumentsTokenizer=new CommandLineTokenizer(arguments);
+    while (argumentsTokenizer.hasMoreTokens()) {
+      commandLine.addParameter(argumentsTokenizer.nextToken());
+    }
+  }
+}

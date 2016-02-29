@@ -1,8 +1,13 @@
 {
-  final PsiElement testElement=TestUtil.findTestElement(context.getPsiLocation());
-  if (testElement == null)   return false;
-  final DartTestRunnerParameters paramsFromContext=new DartTestRunnerParameters();
-  if (!setupRunConfiguration(paramsFromContext,testElement))   return false;
   final DartTestRunnerParameters existingParams=configuration.getRunnerParameters();
-  return Comparing.equal(existingParams.getFilePath(),paramsFromContext.getFilePath()) && Comparing.equal(existingParams.getScope(),paramsFromContext.getScope()) && (!existingParams.getScope().expectsTestName() || Comparing.equal(existingParams.getTestName(),paramsFromContext.getTestName()));
+  final DartTestRunnerParameters paramsFromContext=new DartTestRunnerParameters();
+  final PsiElement location=context.getPsiLocation();
+  if (location instanceof PsiDirectory) {
+    if (!setupRunnerParametersForFolder(paramsFromContext,((PsiDirectory)location).getVirtualFile()))     return false;
+  }
+ else {
+    final PsiElement testElement=TestUtil.findTestElement(location);
+    if (testElement == null || !setupRunnerParametersForFile(paramsFromContext,testElement))     return false;
+  }
+  return Comparing.equal(existingParams.getFilePath(),paramsFromContext.getFilePath()) && Comparing.equal(existingParams.getScope(),paramsFromContext.getScope()) && (existingParams.getScope() != DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME || Comparing.equal(existingParams.getTestName(),paramsFromContext.getTestName()));
 }

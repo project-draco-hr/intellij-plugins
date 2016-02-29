@@ -1,0 +1,17 @@
+{
+  file.accept(new AngularJSRecursiveVisitor(){
+    @Override public void visitJSDefinitionExpression(    JSDefinitionExpression node){
+      myResult.add(node);
+      super.visitJSDefinitionExpression(node);
+    }
+    @Override public void visitAngularJSRepeatExpression(    AngularJSRepeatExpression repeatExpression){
+      if (repeatExpression.getNode().getElementType() == AngularJSElementTypes.REPEAT_EXPRESSION) {
+        for (        Map.Entry<String,String> entry : NG_REPEAT_IMPLICITS.entrySet()) {
+          myResult.add(new ImplicitJSVariableImpl(entry.getKey(),entry.getValue(),repeatExpression));
+        }
+      }
+      super.visitAngularJSRepeatExpression(repeatExpression);
+    }
+  }
+);
+}

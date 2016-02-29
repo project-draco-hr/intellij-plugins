@@ -4,6 +4,11 @@
   if (CodeStyleSettingsManager.getSettings(element.getProject()).INSERT_OVERRIDE_ANNOTATION) {
     template.addTextSegment("@override\n");
   }
+  final boolean isField=element instanceof DartVarAccessDeclaration || element instanceof DartVarDeclarationListPart;
+  if (isField && element.isFinal()) {
+    template.addTextSegment("final");
+    template.addTextSegment(" ");
+  }
   final DartReturnType returnType=PsiTreeUtil.getChildOfType(element,DartReturnType.class);
   final DartType dartType=PsiTreeUtil.getChildOfType(element,DartType.class);
   if (returnType != null) {
@@ -13,6 +18,21 @@
  else   if (dartType != null) {
     template.addTextSegment(DartPresentableUtil.buildTypeText(element,dartType,specializations));
     template.addTextSegment(" ");
+  }
+  if (isField) {
+    if (returnType == null && dartType == null) {
+      template.addTextSegment("var");
+      template.addTextSegment(" ");
+    }
+    template.addTextSegment(element.getName());
+    if (element.isFinal()) {
+      template.addTextSegment(" ");
+      template.addTextSegment("=");
+      template.addTextSegment(" ");
+      template.addTextSegment("null");
+    }
+    template.addTextSegment("; ");
+    return template;
   }
   if (element.isOperator()) {
     template.addTextSegment("operator ");
@@ -28,6 +48,6 @@
   }
   template.addTextSegment("{\n");
   template.addEndVariable();
-  template.addTextSegment("\n}\n");
+  template.addTextSegment("\n} ");
   return template;
 }

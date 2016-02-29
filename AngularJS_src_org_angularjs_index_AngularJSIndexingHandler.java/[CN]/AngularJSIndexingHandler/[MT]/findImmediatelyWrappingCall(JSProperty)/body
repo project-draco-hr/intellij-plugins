@@ -1,0 +1,21 @@
+{
+  PsiElement current=property.getParent();
+  int level=0;
+  while (current != null && current instanceof JSElement) {
+    if (current instanceof JSProperty) {
+      current=current.getParent();
+      continue;
+    }
+ else     if (current instanceof JSObjectLiteralExpression) {
+      ++level;
+      current=current.getParent();
+      continue;
+    }
+    if (current instanceof JSArgumentList) {
+      final PsiElement callExpression=current.getParent();
+      if (callExpression instanceof JSCallExpression)       return Pair.create((JSCallExpression)callExpression,level);
+    }
+    return null;
+  }
+  return null;
+}

@@ -1,0 +1,27 @@
+{
+  referencedTextExpected=referencedTextExpected == null ? state : referencedTextExpected;
+  final PsiElement inObj=getElement(file,"ui-sref=\"" + state + "\"");
+  Assert.assertEquals("ui-sref",inObj.getText());
+  Assert.assertTrue(inObj.getParent() instanceof XmlAttribute);
+  final XmlAttributeValue element=((XmlAttribute)inObj.getParent()).getValueElement();
+  Assert.assertNotNull(element);
+  final PsiReference reference=element.getReference();
+  Assert.assertEquals(state,reference.getCanonicalText());
+  final ResolveResult[] results=((PsiPolyVariantReference)reference).multiResolve(false);
+  if (results.length > 1) {
+    for (    ResolveResult result : results) {
+      final PsiElement resolvedElement=result.getElement();
+      Assert.assertEquals("appStates.js",resolvedElement.getContainingFile().getName());
+      if (StringUtil.equals(referencedTextExpected,StringUtil.unquoteString(resolvedElement.getNavigationElement().getText()))) {
+        return;
+      }
+    }
+    Assert.assertTrue(false);
+  }
+ else {
+    final PsiElement resolve=reference.resolve();
+    Assert.assertNotNull(state,resolve);
+    Assert.assertEquals("appStates.js",resolve.getContainingFile().getName());
+    Assert.assertEquals(referencedTextExpected,StringUtil.unquoteString(resolve.getNavigationElement().getText()));
+  }
+}

@@ -1,0 +1,19 @@
+{
+  if (AngularJSCompletionContributor.getElementLanguage(parameters).isKindOf(JavascriptLanguage.INSTANCE)) {
+    final PsiElement originalPosition=parameters.getOriginalPosition();
+    if (originalPosition == null)     return;
+    if (AngularJSReferencesContributor.UI_VIEW_PATTERN.accepts(originalPosition)) {
+      final FileBasedIndex instance=FileBasedIndex.getInstance();
+      final Project project=originalPosition.getProject();
+      final Collection<String> keys=instance.getAllKeys(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,project);
+      for (      String key : keys) {
+        if (StringUtil.isEmptyOrSpaces(key)) {
+          continue;
+        }
+        final LookupElementBuilder builder=LookupElementBuilder.create(key).withTailText(" (angular-ui-router ui-view)",true);
+        final LookupElement item=PrioritizedLookupElement.withPriority(builder,JSLookupPriority.LOCAL_SCOPE_MAX_PRIORITY);
+        result.addElement(item);
+      }
+    }
+  }
+}

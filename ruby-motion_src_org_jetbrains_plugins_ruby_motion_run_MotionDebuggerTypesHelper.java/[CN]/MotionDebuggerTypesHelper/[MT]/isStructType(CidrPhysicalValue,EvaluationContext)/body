@@ -1,0 +1,13 @@
+{
+  if (super.isStructType(value,context))   return true;
+  final String type=value.getType();
+  final Module module=RubyMotionUtil.getInstance().getModuleWithMotionSupport(myProcess.getProject());
+  if (module == null)   return false;
+  final Symbol symbol=ApplicationManager.getApplication().runReadAction(new Computable<Symbol>(){
+    @Override public Symbol compute(){
+      return RubyMotionSymbolProvider.findClassOrStruct(module,((RubyMotionUtilImpl)RubyMotionUtil.getInstance()).getFrameworks(module),Collections.singletonList(type));
+    }
+  }
+);
+  return symbol instanceof StructSymbol;
+}

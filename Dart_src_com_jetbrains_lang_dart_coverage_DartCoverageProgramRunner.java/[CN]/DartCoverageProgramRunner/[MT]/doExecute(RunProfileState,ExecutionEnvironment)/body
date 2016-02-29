@@ -1,0 +1,24 @@
+{
+  FileDocumentManager.getInstance().saveAllDocuments();
+  DartCommandLineRunConfiguration runConfiguration=(DartCommandLineRunConfiguration)env.getRunProfile();
+  final DartSdk sdk=DartSdk.getDartSdk(runConfiguration.getProject());
+  if (sdk == null) {
+    throw new ExecutionException(DartBundle.message("dart.sdk.is.not.configured"));
+  }
+  final String dartPubPath=DartSdkUtil.getPubPath(sdk);
+  DartCoverageEnabledConfiguration config=(DartCoverageEnabledConfiguration)CoverageEnabledConfiguration.getOrCreate(runConfiguration);
+  String coverageFilePath=config.getCoverageFilePath();
+  RunContentDescriptor result=super.doExecute(state,env);
+  if (result == null) {
+    return null;
+  }
+  GeneralCommandLine cmdline=new GeneralCommandLine().withExePath(dartPubPath).withParameters("global","run","coverage:collect_coverage","-p",Integer.toString(((DartCommandLineRunningState)state).getObservatoryPort()),"-o",coverageFilePath,"-r","-w");
+  ProcessHandler coverageProcess=new OSProcessHandler(cmdline);
+  coverageProcess.startNotify();
+  config.setCoverageProcess(coverageProcess);
+  ProcessHandler resultProcessHandler=result.getProcessHandler();
+  if (resultProcessHandler != null) {
+    CoverageHelper.attachToProcess(runConfiguration,resultProcessHandler,env.getRunnerSettings());
+  }
+  return result;
+}

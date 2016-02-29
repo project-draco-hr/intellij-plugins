@@ -1,0 +1,21 @@
+{
+  if (myInterpolationLexer != null) {
+    myInterpolationLexer.advance();
+    try {
+      if (myInterpolationLexer.getTokenType() != null) {
+        return;
+      }
+    }
+ catch (    Error error) {
+      Logger.getInstance(Angular2HTMLLexer.class).error(myInterpolationLexer.getBufferSequence());
+    }
+    myInterpolationLexer=null;
+  }
+  super.advance();
+  final IElementType type=super.getTokenType();
+  if (type == XmlTokenType.XML_DATA_CHARACTERS || type == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+    final Lexer lexer=createLexer(type);
+    lexer.start(super.getTokenText());
+    myInterpolationLexer=lexer;
+  }
+}

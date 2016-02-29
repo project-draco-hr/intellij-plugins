@@ -1,14 +1,12 @@
 {
-  Test test=getTest(obj);
+  final Test test=getTest(obj);
+  boolean result=true;
+  if (!test.myTestStartReported) {
+    final ServiceMessageBuilder testStarted=ServiceMessageBuilder.testStarted(test.getBaseName());
+    test.myTestStartReported=true;
+    result=finishMessage(testStarted,test.getId(),test.getValidParentId());
+  }
   ServiceMessageBuilder message=ServiceMessageBuilder.testStdOut(test.getBaseName());
-  String out;
-  if (myOutputAppeared) {
-    out=getMessage(obj) + NEWLINE;
-  }
- else {
-    out=NEWLINE + getMessage(obj) + NEWLINE;
-  }
-  message.addAttribute("out",out);
-  myOutputAppeared=true;
-  return finishMessage(message,test.getId(),test.getValidParentId());
+  message.addAttribute("out",appendLineBreakIfNeeded(getMessage(obj)));
+  return result & finishMessage(message,test.getId(),test.getValidParentId());
 }

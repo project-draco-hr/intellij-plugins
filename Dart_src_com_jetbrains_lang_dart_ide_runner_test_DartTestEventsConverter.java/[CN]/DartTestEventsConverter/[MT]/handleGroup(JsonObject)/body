@@ -1,8 +1,11 @@
 {
   Group group=getGroup(obj.getAsJsonObject(DEF_GROUP));
+  if (group.getParent() == null && group.getTestCount() > 0) {
+    final ServiceMessageBuilder testCount=new ServiceMessageBuilder("testCount").addAttribute("count",String.valueOf(group.getTestCount()));
+    doProcessServiceMessages(testCount.toString());
+  }
   if (group.isArtificial())   return true;
   ServiceMessageBuilder groupMsg=ServiceMessageBuilder.testSuiteStarted(group.getBaseName());
   addLocationHint(groupMsg,group);
-  boolean result=finishMessage(groupMsg,group.getId(),group.getValidParentId());
-  return result;
+  return finishMessage(groupMsg,group.getId(),group.getValidParentId());
 }
