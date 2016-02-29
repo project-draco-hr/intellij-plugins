@@ -13,17 +13,16 @@
   if (packageName.isEmpty() || packageName.startsWith("java.")) {
     return null;
   }
-  Project project=targetClass.getProject();
   Module requestorModule=facet.getModule();
   Module targetModule=ModuleUtilCore.findModuleForPsiElement(targetClass);
   if (targetModule == requestorModule) {
     return null;
   }
-  BundleManifest manifest=BundleManifestCache.getInstance(project).getManifest(requestorModule);
-  if (manifest != null && (manifest.isPrivatePackage(packageName) || manifest.getExportedPackage(packageName) != null)) {
+  BundleManifest importer=BundleManifestCache.getInstance(targetClass.getProject()).getManifest(requestorModule);
+  if (importer != null && (importer.isPrivatePackage(packageName) || importer.getExportedPackage(packageName) != null)) {
     return null;
   }
-  BundleManifest exporter=BundleManifestCache.getInstance(project).getManifest(targetClass);
+  BundleManifest exporter=BundleManifestCache.getInstance(targetClass.getProject()).getManifest(targetClass);
   if (exporter == null || exporter.getBundleSymbolicName() == null) {
     return Problem.weak(message("PackageAccessibilityInspection.non.osgi",packageName));
   }
@@ -34,11 +33,11 @@
   if (!facet.getConfiguration().isManifestManuallyEdited()) {
     return null;
   }
-  if (manifest != null) {
-    if (manifest.isPackageImported(packageName)) {
+  if (importer != null) {
+    if (importer.isPackageImported(packageName)) {
       return null;
     }
-    if (manifest.isBundleRequired(exporter.getBundleSymbolicName())) {
+    if (importer.isBundleRequired(exporter.getBundleSymbolicName())) {
       return null;
     }
   }
