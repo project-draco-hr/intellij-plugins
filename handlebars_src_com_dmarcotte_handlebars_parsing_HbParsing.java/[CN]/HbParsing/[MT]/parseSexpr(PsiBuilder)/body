@@ -1,46 +1,11 @@
 {
   PsiBuilder.Marker sexprMarker=builder.mark();
-  PsiBuilder.Marker mustacheNameMarker=builder.mark();
-  if (!parseHelperName(builder)) {
-    if (parseDataName(builder)) {
-      mustacheNameMarker.done(MUSTACHE_NAME);
-      sexprMarker.drop();
-      return true;
-    }
- else {
-      mustacheNameMarker.drop();
-      sexprMarker.error(HbBundle.message("hb.parsing.expected.path.or.data"));
-      return false;
-    }
+  if (parseLeafToken(builder,OPEN_SEXPR)) {
+    parseParamsStartHashQuestion(builder);
+    parseLeafTokenGreedy(builder,CLOSE_SEXPR);
+    sexprMarker.drop();
+    return true;
   }
-  mustacheNameMarker.done(MUSTACHE_NAME);
-  PsiBuilder.Marker hashMarker=builder.mark();
-  if (parseHash(builder)) {
-    hashMarker.drop();
-  }
- else {
-    hashMarker.rollbackTo();
-    PsiBuilder.Marker paramsMarker=builder.mark();
-    if (parseParams(builder)) {
-      PsiBuilder.Marker paramsHashMarker=builder.mark();
-      int hashStartPos=builder.getCurrentOffset();
-      if (parseHash(builder)) {
-        paramsHashMarker.drop();
-      }
- else {
-        if (hashStartPos < builder.getCurrentOffset()) {
-          paramsHashMarker.drop();
-        }
- else {
-          paramsHashMarker.rollbackTo();
-        }
-      }
-      paramsMarker.drop();
-    }
- else {
-      paramsMarker.rollbackTo();
-    }
-  }
-  sexprMarker.drop();
-  return true;
+  sexprMarker.rollbackTo();
+  return false;
 }

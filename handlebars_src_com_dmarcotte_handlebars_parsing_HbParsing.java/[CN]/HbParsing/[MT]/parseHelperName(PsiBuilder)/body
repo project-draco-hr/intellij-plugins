@@ -3,16 +3,25 @@
   PsiBuilder.Marker pathMarker=builder.mark();
   if (parsePath(builder)) {
     pathMarker.drop();
-    helperNameMarker.done(HELPER_NAME);
+    helperNameMarker.done(MUSTACHE_NAME);
     return true;
   }
  else {
     pathMarker.rollbackTo();
   }
+  PsiBuilder.Marker dataNameMarker=builder.mark();
+  if (parseDataName(builder)) {
+    dataNameMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    dataNameMarker.rollbackTo();
+  }
   PsiBuilder.Marker stringMarker=builder.mark();
   if (parseLeafToken(builder,STRING)) {
     stringMarker.drop();
-    helperNameMarker.done(HELPER_NAME);
+    helperNameMarker.done(MUSTACHE_NAME);
     return true;
   }
  else {
@@ -21,12 +30,12 @@
   PsiBuilder.Marker integerMarker=builder.mark();
   if (parseLeafToken(builder,NUMBER)) {
     integerMarker.drop();
-    helperNameMarker.done(HELPER_NAME);
+    helperNameMarker.done(MUSTACHE_NAME);
     return true;
   }
  else {
     integerMarker.rollbackTo();
   }
-  helperNameMarker.rollbackTo();
+  helperNameMarker.error(HbBundle.message("hb.parsing.expected.path.or.data"));
   return false;
 }

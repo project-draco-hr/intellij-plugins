@@ -1,0 +1,31 @@
+{
+  PsiBuilder.Marker helpParamHashMarker=builder.mark();
+  PsiBuilder.Marker hashMarker=builder.mark();
+  if (parseHash(builder)) {
+    hashMarker.drop();
+  }
+ else {
+    hashMarker.rollbackTo();
+    PsiBuilder.Marker paramsMarker=builder.mark();
+    if (parseParams(builder)) {
+      PsiBuilder.Marker paramsHashMarker=builder.mark();
+      int hashStartPos=builder.getCurrentOffset();
+      if (parseHash(builder)) {
+        paramsHashMarker.drop();
+      }
+ else {
+        if (hashStartPos < builder.getCurrentOffset()) {
+          paramsHashMarker.drop();
+        }
+ else {
+          paramsHashMarker.rollbackTo();
+        }
+      }
+      paramsMarker.drop();
+    }
+ else {
+      paramsMarker.rollbackTo();
+    }
+  }
+  helpParamHashMarker.drop();
+}
