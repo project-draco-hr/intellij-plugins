@@ -1,9 +1,9 @@
 {
-  PsiBuilder.Marker partialNameMarker=builder.mark();
+  PsiBuilder.Marker helperNameMarker=builder.mark();
   PsiBuilder.Marker pathMarker=builder.mark();
   if (parsePath(builder)) {
     pathMarker.drop();
-    partialNameMarker.done(PARTIAL_NAME);
+    helperNameMarker.done(HELPER_NAME);
     return true;
   }
  else {
@@ -12,7 +12,7 @@
   PsiBuilder.Marker stringMarker=builder.mark();
   if (parseLeafToken(builder,STRING)) {
     stringMarker.drop();
-    partialNameMarker.done(PARTIAL_NAME);
+    helperNameMarker.done(HELPER_NAME);
     return true;
   }
  else {
@@ -21,12 +21,12 @@
   PsiBuilder.Marker integerMarker=builder.mark();
   if (parseLeafToken(builder,NUMBER)) {
     integerMarker.drop();
-    partialNameMarker.done(PARTIAL_NAME);
+    helperNameMarker.done(HELPER_NAME);
     return true;
   }
  else {
     integerMarker.rollbackTo();
   }
-  partialNameMarker.error(HbBundle.message("hb.parsing.expected.partial.name"));
+  helperNameMarker.rollbackTo();
   return false;
 }
