@@ -19,9 +19,16 @@
     }
     if (tokenType == OPEN_BLOCK) {
       PsiBuilder.Marker blockMarker=builder.mark();
+      boolean hasDecorator=(builder.getTokenText() != null && builder.getTokenText().equals("{{#*"));
       if (parseOpenBlock(builder)) {
         parseProgram(builder);
-        parseInverseChain(builder);
+        PsiBuilder.Marker inverseMarker=builder.mark();
+        if (parseInverseChain(builder) && hasDecorator) {
+          inverseMarker.error(HbBundle.message("hb.parsing.unexpected.decorator.inverse"));
+        }
+ else {
+          inverseMarker.drop();
+        }
         parseCloseBlock(builder);
         blockMarker.done(BLOCK_WRAPPER);
       }
@@ -60,6 +67,18 @@
   }
   if (tokenType == OPEN_PARTIAL) {
     parsePartial(builder);
+    return true;
+  }
+  if (tokenType == OPEN_PARTIAL_BLOCK) {
+    PsiBuilder.Marker blockMarker=builder.mark();
+    if (parseOpenPartialBlock(builder)) {
+      parseProgram(builder);
+      parseCloseBlock(builder);
+      blockMarker.done(BLOCK_WRAPPER);
+    }
+ else {
+      return false;
+    }
     return true;
   }
   if (tokenType == ESCAPE_CHAR) {
