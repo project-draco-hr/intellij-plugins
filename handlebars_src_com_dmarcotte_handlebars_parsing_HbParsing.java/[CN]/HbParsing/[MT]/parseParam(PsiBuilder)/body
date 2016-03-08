@@ -1,44 +1,13 @@
 {
   PsiBuilder.Marker paramMarker=builder.mark();
-  if (parsePath(builder)) {
-    paramMarker.done(PARAM);
-    return true;
-  }
-  PsiBuilder.Marker stringMarker=builder.mark();
-  if (parseLeafToken(builder,STRING)) {
-    stringMarker.drop();
+  PsiBuilder.Marker helperNameMark=builder.mark();
+  if (parseHelperName(builder)) {
+    helperNameMark.drop();
     paramMarker.done(PARAM);
     return true;
   }
  else {
-    stringMarker.rollbackTo();
-  }
-  PsiBuilder.Marker integerMarker=builder.mark();
-  if (parseLeafToken(builder,NUMBER)) {
-    integerMarker.drop();
-    paramMarker.done(PARAM);
-    return true;
-  }
- else {
-    integerMarker.rollbackTo();
-  }
-  PsiBuilder.Marker booleanMarker=builder.mark();
-  if (parseLeafToken(builder,BOOLEAN)) {
-    booleanMarker.drop();
-    paramMarker.done(PARAM);
-    return true;
-  }
- else {
-    booleanMarker.rollbackTo();
-  }
-  PsiBuilder.Marker dataMarker=builder.mark();
-  if (parseDataName(builder)) {
-    dataMarker.drop();
-    paramMarker.done(PARAM);
-    return true;
-  }
- else {
-    dataMarker.rollbackTo();
+    helperNameMark.rollbackTo();
   }
   PsiBuilder.Marker sexprMarker=builder.mark();
   if (parseSexpr(builder)) {
