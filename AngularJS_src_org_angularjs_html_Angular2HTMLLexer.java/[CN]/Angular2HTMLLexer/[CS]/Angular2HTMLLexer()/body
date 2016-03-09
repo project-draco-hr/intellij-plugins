@@ -3,13 +3,24 @@
     @Override public void handleElement(    Lexer lexer){
       if (!isHtmlTagState(lexer.getState())) {
         final String text=lexer.getTokenText();
-        if (text.startsWith("(") || text.startsWith("[")) {
+        if (text.startsWith("(") || text.startsWith("[") || text.startsWith("*")) {
           seenAttribute=true;
           seenScript=true;
+          seenAngularScript=true;
         }
       }
     }
   }
 ;
   registerHandler(XmlTokenType.XML_NAME,value);
+  final TokenHandler scriptCleaner=new TokenHandler(){
+    @Override public void handleElement(    Lexer lexer){
+      seenAngularScript=false;
+    }
+  }
+;
+  registerHandler(XmlTokenType.XML_TAG_END,scriptCleaner);
+  registerHandler(XmlTokenType.XML_END_TAG_START,scriptCleaner);
+  registerHandler(XmlTokenType.XML_EMPTY_ELEMENT_END,scriptCleaner);
+  registerHandler(XmlTokenType.XML_ATTRIBUTE_VALUE_END_DELIMITER,scriptCleaner);
 }

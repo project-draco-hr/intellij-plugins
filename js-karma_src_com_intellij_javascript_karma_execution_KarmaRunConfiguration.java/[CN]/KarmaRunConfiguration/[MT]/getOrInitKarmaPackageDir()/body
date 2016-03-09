@@ -1,8 +1,7 @@
 {
   if (myRunSettings.getKarmaPackageDir() == null) {
     Project project=getProject();
-    KarmaProjectSettings projectSettings=KarmaProjectSettings.get(project);
-    String karmaPackageDir=KarmaUtil.detectKarmaPackageDir(project,myRunSettings.getConfigPath(),projectSettings.getNodeInterpreterPath());
+    String karmaPackageDir=KarmaUtil.detectKarmaPackageDir(project,myRunSettings.getConfigPath(),myRunSettings.getInterpreterRef());
     karmaPackageDir=StringUtil.notNullize(karmaPackageDir);
     if (StringUtil.isNotEmpty(karmaPackageDir) && !KarmaUtil.isPathUnderContentRoots(project,karmaPackageDir)) {
       String projectKarmaPackageDir=KarmaProjectSettings.getKarmaPackageDir(project);
@@ -11,7 +10,7 @@
       }
       karmaPackageDir="";
     }
-    myRunSettings=new KarmaRunSettings.Builder(myRunSettings).setKarmaPackageDir(karmaPackageDir).build();
+    myRunSettings=myRunSettings.builder().setKarmaPackageDir(karmaPackageDir).build();
   }
   return ObjectUtils.assertNotNull(myRunSettings.getKarmaPackageDir());
 }

@@ -5,13 +5,18 @@
   if (start + 1 < end) {
     TextRange range=null;
     ASTNode astNode=tag.getNode();
+    IElementType astType=astNode.getElementType();
     if (tag instanceof CfmlTag) {
       range=buildRangeForBraces(range,astNode,CfmlTokenTypes.R_ANGLEBRACKET,CfmlTokenTypes.LSLASH_ANGLEBRACKET);
     }
- else     if (tag instanceof CfmlFunction) {
-      final ASTNode body=astNode.findChildByType(CfmlElementTypes.FUNCTIONBODY);
-      if (body != null) {
-        range=buildRange(range,body.getStartOffset(),body.getTextRange().getEndOffset());
+ else     if (astType == CfmlElementTypes.FUNCTIONBODY || astType == CfmlElementTypes.BLOCK_OF_STATEMENTS) {
+      range=buildRange(range,start,end);
+    }
+ else     if (astType == CfmlElementTypes.SWITCHEXPRESSION) {
+      ASTNode lparen=astNode.findChildByType(CfscriptTokenTypes.L_CURLYBRACKET);
+      ASTNode rparen=astNode.findChildByType(CfscriptTokenTypes.R_CURLYBRACKET);
+      if (lparen != null && rparen != null) {
+        range=buildRange(range,lparen.getStartOffset(),rparen.getTextRange().getEndOffset());
       }
     }
  else     if (tag instanceof PsiComment) {

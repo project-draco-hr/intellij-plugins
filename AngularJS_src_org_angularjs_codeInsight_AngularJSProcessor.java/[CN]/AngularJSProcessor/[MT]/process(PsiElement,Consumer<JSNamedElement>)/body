@@ -1,6 +1,9 @@
 {
   final PsiElement original=CompletionUtil.getOriginalOrSelf(element);
-  final PsiFile hostFile=FileContextUtil.getContextFile(original != element ? original : element.getContainingFile().getOriginalFile());
+  PsiFile hostFile=FileContextUtil.getContextFile(original != element ? original : element.getContainingFile().getOriginalFile());
+  if (!(hostFile instanceof XmlFile)) {
+    hostFile=original.getContainingFile();
+  }
   if (!(hostFile instanceof XmlFile))   return;
   final XmlFile file=(XmlFile)hostFile;
   final Collection<JSNamedElement> cache=CachedValuesManager.getCachedValue(file,new CachedValueProvider<Collection<JSNamedElement>>(){

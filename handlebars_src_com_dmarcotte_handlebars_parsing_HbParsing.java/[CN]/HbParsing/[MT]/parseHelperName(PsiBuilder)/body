@@ -1,0 +1,50 @@
+{
+  PsiBuilder.Marker helperNameMarker=builder.mark();
+  PsiBuilder.Marker pathMarker=builder.mark();
+  if (parsePath(builder)) {
+    pathMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    pathMarker.rollbackTo();
+  }
+  PsiBuilder.Marker dataNameMarker=builder.mark();
+  if (parseDataName(builder)) {
+    dataNameMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    dataNameMarker.rollbackTo();
+  }
+  PsiBuilder.Marker stringMarker=builder.mark();
+  if (parseLeafToken(builder,STRING)) {
+    stringMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    stringMarker.rollbackTo();
+  }
+  PsiBuilder.Marker integerMarker=builder.mark();
+  if (parseLeafToken(builder,NUMBER)) {
+    integerMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    integerMarker.rollbackTo();
+  }
+  PsiBuilder.Marker booleanMarker=builder.mark();
+  if (parseLeafToken(builder,BOOLEAN)) {
+    booleanMarker.drop();
+    helperNameMarker.done(MUSTACHE_NAME);
+    return true;
+  }
+ else {
+    booleanMarker.rollbackTo();
+  }
+  helperNameMarker.error(HbBundle.message("hb.parsing.expected.path.or.data"));
+  return false;
+}
