@@ -1,6 +1,11 @@
 {
-  if (myInitialized)   return;
-  myInitialized=true;
+  final long modCount=myPsiManager.getModificationTracker().getModificationCount();
+  if (myPsiModCount == modCount)   return;
+  System.out.println(modCount);
+  myPsiModCount=modCount;
+  for (  DartQuickFix fix : myQuickFixes) {
+    fix.setSourceChange(null);
+  }
   final List<AnalysisErrorFixes> fixes=DartAnalysisServerService.getInstance().edit_getFixes(myFilePath,myOffset);
   if (fixes != null) {
     int index=0;
