@@ -1,0 +1,12 @@
+{
+  final ProcessOutput listOutput=new CapturingProcessHandler(new GeneralCommandLine().withExePath(dartPubPath).withParameters("global","list").withRedirectErrorStream(true)).runProcessWithProgressIndicator(ProgressManager.getInstance().getProgressIndicator());
+  final String listOutputStdout=listOutput.getStdout();
+  if (listOutput.getExitCode() == 0) {
+    if (listOutputStdout.startsWith("coverage ") || listOutputStdout.contains("\ncoverage ")) {
+      myCoveragePackageActivated=true;
+    }
+  }
+ else {
+    LOG.warn("'pub global list' exit code: " + listOutput.getExitCode() + ", stdout:\n"+ listOutputStdout);
+  }
+}
