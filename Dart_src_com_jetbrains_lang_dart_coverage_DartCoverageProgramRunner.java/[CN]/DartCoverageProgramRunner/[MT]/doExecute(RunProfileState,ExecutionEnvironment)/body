@@ -12,6 +12,9 @@
   if (result == null) {
     return null;
   }
+  if (!activatedPubs.contains(dartPubPath) && !activateCoverage(dartPubPath,runConfiguration.getProject())) {
+    throw new ExecutionException("Cannot activate pub package 'coverage'!");
+  }
   GeneralCommandLine cmdline=new GeneralCommandLine().withExePath(dartPubPath).withParameters("global","run","coverage:collect_coverage","-p",Integer.toString(((DartCommandLineRunningState)state).getObservatoryPort()),"-o",coverageFilePath,"-r","-w");
   ProcessHandler coverageProcess=new OSProcessHandler(cmdline);
   coverageProcess.startNotify();
