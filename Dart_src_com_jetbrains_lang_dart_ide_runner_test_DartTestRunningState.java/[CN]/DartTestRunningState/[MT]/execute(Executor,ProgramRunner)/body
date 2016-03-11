@@ -3,6 +3,15 @@
   final ConsoleView consoleView=createConsole(getEnvironment());
   consoleView.attachToProcess(processHandler);
   final DefaultExecutionResult executionResult=new DefaultExecutionResult(consoleView,processHandler,createActions(consoleView,processHandler,executor));
-  executionResult.setRestartActions(new ToggleAutoTestAction());
+  DartConsoleProperties properties=(DartConsoleProperties)((SMTRunnerConsoleView)consoleView).getProperties();
+  AbstractRerunFailedTestsAction rerunFailedTestsAction=properties.createRerunFailedTestsAction(consoleView);
+  LOG.assertTrue(rerunFailedTestsAction != null);
+  rerunFailedTestsAction.setModelProvider(new Getter<TestFrameworkRunningModel>(){
+    @Override public TestFrameworkRunningModel get(){
+      return ((SMTRunnerConsoleView)consoleView).getResultsViewer();
+    }
+  }
+);
+  executionResult.setRestartActions(rerunFailedTestsAction,new ToggleAutoTestAction());
   return executionResult;
 }
