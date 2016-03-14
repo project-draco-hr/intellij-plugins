@@ -2,7 +2,7 @@
   Project project=getEnvironment().getProject();
   DartSdk sdk=DartSdk.getDartSdk(project);
   if (sdk == null)   throw new ExecutionException("Dart SDK cannot be found");
-  DartTestRunnerParameters params=(DartTestRunnerParameters)myRunnerParameters;
+  DartTestRunnerParameters params=getParameters();
   StringBuilder builder=new StringBuilder();
   builder.append(RUN_COMMAND);
   final boolean projectWithoutPubspec=Registry.is("dart.projects.without.pubspec",false);
@@ -22,8 +22,13 @@
     }
     builder.append(' ').append(params.getFilePath());
     String groupOrTestName=params.getTestName();
-    if (groupOrTestName != null && !groupOrTestName.isEmpty() && params.getScope() == DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME) {
-      builder.append(" -N \"").append(groupOrTestName).append("\"");
+    if (groupOrTestName != null && !groupOrTestName.isEmpty()) {
+      if (params.getScope() == DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME) {
+        builder.append(" -N \"").append(groupOrTestName).append("\"");
+      }
+ else       if (params.getScope() == DartTestRunnerParameters.Scope.MULTIPLE_NAMES) {
+        builder.append(" -n \"").append(groupOrTestName).append("\"");
+      }
     }
   }
   params.setArguments(builder.toString());
