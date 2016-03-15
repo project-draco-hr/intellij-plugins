@@ -1,0 +1,17 @@
+{
+  ApplicationManager.getApplication().assertIsDispatchThread();
+  if (oldPanel == null && newPanelProvider == null) {
+    throw new IllegalArgumentException("Either create new one or leave the old");
+  }
+  if (newPanelProvider == null) {
+    return oldPanel;
+  }
+  if (oldPanel != null) {
+    panelWrapper.remove(oldPanel.getComponent());
+    Disposer.dispose(oldPanel);
+  }
+  final MarkdownHtmlPanel newPanel=newPanelProvider.createHtmlPanel();
+  panelWrapper.add(newPanel.getComponent(),BorderLayout.CENTER);
+  panelWrapper.repaint();
+  return newPanel;
+}

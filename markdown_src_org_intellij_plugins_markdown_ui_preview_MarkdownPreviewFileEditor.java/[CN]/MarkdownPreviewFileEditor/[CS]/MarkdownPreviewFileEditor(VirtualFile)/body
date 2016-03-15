@@ -19,15 +19,9 @@
   }
   myHtmlPanelWrapper=new JPanel(new BorderLayout());
   final MarkdownApplicationSettings settings=MarkdownApplicationSettings.getInstance();
-  setUpPanel(settings);
+  myPanel=detachOldPanelAndCreateAndAttachNewOne(myHtmlPanelWrapper,null,retrievePanelProvider(settings));
+  updatePanelCssSettings(myPanel,settings.getMarkdownCssSettings());
   MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
-  MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MarkdownApplicationSettings.SettingsChangedListener(){
-    @Override public void onSettingsChange(    @NotNull MarkdownApplicationSettings settings){
-      setUpPanel(settings);
-      updatePanelCssSettings(settings.getMarkdownCssSettings());
-    }
-  }
-;
+  MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MyUpdatePanelOnSettingsChangedListener();
   settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,settingsChangedListener);
-  settingsChangedListener.onSettingsChange(settings);
 }
