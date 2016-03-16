@@ -1,15 +1,19 @@
 {
   DartAnalysisServerService.getInstance().serverReadyForRequest(file.getProject());
-  return new Runnable(){
+  return new CollectingInfoRunnable(){
+    private boolean myFileChanged=false;
     @Override public void run(){
       final VirtualFile vFile=DartResolveUtil.getRealVirtualFile(file);
       if (vFile != null) {
         final String filePath=vFile.getPath();
         final SourceFileEdit fileEdit=DartAnalysisServerService.getInstance().edit_organizeDirectives(filePath);
         if (fileEdit != null) {
-          AssistUtils.applyFileEdit(fileEdit);
+          myFileChanged=AssistUtils.applyFileEdit(fileEdit);
         }
       }
+    }
+    @Nullable @Override public String getUserNotificationInfo(){
+      return myFileChanged ? DartBundle.message("organized.directives") : null;
     }
   }
 ;
