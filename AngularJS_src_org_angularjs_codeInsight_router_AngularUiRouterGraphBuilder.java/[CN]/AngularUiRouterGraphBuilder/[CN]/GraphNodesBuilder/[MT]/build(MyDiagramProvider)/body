@@ -1,0 +1,42 @@
+{
+  for (  Map.Entry<String,UiRouterState> entry : myStatesMap.entrySet()) {
+    final UiRouterState state=entry.getValue();
+    final DiagramObject stateObject=new DiagramObject(Type.state,state.getName(),state.getPointer());
+    if (state.getPointer() == null) {
+      stateObject.addError("Can not find the state definition");
+    }
+    final MyNode node=new MyNode(stateObject,provider);
+    stateNodes.put(state.getName(),node);
+    final String templateUrl=normalizeTemplateUrl(state.getTemplateUrl());
+    if (templateUrl != null) {
+      final MyNode templateNode=getOrCreateTemplateNode(provider,templateUrl);
+      edges.add(new MyEdge(node,templateNode));
+      if (state.hasViews()) {
+        if (state.isAbstract()) {
+          stateObject.addWarning("Abstract state can not be instantiated so it makes no sense to define views for it.");
+        }
+ else {
+          stateObject.addWarning("Since 'views' are defined for state, template information would be ignored.");
+        }
+      }
+    }
+    final List<UiView> views=state.getViews();
+    if (views != null) {
+      for (      UiView view : views) {
+        final String name=StringUtil.isEmptyOrSpaces(view.getName()) ? DEFAULT : view.getName();
+        final DiagramObject viewObject=new DiagramObject(Type.view,name,view.getPointer());
+        final MyNode viewNode=new MyNode(viewObject,provider);
+        viewNodes.put(Pair.create(state.getName(),name),viewNode);
+        final String template=view.getTemplate();
+        if (!StringUtil.isEmptyOrSpaces(template)) {
+          final MyNode templateNode=getOrCreateTemplateNode(provider,template);
+          edges.add(new MyEdge(viewNode,templateNode,"provides"));
+        }
+      }
+    }
+  }
+  allNodes.addAll(stateNodes.values());
+  allNodes.addAll(templateNodes.values());
+  allNodes.addAll(templatePlaceHoldersNodes.values());
+  allNodes.addAll(viewNodes.values());
+}

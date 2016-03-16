@@ -1,0 +1,17 @@
+{
+  final MyDiagramProvider provider=new MyDiagramProvider();
+  final GraphNodesBuilder nodesBuilder=new GraphNodesBuilder(myStatesMap,myTemplatesMap);
+  nodesBuilder.build(provider);
+  final GraphManager graphManager=GraphManager.getGraphManager();
+  final Graph2D graph=graphManager.createGraph2D();
+  final Graph2DView view=graphManager.createGraph2DView(graph);
+  final DefaultBackgroundRenderer backgroundRenderer=graphManager.createDefaultBackgroundRenderer(view);
+  backgroundRenderer.setColor(UIUtil.getListBackground());
+  view.setBackgroundRenderer(backgroundRenderer);
+  final PresentationModel presentationModel=new PresentationModel(myProject,graph);
+  final MyDiagramModel model=new MyDiagramModel(myProject,provider,nodesBuilder.getAllNodes(),nodesBuilder.getEdges());
+  final GraphBuilder<MyNode,MyEdge> builder=GraphBuilderFactory.getInstance(myProject).createGraphBuilder(graph,view,model,presentationModel);
+  presentationModel.setGraphBuilder(builder);
+  builder.initialize();
+  return builder.getView().getJComponent();
+}

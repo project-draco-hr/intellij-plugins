@@ -1,0 +1,14 @@
+{
+  final String name=property.getName();
+  final JSExpression value=property.getValue();
+  final JSObjectLiteralExpression expression=ObjectUtils.tryCast(value,JSObjectLiteralExpression.class);
+  String templateUrl=null;
+  if (expression != null) {
+    templateUrl=getPropertyValueIfExists(expression,"templateUrl");
+    if (templateUrl != null) {
+      final JSProperty urlProperty=expression.findProperty("templateUrl");
+      parseTemplate(property.getContainingFile().getVirtualFile(),templateUrl,urlProperty);
+    }
+  }
+  return new UiView(name,templateUrl,property.getNameIdentifier() == null ? null : mySmartPointerManager.createSmartPsiElementPointer(property.getNameIdentifier()));
+}
