@@ -1,0 +1,30 @@
+{
+  final MyDiagramProvider provider=new MyDiagramProvider();
+  final GraphNodesBuilder nodesBuilder=new GraphNodesBuilder(myStatesMap,myTemplatesMap);
+  nodesBuilder.build(provider);
+  final GraphManager graphManager=GraphManager.getGraphManager();
+  myGraph=graphManager.createGraph2D();
+  final Graph2DView view=graphManager.createGraph2DView(myGraph);
+  final DefaultBackgroundRenderer backgroundRenderer=graphManager.createDefaultBackgroundRenderer(view);
+  backgroundRenderer.setColor(UIUtil.getListBackground());
+  view.setBackgroundRenderer(backgroundRenderer);
+  final PresentationModel presentationModel=new PresentationModel(myProject,myGraph);
+  final MyDiagramModel model=new MyDiagramModel(myProject,provider,nodesBuilder.getAllNodes(),nodesBuilder.getEdges());
+  final GraphBuilder<MyNode,MyEdge> builder=GraphBuilderFactory.getInstance(myProject).createGraphBuilder(myGraph,view,model,presentationModel);
+  presentationModel.setGraphBuilder(builder);
+  GraphViewUtil.addDataProvider(view,new MyDataProvider(builder));
+  Disposer.register(disposable,builder);
+  builder.initialize();
+  final Graph2DView builderView=builder.getView();
+  builderView.setScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+  builderView.getJComponent().addComponentListener(new ComponentAdapter(){
+    @Override public void componentShown(    ComponentEvent e){
+      builderView.fitContent();
+      builderView.adjustScrollBarVisibility();
+      builderView.adjustScrollBarVisibility();
+      builderView.getJComponent().removeComponentListener(this);
+    }
+  }
+);
+  return builderView.getJComponent();
+}

@@ -1,12 +1,37 @@
 {
   final Project project=CommonDataKeys.PROJECT.getData(e.getDataContext());
   if (project == null)   return;
+  final ToolWindow window=getToolWindow(project);
+  final ContentManager cm=window.getContentManager();
+  final Content content=cm.getContent(0);
+  if (content != null) {
+    window.activate(new Runnable(){
+      @Override public void run(){
+        cm.setSelectedContent(content,true);
+      }
+    }
+);
+    return;
+  }
   final AngularUiRouterDiagramBuilder builder=new AngularUiRouterDiagramBuilder(project);
   builder.build();
   final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,builder.getStatesMap(),builder.getTemplatesMap());
-  final JComponent component=graphBuilder.build();
-  final DialogBuilder builder1=new DialogBuilder(project);
-  builder1.centerPanel(component);
-  builder1.setTitle("Angular-ui-router states and views");
-  builder1.show();
+  final Disposable disposable=new Disposable(){
+    @Override public void dispose(){
+    }
+  }
+;
+  final JComponent component=graphBuilder.build(disposable);
+  final JPanel wrapper=new JPanel(new BorderLayout());
+  wrapper.add(ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,graphBuilder.buildActions(),true).getComponent(),BorderLayout.NORTH);
+  wrapper.add(component,BorderLayout.CENTER);
+  final Content content1=cm.getFactory().createContent(wrapper,"",false);
+  cm.addContent(content1);
+  Disposer.register(content1,disposable);
+  window.activate(new Runnable(){
+    @Override public void run(){
+      cm.setSelectedContent(content1);
+    }
+  }
+);
 }
