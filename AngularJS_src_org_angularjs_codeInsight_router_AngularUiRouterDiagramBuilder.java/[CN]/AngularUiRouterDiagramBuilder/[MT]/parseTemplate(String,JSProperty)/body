@@ -1,0 +1,17 @@
+{
+  final String normalizedUrl=AngularUiRouterGraphBuilder.normalizeTemplateUrl(url);
+  PsiFile templateFile=null;
+  Template template=null;
+  if (urlProperty != null && urlProperty.getValue() != null) {
+    int offset=urlProperty.getValue().getTextRange().getEndOffset() - 1;
+    final PsiReference reference=urlProperty.getContainingFile().findReferenceAt(offset);
+    if (reference != null) {
+      final PsiElement templateFileElement=reference.resolve();
+      if (templateFileElement != null && templateFileElement.isValid()) {
+        templateFile=templateFileElement.getContainingFile();
+        template=readTemplateFromFile(urlProperty.getProject(),url,templateFile);
+      }
+    }
+  }
+  myTemplatesMap.put(normalizedUrl,template == null ? new Template(normalizedUrl,null) : template);
+}
