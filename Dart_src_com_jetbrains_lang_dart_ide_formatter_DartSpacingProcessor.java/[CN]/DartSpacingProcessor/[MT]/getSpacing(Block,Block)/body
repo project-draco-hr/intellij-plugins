@@ -228,7 +228,11 @@
   if (elementType == IF_STATEMENT) {
     if (type1 == RPAREN && mySettings.BRACE_STYLE == CommonCodeStyleSettings.END_OF_LINE) {
       int nsp=mySettings.SPACE_BEFORE_IF_LBRACE ? 1 : 0;
-      return Spacing.createSpacing(nsp,nsp,0,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
+      int lf=0;
+      if (type2 != BLOCK && mySettings.SPECIAL_ELSE_IF_TREATMENT) {
+        if (FormatterUtil.isFollowedBy(node2,ELSE,SEMICOLON))         lf=1;
+      }
+      return Spacing.createSpacing(nsp,nsp,lf,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
     }
     if (type1 == SEMICOLON && type2 == ELSE) {
       return Spacing.createSpacing(0,0,1,false,0);
@@ -416,7 +420,8 @@
       return Spacing.createSpacing(1,1,mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1,false,mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
     if (type2 != LBRACE) {
-      return Spacing.createSpacing(1,1,0,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
+      int lf=mySettings.SPECIAL_ELSE_IF_TREATMENT ? 1 : 0;
+      return Spacing.createSpacing(1,1,lf,type2 == BLOCK ? false : mySettings.KEEP_LINE_BREAKS,0);
     }
   }
   if (type1 == LBRACE && type2 == RBRACE) {
