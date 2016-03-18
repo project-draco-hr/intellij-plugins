@@ -1,0 +1,29 @@
+{
+  myRootTemplates2States=new MultiMap<VirtualFile,String>(){
+    @NotNull @Override protected Collection<String> createCollection(){
+      return new HashSet<>();
+    }
+  }
+;
+  final Set<String> statesUsedInRoots=new HashSet<>();
+  for (  Map.Entry<VirtualFile,RootTemplate> entry : myRootTemplates.entrySet()) {
+    final Set<VirtualFile> modulesFiles=entry.getValue().getModulesFiles();
+    for (    Map.Entry<String,UiRouterState> stateEntry : myStatesMap.entrySet()) {
+      if (modulesFiles.contains(stateEntry.getValue().getFile())) {
+        myRootTemplates2States.putValue(entry.getKey(),stateEntry.getKey());
+        statesUsedInRoots.add(stateEntry.getKey());
+      }
+    }
+  }
+  myDefiningFiles2States=new MultiMap<VirtualFile,String>(){
+    @NotNull @Override protected Collection<String> createCollection(){
+      return new HashSet<>();
+    }
+  }
+;
+  for (  Map.Entry<String,UiRouterState> stateEntry : myStatesMap.entrySet()) {
+    if (!statesUsedInRoots.contains(stateEntry.getKey())) {
+      myDefiningFiles2States.putValue(stateEntry.getValue().getFile(),stateEntry.getKey());
+    }
+  }
+}

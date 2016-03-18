@@ -15,22 +15,51 @@
   }
   final AngularUiRouterDiagramBuilder builder=new AngularUiRouterDiagramBuilder(project);
   builder.build();
-  final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,builder.getStatesMap(),builder.getTemplatesMap(),builder.getRootTemplates());
+  final List<Pair<String,AngularUiRouterGraphBuilder>> graphBuilders=new ArrayList<>();
+  final Map<String,UiRouterState> statesMap=builder.getStatesMap();
+  final Map<VirtualFile,RootTemplate> rootTemplates=builder.getRootTemplates();
+  for (  Map.Entry<VirtualFile,Collection<String>> entry : builder.getRootTemplates2States().entrySet()) {
+    final Map<String,UiRouterState> localStatesMap=ContainerUtil.filter(statesMap,new Condition<String>(){
+      @Override public boolean value(      String key){
+        return entry.getValue().contains(key);
+      }
+    }
+);
+    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,localStatesMap,builder.getTemplatesMap(),rootTemplates.get(entry.getKey()));
+    graphBuilders.add(Pair.create(entry.getKey().getName(),graphBuilder));
+  }
+  for (  Map.Entry<VirtualFile,Collection<String>> entry : builder.getDefiningFiles2States().entrySet()) {
+    final Map<String,UiRouterState> localStatesMap=ContainerUtil.filter(statesMap,new Condition<String>(){
+      @Override public boolean value(      String key){
+        return entry.getValue().contains(key);
+      }
+    }
+);
+    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,localStatesMap,builder.getTemplatesMap(),null);
+    graphBuilders.add(Pair.create(entry.getKey().getName(),graphBuilder));
+  }
   final Disposable disposable=new Disposable(){
     @Override public void dispose(){
     }
   }
 ;
-  final JComponent component=graphBuilder.build(disposable);
-  final JPanel wrapper=new JPanel(new BorderLayout());
-  wrapper.add(ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,graphBuilder.buildActions(),true).getComponent(),BorderLayout.NORTH);
-  wrapper.add(component,BorderLayout.CENTER);
-  final Content content1=cm.getFactory().createContent(wrapper,"",false);
-  cm.addContent(content1);
-  Disposer.register(content1,disposable);
+  for (  Pair<String,AngularUiRouterGraphBuilder> pair : graphBuilders) {
+    final String tabName=pair.getFirst();
+    final AngularUiRouterGraphBuilder graphBuilder=pair.getSecond();
+    final JComponent component=graphBuilder.build(disposable);
+    final JPanel wrapper=new JPanel(new BorderLayout());
+    wrapper.add(ActionManager.getInstance().createActionToolbar(ActionPlaces.UNKNOWN,graphBuilder.buildActions(),true).getComponent(),BorderLayout.NORTH);
+    wrapper.add(component,BorderLayout.CENTER);
+    final Content content1=cm.getFactory().createContent(wrapper,tabName,false);
+    cm.addContent(content1);
+    Disposer.register(content1,disposable);
+  }
   window.activate(new Runnable(){
     @Override public void run(){
-      cm.setSelectedContent(content1);
+      if (cm.getContentCount() > 0) {
+        final Content content1=cm.getContent(0);
+        cm.setSelectedContent(content1);
+      }
     }
   }
 );

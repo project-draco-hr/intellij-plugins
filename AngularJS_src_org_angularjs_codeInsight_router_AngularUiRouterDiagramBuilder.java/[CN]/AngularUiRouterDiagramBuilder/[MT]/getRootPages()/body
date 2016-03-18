@@ -29,28 +29,8 @@
     final String relativeUrl=findPossibleRelativeUrl(roots,file.getVirtualFile());
     if (relativeUrl == null)     continue;
     final Template template=readTemplateFromFile(myProject,relativeUrl,file);
-    final Set<VirtualFile> moduleFiles=new HashSet<>();
     final String mainModule=entry.getValue().getName();
-    if (!StringUtil.isEmptyOrSpaces(mainModule)) {
-      final List<List<String>> values=instance.getValues(AngularModuleDependencyIndex.ANGULAR_MODULE_DEPENDENCY_INDEX,mainModule,GlobalSearchScope.projectScope(myProject));
-      for (      List<String> value : values) {
-        for (        String module : value) {
-          final JSImplicitElement element=AngularIndexUtil.resolve(myProject,AngularModuleIndex.KEY,module);
-          if (element != null && element.getNavigationElement() != null && element.getNavigationElement().getContainingFile() != null) {
-            moduleFiles.add(element.getNavigationElement().getContainingFile().getVirtualFile());
-          }
-        }
-      }
-    }
- else {
-      final VirtualFile[] includedFiles=FileIncludeManager.getManager(myProject).getIncludedFiles(file.getVirtualFile(),false,true);
-      moduleFiles.addAll(ContainerUtil.filter(includedFiles,new Condition<VirtualFile>(){
-        @Override public boolean value(        VirtualFile file){
-          return file.getFileType() instanceof LanguageFileType && ((LanguageFileType)file.getFileType()).getLanguage().isKindOf(JavascriptLanguage.INSTANCE);
-        }
-      }
-));
-    }
+    final Set<VirtualFile> moduleFiles=getModuleFiles(file,mainModule);
     final RootTemplate rootTemplate=new RootTemplate(mySmartPointerManager.createSmartPsiElementPointer(file),relativeUrl,template,moduleFiles);
     myRootTemplates.put(file.getVirtualFile(),rootTemplate);
   }
