@@ -10,6 +10,8 @@
       final StubIndexKey<String,JSImplicitElementProvider> index=INDEXERS.get(command);
       if (index != null) {
         if (argument.isQuotedLiteral()) {
+          final Processor<JSArgumentList> argumentListProcessor=ARGUMENT_LIST_CHECKERS.get(command);
+          if (argumentListProcessor != null && !argumentListProcessor.process(callExpression.getArgumentList()))           return;
           final Function<PsiElement,String> calculator=DATA_CALCULATORS.get(command);
           final String data=calculator != null ? calculator.fun(argument) : null;
           final String argumentText=StringUtil.unquoteString(argument.getText());

@@ -1,0 +1,29 @@
+{
+  final String appName=getAppName();
+  if (StringUtil.isEmptyOrSpaces(appName))   return ResolveResult.EMPTY_ARRAY;
+  final CommonProcessors.CollectProcessor<JSImplicitElement> collectProcessor=new CommonProcessors.CollectProcessor<>();
+  AngularIndexUtil.multiResolve(getElement().getProject(),AngularModuleIndex.KEY,appName,collectProcessor);
+  Collection<JSImplicitElement> results=collectProcessor.getResults();
+  if (results.size() > 1) {
+    final Condition<JSImplicitElement> filter=new Condition<JSImplicitElement>(){
+      private Set<VirtualFile> includedFiles;
+      @Override public boolean value(      JSImplicitElement element){
+        if (includedFiles == null) {
+          final VirtualFile appDefinitionFile=getElement().getContainingFile().getVirtualFile();
+          final VirtualFile[] includedFilesArr=FileIncludeManager.getManager(getElement().getProject()).getIncludedFiles(appDefinitionFile,true,true);
+          includedFiles=new HashSet<>(Arrays.asList(includedFilesArr));
+        }
+        return includedFiles.contains(element.getContainingFile().getVirtualFile());
+      }
+    }
+;
+    results=ContainerUtil.filter(results,filter);
+  }
+  final List<ResolveResult> resolveResults=ContainerUtil.map(results,new Function<JSImplicitElement,ResolveResult>(){
+    @Override public ResolveResult fun(    JSImplicitElement element){
+      return new JSResolveResult(element);
+    }
+  }
+);
+  return resolveResults.toArray(new ResolveResult[0]);
+}

@@ -1,0 +1,13 @@
+{
+  Extensions.getExtensions(FileIncludeProvider.EP_NAME);
+  myFixture.configureByFiles("ngAppRouting.html","myAppDefinition.js","myAppUsage.js","otherMyAppDefinition.js","angular.js");
+  int offsetBySignature=AngularTestUtil.findOffsetBySignature("ng-app=\"my<caret>App\"",myFixture.getFile());
+  PsiReference ref=myFixture.getFile().findReferenceAt(offsetBySignature);
+  assertNotNull(ref);
+  PsiElement resolve=ref.resolve();
+  assertNotNull(resolve);
+  assertEquals("'myApp'",resolve.getNavigationElement().getText());
+  assertEquals("myAppDefinition.js",resolve.getContainingFile().getName());
+  final ResolveResult[] results=((PsiPolyVariantReference)ref).multiResolve(false);
+  assertEquals(1,results.length);
+}
