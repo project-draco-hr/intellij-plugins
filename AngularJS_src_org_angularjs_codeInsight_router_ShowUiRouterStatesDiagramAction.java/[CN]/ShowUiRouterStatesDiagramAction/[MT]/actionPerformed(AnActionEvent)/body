@@ -16,26 +16,13 @@
   final AngularUiRouterDiagramBuilder builder=new AngularUiRouterDiagramBuilder(project);
   builder.build();
   final List<Pair<String,AngularUiRouterGraphBuilder>> graphBuilders=new ArrayList<>();
-  final Map<String,UiRouterState> statesMap=builder.getStatesMap();
   final Map<VirtualFile,RootTemplate> rootTemplates=builder.getRootTemplates();
-  for (  Map.Entry<VirtualFile,Collection<String>> entry : builder.getRootTemplates2States().entrySet()) {
-    final Map<String,UiRouterState> localStatesMap=ContainerUtil.filter(statesMap,new Condition<String>(){
-      @Override public boolean value(      String key){
-        return entry.getValue().contains(key);
-      }
-    }
-);
-    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,localStatesMap,builder.getTemplatesMap(),rootTemplates.get(entry.getKey()));
+  for (  Map.Entry<VirtualFile,Map<String,UiRouterState>> entry : builder.getRootTemplates2States().entrySet()) {
+    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,entry.getValue(),builder.getTemplatesMap(),rootTemplates.get(entry.getKey()));
     graphBuilders.add(Pair.create(entry.getKey().getName(),graphBuilder));
   }
-  for (  Map.Entry<VirtualFile,Collection<String>> entry : builder.getDefiningFiles2States().entrySet()) {
-    final Map<String,UiRouterState> localStatesMap=ContainerUtil.filter(statesMap,new Condition<String>(){
-      @Override public boolean value(      String key){
-        return entry.getValue().contains(key);
-      }
-    }
-);
-    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,localStatesMap,builder.getTemplatesMap(),null);
+  for (  Map.Entry<VirtualFile,Map<String,UiRouterState>> entry : builder.getDefiningFiles2States().entrySet()) {
+    final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,entry.getValue(),builder.getTemplatesMap(),null);
     graphBuilders.add(Pair.create(entry.getKey().getName(),graphBuilder));
   }
   final Disposable disposable=new Disposable(){

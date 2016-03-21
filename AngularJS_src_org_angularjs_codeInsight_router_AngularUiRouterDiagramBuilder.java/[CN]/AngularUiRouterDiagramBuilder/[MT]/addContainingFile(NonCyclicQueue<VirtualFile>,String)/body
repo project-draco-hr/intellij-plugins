@@ -1,0 +1,15 @@
+{
+  final CommonProcessors.CollectProcessor<JSImplicitElement> collectProcessor=new CommonProcessors.CollectProcessor<>();
+  AngularIndexUtil.multiResolve(myProject,AngularModuleIndex.KEY,module,collectProcessor);
+  if (collectProcessor.getResults().isEmpty())   return;
+  for (  JSImplicitElement element : collectProcessor.getResults()) {
+    if (element != null && element.getNavigationElement() != null && element.getNavigationElement().getContainingFile() != null) {
+      final VirtualFile file=element.getNavigationElement().getContainingFile().getVirtualFile();
+      if (NodeModuleUtil.isFromNodeModules(myProject,file))       return;
+    }
+  }
+  final JSImplicitElement element=collectProcessor.getResults().iterator().next();
+  if (element != null && element.getNavigationElement() != null && element.getNavigationElement().getContainingFile() != null) {
+    filesQueue.add(element.getNavigationElement().getContainingFile().getVirtualFile());
+  }
+}
