@@ -1,5 +1,4 @@
 {
-  if (files.isEmpty())   return files;
   final PsiElement object=myElement.getParent() instanceof JSProperty ? ((JSProperty)myElement.getParent()).getValue() : null;
   if (object instanceof JSObjectLiteralExpression) {
     final JSProperty templateUrl=((JSObjectLiteralExpression)object).findProperty("templateUrl");
@@ -8,15 +7,15 @@
       if (!StringUtil.isEmptyOrSpaces(templateUrlText)) {
         templateUrlText=templateUrlText.trim().replace('\\','/');
         final String finalTemplateUrlText=templateUrlText;
-        files=ContainerUtil.filter(files,new Condition<VirtualFile>(){
+        return new Condition<VirtualFile>(){
           @Override public boolean value(          VirtualFile file){
             final String path=file.getPath();
             return path.endsWith(finalTemplateUrlText);
           }
         }
-);
+;
       }
     }
   }
-  return files;
+  return Condition.TRUE;
 }

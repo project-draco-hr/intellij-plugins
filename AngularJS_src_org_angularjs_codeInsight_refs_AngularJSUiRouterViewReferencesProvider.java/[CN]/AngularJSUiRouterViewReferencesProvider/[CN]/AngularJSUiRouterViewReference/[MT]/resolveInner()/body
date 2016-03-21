@@ -1,22 +1,5 @@
 {
-  final FileBasedIndex instance=FileBasedIndex.getInstance();
-  final Project project=getElement().getProject();
   final String id=getViewName();
-  Collection<VirtualFile> files=instance.getContainingFiles(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,id,GlobalSearchScope.allScope(project));
-  if (StringUtil.isEmptyOrSpaces(id)) {
-    files=filterByTemplateUrl(files);
-  }
-  final List<ResolveResult> list=new ArrayList<ResolveResult>();
-  for (  VirtualFile file : files) {
-    final List<AngularNamedItemDefinition> values=instance.getValues(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,id,GlobalSearchScope.fileScope(project,file));
-    for (    AngularNamedItemDefinition value : values) {
-      JSQualifiedNameImpl qName=JSQualifiedNameImpl.fromQualifiedName(id);
-      JSImplicitElementImpl.Builder elementBuilder=new JSImplicitElementImpl.Builder(qName,null);
-      final PsiFile psiFile=PsiManager.getInstance(project).findFile(file);
-      if (psiFile != null) {
-        list.add(new JSResolveResult(new JSOffsetBasedImplicitElement(elementBuilder,(int)value.getStartOffset(),psiFile)));
-      }
-    }
-  }
-  return list.toArray(new ResolveResult[list.size()]);
+  final Condition<VirtualFile> filter=StringUtil.isEmptyOrSpaces(id) ? filterByTemplateUrl() : Condition.TRUE;
+  return AngularIndexUtil.multiResolveAngularNamedDefinitionIndex(getElement().getProject(),AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,id,filter,false);
 }
