@@ -1,18 +1,18 @@
 {
   if (AngularJSCompletionContributor.getElementLanguage(parameters).isKindOf(JavascriptLanguage.INSTANCE)) {
-    final PsiElement originalPosition=parameters.getOriginalPosition();
+    PsiElement originalPosition=parameters.getOriginalPosition();
     if (originalPosition == null)     return;
+    final Project project=originalPosition.getProject();
     if (AngularJSReferencesContributor.UI_VIEW_PATTERN.accepts(originalPosition)) {
       final FileBasedIndex instance=FileBasedIndex.getInstance();
-      final Project project=originalPosition.getProject();
       final Collection<String> keys=instance.getAllKeys(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,project);
-      for (      String key : keys) {
-        if (StringUtil.isEmptyOrSpaces(key)) {
-          continue;
-        }
-        final LookupElementBuilder builder=LookupElementBuilder.create(key).withTailText(" (angular-ui-router ui-view)",true);
-        final LookupElement item=PrioritizedLookupElement.withPriority(builder,JSLookupPriority.LOCAL_SCOPE_MAX_PRIORITY);
-        result.addElement(item);
+      addCompletionVariants(result,keys," (angular-ui-router ui-view)");
+    }
+ else {
+      originalPosition=originalPosition instanceof LeafPsiElement && ((LeafPsiElement)originalPosition).getElementType() == JSTokenTypes.STRING_LITERAL ? originalPosition.getParent() : originalPosition;
+      if (AngularJSReferencesContributor.MODULE_PATTERN.accepts(originalPosition)) {
+        final Collection<String> keys=AngularIndexUtil.getAllKeys(AngularModuleIndex.KEY,project);
+        addCompletionVariants(result,keys," (AngularJS module)");
       }
     }
   }
