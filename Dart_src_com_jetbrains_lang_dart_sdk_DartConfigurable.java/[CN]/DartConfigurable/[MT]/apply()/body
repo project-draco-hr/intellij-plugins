@@ -2,8 +2,9 @@
   final Runnable runnable=new Runnable(){
     @Override public void run(){
       if (myEnableDartSupportCheckBox.isSelected()) {
-        final String sdkHomePath=FileUtilRt.toSystemIndependentName(mySdkPathTextWithBrowse.getText().trim());
+        final String sdkHomePath=FileUtilRt.toSystemIndependentName(mySdkPathComboWithBrowse.getComboBox().getEditor().getItem().toString().trim());
         if (DartSdkUtil.isDartSdkHome(sdkHomePath)) {
+          DartSdkUtil.updateKnownSdkPaths(myProject,sdkHomePath);
           DartSdkGlobalLibUtil.ensureDartSdkConfigured(sdkHomePath);
           DaemonCodeAnalyzer.getInstance(myProject).restart();
           final Module[] modules=DartSdkGlobalLibUtil.isIdeWithMultipleModuleSupport() ? myModulesCheckboxTreeTable.getCheckedNodes(Module.class) : ModuleManager.getInstance(myProject).getModules();
@@ -20,7 +21,7 @@
         }
         final DartSdkUpdateOption sdkUpdateOption=myCheckSdkUpdateCheckBox.isSelected() ? (DartSdkUpdateOption)mySdkUpdateChannelCombo.getSelectedItem() : DartSdkUpdateOption.DoNotCheck;
         DartSdkUpdateOption.setDartSdkUpdateOption(sdkUpdateOption);
-        final String dartiumPath=FileUtilRt.toSystemIndependentName(myDartiumPathTextWithBrowse.getText().trim());
+        final String dartiumPath=FileUtilRt.toSystemIndependentName(myDartiumPathComboWithBrowse.getComboBox().getEditor().getItem().toString().trim());
         DartiumUtil.applyDartiumSettings(dartiumPath,myDartiumSettingsCurrent);
       }
  else {

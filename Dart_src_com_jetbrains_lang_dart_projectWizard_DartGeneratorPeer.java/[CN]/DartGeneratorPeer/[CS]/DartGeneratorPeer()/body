@@ -3,7 +3,9 @@
   final Library[] libraries=modifiableModel.getLibraries();
   ModifiableModelsProvider.SERVICE.getInstance().disposeLibraryTableModifiableModel(modifiableModel);
   final DartSdk sdkInitial=DartSdk.findDartSdkAmongGlobalLibs(libraries);
-  mySdkPathTextWithBrowse.setText(sdkInitial == null ? "" : FileUtil.toSystemDependentName(sdkInitial.getHomePath()));
+  final String sdkPathInitial=sdkInitial == null ? "" : FileUtil.toSystemDependentName(sdkInitial.getHomePath());
+  mySdkPathComboWithBrowse.getComboBox().setEditable(true);
+  mySdkPathComboWithBrowse.getComboBox().getEditor().setItem(sdkPathInitial);
   final WebBrowser dartiumInitial=DartiumUtil.getDartiumBrowser();
   myDartiumSettingsCurrent=new ChromeSettings();
   if (dartiumInitial != null) {
@@ -12,8 +14,10 @@
       myDartiumSettingsCurrent=(ChromeSettings)browserSpecificSettings.clone();
     }
   }
-  myDartiumPathTextWithBrowse.setText(dartiumInitial == null ? "" : FileUtilRt.toSystemDependentName(StringUtil.notNullize(dartiumInitial.getPath())));
-  DartSdkUtil.initDartSdkAndDartiumControls(null,mySdkPathTextWithBrowse,myVersionLabel,myDartiumPathTextWithBrowse,new Computable.PredefinedValueComputable<ChromeSettings>(myDartiumSettingsCurrent),myDartiumSettingsButton,myCheckedModeCheckBox,new Computable.PredefinedValueComputable<Boolean>(false));
+  final String dartiumPath=dartiumInitial == null ? "" : FileUtilRt.toSystemDependentName(StringUtil.notNullize(dartiumInitial.getPath()));
+  myDartiumPathComboWithBrowse.getComboBox().setEditable(true);
+  myDartiumPathComboWithBrowse.getComboBox().getEditor().setItem(dartiumPath);
+  DartSdkUtil.initDartSdkAndDartiumControls(null,mySdkPathComboWithBrowse,myVersionLabel,myDartiumPathComboWithBrowse,new Computable.PredefinedValueComputable<ChromeSettings>(myDartiumSettingsCurrent),myDartiumSettingsButton,myCheckedModeCheckBox,new Computable.PredefinedValueComputable<Boolean>(false));
   final boolean checkedMode=dartiumInitial == null || DartiumUtil.isCheckedMode(myDartiumSettingsCurrent.getEnvironmentVariables());
   myCheckedModeCheckBox.setSelected(checkedMode);
   myCreateSampleProjectCheckBox.addActionListener(new ActionListener(){
@@ -25,7 +29,8 @@
   myTemplatesList.setEmptyText(DartBundle.message("set.sdk.to.see.sample.content.options"));
   myErrorLabel.setIcon(AllIcons.Actions.Lightning);
   myErrorLabel.setVisible(false);
-  final String message=DartSdkUtil.getErrorMessageIfWrongSdkRootPath(mySdkPathTextWithBrowse.getText().trim());
+  final String sdkPath=mySdkPathComboWithBrowse.getComboBox().getEditor().getItem().toString().trim();
+  final String message=DartSdkUtil.getErrorMessageIfWrongSdkRootPath(sdkPath);
   if (message == null) {
     startLoadingTemplates();
   }
@@ -33,11 +38,13 @@
     myLoadingTemplatesPanel.setVisible(false);
     myCreateSampleProjectCheckBox.setEnabled(false);
     myTemplatesList.setEnabled(false);
-    mySdkPathTextWithBrowse.getTextField().getDocument().addDocumentListener(new DocumentAdapter(){
+    final JTextComponent editorComponent=(JTextComponent)mySdkPathComboWithBrowse.getComboBox().getEditor().getEditorComponent();
+    editorComponent.getDocument().addDocumentListener(new DocumentAdapter(){
       @Override protected void textChanged(      final DocumentEvent e){
-        final String message=DartSdkUtil.getErrorMessageIfWrongSdkRootPath(mySdkPathTextWithBrowse.getText().trim());
+        final String sdkPath=mySdkPathComboWithBrowse.getComboBox().getEditor().getItem().toString().trim();
+        final String message=DartSdkUtil.getErrorMessageIfWrongSdkRootPath(sdkPath);
         if (message == null) {
-          mySdkPathTextWithBrowse.getTextField().getDocument().removeDocumentListener(this);
+          editorComponent.getDocument().removeDocumentListener(this);
           startLoadingTemplates();
         }
       }

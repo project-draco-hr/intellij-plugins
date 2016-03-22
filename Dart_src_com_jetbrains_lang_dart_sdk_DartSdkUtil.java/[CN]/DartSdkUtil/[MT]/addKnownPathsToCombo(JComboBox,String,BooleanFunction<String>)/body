@@ -1,0 +1,24 @@
+{
+  final SmartList<String> validPathsForUI=new SmartList<>();
+  final String currentPath=combo.getEditor().getItem().toString().trim();
+  if (!currentPath.isEmpty()) {
+    validPathsForUI.add(currentPath);
+  }
+  final String[] knownPaths=PropertiesComponent.getInstance().getValues(propertyKey);
+  if (knownPaths != null && knownPaths.length > 0) {
+    final SmartList<String> validPaths=new SmartList<>();
+    for (    String path : knownPaths) {
+      if (pathChecker.fun(path)) {
+        validPaths.add(path);
+        validPathsForUI.add(FileUtil.toSystemDependentName(path));
+      }
+    }
+    if (validPaths.size() == 0) {
+      PropertiesComponent.getInstance().unsetValue(propertyKey);
+    }
+ else     if (validPaths.size() < knownPaths.length) {
+      PropertiesComponent.getInstance().setValues(propertyKey,ArrayUtil.toStringArray(validPaths));
+    }
+  }
+  combo.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(validPathsForUI)));
+}
