@@ -10,12 +10,22 @@
       Logger.getInstance(Angular2HTMLLexer.class).error(myInterpolationLexer.getBufferSequence());
     }
     myInterpolationLexer=null;
+    interpolationStart=-1;
+    return;
   }
   super.advance();
-  final IElementType type=super.getTokenType();
-  if (type == XmlTokenType.XML_DATA_CHARACTERS || type == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
-    final Lexer lexer=createLexer(type);
-    lexer.start(super.getTokenText());
+  final IElementType originalType=super.getTokenType();
+  if (originalType == XmlTokenType.XML_DATA_CHARACTERS || originalType == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+    IElementType type=originalType;
+    interpolationStart=super.getTokenStart();
+    final StringBuilder text=new StringBuilder();
+    while (type == XmlTokenType.XML_DATA_CHARACTERS || type == XmlTokenType.XML_REAL_WHITE_SPACE || type == XmlTokenType.XML_WHITE_SPACE || type == XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN) {
+      text.append(super.getTokenText());
+      super.advance();
+      type=getTokenType();
+    }
+    final Lexer lexer=createLexer(originalType);
+    lexer.start(text);
     myInterpolationLexer=lexer;
   }
 }
