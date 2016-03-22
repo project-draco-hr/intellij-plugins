@@ -1,5 +1,5 @@
 {
-  file.accept(new AngularJSRecursiveVisitor(){
+  element.accept(new AngularJSRecursiveVisitor(){
     @Override public void visitJSDefinitionExpression(    JSDefinitionExpression node){
       myResult.add(node);
       super.visitJSDefinitionExpression(node);
@@ -14,4 +14,11 @@
     }
   }
 );
+  if (element instanceof XmlAttribute) {
+    final String name=((XmlAttribute)element).getName();
+    if (AngularAttributesRegistry.isVariableAttribute(name,element.getProject())) {
+      final JSImplicitElementImpl.Builder builder=createVariable((HtmlTag)element.getParent(),(XmlAttribute)element,name);
+      myResult.add(builder.toImplicitElement());
+    }
+  }
 }
