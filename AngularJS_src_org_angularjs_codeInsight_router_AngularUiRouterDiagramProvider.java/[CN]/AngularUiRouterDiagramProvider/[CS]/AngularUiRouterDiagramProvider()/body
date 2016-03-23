@@ -1,0 +1,70 @@
+{
+  myData=new HashMap<>();
+  myResolver=new DiagramVfsResolver<DiagramObject>(){
+    @Override public String getQualifiedName(    DiagramObject element){
+      return (Type.template.equals(element.getType()) || Type.topLevelTemplate.equals(element.getType())) && element.getNavigationTarget() != null ? element.getNavigationTarget().getContainingFile().getVirtualFile().getPath() : "";
+    }
+    @Nullable @Override public DiagramObject resolveElementByFQN(    String fqn,    Project project){
+      final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(fqn);
+      if (file == null) {
+        return null;
+      }
+ else {
+        final AngularUiRouterGraphBuilder.GraphNodesBuilder builder=myData.get(file);
+        return builder == null ? null : builder.getRootNode().getIdentifyingElement();
+      }
+    }
+  }
+;
+  myElementManager=new AbstractDiagramElementManager<DiagramObject>(){
+    @Override public Object[] getNodeItems(    DiagramObject parent){
+      return ArrayUtil.toObjectArray(parent.getChildren().values());
+    }
+    @Nullable @Override public DiagramObject findInDataContext(    DataContext context){
+      return null;
+    }
+    @Override public boolean isAcceptableAsNode(    Object element){
+      return element instanceof DiagramObject;
+    }
+    @Nullable @Override public String getElementTitle(    DiagramObject element){
+      return element.getName();
+    }
+    @Nullable @Override public SimpleColoredText getItemName(    Object element,    DiagramState presentation){
+      if (element instanceof DiagramObject) {
+        return new SimpleColoredText(((DiagramObject)element).getName(),SimpleTextAttributes.REGULAR_ATTRIBUTES);
+      }
+      return null;
+    }
+    @Override public String getNodeTooltip(    DiagramObject element){
+      return element.getName();
+    }
+  }
+;
+  myColorManager=new DiagramColorManagerBase(){
+    @Override public Color getNodeHeaderColor(    DiagramBuilder builder,    @Nullable DiagramNode node){
+      return getColor(node.getIdentifyingElement());
+    }
+    @Override public Color getNodeBackground(    Project project,    Object nodeElement,    boolean selected){
+      return getColor(nodeElement);
+    }
+    @Nullable private Color getColor(    Object nodeElement){
+      if (nodeElement instanceof DiagramObject) {
+        final DiagramObject element=((DiagramObject)nodeElement);
+        if (Type.state.equals(element.getType())) {
+          return LightColors.YELLOW;
+        }
+ else         if (Type.view.equals(element.getType())) {
+          return LightColors.BLUE;
+        }
+ else         if (Type.template.equals(element.getType())) {
+          return LightColors.GREEN;
+        }
+ else         if (Type.templatePlaceholder.equals(element.getType())) {
+          return LightColors.SLIGHTLY_GREEN;
+        }
+      }
+      return null;
+    }
+  }
+;
+}
