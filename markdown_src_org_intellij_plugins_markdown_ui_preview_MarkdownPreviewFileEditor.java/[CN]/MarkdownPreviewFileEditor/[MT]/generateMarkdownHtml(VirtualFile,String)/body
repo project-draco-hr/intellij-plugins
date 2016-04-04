@@ -1,0 +1,7 @@
+{
+  final VirtualFile parent=file.getParent();
+  final URI baseUri=parent != null ? new File(parent.getPath()).toURI() : null;
+  final ASTNode parsedTree=new MarkdownParser(MarkdownParserManager.FLAVOUR).buildMarkdownTreeFromString(text);
+  final Map<IElementType,GeneratingProvider> htmlGeneratingProviders=MarkdownParserManager.FLAVOUR.createHtmlGeneratingProviders(LinkMap.Builder.buildLinkMap(parsedTree,text),baseUri);
+  return new HtmlGenerator(text,parsedTree,htmlGeneratingProviders,true).generateHtml();
+}
