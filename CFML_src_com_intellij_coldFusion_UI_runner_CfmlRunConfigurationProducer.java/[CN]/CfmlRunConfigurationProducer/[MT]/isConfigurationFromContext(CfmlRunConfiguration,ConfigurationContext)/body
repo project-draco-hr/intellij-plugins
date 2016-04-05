@@ -1,0 +1,19 @@
+{
+  final Location location=context.getLocation();
+  if (location == null)   return false;
+  final PsiElement anchor=location.getPsiElement();
+  final PsiFile containingFile=anchor.getContainingFile();
+  if (isValid(containingFile)) {
+    final String path;
+    path=buildPageUrl(context,containingFile.getVirtualFile());
+    URL url;
+    try {
+      url=new URL(configuration.getRunnerParameters().getUrl());
+      return StringUtil.equals(url.getPath(),path);
+    }
+ catch (    MalformedURLException e) {
+      LOG.warn(CfmlBundle.message("cfml.producer.warn.url"));
+    }
+  }
+  return false;
+}

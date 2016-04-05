@@ -1,0 +1,42 @@
+{
+  final Location location=context.getLocation();
+  if (!(location instanceof PsiLocation))   return false;
+  final VirtualFile file;
+  PsiElement element=location.getPsiElement();
+  final PsiFile containingFile=element.getContainingFile();
+  if (isValid(containingFile)) {
+    file=containingFile.getVirtualFile();
+    sourceElement.set(containingFile);
+  }
+ else {
+    return false;
+  }
+  if (!FileTypeManager.getInstance().isFileOfType(file,ScratchFileType.INSTANCE)) {
+    final VirtualFile root=ProjectRootManager.getInstance(element.getProject()).getFileIndex().getContentRootForFile(file);
+    if (root == null)     return false;
+  }
+  if (configuration == null) {
+    return false;
+  }
+  CfmlRunnerParameters params=configuration.getRunnerParameters();
+  String urlStr=configuration.getRunnerParameters().getUrl();
+  String serverUrl;
+  if (!urlStr.isEmpty()) {
+    try {
+      URL url=new URL(urlStr);
+      serverUrl=url.getProtocol() + "://" + url.getAuthority();
+    }
+ catch (    MalformedURLException e) {
+      LOG.warn(CfmlBundle.message("cfml.producer.warn.url"));
+      return false;
+    }
+  }
+ else {
+    serverUrl=DEFAULT_HOST;
+    configuration.setFromDefaultHost(true);
+  }
+  String path=buildPageUrl(context,file);
+  params.setUrl(serverUrl + path);
+  configuration.setName(generateName(containingFile));
+  return true;
+}
