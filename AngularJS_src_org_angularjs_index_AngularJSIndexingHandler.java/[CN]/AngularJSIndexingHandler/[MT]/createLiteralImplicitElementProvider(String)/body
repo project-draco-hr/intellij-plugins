@@ -14,7 +14,7 @@
           if (argumentListProcessor != null && !argumentListProcessor.process(callExpression.getArgumentList()))           return;
           final Function<PsiElement,String> calculator=DATA_CALCULATORS.get(command);
           final String data=calculator != null ? calculator.fun(argument) : null;
-          final String argumentText=StringUtil.unquoteString(argument.getText());
+          final String argumentText=unquote(argument);
           addImplicitElements(argument,command,index,argumentText,data,outIndexingData);
         }
       }
@@ -28,7 +28,7 @@
           if (qualifier instanceof JSReferenceExpression) {
             if ("$interpolateProvider".equals(((JSReferenceExpression)qualifier).getReferenceName())) {
               if (argument.isQuotedLiteral()) {
-                String interpolation=StringUtil.unquoteString(argument.getText());
+                String interpolation=unquote(argument);
                 if ("//".equals(interpolation))                 return;
                 addImplicitElements(argument,null,AngularInjectionDelimiterIndex.KEY,command,interpolation,outIndexingData);
               }
