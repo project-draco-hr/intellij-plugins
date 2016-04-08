@@ -2,7 +2,13 @@
   myData=new HashMap<>();
   myResolver=new DiagramVfsResolver<DiagramObject>(){
     @Override public String getQualifiedName(    DiagramObject element){
-      return (Type.template.equals(element.getType()) || Type.topLevelTemplate.equals(element.getType())) && element.getNavigationTarget() != null ? element.getNavigationTarget().getContainingFile().getVirtualFile().getPath() : "";
+      if ((Type.template.equals(element.getType()) || Type.topLevelTemplate.equals(element.getType())) && element.getNavigationTarget() != null) {
+        final PsiFile psiFile=element.getNavigationTarget().getContainingFile();
+        return psiFile == null ? "" : psiFile.getVirtualFile().getPath();
+      }
+ else {
+        return "";
+      }
     }
     @Nullable @Override public DiagramObject resolveElementByFQN(    String fqn,    Project project){
       final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(fqn);
