@@ -21,14 +21,15 @@
       builder.append(" ").append(testRunnerOptions);
     }
     builder.append(' ').append(params.getFilePath());
-    String groupOrTestName=params.getTestName();
-    if (groupOrTestName != null && !groupOrTestName.isEmpty()) {
-      if (params.getScope() == DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME) {
-        builder.append(" -N \"").append(groupOrTestName).append("\"");
+    if (params.getScope() == DartTestRunnerParameters.Scope.GROUP_OR_TEST_BY_NAME) {
+      builder.append(" -N \"").append(StringUtil.notNullize(params.getTestName())).append("\"");
+    }
+    if (params.getScope() == DartTestRunnerParameters.Scope.MULTIPLE_NAMES) {
+      final String regex=StringUtil.notNullize(params.getTestName());
+      if (regex.isEmpty()) {
+        throw new ExecutionException("No tests to run");
       }
- else       if (params.getScope() == DartTestRunnerParameters.Scope.MULTIPLE_NAMES) {
-        builder.append(" -n \"").append(groupOrTestName).append("\"");
-      }
+      builder.append(" -n \"").append(regex).append("\"");
     }
   }
   params.setArguments(builder.toString());
