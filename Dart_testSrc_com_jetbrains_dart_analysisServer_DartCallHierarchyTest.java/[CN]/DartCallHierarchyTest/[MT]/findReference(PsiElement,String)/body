@@ -1,0 +1,39 @@
+{
+  PsiElement[] result=new PsiElement[1];
+  try {
+    dartClass.acceptChildren(new DartRecursiveVisitor(){
+      @Override public void visitReferenceExpression(      @NotNull DartReferenceExpression reference){
+        if (referenceName.equals(reference.getText())) {
+          if (reference.getNextSibling() == null) {
+            PsiElement parent=reference.getParent();
+            if (parent != null) {
+              IElementType type=parent.getNode().getElementType();
+              if (type == CALL_EXPRESSION) {
+                result[0]=reference;
+                throw new ExitVisitor();
+              }
+              parent=parent.getParent();
+              if (parent != null) {
+                type=parent.getNode().getElementType();
+                if (type == CALL_EXPRESSION) {
+                  List<PsiElement> results=new ArrayList<>();
+                  DartCallHierarchyTreeStructure.collectDeclarations(reference.resolve(),results);
+                  if (!results.isEmpty()) {
+                    result[0]=results.get(0);
+                    throw new ExitVisitor();
+                  }
+                }
+              }
+            }
+          }
+        }
+        super.visitReferenceExpression(reference);
+      }
+    }
+);
+  }
+ catch (  ExitVisitor ex) {
+    return result[0];
+  }
+  return null;
+}
