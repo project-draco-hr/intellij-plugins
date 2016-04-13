@@ -1,0 +1,30 @@
+{
+  @NonNls final String s1="<table bgcolor=\"#FFFFFF\"><cfoutput>\n" + "  <div id=\"#bColumn2";
+  String s2="\" />\n" + "</cfoutput></table>";
+  String s=s1 + s2;
+  final Document doc=new DocumentImpl(s);
+  EditorEx editor=(EditorEx)EditorFactory.getInstance().createEditor(doc);
+  try {
+    EditorHighlighter highlighter=HighlighterFactory.createHighlighter(getProject(),CfmlFileType.INSTANCE);
+    editor.setHighlighter(highlighter);
+    CommandProcessor.getInstance().executeCommand(getProject(),new Runnable(){
+      @Override public void run(){
+        ApplicationManager.getApplication().runWriteAction(new Runnable(){
+          @Override public void run(){
+            doc.insertString(s1.length(),"#");
+          }
+        }
+);
+      }
+    }
+,"",null);
+    List tokensAfterUpdate=getAllTokens(highlighter);
+    highlighter=HighlighterFactory.createHighlighter(getProject(),CfmlFileType.INSTANCE);
+    editor.setHighlighter(highlighter);
+    List tokensWithoutUpdate=getAllTokens(highlighter);
+    TestCase.assertEquals(tokensWithoutUpdate,tokensAfterUpdate);
+  }
+  finally {
+    EditorFactory.getInstance().releaseEditor(editor);
+  }
+}
