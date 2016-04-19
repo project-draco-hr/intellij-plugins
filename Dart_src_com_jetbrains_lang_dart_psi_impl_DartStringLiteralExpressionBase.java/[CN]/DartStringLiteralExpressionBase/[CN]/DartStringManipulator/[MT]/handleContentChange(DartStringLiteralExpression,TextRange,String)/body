@@ -1,0 +1,10 @@
+{
+  final int expectedNewLength=oldElement.getTextLength() - range.getLength() + newContent.length();
+  final String newText=StringUtil.replaceSubstring(oldElement.getText(),range,newContent);
+  final PsiFile fileFromText=PsiFileFactory.getInstance(oldElement.getProject()).createFileFromText(DartLanguage.INSTANCE,"var a = " + newText + ";");
+  final PsiElement elementAt=fileFromText.findElementAt("var a = ".length());
+  if (elementAt != null && elementAt.getParent() instanceof DartStringLiteralExpression && expectedNewLength == elementAt.getParent().getTextLength()) {
+    return (DartStringLiteralExpression)oldElement.replace(elementAt.getParent());
+  }
+  return oldElement;
+}

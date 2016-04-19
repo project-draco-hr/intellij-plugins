@@ -1,0 +1,43 @@
+{
+  super(project);
+  myProject=project;
+  setTitle(DartBundle.message("dart.pub.build.title"));
+  ActionListener listener=new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      updateControls();
+    }
+  }
+;
+  myReleaseRadioButton.addActionListener(listener);
+  myDebugRadioButton.addActionListener(listener);
+  myOtherRadioButton.addActionListener(listener);
+  myOtherRadioButton.addActionListener(new ActionListener(){
+    public void actionPerformed(    final ActionEvent e){
+      if (myOtherRadioButton.isSelected()) {
+        IdeFocusManager.getInstance(myProject).requestFocus(myOtherModeTextField,true);
+      }
+    }
+  }
+);
+  final String packagePathSlash=FileUtil.toSystemDependentName(packageDir.getPath() + "/");
+  myOutputFolderField.addBrowseFolderListener("Output Folder",null,myProject,FileChooserDescriptorFactory.createSingleFolderDescriptor(),new TextComponentAccessor<JTextField>(){
+    @Override public String getText(    JTextField component){
+      final String path=component.getText();
+      if (SystemInfo.isWindows && FileUtil.isWindowsAbsolutePath(path) || !SystemInfo.isWindows && FileUtil.isUnixAbsolutePath(path)) {
+        return path;
+      }
+      return packagePathSlash + path;
+    }
+    @Override public void setText(    JTextField component,    @NotNull String text){
+      if (text.startsWith(packagePathSlash) && !text.equals(packagePathSlash)) {
+        component.setText(text.substring(packagePathSlash.length()));
+      }
+ else {
+        component.setText(text);
+      }
+    }
+  }
+);
+  reset();
+  init();
+}

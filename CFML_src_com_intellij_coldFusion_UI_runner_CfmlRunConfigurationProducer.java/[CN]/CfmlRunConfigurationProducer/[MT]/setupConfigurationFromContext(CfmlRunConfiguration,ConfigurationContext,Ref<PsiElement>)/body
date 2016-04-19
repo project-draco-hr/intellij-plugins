@@ -27,7 +27,7 @@
       serverUrl=url.getProtocol() + "://" + url.getAuthority();
     }
  catch (    MalformedURLException e) {
-      LOG.warn(CfmlBundle.message("cfml.producer.warn.url"));
+      LOG.error(CfmlBundle.message("cfml.producer.error.url",urlStr));
       return false;
     }
   }
@@ -36,7 +36,18 @@
     configuration.setFromDefaultHost(true);
   }
   String path=buildPageUrl(context,file);
-  params.setUrl(serverUrl + path);
+  if (StringUtil.endsWith(serverUrl,"/") && !StringUtil.startsWith(path,"/")) {
+    params.setUrl(serverUrl + path);
+  }
+ else   if (!StringUtil.endsWith(serverUrl,"/") && !StringUtil.startsWith(path,"/")) {
+    params.setUrl(serverUrl + "/" + path);
+  }
+ else   if (!StringUtil.endsWith(serverUrl,"/") && StringUtil.startsWith(path,"/")) {
+    params.setUrl(serverUrl + path);
+  }
+ else   if (StringUtil.endsWith(serverUrl,"/") && StringUtil.startsWith(path,"/")) {
+    params.setUrl(serverUrl + path.substring(1,path.length()));
+  }
   configuration.setName(generateName(containingFile));
   return true;
 }
