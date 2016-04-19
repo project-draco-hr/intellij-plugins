@@ -7,12 +7,14 @@
     final String path;
     path=buildPageUrl(context,containingFile.getVirtualFile());
     URL url;
+    final String urlFromRunnerParameters=configuration.getRunnerParameters().getUrl();
+    if (urlFromRunnerParameters.isEmpty())     return false;
     try {
-      url=new URL(configuration.getRunnerParameters().getUrl());
+      url=new URL(urlFromRunnerParameters);
       return StringUtil.equals(url.getPath(),path);
     }
  catch (    MalformedURLException e) {
-      LOG.warn(CfmlBundle.message("cfml.producer.warn.url"));
+      LOG.error(CfmlBundle.message("cfml.producer.error.url",urlFromRunnerParameters));
     }
   }
   return false;
