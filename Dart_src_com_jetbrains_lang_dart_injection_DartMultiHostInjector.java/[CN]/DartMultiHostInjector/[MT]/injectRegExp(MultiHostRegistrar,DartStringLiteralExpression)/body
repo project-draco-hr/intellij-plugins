@@ -1,0 +1,14 @@
+{
+  final PsiElement child=element.getFirstChild();
+  final IElementType elementType=child.getNode().getElementType();
+  if (elementType != DartTokenTypes.RAW_SINGLE_QUOTED_STRING || child.getNextSibling() != null) {
+    return;
+  }
+  final Pair<String,TextRange> textAndRange=DartPsiImplUtil.getUnquotedDartStringAndItsRange(child.getText());
+  if (textAndRange.first.isEmpty()) {
+    return;
+  }
+  registrar.startInjecting(RegExpLanguage.INSTANCE);
+  registrar.addPlace(null,null,element,textAndRange.second);
+  registrar.doneInjecting();
+}
