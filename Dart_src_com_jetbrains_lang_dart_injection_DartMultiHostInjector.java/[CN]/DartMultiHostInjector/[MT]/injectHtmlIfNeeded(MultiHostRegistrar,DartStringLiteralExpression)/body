@@ -1,0 +1,33 @@
+{
+  final List<HtmlPlaceInfo> infos=new SmartList<>();
+  final StringBuilder textBuf=new StringBuilder();
+  PsiElement child=element.getFirstChild();
+  while (child != null) {
+    final IElementType type=child.getNode().getElementType();
+    if (type == DartTokenTypes.REGULAR_STRING_PART) {
+      textBuf.append(child.getText());
+      String suffix=null;
+      final PsiElement nextSibling=child.getNextSibling();
+      if (nextSibling != null && nextSibling.getNode().getElementType() != DartTokenTypes.CLOSING_QUOTE) {
+        suffix="placeholder";
+        textBuf.append(suffix);
+      }
+      infos.add(new HtmlPlaceInfo(TextRange.from(child.getStartOffsetInParent(),child.getTextLength()),suffix));
+    }
+ else     if (type == DartTokenTypes.RAW_SINGLE_QUOTED_STRING || type == DartTokenTypes.RAW_TRIPLE_QUOTED_STRING) {
+      final Pair<String,TextRange> stringAndRange=DartPsiImplUtil.getUnquotedDartStringAndItsRange(child.getText());
+      final String string=stringAndRange.first;
+      final TextRange stringRange=stringAndRange.second;
+      infos.add(new HtmlPlaceInfo(stringRange.shiftRight(child.getStartOffsetInParent()),null));
+      textBuf.append(string);
+    }
+    child=child.getNextSibling();
+  }
+  if (textBuf.length() > 0 && looksLikeHtml(textBuf.toString())) {
+    registrar.startInjecting(HTMLLanguage.INSTANCE);
+    for (    HtmlPlaceInfo info : infos) {
+      registrar.addPlace(null,info.suffix,element,info.range);
+    }
+    registrar.doneInjecting();
+  }
+}
