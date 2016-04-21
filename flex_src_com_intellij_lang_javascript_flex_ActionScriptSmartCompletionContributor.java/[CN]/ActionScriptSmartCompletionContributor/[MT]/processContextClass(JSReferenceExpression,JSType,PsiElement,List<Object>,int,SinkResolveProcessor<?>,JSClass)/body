@@ -1,0 +1,20 @@
+{
+  JSClass clazz=expectedType.resolveClass();
+  if (clazz != null && !clazz.isEquivalentTo(ourClass)) {
+    qualifiedStaticVariantsStart=processor.getResultSink().getResultCount();
+    processStaticsOf(clazz,processor,ourClass);
+  }
+  if (ourClass != null && clazz != null && JSInheritanceUtil.isParentClass(ourClass,clazz,false) && !JSResolveUtil.calculateStaticFromContext(location) && JSCompletionContributor.getInstance().isDoingSmartCodeCompleteAction()) {
+    variants.add(JSLookupUtilImpl.createPrioritizedLookupItem(null,"this",JSLookupPriority.SMART_PRIORITY,true,true));
+  }
+  if (parent instanceof JSArgumentList) {
+    JSParameterItem param=JSResolveUtil.findParameterForUsedArgument(location,(JSArgumentList)parent);
+    if (param instanceof JSParameter) {
+      PsiElement element=JSResolveUtil.findParent(((JSParameter)param).getParent().getParent());
+      if (element instanceof JSClass && !element.isEquivalentTo(ourClass) && !element.isEquivalentTo(clazz)) {
+        processStaticsOf((JSClass)element,processor,ourClass);
+      }
+    }
+  }
+  return qualifiedStaticVariantsStart;
+}
