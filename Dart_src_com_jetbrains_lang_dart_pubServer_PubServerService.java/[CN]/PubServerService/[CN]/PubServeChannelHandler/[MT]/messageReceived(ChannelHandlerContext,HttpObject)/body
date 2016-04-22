@@ -1,9 +1,24 @@
 {
-  ChannelHandlerContext clientContext=serverToClientContext.get(context.channel());
-  if (clientContext != null && clientContext.channel().isActive()) {
-    clientContext.channel().writeAndFlush(message);
+  Channel serverChannel=context.channel();
+  Channel clientChannel=serverToClientChannel.get(serverChannel);
+  if (clientChannel == null || !clientChannel.isActive()) {
+    serverToClientChannel.remove(serverChannel);
+    serverChannel.close();
+    if (message instanceof ReferenceCounted) {
+      ((ReferenceCounted)message).release();
+    }
   }
- else   if (message instanceof ReferenceCounted) {
-    ((ReferenceCounted)message).release();
+ else {
+    if (message instanceof HttpMessage) {
+      HttpUtil.setKeepAlive(((HttpMessage)message),true);
+    }
+    if (message instanceof LastHttpContent) {
+      serverToClientChannel.remove(serverChannel);
+      ServerInfo serverInfo=getServerInfo(serverChannel);
+      if (serverInfo != null) {
+        serverChannel.close();
+      }
+    }
+    clientChannel.writeAndFlush(message);
   }
 }

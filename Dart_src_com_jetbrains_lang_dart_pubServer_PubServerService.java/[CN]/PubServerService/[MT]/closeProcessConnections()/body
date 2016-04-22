@@ -1,18 +1,20 @@
 {
   servedDirToSocketAddress.clear();
-  ChannelHandlerContext[] clientContexts;
+  Channel[] clientContexts;
   try {
-    Collection<ChannelHandlerContext> clients=serverToClientContext.values();
-    clientContexts=clients.toArray(new ChannelHandlerContext[clients.size()]);
-    freeServerChannels.clear();
-    serverToClientContext.clear();
+    Collection<Channel> clientChannels=serverToClientChannel.values();
+    clientContexts=clientChannels.toArray(new Channel[clientChannels.size()]);
+    for (    ServerInfo serverInstanceInfo : servedDirToSocketAddress.values()) {
+      serverInstanceInfo.freeServerChannels.clear();
+    }
+    serverToClientChannel.clear();
   }
   finally {
     serverChannelRegistrar.close();
   }
-  for (  ChannelHandlerContext context : clientContexts) {
+  for (  Channel channel : clientContexts) {
     try {
-      sendBadGateway(context.channel());
+      sendBadGateway(channel);
     }
  catch (    Exception e) {
       LOG.error(e);
