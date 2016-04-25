@@ -3,6 +3,9 @@
   if (sdk == null || StringUtil.compareVersionNumbers(sdk.getVersion(),"1.6") < 0)   return false;
   final Pair<VirtualFile,String> servedDirAndPathForPubServer=getServedDirAndPathForPubServer(project,path);
   if (servedDirAndPathForPubServer == null)   return false;
-  PubServerManager.getInstance(project).send(context.channel(),request,servedDirAndPathForPubServer.first,servedDirAndPathForPubServer.second);
+  HttpHeaders validateResult=BuiltInWebServerKt.validateToken(request,context.channel(),true);
+  if (validateResult != null && validateResult.isEmpty()) {
+    PubServerManager.getInstance(project).send(context.channel(),request,servedDirAndPathForPubServer.first,servedDirAndPathForPubServer.second);
+  }
   return true;
 }
