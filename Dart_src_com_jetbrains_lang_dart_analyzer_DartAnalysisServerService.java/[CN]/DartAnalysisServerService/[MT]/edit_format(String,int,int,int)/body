@@ -1,33 +1,28 @@
 {
   final String filePath=FileUtil.toSystemDependentName(_filePath);
   final Ref<FormatResult> resultRef=new Ref<FormatResult>();
-  final Semaphore semaphore=new Semaphore();
-synchronized (myLock) {
-    if (myServer == null)     return null;
-    semaphore.down();
-    final FormatConsumer consumer=new FormatConsumer(){
-      @Override public void computedFormat(      final List<SourceEdit> edits,      final int selectionOffset,      final int selectionLength){
-        resultRef.set(new FormatResult(edits,selectionOffset,selectionLength));
-        semaphore.up();
-      }
-      @Override public void onError(      final RequestError error){
-        if (RequestErrorCode.FORMAT_WITH_ERRORS.equals(error.getCode()) || RequestErrorCode.FORMAT_INVALID_FILE.equals(error.getCode())) {
-          LOG.info(getShortErrorMessage("edit_format()",filePath,error));
-        }
- else {
-          logError("edit_format()",filePath,error);
-        }
-        semaphore.up();
-      }
+  final AnalysisServer server=myServer;
+  if (server == null)   return null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.edit_format(filePath,selectionOffset,selectionLength,lineLength,new FormatConsumer(){
+    @Override public void computedFormat(    final List<SourceEdit> edits,    final int selectionOffset,    final int selectionLength){
+      resultRef.set(new FormatResult(edits,selectionOffset,selectionLength));
+      latch.countDown();
     }
-;
-    myServer.edit_format(filePath,selectionOffset,selectionLength,lineLength,consumer);
+    @Override public void onError(    final RequestError error){
+      if (RequestErrorCode.FORMAT_WITH_ERRORS.equals(error.getCode()) || RequestErrorCode.FORMAT_INVALID_FILE.equals(error.getCode())) {
+        LOG.info(getShortErrorMessage("edit_format()",filePath,error));
+      }
+ else {
+        logError("edit_format()",filePath,error);
+      }
+      latch.countDown();
+    }
   }
-  final long t0=System.currentTimeMillis();
-  semaphore.waitFor(EDIT_FORMAT_TIMEOUT);
-  if (semaphore.tryUp()) {
-    LOG.info("edit_format() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
-    return null;
+);
+  awaitForLatchCheckingCanceled(server,latch,EDIT_FORMAT_TIMEOUT);
+  if (latch.getCount() > 0) {
+    LOG.info("edit_format() took too long for file " + filePath);
   }
   return resultRef.get();
 }

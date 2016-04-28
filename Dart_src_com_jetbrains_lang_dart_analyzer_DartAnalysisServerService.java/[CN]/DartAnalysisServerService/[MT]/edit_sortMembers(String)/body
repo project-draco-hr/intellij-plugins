@@ -1,33 +1,28 @@
 {
   final String filePath=FileUtil.toSystemDependentName(_filePath);
   final Ref<SourceFileEdit> resultRef=new Ref<SourceFileEdit>();
-  final Semaphore semaphore=new Semaphore();
-synchronized (myLock) {
-    if (myServer == null)     return null;
-    semaphore.down();
-    final SortMembersConsumer consumer=new SortMembersConsumer(){
-      @Override public void computedEdit(      final SourceFileEdit edit){
-        resultRef.set(edit);
-        semaphore.up();
-      }
-      @Override public void onError(      final RequestError error){
-        if (RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS.equals(error.getCode()) || RequestErrorCode.SORT_MEMBERS_INVALID_FILE.equals(error.getCode())) {
-          LOG.info(getShortErrorMessage("edit_sortMembers()",filePath,error));
-        }
- else {
-          logError("edit_sortMembers()",filePath,error);
-        }
-        semaphore.up();
-      }
+  final AnalysisServer server=myServer;
+  if (server == null)   return null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.edit_sortMembers(filePath,new SortMembersConsumer(){
+    @Override public void computedEdit(    final SourceFileEdit edit){
+      resultRef.set(edit);
+      latch.countDown();
     }
-;
-    myServer.edit_sortMembers(filePath,consumer);
+    @Override public void onError(    final RequestError error){
+      if (RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS.equals(error.getCode()) || RequestErrorCode.SORT_MEMBERS_INVALID_FILE.equals(error.getCode())) {
+        LOG.info(getShortErrorMessage("edit_sortMembers()",filePath,error));
+      }
+ else {
+        logError("edit_sortMembers()",filePath,error);
+      }
+      latch.countDown();
+    }
   }
-  final long t0=System.currentTimeMillis();
-  semaphore.waitFor(EDIT_SORT_MEMBERS_TIMEOUT);
-  if (semaphore.tryUp()) {
-    LOG.info("edit_sortMembers() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
-    return null;
+);
+  awaitForLatchCheckingCanceled(server,latch,EDIT_SORT_MEMBERS_TIMEOUT);
+  if (latch.getCount() > 0) {
+    LOG.info("edit_sortMembers() took too long for file " + filePath);
   }
   return resultRef.get();
 }
