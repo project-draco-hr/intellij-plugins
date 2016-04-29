@@ -5,32 +5,28 @@
   }
   final String filePath=_filePath != null ? FileUtil.toSystemDependentName(_filePath) : null;
   final Ref<String> resultRef=new Ref<String>();
-  final Semaphore semaphore=new Semaphore();
-synchronized (myLock) {
-    if (myServer == null)     return null;
-    semaphore.down();
-    final MapUriConsumer consumer=new MapUriConsumer(){
-      @Override public void computedFileOrUri(      final String file,      final String uri){
-        if (uri != null) {
-          resultRef.set(uri);
-        }
+  final AnalysisServer server=myServer;
+  if (server == null)   return null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.execution_mapUri(_id,filePath,_uri,new MapUriConsumer(){
+    @Override public void computedFileOrUri(    final String file,    final String uri){
+      if (uri != null) {
+        resultRef.set(uri);
+      }
  else {
-          resultRef.set(file);
-        }
-        semaphore.up();
+        resultRef.set(file);
       }
-      @Override public void onError(      final RequestError error){
-        LOG.warn("execution_mapUri(" + _id + ", "+ filePath+ ", "+ _uri+ ") returned error "+ error.getCode()+ ": "+ error.getMessage());
-        semaphore.up();
-      }
+      latch.countDown();
     }
-;
-    myServer.execution_mapUri(_id,filePath,_uri,consumer);
+    @Override public void onError(    final RequestError error){
+      LOG.warn("execution_mapUri(" + _id + ", "+ filePath+ ", "+ _uri+ ") returned error "+ error.getCode()+ ": "+ error.getMessage());
+      latch.countDown();
+    }
   }
-  final long t0=System.currentTimeMillis();
-  semaphore.waitFor(EXECUTION_MAP_URI_TIMEOUT);
-  if (semaphore.tryUp()) {
-    LOG.info("execution_mapUri() took too long for contextID " + _id + " and file or uri "+ (filePath != null ? filePath : _uri)+ ": "+ (System.currentTimeMillis() - t0)+ "ms");
+);
+  awaitForLatchCheckingCanceled(server,latch,EXECUTION_MAP_URI_TIMEOUT);
+  if (latch.getCount() > 0) {
+    LOG.info("execution_mapUri() took too long for contextID " + _id + " and file or uri "+ (filePath != null ? filePath : _uri));
     return null;
   }
   if (_uri != null && !resultRef.isNull()) {

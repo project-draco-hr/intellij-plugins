@@ -1,28 +1,20 @@
 {
   final String filePath=FileUtil.toSystemDependentName(_filePath);
   final Ref<List<AnalysisErrorFixes>> resultRef=new Ref<List<AnalysisErrorFixes>>();
-  final Semaphore semaphore=new Semaphore();
-synchronized (myLock) {
-    if (myServer == null)     return null;
-    semaphore.down();
-    final GetFixesConsumer consumer=new GetFixesConsumer(){
-      @Override public void computedFixes(      final List<AnalysisErrorFixes> fixes){
-        resultRef.set(fixes);
-        semaphore.up();
-      }
-      @Override public void onError(      final RequestError error){
-        logError("edit_getFixes()",filePath,error);
-        semaphore.up();
-      }
+  final AnalysisServer server=myServer;
+  if (server == null)   return null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  server.edit_getFixes(filePath,offset,new GetFixesConsumer(){
+    @Override public void computedFixes(    final List<AnalysisErrorFixes> fixes){
+      resultRef.set(fixes);
+      latch.countDown();
     }
-;
-    myServer.edit_getFixes(filePath,offset,consumer);
+    @Override public void onError(    final RequestError error){
+      logError("edit_getFixes()",filePath,error);
+      latch.countDown();
+    }
   }
-  final long t0=System.currentTimeMillis();
-  semaphore.waitFor(GET_FIXES_TIMEOUT);
-  if (semaphore.tryUp()) {
-    LOG.info("edit_getFixes() took too long for file " + filePath + ": "+ (System.currentTimeMillis() - t0)+ "ms");
-    return null;
-  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_FIXES_TIMEOUT);
   return resultRef.get();
 }
