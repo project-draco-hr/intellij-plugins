@@ -1,0 +1,18 @@
+{
+  component.acceptChildren(new DartRecursiveVisitor(){
+    @Override public void visitReferenceExpression(    @NotNull DartReferenceExpression reference){
+      int offset=reference.getTextOffset();
+      List<DartNavigationTarget> targets=getRegionAt(offset,regions);
+      for (      DartNavigationTarget target : targets) {
+        if (isExecutable(target)) {
+          PsiElement element=getDeclaration(target,reference);
+          if (element != null) {
+            results.add(element);
+          }
+        }
+      }
+      super.visitReferenceExpression(reference);
+    }
+  }
+);
+}

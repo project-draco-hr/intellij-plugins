@@ -1,0 +1,36 @@
+{
+  final Project project=CommonDataKeys.PROJECT.getData(dataContext);
+  final Editor editor=CommonDataKeys.EDITOR.getData(dataContext);
+  if (project == null || editor == null)   return null;
+  final PsiFile file=PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
+  final PsiElement psiElement=file == null ? null : file.findElementAt(editor.getCaretModel().getOffset());
+  DartReference dartReference=PsiTreeUtil.getParentOfType(psiElement,DartReference.class);
+  if (dartReference != null) {
+    if (dartReference.getTokenType() == NEW_EXPRESSION) {
+      DartComponent cons=DartResolveUtil.findConstructorDeclaration((DartNewExpression)dartReference);
+      if (cons != null && cons.getTokenType() == METHOD_DECLARATION) {
+        return cons;
+      }
+ else {
+        return null;
+      }
+    }
+    if (dartReference.getTokenType() == CALL_EXPRESSION) {
+      dartReference=getRightmostReference(dartReference.getFirstChild());
+    }
+    DartComponent comp=DartResolveUtil.findReferenceAndComponentTarget(dartReference);
+    if (comp != null) {
+      return comp;
+    }
+    Collection<PsiElement> candidates=TargetElementUtil.getInstance().getTargetCandidates(dartReference);
+    if (!candidates.isEmpty())     return candidates.iterator().next();
+    return dartReference.resolve();
+  }
+ else {
+    DartComponent comp=PsiTreeUtil.getParentOfType(psiElement,DartComponent.class);
+    if (comp != null) {
+      return comp;
+    }
+  }
+  return null;
+}
