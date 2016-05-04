@@ -2,6 +2,7 @@
   if (file.getLanguage() != DartLanguage.INSTANCE && !HtmlUtil.isHtmlFile(file))   return Result.Continue;
   final int caretOffset=caretOffsetRef.get().intValue();
   final Document document=editor.getDocument();
+  PsiDocumentManager.getInstance(file.getProject()).commitDocument(editor.getDocument());
   final PsiElement psiAtOffset=file.findElementAt(caretOffset);
   final PsiElement probablyDocComment=psiAtOffset instanceof PsiWhiteSpace && psiAtOffset.getText().startsWith("\n") ? psiAtOffset.getPrevSibling() : psiAtOffset == null && caretOffset > 0 && caretOffset == document.getTextLength() ? file.findElementAt(caretOffset - 1) : psiAtOffset;
   if (probablyDocComment != null && probablyDocComment.getTextRange().getStartOffset() < caretOffset && probablyDocComment.getNode().getElementType() == DartTokenTypesSets.SINGLE_LINE_DOC_COMMENT) {

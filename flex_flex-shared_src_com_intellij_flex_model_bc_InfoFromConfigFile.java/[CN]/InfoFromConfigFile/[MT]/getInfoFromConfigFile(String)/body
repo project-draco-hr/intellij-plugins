@@ -20,22 +20,19 @@
     String outputPath=null;
     String targetPlayer=null;
     try {
-      final Document document=JDOMUtil.loadDocument(configFile);
-      final Element rootElement=document.getRootElement();
-      if (rootElement != null) {
-        final Element fileSpecsElement=rootElement.getChild("file-specs",rootElement.getNamespace());
-        mainClassPath=fileSpecsElement == null ? null : fileSpecsElement.getChildTextNormalize("path-element",rootElement.getNamespace());
-        outputPath=rootElement.getChildTextNormalize("output",rootElement.getNamespace());
-        if (outputPath != null && !FileUtil.isAbsolute(outputPath)) {
-          try {
-            outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent(),outputPath).getCanonicalPath());
-          }
- catch (          IOException e) {
-            outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent(),outputPath).getAbsolutePath());
-          }
+      final Element rootElement=JDOMUtil.load(configFile);
+      final Element fileSpecsElement=rootElement.getChild("file-specs",rootElement.getNamespace());
+      mainClassPath=fileSpecsElement == null ? null : fileSpecsElement.getChildTextNormalize("path-element",rootElement.getNamespace());
+      outputPath=rootElement.getChildTextNormalize("output",rootElement.getNamespace());
+      if (outputPath != null && !FileUtil.isAbsolute(outputPath)) {
+        try {
+          outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent(),outputPath).getCanonicalPath());
         }
-        targetPlayer=rootElement.getChildTextNormalize("target-player",rootElement.getNamespace());
+ catch (        IOException e) {
+          outputPath=FileUtil.toSystemIndependentName(new File(configFile.getParent(),outputPath).getAbsolutePath());
+        }
       }
+      targetPlayer=rootElement.getChildTextNormalize("target-player",rootElement.getNamespace());
     }
  catch (    IOException ignore) {
     }
