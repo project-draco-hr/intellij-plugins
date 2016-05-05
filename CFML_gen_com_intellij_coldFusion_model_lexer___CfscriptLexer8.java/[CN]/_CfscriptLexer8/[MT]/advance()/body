@@ -15,9 +15,16 @@
     zzAction=-1;
     zzCurrentPosL=zzCurrentPos=zzStartRead=zzMarkedPosL;
     zzState=ZZ_LEXSTATE[zzLexicalState];
+    int zzAttributes=zzAttrL[zzState];
+    if ((zzAttributes & 1) == 1) {
+      zzAction=zzState;
+    }
     zzForAction: {
       while (true) {
-        if (zzCurrentPosL < zzEndReadL)         zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+        if (zzCurrentPosL < zzEndReadL) {
+          zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+          zzCurrentPosL+=Character.charCount(zzInput);
+        }
  else         if (zzAtEOF) {
           zzInput=YYEOF;
           break zzForAction;
@@ -35,13 +42,14 @@
             break zzForAction;
           }
  else {
-            zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+            zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+            zzCurrentPosL+=Character.charCount(zzInput);
           }
         }
         int zzNext=zzTransL[zzRowMapL[zzState] + zzCMapL[zzInput]];
         if (zzNext == -1)         break zzForAction;
         zzState=zzNext;
-        int zzAttributes=zzAttrL[zzState];
+        zzAttributes=zzAttrL[zzState];
         if ((zzAttributes & 1) == 1) {
           zzAction=zzState;
           zzMarkedPosL=zzCurrentPosL;
@@ -50,22 +58,28 @@
       }
     }
     zzMarkedPos=zzMarkedPosL;
+    if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
+      zzAtEOF=true;
+      zzDoEOF();
+      return null;
+    }
+ else {
 switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
-case 5:
+case 1:
 {
-        return CfscriptTokenTypes.MINUS;
-      }
+          return CfmlTokenTypes.COMMENT;
+        }
 case 95:
-    break;
-case 86:
+      break;
+case 2:
 {
-    return CfscriptTokenTypes.RETURN_KEYWORD;
-  }
+      return CfscriptTokenTypes.BAD_CHARACTER;
+    }
 case 96:
-break;
-case 64:
+  break;
+case 3:
 {
-return CfscriptTokenTypes.NOT_L;
+  return CfscriptTokenTypes.LT;
 }
 case 97:
 break;
@@ -75,569 +89,55 @@ return CfscriptTokenTypes.NOT;
 }
 case 98:
 break;
-case 84:
+case 5:
 {
-return CfscriptTokenTypes.WHILE_KEYWORD;
+return CfscriptTokenTypes.MINUS;
 }
 case 99:
-break;
-case 22:
-{
-return CfscriptTokenTypes.R_SQUAREBRACKET;
-}
-case 100:
-break;
-case 3:
-{
-return CfscriptTokenTypes.LT;
-}
-case 101:
-break;
-case 91:
-{
-return CfscriptTokenTypes.CONTAINS_L;
-}
-case 102:
-break;
-case 92:
-{
-return CfscriptTokenTypes.FUNCTION_KEYWORD;
-}
-case 103:
-break;
-case 21:
-{
-return CfscriptTokenTypes.L_SQUAREBRACKET;
-}
-case 104:
-break;
-case 15:
-{
-return CfscriptTokenTypes.MUL;
-}
-case 105:
-break;
-case 74:
-{
-return CfscriptTokenTypes.COMMENT;
-}
-case 106:
-break;
-case 73:
-yypushback(2);
-{
-return CfscriptTokenTypes.COMMENT;
-}
-case 107:
-break;
-case 61:
-yypushback(1);
-{
-return CfmlTokenTypes.STRING_TEXT;
-}
-case 108:
-break;
-case 65:
-yypushback(1);
-{
-return CfscriptTokenTypes.COMMENT;
-}
-case 109:
-break;
-case 41:
-{
-return CfscriptTokenTypes.GTE;
-}
-case 110:
-break;
-case 45:
-{
-return CfscriptTokenTypes.IF_KEYWORD;
-}
-case 111:
-break;
-case 60:
-{
-return CfscriptTokenTypes.GT_L;
-}
-case 112:
-break;
-case 69:
-{
-return CfscriptTokenTypes.NOT_XOR_L;
-}
-case 113:
-break;
-case 36:
-{
-myCurrentConfiguration.myReturnStack.push(SINGLE_QUOTED_STRING);
-myCurrentConfiguration.mySharpCounter++;
-yybegin(YYINITIAL);
-return CfscriptTokenTypes.OPENSHARP;
-}
-case 114:
-break;
-case 89:
-{
-return CfscriptTokenTypes.DEFAULT_KEYWORD;
-}
-case 115:
-break;
-case 82:
-{
-return CfscriptTokenTypes.ABORT_KEYWORD;
-}
-case 116:
-break;
-case 50:
-{
-return CfscriptTokenTypes.LT_L;
-}
-case 117:
-break;
-case 43:
-{
-return CfscriptTokenTypes.DOUBLE;
-}
-case 118:
-break;
-case 72:
-{
-yybegin(myCurrentConfiguration.myReturnStack.pop());
-return CfmlTokenTypes.COMMENT;
-}
-case 119:
-break;
-case 56:
-{
-return CfscriptTokenTypes.ADD_EQ;
-}
-case 120:
 break;
 case 6:
 {
 return CfscriptTokenTypes.GT;
 }
-case 121:
-break;
-case 48:
-{
-return CfscriptTokenTypes.MUL_EQ;
-}
-case 122:
-break;
-case 40:
-{
-return CfscriptTokenTypes.MINUS_EQ;
-}
-case 123:
-break;
-case 75:
-{
-return CfscriptTokenTypes.CASE_KEYWORD;
-}
-case 124:
+case 100:
 break;
 case 7:
 {
 return CfscriptTokenTypes.IDENTIFIER;
 }
-case 125:
-break;
-case 37:
-{
-return CfscriptTokenTypes.LTE;
-}
-case 126:
-break;
-case 54:
-{
-return CfscriptTokenTypes.CONCAT_EQ;
-}
-case 127:
-break;
-case 32:
-{
-yybegin(YYINITIAL);
-return CfmlTokenTypes.DOUBLE_QUOTE_CLOSER;
-}
-case 128:
-break;
-case 10:
-{
-return CfscriptTokenTypes.POINT;
-}
-case 129:
-break;
-case 78:
-zzMarkedPos=zzStartRead + 1;
-{
-myCurrentConfiguration.myCommentCounter--;
-if (myCurrentConfiguration.myCommentCounter == 0) {
-yybegin(COMMENTEND);
-}
-return CfmlTokenTypes.COMMENT;
-}
-case 130:
-break;
-case 58:
-{
-return CfscriptTokenTypes.OR;
-}
-case 131:
-break;
-case 66:
-{
-return CfscriptTokenTypes.FOR_KEYWORD;
-}
-case 132:
-break;
-case 9:
-{
-return CfscriptTokenTypes.INTEGER;
-}
-case 133:
-break;
-case 80:
-{
-return CfscriptTokenTypes.CATCH_KEYWORD;
-}
-case 134:
-break;
-case 53:
-{
-return CfscriptTokenTypes.AND;
-}
-case 135:
-break;
-case 79:
-{
-return startComment(YYINITIAL);
-}
-case 136:
-break;
-case 46:
-{
-return CfscriptTokenTypes.EQ_L;
-}
-case 137:
-break;
-case 77:
-{
-return CfscriptTokenTypes.BOOLEAN;
-}
-case 138:
-break;
-case 67:
-{
-return CfscriptTokenTypes.MOD_L;
-}
-case 139:
-break;
-case 55:
-{
-return CfscriptTokenTypes.EQEQ;
-}
-case 140:
-break;
-case 87:
-{
-return CfscriptTokenTypes.SWITCH_KEYWORD;
-}
-case 141:
-break;
-case 18:
-{
-return CfscriptTokenTypes.COMMA;
-}
-case 142:
-break;
-case 19:
-{
-return CfscriptTokenTypes.L_BRACKET;
-}
-case 143:
-break;
-case 85:
-zzMarkedPos=zzStartRead + 1;
-{
-myCurrentConfiguration.myCommentCounter++;
-return CfmlTokenTypes.COMMENT;
-}
-case 144:
-break;
-case 47:
-{
-return CfscriptTokenTypes.DEV_EQ;
-}
-case 145:
-break;
-case 70:
-{
-return CfscriptTokenTypes.TRY_KEYWORD;
-}
-case 146:
-break;
-case 33:
-{
-myCurrentConfiguration.myReturnStack.push(DOUBLE_QUOTED_STRING);
-myCurrentConfiguration.mySharpCounter++;
-yybegin(YYINITIAL);
-return CfscriptTokenTypes.OPENSHARP;
-}
-case 147:
-break;
-case 62:
-{
-return CfscriptTokenTypes.IMP_L;
-}
-case 148:
-break;
-case 25:
-{
-return CfscriptTokenTypes.SEMICOLON;
-}
-case 149:
-break;
-case 71:
-{
-return CfscriptTokenTypes.XOR_L;
-}
-case 150:
+case 101:
 break;
 case 8:
 {
 return CfscriptTokenTypes.WHITE_SPACE;
 }
-case 151:
+case 102:
 break;
-case 81:
-zzMarkedPos=zzStartRead + 3;
+case 9:
 {
-return CfscriptTokenTypes.VAR_KEYWORD;
+return CfscriptTokenTypes.INTEGER;
 }
-case 152:
+case 103:
 break;
-case 51:
+case 10:
 {
-return CfscriptTokenTypes.OR_L;
+return CfscriptTokenTypes.POINT;
 }
-case 153:
-break;
-case 16:
-{
-return CfscriptTokenTypes.CONCAT;
-}
-case 154:
-break;
-case 30:
-{
-return CfscriptTokenTypes.POW;
-}
-case 155:
-break;
-case 28:
-{
-return CfscriptTokenTypes.MOD;
-}
-case 156:
-break;
-case 44:
-{
-return CfscriptTokenTypes.IN_L;
-}
-case 157:
-break;
-case 17:
-{
-return CfmlTokenTypes.ASSIGN;
-}
-case 158:
-break;
-case 94:
-{
-return CfmlTokenTypes.VAR_ANNOTATION;
-}
-case 159:
-break;
-case 27:
-{
-return CfscriptTokenTypes.ADD;
-}
-case 160:
-break;
-case 42:
-yypushback(1);
-{
-if (ArrayUtil.find(CfmlUtil.getVariableScopes(myProject),yytext().toString().toLowerCase()) != -1) {
-return CfscriptTokenTypes.SCOPE_KEYWORD;
-}
- else {
-return CfscriptTokenTypes.IDENTIFIER;
-}
-}
-case 161:
-break;
-case 76:
-{
-return CfscriptTokenTypes.ELSE_KEYWORD;
-}
-case 162:
-break;
-case 34:
-{
-yybegin(SINGLEQUOTE_CLOSER);
-return CfmlTokenTypes.STRING_TEXT;
-}
-case 163:
-break;
-case 12:
-{
-yybegin(SINGLE_QUOTED_STRING);
-return CfmlTokenTypes.SINGLE_QUOTE;
-}
-case 164:
-break;
-case 23:
-{
-return CfscriptTokenTypes.L_CURLYBRACKET;
-}
-case 165:
-break;
-case 29:
-{
-return CfscriptTokenTypes.INT_DEV;
-}
-case 166:
-break;
-case 2:
-{
-return CfscriptTokenTypes.BAD_CHARACTER;
-}
-case 167:
-break;
-case 20:
-{
-return CfscriptTokenTypes.R_BRACKET;
-}
-case 168:
-break;
-case 57:
-{
-return CfscriptTokenTypes.INC;
-}
-case 169:
-break;
-case 1:
-{
-return CfmlTokenTypes.COMMENT;
-}
-case 170:
-break;
-case 93:
-{
-return CfscriptTokenTypes.NOT_CONTAINS_L;
-}
-case 171:
-break;
-case 68:
-{
-return CfscriptTokenTypes.AND_L;
-}
-case 172:
-break;
-case 59:
-{
-return CfscriptTokenTypes.GE_L;
-}
-case 173:
-break;
-case 14:
-{
-return CfscriptTokenTypes.DEV;
-}
-case 174:
-break;
-case 24:
-{
-return CfscriptTokenTypes.R_CURLYBRACKET;
-}
-case 175:
-break;
-case 83:
-{
-return CfscriptTokenTypes.BREAK_KEYWORD;
-}
-case 176:
+case 104:
 break;
 case 11:
 {
 yybegin(DOUBLE_QUOTED_STRING);
 return CfmlTokenTypes.DOUBLE_QUOTE;
 }
-case 177:
+case 105:
 break;
-case 49:
+case 12:
 {
-return CfscriptTokenTypes.LE_L;
+yybegin(SINGLE_QUOTED_STRING);
+return CfmlTokenTypes.SINGLE_QUOTE;
 }
-case 178:
-break;
-case 35:
-{
-yybegin(YYINITIAL);
-return CfmlTokenTypes.SINGLE_QUOTE_CLOSER;
-}
-case 179:
-break;
-case 90:
-{
-return CfscriptTokenTypes.CONTINUE_KEYWORD;
-}
-case 180:
-break;
-case 63:
-{
-return CfscriptTokenTypes.NEQ_L;
-}
-case 181:
-break;
-case 38:
-{
-return CfscriptTokenTypes.NEQ;
-}
-case 182:
-break;
-case 39:
-{
-return CfscriptTokenTypes.DEC;
-}
-case 183:
-break;
-case 52:
-{
-return CfscriptTokenTypes.DO_KEYWORD;
-}
-case 184:
-break;
-case 88:
-{
-return CfscriptTokenTypes.FINALLY_KEYWORD;
-}
-case 185:
-break;
-case 31:
-{
-yybegin(DOUBLEQUOTE_CLOSER);
-return CfmlTokenTypes.STRING_TEXT;
-}
-case 186:
-break;
-case 26:
-{
-return CfscriptTokenTypes.DOTDOT;
-}
-case 187:
+case 106:
 break;
 case 13:
 {
@@ -650,15 +150,523 @@ myCurrentConfiguration.mySharpCounter--;
 yybegin(myCurrentConfiguration.myReturnStack.pop());
 return CfscriptTokenTypes.CLOSESHARP;
 }
+case 107:
+break;
+case 14:
+{
+return CfscriptTokenTypes.DEV;
+}
+case 108:
+break;
+case 15:
+{
+return CfscriptTokenTypes.MUL;
+}
+case 109:
+break;
+case 16:
+{
+return CfscriptTokenTypes.CONCAT;
+}
+case 110:
+break;
+case 17:
+{
+return CfmlTokenTypes.ASSIGN;
+}
+case 111:
+break;
+case 18:
+{
+return CfscriptTokenTypes.COMMA;
+}
+case 112:
+break;
+case 19:
+{
+return CfscriptTokenTypes.L_BRACKET;
+}
+case 113:
+break;
+case 20:
+{
+return CfscriptTokenTypes.R_BRACKET;
+}
+case 114:
+break;
+case 21:
+{
+return CfscriptTokenTypes.L_SQUAREBRACKET;
+}
+case 115:
+break;
+case 22:
+{
+return CfscriptTokenTypes.R_SQUAREBRACKET;
+}
+case 116:
+break;
+case 23:
+{
+return CfscriptTokenTypes.L_CURLYBRACKET;
+}
+case 117:
+break;
+case 24:
+{
+return CfscriptTokenTypes.R_CURLYBRACKET;
+}
+case 118:
+break;
+case 25:
+{
+return CfscriptTokenTypes.SEMICOLON;
+}
+case 119:
+break;
+case 26:
+{
+return CfscriptTokenTypes.DOTDOT;
+}
+case 120:
+break;
+case 27:
+{
+return CfscriptTokenTypes.ADD;
+}
+case 121:
+break;
+case 28:
+{
+return CfscriptTokenTypes.MOD;
+}
+case 122:
+break;
+case 29:
+{
+return CfscriptTokenTypes.INT_DEV;
+}
+case 123:
+break;
+case 30:
+{
+return CfscriptTokenTypes.POW;
+}
+case 124:
+break;
+case 31:
+{
+yybegin(DOUBLEQUOTE_CLOSER);
+return CfmlTokenTypes.STRING_TEXT;
+}
+case 125:
+break;
+case 32:
+{
+yybegin(YYINITIAL);
+return CfmlTokenTypes.DOUBLE_QUOTE_CLOSER;
+}
+case 126:
+break;
+case 33:
+{
+myCurrentConfiguration.myReturnStack.push(DOUBLE_QUOTED_STRING);
+myCurrentConfiguration.mySharpCounter++;
+yybegin(YYINITIAL);
+return CfscriptTokenTypes.OPENSHARP;
+}
+case 127:
+break;
+case 34:
+{
+yybegin(SINGLEQUOTE_CLOSER);
+return CfmlTokenTypes.STRING_TEXT;
+}
+case 128:
+break;
+case 35:
+{
+yybegin(YYINITIAL);
+return CfmlTokenTypes.SINGLE_QUOTE_CLOSER;
+}
+case 129:
+break;
+case 36:
+{
+myCurrentConfiguration.myReturnStack.push(SINGLE_QUOTED_STRING);
+myCurrentConfiguration.mySharpCounter++;
+yybegin(YYINITIAL);
+return CfscriptTokenTypes.OPENSHARP;
+}
+case 130:
+break;
+case 37:
+{
+return CfscriptTokenTypes.LTE;
+}
+case 131:
+break;
+case 38:
+{
+return CfscriptTokenTypes.NEQ;
+}
+case 132:
+break;
+case 39:
+{
+return CfscriptTokenTypes.DEC;
+}
+case 133:
+break;
+case 40:
+{
+return CfscriptTokenTypes.MINUS_EQ;
+}
+case 134:
+break;
+case 41:
+{
+return CfscriptTokenTypes.GTE;
+}
+case 135:
+break;
+case 42:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzMarkedPos,-1);
+{
+if (ArrayUtil.find(CfmlUtil.getVariableScopes(myProject),yytext().toString().toLowerCase()) != -1) {
+return CfscriptTokenTypes.SCOPE_KEYWORD;
+}
+ else {
+return CfscriptTokenTypes.IDENTIFIER;
+}
+}
+case 136:
+break;
+case 43:
+{
+return CfscriptTokenTypes.DOUBLE;
+}
+case 137:
+break;
+case 44:
+{
+return CfscriptTokenTypes.IN_L;
+}
+case 138:
+break;
+case 45:
+{
+return CfscriptTokenTypes.IF_KEYWORD;
+}
+case 139:
+break;
+case 46:
+{
+return CfscriptTokenTypes.EQ_L;
+}
+case 140:
+break;
+case 47:
+{
+return CfscriptTokenTypes.DEV_EQ;
+}
+case 141:
+break;
+case 48:
+{
+return CfscriptTokenTypes.MUL_EQ;
+}
+case 142:
+break;
+case 49:
+{
+return CfscriptTokenTypes.LE_L;
+}
+case 143:
+break;
+case 50:
+{
+return CfscriptTokenTypes.LT_L;
+}
+case 144:
+break;
+case 51:
+{
+return CfscriptTokenTypes.OR_L;
+}
+case 145:
+break;
+case 52:
+{
+return CfscriptTokenTypes.DO_KEYWORD;
+}
+case 146:
+break;
+case 53:
+{
+return CfscriptTokenTypes.AND;
+}
+case 147:
+break;
+case 54:
+{
+return CfscriptTokenTypes.CONCAT_EQ;
+}
+case 148:
+break;
+case 55:
+{
+return CfscriptTokenTypes.EQEQ;
+}
+case 149:
+break;
+case 56:
+{
+return CfscriptTokenTypes.ADD_EQ;
+}
+case 150:
+break;
+case 57:
+{
+return CfscriptTokenTypes.INC;
+}
+case 151:
+break;
+case 58:
+{
+return CfscriptTokenTypes.OR;
+}
+case 152:
+break;
+case 59:
+{
+return CfscriptTokenTypes.GE_L;
+}
+case 153:
+break;
+case 60:
+{
+return CfscriptTokenTypes.GT_L;
+}
+case 154:
+break;
+case 61:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzMarkedPos,-1);
+{
+return CfmlTokenTypes.STRING_TEXT;
+}
+case 155:
+break;
+case 62:
+{
+return CfscriptTokenTypes.IMP_L;
+}
+case 156:
+break;
+case 63:
+{
+return CfscriptTokenTypes.NEQ_L;
+}
+case 157:
+break;
+case 64:
+{
+return CfscriptTokenTypes.NOT_L;
+}
+case 158:
+break;
+case 65:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzMarkedPos,-1);
+{
+return CfscriptTokenTypes.COMMENT;
+}
+case 159:
+break;
+case 66:
+{
+return CfscriptTokenTypes.FOR_KEYWORD;
+}
+case 160:
+break;
+case 67:
+{
+return CfscriptTokenTypes.MOD_L;
+}
+case 161:
+break;
+case 68:
+{
+return CfscriptTokenTypes.AND_L;
+}
+case 162:
+break;
+case 69:
+{
+return CfscriptTokenTypes.NOT_XOR_L;
+}
+case 163:
+break;
+case 70:
+{
+return CfscriptTokenTypes.TRY_KEYWORD;
+}
+case 164:
+break;
+case 71:
+{
+return CfscriptTokenTypes.XOR_L;
+}
+case 165:
+break;
+case 72:
+{
+yybegin(myCurrentConfiguration.myReturnStack.pop());
+return CfmlTokenTypes.COMMENT;
+}
+case 166:
+break;
+case 73:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzMarkedPos,-2);
+{
+return CfscriptTokenTypes.COMMENT;
+}
+case 167:
+break;
+case 74:
+{
+return CfscriptTokenTypes.COMMENT;
+}
+case 168:
+break;
+case 75:
+{
+return CfscriptTokenTypes.CASE_KEYWORD;
+}
+case 169:
+break;
+case 76:
+{
+return CfscriptTokenTypes.ELSE_KEYWORD;
+}
+case 170:
+break;
+case 77:
+{
+return CfscriptTokenTypes.BOOLEAN;
+}
+case 171:
+break;
+case 78:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+myCurrentConfiguration.myCommentCounter--;
+if (myCurrentConfiguration.myCommentCounter == 0) {
+yybegin(COMMENTEND);
+}
+return CfmlTokenTypes.COMMENT;
+}
+case 172:
+break;
+case 79:
+{
+return startComment(YYINITIAL);
+}
+case 173:
+break;
+case 80:
+{
+return CfscriptTokenTypes.CATCH_KEYWORD;
+}
+case 174:
+break;
+case 81:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,3);
+{
+return CfscriptTokenTypes.VAR_KEYWORD;
+}
+case 175:
+break;
+case 82:
+{
+return CfscriptTokenTypes.ABORT_KEYWORD;
+}
+case 176:
+break;
+case 83:
+{
+return CfscriptTokenTypes.BREAK_KEYWORD;
+}
+case 177:
+break;
+case 84:
+{
+return CfscriptTokenTypes.WHILE_KEYWORD;
+}
+case 178:
+break;
+case 85:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+myCurrentConfiguration.myCommentCounter++;
+return CfmlTokenTypes.COMMENT;
+}
+case 179:
+break;
+case 86:
+{
+return CfscriptTokenTypes.RETURN_KEYWORD;
+}
+case 180:
+break;
+case 87:
+{
+return CfscriptTokenTypes.SWITCH_KEYWORD;
+}
+case 181:
+break;
+case 88:
+{
+return CfscriptTokenTypes.FINALLY_KEYWORD;
+}
+case 182:
+break;
+case 89:
+{
+return CfscriptTokenTypes.DEFAULT_KEYWORD;
+}
+case 183:
+break;
+case 90:
+{
+return CfscriptTokenTypes.CONTINUE_KEYWORD;
+}
+case 184:
+break;
+case 91:
+{
+return CfscriptTokenTypes.CONTAINS_L;
+}
+case 185:
+break;
+case 92:
+{
+return CfscriptTokenTypes.FUNCTION_KEYWORD;
+}
+case 186:
+break;
+case 93:
+{
+return CfscriptTokenTypes.NOT_CONTAINS_L;
+}
+case 187:
+break;
+case 94:
+{
+return CfmlTokenTypes.VAR_ANNOTATION;
+}
 case 188:
 break;
 default :
-if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
-zzAtEOF=true;
-zzDoEOF();
-return null;
-}
- else {
 zzScanError(ZZ_NO_MATCH);
 }
 }

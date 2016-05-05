@@ -15,9 +15,16 @@
     zzAction=-1;
     zzCurrentPosL=zzCurrentPos=zzStartRead=zzMarkedPosL;
     zzState=ZZ_LEXSTATE[zzLexicalState];
+    int zzAttributes=zzAttrL[zzState];
+    if ((zzAttributes & 1) == 1) {
+      zzAction=zzState;
+    }
     zzForAction: {
       while (true) {
-        if (zzCurrentPosL < zzEndReadL)         zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+        if (zzCurrentPosL < zzEndReadL) {
+          zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+          zzCurrentPosL+=Character.charCount(zzInput);
+        }
  else         if (zzAtEOF) {
           zzInput=YYEOF;
           break zzForAction;
@@ -35,13 +42,14 @@
             break zzForAction;
           }
  else {
-            zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+            zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+            zzCurrentPosL+=Character.charCount(zzInput);
           }
         }
         int zzNext=zzTransL[zzRowMapL[zzState] + zzCMapL[zzInput]];
         if (zzNext == -1)         break zzForAction;
         zzState=zzNext;
-        int zzAttributes=zzAttrL[zzState];
+        zzAttributes=zzAttrL[zzState];
         if ((zzAttributes & 1) == 1) {
           zzAction=zzState;
           zzMarkedPosL=zzCurrentPosL;
@@ -50,197 +58,203 @@
       }
     }
     zzMarkedPos=zzMarkedPosL;
+    if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
+      zzAtEOF=true;
+      return null;
+    }
+ else {
 switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
-case 8:
+case 1:
 {
-        return OgnlTypes.STRING_LITERAL;
-      }
+          yybegin(YYINITIAL);
+          return TokenType.BAD_CHARACTER;
+        }
 case 69:
-    break;
-case 60:
+      break;
+case 2:
 {
-    return OgnlTypes.GT_EQ_KEYWORD;
-  }
+      return OgnlTypes.IDENTIFIER;
+    }
 case 70:
-break;
-case 65:
+  break;
+case 3:
 {
-return OgnlTypes.TRUE_KEYWORD;
+  return OgnlTypes.INTEGER_LITERAL;
 }
 case 71:
-break;
-case 44:
-{
-return OgnlTypes.LESS_EQUAL;
-}
-case 72:
-break;
-case 28:
-{
-return OgnlTypes.MINUS;
-}
-case 73:
-break;
-case 58:
-{
-return OgnlTypes.BOR_KEYWORD;
-}
-case 74:
-break;
-case 16:
-{
-return OgnlTypes.NEGATE;
-}
-case 75:
-break;
-case 50:
-{
-return OgnlTypes.BIG_DECIMAL_LITERAL;
-}
-case 76:
-break;
-case 14:
-{
-return OgnlTypes.LBRACKET;
-}
-case 77:
-break;
-case 62:
-{
-return OgnlTypes.SHIFT_RIGHT_LOGICAL_KEYWORD;
-}
-case 78:
-break;
-case 57:
-{
-return OgnlTypes.NEW_KEYWORD;
-}
-case 79:
-break;
-case 54:
-{
-return OgnlTypes.AND_KEYWORD;
-}
-case 80:
-break;
-case 17:
-{
-return OgnlTypes.EQ;
-}
-case 81:
-break;
-case 46:
-{
-return OgnlTypes.GREATER_EQUAL;
-}
-case 82:
-break;
-case 43:
-{
-return OgnlTypes.EQUAL;
-}
-case 83:
-break;
-case 19:
-{
-return OgnlTypes.GREATER;
-}
-case 84:
 break;
 case 4:
 {
 return TokenType.WHITE_SPACE;
 }
-case 85:
+case 72:
 break;
-case 47:
+case 5:
 {
-return OgnlTypes.SHIFT_RIGHT;
+return OgnlTypes.DOT;
 }
-case 86:
+case 73:
 break;
-case 35:
+case 6:
 {
-return OgnlTypes.DOUBLE_LITERAL;
+return OgnlTypes.PLUS;
 }
-case 87:
+case 74:
 break;
-case 40:
+case 7:
 {
-return OgnlTypes.GT_KEYWORD;
+return OgnlTypes.CHARACTER_LITERAL;
 }
-case 88:
+case 75:
 break;
-case 25:
+case 8:
 {
-return OgnlTypes.DOLLAR;
+return OgnlTypes.STRING_LITERAL;
 }
-case 89:
+case 76:
 break;
-case 21:
+case 9:
 {
-return OgnlTypes.QUESTION;
+return OgnlTypes.MODULO;
 }
-case 90:
-break;
-case 38:
-{
-return OgnlTypes.OR_KEYWORD;
-}
-case 91:
-break;
-case 66:
-{
-return OgnlTypes.FALSE_KEYWORD;
-}
-case 92:
-break;
-case 13:
-{
-return OgnlTypes.RPARENTH;
-}
-case 93:
+case 77:
 break;
 case 10:
 {
 if (++braceCount > 0) yybegin(NESTED_BRACE);
 return OgnlTypes.LBRACE;
 }
-case 94:
+case 78:
 break;
-case 36:
+case 11:
 {
-return OgnlTypes.EXPRESSION_START;
+return OgnlTypes.EXPRESSION_END;
 }
-case 95:
+case 79:
+break;
+case 12:
+{
+return OgnlTypes.LPARENTH;
+}
+case 80:
+break;
+case 13:
+{
+return OgnlTypes.RPARENTH;
+}
+case 81:
+break;
+case 14:
+{
+return OgnlTypes.LBRACKET;
+}
+case 82:
+break;
+case 15:
+{
+return OgnlTypes.RBRACKET;
+}
+case 83:
+break;
+case 16:
+{
+return OgnlTypes.NEGATE;
+}
+case 84:
+break;
+case 17:
+{
+return OgnlTypes.EQ;
+}
+case 85:
 break;
 case 18:
 {
 return OgnlTypes.LESS;
 }
-case 96:
+case 86:
+break;
+case 19:
+{
+return OgnlTypes.GREATER;
+}
+case 87:
+break;
+case 20:
+{
+return OgnlTypes.COMMA;
+}
+case 88:
+break;
+case 21:
+{
+return OgnlTypes.QUESTION;
+}
+case 89:
+break;
+case 22:
+{
+return OgnlTypes.COLON;
+}
+case 90:
 break;
 case 23:
 {
 return OgnlTypes.HASH;
 }
+case 91:
+break;
+case 24:
+{
+return OgnlTypes.AT;
+}
+case 92:
+break;
+case 25:
+{
+return OgnlTypes.DOLLAR;
+}
+case 93:
+break;
+case 26:
+{
+return OgnlTypes.DIVISION;
+}
+case 94:
+break;
+case 27:
+{
+return OgnlTypes.MULTIPLY;
+}
+case 95:
+break;
+case 28:
+{
+return OgnlTypes.MINUS;
+}
+case 96:
+break;
+case 29:
+{
+return OgnlTypes.AND;
+}
 case 97:
 break;
-case 52:
+case 30:
 {
-return OgnlTypes.SHIFT_RIGHT_KEYWORD;
+return OgnlTypes.OR;
 }
 case 98:
 break;
-case 37:
+case 31:
 {
-return OgnlTypes.LT_KEYWORD;
+return OgnlTypes.XOR;
 }
 case 99:
 break;
-case 45:
+case 32:
 {
-return OgnlTypes.SHIFT_LEFT;
+return OgnlTypes.NOT;
 }
 case 100:
 break;
@@ -251,153 +265,153 @@ return OgnlTypes.RBRACE;
 }
 case 101:
 break;
-case 68:
-{
-return OgnlTypes.INSTANCEOF_KEYWORD;
-}
-case 102:
-break;
-case 31:
-{
-return OgnlTypes.XOR;
-}
-case 103:
-break;
-case 61:
-{
-return OgnlTypes.SHIFT_RIGHT_LOGICAL;
-}
-case 104:
-break;
-case 7:
-{
-return OgnlTypes.CHARACTER_LITERAL;
-}
-case 105:
-break;
-case 51:
-{
-return OgnlTypes.SHIFT_LEFT_KEYWORD;
-}
-case 106:
-break;
-case 49:
-{
-return OgnlTypes.OR_OR;
-}
-case 107:
-break;
-case 5:
-{
-return OgnlTypes.DOT;
-}
-case 108:
-break;
-case 11:
-{
-return OgnlTypes.EXPRESSION_END;
-}
-case 109:
-break;
-case 20:
-{
-return OgnlTypes.COMMA;
-}
-case 110:
-break;
-case 24:
-{
-return OgnlTypes.AT;
-}
-case 111:
-break;
-case 15:
-{
-return OgnlTypes.RBRACKET;
-}
-case 112:
-break;
-case 53:
-{
-return OgnlTypes.LT_EQ_KEYWORD;
-}
-case 113:
-break;
-case 30:
-{
-return OgnlTypes.OR;
-}
-case 114:
-break;
-case 48:
-{
-return OgnlTypes.AND_AND;
-}
-case 115:
-break;
-case 29:
-{
-return OgnlTypes.AND;
-}
-case 116:
-break;
-case 32:
-{
-return OgnlTypes.NOT;
-}
-case 117:
-break;
-case 42:
-{
-return OgnlTypes.NOT_EQUAL;
-}
-case 118:
-break;
-case 22:
-{
-return OgnlTypes.COLON;
-}
-case 119:
-break;
 case 34:
 {
 return OgnlTypes.BIG_INTEGER_LITERAL;
 }
-case 120:
+case 102:
+break;
+case 35:
+{
+return OgnlTypes.DOUBLE_LITERAL;
+}
+case 103:
+break;
+case 36:
+{
+return OgnlTypes.EXPRESSION_START;
+}
+case 104:
+break;
+case 37:
+{
+return OgnlTypes.LT_KEYWORD;
+}
+case 105:
+break;
+case 38:
+{
+return OgnlTypes.OR_KEYWORD;
+}
+case 106:
 break;
 case 39:
 {
 return OgnlTypes.EQ_KEYWORD;
 }
+case 107:
+break;
+case 40:
+{
+return OgnlTypes.GT_KEYWORD;
+}
+case 108:
+break;
+case 41:
+{
+return OgnlTypes.IN_KEYWORD;
+}
+case 109:
+break;
+case 42:
+{
+return OgnlTypes.NOT_EQUAL;
+}
+case 110:
+break;
+case 43:
+{
+return OgnlTypes.EQUAL;
+}
+case 111:
+break;
+case 44:
+{
+return OgnlTypes.LESS_EQUAL;
+}
+case 112:
+break;
+case 45:
+{
+return OgnlTypes.SHIFT_LEFT;
+}
+case 113:
+break;
+case 46:
+{
+return OgnlTypes.GREATER_EQUAL;
+}
+case 114:
+break;
+case 47:
+{
+return OgnlTypes.SHIFT_RIGHT;
+}
+case 115:
+break;
+case 48:
+{
+return OgnlTypes.AND_AND;
+}
+case 116:
+break;
+case 49:
+{
+return OgnlTypes.OR_OR;
+}
+case 117:
+break;
+case 50:
+{
+return OgnlTypes.BIG_DECIMAL_LITERAL;
+}
+case 118:
+break;
+case 51:
+{
+return OgnlTypes.SHIFT_LEFT_KEYWORD;
+}
+case 119:
+break;
+case 52:
+{
+return OgnlTypes.SHIFT_RIGHT_KEYWORD;
+}
+case 120:
+break;
+case 53:
+{
+return OgnlTypes.LT_EQ_KEYWORD;
+}
 case 121:
 break;
-case 27:
+case 54:
 {
-return OgnlTypes.MULTIPLY;
+return OgnlTypes.AND_KEYWORD;
 }
 case 122:
 break;
-case 3:
+case 55:
 {
-return OgnlTypes.INTEGER_LITERAL;
+return OgnlTypes.NOT_KEYWORD;
 }
 case 123:
 break;
-case 12:
+case 56:
 {
-return OgnlTypes.LPARENTH;
+return OgnlTypes.NEQ_KEYWORD;
 }
 case 124:
 break;
-case 67:
+case 57:
 {
-return OgnlTypes.NOT_IN_KEYWORD;
+return OgnlTypes.NEW_KEYWORD;
 }
 case 125:
 break;
-case 2:
+case 58:
 {
-return OgnlTypes.IDENTIFIER;
+return OgnlTypes.BOR_KEYWORD;
 }
 case 126:
 break;
@@ -407,67 +421,61 @@ return OgnlTypes.XOR_KEYWORD;
 }
 case 127:
 break;
-case 41:
+case 60:
 {
-return OgnlTypes.IN_KEYWORD;
+return OgnlTypes.GT_EQ_KEYWORD;
 }
 case 128:
 break;
-case 9:
+case 61:
 {
-return OgnlTypes.MODULO;
+return OgnlTypes.SHIFT_RIGHT_LOGICAL;
 }
 case 129:
 break;
-case 55:
+case 62:
 {
-return OgnlTypes.NOT_KEYWORD;
+return OgnlTypes.SHIFT_RIGHT_LOGICAL_KEYWORD;
 }
 case 130:
-break;
-case 56:
-{
-return OgnlTypes.NEQ_KEYWORD;
-}
-case 131:
-break;
-case 6:
-{
-return OgnlTypes.PLUS;
-}
-case 132:
 break;
 case 63:
 {
 return OgnlTypes.NULL_KEYWORD;
 }
-case 133:
-break;
-case 26:
-{
-return OgnlTypes.DIVISION;
-}
-case 134:
+case 131:
 break;
 case 64:
 {
 return OgnlTypes.BAND_KEYWORD;
 }
+case 132:
+break;
+case 65:
+{
+return OgnlTypes.TRUE_KEYWORD;
+}
+case 133:
+break;
+case 66:
+{
+return OgnlTypes.FALSE_KEYWORD;
+}
+case 134:
+break;
+case 67:
+{
+return OgnlTypes.NOT_IN_KEYWORD;
+}
 case 135:
 break;
-case 1:
+case 68:
 {
-yybegin(YYINITIAL);
-return TokenType.BAD_CHARACTER;
+return OgnlTypes.INSTANCEOF_KEYWORD;
 }
 case 136:
 break;
 default :
-if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
-zzAtEOF=true;
-return null;
-}
- else {
 zzScanError(ZZ_NO_MATCH);
 }
 }

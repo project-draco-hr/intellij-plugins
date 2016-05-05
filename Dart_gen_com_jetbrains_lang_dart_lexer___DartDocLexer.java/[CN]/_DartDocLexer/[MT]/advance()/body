@@ -15,9 +15,16 @@
     zzAction=-1;
     zzCurrentPosL=zzCurrentPos=zzStartRead=zzMarkedPosL;
     zzState=ZZ_LEXSTATE[zzLexicalState];
+    int zzAttributes=zzAttrL[zzState];
+    if ((zzAttributes & 1) == 1) {
+      zzAction=zzState;
+    }
     zzForAction: {
       while (true) {
-        if (zzCurrentPosL < zzEndReadL)         zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+        if (zzCurrentPosL < zzEndReadL) {
+          zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+          zzCurrentPosL+=Character.charCount(zzInput);
+        }
  else         if (zzAtEOF) {
           zzInput=YYEOF;
           break zzForAction;
@@ -35,13 +42,14 @@
             break zzForAction;
           }
  else {
-            zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+            zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+            zzCurrentPosL+=Character.charCount(zzInput);
           }
         }
         int zzNext=zzTransL[zzRowMapL[zzState] + zzCMapL[zzInput]];
         if (zzNext == -1)         break zzForAction;
         zzState=zzNext;
-        int zzAttributes=zzAttrL[zzState];
+        zzAttributes=zzAttrL[zzState];
         if ((zzAttributes & 1) == 1) {
           zzAction=zzState;
           zzMarkedPosL=zzCurrentPosL;
@@ -50,39 +58,31 @@
       }
     }
     zzMarkedPos=zzMarkedPosL;
+    if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
+      zzAtEOF=true;
+      zzDoEOF();
+      return null;
+    }
+ else {
 switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
 case 1:
 {
-        return BAD_CHARACTER;
-      }
+          return BAD_CHARACTER;
+        }
 case 8:
-    break;
-case 6:
+      break;
+case 2:
 {
-    return zzMarkedPos == zzEndRead ? MULTI_LINE_COMMENT_END : MULTI_LINE_COMMENT_BODY;
-  }
+      return MULTI_LINE_COMMENT_BODY;
+    }
 case 9:
-break;
-case 5:
-{
-yybegin(COMMENT_BODY);
-return DOC_COMMENT_LEADING_ASTERISK;
-}
-case 10:
-break;
-case 7:
-{
-yybegin(COMMENT_BODY);
-return MULTI_LINE_DOC_COMMENT_START;
-}
-case 11:
-break;
+  break;
 case 3:
 {
-yybegin(AFTER_CRLF);
-return WHITE_SPACE;
+  yybegin(AFTER_CRLF);
+  return WHITE_SPACE;
 }
-case 12:
+case 10:
 break;
 case 4:
 {
@@ -90,21 +90,29 @@ yypushback(yylength());
 yybegin(COMMENT_BODY);
 break;
 }
+case 11:
+break;
+case 5:
+{
+yybegin(COMMENT_BODY);
+return DOC_COMMENT_LEADING_ASTERISK;
+}
+case 12:
+break;
+case 6:
+{
+return zzMarkedPos == zzEndRead ? MULTI_LINE_COMMENT_END : MULTI_LINE_COMMENT_BODY;
+}
 case 13:
 break;
-case 2:
+case 7:
 {
-return MULTI_LINE_COMMENT_BODY;
+yybegin(COMMENT_BODY);
+return MULTI_LINE_DOC_COMMENT_START;
 }
 case 14:
 break;
 default :
-if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
-zzAtEOF=true;
-zzDoEOF();
-return null;
-}
- else {
 zzScanError(ZZ_NO_MATCH);
 }
 }

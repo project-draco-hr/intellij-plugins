@@ -16,9 +16,16 @@
     zzAction=-1;
     zzCurrentPosL=zzCurrentPos=zzStartRead=zzMarkedPosL;
     zzState=ZZ_LEXSTATE[zzLexicalState];
+    int zzAttributes=zzAttrL[zzState];
+    if ((zzAttributes & 1) == 1) {
+      zzAction=zzState;
+    }
     zzForAction: {
       while (true) {
-        if (zzCurrentPosL < zzEndReadL)         zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+        if (zzCurrentPosL < zzEndReadL) {
+          zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+          zzCurrentPosL+=Character.charCount(zzInput);
+        }
  else         if (zzAtEOF) {
           zzInput=YYEOF;
           break zzForAction;
@@ -36,13 +43,14 @@
             break zzForAction;
           }
  else {
-            zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+            zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+            zzCurrentPosL+=Character.charCount(zzInput);
           }
         }
         int zzNext=zzTransL[zzRowMapL[zzState] + zzCMapL[zzInput]];
         if (zzNext == -1)         break zzForAction;
         zzState=zzNext;
-        int zzAttributes=zzAttrL[zzState];
+        zzAttributes=zzAttrL[zzState];
         if ((zzAttributes & 1) == 1) {
           zzAction=zzState;
           zzMarkedPosL=zzCurrentPosL;
@@ -51,56 +59,57 @@
       }
     }
     zzMarkedPos=zzMarkedPosL;
-switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
-case 6:
-{
-        yybegin(YYINITIAL);
-        return CfmlTokenTypes.BAD_CHARACTER;
-      }
-case 52:
-    break;
-case 48:
-{
-    return startComment(SCRIPT_EXPRESSION);
-  }
-case 53:
-break;
-case 7:
-{
-if (myCurrentConfiguration.myArePoundsEvaluated > 0) {
-  return startExpression(YYINITIAL);
-}
+    if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
+      zzAtEOF=true;
+      zzDoEOF();
+      return null;
+    }
  else {
-  return myCurrentConfiguration.myBlockType;
-}
+switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
+case 1:
+{
+          if (myCurrentConfiguration.myBlockType == CfmlTokenTypes.SCRIPT_EXPRESSION) {
+            return CfmlTokenTypes.SCRIPT_EXPRESSION;
+          }
+          return CfmlTokenTypes.WHITE_SPACE;
+        }
+case 52:
+      break;
+case 2:
+{
+      return CfmlTokenTypes.WHITE_SPACE;
+    }
+case 53:
+  break;
+case 3:
+{
+  return CfmlTokenTypes.COMMENT;
 }
 case 54:
 break;
-case 19:
+case 4:
 {
-yybegin(TAGATTR);
 return CfmlElementTypes.CF_SCRIPT;
 }
 case 55:
-break;
-case 10:
-{
-yybegin(ASSIGN);
-return CfmlTokenTypes.ATTRIBUTE;
-}
-case 56:
 break;
 case 5:
 {
 return myCurrentConfiguration.myBlockType;
 }
+case 56:
+break;
+case 6:
+{
+yybegin(YYINITIAL);
+return CfmlTokenTypes.BAD_CHARACTER;
+}
 case 57:
 break;
-case 50:
+case 7:
 {
-if (yychar == 0) {
-yybegin(EAT_TEST_AS_SCRIPT);
-return CfmlElementTypes.CF_SCRIPT;
+if (myCurrentConfiguration.myArePoundsEvaluated > 0) {
+return startExpression(YYINITIAL);
 }
  else {
 return myCurrentConfiguration.myBlockType;
@@ -108,67 +117,62 @@ return myCurrentConfiguration.myBlockType;
 }
 case 58:
 break;
-case 47:
-zzMarkedPos=zzStartRead + 1;
+case 8:
 {
-myCurrentConfiguration.myCommentCounter++;
-return CfmlTokenTypes.COMMENT;
+return closeTag();
 }
 case 59:
 break;
-case 43:
-zzMarkedPos=zzStartRead + 1;
+case 9:
 {
-myCurrentConfiguration.myCommentCounter--;
-if (myCurrentConfiguration.myCommentCounter == 0) {
-yybegin(COMMENTEND);
-}
-return CfmlTokenTypes.COMMENT;
+return closeStartedTag();
 }
 case 60:
 break;
-case 38:
+case 10:
 {
-yybegin(myCurrentConfiguration.myReturnStack.pop());
-return CfmlTokenTypes.COMMENT;
+yybegin(ASSIGN);
+return CfmlTokenTypes.ATTRIBUTE;
 }
 case 61:
+break;
+case 11:
+{
+yybegin(ATTRIBUTE_VALUE);
+return CfmlTokenTypes.BAD_CHARACTER;
+}
+case 62:
+break;
+case 12:
+{
+yybegin(ATTRIBUTE_VALUE);
+return CfmlTokenTypes.ASSIGN;
+}
+case 63:
+break;
+case 13:
+{
+yybegin(DOUBLEQUOTE_CLOSER);
+if (myCurrentConfiguration.myIfReturnExpression) {
+return CfmlTokenTypes.SCRIPT_EXPRESSION;
+}
+return CfmlTokenTypes.STRING_TEXT;
+}
+case 64:
 break;
 case 14:
 {
 return startExpression(DOUBLE_QUOTED_STRING);
 }
-case 62:
-break;
-case 31:
-{
-yybegin(CLOSER);
-processCloseTag(yytext().toString());
-return CfmlTokenTypes.CF_TAG_NAME;
-}
-case 63:
-break;
-case 35:
-zzMarkedPos=zzStartRead + 1;
-{
-myCurrentConfiguration.myBlockType=CfmlElementTypes.TEMPLATE_TEXT;
-return startTag();
-}
-case 64:
-break;
-case 37:
-zzMarkedPos=zzStartRead + 1;
-{
-yybegin(TAGOPEN);
-return CfmlTokenTypes.OPENER;
-}
 case 65:
 break;
-case 21:
+case 15:
 {
-myCurrentConfiguration.myReturnStack.push(TAGATTR);
-yybegin(DOUBLE_QUOTED_STRING);
-return CfmlTokenTypes.DOUBLE_QUOTE;
+yybegin(myCurrentConfiguration.myReturnStack.pop());
+if (myCurrentConfiguration.myIfReturnExpression) {
+return CfmlTokenTypes.SCRIPT_EXPRESSION;
+}
+return CfmlTokenTypes.DOUBLE_QUOTE_CLOSER;
 }
 case 66:
 break;
@@ -182,40 +186,11 @@ return CfmlTokenTypes.STRING_TEXT;
 }
 case 67:
 break;
-case 36:
-zzMarkedPos=zzStartRead + 1;
+case 17:
 {
-return startTag();
+return startExpression(SINGLE_QUOTED_STRING);
 }
 case 68:
-break;
-case 23:
-{
-myCurrentConfiguration.myIfReturnExpression=true;
-return CfmlTokenTypes.SCRIPT_EXPRESSION;
-}
-case 69:
-break;
-case 2:
-{
-return CfmlTokenTypes.WHITE_SPACE;
-}
-case 70:
-break;
-case 32:
-{
-myCurrentConfiguration.myCurrentTag=yytext().toString().toLowerCase();
-if (!CfmlUtil.hasAnyAttributes(myCurrentConfiguration.myCurrentTag,myProject)) {
-myCurrentConfiguration.myStartExpression=false;
-yybegin(SCRIPT_EXPRESSION);
-}
- else {
-myCurrentConfiguration.myStartExpression=true;
-yybegin(TAGATTR);
-}
-return CfmlTokenTypes.CF_TAG_NAME;
-}
-case 71:
 break;
 case 18:
 {
@@ -225,100 +200,28 @@ return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
 return CfmlTokenTypes.SINGLE_QUOTE_CLOSER;
 }
-case 72:
+case 69:
 break;
-case 4:
+case 19:
 {
+yybegin(TAGATTR);
 return CfmlElementTypes.CF_SCRIPT;
 }
-case 73:
-break;
-case 3:
-{
-return CfmlTokenTypes.COMMENT;
-}
-case 74:
-break;
-case 40:
-zzMarkedPos=zzStartRead + 2;
-{
-myCurrentConfiguration.myBlockType=CfmlElementTypes.TEMPLATE_TEXT;
-return startCloseTag();
-}
-case 75:
-break;
-case 29:
-{
-return CfmlElementTypes.TEMPLATE_TEXT;
-}
-case 76:
-break;
-case 1:
-{
-if (myCurrentConfiguration.myBlockType == CfmlTokenTypes.SCRIPT_EXPRESSION) {
-return CfmlTokenTypes.SCRIPT_EXPRESSION;
-}
-return CfmlTokenTypes.WHITE_SPACE;
-}
-case 77:
+case 70:
 break;
 case 20:
 {
 return startExpression(TAGATTR);
 }
-case 78:
+case 71:
 break;
-case 34:
+case 21:
 {
-releaseExpressionState();
-return closeTag();
-}
-case 79:
-break;
-case 17:
-{
-return startExpression(SINGLE_QUOTED_STRING);
-}
-case 80:
-break;
-case 13:
-{
-yybegin(DOUBLEQUOTE_CLOSER);
-if (myCurrentConfiguration.myIfReturnExpression) {
-return CfmlTokenTypes.SCRIPT_EXPRESSION;
-}
-return CfmlTokenTypes.STRING_TEXT;
-}
-case 81:
-break;
-case 12:
-{
-yybegin(ATTRIBUTE_VALUE);
-return CfmlTokenTypes.ASSIGN;
-}
-case 82:
-break;
-case 27:
-{
-myCurrentConfiguration.myIfReturnExpression=true;
-myCurrentConfiguration.myReturnStack.push(SCRIPT_EXPRESSION);
+myCurrentConfiguration.myReturnStack.push(TAGATTR);
 yybegin(DOUBLE_QUOTED_STRING);
-return CfmlTokenTypes.SCRIPT_EXPRESSION;
+return CfmlTokenTypes.DOUBLE_QUOTE;
 }
-case 83:
-break;
-case 25:
-{
-releaseExpressionState();
-return closeStartedTag();
-}
-case 84:
-break;
-case 30:
-{
-return startExpression(TEXT);
-}
-case 85:
+case 72:
 break;
 case 22:
 {
@@ -326,56 +229,14 @@ myCurrentConfiguration.myReturnStack.push(TAGATTR);
 yybegin(SINGLE_QUOTED_STRING);
 return CfmlTokenTypes.SINGLE_QUOTE;
 }
-case 86:
+case 73:
 break;
-case 42:
-zzMarkedPos=zzStartRead + 2;
+case 23:
 {
-yybegin(TAGCLOSE);
-return CfmlTokenTypes.LSLASH_ANGLEBRACKET;
-}
-case 87:
-break;
-case 44:
-zzMarkedPos=zzStartRead + 2;
-{
-releaseExpressionState();
-yybegin(TAGCLOSE);
-return CfmlTokenTypes.LSLASH_ANGLEBRACKET;
-}
-case 88:
-break;
-case 15:
-{
-yybegin(myCurrentConfiguration.myReturnStack.pop());
-if (myCurrentConfiguration.myIfReturnExpression) {
+myCurrentConfiguration.myIfReturnExpression=true;
 return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
-return CfmlTokenTypes.DOUBLE_QUOTE_CLOSER;
-}
-case 89:
-break;
-case 8:
-{
-return closeTag();
-}
-case 90:
-break;
-case 41:
-zzMarkedPos=zzStartRead + 2;
-{
-return startCloseTag();
-}
-case 91:
-break;
-case 39:
-zzMarkedPos=zzStartRead + 1;
-{
-releaseExpressionState();
-yybegin(TAGOPEN);
-return CfmlTokenTypes.OPENER;
-}
-case 92:
+case 74:
 break;
 case 24:
 {
@@ -383,40 +244,14 @@ releaseExpressionState();
 yybegin(YYINITIAL);
 return CfmlTokenTypes.BAD_CHARACTER;
 }
-case 93:
+case 75:
 break;
-case 9:
+case 25:
 {
+releaseExpressionState();
 return closeStartedTag();
 }
-case 94:
-break;
-case 45:
-{
-return startComment(YYINITIAL);
-}
-case 95:
-break;
-case 49:
-{
-return startComment(TEXT);
-}
-case 96:
-break;
-case 51:
-{
-return CfmlTokenTypes.VAR_ANNOTATION;
-}
-case 97:
-break;
-case 28:
-{
-myCurrentConfiguration.myIfReturnExpression=true;
-myCurrentConfiguration.myReturnStack.push(SCRIPT_EXPRESSION);
-yybegin(SINGLE_QUOTED_STRING);
-return CfmlTokenTypes.SCRIPT_EXPRESSION;
-}
-case 98:
+case 76:
 break;
 case 26:
 {
@@ -432,38 +267,211 @@ return CfmlTokenTypes.END_EXPRESSION;
 }
 return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
-case 99:
+case 77:
 break;
-case 11:
+case 27:
 {
-yybegin(ATTRIBUTE_VALUE);
-return CfmlTokenTypes.BAD_CHARACTER;
+myCurrentConfiguration.myIfReturnExpression=true;
+myCurrentConfiguration.myReturnStack.push(SCRIPT_EXPRESSION);
+yybegin(DOUBLE_QUOTED_STRING);
+return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
-case 100:
+case 78:
 break;
-case 46:
+case 28:
 {
-return startComment(TAGATTR);
+myCurrentConfiguration.myIfReturnExpression=true;
+myCurrentConfiguration.myReturnStack.push(SCRIPT_EXPRESSION);
+yybegin(SINGLE_QUOTED_STRING);
+return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
-case 101:
+case 79:
+break;
+case 29:
+{
+return CfmlElementTypes.TEMPLATE_TEXT;
+}
+case 80:
+break;
+case 30:
+{
+return startExpression(TEXT);
+}
+case 81:
+break;
+case 31:
+{
+yybegin(CLOSER);
+processCloseTag(yytext().toString());
+return CfmlTokenTypes.CF_TAG_NAME;
+}
+case 82:
+break;
+case 32:
+{
+myCurrentConfiguration.myCurrentTag=yytext().toString().toLowerCase();
+if (!CfmlUtil.hasAnyAttributes(myCurrentConfiguration.myCurrentTag,myProject)) {
+myCurrentConfiguration.myStartExpression=false;
+yybegin(SCRIPT_EXPRESSION);
+}
+ else {
+myCurrentConfiguration.myStartExpression=true;
+yybegin(TAGATTR);
+}
+return CfmlTokenTypes.CF_TAG_NAME;
+}
+case 83:
 break;
 case 33:
-yypushback(1);
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzMarkedPos,-1);
 {
 if (myCurrentConfiguration.myIfReturnExpression) {
 return CfmlTokenTypes.SCRIPT_EXPRESSION;
 }
 return CfmlTokenTypes.STRING_TEXT;
 }
+case 84:
+break;
+case 34:
+{
+releaseExpressionState();
+return closeTag();
+}
+case 85:
+break;
+case 35:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+myCurrentConfiguration.myBlockType=CfmlElementTypes.TEMPLATE_TEXT;
+return startTag();
+}
+case 86:
+break;
+case 36:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+return startTag();
+}
+case 87:
+break;
+case 37:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+yybegin(TAGOPEN);
+return CfmlTokenTypes.OPENER;
+}
+case 88:
+break;
+case 38:
+{
+yybegin(myCurrentConfiguration.myReturnStack.pop());
+return CfmlTokenTypes.COMMENT;
+}
+case 89:
+break;
+case 39:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+releaseExpressionState();
+yybegin(TAGOPEN);
+return CfmlTokenTypes.OPENER;
+}
+case 90:
+break;
+case 40:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,2);
+{
+myCurrentConfiguration.myBlockType=CfmlElementTypes.TEMPLATE_TEXT;
+return startCloseTag();
+}
+case 91:
+break;
+case 41:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,2);
+{
+return startCloseTag();
+}
+case 92:
+break;
+case 42:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,2);
+{
+yybegin(TAGCLOSE);
+return CfmlTokenTypes.LSLASH_ANGLEBRACKET;
+}
+case 93:
+break;
+case 43:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+myCurrentConfiguration.myCommentCounter--;
+if (myCurrentConfiguration.myCommentCounter == 0) {
+yybegin(COMMENTEND);
+}
+return CfmlTokenTypes.COMMENT;
+}
+case 94:
+break;
+case 44:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,2);
+{
+releaseExpressionState();
+yybegin(TAGCLOSE);
+return CfmlTokenTypes.LSLASH_ANGLEBRACKET;
+}
+case 95:
+break;
+case 45:
+{
+return startComment(YYINITIAL);
+}
+case 96:
+break;
+case 46:
+{
+return startComment(TAGATTR);
+}
+case 97:
+break;
+case 47:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,1);
+{
+myCurrentConfiguration.myCommentCounter++;
+return CfmlTokenTypes.COMMENT;
+}
+case 98:
+break;
+case 48:
+{
+return startComment(SCRIPT_EXPRESSION);
+}
+case 99:
+break;
+case 49:
+{
+return startComment(TEXT);
+}
+case 100:
+break;
+case 50:
+{
+if (yychar == 0) {
+yybegin(EAT_TEST_AS_SCRIPT);
+return CfmlElementTypes.CF_SCRIPT;
+}
+ else {
+return myCurrentConfiguration.myBlockType;
+}
+}
+case 101:
+break;
+case 51:
+{
+return CfmlTokenTypes.VAR_ANNOTATION;
+}
 case 102:
 break;
 default :
-if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
-zzAtEOF=true;
-zzDoEOF();
-return null;
-}
- else {
 zzScanError(ZZ_NO_MATCH);
 }
 }
