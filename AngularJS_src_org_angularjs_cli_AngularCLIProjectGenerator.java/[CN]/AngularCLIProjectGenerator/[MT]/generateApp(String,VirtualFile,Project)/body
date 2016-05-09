@@ -1,34 +1,28 @@
 {
-  final File temp=FileUtilRt.createTempDirectory("angularCli",null);
-  final GeneralCommandLine commandLine=new GeneralCommandLine(ng,"new",baseDir.getName());
-  commandLine.setWorkDirectory(temp);
+  final GeneralCommandLine commandLine=new GeneralCommandLine(ng,"init","--name=" + baseDir.getName());
+  commandLine.setWorkDirectory(baseDir.getPath());
   final KillableColoredProcessHandler handler=new KillableColoredProcessHandler(commandLine);
   TextConsoleBuilderImpl builder=new TextConsoleBuilderImpl(project);
+  builder.setUsePredefinedMessageFilter(false);
+  builder.addFilter(new AngularCLIFilter(project,baseDir.getPath()));
   builder.setUsePredefinedMessageFilter(false);
   final ConsoleView console=builder.getConsole();
   console.attachToProcess(handler);
   handler.addProcessListener(new ProcessAdapter(){
     @Override public void processTerminated(    ProcessEvent event){
-      try {
-        handler.notifyTextAvailable("\nMoving items into place...",ProcessOutputTypes.SYSTEM);
-        FileUtil.copyDirContent(temp.listFiles()[0],VfsUtilCore.virtualToIoFile(baseDir));
-        baseDir.refresh(false,true);
-        baseDir.getChildren();
-        handler.notifyTextAvailable("Done\n",ProcessOutputTypes.SYSTEM);
-        final NpmScriptsService instance=NpmScriptsService.getInstance();
-        for (        VirtualFile file : instance.detectAllBuildfiles(project)) {
-          instance.getFileManager(project).addBuildfile(file);
+      baseDir.refresh(false,true);
+      baseDir.getChildren();
+      handler.notifyTextAvailable("Done\n",ProcessOutputTypes.SYSTEM);
+      final NpmScriptsService instance=NpmScriptsService.getInstance();
+      for (      VirtualFile file : instance.detectAllBuildfiles(project)) {
+        instance.getFileManager(project).addBuildfile(file);
+      }
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        @Override public void run(){
+          instance.getToolWindowManager(project).setAvailable();
         }
-        ApplicationManager.getApplication().invokeLater(new Runnable(){
-          @Override public void run(){
-            instance.getToolWindowManager(project).setAvailable();
-          }
-        }
+      }
 );
-      }
- catch (      IOException e) {
-        LOG.error(e);
-      }
     }
   }
 );

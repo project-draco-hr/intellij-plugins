@@ -10,5 +10,20 @@
     final JSCallExpression metadata=PsiTreeUtil.getNextSiblingOfType(decorator,JSCallExpression.class);
     return metadata != null && metadata.getText().contains(TEMPLATE_REF);
   }
+  if (parent instanceof JSObjectLiteralExpression) {
+    final JSBlockStatement block=PsiTreeUtil.getParentOfType(parent,JSBlockStatement.class);
+    final JSStatement[] statements=block != null ? block.getStatements() : JSStatement.EMPTY;
+    for (    JSStatement statement : statements) {
+      if (statement instanceof JSExpressionStatement) {
+        final JSExpression expression=((JSExpressionStatement)statement).getExpression();
+        if (expression instanceof JSAssignmentExpression) {
+          final JSDefinitionExpression def=((JSAssignmentExpression)expression).getDefinitionExpression();
+          if (def != null && "ctorParameters".equals(def.getName())) {
+            return expression.getText().contains(TEMPLATE_REF);
+          }
+        }
+      }
+    }
+  }
   return false;
 }
