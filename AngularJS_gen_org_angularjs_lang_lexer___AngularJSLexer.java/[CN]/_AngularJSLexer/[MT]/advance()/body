@@ -5,7 +5,6 @@
   int zzMarkedPosL;
   int zzEndReadL=zzEndRead;
   CharSequence zzBufferL=zzBuffer;
-  char[] zzBufferArrayL=zzBufferArray;
   char[] zzCMapL=ZZ_CMAP;
   int[] zzTransL=ZZ_TRANS;
   int[] zzRowMapL=ZZ_ROWMAP;
@@ -15,9 +14,16 @@
     zzAction=-1;
     zzCurrentPosL=zzCurrentPos=zzStartRead=zzMarkedPosL;
     zzState=ZZ_LEXSTATE[zzLexicalState];
+    int zzAttributes=zzAttrL[zzState];
+    if ((zzAttributes & 1) == 1) {
+      zzAction=zzState;
+    }
     zzForAction: {
       while (true) {
-        if (zzCurrentPosL < zzEndReadL)         zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+        if (zzCurrentPosL < zzEndReadL) {
+          zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+          zzCurrentPosL+=Character.charCount(zzInput);
+        }
  else         if (zzAtEOF) {
           zzInput=YYEOF;
           break zzForAction;
@@ -35,13 +41,14 @@
             break zzForAction;
           }
  else {
-            zzInput=(zzBufferArrayL != null ? zzBufferArrayL[zzCurrentPosL++] : zzBufferL.charAt(zzCurrentPosL++));
+            zzInput=Character.codePointAt(zzBufferL,zzCurrentPosL);
+            zzCurrentPosL+=Character.charCount(zzInput);
           }
         }
         int zzNext=zzTransL[zzRowMapL[zzState] + zzCMapL[zzInput]];
         if (zzNext == -1)         break zzForAction;
         zzState=zzNext;
-        int zzAttributes=zzAttrL[zzState];
+        zzAttributes=zzAttrL[zzState];
         if ((zzAttributes & 1) == 1) {
           zzAction=zzState;
           zzMarkedPosL=zzCurrentPosL;
@@ -50,183 +57,55 @@
       }
     }
     zzMarkedPos=zzMarkedPosL;
+    if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
+      zzAtEOF=true;
+      return null;
+    }
+ else {
 switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
-case 52:
+case 1:
 {
-        return TRUE_KEYWORD;
-      }
+          return BAD_CHARACTER;
+        }
 case 57:
-    break;
-case 17:
+      break;
+case 2:
 {
-    return LT;
-  }
+      return WHITE_SPACE;
+    }
 case 58:
-break;
-case 49:
+  break;
+case 3:
 {
-return NEQEQ;
+  return NUMERIC_LITERAL;
 }
 case 59:
-break;
-case 29:
-{
-return SEMICOLON;
-}
-case 60:
-break;
-case 11:
-{
-return MULT;
-}
-case 61:
-break;
-case 23:
-{
-return LBRACE;
-}
-case 62:
-break;
-case 24:
-{
-return RBRACE;
-}
-case 63:
-break;
-case 16:
-{
-return EXCL;
-}
-case 64:
-break;
-case 42:
-{
-return ANDAND;
-}
-case 65:
-break;
-case 14:
-{
-return XOR;
-}
-case 66:
-break;
-case 34:
-{
-if (quote == '"') yybegin(YYINITIAL);
-return STRING_LITERAL;
-}
-case 67:
-break;
-case 21:
-{
-return LPAR;
-}
-case 68:
-break;
-case 26:
-{
-return RBRACKET;
-}
-case 69:
-break;
-case 32:
-{
-yypushback(yytext().length());
-yybegin(YYINITIAL);
-}
-case 70:
-break;
-case 28:
-{
-return COMMA;
-}
-case 71:
 break;
 case 4:
 {
 return DOT;
 }
-case 72:
+case 60:
 break;
-case 9:
+case 5:
 {
-return HASH;
+return IDENTIFIER;
 }
-case 73:
+case 61:
 break;
-case 20:
+case 6:
 {
-return OR;
+return MINUS;
 }
-case 74:
+case 62:
 break;
-case 31:
+case 7:
 {
+yybegin(YYSTRING);
+quote='\'';
 return STRING_LITERAL;
 }
-case 75:
-break;
-case 12:
-{
-return DIV;
-}
-case 76:
-break;
-case 35:
-{
-return AS_KEYWORD;
-}
-case 77:
-break;
-case 55:
-{
-return TRACK_BY_KEYWORD;
-}
-case 78:
-break;
-case 56:
-{
-return UNDEFINED_KEYWORD;
-}
-case 79:
-break;
-case 30:
-{
-return COLON;
-}
-case 80:
-break;
-case 45:
-{
-return ONE_TIME_BINDING;
-}
-case 81:
-break;
-case 38:
-{
-return EQEQ;
-}
-case 82:
-break;
-case 19:
-{
-return AND;
-}
-case 83:
-break;
-case 44:
-{
-return ELVIS;
-}
-case 84:
-break;
-case 50:
-{
-yypushback(1);
-return INVALID_ESCAPE_SEQUENCE;
-}
-case 85:
+case 63:
 break;
 case 8:
 {
@@ -234,109 +113,243 @@ yybegin(YYSTRING);
 quote='"';
 return STRING_LITERAL;
 }
-case 86:
+case 64:
 break;
-case 41:
+case 9:
 {
-return GE;
+return PLUS;
 }
-case 87:
+case 65:
 break;
-case 13:
+case 10:
+{
+return MULT;
+}
+case 66:
+break;
+case 11:
+{
+return DIV;
+}
+case 67:
+break;
+case 12:
 {
 return PERC;
 }
-case 88:
+case 68:
 break;
-case 22:
+case 13:
 {
-return RPAR;
+return XOR;
 }
-case 89:
+case 69:
 break;
-case 3:
+case 14:
 {
-return NUMERIC_LITERAL;
+return EQ;
 }
-case 90:
+case 70:
 break;
-case 43:
+case 15:
 {
-return OROR;
+return EXCL;
 }
-case 91:
+case 71:
 break;
-case 51:
+case 16:
 {
-return INVALID_ESCAPE_SEQUENCE;
+return LT;
 }
-case 92:
+case 72:
 break;
-case 18:
+case 17:
 {
 return GT;
 }
-case 93:
+case 73:
 break;
-case 54:
+case 18:
 {
-return FALSE_KEYWORD;
+return AND;
 }
-case 94:
+case 74:
 break;
-case 25:
+case 19:
+{
+return OR;
+}
+case 75:
+break;
+case 20:
+{
+return LPAR;
+}
+case 76:
+break;
+case 21:
+{
+return RPAR;
+}
+case 77:
+break;
+case 22:
+{
+return LBRACE;
+}
+case 78:
+break;
+case 23:
+{
+return RBRACE;
+}
+case 79:
+break;
+case 24:
 {
 return LBRACKET;
 }
-case 95:
+case 80:
 break;
-case 27:
+case 25:
+{
+return RBRACKET;
+}
+case 81:
+break;
+case 26:
 {
 return QUEST;
 }
-case 96:
+case 82:
 break;
-case 39:
+case 27:
 {
-return NE;
+return COMMA;
 }
-case 97:
+case 83:
 break;
-case 6:
+case 28:
 {
-return MINUS;
+return SEMICOLON;
 }
-case 98:
+case 84:
 break;
-case 33:
+case 29:
+{
+return COLON;
+}
+case 85:
+break;
+case 30:
+{
+return STRING_LITERAL;
+}
+case 86:
+break;
+case 31:
+{
+yypushback(yytext().length());
+yybegin(YYINITIAL);
+}
+case 87:
+break;
+case 32:
 {
 if (quote == '\'') yybegin(YYINITIAL);
 return STRING_LITERAL;
 }
-case 99:
+case 88:
 break;
-case 37:
+case 33:
+{
+if (quote == '"') yybegin(YYINITIAL);
+return STRING_LITERAL;
+}
+case 89:
+break;
+case 34:
+{
+return AS_KEYWORD;
+}
+case 90:
+break;
+case 35:
+{
+return IN_KEYWORD;
+}
+case 91:
+break;
+case 36:
 {
 return OF_KEYWORD;
 }
+case 92:
+break;
+case 37:
+{
+return EQEQ;
+}
+case 93:
+break;
+case 38:
+{
+return NE;
+}
+case 94:
+break;
+case 39:
+{
+return LE;
+}
+case 95:
+break;
+case 40:
+{
+return GE;
+}
+case 96:
+break;
+case 41:
+{
+return ANDAND;
+}
+case 97:
+break;
+case 42:
+{
+return OROR;
+}
+case 98:
+break;
+case 43:
+{
+return ELVIS;
+}
+case 99:
+break;
+case 44:
+{
+return ONE_TIME_BINDING;
+}
 case 100:
 break;
-case 1:
+case 45:
 {
-return BAD_CHARACTER;
+return ESCAPE_SEQUENCE;
 }
 case 101:
 break;
-case 47:
-zzMarkedPos=zzStartRead + 2;
+case 46:
+zzMarkedPos=Character.offsetByCodePoints(zzBufferL,zzStartRead,2);
 {
 return IDENTIFIER;
 }
 case 102:
 break;
-case 5:
+case 47:
 {
-return IDENTIFIER;
+return LET_KEYWORD;
 }
 case 103:
 break;
@@ -346,62 +359,56 @@ return EQEQEQ;
 }
 case 104:
 break;
-case 15:
+case 49:
 {
-return EQ;
+return NEQEQ;
 }
 case 105:
 break;
-case 36:
+case 50:
 {
-return IN_KEYWORD;
+yypushback(1);
+return INVALID_ESCAPE_SEQUENCE;
 }
 case 106:
 break;
-case 2:
+case 51:
 {
-return WHITE_SPACE;
+return INVALID_ESCAPE_SEQUENCE;
 }
 case 107:
 break;
-case 10:
+case 52:
 {
-return PLUS;
+return TRUE_KEYWORD;
 }
 case 108:
-break;
-case 7:
-{
-yybegin(YYSTRING);
-quote='\'';
-return STRING_LITERAL;
-}
-case 109:
-break;
-case 46:
-{
-return ESCAPE_SEQUENCE;
-}
-case 110:
 break;
 case 53:
 {
 return NULL_KEYWORD;
 }
+case 109:
+break;
+case 54:
+{
+return FALSE_KEYWORD;
+}
+case 110:
+break;
+case 55:
+{
+return TRACK_BY_KEYWORD;
+}
 case 111:
 break;
-case 40:
+case 56:
 {
-return LE;
+return UNDEFINED_KEYWORD;
 }
 case 112:
 break;
 default :
-if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
-zzAtEOF=true;
-return null;
-}
- else {
 zzScanError(ZZ_NO_MATCH);
 }
 }

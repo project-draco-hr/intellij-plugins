@@ -1,0 +1,37 @@
+{
+  final GeneralCommandLine commandLine=new GeneralCommandLine(ng,"init","--name=" + baseDir.getName());
+  commandLine.setWorkDirectory(baseDir.getPath());
+  final KillableColoredProcessHandler handler=new KillableColoredProcessHandler(commandLine);
+  TextConsoleBuilderImpl builder=new TextConsoleBuilderImpl(project);
+  builder.setUsePredefinedMessageFilter(false);
+  builder.addFilter(new AngularCLIFilter(project,baseDir.getPath()));
+  builder.setUsePredefinedMessageFilter(false);
+  final ConsoleView console=builder.getConsole();
+  console.attachToProcess(handler);
+  handler.addProcessListener(new ProcessAdapter(){
+    @Override public void processTerminated(    ProcessEvent event){
+      baseDir.refresh(false,true);
+      baseDir.getChildren();
+      handler.notifyTextAvailable("Done\n",ProcessOutputTypes.SYSTEM);
+      final NpmScriptsService instance=NpmScriptsService.getInstance();
+      for (      VirtualFile file : instance.detectAllBuildfiles(project)) {
+        instance.getFileManager(project).addBuildfile(file);
+      }
+      ApplicationManager.getApplication().invokeLater(new Runnable(){
+        @Override public void run(){
+          instance.getToolWindowManager(project).setAvailable();
+        }
+      }
+);
+    }
+  }
+);
+  final Executor defaultExecutor=DefaultRunExecutor.getRunExecutorInstance();
+  final String title="Generating " + baseDir.getName();
+  final RunnerLayoutUi ui=RunnerLayoutUi.Factory.getInstance(project).create(ID,title,title,project);
+  final Content consoleContent=ui.createContent(ID,console.getComponent(),title,null,console.getPreferredFocusableComponent());
+  ui.addContent(consoleContent);
+  final RunContentDescriptor descriptor=new RunContentDescriptor(console,handler,console.getComponent(),title);
+  ExecutionManager.getInstance(project).getContentManager().showRunContent(defaultExecutor,descriptor);
+  handler.startNotify();
+}
