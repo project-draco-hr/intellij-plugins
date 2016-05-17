@@ -1,9 +1,9 @@
 {
   servedDirToSocketAddress.clear();
-  Channel[] clientContexts;
+  ClientInfo[] list;
   try {
-    Collection<Channel> clientChannels=serverToClientChannel.values();
-    clientContexts=clientChannels.toArray(new Channel[clientChannels.size()]);
+    Collection<ClientInfo> clientInfos=serverToClientChannel.values();
+    list=clientInfos.toArray(new ClientInfo[clientInfos.size()]);
     for (    ServerInfo serverInstanceInfo : servedDirToSocketAddress.values()) {
       serverInstanceInfo.freeServerChannels.clear();
     }
@@ -12,9 +12,9 @@
   finally {
     serverChannelRegistrar.close();
   }
-  for (  Channel channel : clientContexts) {
+  for (  ClientInfo info : list) {
     try {
-      sendBadGateway(channel);
+      sendBadGateway(info.channel,info.extraHeaders);
     }
  catch (    Exception e) {
       LOG.error(e);

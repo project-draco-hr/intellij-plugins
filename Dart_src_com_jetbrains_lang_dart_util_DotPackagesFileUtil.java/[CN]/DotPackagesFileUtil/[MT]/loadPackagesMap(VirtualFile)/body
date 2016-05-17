@@ -7,7 +7,10 @@
       final int colonIndex=line.indexOf(':');
       if (colonIndex > 0 && colonIndex < line.length() - 1) {
         final String packageName=line.substring(0,colonIndex).trim();
-        final String packageUri=getAbsolutePackageRootPath(dotPackagesFile.getParent(),line.substring(colonIndex + 1).trim());
+        final String encodedUri=line.substring(colonIndex + 1).trim();
+        final String encodedUriWithoutPluses=StringUtil.replace(encodedUri,"+","%2B");
+        final String uri=URLDecoder.decode(encodedUriWithoutPluses,"UTF-8");
+        final String packageUri=getAbsolutePackageRootPath(dotPackagesFile.getParent(),uri);
         if (!packageName.isEmpty() && packageUri != null) {
           result.put(packageName,packageUri);
         }
