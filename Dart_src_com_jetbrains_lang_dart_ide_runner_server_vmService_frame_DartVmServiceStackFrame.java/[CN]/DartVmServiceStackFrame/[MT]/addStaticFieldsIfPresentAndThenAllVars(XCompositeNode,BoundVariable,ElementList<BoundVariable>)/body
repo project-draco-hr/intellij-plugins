@@ -1,6 +1,9 @@
 {
-  final BoundVariable firstVar=vars.get(0);
-  myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,firstVar.getValue().getClassRef().getId(),new GetObjectConsumer(){
+  if (thisVar == null) {
+    addVars(node,vars);
+    return;
+  }
+  myDebugProcess.getVmServiceWrapper().getObject(myIsolateId,thisVar.getValue().getClassRef().getId(),new GetObjectConsumer(){
     @Override public void received(    Obj classObj){
       final SmartList<FieldRef> staticFields=new SmartList<FieldRef>();
       for (      FieldRef fieldRef : ((ClassObj)classObj).getFields()) {
@@ -13,13 +16,7 @@
         list.addTopGroup(new DartStaticFieldsGroup(myDebugProcess,myIsolateId,((ClassObj)classObj).getName(),staticFields));
         node.addChildren(list,false);
       }
-      final InstanceKind kind=firstVar.getValue().getKind();
-      if (kind == InstanceKind.Null) {
-        addVars(node,vars,0);
-      }
- else {
-        addVarsAndFieldsOfFirstOne(node,vars);
-      }
+      addVars(node,vars);
     }
     @Override public void received(    Sentinel sentinel){
       node.setErrorMessage(sentinel.getValueAsString());
