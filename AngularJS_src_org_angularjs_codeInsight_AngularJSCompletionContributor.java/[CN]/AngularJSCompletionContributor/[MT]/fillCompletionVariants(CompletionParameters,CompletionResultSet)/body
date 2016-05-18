@@ -1,19 +1,2 @@
 {
-  if (!getElementLanguage(parameters).is(AngularJSLanguage.INSTANCE))   return;
-  if (AngularMessageFormatCompletion.messageFormatCompletion(parameters,result))   return;
-  PsiReference ref=parameters.getPosition().getContainingFile().findReferenceAt(parameters.getOffset());
-  if (ref instanceof JSReferenceExpressionImpl && ((JSReferenceExpressionImpl)ref).getQualifier() == null) {
-    final PsiElement parent=((JSReferenceExpressionImpl)ref).getParent();
-    if (addFilterVariants(result,parameters,ref,parent))     return;
-    if (addControllerVariants(result,parameters,ref,parent))     return;
-    AngularJSProcessor.process(parameters.getPosition(),new Consumer<JSPsiElementBase>(){
-      @Override public void consume(      JSPsiElementBase element){
-        final String name=element.getName();
-        if (name != null) {
-          result.consume(JSLookupUtilImpl.createPrioritizedLookupItem(element,name,NG_VARIABLE_PRIORITY,false,false));
-        }
-      }
-    }
-);
-  }
 }

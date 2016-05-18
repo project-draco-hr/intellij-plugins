@@ -1,26 +1,2 @@
 {
-  TextFieldWithHistoryWithBrowseButton karmaPackageDirPathComponent=new TextFieldWithHistoryWithBrowseButton();
-  final TextFieldWithHistory textFieldWithHistory=karmaPackageDirPathComponent.getChildComponent();
-  textFieldWithHistory.setHistorySize(-1);
-  textFieldWithHistory.setMinimumAndPreferredWidth(0);
-  SwingHelper.addHistoryOnExpansion(textFieldWithHistory,new NotNullProducer<List<String>>(){
-    @NotNull @Override public List<String> produce(){
-      NodeJsLocalInterpreter interpreter=NodeJsLocalInterpreter.tryCast(myNodeInterpreterField.getInterpreter());
-      List<CompletionModuleInfo> modules=ContainerUtil.newArrayList();
-      VirtualFile requester=KarmaUtil.getRequester(myProject,myConfigPathTextFieldWithBrowseButton.getChildComponent().getText());
-      NodeModuleSearchUtil.findModulesWithName(modules,KarmaUtil.NODE_PACKAGE_NAME,requester,NodeSettings.create(interpreter),true);
-      List<String> moduleDirs=ContainerUtil.newArrayListWithCapacity(modules.size());
-      for (      CompletionModuleInfo module : modules) {
-        VirtualFile dir=module.getVirtualFile();
-        if (dir != null && dir.isDirectory()) {
-          moduleDirs.add(FileUtil.toSystemDependentName(dir.getPath()));
-        }
-      }
-      Collections.sort(moduleDirs);
-      return moduleDirs;
-    }
-  }
-);
-  SwingHelper.installFileCompletionAndBrowseDialog(project,karmaPackageDirPathComponent,KarmaBundle.message("runConfiguration.karma_package_dir.browse_dialog.title"),FileChooserDescriptorFactory.createSingleFolderDescriptor());
-  return karmaPackageDirPathComponent;
 }

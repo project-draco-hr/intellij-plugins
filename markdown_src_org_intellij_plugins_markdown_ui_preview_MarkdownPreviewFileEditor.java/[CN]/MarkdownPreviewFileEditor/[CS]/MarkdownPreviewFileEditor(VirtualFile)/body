@@ -1,27 +1,2 @@
 {
-  myFile=file;
-  myDocument=FileDocumentManager.getInstance().getDocument(myFile);
-  if (myDocument != null) {
-    myDocument.addDocumentListener(new DocumentAdapter(){
-      @Override public void beforeDocumentChange(      DocumentEvent e){
-        myPooledAlarm.cancelAllRequests();
-      }
-      @Override public void documentChanged(      final DocumentEvent e){
-        myPooledAlarm.addRequest(new Runnable(){
-          @Override public void run(){
-            updateHtml(true);
-          }
-        }
-,PARSING_CALL_TIMEOUT_MS);
-      }
-    }
-,this);
-  }
-  myHtmlPanelWrapper=new JPanel(new BorderLayout());
-  final MarkdownApplicationSettings settings=MarkdownApplicationSettings.getInstance();
-  myPanel=detachOldPanelAndCreateAndAttachNewOne(myHtmlPanelWrapper,null,retrievePanelProvider(settings));
-  updatePanelCssSettings(myPanel,settings.getMarkdownCssSettings());
-  MessageBusConnection settingsConnection=ApplicationManager.getApplication().getMessageBus().connect(this);
-  MarkdownApplicationSettings.SettingsChangedListener settingsChangedListener=new MyUpdatePanelOnSettingsChangedListener();
-  settingsConnection.subscribe(MarkdownApplicationSettings.SettingsChangedListener.TOPIC,settingsChangedListener);
 }

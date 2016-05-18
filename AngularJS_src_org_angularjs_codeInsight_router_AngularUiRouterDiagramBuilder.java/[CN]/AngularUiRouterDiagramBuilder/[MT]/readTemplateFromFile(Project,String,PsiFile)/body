@@ -1,28 +1,2 @@
 {
-  final Map<String,SmartPsiElementPointer<PsiElement>> placeholders=new HashMap<>();
-  final Set<String> placeholdersSet=new HashSet<>();
-  final FileBasedIndex instance=FileBasedIndex.getInstance();
-  final GlobalSearchScope scope=GlobalSearchScope.fileScope(project,templateFile.getVirtualFile());
-  instance.processAllKeys(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,new Processor<String>(){
-    @Override public boolean process(    String view){
-      placeholdersSet.add(view);
-      return true;
-    }
-  }
-,scope,null);
-  final PsiFile finalTemplateFile=templateFile;
-  for (  String key : placeholdersSet) {
-    instance.processValues(AngularUiRouterViewsIndex.UI_ROUTER_VIEWS_CACHE_INDEX,key,null,new FileBasedIndex.ValueProcessor<AngularNamedItemDefinition>(){
-      @Override public boolean process(      VirtualFile file,      AngularNamedItemDefinition value){
-        final JSImplicitElementImpl.Builder builder=new JSImplicitElementImpl.Builder(JSQualifiedNameImpl.fromQualifiedName(key),null);
-        final JSOffsetBasedImplicitElement implicitElement=new JSOffsetBasedImplicitElement(builder,(int)value.getStartOffset(),finalTemplateFile);
-        placeholders.put(key,mySmartPointerManager.createSmartPsiElementPointer(implicitElement));
-        return true;
-      }
-    }
-,scope);
-  }
-  final Template template=new Template(url,mySmartPointerManager.createSmartPsiElementPointer(templateFile));
-  template.setViewPlaceholders(placeholders);
-  return template;
 }
