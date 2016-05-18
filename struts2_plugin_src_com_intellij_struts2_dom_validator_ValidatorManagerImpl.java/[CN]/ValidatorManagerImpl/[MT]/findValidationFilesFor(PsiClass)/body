@@ -1,26 +1,2 @@
 {
-  final PsiFile psiFile=clazz.getContainingFile().getOriginalFile();
-  final PsiDirectory containingDirectory=psiFile.getContainingDirectory();
-  if (containingDirectory == null) {
-    return Collections.emptyList();
-  }
-  final PsiPackage containingPackage=JavaDirectoryService.getInstance().getPackage(containingDirectory);
-  if (containingPackage == null) {
-    return Collections.emptyList();
-  }
-  final PackageScope searchScope=new PackageScope(containingPackage,false,true);
-  final List<DomFileElement<Validators>> validationRoots=DomService.getInstance().getFileElements(Validators.class,clazz.getProject(),searchScope);
-  final List<DomFileElement<Validators>> filtered=ContainerUtil.filter(validationRoots,new Condition<DomFileElement<Validators>>(){
-    @Override public boolean value(    final DomFileElement<Validators> validatorDomFileElement){
-      final String fileName=validatorDomFileElement.getFile().getName();
-      return StringUtil.startsWith(fileName,clazz.getName());
-    }
-  }
-);
-  return ContainerUtil.map(filtered,new Function<DomFileElement<Validators>,XmlFile>(){
-    @Override public XmlFile fun(    final DomFileElement<Validators> validatorsDomFileElement){
-      return validatorsDomFileElement.getFile();
-    }
-  }
-);
 }

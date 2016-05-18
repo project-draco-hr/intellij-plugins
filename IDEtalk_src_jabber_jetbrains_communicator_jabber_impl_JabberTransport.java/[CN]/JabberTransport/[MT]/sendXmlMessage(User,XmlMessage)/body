@@ -1,25 +1,2 @@
 {
-  if (!myUI.connectAndLogin(null)) {
-    return;
-  }
-  final String threadId=getThreadId(user);
-  final PacketCollector packetCollector=myFacade.getConnection().createPacketCollector(new ThreadFilter(threadId));
-  doSendMessage(xmlMessage,user,threadId);
-  if (xmlMessage.needsResponse()) {
-    final Runnable responseWaiterRunnable=new Runnable(){
-      @Override public void run(){
-        try {
-          processResponse(xmlMessage,packetCollector);
-        }
-  finally {
-          packetCollector.cancel();
-        }
-      }
-    }
-;
-    myIdeFacade.runOnPooledThread(responseWaiterRunnable);
-  }
- else {
-    packetCollector.cancel();
-  }
 }

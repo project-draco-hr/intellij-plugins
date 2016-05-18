@@ -1,26 +1,2 @@
 {
-  FileDocumentManager.getInstance().saveAllDocuments();
-  ExecutionResult executionResult=state.execute(environment.getExecutor(),this);
-  if (executionResult == null) {
-    return null;
-  }
-  KarmaConsoleView consoleView=KarmaConsoleView.get(executionResult,state);
-  final RunContentDescriptor descriptor=KarmaUtil.createDefaultDescriptor(executionResult,environment);
-  if (consoleView == null) {
-    return descriptor;
-  }
-  KarmaServer server=consoleView.getKarmaExecutionSession().getKarmaServer();
-  if (!server.areBrowsersReady()) {
-    server.onBrowsersReady(new Runnable(){
-      @Override public void run(){
-        ExecutionUtil.restartIfActive(descriptor);
-      }
-    }
-);
-  }
- else {
-    RerunTestsNotification.showRerunNotification(environment.getContentToReuse(),executionResult.getExecutionConsole());
-  }
-  RerunTestsAction.register(descriptor);
-  return descriptor;
 }

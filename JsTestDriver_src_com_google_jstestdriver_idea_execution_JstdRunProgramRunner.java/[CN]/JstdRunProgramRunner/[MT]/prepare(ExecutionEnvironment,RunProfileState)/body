@@ -1,18 +1,2 @@
 {
-  JstdRunProfileState jstdState=JstdRunProfileState.cast(state);
-  if (jstdState.getRunSettings().isExternalServerType()) {
-    return Promise.<RunProfileStarter>resolve(new JstdRunStarter(null,false));
-  }
-  JstdToolWindowManager jstdToolWindowManager=JstdToolWindowManager.getInstance(environment.getProject());
-  jstdToolWindowManager.setAvailable(true);
-  JstdServer server=JstdServerRegistry.getInstance().getServer();
-  if (server != null && !server.isStopped()) {
-    return Promise.<RunProfileStarter>resolve(new JstdRunStarter(server,false));
-  }
-  return jstdToolWindowManager.restartServer().then(new Function<JstdServer,RunProfileStarter>(){
-    @Override public RunProfileStarter fun(    JstdServer server){
-      return server == null ? null : new JstdRunStarter(server,false);
-    }
-  }
-);
 }
