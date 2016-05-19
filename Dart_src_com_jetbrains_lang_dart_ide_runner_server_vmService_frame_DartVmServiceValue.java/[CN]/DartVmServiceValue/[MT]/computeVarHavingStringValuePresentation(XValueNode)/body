@@ -1,0 +1,29 @@
+{
+switch (myInstanceRef.getKind()) {
+case Null:
+case Bool:
+    node.setPresentation(getIcon(),new XKeywordValuePresentation(myInstanceRef.getValueAsString()),false);
+  break;
+case Double:
+case Int:
+node.setPresentation(getIcon(),new XNumericValuePresentation(myInstanceRef.getValueAsString()),false);
+break;
+case String:
+final String presentableValue=StringUtil.replace(myInstanceRef.getValueAsString(),"\"","\\\"");
+node.setPresentation(getIcon(),new XStringValuePresentation(presentableValue),false);
+if (myInstanceRef.getValueAsStringIsTruncated()) {
+addFullStringValueEvaluator(node,myInstanceRef);
+}
+break;
+case Float32x4:
+case Float64x2:
+case Int32x4:
+case StackTrace:
+node.setFullValueEvaluator(new ImmediateFullValueEvaluator("Click to see stack trace...",myInstanceRef.getValueAsString()));
+node.setPresentation(getIcon(),myInstanceRef.getClassRef().getName(),"",true);
+break;
+default :
+return false;
+}
+return true;
+}

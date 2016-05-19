@@ -4,10 +4,12 @@
     node.addChildren(XValueChildrenList.singleton(exception),false);
   }
   final ElementList<BoundVariable> vars=myVmFrame.getVars();
-  if (vars.size() > 0 && "this".equals(vars.get(0).getName())) {
-    addStaticAndInstanceFieldsOfFirstVarAndOtherVars(node,vars);
+  BoundVariable thisVar=null;
+  for (  BoundVariable var : vars) {
+    if ("this".equals(var.getName())) {
+      thisVar=var;
+      break;
+    }
   }
- else {
-    addVars(node,vars,0);
-  }
+  addStaticFieldsIfPresentAndThenAllVars(node,thisVar,vars);
 }
