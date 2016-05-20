@@ -19,15 +19,24 @@
       dartReference=getRightmostReference(dartReference.getFirstChild());
     }
     DartComponent comp=DartResolveUtil.findReferenceAndComponentTarget(dartReference);
-    if (comp != null) {
-      return comp;
-    }
+    return comp != null && DartHierarchyUtil.isExecutable(comp) ? comp : null;
   }
  else {
-    DartComponent comp=PsiTreeUtil.getParentOfType(psiElement,DartComponent.class);
-    if (comp != null) {
-      return comp;
+    if (psiElement == null)     return null;
+    if (DartHierarchyUtil.isExecutable(psiElement))     return psiElement;
+    DartComponentName name=PsiTreeUtil.getParentOfType(psiElement,DartComponentName.class);
+    if (name == null) {
+      if (psiElement instanceof PsiWhiteSpace) {
+        name=PsiTreeUtil.getPrevSiblingOfType(psiElement,DartComponentName.class);
+      }
+ else       if ("(".equals(psiElement.getText())) {
+        name=PsiTreeUtil.getPrevSiblingOfType(psiElement.getParent(),DartComponentName.class);
+      }
     }
+    if (name != null) {
+      PsiElement def=name.getParent();
+      return def != null && DartHierarchyUtil.isExecutable(def) ? def : null;
+    }
+    return null;
   }
-  return null;
 }
