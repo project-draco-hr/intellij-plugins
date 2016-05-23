@@ -6,7 +6,13 @@
     fix.setSourceChange(null);
   }
   final List<AnalysisErrorFixes> fixes=DartAnalysisServerService.getInstance().edit_getFixes(myFilePath,myOffset);
-  if (fixes != null) {
+  if (fixes == null || fixes.isEmpty()) {
+    if (myErrorCode != null) {
+      myQuickFixes.get(0).setSuppressActionDelegate(new DartProblemGroup.DartSuppressAction(myErrorCode,myErrorSeverity,false));
+      myQuickFixes.get(1).setSuppressActionDelegate(new DartProblemGroup.DartSuppressAction(myErrorCode,myErrorSeverity,true));
+    }
+  }
+ else {
     int index=0;
     for (    AnalysisErrorFixes fix : fixes) {
       for (      SourceChange sourceChange : fix.getFixes()) {
