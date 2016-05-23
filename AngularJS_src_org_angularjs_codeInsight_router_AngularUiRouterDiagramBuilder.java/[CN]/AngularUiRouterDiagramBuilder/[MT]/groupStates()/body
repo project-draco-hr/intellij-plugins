@@ -4,7 +4,8 @@
   for (  Map.Entry<VirtualFile,RootTemplate> entry : myRootTemplates.entrySet()) {
     final Set<VirtualFile> modulesFiles=entry.getValue().getModulesFiles();
     for (    UiRouterState state : myStates) {
-      if (modulesFiles.contains(state.getFile())) {
+      final PsiElement element=entry.getValue().getPointer().getElement();
+      if (modulesFiles.contains(state.getFile()) || element != null && element.getContainingFile().getVirtualFile().equals(state.getFile())) {
         putState2map(entry.getKey(),state,myRootTemplates2States);
         statesUsedInRoots.add(state);
       }
