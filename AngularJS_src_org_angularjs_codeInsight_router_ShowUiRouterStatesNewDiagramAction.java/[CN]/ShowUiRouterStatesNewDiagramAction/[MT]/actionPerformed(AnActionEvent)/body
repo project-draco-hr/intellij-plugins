@@ -4,7 +4,7 @@
   if (project == null)   return;
   final AngularUiRouterDiagramBuilder builder=new AngularUiRouterDiagramBuilder(project);
   builder.build();
-  final List<Pair<String,AngularUiRouterGraphBuilder>> graphBuilders=new ArrayList<>();
+  List<Pair<String,AngularUiRouterGraphBuilder>> graphBuilders=new ArrayList<>();
   final Map<VirtualFile,RootTemplate> rootTemplates=builder.getRootTemplates();
   for (  Map.Entry<VirtualFile,Map<String,UiRouterState>> entry : builder.getDefiningFiles2States().entrySet()) {
     final AngularUiRouterGraphBuilder graphBuilder=new AngularUiRouterGraphBuilder(project,entry.getValue(),builder.getTemplatesMap(),null,entry.getKey());
@@ -17,13 +17,18 @@
   final AngularUiRouterDiagramProvider diagramProvider=(AngularUiRouterDiagramProvider)DiagramProvider.findByID(AngularUiRouterDiagramProvider.ANGULAR_UI_ROUTER);
   if (diagramProvider == null)   return;
   diagramProvider.reset();
-  for (  Pair<String,AngularUiRouterGraphBuilder> pair : graphBuilders) {
-    final AngularUiRouterGraphBuilder graphBuilder=pair.getSecond();
-    final AngularUiRouterGraphBuilder.GraphNodesBuilder nodesBuilder=graphBuilder.createDataModel(diagramProvider);
-    diagramProvider.registerNodesBuilder(nodesBuilder);
-    final Runnable callback=show(nodesBuilder.getRootNode().getIdentifyingElement(),diagramProvider,project,null,Collections.emptyList());
-    if (callback != null) {
-      callback.run();
+  final Consumer<AngularUiRouterGraphBuilder> consumer=new Consumer<AngularUiRouterGraphBuilder>(){
+    @Override public void consume(    AngularUiRouterGraphBuilder graphBuilder){
+      myCurrentRootFile=graphBuilder.getKey();
+      final AngularUiRouterGraphBuilder.GraphNodesBuilder nodesBuilder=graphBuilder.createDataModel(diagramProvider);
+      diagramProvider.registerNodesBuilder(nodesBuilder);
+      final Runnable callback=show(nodesBuilder.getRootNode().getIdentifyingElement(),diagramProvider,project,null,Collections.emptyList());
+      if (callback != null) {
+        callback.run();
+      }
     }
   }
+;
+  if (graphBuilders.size() == 1)   consumer.consume(graphBuilders.get(0).getSecond());
+ else   filterGraphBuilders(project,graphBuilders,consumer);
 }
