@@ -7,5 +7,19 @@
       return JSQualifiedNameImpl.buildProvidedNamespace(clazz);
     }
   }
+  if (file.getLanguage().is(AngularJSLanguage.INSTANCE)) {
+    final PsiElement original=CompletionUtil.getOriginalOrSelf(context);
+    PsiFile hostFile=FileContextUtil.getContextFile(original != context ? original : context.getContainingFile().getOriginalFile());
+    final String name=hostFile != null ? hostFile.getVirtualFile().getNameWithoutExtension() : null;
+    final PsiDirectory dir=hostFile != null ? hostFile.getParent() : null;
+    final PsiFile directiveFile=dir != null ? dir.findFile(name + ".ts") : null;
+    if (directiveFile != null) {
+      for (      PsiElement element : directiveFile.getChildren()) {
+        if (element instanceof JSClass) {
+          return JSQualifiedNameImpl.buildProvidedNamespace((JSClass)element);
+        }
+      }
+    }
+  }
   return null;
 }
