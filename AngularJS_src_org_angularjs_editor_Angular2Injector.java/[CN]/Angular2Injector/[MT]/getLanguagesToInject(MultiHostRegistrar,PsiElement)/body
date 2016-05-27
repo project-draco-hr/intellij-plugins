@@ -4,6 +4,7 @@
   final PsiElement parent=context.getParent();
   if (context instanceof JSLiteralExpressionImpl && ((JSLiteralExpressionImpl)context).isQuotedLiteral()) {
     if (injectIntoDirectiveProperty(registrar,context,parent,"template",Angular2HTMLLanguage.INSTANCE))     return;
+    if (injectIntoEmbeddedLiteral(registrar,context,parent))     return;
     if (!(parent instanceof JSArrayLiteralExpression))     return;
     final JSProperty property=ObjectUtils.tryCast(parent.getParent(),JSProperty.class);
     if (injectIntoDirectiveProperty(registrar,context,property,"styles",CSSLanguage.INSTANCE))     return;
@@ -11,7 +12,7 @@
   if (context instanceof XmlAttributeValueImpl && parent instanceof XmlAttribute) {
     final int length=context.getTextLength();
     final String name=((XmlAttribute)parent).getName();
-    if ((AngularAttributesRegistry.isEventAttribute(name,project) || AngularAttributesRegistry.isBindingAttribute(name,project) || AngularAttributesRegistry.isTemplateAttribute(name,project)) && length > 0) {
+    if (isInjectableAttribute(project,length,name)) {
       registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,ElementManipulators.getValueTextRange(context)).doneInjecting();
     }
   }
