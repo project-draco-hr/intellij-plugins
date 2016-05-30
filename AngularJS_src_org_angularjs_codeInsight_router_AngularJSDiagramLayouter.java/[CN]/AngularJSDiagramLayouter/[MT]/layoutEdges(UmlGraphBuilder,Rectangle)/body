@@ -1,0 +1,50 @@
+{
+  final Edge[] edgeArray=myGraph.getEdgeArray();
+  for (  Edge edge : edgeArray) {
+    final DiagramNodeBodyComponent sourceComponent=myNodeBodiesMap.get(umlGraphBuilder.getNodeObject(edge.source()));
+    final DiagramNodeBodyComponent targetComponent=myNodeBodiesMap.get(umlGraphBuilder.getNodeObject(edge.target()));
+    if (sourceComponent == null || targetComponent == null)     continue;
+    final AngularUiRouterEdge edgeObject=(AngularUiRouterEdge)umlGraphBuilder.getEdgeObject(edge);
+    if (edgeObject == null)     continue;
+    final double sourceXcenter=myGraph.getCenterX(edge.source());
+    final double targetXcenter=myGraph.getCenterX(edge.target());
+    boolean sourceOnTheLeft=sourceXcenter < targetXcenter;
+    double sourceX;
+    double targetX;
+    double sourceY;
+    double targetY;
+    final QuadCurveEdgeRealizer realizer=GraphManager.getGraphManager().createQuadCurveEdgeRealizer();
+    realizer.setLineColor(Gray._70);
+    sourceY=myGraph.getCenterY(edge.source()) - myGraph.getHeight(edge.source()) / 2;
+    targetY=myGraph.getCenterY(edge.target()) - myGraph.getHeight(edge.target()) / 2;
+    if (AngularUiRouterEdge.Type.parent.equals(edgeObject.getType())) {
+      sourceX=sourceXcenter;
+      targetX=targetXcenter;
+      realizer.setLineType(LineType.DOTTED_1);
+    }
+ else {
+      if (AngularUiRouterEdge.Type.fillsTemplate.equals(edgeObject.getType())) {
+        realizer.setLineType(LineType.DASHED_1);
+      }
+      final double sourceWidth=myGraph.getWidth(edge.source());
+      final double targetWidth=myGraph.getWidth(edge.target());
+      sourceX=sourceOnTheLeft ? (sourceXcenter + sourceWidth / 2) : (sourceXcenter - sourceWidth / 2);
+      targetX=sourceOnTheLeft ? (targetXcenter - targetWidth / 2) : (targetXcenter + targetWidth / 2);
+      final AngularUiRouterNode source=(AngularUiRouterNode)edgeObject.getSource();
+      int idxSource=getOffsetInElements(source,edgeObject.getSourceName());
+      final AngularUiRouterNode target=(AngularUiRouterNode)edgeObject.getTarget();
+      int idxTarget=getOffsetInElements(target,edgeObject.getTargetName());
+      final double sourceHeight=myGraph.getHeight(edge.source());
+      final double targetHeight=myGraph.getHeight(edge.target());
+      final int sourceSize=source.getIdentifyingElement().getChildrenList().size();
+      final double step=sourceHeight / (sourceSize + 1);
+      sourceY+=sourceSize == 0 || idxSource < 0 ? (step * 0.5) : (idxSource * step + step * 1.5);
+      final int targetSize=target.getIdentifyingElement().getChildrenList().size();
+      final double targetStep=targetHeight / (targetSize + 1);
+      targetY+=targetSize == 0 || idxTarget < 0 ? (targetStep * 0.5) : (idxTarget * targetStep + targetStep * 1.5);
+    }
+    myGraph.setRealizer(edge,realizer);
+    final GraphManager gm=GraphManager.getGraphManager();
+    myGraph.setEndPointsAbs(edge,gm.createYPoint(sourceX,sourceY),gm.createYPoint(targetX,targetY));
+  }
+}
