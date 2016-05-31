@@ -1,0 +1,29 @@
+{
+  if (edgeObject == null)   return;
+  myRealizer=GraphManager.getGraphManager().createQuadCurveEdgeRealizer();
+  myRealizer.setLineColor(Gray._70);
+  myRealizer.setSourceArrow(Arrow.SHORT);
+  final AngularUiRouterNode source=(AngularUiRouterNode)edgeObject.getSource();
+  final AngularUiRouterNode target=(AngularUiRouterNode)edgeObject.getTarget();
+  boolean sourceOnTheLeft=sourceXcenter < targetXcenter;
+  int idxSource=-1;
+  int idxTarget=-1;
+  if (AngularUiRouterEdge.Type.parent.equals(edgeObject.getType())) {
+    myRealizer.setLineType(LineType.DOTTED_1);
+  }
+ else {
+    if (AngularUiRouterEdge.Type.fillsTemplate.equals(edgeObject.getType())) {
+      myRealizer.setLineType(LineType.DASHED_1);
+    }
+    idxSource=getOffsetInElements(source,edgeObject.getSourceName());
+    idxTarget=getOffsetInElements(target,edgeObject.getTargetName());
+  }
+  sourceX=sourceOnTheLeft ? (sourceXcenter + sourceWidth / 2) : (sourceXcenter - sourceWidth / 2);
+  targetX=sourceOnTheLeft ? (targetXcenter - targetWidth / 2) : (targetXcenter + targetWidth / 2);
+  final int sourceSize=source.getIdentifyingElement().getChildrenList().size();
+  final double step=sourceHeight / (sourceSize + 1);
+  sourceY+=sourceSize == 0 || idxSource < 0 ? (step * 0.5) : (idxSource * step + step * 1.5);
+  final int targetSize=target.getIdentifyingElement().getChildrenList().size();
+  final double targetStep=targetHeight / (targetSize + 1);
+  targetY+=targetSize == 0 || idxTarget < 0 ? (targetStep * 0.5) : (idxTarget * targetStep + targetStep * 1.5);
+}
