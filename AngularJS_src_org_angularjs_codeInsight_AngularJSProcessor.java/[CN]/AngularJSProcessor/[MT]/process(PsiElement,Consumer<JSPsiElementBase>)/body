@@ -1,22 +1,2 @@
 {
-  final PsiElement original=CompletionUtil.getOriginalOrSelf(element);
-  PsiFile hostFile=FileContextUtil.getContextFile(original != element ? original : element.getContainingFile().getOriginalFile());
-  if (!(hostFile instanceof XmlFile)) {
-    hostFile=original.getContainingFile();
-  }
-  if (!(hostFile instanceof XmlFile))   return;
-  final XmlFile file=(XmlFile)hostFile;
-  final Collection<JSPsiElementBase> cache=CachedValuesManager.getCachedValue(file,new CachedValueProvider<Collection<JSPsiElementBase>>(){
-    @Nullable @Override public Result<Collection<JSPsiElementBase>> compute(){
-      final Collection<JSPsiElementBase> result=new ArrayList<JSPsiElementBase>();
-      processDocument(file.getDocument(),result);
-      return Result.create(result,PsiModificationTracker.MODIFICATION_COUNT);
-    }
-  }
-);
-  for (  JSPsiElementBase namedElement : cache) {
-    if (scopeMatches(original,namedElement)) {
-      consumer.consume(namedElement);
-    }
-  }
 }
