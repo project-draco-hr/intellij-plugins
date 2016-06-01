@@ -1,0 +1,27 @@
+{
+  boolean changes=super.update();
+  final CompositeAppearance oldText=myHighlightedText;
+  myHighlightedText=new CompositeAppearance();
+  DartClass dartClass=getType();
+  if (dartClass == null) {
+    if (!myHighlightedText.getText().startsWith(INVALID_PREFIX)) {
+      myHighlightedText.getBeginning().addText(INVALID_PREFIX,HierarchyNodeDescriptor.getInvalidPrefixAttributes());
+    }
+    return true;
+  }
+  final ItemPresentation presentation=dartClass.getPresentation();
+  Icon baseIcon=null;
+  if (presentation != null) {
+    myHighlightedText.getEnding().addText(presentation.getPresentableText());
+    PsiFile file=dartClass.getContainingFile();
+    if (file != null) {
+      myHighlightedText.getEnding().addText(" (" + file.getName() + ")",HierarchyNodeDescriptor.getPackageNameAttributes());
+    }
+    baseIcon=presentation.getIcon(false);
+  }
+  myName=myHighlightedText.getText();
+  if (!Comparing.equal(myHighlightedText,oldText)) {
+    changes=true;
+  }
+  return changes;
+}
