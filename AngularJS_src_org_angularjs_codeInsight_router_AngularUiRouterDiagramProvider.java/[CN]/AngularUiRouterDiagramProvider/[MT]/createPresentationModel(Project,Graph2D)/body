@@ -1,0 +1,73 @@
+{
+  return new DiagramPresentationModelImpl(graph,project,this){
+    @NotNull @Override public EdgeRealizer getEdgeRealizer(    DiagramEdge edge){
+      UmlGraphBuilder builder=(UmlGraphBuilder)graph.getDataProvider(DiagramDataKeys.GRAPH_BUILDER).get(null);
+      final Edge graphEdge=builder.getEdge(edge);
+      final AngularEdgeLayouter.OneEdgeLayouter layouter=new AngularEdgeLayouter.OneEdgeLayouter(graphEdge,(AngularUiRouterEdge)edge,graph);
+      layouter.calculateEdgeLayout();
+      return layouter.getRealizer();
+    }
+    private Map<Integer,Integer> myEdgesPositions=new HashMap<>();
+    @Override public EdgeLabel[] getEdgeLabels(    DiagramEdge umlEdge,    String label){
+      AngularUiRouterEdge angularEdge=(AngularUiRouterEdge)umlEdge;
+      if (!isShowEdgeLabels() || umlEdge == null || StringUtil.isEmptyOrSpaces(angularEdge.getLabel())) {
+        return EMPTY_LABELS;
+      }
+      UmlGraphBuilder builder=(UmlGraphBuilder)graph.getDataProvider(DiagramDataKeys.GRAPH_BUILDER).get(null);
+      final Edge edge=builder.getEdge(umlEdge);
+      final List<Integer> edges=getParallelEdges(edge);
+      EdgeLabel edgeLabel=GraphManager.getGraphManager().createEdgeLabel();
+      final SmartEdgeLabelModel model=GraphManager.getGraphManager().createSmartEdgeLabelModel();
+      if (!edges.isEmpty()) {
+        if (edges.size() == 1) {
+          edgeLabel.setLabelModel(model,model.createDiscreteModelParameter(SmartEdgeLabelModel.POSITION_TARGET_RIGHT));
+        }
+ else {
+          edgeLabel.setLabelModel(model,model.createDiscreteModelParameter(SmartEdgeLabelModel.POSITION_LEFT));
+        }
+      }
+ else {
+        edgeLabel.setLabelModel(model,model.createDiscreteModelParameter(SmartEdgeLabelModel.POSITION_SOURCE_LEFT));
+      }
+      model.setDefaultDistance(10);
+      edgeLabel.setTextColor(JBColor.foreground());
+      myEdgesPositions.put(edge.index(),1);
+      return new EdgeLabel[]{edgeLabel};
+    }
+    private List<Integer> getParallelEdges(    final Edge edge){
+      final List<Integer> list=new ArrayList<>();
+      for (      Edge current : edge.getGraph().getEdgeArray()) {
+        if (current == edge)         continue;
+        if (current.source().index() == edge.source().index() && current.target().index() == edge.target().index() || current.target().index() == edge.source().index() && current.source().index() == edge.target().index()) {
+          list.add(current.index());
+        }
+      }
+      return list;
+    }
+    @Override public void customizeSettings(    Graph2DView view,    EditMode editMode){
+      super.customizeSettings(view,editMode);
+      view.getGraph2D().addGraph2DSelectionListener(new Graph2DSelectionListener(){
+        @Override public void onGraph2DSelectionEvent(        Graph2DSelectionEvent _e){
+          updateBySelection(null);
+          myEdgesPositions.clear();
+          view.updateView();
+        }
+      }
+);
+    }
+    private void updateBySelection(    DiagramNode node){
+      UmlGraphBuilder builder=(UmlGraphBuilder)graph.getDataProvider(DiagramDataKeys.GRAPH_BUILDER).get(null);
+      final List<DiagramNode> nodes=new ArrayList<>(GraphUtil.getSelectedNodes(builder));
+      if (node != null)       nodes.add(node);
+      for (      DiagramEdge edge : builder.getEdgeObjects()) {
+        if (nodes.contains(edge.getSource()) || nodes.contains(edge.getTarget())) {
+          graph.setLabelText(builder.getEdge(edge),((AngularUiRouterEdge)edge).getLabel());
+        }
+ else {
+          graph.setLabelText(builder.getEdge(edge),"");
+        }
+      }
+    }
+  }
+;
+}

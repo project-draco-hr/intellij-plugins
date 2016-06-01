@@ -1,26 +1,2 @@
 {
-  final Project project=module.getProject();
-  final UserDataHolder dataHolder=contextSubdir != null ? PsiManager.getInstance(project).findDirectory(contextSubdir) : PsiManager.getInstance(project).findFile(pubspecFile);
-  if (dataHolder == null) {
-    return null;
-  }
-  return CachedValuesManager.getManager(project).getCachedValue(dataHolder,new CachedValueProvider<GlobalSearchScope>(){
-    @Override public Result<GlobalSearchScope> compute(){
-      final Collection<VirtualFile> pathPackageRoots=getPathPackageRoots(module.getProject(),pubspecFile);
-      final VirtualFile dartRoot=pubspecFile.getParent();
-      final GlobalSearchScope scope;
-      if (contextSubdir == null || "test".equals(contextSubdir.getName())) {
-        scope=createDirectoriesScope(project,pathPackageRoots,dartRoot);
-      }
- else       if ("lib".equals(contextSubdir.getName()) || PACKAGES_FOLDER_NAME.equals(contextSubdir.getName())) {
-        scope=createDirectoriesScope(project,pathPackageRoots,dartRoot.findChild("lib"),dartRoot.findChild(PACKAGES_FOLDER_NAME));
-      }
- else {
-        scope=createDirectoriesScope(project,pathPackageRoots,contextSubdir,dartRoot.findChild("lib"),dartRoot.findChild(PACKAGES_FOLDER_NAME));
-      }
-      final GlobalSearchScope scopeWithLibs=scope.intersectWith(GlobalSearchScope.projectScope(project)).union(getModuleLibrariesClassesScope(module));
-      return new Result<GlobalSearchScope>(scopeWithLibs,PsiModificationTracker.MODIFICATION_COUNT);
-    }
-  }
-);
 }
