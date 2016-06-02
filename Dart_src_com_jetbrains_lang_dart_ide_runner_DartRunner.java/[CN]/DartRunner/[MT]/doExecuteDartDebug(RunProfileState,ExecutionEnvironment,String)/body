@@ -3,12 +3,15 @@
   assert(sdk != null);
   final RunProfile runConfiguration=env.getRunProfile();
   final VirtualFile contextFileOrDir;
+  final boolean entryPointInLibFolder;
   final ExecutionResult executionResult;
   final String debuggingHost;
   final int debuggingPort;
   final int observatoryPort;
   if (runConfiguration instanceof DartRunConfigurationBase) {
     contextFileOrDir=((DartRunConfigurationBase)runConfiguration).getRunnerParameters().getDartFile();
+    final VirtualFile pubspec=PubspecYamlUtil.findPubspecYamlFile(env.getProject(),contextFileOrDir);
+    entryPointInLibFolder=pubspec != null && contextFileOrDir.getPath().startsWith(pubspec.getParent().getPath() + "/lib/");
     executionResult=state.execute(env.getExecutor(),this);
     if (executionResult == null) {
       return null;
@@ -18,6 +21,7 @@
     observatoryPort=((DartCommandLineRunningState)state).getObservatoryPort();
   }
  else   if (runConfiguration instanceof DartRemoteDebugConfiguration) {
+    entryPointInLibFolder=false;
     final String path=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getDartProjectPath();
     contextFileOrDir=LocalFileSystem.getInstance().findFileByPath(path);
     if (contextFileOrDir == null) {
@@ -42,8 +46,8 @@
   final XDebuggerManager debuggerManager=XDebuggerManager.getInstance(env.getProject());
   final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
-      final DartUrlResolver dartUrlResolver=getDartUrlResolver(env,contextFileOrDir);
-      return StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0 ? new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver) : new DartVmServiceDebugProcess(session,StringUtil.notNullize(debuggingHost,"localhost"),observatoryPort,executionResult,dartUrlResolver,dasExecutionContextId,runConfiguration instanceof DartRemoteDebugConfiguration);
+      final DartUrlResolver dartUrlResolver=getDartUrlResolver(env.getProject(),contextFileOrDir);
+      return StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0 ? new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver) : new DartVmServiceDebugProcess(session,StringUtil.notNullize(debuggingHost,"localhost"),observatoryPort,executionResult,dartUrlResolver,dasExecutionContextId,runConfiguration instanceof DartRemoteDebugConfiguration,entryPointInLibFolder);
     }
   }
 );
