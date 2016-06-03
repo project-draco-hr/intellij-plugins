@@ -11,6 +11,7 @@
   }
   final ItemPresentation presentation=dartClass.getPresentation();
   Icon baseIcon=null;
+  Icon stateIcon=null;
   if (presentation != null) {
     myHighlightedText.getEnding().addText(presentation.getPresentableText());
     PsiFile file=dartClass.getContainingFile();
@@ -18,6 +19,22 @@
       myHighlightedText.getEnding().addText(" (" + file.getName() + ")",HierarchyNodeDescriptor.getPackageNameAttributes());
     }
     baseIcon=presentation.getIcon(false);
+    stateIcon=calculateStateIcon(dartClass);
+  }
+  if (changes || baseIcon != myRawIcon || stateIcon != myStateIcon) {
+    changes=true;
+    Icon newIcon=myRawIcon=baseIcon;
+    myStateIcon=stateIcon;
+    if (myIsBase) {
+      final LayeredIcon icon=new LayeredIcon(2);
+      icon.setIcon(newIcon,0);
+      newIcon=icon;
+      icon.setIcon(AllIcons.Hierarchy.Base,1,-AllIcons.Hierarchy.Base.getIconWidth() / 2,0);
+    }
+    if (myStateIcon != null) {
+      newIcon=new RowIcon(myStateIcon,newIcon);
+    }
+    setIcon(newIcon);
   }
   myName=myHighlightedText.getText();
   if (!Comparing.equal(myHighlightedText,oldText)) {
