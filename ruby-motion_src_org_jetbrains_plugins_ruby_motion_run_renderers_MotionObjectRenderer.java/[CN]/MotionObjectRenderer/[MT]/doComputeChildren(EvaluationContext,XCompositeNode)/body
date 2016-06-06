@@ -4,11 +4,11 @@
   final int count=count(context,names);
   for (int i=0; i < count; i++) {
     final String selName=EvaluationContext.cast("sel_registerName(\"objectAtIndex:\")","id");
-    final String nameExpr=EvaluationContext.cast("objc_msgSend(" + getSelf(names) + ", "+ selName+ ", "+ i+ ")","id");
-    final LLValue name=context.evaluate(nameExpr);
+    final String nameExpr=EvaluationContext.cast("objc_msgSend(" + getSelf(names,context) + ", "+ selName+ ", "+ i+ ")","id");
+    final LLValueData name=context.evaluateData(nameExpr);
     final String namePointer="(char *)[[" + name.getPointer() + " description] UTF8String]";
-    final String ivarName=TextUtil.removeQuoting(context.evaluate(namePointer).getReadableValue());
-    final String ivarExpr=getChildEvaluationExpression(ivarName);
+    final String ivarName=TextUtil.removeQuoting(context.evaluateData(namePointer).getPresentableValue());
+    final String ivarExpr=getChildEvaluationExpression(context,ivarName);
     final LLValue ivar=context.evaluate(ivarExpr);
     children.add(new MotionMemberValue(ivar,ivarName,myValue));
   }
