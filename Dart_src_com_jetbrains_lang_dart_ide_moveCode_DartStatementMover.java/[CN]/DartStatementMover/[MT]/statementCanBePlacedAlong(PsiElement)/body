@@ -1,0 +1,38 @@
+{
+  if (element instanceof DartBlock) {
+    return false;
+  }
+  PsiElement parent=element.getParent();
+  if (parent instanceof DartStatements) {
+    parent=parent.getParent();
+    if (parent instanceof DartBlock) {
+      if (!isStatement(parent.getParent())) {
+        return true;
+      }
+      parent=parent.getParent();
+    }
+ else {
+      return false;
+    }
+  }
+  if (parent instanceof DartIfStatement) {
+    PsiElement thenBranch=DartPsiImplUtil.getThenBranch((DartIfStatement)parent);
+    PsiElement elseBranch=DartPsiImplUtil.getElseBranch((DartIfStatement)parent);
+    if (isSameStatement(element,thenBranch) || isSameStatement(element,elseBranch)) {
+      return true;
+    }
+  }
+  if (parent instanceof DartWhileStatement) {
+    PsiElement body=DartPsiImplUtil.getWhileBody((DartWhileStatement)parent);
+    if (isSameStatement(element,body)) {
+      return true;
+    }
+  }
+  if (parent instanceof DartDoWhileStatement) {
+    PsiElement body=DartPsiImplUtil.getDoBody((DartDoWhileStatement)parent);
+    if (isSameStatement(element,body)) {
+      return true;
+    }
+  }
+  return false;
+}
