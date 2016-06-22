@@ -110,8 +110,8 @@
           }
           myCurrentToken=myKeywordProvider.getTokenType(myCurLanguage,keyword);
           myPosition+=length;
-          if (myCurrentToken == GherkinTokenTypes.STEP_KEYWORD) {
-            myState=STATE_AFTER_STEP_KEYWORD;
+          if (myCurrentToken == GherkinTokenTypes.STEP_KEYWORD || myCurrentToken == GherkinTokenTypes.SCENARIO_OUTLINE_KEYWORD) {
+            myState=STATE_AFTER_KEYWORD_WITH_PARAMETER;
           }
  else {
             myState=STATE_AFTER_KEYWORD;
@@ -122,7 +122,7 @@
     }
     if (myState == STATE_PARAMETER_INSIDE_STEP) {
       if (c == '>') {
-        myState=STATE_AFTER_STEP_KEYWORD;
+        myState=STATE_AFTER_KEYWORD_WITH_PARAMETER;
         myPosition++;
         myCurrentToken=GherkinTokenTypes.STEP_PARAMETER_BRACE;
       }
@@ -132,7 +132,7 @@
       }
       return;
     }
- else     if (myState == STATE_AFTER_STEP_KEYWORD) {
+ else     if (myState == STATE_AFTER_KEYWORD_WITH_PARAMETER) {
       if (myPosition < myEndOffset && myBuffer.charAt(myPosition) == '<' && isStepParameter("\n")) {
         myState=STATE_PARAMETER_INSIDE_STEP;
         myPosition++;
@@ -140,7 +140,7 @@
       }
  else {
         myCurrentToken=GherkinTokenTypes.TEXT;
-        advanceToParameterOrSymbol("\n",STATE_AFTER_STEP_KEYWORD,true);
+        advanceToParameterOrSymbol("\n",STATE_AFTER_KEYWORD_WITH_PARAMETER,true);
       }
       return;
     }

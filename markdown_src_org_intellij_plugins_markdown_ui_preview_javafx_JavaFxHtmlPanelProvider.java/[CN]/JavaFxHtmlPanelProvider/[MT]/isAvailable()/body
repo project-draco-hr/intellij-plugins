@@ -1,17 +1,10 @@
 {
-  if (hasClass("javafx.scene.web.WebView",true)) {
-    return AvailabilityInfo.AVAILABLE;
-  }
-  if (shouldUseCustomJFX()) {
-    return new AvailabilityInfo(){
-      @Override public boolean checkAvailability(      @NotNull JComponent parentComponent){
-        if (!installOpenJFXAndReport(parentComponent)) {
-          return false;
-        }
-        return hasClass("javafx.scene.web.WebView",true);
-      }
+  try {
+    if (Class.forName("javafx.scene.web.WebView",false,getClass().getClassLoader()) != null) {
+      return AvailabilityInfo.AVAILABLE;
     }
-;
+  }
+ catch (  ClassNotFoundException ignored) {
   }
   return AvailabilityInfo.UNAVAILABLE;
 }

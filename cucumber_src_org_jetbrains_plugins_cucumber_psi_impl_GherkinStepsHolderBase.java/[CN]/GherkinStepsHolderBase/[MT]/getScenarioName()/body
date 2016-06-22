@@ -1,7 +1,15 @@
 {
+  final StringBuilder result=new StringBuilder();
   ASTNode node=getNode().getFirstChildNode();
-  while (node != null && node.getElementType() != GherkinTokenTypes.TEXT) {
+  while (node != null && node.getElementType() != GherkinTokenTypes.COLON) {
     node=node.getTreeNext();
   }
-  return node != null ? node.getText() : "";
+  if (node != null) {
+    node=node.getTreeNext();
+  }
+  while (node != null && !node.getText().contains("\n")) {
+    result.append(node.getText());
+    node=node.getTreeNext();
+  }
+  return result.toString().trim();
 }

@@ -1,0 +1,16 @@
+{
+  Lexer lexer=new GherkinLexer(new MockGherkinKeywordProvider());
+  lexer.start(text);
+  int idx=0;
+  int tokenPos=0;
+  while (lexer.getTokenType() != null) {
+    if (idx > expectedTokens.length)     fail("Too many tokens");
+    assertEquals("Token offset mismatch at position " + idx,tokenPos,lexer.getTokenStart());
+    String tokenName=lexer.getTokenType().toString() + ":" + lexer.getTokenStart()+ "-"+ lexer.getTokenEnd();
+    assertEquals("Token mismatch at position " + idx,expectedTokens[idx],tokenName);
+    idx++;
+    tokenPos=lexer.getTokenEnd();
+    lexer.advance();
+  }
+  if (idx < expectedTokens.length)   fail("Not enough tokens");
+}
