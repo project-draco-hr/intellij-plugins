@@ -1,0 +1,23 @@
+{
+  final int offset=editor.getCaretModel().getOffset();
+  PsiElement elementAtOffset=file.getViewProvider().findElementAt(offset,DartLanguage.INSTANCE);
+  if (elementAtOffset == null)   return false;
+  PsiElement guard=elementAtOffset;
+  guard=PsiTreeUtil.getParentOfType(guard,DartMethodDeclaration.class,DartFunctionDeclarationWithBodyOrNative.class,DartClass.class,PsiComment.class);
+  PsiElement brace=soloRightBraceBeingMoved(file,editor);
+  if (brace != null) {
+    int line=editor.getDocument().getLineNumber(offset);
+    final LineRange toMove=new LineRange(line,line + 1);
+    toMove.firstElement=toMove.lastElement=brace;
+    info.toMove=toMove;
+  }
+  if (!calcInsertOffset(file,editor,info.toMove,info,down))   return false;
+  int insertOffset=down ? getLineStartSafeOffset(editor.getDocument(),info.toMove2.endLine) : editor.getDocument().getLineStartOffset(info.toMove2.startLine);
+  PsiElement elementAtInsertOffset=file.getViewProvider().findElementAt(insertOffset,DartLanguage.INSTANCE);
+  PsiElement newGuard=PsiTreeUtil.getParentOfType(elementAtInsertOffset,DartMethodDeclaration.class,DartFunctionDeclarationWithBodyOrNative.class,DartClass.class,PsiComment.class);
+  if (brace != null && PsiTreeUtil.getParentOfType(brace,DartBlock.class,false) != PsiTreeUtil.getParentOfType(elementAtInsertOffset,DartBlock.class,false)) {
+    info.indentSource=true;
+  }
+  if (newGuard == guard && isInside(insertOffset,newGuard) == isInside(offset,guard))   return true;
+  return false;
+}
