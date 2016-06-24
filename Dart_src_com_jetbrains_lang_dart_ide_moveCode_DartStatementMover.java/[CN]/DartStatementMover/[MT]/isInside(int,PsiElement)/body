@@ -1,0 +1,28 @@
+{
+  if (guard == null)   return false;
+  TextRange inside=guard.getTextRange();
+  if (guard instanceof DartMethodDeclaration) {
+    DartFunctionBody body=((DartMethodDeclaration)guard).getFunctionBody();
+    if (body != null) {
+      inside=body.getTextRange();
+    }
+  }
+ else   if (guard instanceof DartFunctionDeclarationWithBodyOrNative) {
+    DartFunctionBody body=((DartFunctionDeclarationWithBodyOrNative)guard).getFunctionBody();
+    if (body != null) {
+      inside=body.getTextRange();
+    }
+  }
+ else   if (guard instanceof DartClassDefinition) {
+    DartClassBody body=((DartClassDefinition)guard).getClassBody();
+    PsiElement lBrace=PsiTreeUtil.getChildOfType(body,LeafPsiElement.class);
+    if (lBrace != null && lBrace.getText().equals("{")) {
+      PsiElement rBrace=PsiTreeUtil.lastChild(body);
+      rBrace=PsiTreeUtil.skipSiblingsBackward(rBrace,PsiWhiteSpace.class,PsiComment.class);
+      if (rBrace != null && rBrace.getText().equals("}")) {
+        inside=new TextRange(lBrace.getTextOffset(),rBrace.getTextOffset());
+      }
+    }
+  }
+  return inside != null && inside.contains(offset);
+}

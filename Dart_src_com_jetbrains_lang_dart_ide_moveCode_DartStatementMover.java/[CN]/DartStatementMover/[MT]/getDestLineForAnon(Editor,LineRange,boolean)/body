@@ -1,0 +1,12 @@
+{
+  int destLine=down ? range.endLine + 1 : range.startLine - 1;
+  if (!isStatement(range.firstElement)) {
+    return destLine;
+  }
+  PsiElement sibling=StatementUpDownMover.firstNonWhiteElement(down ? range.lastElement.getNextSibling() : range.firstElement.getPrevSibling(),down);
+  final DartFunctionExpression fn=findChildOfType(sibling,DartFunctionExpression.class,DartPsiCompositeElement.class);
+  if (fn != null && sibling != null && PsiTreeUtil.getParentOfType(fn,DartPsiCompositeElement.class) == sibling) {
+    destLine=editor.getDocument().getLineNumber(down ? sibling.getTextRange().getEndOffset() + 1 : sibling.getTextRange().getStartOffset());
+  }
+  return destLine;
+}
