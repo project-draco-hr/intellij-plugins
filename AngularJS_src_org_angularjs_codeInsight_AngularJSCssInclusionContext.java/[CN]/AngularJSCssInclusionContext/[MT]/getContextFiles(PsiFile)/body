@@ -1,0 +1,25 @@
+{
+  final PsiElement context=current.getContext();
+  final JSProperty property=PsiTreeUtil.getParentOfType(context,JSProperty.class);
+  if (property != null && "template".equals(property.getName())) {
+    final JSObjectLiteralExpression object=(JSObjectLiteralExpression)property.getParent();
+    final JSProperty styles=object.findProperty("styles");
+    if (styles != null && styles.getValue() instanceof JSArrayLiteralExpression) {
+      final List<PsiFile> result=new SmartList<>();
+      for (      JSExpression expression : ((JSArrayLiteralExpression)styles.getValue()).getExpressions()) {
+        if (expression instanceof JSLiteralExpression && ((JSLiteralExpression)expression).isQuotedLiteral()) {
+          final List<Pair<PsiElement,TextRange>> injected=InjectedLanguageManager.getInstance(context.getProject()).getInjectedPsiFiles(expression);
+          if (injected != null) {
+            for (            Pair<PsiElement,TextRange> pair : injected) {
+              if (pair.first instanceof CssFile) {
+                result.add((PsiFile)pair.first);
+              }
+            }
+          }
+        }
+      }
+      return result.toArray(PsiFile.EMPTY_ARRAY);
+    }
+  }
+  return PsiFile.EMPTY_ARRAY;
+}
