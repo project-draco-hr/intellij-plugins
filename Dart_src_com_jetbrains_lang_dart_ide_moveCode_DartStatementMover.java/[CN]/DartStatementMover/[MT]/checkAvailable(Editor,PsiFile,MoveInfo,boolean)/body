@@ -1,0 +1,18 @@
+{
+  if (!(file instanceof DartFile))   return false;
+  if (!super.checkAvailable(editor,file,info,down))   return false;
+  LineRange range=expandLineRangeToCoverPsiElements(info.toMove,editor,file);
+  if (range == null)   return false;
+  info.toMove=range;
+  final int startOffset=editor.logicalPositionToOffset(new LogicalPosition(range.startLine,0));
+  final int endOffset=editor.logicalPositionToOffset(new LogicalPosition(range.endLine,0));
+  final PsiElement[] statements=DartRefactoringUtil.findStatementsInRange(file,startOffset,endOffset);
+  if (statements.length == 0)   return false;
+  range.firstElement=statements[0];
+  range.lastElement=statements[statements.length - 1];
+  info.indentTarget=false;
+  if (!checkMovingInsideOutside(file,editor,info,down)) {
+    info.toMove2=null;
+  }
+  return true;
+}
