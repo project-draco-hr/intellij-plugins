@@ -1,3 +1,10 @@
 {
-  return new DartTestEventsConverter(testFrameworkName,consoleProperties);
+  final DartRunConfiguration runConfiguration=(DartRunConfiguration)getConfiguration();
+  try {
+    final VirtualFile file=runConfiguration.getRunnerParameters().getDartFile();
+    return new DartTestEventsConverter(testFrameworkName,consoleProperties,DartUrlResolver.getInstance(getProject(),file));
+  }
+ catch (  RuntimeConfigurationError error) {
+    throw new RuntimeException(error);
+  }
 }
