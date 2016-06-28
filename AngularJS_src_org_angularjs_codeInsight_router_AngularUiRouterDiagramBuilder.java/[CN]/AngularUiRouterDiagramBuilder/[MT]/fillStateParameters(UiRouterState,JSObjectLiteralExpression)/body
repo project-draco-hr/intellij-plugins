@@ -8,10 +8,14 @@
     state.setParentName(parentKey);
   }
   final String templateUrl=getPropertyValueIfExists(object,"templateUrl");
+  VirtualFile templateFile=null;
   if (templateUrl != null) {
     state.setTemplateUrl(templateUrl);
     final JSProperty urlProperty=object.findProperty("templateUrl");
-    parseTemplate(templateUrl,urlProperty);
+    state.setTemplateFile(parseTemplate(templateUrl,urlProperty));
+  }
+  if (templateUrl == null && object.findProperty("templateUrl") != null || object.findProperty("template") != null || object.findProperty("templateProvider") != null) {
+    state.setHasTemplateDefined(true);
   }
   final JSProperty views=object.findProperty("views");
   if (views != null) {

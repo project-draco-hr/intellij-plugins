@@ -1,7 +1,11 @@
 {
   String location="unknown";
   String loc;
-  if (item.hasSuite()) {
+  final VirtualFile file=item.getUrl() == null ? null : myUrlResolver.findFileByDartUrl(item.getUrl());
+  if (file != null) {
+    loc=FILE_URL_PREFIX + file.getPath();
+  }
+ else   if (item.hasSuite()) {
     loc=FILE_URL_PREFIX + item.getSuite().getPath();
   }
  else {
@@ -9,7 +13,7 @@
   }
   if (loc != null) {
     String nameList=GSON.toJson(item.nameList(),DartTestLocationProvider.STRING_LIST_TYPE);
-    location=loc + "," + nameList;
+    location=loc + "," + item.getLine()+ ","+ item.getColumn()+ ","+ nameList;
   }
   messageBuilder.addAttribute("locationHint",location);
 }

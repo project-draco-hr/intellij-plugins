@@ -1,5 +1,4 @@
 {
-  final String normalizedUrl=AngularUiRouterGraphBuilder.normalizeTemplateUrl(url);
   PsiFile templateFile=null;
   Template template=null;
   if (urlProperty != null && urlProperty.getValue() != null) {
@@ -9,9 +8,12 @@
       final PsiElement templateFileElement=reference.resolve();
       if (templateFileElement != null && templateFileElement.isValid()) {
         templateFile=templateFileElement.getContainingFile();
+        if (myTemplatesMap.containsKey(templateFile.getVirtualFile()))         return templateFile.getVirtualFile();
         template=readTemplateFromFile(urlProperty.getProject(),url,templateFile);
+        myTemplatesMap.put(templateFile.getVirtualFile(),template);
+        return templateFile.getVirtualFile();
       }
     }
   }
-  myTemplatesMap.put(normalizedUrl,template == null ? new Template(normalizedUrl,null) : template);
+  return null;
 }
