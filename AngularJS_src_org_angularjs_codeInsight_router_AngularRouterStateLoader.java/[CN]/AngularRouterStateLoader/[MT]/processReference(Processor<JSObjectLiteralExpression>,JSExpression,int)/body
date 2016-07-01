@@ -1,0 +1,53 @@
+{
+  if (deepness > 3)   return;
+  final JSReferenceExpression reference=(JSReferenceExpression)argument;
+  final PsiElement resolved=reference.resolve();
+  if (resolved != null) {
+    if (resolved instanceof JSVariable && ((JSVariable)resolved).getInitializer() != null) {
+      final JSExpression initializer=((JSVariable)resolved).getInitializer();
+      if (initializer instanceof JSObjectLiteralExpression) {
+        if (processor.process((JSObjectLiteralExpression)initializer))         return;
+      }
+    }
+    final Collection<PsiReference> references=JSDefaultRenameProcessor.findReferencesForScope(resolved,false,resolved.getUseScope());
+    for (    PsiReference psiReference : references) {
+      if (!(psiReference instanceof JSElement))       continue;
+      final JSElement element=(JSElement)psiReference;
+      if (element.getParent() instanceof JSDefinitionExpression && ((JSDefinitionExpression)element.getParent()).getExpression() == element && element.getParent().getParent() instanceof JSAssignmentExpression) {
+        final JSAssignmentExpression assignment=(JSAssignmentExpression)element.getParent().getParent();
+        if (assignment.getDefinitionExpression() != null) {
+          final JSExpression initializer=assignment.getDefinitionExpression().getInitializer();
+          if (initializer instanceof JSObjectLiteralExpression) {
+            processor.process((JSObjectLiteralExpression)initializer);
+          }
+        }
+      }
+    }
+    if (resolved.getParent() instanceof JSParameterList && resolved.getParent().getParent() instanceof JSFunction) {
+      final JSFunction function=(JSFunction)resolved.getParent().getParent();
+      if (function.getParent() instanceof JSArgumentList && function.getParent().getParent() instanceof JSCallExpression) {
+        final JSCallExpression call=(JSCallExpression)function.getParent().getParent();
+        final JSExpression methodExpression=call.getMethodExpression();
+        if (methodExpression instanceof JSReferenceExpression) {
+          if (ARRAY_ITERATE_METHODS.contains(((JSReferenceExpression)methodExpression).getReferenceName())) {
+            final JSExpression qualifier=((JSReferenceExpression)methodExpression).getQualifier();
+            if (qualifier instanceof JSArrayLiteralExpression) {
+              processArrayWithIterateCallback(processor,deepness,(JSArrayLiteralExpression)qualifier);
+            }
+ else             if (qualifier instanceof JSReferenceExpression) {
+              final PsiElement resolve=((JSReferenceExpression)qualifier).resolve();
+              if (resolve != null && resolve.isValid() && resolve instanceof JSVariable) {
+                if (((JSVariable)resolve).getInitializer() instanceof JSArrayLiteralExpression) {
+                  processArrayWithIterateCallback(processor,deepness,(JSArrayLiteralExpression)((JSVariable)resolve).getInitializer());
+                }
+              }
+ else {
+                processReference(processor,qualifier,deepness + 1);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

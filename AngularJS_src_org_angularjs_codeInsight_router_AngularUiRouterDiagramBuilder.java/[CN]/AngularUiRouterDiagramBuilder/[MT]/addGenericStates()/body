@@ -1,0 +1,13 @@
+{
+  final List<JSObjectLiteralExpression> freeStates=new AngularRouterStateLoader(myProject).loadFreelyDefinedStates();
+  for (  JSObjectLiteralExpression state : freeStates) {
+    final JSProperty name=state.findProperty("name");
+    if (name != null && name.getValue() instanceof JSLiteralExpression && ((JSLiteralExpression)name.getValue()).isQuotedLiteral()) {
+      final UiRouterState uiState=new UiRouterState(StringUtil.unquoteString(name.getValue().getText()),name.getContainingFile().getVirtualFile());
+      uiState.setGeneric(true);
+      uiState.setPointer(mySmartPointerManager.createSmartPsiElementPointer(name));
+      fillStateParameters(uiState,state);
+      if (!myStates.contains(uiState))       myStates.add(uiState);
+    }
+  }
+}

@@ -11,5 +11,13 @@
       templateFile=parseTemplate(templateUrl,urlProperty);
     }
   }
-  return new UiView(name,templateUrl,templateFile,property.getNameIdentifier() == null ? null : mySmartPointerManager.createSmartPsiElementPointer(property.getNameIdentifier()));
+  final UiView view=new UiView(name,templateUrl,templateFile,property.getNameIdentifier() == null ? null : mySmartPointerManager.createSmartPsiElementPointer(property.getNameIdentifier()));
+  if (expression != null) {
+    final JSProperty template=expression.findProperty("template");
+    if (template != null) {
+      final PsiElement templateDefinition=findTemplateDefinitionObject(template);
+      if (templateDefinition != null)       view.setTemplatePointer(mySmartPointerManager.createSmartPsiElementPointer(templateDefinition));
+    }
+  }
+  return view;
 }

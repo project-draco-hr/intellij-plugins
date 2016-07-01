@@ -2,6 +2,12 @@
   if (!DotPackagesFileUtil.DOT_PACKAGES.equals(file.getName()))   return;
   if (LocalFileSystem.getInstance() != file.getFileSystem())   return;
   final VirtualFile parent=file.getParent();
-  if (parent == null || parent.findChild(PUBSPEC_YAML) == null)   return;
-  scheduleDartPackageRootsUpdate(project);
+  final VirtualFile pubspec=parent == null ? null : parent.findChild(PUBSPEC_YAML);
+  if (pubspec != null) {
+    scheduleDartPackageRootsUpdate(project);
+    final Module module=ModuleUtilCore.findModuleForFile(pubspec,project);
+    if (module != null) {
+      DartProjectComponent.excludeBuildAndPackagesFolders(module,pubspec);
+    }
+  }
 }
