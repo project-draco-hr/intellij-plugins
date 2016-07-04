@@ -1,7 +1,8 @@
 {
-  final ASTNode methodExpression=node.getFirstChildNode();
-  if (methodExpression.getElementType() != JSElementTypes.REFERENCE_EXPRESSION)   return false;
+  final ASTNode methodExpression=JSCallExpressionImpl.getMethodExpression(node);
+  if (methodExpression == null)   return false;
   final ASTNode referencedNameElement=methodExpression.getLastChildNode();
-  final ASTNode qualifier=methodExpression.getFirstChildNode();
+  final ASTNode qualifier=JSReferenceExpressionImpl.getQualifierNode(methodExpression);
+  if (qualifier == null)   return false;
   return "state".equals(referencedNameElement.getText()) && "$stateProvider".equalsIgnoreCase(qualifier.getText());
 }
