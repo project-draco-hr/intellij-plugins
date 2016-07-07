@@ -1,11 +1,11 @@
 {
   final DartExpression expression=operation.getInitializer();
   final Project project=operation.getProject();
-  return new WriteCommandAction<PsiElement>(project,expression.getContainingFile()){
-    protected void run(    @NotNull final Result<PsiElement> result) throws Throwable {
+  return new WriteCommandAction<SmartPsiElementPointer<PsiElement>>(project,expression.getContainingFile()){
+    protected void run(    @NotNull final Result<SmartPsiElementPointer<PsiElement>> result) throws Throwable {
       final PsiElement createdDeclaration=addDeclaration(operation,declaration);
-      result.setResult(createdDeclaration);
       if (createdDeclaration != null) {
+        result.setResult(SmartPointerManager.getInstance(project).createSmartPsiElementPointer(createdDeclaration));
         modifyDeclaration(createdDeclaration);
       }
       PsiElement newExpression=createExpression(project,operation.getName());

@@ -1,3 +1,13 @@
 {
-  return iterator.getTokenType() == DartTokenTypes.CLOSING_QUOTE;
+  final IElementType type=iterator.getTokenType();
+  if (type == DartTokenTypes.CLOSING_QUOTE)   return true;
+  if (type == DartTokenTypes.RAW_SINGLE_QUOTED_STRING) {
+    final int start=iterator.getStart();
+    final int end=iterator.getEnd();
+    if (end - start > 2 && offset == end - 1) {
+      final CharSequence chars=iterator.getDocument().getCharsSequence();
+      return chars.charAt(start + 1) == chars.charAt(end - 1);
+    }
+  }
+  return false;
 }
