@@ -1,56 +1,27 @@
 {
   if (!(file instanceof DartFile))   return false;
   if (!super.checkAvailable(editor,file,info,down))   return false;
-  info.indentTarget=false;
-  Pair<PsiElement,PsiElement> psiRange=getElementRange(editor,file,info.toMove);
-  if (psiRange == null)   return false;
-  PsiElement firstMember=getDeclarationParent(psiRange.getFirst());
-  PsiElement endElement=psiRange.getSecond();
-  PsiElement lastMember=getDeclarationParent(endElement);
-  if (firstMember == null || lastMember == null)   return false;
-  LineRange range;
-  if (firstMember == lastMember) {
-    if (firstMember instanceof LeafPsiElement && firstMember.getText().equals("/**")) {
-      firstMember=firstMember.getParent();
-    }
-    range=memberRange(firstMember,editor,info.toMove);
-    if (range == null)     return false;
-    range.firstElement=range.lastElement=firstMember;
+  CodeMover codeMover=new CodeMover(editor,file,info,down);
+  codeMover.findSourceComponents();
+  if (!codeMover.hasSourceComponents()) {
+    return false;
   }
- else {
-    final PsiElement parent=PsiTreeUtil.findCommonParent(firstMember,lastMember);
-    if (parent == null)     return false;
-    final Pair<PsiElement,PsiElement> combinedRange;
-    if (parent instanceof DartDocComment) {
-      range=memberRange(parent,editor,info.toMove);
-      if (range == null)       return false;
-      range.firstElement=parent;
-      range.lastElement=parent;
-    }
- else {
-      combinedRange=getElementRange(parent,firstMember,lastMember);
-      if (combinedRange == null)       return false;
-      final LineRange lineRange1=memberRange(combinedRange.getFirst(),editor,info.toMove);
-      if (lineRange1 == null)       return false;
-      final LineRange lineRange2=memberRange(combinedRange.getSecond(),editor,info.toMove);
-      if (lineRange2 == null)       return false;
-      range=new LineRange(lineRange1.startLine,lineRange2.endLine);
-      range.firstElement=combinedRange.getFirst();
-      range.lastElement=combinedRange.getSecond();
-    }
+  codeMover.findSourceLineRange();
+  if (!codeMover.hasSourceLineRange()) {
+    return false;
   }
-  Document document=editor.getDocument();
-  PsiElement ref;
-  PsiElement sibling=down ? (ref=range.lastElement.getNextSibling()) : (ref=range.firstElement).getPrevSibling();
-  sibling=firstNonWhiteElement(skipSemicolon(sibling,down),down);
-  ref=firstNonWhiteElement(skipSemicolon(ref,!down),!down);
-  info.toMove=range;
-  if (sibling != null) {
-    if (crossesHeaderBoundary(ref,sibling)) {
-      info.prohibitMove();
-      return true;
-    }
-    info.toMove2=new LineRange(sibling,sibling,document);
+  codeMover.findTargetComponents();
+  if (!codeMover.hasTargetComponents()) {
+    return false;
   }
+  codeMover.findTargetLineRange();
+  if (!codeMover.hasTargetLineRange()) {
+    return info.toMove2 == null;
+  }
+  if (codeMover.areTargetsAtSameLevel()) {
+    info.indentTarget=false;
+  }
+  info.toMove=codeMover.sourceRange;
+  info.toMove2=codeMover.targetRange;
   return true;
 }

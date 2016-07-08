@@ -1,0 +1,18 @@
+{
+  if (isComment(element))   return element;
+  PsiElement parent=getHeaderParent(element);
+  if (parent != null)   return parent;
+  parent=PsiTreeUtil.getParentOfType(element,DartVarDeclarationList.class,false);
+  if (parent != null && (parent.getParent() instanceof DartFile || parent.getParent() instanceof DartClassMembers)) {
+    return parent;
+  }
+  if (element instanceof LeafPsiElement && (element.getParent() instanceof DartFile || element.getParent() instanceof DartClassMembers)) {
+    return element;
+  }
+  if (element instanceof DartClassMembers) {
+    PsiElement last=element.getLastChild();
+    last=PsiTreeUtil.skipSiblingsBackward(last,LeafPsiElement.class,PsiWhiteSpace.class);
+    if (last != null)     return last;
+  }
+  return PsiTreeUtil.getParentOfType(element,DartComponent.class,false);
+}
