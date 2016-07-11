@@ -1,0 +1,12 @@
+{
+  PsiElement ref=isMovingDown ? sourceRange.lastElement : sourceRange.firstElement;
+  PsiElement sibling=nextSib(ref,isMovingDown);
+  if (sibling == null && ref.getParent() instanceof DartClassMembers) {
+    DartClassMembers members=(DartClassMembers)ref.getParent();
+    sibling=nextSib(members,isMovingDown);
+  }
+  PsiElement firstElement=firstNonWhiteElement(sibling,isMovingDown);
+  if (firstElement == null)   firstElement=sibling == null ? ref : sibling;
+  PsiElement lastElement=isComment(firstElement) ? findAttachedDeclaration(firstElement) : findAttachedComment(firstElement);
+  targetComponents=isMovingDown ? Pair.create(firstElement,lastElement) : Pair.create(lastElement,firstElement);
+}
