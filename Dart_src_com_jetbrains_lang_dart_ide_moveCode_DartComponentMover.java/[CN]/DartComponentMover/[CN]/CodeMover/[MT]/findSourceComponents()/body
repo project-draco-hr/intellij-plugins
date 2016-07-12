@@ -1,0 +1,19 @@
+{
+  Pair<PsiElement,PsiElement> psiRange=getElementRange(editor,file,info.toMove);
+  if (psiRange == null)   return;
+  PsiElement firstMember=getDeclarationParent(firstMoveableComponent(psiRange.first));
+  if (firstMember == null)   return;
+  PsiElement lastMember;
+  if (isComment(firstMember)) {
+    lastMember=findAttachedDeclaration(firstMember);
+    if (lastMember == firstMember)     lastMember=getDeclarationParent(psiRange.second);
+  }
+ else {
+    lastMember=firstMember;
+    firstMember=findAttachedComment(firstMember);
+  }
+  if (lastMember == null)   return;
+  PsiElement next=firstNonWhiteElement(lastMember.getNextSibling(),true);
+  if (isSemicolon(next))   lastMember=next;
+  sourceComponents=Pair.create(firstMember,lastMember);
+}
