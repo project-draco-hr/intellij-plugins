@@ -32,7 +32,10 @@
       final PsiElement injectionCandidate=afterStart >= 0 ? context.findElementAt(afterStart) : null;
       if (injectionCandidate != null && injectionCandidate.getNode().getElementType() != XmlTokenType.XML_COMMENT_CHARACTERS && !(injectionCandidate instanceof OuterLanguageElement)) {
         if (afterStart > endIndex) {
-          LOG.error("Braces: " + start + ","+ end+ "\n"+ "Text: \""+ text+ "\""+ "\n"+ "Interval: ("+ afterStart+ ","+ endIndex+ ")"+ "\n"+ "File: "+ context.getContainingFile().getName()+ ", language:"+ context.getContainingFile().getLanguage());
+          if (ApplicationManager.getApplication().isInternal()) {
+            LOG.error("Braces: " + start + ","+ end+ "\n"+ "Text: \""+ text+ "\""+ "\n"+ "Interval: ("+ afterStart+ ","+ endIndex+ ")"+ "\n"+ "File: "+ context.getContainingFile().getName()+ ", language:"+ context.getContainingFile().getLanguage());
+          }
+          return;
         }
         registrar.startInjecting(AngularJSLanguage.INSTANCE).addPlace(null,null,(PsiLanguageInjectionHost)context,new TextRange(afterStart,endIndex)).doneInjecting();
       }
