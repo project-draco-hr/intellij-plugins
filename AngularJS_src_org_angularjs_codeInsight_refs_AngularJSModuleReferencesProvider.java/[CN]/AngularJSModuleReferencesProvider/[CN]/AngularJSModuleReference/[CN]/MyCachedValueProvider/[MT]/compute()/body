@@ -1,0 +1,29 @@
+{
+  final JSCallExpression callExpression=PsiTreeUtil.getParentOfType(myElement,JSCallExpression.class);
+  if (callExpression == null)   return null;
+  final JSExpression methodExpression=callExpression.getMethodExpression();
+  if (methodExpression instanceof JSReferenceExpression && JSSymbolUtil.isAccurateReferenceExpressionName((JSReferenceExpression)methodExpression,"angular",AngularJSIndexingHandler.MODULE)) {
+    if (callExpression.getArgumentList() == null || callExpression.getArgumentList().getArguments().length <= 1) {
+      return null;
+    }
+    final JSExpression firstArgument=callExpression.getArgumentList().getArguments()[0];
+    if (firstArgument instanceof JSReferenceExpression) {
+      final PsiElement resolve=((JSReferenceExpression)firstArgument).resolve();
+      if (resolve != null && resolve.isValid() && resolve instanceof JSParameter) {
+        final JSFunction function=((JSParameter)resolve).getDeclaringFunction();
+        if (function == null)         return null;
+        final JSParameter[] variables=function.getParameterVariables();
+        int index=0;
+        for (; index < variables.length; index++) {
+          JSParameter variable=variables[index];
+          if (variable == resolve)           break;
+        }
+        if (index >= variables.length)         return null;
+        if (function.getName() != null) {
+          return Result.create(Pair.create(function,index),myElement.getContainingFile());
+        }
+      }
+    }
+  }
+  return null;
+}
