@@ -1,0 +1,21 @@
+{
+  final PsiElement parent=myElement.getParent();
+  if (parent instanceof JSArgumentList && parent.getParent() instanceof JSCallExpression && ((JSArgumentList)parent).getArguments().length == 1) {
+    if (PsiTreeUtil.isAncestor(((JSArgumentList)parent).getArguments()[0],myElement,false)) {
+      final JSExpression methodExpression=((JSCallExpression)parent.getParent()).getMethodExpression();
+      if (methodExpression instanceof JSReferenceExpression && JSSymbolUtil.isAccurateReferenceExpressionName((JSReferenceExpression)methodExpression,ANGULAR,AngularJSIndexingHandler.MODULE)) {
+        return true;
+      }
+      if (AngularJSReferencesContributor.looksLikeAngularModuleReference(methodExpression)) {
+        final JSExpression qualifier=((JSReferenceExpression)methodExpression).getQualifier();
+        if (qualifier instanceof JSReferenceExpression) {
+          final PsiElement resolve=((JSReferenceExpression)qualifier).resolve();
+          if (resolve instanceof JSVariable && ((JSVariable)resolve).getInitializer() instanceof JSReferenceExpression && JSSymbolUtil.isAccurateReferenceExpressionName((JSReferenceExpression)((JSVariable)resolve).getInitializer(),ANGULAR)) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
