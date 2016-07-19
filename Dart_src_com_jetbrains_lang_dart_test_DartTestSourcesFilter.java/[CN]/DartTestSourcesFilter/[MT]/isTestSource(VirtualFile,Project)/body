@@ -1,0 +1,12 @@
+{
+  if (!file.isInLocalFileSystem())   return false;
+  final ProjectFileIndex fileIndex=ProjectFileIndex.SERVICE.getInstance(project);
+  if (!fileIndex.isInContent(file))   return false;
+  if (DartIconProvider.isFolderNearPubspecYaml(file,"test"))   return true;
+  if (!file.getPath().contains("/test/"))   return false;
+  VirtualFile parent=file;
+  while ((parent=parent.getParent()) != null && fileIndex.isInContent(parent)) {
+    if (DartIconProvider.isFolderNearPubspecYaml(parent,"test"))     return true;
+  }
+  return false;
+}
