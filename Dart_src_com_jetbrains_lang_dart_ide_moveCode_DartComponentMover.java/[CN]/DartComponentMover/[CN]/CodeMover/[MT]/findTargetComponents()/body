@@ -1,12 +1,26 @@
 {
   PsiElement ref=isMovingDown ? sourceRange.lastElement : sourceRange.firstElement;
   PsiElement sibling=nextSib(ref,isMovingDown);
+  if (sibling instanceof PsiWhiteSpace && StringUtil.countNewLines(sibling.getText()) == 0) {
+    PsiElement next=sibling.getNextSibling();
+    if (isLineComment(next))     sibling=next.getNextSibling();
+  }
   if (sibling == null && ref.getParent() instanceof DartClassMembers) {
     DartClassMembers members=(DartClassMembers)ref.getParent();
     sibling=nextSib(members,isMovingDown);
   }
   PsiElement firstElement=firstNonWhiteElement(sibling,isMovingDown);
   if (firstElement == null)   firstElement=sibling == null ? ref : sibling;
-  PsiElement lastElement=isComment(firstElement) ? findAttachedDeclaration(firstElement) : findAttachedComment(firstElement);
+  PsiElement lastElement;
+  if (isComment(firstElement)) {
+    lastElement=isCommentSeparator(sibling) ? firstElement : findAttachedDeclaration(firstElement);
+  }
+ else {
+    lastElement=isMovingDown ? firstElement : findAttachedComment(firstElement);
+  }
+  if (firstElement instanceof PsiWhiteSpace || lastElement instanceof PsiWhiteSpace) {
+    info.prohibitMove();
+    return;
+  }
   targetComponents=isMovingDown ? Pair.create(firstElement,lastElement) : Pair.create(lastElement,firstElement);
 }
