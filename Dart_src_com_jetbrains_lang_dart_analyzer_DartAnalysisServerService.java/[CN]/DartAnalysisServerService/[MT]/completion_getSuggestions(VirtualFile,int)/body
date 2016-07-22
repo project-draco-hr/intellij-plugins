@@ -1,0 +1,22 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(file.getPath());
+  final Ref<String> resultRef=new Ref<String>();
+  final AnalysisServer server=myServer;
+  if (server == null) {
+    return null;
+  }
+  final CountDownLatch latch=new CountDownLatch(1);
+  final int offset=getOriginalOffset(file,_offset);
+  server.completion_getSuggestions(filePath,offset,new GetSuggestionsConsumer(){
+    @Override public void computedCompletionId(    @NotNull final String completionId){
+      resultRef.set(completionId);
+      latch.countDown();
+    }
+    @Override public void onError(    @NotNull final RequestError error){
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_SUGGESTIONS_TIMEOUT);
+  return resultRef.get();
+}

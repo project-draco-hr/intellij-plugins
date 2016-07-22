@@ -1,0 +1,14 @@
+{
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  for (  SourceEdit edit : edits) {
+    if (excludedIds.contains(edit.getId())) {
+      continue;
+    }
+    final int offset=service.getConvertedOffset(file,edit.getOffset());
+    final int length=service.getConvertedOffset(file,edit.getOffset() + edit.getLength()) - offset;
+    final String replacement=StringUtil.convertLineSeparators(edit.getReplacement());
+    if (length != replacement.length() || !replacement.equals(document.getText(TextRange.create(offset,offset + length)))) {
+      document.replaceString(offset,offset + length,replacement);
+    }
+  }
+}

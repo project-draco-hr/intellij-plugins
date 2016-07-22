@@ -1,11 +1,15 @@
 {
   if (myFilePathsWithUnsentChanges.contains(filePath))   return;
   final List<DartError> newErrors=new ArrayList<DartError>(errors.size());
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   for (  AnalysisError error : errors) {
-    newErrors.add(new DartError(error));
+    final int offset=service.getConvertedOffset(file,error.getLocation().getOffset());
+    final int length=service.getConvertedOffset(file,error.getLocation().getOffset() + error.getLocation().getLength()) - offset;
+    newErrors.add(new DartError(error,offset,length));
   }
   myErrorData.put(filePath,newErrors);
   if (restartHighlighting) {
-    forceFileAnnotation(filePath,false);
+    forceFileAnnotation(file,false);
   }
 }

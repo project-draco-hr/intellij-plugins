@@ -1,0 +1,21 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(file.getPath());
+  final Ref<List<AnalysisErrorFixes>> resultRef=new Ref<List<AnalysisErrorFixes>>();
+  final AnalysisServer server=myServer;
+  if (server == null)   return null;
+  final CountDownLatch latch=new CountDownLatch(1);
+  final int offset=getOriginalOffset(file,_offset);
+  server.edit_getFixes(filePath,offset,new GetFixesConsumer(){
+    @Override public void computedFixes(    final List<AnalysisErrorFixes> fixes){
+      resultRef.set(fixes);
+      latch.countDown();
+    }
+    @Override public void onError(    final RequestError error){
+      logError("edit_getFixes()",filePath,error);
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_FIXES_TIMEOUT);
+  return resultRef.get();
+}

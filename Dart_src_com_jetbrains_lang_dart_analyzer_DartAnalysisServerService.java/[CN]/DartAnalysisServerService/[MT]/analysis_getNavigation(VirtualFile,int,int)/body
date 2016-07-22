@@ -7,12 +7,13 @@
   }
   final CountDownLatch latch=new CountDownLatch(1);
   LOG.debug("analysis_getNavigation(" + filePath + ")");
+  final int offset=getOriginalOffset(file,_offset);
   server.analysis_getNavigation(filePath,offset,length,new GetNavigationConsumer(){
     @Override public void computedNavigation(    final List<NavigationRegion> regions){
       final List<DartServerData.DartNavigationRegion> dartRegions=new ArrayList<DartServerData.DartNavigationRegion>(regions.size());
       for (      NavigationRegion region : regions) {
         if (region.getLength() > 0) {
-          dartRegions.add(new DartServerData.DartNavigationRegion(region));
+          dartRegions.add(DartServerData.createDartNavigationRegion(file,region));
         }
       }
       resultRef.set(dartRegions);

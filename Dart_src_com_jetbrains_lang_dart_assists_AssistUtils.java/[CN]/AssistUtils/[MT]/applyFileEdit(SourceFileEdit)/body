@@ -1,7 +1,8 @@
 {
   final VirtualFile file=findVirtualFile(fileEdit);
-  if (file != null) {
-    return applyFileEdit(file,fileEdit,Collections.emptySet());
-  }
-  return false;
+  final Document document=file == null ? null : FileDocumentManager.getInstance().getDocument(file);
+  if (document == null)   return false;
+  final long initialModStamp=document.getModificationStamp();
+  applySourceEdits(file,document,fileEdit.getEdits(),Collections.emptySet());
+  return document.getModificationStamp() != initialModStamp;
 }
