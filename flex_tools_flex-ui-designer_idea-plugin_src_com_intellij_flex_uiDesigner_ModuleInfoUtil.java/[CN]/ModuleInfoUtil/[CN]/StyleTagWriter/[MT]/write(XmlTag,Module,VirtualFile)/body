@@ -7,9 +7,9 @@
     }
     MyInjectedPsiVisitor visitor=new MyInjectedPsiVisitor(host);
     InjectedLanguageUtil.enumerate(host,visitor);
-    CssFile cssFile=visitor.getCssFile();
-    byte[] data=cssFile == null ? null : cssWriter.write(cssFile,module);
-    return data == null ? null : new LocalStyleHolder(InjectedLanguageManager.getInstance(cssFile.getProject()).getTopLevelFile(cssFile).getVirtualFile(),data);
+    StylesheetFile stylesheetFile=visitor.getStylesheetFile();
+    byte[] data=stylesheetFile == null ? null : cssWriter.write(stylesheetFile,module);
+    return data == null ? null : new LocalStyleHolder(InjectedLanguageManager.getInstance(stylesheetFile.getProject()).getTopLevelFile(stylesheetFile).getVirtualFile(),data);
   }
  else {
     XmlAttributeValue valueElement=source.getValueElement();
@@ -17,14 +17,14 @@
       return null;
     }
     PsiFileSystemItem psiFile=InjectionUtil.getReferencedPsiFile(valueElement);
-    if (!(psiFile instanceof CssFile)) {
+    if (!(psiFile instanceof StylesheetFile)) {
       throw new InvalidPropertyException(valueElement,"embed.source.is.not.css.file",psiFile.getName());
     }
-    CssFile cssFile=(CssFile)psiFile;
-    VirtualFile virtualFile=cssFile.getVirtualFile();
+    StylesheetFile stylesheetFile=(StylesheetFile)psiFile;
+    VirtualFile virtualFile=stylesheetFile.getVirtualFile();
     ExternalLocalStyleHolder existingLocalStyleHolder=externalLocalStyleHolders.get(virtualFile);
     if (existingLocalStyleHolder == null) {
-      byte[] data=cssWriter.write(cssFile,module);
+      byte[] data=cssWriter.write(stylesheetFile,module);
       if (data == null) {
         return null;
       }
