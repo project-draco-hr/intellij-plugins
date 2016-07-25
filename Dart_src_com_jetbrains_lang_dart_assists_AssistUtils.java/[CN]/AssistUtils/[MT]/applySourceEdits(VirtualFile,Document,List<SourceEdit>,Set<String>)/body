@@ -1,4 +1,5 @@
 {
+  final List<SourceEditInfo> result=new ArrayList<>(edits.size());
   final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
   for (  SourceEdit edit : edits) {
     if (excludedIds.contains(edit.getId())) {
@@ -7,8 +8,18 @@
     final int offset=service.getConvertedOffset(file,edit.getOffset());
     final int length=service.getConvertedOffset(file,edit.getOffset() + edit.getLength()) - offset;
     final String replacement=StringUtil.convertLineSeparators(edit.getReplacement());
+    for (    SourceEditInfo info : result) {
+      if (info.resultingOriginalOffset > edit.getOffset()) {
+        info.resultingOriginalOffset-=edit.getLength();
+        info.resultingOriginalOffset+=edit.getReplacement().length();
+        info.resultingConvertedOffset-=length;
+        info.resultingConvertedOffset+=replacement.length();
+      }
+    }
+    result.add(new SourceEditInfo(edit.getOffset(),offset,edit.getLength(),length,edit.getReplacement(),replacement));
     if (length != replacement.length() || !replacement.equals(document.getText(TextRange.create(offset,offset + length)))) {
       document.replaceString(offset,offset + length,replacement);
     }
   }
+  return result;
 }

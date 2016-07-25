@@ -1,16 +1,12 @@
 {
-  final ChangeTarget target=findChangeTarget(project,sourceChange);
-  if (target == null) {
-    return;
-  }
-  final Editor editor=navigate(project,target.virtualFile,target.offset);
+  final int caretOffset=getLinkedEditConvertedOffset(target.virtualFile,target.originalOffset,sourceEditInfos);
+  final Editor editor=navigate(project,target.virtualFile,caretOffset);
   if (editor == null) {
     return;
   }
   PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
   final TemplateBuilderImpl builder=(TemplateBuilderImpl)TemplateBuilderFactory.getInstance().createTemplateBuilder(target.psiFile);
   boolean hasTextRanges=false;
-  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
   int groupIndex=0;
   for (  LinkedEditGroup group : sourceChange.getLinkedEditGroups()) {
     String mainVar="group_" + groupIndex++;
@@ -19,7 +15,7 @@
     for (    Position position : group.getPositions()) {
       if (FileUtil.toSystemIndependentName(position.getFile()).equals(target.virtualFile.getPath())) {
         hasTextRanges=true;
-        final int offset=service.getConvertedOffset(target.virtualFile,position.getOffset());
+        final int offset=getLinkedEditConvertedOffset(target.virtualFile,position.getOffset(),sourceEditInfos);
         final int end=offset + group.getLength();
         final TextRange range=new TextRange(offset,end);
         if (firstPosition) {

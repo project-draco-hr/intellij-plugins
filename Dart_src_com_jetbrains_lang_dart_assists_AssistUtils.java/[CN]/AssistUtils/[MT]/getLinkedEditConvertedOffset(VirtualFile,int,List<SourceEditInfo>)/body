@@ -1,0 +1,25 @@
+{
+  for (  SourceEditInfo info : editInfos) {
+    if (linkedEditOffset >= info.resultingOriginalOffset && linkedEditOffset <= info.resultingOriginalOffset + info.originalReplacement.length()) {
+      final String substring=info.originalReplacement.substring(0,linkedEditOffset - info.resultingOriginalOffset);
+      final int crlfCount=StringUtil.getOccurrenceCount(substring,"\r\n");
+      return info.resultingConvertedOffset + linkedEditOffset - info.resultingOriginalOffset - crlfCount;
+    }
+  }
+  int leOffset=linkedEditOffset;
+  for (int i=editInfos.size() - 1; i >= 0; i--) {
+    final SourceEditInfo info=editInfos.get(i);
+    if (linkedEditOffset >= info.originalOffset) {
+      leOffset-=info.originalReplacement.length();
+      leOffset+=info.originalLength;
+    }
+  }
+  leOffset=DartAnalysisServerService.getInstance().getConvertedOffset(file,leOffset);
+  for (  SourceEditInfo info : editInfos) {
+    if (leOffset >= info.convertedOffset) {
+      leOffset-=info.convertedLength;
+      leOffset+=info.normalizedReplacement.length();
+    }
+  }
+  return leOffset;
+}
