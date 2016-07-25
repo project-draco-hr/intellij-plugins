@@ -10,15 +10,16 @@
   PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
   final TemplateBuilderImpl builder=(TemplateBuilderImpl)TemplateBuilderFactory.getInstance().createTemplateBuilder(target.psiFile);
   boolean hasTextRanges=false;
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
   int groupIndex=0;
   for (  LinkedEditGroup group : sourceChange.getLinkedEditGroups()) {
     String mainVar="group_" + groupIndex++;
     boolean firstPosition=true;
     groupIndex++;
     for (    Position position : group.getPositions()) {
-      if (position.getFile().equals(target.path)) {
+      if (FileUtil.toSystemIndependentName(position.getFile()).equals(target.virtualFile.getPath())) {
         hasTextRanges=true;
-        final int offset=position.getOffset();
+        final int offset=service.getConvertedOffset(target.virtualFile,position.getOffset());
         final int end=offset + group.getLength();
         final TextRange range=new TextRange(offset,end);
         if (firstPosition) {

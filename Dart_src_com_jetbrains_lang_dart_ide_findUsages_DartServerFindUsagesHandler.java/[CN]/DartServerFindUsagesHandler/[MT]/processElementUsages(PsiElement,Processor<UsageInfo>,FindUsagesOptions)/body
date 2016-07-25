@@ -1,5 +1,6 @@
 {
   final SearchScope scope=options.searchScope;
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
   final ReadActionConsumer<SearchResult> searchResultProcessor=new ReadActionConsumer<SearchResult>(){
     @Override public void consumeInReadAction(    SearchResult result){
       if (result.getKind().equals(SearchResultKind.DECLARATION))       return;
@@ -10,7 +11,9 @@
       if (scope instanceof GlobalSearchScope && !((GlobalSearchScope)scope).contains(vFile))       return;
       final PsiFile psiFile=elementToSearch.getManager().findFile(vFile);
       if (psiFile == null)       return;
-      final TextRange range=TextRange.create(location.getOffset(),location.getOffset() + location.getLength());
+      final int offset=service.getConvertedOffset(vFile,location.getOffset());
+      final int length=service.getConvertedOffset(vFile,location.getOffset() + location.getLength()) - offset;
+      final TextRange range=TextRange.create(offset,offset + length);
       final boolean potentialUsage=result.isPotential();
       final PsiElement usageElement=getUsagePsiElement(psiFile,range);
       final UsageInfo usageInfo=usageElement == null ? null : getUsageInfo(usageElement,range,potentialUsage);
@@ -20,7 +23,13 @@
     }
   }
 ;
-  final DartElementLocation elementLocation=DartElementLocation.of(elementToSearch);
-  DartAnalysisServerService.getInstance().search_findElementReferences(elementLocation.file,elementLocation.offset,searchResultProcessor);
+  final VirtualFile file=ApplicationManager.getApplication().runReadAction(new Computable<VirtualFile>(){
+    @Override public VirtualFile compute(){
+      return elementToSearch.getContainingFile().getVirtualFile();
+    }
+  }
+);
+  final int offset=elementToSearch.getTextRange().getStartOffset();
+  service.search_findElementReferences(file,offset,searchResultProcessor);
   return true;
 }

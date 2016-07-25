@@ -1,0 +1,24 @@
+{
+  final String filePath=FileUtil.toSystemDependentName(file.getPath());
+  final List<SourceChange> results=Lists.newArrayList();
+  final AnalysisServer server=myServer;
+  if (server == null) {
+    return results;
+  }
+  final CountDownLatch latch=new CountDownLatch(1);
+  final int offset=getOriginalOffset(file,_offset);
+  final int length=getOriginalOffset(file,_offset + _length) - offset;
+  server.edit_getAssists(filePath,offset,length,new GetAssistsConsumer(){
+    @Override public void computedSourceChanges(    List<SourceChange> sourceChanges){
+      results.addAll(sourceChanges);
+      latch.countDown();
+    }
+    @Override public void onError(    final RequestError error){
+      logError("edit_getAssists()",filePath,error);
+      latch.countDown();
+    }
+  }
+);
+  awaitForLatchCheckingCanceled(server,latch,GET_ASSISTS_TIMEOUT);
+  return results;
+}

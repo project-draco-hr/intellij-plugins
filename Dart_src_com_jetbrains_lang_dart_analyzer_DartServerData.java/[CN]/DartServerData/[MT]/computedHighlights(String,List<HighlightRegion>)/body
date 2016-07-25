@@ -1,11 +1,15 @@
 {
   if (myFilePathsWithUnsentChanges.contains(filePath))   return;
   final List<DartHighlightRegion> newRegions=new ArrayList<DartHighlightRegion>(regions.size());
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   for (  HighlightRegion region : regions) {
     if (region.getLength() > 0) {
-      newRegions.add(new DartHighlightRegion(region));
+      final int offset=service.getConvertedOffset(file,region.getOffset());
+      final int length=service.getConvertedOffset(file,region.getOffset() + region.getLength()) - offset;
+      newRegions.add(new DartHighlightRegion(offset,length,region.getType()));
     }
   }
   myHighlightData.put(filePath,newRegions);
-  forceFileAnnotation(filePath,false);
+  forceFileAnnotation(file,false);
 }

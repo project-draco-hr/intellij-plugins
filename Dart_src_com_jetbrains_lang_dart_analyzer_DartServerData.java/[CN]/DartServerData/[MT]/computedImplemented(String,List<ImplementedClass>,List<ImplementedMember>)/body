@@ -1,12 +1,18 @@
 {
   if (myFilePathsWithUnsentChanges.contains(filePath))   return;
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   final List<DartRegion> newImplementedClasses=new ArrayList<DartRegion>(implementedClasses.size());
   for (  ImplementedClass implementedClass : implementedClasses) {
-    newImplementedClasses.add(new DartRegion(implementedClass.getOffset(),implementedClass.getLength()));
+    final int offset=service.getConvertedOffset(file,implementedClass.getOffset());
+    final int length=service.getConvertedOffset(file,implementedClass.getOffset() + implementedClass.getLength()) - offset;
+    newImplementedClasses.add(new DartRegion(offset,length));
   }
   final List<DartRegion> newImplementedMembers=new ArrayList<DartRegion>(implementedMembers.size());
   for (  ImplementedMember implementedMember : implementedMembers) {
-    newImplementedMembers.add(new DartRegion(implementedMember.getOffset(),implementedMember.getLength()));
+    final int offset=service.getConvertedOffset(file,implementedMember.getOffset());
+    final int length=service.getConvertedOffset(file,implementedMember.getOffset() + implementedMember.getLength()) - offset;
+    newImplementedMembers.add(new DartRegion(offset,length));
   }
   boolean hasChanges=false;
   final List<DartRegion> oldClasses=myImplementedClassData.get(filePath);
@@ -20,6 +26,6 @@
     myImplementedMemberData.put(filePath,newImplementedMembers);
   }
   if (hasChanges) {
-    forceFileAnnotation(filePath,false);
+    forceFileAnnotation(file,false);
   }
 }

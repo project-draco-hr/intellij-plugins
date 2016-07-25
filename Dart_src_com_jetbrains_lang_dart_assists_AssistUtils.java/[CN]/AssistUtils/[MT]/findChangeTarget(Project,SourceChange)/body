@@ -3,8 +3,7 @@
     final List<Position> positions=group.getPositions();
     if (!positions.isEmpty()) {
       final Position position=positions.get(0);
-      final String path=position.getFile();
-      VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
+      VirtualFile virtualFile=LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(position.getFile()));
       if (virtualFile == null) {
         return null;
       }
@@ -12,7 +11,8 @@
       if (psiFile == null) {
         return null;
       }
-      return new ChangeTarget(project,path,position.getOffset(),virtualFile,psiFile);
+      final int offset=DartAnalysisServerService.getInstance().getConvertedOffset(virtualFile,position.getOffset());
+      return new ChangeTarget(project,offset,virtualFile,psiFile);
     }
   }
   return null;

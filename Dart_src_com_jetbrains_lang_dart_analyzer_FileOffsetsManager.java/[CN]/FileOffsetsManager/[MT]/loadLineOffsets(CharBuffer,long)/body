@@ -1,0 +1,52 @@
+{
+  int dst=0;
+  char prev=' ';
+  int crlfCount=0;
+  final IntArrayList originalLineOffsets=new IntArrayList();
+  final IntArrayList convertedLineOffsets=new IntArrayList();
+  originalLineOffsets.add(0);
+  convertedLineOffsets.add(0);
+  final int length=buffer.length();
+  final char[] bufferArray=CharArrayUtil.fromSequenceWithoutCopying(buffer);
+  for (int src=0; src < length; src++) {
+    char c=bufferArray != null ? bufferArray[src] : buffer.charAt(src);
+switch (c) {
+case '\r':
+      if (bufferArray != null) {
+        bufferArray[dst++]='\n';
+      }
+ else {
+        buffer.put(dst++,'\n');
+      }
+    originalLineOffsets.add(dst + crlfCount);
+  convertedLineOffsets.add(dst);
+break;
+case '\n':
+if (prev == '\r') {
+crlfCount++;
+originalLineOffsets.set(originalLineOffsets.size() - 1,dst + crlfCount);
+}
+ else {
+if (bufferArray != null) {
+  bufferArray[dst++]='\n';
+}
+ else {
+  buffer.put(dst++,'\n');
+}
+originalLineOffsets.add(dst + crlfCount);
+convertedLineOffsets.add(dst);
+}
+break;
+default :
+if (bufferArray != null) {
+bufferArray[dst++]=c;
+}
+ else {
+buffer.put(dst++,c);
+}
+break;
+}
+prev=c;
+}
+return new LineOffsets(modificationStamp,originalLineOffsets.toArray(),convertedLineOffsets.toArray());
+}

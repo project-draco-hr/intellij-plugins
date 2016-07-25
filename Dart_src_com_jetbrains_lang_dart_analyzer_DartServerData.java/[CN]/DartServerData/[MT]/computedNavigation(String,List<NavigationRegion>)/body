@@ -1,11 +1,13 @@
 {
   if (myFilePathsWithUnsentChanges.contains(filePath))   return;
   final List<DartNavigationRegion> newRegions=new ArrayList<DartNavigationRegion>(regions.size());
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   for (  NavigationRegion region : regions) {
     if (region.getLength() > 0) {
-      newRegions.add(new DartNavigationRegion(region));
+      final DartNavigationRegion dartNavigationRegion=createDartNavigationRegion(file,region);
+      newRegions.add(dartNavigationRegion);
     }
   }
   myNavigationData.put(filePath,newRegions);
-  forceFileAnnotation(filePath,true);
+  forceFileAnnotation(file,true);
 }

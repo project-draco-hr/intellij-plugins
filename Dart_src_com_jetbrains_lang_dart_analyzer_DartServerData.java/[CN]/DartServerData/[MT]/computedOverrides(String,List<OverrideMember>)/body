@@ -1,11 +1,15 @@
 {
   if (myFilePathsWithUnsentChanges.contains(filePath))   return;
   final List<DartOverrideMember> newOverrides=new ArrayList<DartOverrideMember>(overrides.size());
+  final DartAnalysisServerService service=DartAnalysisServerService.getInstance();
+  final VirtualFile file=LocalFileSystem.getInstance().findFileByPath(filePath);
   for (  OverrideMember override : overrides) {
     if (override.getLength() > 0) {
-      newOverrides.add(new DartOverrideMember(override));
+      final int offset=service.getConvertedOffset(file,override.getOffset());
+      final int length=service.getConvertedOffset(file,override.getOffset() + override.getLength()) - offset;
+      newOverrides.add(new DartOverrideMember(offset,length,override.getSuperclassMember(),override.getInterfaceMembers()));
     }
   }
   myOverrideData.put(filePath,newOverrides);
-  forceFileAnnotation(filePath,false);
+  forceFileAnnotation(file,false);
 }
