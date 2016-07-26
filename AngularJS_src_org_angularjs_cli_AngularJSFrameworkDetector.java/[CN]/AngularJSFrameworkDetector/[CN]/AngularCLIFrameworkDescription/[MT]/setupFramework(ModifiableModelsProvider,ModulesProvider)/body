@@ -1,0 +1,13 @@
+{
+  for (  Module module : modulesProvider.getModules()) {
+    ModifiableRootModel model=modifiableModelsProvider.getModuleModifiableModel(module);
+    VirtualFile item=ContainerUtil.getFirstItem(myNewFiles);
+    ContentEntry entry=item != null ? MarkRootActionBase.findContentEntry(model,item) : null;
+    if (entry == null) {
+      modifiableModelsProvider.disposeModuleModifiableModel(model);
+      continue;
+    }
+    AngularJSProjectConfigurator.excludeDefault(item.getParent(),entry);
+    modifiableModelsProvider.commitModuleModifiableModel(model);
+  }
+}
