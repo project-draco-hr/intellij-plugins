@@ -1,9 +1,9 @@
 {
-  List<Pair<IDEtalkEvent,Runnable>> events=new SmartList<Pair<IDEtalkEvent,Runnable>>();
+  List<Pair<IDEtalkEvent,Runnable>> events=new SmartList<>();
 synchronized (myLock) {
     for (    final User user : myOnlineUsers) {
       if (!onlineUsers.contains(user)) {
-        events.add(new Pair<IDEtalkEvent,Runnable>(new UserEvent.Offline(user),new MySyncRunnable(){
+        events.add(new Pair<>(new UserEvent.Offline(user),new MySyncRunnable(){
           @Override protected void execute(){
             myOnlineUsers.remove(user);
             myUserToInfo.remove(user);
@@ -19,7 +19,7 @@ synchronized (myLock) {
         }
         UserPresence newPresence=onlineUserInfo.getPresence();
         if (!newPresence.equals(oldPresence)) {
-          events.add(new Pair<IDEtalkEvent,Runnable>(new UserEvent.Updated(user,"presence",oldPresence,newPresence),new MySyncRunnable(){
+          events.add(new Pair<>(new UserEvent.Updated(user,"presence",oldPresence,newPresence),new MySyncRunnable(){
             @Override protected void execute(){
               myUserToInfo.put(user,onlineUserInfo);
             }
