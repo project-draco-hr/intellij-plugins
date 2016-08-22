@@ -24,6 +24,7 @@
   TIntObjectHashMap<Pair<Integer,Integer>> tokenPosToLineAndColumn=myScriptIdToLinesAndColumnsMap.get(scriptRef.getId());
   if (file != null && tokenPosToLineAndColumn != null) {
     final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+    if (lineAndColumn == null)     return XDebuggerUtil.getInstance().createPositionByOffset(file,0);
     return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
   }
   final Script script=myVmServiceWrapper.getScriptSync(isolateId,scriptRef.getId());
@@ -38,5 +39,6 @@
     myScriptIdToLinesAndColumnsMap.put(scriptRef.getId(),tokenPosToLineAndColumn);
   }
   final Pair<Integer,Integer> lineAndColumn=tokenPosToLineAndColumn.get(tokenPos);
+  if (lineAndColumn == null)   return XDebuggerUtil.getInstance().createPositionByOffset(file,0);
   return XDebuggerUtil.getInstance().createPosition(file,lineAndColumn.first,lineAndColumn.second);
 }
