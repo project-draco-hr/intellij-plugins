@@ -1,11 +1,21 @@
 {
+  if (sdk == null)   return null;
   ApplePlatform platform=sdk.getPlatform();
-  String libraryPath=null;
+  String libraryPath="/Contents/SharedSupport/";
   if (platform.isIOS()) {
-    libraryPath="/Contents/SharedSupport/iOS-Libraries/RevealServer.framework";
+    libraryPath+="iOS-Libraries/";
   }
  else   if (platform.isTv()) {
-    libraryPath="/Contents/SharedSupport/tvOS-Libraries/RevealServer.framework";
+    libraryPath+="tvOS-Libraries/";
+  }
+  if (isCompatibleWithRevealTwoOrHigher(bundle)) {
+    libraryPath+="RevealServer.framework/RevealServer";
+  }
+ else   if (platform.isTv()) {
+    libraryPath+="libReveal-tvOS.dylib";
+  }
+ else {
+    libraryPath+="libReveal.dylib";
   }
   if (libraryPath == null)   return null;
   File result=new File(bundle,libraryPath);
