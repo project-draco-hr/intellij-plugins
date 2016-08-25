@@ -5,6 +5,13 @@
   if (myFileFilterMode == FileFilterMode.File && (myCurrentFile == null || !myCurrentFile.equals(problem.getFile()))) {
     return false;
   }
+  if (myFileFilterMode == FileFilterMode.Directory && myCurrentFile != null) {
+    VirtualFile parent=myCurrentFile.getParent();
+    VirtualFile child=problem.getFile();
+    if (child != null && parent != null && !child.getPath().startsWith(parent.getPath())) {
+      return false;
+    }
+  }
   if (myFileFilterMode == FileFilterMode.Package) {
     ensurePackageRootUpToDate();
     if (myCurrentPackageRoot == null || !myCurrentPackageRoot.equals(problem.getPackageRoot())) {
