@@ -30,9 +30,9 @@
               if (argument.isQuotedLiteral()) {
                 String interpolation=unquote(argument);
                 if ("//".equals(interpolation))                 return;
-                PsiFile file=qualifier.getContainingFile();
-                VirtualFile virtualFile=file.getOriginalFile().getVirtualFile();
-                virtualFile=virtualFile == null ? IndexingDataKeys.VIRTUAL_FILE.get(file) : virtualFile;
+                FileViewProvider provider=qualifier.getContainingFile().getOriginalFile().getViewProvider();
+                VirtualFile virtualFile=provider.getVirtualFile();
+                virtualFile=virtualFile instanceof LightVirtualFile ? ((LightVirtualFile)virtualFile).getOriginalFile() : virtualFile;
                 if (JSLibraryUtil.isProbableLibraryFile(virtualFile))                 return;
                 addImplicitElements(argument,null,AngularInjectionDelimiterIndex.KEY,command,interpolation,outIndexingData);
               }
