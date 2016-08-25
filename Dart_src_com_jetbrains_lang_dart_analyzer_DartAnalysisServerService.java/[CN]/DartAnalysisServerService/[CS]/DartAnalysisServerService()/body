@@ -25,16 +25,19 @@
       if (!Registry.is("dart.projects.without.pubspec",false) && (PubspecYamlUtil.PUBSPEC_YAML.equals(file.getName()) || file.getFileType() == DartFileType.INSTANCE)) {
         DartSdkUpdateChecker.mayBeCheckForSdkUpdate(source.getProject());
       }
+      updateCurrentFile();
       if (isLocalAnalyzableFile(file)) {
         updateVisibleFiles();
       }
     }
     @Override public void selectionChanged(    @NotNull FileEditorManagerEvent event){
+      updateCurrentFile();
       if (isLocalAnalyzableFile(event.getOldFile()) || isLocalAnalyzableFile(event.getNewFile())) {
         updateVisibleFiles();
       }
     }
     @Override public void fileClosed(    @NotNull final FileEditorManager source,    @NotNull final VirtualFile file){
+      updateCurrentFile();
       if (isLocalAnalyzableFile(file)) {
         for (        Project project : myRootsHandler.getTrackedProjects()) {
           if (FileEditorManager.getInstance(project).getSelectedEditor(file) == null) {
