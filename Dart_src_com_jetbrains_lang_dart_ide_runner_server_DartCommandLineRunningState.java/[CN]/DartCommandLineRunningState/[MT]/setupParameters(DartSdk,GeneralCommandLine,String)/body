@@ -36,20 +36,18 @@
     commandLine.addParameter("--package-root=" + FileUtil.toSystemDependentName(packageRoot.getPath()));
   }
   if (DefaultDebugExecutor.EXECUTOR_ID.equals(getEnvironment().getExecutor().getId())) {
-    if (StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0) {
-      myDebuggingPort=NetUtils.tryToFindAvailableSocketPort();
-      commandLine.addParameter("--debug:" + myDebuggingPort);
-      commandLine.addParameter("--break-at-isolate-spawn");
-    }
- else {
-      commandLine.addParameter("--pause_isolates_on_start");
-    }
+    commandLine.addParameter("--pause_isolates_on_start");
   }
   if (customObservatoryPort > 0) {
     myObservatoryPort=customObservatoryPort;
   }
  else   if (!(myRunnerParameters instanceof DartTestRunnerParameters)) {
-    myObservatoryPort=PubServerManager.findOneMoreAvailablePort(myDebuggingPort);
+    try {
+      myObservatoryPort=NetUtils.findAvailableSocketPort();
+    }
+ catch (    IOException e) {
+      throw new ExecutionException(e);
+    }
     commandLine.addParameter("--enable-vm-service:" + myObservatoryPort);
     if (getEnvironment().getRunner() instanceof DartCoverageProgramRunner) {
       commandLine.addParameter("--pause-isolates-on-exit");
