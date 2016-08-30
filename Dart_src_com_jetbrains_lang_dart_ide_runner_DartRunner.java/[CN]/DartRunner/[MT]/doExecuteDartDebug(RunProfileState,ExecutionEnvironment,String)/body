@@ -6,7 +6,6 @@
   final boolean entryPointInLibFolder;
   final ExecutionResult executionResult;
   final String debuggingHost;
-  final int debuggingPort;
   final int observatoryPort;
   if (runConfiguration instanceof DartRunConfigurationBase) {
     contextFileOrDir=((DartRunConfigurationBase)runConfiguration).getRunnerParameters().getDartFile();
@@ -17,7 +16,6 @@
       return null;
     }
     debuggingHost=null;
-    debuggingPort=((DartCommandLineRunningState)state).getDebuggingPort();
     observatoryPort=((DartCommandLineRunningState)state).getObservatoryPort();
   }
  else   if (runConfiguration instanceof DartRemoteDebugConfiguration) {
@@ -29,14 +27,7 @@
     }
     executionResult=null;
     debuggingHost=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getHost();
-    if (StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0) {
-      debuggingPort=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getPort();
-      observatoryPort=-1;
-    }
- else {
-      debuggingPort=-1;
-      observatoryPort=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getPort();
-    }
+    observatoryPort=((DartRemoteDebugConfiguration)runConfiguration).getParameters().getPort();
   }
  else {
     LOG.error("Unexpected run configuration: " + runConfiguration.getClass().getName());
@@ -47,7 +38,7 @@
   final XDebugSession debugSession=debuggerManager.startSession(env,new XDebugProcessStarter(){
     @Override @NotNull public XDebugProcess start(    @NotNull final XDebugSession session){
       final DartUrlResolver dartUrlResolver=getDartUrlResolver(env.getProject(),contextFileOrDir);
-      return StringUtil.compareVersionNumbers(sdk.getVersion(),"1.14") < 0 ? new DartCommandLineDebugProcess(session,debuggingHost,debuggingPort,observatoryPort,executionResult,dartUrlResolver) : new DartVmServiceDebugProcess(session,StringUtil.notNullize(debuggingHost,"localhost"),observatoryPort,executionResult,dartUrlResolver,dasExecutionContextId,runConfiguration instanceof DartRemoteDebugConfiguration,entryPointInLibFolder,getTimeout());
+      return new DartVmServiceDebugProcess(session,StringUtil.notNullize(debuggingHost,"localhost"),observatoryPort,executionResult,dartUrlResolver,dasExecutionContextId,runConfiguration instanceof DartRemoteDebugConfiguration,entryPointInLibFolder,getTimeout());
     }
   }
 );
