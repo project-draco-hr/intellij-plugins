@@ -3,7 +3,9 @@
   final Project project=element.getProject();
   if (AngularIndexUtil.hasAngularJS2(project)) {
     final PsiFile file=element.getContainingFile().getOriginalFile();
-    return Collections.singleton(file.getContainingDirectory());
+    final TypeScriptConfig config=TypeScriptCompilerConfigUtil.getConfigForFile(project,file.getVirtualFile());
+    final PsiDirectory directory=config != null ? PsiManager.getInstance(project).findDirectory(config.getConfigFile().getParent()) : null;
+    return ContainerUtil.skipNulls(Arrays.asList(file.getContainingDirectory(),directory));
   }
   return super.getDefaultContexts();
 }
