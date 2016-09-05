@@ -1,0 +1,14 @@
+{
+  if (charTyped == '`') {
+    PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
+    for (    Caret caret : editor.getCaretModel().getAllCarets()) {
+      final int offset=caret.getOffset();
+      if (!LanguageListCompletionContributor.isInMiddleOfUncollapsedFence(file.findElementAt(offset),offset)) {
+        return Result.CONTINUE;
+      }
+    }
+    AutoPopupController.getInstance(project).autoPopupMemberLookup(editor,null);
+    return Result.STOP;
+  }
+  return super.checkAutoPopup(charTyped,project,editor,file);
+}
