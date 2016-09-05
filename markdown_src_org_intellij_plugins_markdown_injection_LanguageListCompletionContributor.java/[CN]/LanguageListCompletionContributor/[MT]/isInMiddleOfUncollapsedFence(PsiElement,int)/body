@@ -1,0 +1,15 @@
+{
+  if (element == null) {
+    return false;
+  }
+  if (PsiUtilCore.getElementType(element) == MarkdownTokenTypes.CODE_FENCE_START) {
+    final TextRange range=element.getTextRange();
+    return range.getStartOffset() + range.getEndOffset() == offset * 2;
+  }
+  if (PsiUtilCore.getElementType(element) == MarkdownTokenTypes.TEXT && PsiUtilCore.getElementType(element.getParent()) == MarkdownElementTypes.CODE_SPAN) {
+    final TextRange range=element.getTextRange();
+    final TextRange parentRange=element.getParent().getTextRange();
+    return range.getStartOffset() - parentRange.getStartOffset() == parentRange.getEndOffset() - range.getEndOffset();
+  }
+  return false;
+}
