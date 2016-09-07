@@ -1,43 +1,33 @@
 {
   final StringBuilder b=new StringBuilder();
-  b.append("Total: ");
-  b.append(myErrorCount == 0 ? "no errors, " : myErrorCount == 1 ? "1 error, " : myErrorCount + " errors, ");
-  b.append(myWarningCount == 0 ? "no warnings, " : myWarningCount == 1 ? "1 warning, " : myWarningCount + " warnings, ");
-  b.append(myHintCount == 0 ? "no hints. " : myHintCount == 1 ? "1 hint. " : myHintCount + " hints. ");
+  final List<String> summary=new ArrayList<>();
+  if (myFilter.isShowErrors() && myErrorCountAfterFilter > 0) {
+    summary.add(myErrorCountAfterFilter > 1 ? myErrorCountAfterFilter + " errors" : "1 error");
+  }
+  if (myFilter.isShowWarnings() && myWarningCountAfterFilter > 0) {
+    summary.add(myWarningCountAfterFilter > 1 ? myWarningCountAfterFilter + " warnings" : "1 warning");
+  }
+  if (myFilter.isShowHints() && myHintCountAfterFilter > 0) {
+    summary.add(myHintCountAfterFilter > 1 ? myHintCountAfterFilter + " hints" : "1 hint");
+  }
+  if (summary.isEmpty()) {
+    if (myFilter.areFiltersApplied()) {
+      return getFilterTypeText();
+    }
+ else {
+      return "";
+    }
+  }
+  if (summary.size() == 2) {
+    b.append(StringUtil.join(summary," and "));
+  }
+ else {
+    b.append(StringUtil.join(summary,", "));
+  }
   if (myFilter.areFiltersApplied()) {
-switch (myFilter.getFileFilterMode()) {
-case All:
-      if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
-        b.append("Filtered by severity: ").append(getHiddenSeveritiesText()).append(".");
-      }
-    break;
-case ContentRoot:
-  b.append("Filtered by current content root");
-break;
-case Package:
-b.append("Filtered by current package");
-break;
-case Directory:
-b.append("Filtered by current directory");
-break;
-case File:
-b.append("Filtered by current file");
-break;
-}
-if (myFilter.getFileFilterMode() != DartProblemsFilter.FileFilterMode.All) {
-if (!myFilter.isShowErrors() || !myFilter.isShowWarnings() || !myFilter.isShowHints()) {
-b.append(" and severity: ");
-if (!myFilter.isShowErrors() && !myFilter.isShowWarnings() && !myFilter.isShowHints()) {
-b.append(getHiddenSeveritiesText()).append(".");
-}
- else {
-b.append(getProblemsCountAfterFilterText()).append(", ").append(getHiddenSeveritiesText()).append(".");
-}
-}
- else {
-b.append(": ").append(getProblemsCountAfterFilterText()).append(".");
-}
-}
-}
-return b.toString();
+    b.append(" (");
+    b.append(getFilterTypeText());
+    b.append(")");
+  }
+  return b.toString();
 }
