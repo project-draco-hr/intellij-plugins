@@ -2,9 +2,14 @@
   RevealSettings settings=getRevealSettings(s);
   myInjectCheckBox.setSelected(settings.autoInject);
   myInstallCheckBox.setSelected(settings.autoInstall);
-  boolean found=Reveal.getRevealLib(getSdk(s)) != null;
-  boolean compatible=Reveal.isCompatible();
   String notFoundText=null;
+  boolean found=false;
+  boolean compatible=false;
+  File appBundle=Reveal.getDefaultRevealApplicationBundle();
+  if (appBundle != null) {
+    found=(Reveal.getRevealLib(appBundle,getSdk(s)) != null);
+    compatible=Reveal.isCompatible(appBundle);
+  }
   if (!found) {
     notFoundText="Reveal.app not found. You can install it from ";
   }

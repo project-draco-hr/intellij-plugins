@@ -4,9 +4,14 @@
   String title="Show in Reveal";
   XCBuildConfiguration xcBuildConfiguration=myConfiguration.getConfiguration();
   AppleSdk sdk=xcBuildConfiguration == null ? null : xcBuildConfiguration.getBaseSdk();
-  File lib=Reveal.getRevealLib(sdk);
-  boolean compatible=Reveal.isCompatible();
-  e.getPresentation().setEnabled(lib != null && compatible && !myDisabled && myProcessHandler.isStartNotified() && !myProcessHandler.isProcessTerminating() && !myProcessHandler.isProcessTerminated());
+  File lib=null;
+  boolean compatible=false;
+  File appBundle=Reveal.getDefaultRevealApplicationBundle();
+  if (appBundle != null) {
+    lib=Reveal.getRevealLib(appBundle,sdk);
+    compatible=Reveal.isCompatible(appBundle);
+    e.getPresentation().setEnabled(lib != null && compatible && !myDisabled && myProcessHandler.isStartNotified() && !myProcessHandler.isProcessTerminating() && !myProcessHandler.isProcessTerminated());
+  }
   if (lib == null) {
     title+=" (Reveal library not found)";
   }
