@@ -4,13 +4,9 @@
     throw new ExecutionException("Cannot refresh Reveal. Inspection script could not be found.");
   }
   try {
-    ProcessBuilder pb;
-    if (deviceName != null) {
-      pb=new ProcessBuilder(ExecUtil.getOsascriptPath(),inspectionScript.toString(),bundleID,deviceName);
-    }
- else {
-      pb=new ProcessBuilder(ExecUtil.getOsascriptPath(),inspectionScript.toString(),bundleID);
-    }
+    List<String> args=ContainerUtil.newArrayList(ExecUtil.getOsascriptPath(),inspectionScript.toString(),bundleID);
+    ContainerUtil.addIfNotNull(args,deviceName);
+    ProcessBuilder pb=new ProcessBuilder(args);
     Process p=pb.start();
     p.waitFor();
   }
