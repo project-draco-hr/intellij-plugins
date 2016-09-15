@@ -1,4 +1,8 @@
 {
+  SearchScope scope=p.getEffectiveSearchScope();
+  if (!(scope instanceof GlobalSearchScope)) {
+    return;
+  }
   final PsiMethod method=p.getMethod();
   final PsiAnnotation stepAnnotation=CucumberJavaUtil.getCucumberStepAnnotation(method);
   final String regexp=stepAnnotation != null ? CucumberJavaUtil.getPatternFromStepDefinition(stepAnnotation) : null;
@@ -9,9 +13,6 @@
   if (StringUtil.isEmpty(word)) {
     return;
   }
-  SearchScope scope=p.getEffectiveSearchScope();
-  if (scope instanceof GlobalSearchScope) {
-    GlobalSearchScope restrictedScope=GlobalSearchScope.getScopeRestrictedByFileTypes((GlobalSearchScope)scope,GherkinFileType.INSTANCE);
-    ReferencesSearch.search(new ReferencesSearch.SearchParameters(method,restrictedScope,false,p.getOptimizer())).forEach(consumer);
-  }
+  final GlobalSearchScope restrictedScope=GlobalSearchScope.getScopeRestrictedByFileTypes((GlobalSearchScope)scope,GherkinFileType.INSTANCE);
+  ReferencesSearch.search(new ReferencesSearch.SearchParameters(method,restrictedScope,false,p.getOptimizer())).forEach(consumer);
 }
