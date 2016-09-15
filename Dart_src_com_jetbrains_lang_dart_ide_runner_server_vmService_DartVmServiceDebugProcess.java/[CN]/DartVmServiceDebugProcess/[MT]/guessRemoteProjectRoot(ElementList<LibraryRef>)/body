@@ -4,7 +4,8 @@
   final VirtualFile localProjectRoot=pubspec.getParent();
   for (  LibraryRef library : libraries) {
     final String remoteUri=library.getUri();
-    if (!remoteUri.startsWith(DartUrlResolver.FILE_PREFIX))     continue;
+    if (remoteUri.startsWith("dart:"))     continue;
+    if (remoteUri.startsWith("package:"))     continue;
     final PsiFile[] localFilesWithSameName=ApplicationManager.getApplication().runReadAction(new Computable<PsiFile[]>(){
       @Override public PsiFile[] compute(){
         final String remoteFileName=PathUtil.getFileName(remoteUri);
@@ -19,12 +20,12 @@
       if (file == null)       continue;
       LOG.assertTrue(file.getPath().startsWith(localProjectRoot.getPath() + "/"),file.getPath() + "," + localProjectRoot.getPath());
       final String relPath=file.getPath().substring(localProjectRoot.getPath().length());
-      if (!relPath.startsWith("/lib/") && remoteUri.endsWith(relPath)) {
+      if (relPath.startsWith("/lib/") && remoteUri.endsWith(relPath)) {
         howManyFilesMatch++;
         myRemoteProjectRootUri=remoteUri.substring(0,remoteUri.length() - relPath.length());
       }
     }
-    if (howManyFilesMatch == 1) {
+    if (howManyFilesMatch > 0) {
       break;
     }
   }
