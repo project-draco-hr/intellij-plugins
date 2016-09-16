@@ -1,5 +1,5 @@
 {
-  final SmartList<String> result=new SmartList<>();
+  final Set<String> result=new HashSet<>();
   String uriByIde=myDartUrlResolver.getDartUrlForFile(file);
   if (uriByIde.startsWith(DartUrlResolver.DART_PREFIX)) {
     result.add(uriByIde);
@@ -19,11 +19,15 @@
       result.add(uriByServer);
     }
   }
-  final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
-  if (myRemoteDebug && uriByIde.startsWith(DartUrlResolver.FILE_PREFIX) && myRemoteProjectRootUri != null && pubspec != null) {
-    final String localRootUri=StringUtil.trimEnd(myDartUrlResolver.getDartUrlForFile(pubspec.getParent()),'/');
-    LOG.assertTrue(uriByIde.startsWith(localRootUri),uriByIde + "," + localRootUri);
-    result.add(myRemoteProjectRootUri + uriByIde.substring(localRootUri.length()));
+  if (myRemoteDebug && myRemoteProjectRootUri != null) {
+    final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
+    if (pubspec != null) {
+      final String projectPath=pubspec.getParent().getPath();
+      final String filePath=file.getPath();
+      if (filePath.startsWith(projectPath)) {
+        result.add(myRemoteProjectRootUri + filePath.substring(projectPath.length()));
+      }
+    }
   }
   return result;
 }
