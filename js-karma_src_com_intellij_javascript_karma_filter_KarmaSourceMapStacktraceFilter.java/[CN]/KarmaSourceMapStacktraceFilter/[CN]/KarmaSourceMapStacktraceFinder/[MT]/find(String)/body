@@ -1,0 +1,17 @@
+{
+  for (  Pattern pattern : PATTERNS) {
+    Matcher matcher=pattern.matcher(line);
+    if (matcher.matches()) {
+      List<FileHyperlinkRawData> result=ContainerUtil.newArrayList();
+      for (int i=1; i <= matcher.groupCount(); i++) {
+        String group=matcher.group(i);
+        List<FileHyperlinkRawData> list=INNER_FINDER.find(group);
+        for (        FileHyperlinkRawData data : list) {
+          result.add(new FileHyperlinkRawData(data.getFilePath(),data.getDocumentLine(),data.getDocumentColumn(),matcher.start(i) + data.getHyperlinkStartInd(),matcher.start(i) + data.getHyperlinkEndInd()));
+        }
+      }
+      return result;
+    }
+  }
+  return Collections.emptyList();
+}

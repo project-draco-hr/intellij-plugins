@@ -2,7 +2,10 @@
   KarmaConfig config=myKarmaServer.getKarmaConfig();
   String baseDir=config != null ? config.getBasePath() : null;
   if ("browser".equals(nodeType)) {
-    return BrowserStacktraceFilters.createFilter(nodeName,myProject,baseDir);
+    AbstractFileHyperlinkFilter browserFilter=BrowserStacktraceFilters.createFilter(nodeName,myProject,baseDir);
+    if (browserFilter != null) {
+      return new KarmaSourceMapStacktraceFilter(myProject,baseDir,browserFilter);
+    }
   }
   if ("browserError".equals(nodeType)) {
     return getBrowserErrorFilter();
