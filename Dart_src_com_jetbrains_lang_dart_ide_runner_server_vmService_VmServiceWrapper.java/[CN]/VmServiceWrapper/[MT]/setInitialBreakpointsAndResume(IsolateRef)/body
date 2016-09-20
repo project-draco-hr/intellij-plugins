@@ -1,0 +1,19 @@
+{
+  if (myDebugProcess.isRemoteDebug()) {
+    if (myDebugProcess.myRemoteProjectRootUri == null) {
+      getIsolate(isolateRef.getId(),new VmServiceConsumers.GetIsolateConsumerWrapper(){
+        @Override public void received(        final Isolate isolate){
+          myDebugProcess.guessRemoteProjectRoot(isolate.getLibraries());
+          doSetInitialBreakpointsAndResume(isolateRef);
+        }
+      }
+);
+    }
+ else {
+      doSetInitialBreakpointsAndResume(isolateRef);
+    }
+  }
+ else {
+    doSetInitialBreakpointsAndResume(isolateRef);
+  }
+}

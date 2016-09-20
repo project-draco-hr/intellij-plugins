@@ -1,18 +1,40 @@
 {
+  final Set<String> result=new HashSet<>();
   String uriByIde=myDartUrlResolver.getDartUrlForFile(file);
-  if (myDartUrlResolver.mayNeedDynamicUpdate()) {
-    if (myDASExecutionContextId != null && !uriByIde.startsWith(DartUrlResolver.DART_PREFIX)) {
-      final String uriByServer=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,file.getPath(),null);
-      if (uriByServer != null) {
-        return maybeAppendOneMoreUri(file,uriByServer);
+  if (uriByIde.startsWith(DartUrlResolver.DART_PREFIX)) {
+    result.add(uriByIde);
+    return result;
+  }
+  if (uriByIde.startsWith(DartUrlResolver.FILE_PREFIX)) {
+    result.add(threeSlashize(uriByIde));
+  }
+ else {
+    result.add(uriByIde);
+    result.add(threeSlashize(new File(file.getPath()).toURI().toString()));
+  }
+  result.add(file.getPath());
+  if (myDASExecutionContextId != null) {
+    final String uriByServer=DartAnalysisServerService.getInstance().execution_mapUri(myDASExecutionContextId,file.getPath(),null);
+    if (uriByServer != null) {
+      result.add(uriByServer);
+    }
+  }
+  if (myRemoteDebug && myRemoteProjectRootUri != null) {
+    final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
+    if (pubspec != null) {
+      final String projectPath=pubspec.getParent().getPath();
+      final String filePath=file.getPath();
+      if (filePath.startsWith(projectPath)) {
+        result.add(myRemoteProjectRootUri + filePath.substring(projectPath.length()));
+      }
+    }
+ else     if (myCurrentWorkingDirectory != null) {
+      final String projectPath=myCurrentWorkingDirectory.getPath();
+      final String filePath=file.getPath();
+      if (filePath.startsWith(projectPath)) {
+        result.add(myRemoteProjectRootUri + filePath.substring(projectPath.length()));
       }
     }
   }
-  final VirtualFile pubspec=myDartUrlResolver.getPubspecYamlFile();
-  if (myRemoteDebug && uriByIde.startsWith(DartUrlResolver.FILE_PREFIX) && myRemoteProjectRootUri != null && pubspec != null) {
-    final String localRootUri=StringUtil.trimEnd(myDartUrlResolver.getDartUrlForFile(pubspec.getParent()),'/');
-    LOG.assertTrue(uriByIde.startsWith(localRootUri),uriByIde + "," + localRootUri);
-    uriByIde=myRemoteProjectRootUri + uriByIde.substring(localRootUri.length());
-  }
-  return maybeAppendOneMoreUri(file,threeSlashize(uriByIde));
+  return result;
 }
