@@ -3,10 +3,14 @@
   final Module module=getModule(invocationPoint);
   if (module == null)   return null;
   final Collection<Framework> frameworks=((RubyMotionUtilImpl)RubyMotionUtil.getInstance()).getFrameworks(module);
-  final String name=path.get(0);
+  final List<String> nameAsList=fqn.asList();
+  if (nameAsList.isEmpty()) {
+    return null;
+  }
+  final String name=nameAsList.get(0);
   if (name.isEmpty())   return null;
   if (types.contains(Type.CLASS)) {
-    Symbol result=findClassOrStruct(module,frameworks,path);
+    Symbol result=findClassOrStruct(module,frameworks,nameAsList);
     if (result != null) {
       return result;
     }
