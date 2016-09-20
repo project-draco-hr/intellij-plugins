@@ -32,14 +32,11 @@
   }
 ;
   boolean b=jsClass == null || ClassBackedElementDescriptor.processAttributes(jsClass,itemsProcessor);
-  if (b && jsClass != null) {
-    final PsiElement _clazz=JSResolveUtil.unwrapProxy(jsClass);
-    final JSClass clazz=_clazz instanceof JSClass ? (JSClass)_clazz : null;
-    if (clazz != null) {
-      final JSClass[] classes=clazz.getSuperClasses();
-      if (classes.length > 0 && clazz.getName().equals(classes[0].getName()) && clazz != classes[0]) {
-        b=ClassBackedElementDescriptor.processAttributes(classes[0],itemsProcessor);
-      }
+  if (b && jsClass instanceof JSClass) {
+    final JSClass clazz=(JSClass)jsClass;
+    final JSClass[] classes=clazz.getSuperClasses();
+    if (classes.length > 0 && clazz.getName().equals(classes[0].getName()) && clazz != classes[0]) {
+      b=ClassBackedElementDescriptor.processAttributes(classes[0],itemsProcessor);
     }
   }
   if (b && parentDescriptorDeclaration instanceof XmlFile) {
