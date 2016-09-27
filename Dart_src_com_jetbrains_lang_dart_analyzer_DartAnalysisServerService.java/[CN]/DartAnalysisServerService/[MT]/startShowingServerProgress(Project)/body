@@ -1,0 +1,25 @@
+{
+  final Task.Backgroundable task=new Task.Backgroundable(project,DartBundle.message("dart.analysis.progress.title"),false){
+    @Override public void run(    @NotNull final ProgressIndicator indicator){
+      if (project.isDisposed())       return;
+      if (!myAnalysisInProgress && !myPubListInProgress)       return;
+      indicator.setText(DartBundle.message("dart.analysis.progress.title"));
+      if (ApplicationManager.getApplication().isDispatchThread()) {
+        if (!ApplicationManager.getApplication().isUnitTestMode()) {
+          LOG.error("wait() in EDT");
+        }
+      }
+ else {
+        try {
+          myProgressIndicators.add(indicator);
+          waitWhileServerBusy(indicator);
+        }
+  finally {
+          myProgressIndicators.remove(indicator);
+        }
+      }
+    }
+  }
+;
+  ProgressManager.getInstance().run(task);
+}
