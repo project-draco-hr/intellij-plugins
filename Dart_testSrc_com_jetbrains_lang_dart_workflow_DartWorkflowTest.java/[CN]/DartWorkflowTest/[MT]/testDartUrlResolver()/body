@@ -1,2 +1,34 @@
 {
+  final String rootPath=ModuleRootManager.getInstance(myModule).getContentRoots()[0].getPath();
+  final String rootUrl="file:///" + StringUtil.trimLeading(rootPath,'/');
+  myFixture.addFileToProject("pubspec.yaml","name: RootProject");
+  myFixture.addFileToProject("lib/rootlib.dart","");
+  final VirtualFile nestedPubspec=myFixture.addFileToProject("example/pubspec.yaml","name: NestedProject\n" + "dependencies:\n" + "  RootProject:\n"+ "    path: ../").getVirtualFile();
+  myFixture.addFileToProject("example/lib/src/nestedlib.dart","");
+  myFixture.addFileToProject("example/packages/NestedProject/nestedlib.dart","");
+  myFixture.addFileToProject("example/packages/RootProject/rootlib.dart","");
+  myFixture.addFileToProject("pub/global/cache/SomePackage/lib/somepack.dart","");
+  myFixture.saveText(myFixture.addFileToProject("example/.packages","").getVirtualFile(),"RootProject:../lib/\n" + "NestedProject:lib/\n" + "SomePackage:" + rootUrl + "/pub/global/cache/SomePackage/lib/");
+  DartUrlResolver resolver=DartUrlResolver.getInstance(getProject(),nestedPubspec);
+  VirtualFile file;
+  file=resolver.findFileByDartUrl("dart:collection");
+  assertNotNull(file);
+  assertEquals(DartTestUtils.SDK_HOME_PATH + "/lib/collection/collection.dart",file.getPath());
+  assertEquals("dart:collection",resolver.getDartUrlForFile(file));
+  file=resolver.findFileByDartUrl("dart:collection/hash_map.dart");
+  assertNotNull(file);
+  assertEquals(DartTestUtils.SDK_HOME_PATH + "/lib/collection/hash_map.dart",file.getPath());
+  assertEquals("dart:collection/hash_map.dart",resolver.getDartUrlForFile(file));
+  file=resolver.findFileByDartUrl("package:NestedProject/src/nestedlib.dart");
+  assertNotNull(file);
+  assertEquals(rootPath + "/example/lib/src/nestedlib.dart",file.getPath());
+  assertEquals("package:NestedProject/src/nestedlib.dart",resolver.getDartUrlForFile(file));
+  file=resolver.findFileByDartUrl("package:RootProject/rootlib.dart");
+  assertNotNull(file);
+  assertEquals(rootPath + "/lib/rootlib.dart",file.getPath());
+  assertEquals("package:RootProject/rootlib.dart",resolver.getDartUrlForFile(file));
+  file=resolver.findFileByDartUrl("package:SomePackage/somepack.dart");
+  assertNotNull(file);
+  assertEquals(rootPath + "/pub/global/cache/SomePackage/lib/somepack.dart",file.getPath());
+  assertEquals("package:SomePackage/somepack.dart",resolver.getDartUrlForFile(file));
 }
