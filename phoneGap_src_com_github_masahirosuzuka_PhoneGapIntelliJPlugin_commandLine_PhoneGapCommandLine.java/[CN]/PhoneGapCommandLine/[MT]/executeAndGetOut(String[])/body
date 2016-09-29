@@ -1,29 +1,3 @@
 {
-  final GeneralCommandLine commandLine=new GeneralCommandLine(command);
-  commandLine.withWorkDirectory(myWorkDir);
-  commandLine.withParentEnvironmentType(myPassParentEnv ? ParentEnvironmentType.CONSOLE : ParentEnvironmentType.NONE);
-  commandLine.withEnvironment(myEnv);
-  commandLine.setCharset(Charsets.UTF_8);
-  OSProcessHandler processHandler=new ColoredProcessHandler(commandLine);
-  final ProcessOutput output=new ProcessOutput();
-  processHandler.addProcessListener(new ProcessAdapter(){
-    @Override public void onTextAvailable(    ProcessEvent event,    Key outputType){
-      if (outputType == ProcessOutputTypes.STDERR) {
-        output.appendStderr(event.getText());
-      }
- else       if (outputType != ProcessOutputTypes.SYSTEM) {
-        output.appendStdout(event.getText());
-      }
-    }
-  }
-);
-  processHandler.startNotify();
-  if (processHandler.waitFor(TimeUnit.SECONDS.toMillis(120))) {
-    output.setExitCode(processHandler.getProcess().exitValue());
-  }
- else {
-    processHandler.destroyProcess();
-    output.setTimeout();
-  }
-  return output;
+  return executeAndGetOut(null,command);
 }
