@@ -2,6 +2,8 @@
   final PsiFile psiFile1=myFixture.configureByText("file.dart","/// [bool]\n" + "<caret>bool foo() {\n" + "  var bool = #bool;\n"+ "}");
   final PsiFile psiFile2=myFixture.addFileToProject("file1.dart","bool x;");
   myFixture.doHighlighting();
+  DartTestUtils.letAnalyzerSmellCoreFile(myFixture,"iterable.dart");
+  myFixture.openFileInEditor(psiFile1.getVirtualFile());
   final String[] allProjectUsages={"PsiCommentImpl in " + psiFile1.getName() + "@5:9 (non-code usage)","DartReferenceExpressionImpl in " + psiFile1.getName() + "@11:15","DartReferenceExpressionImpl in file1.dart@0:4"};
   checkUsages(new LocalSearchScope(psiFile1),"PsiCommentImpl in " + psiFile1.getName() + "@5:9 (non-code usage)","DartReferenceExpressionImpl in " + psiFile1.getName() + "@11:15");
   checkUsages(new LocalSearchScope(psiFile2),"DartReferenceExpressionImpl in file1.dart@0:4");
@@ -11,5 +13,5 @@
   checkUsages(GlobalSearchScope.filesScope(getProject(),Arrays.asList(psiFile1.getVirtualFile(),psiFile2.getVirtualFile())),allProjectUsages);
   checkUsages(GlobalSearchScope.projectScope(getProject()),allProjectUsages);
   final Collection<UsageInfo> usages=findUsages(GlobalSearchScope.allScope(getProject()));
-  assertTrue(String.valueOf(usages.size()),usages.size() > 620);
+  assertTrue(String.valueOf(usages.size()),usages.size() > 15);
 }
