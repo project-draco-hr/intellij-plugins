@@ -1,0 +1,26 @@
+{
+  final THashSet<String> newExcludedPackagesUrls=new THashSet<>();
+  final ProjectFileIndex fileIndex=ProjectRootManager.getInstance(module.getProject()).getFileIndex();
+  final VirtualFile root=pubspecYamlFile.getParent();
+  if (withDotPubAndBuild) {
+    final File pubFolder=new File(root.getPath() + "/.pub");
+    if (pubFolder.isDirectory() || ApplicationManager.getApplication().isUnitTestMode() && root.findChild(".pub") != null) {
+      newExcludedPackagesUrls.add(root.getUrl() + "/.pub");
+    }
+    final File buildFolder=new File(root.getPath() + "/build");
+    if (buildFolder.isDirectory() || ApplicationManager.getApplication().isUnitTestMode() && root.findChild("build") != null) {
+      newExcludedPackagesUrls.add(root.getUrl() + "/build");
+    }
+  }
+  newExcludedPackagesUrls.add(root.getUrl() + "/packages");
+  final VirtualFile binFolder=root.findChild("bin");
+  if (binFolder != null && binFolder.isDirectory() && fileIndex.isInContent(binFolder)) {
+    newExcludedPackagesUrls.add(binFolder.getUrl() + "/packages");
+  }
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("benchmark"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("example"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("test"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("tool"),fileIndex);
+  appendPackagesFolders(newExcludedPackagesUrls,root.findChild("web"),fileIndex);
+  return newExcludedPackagesUrls;
+}
