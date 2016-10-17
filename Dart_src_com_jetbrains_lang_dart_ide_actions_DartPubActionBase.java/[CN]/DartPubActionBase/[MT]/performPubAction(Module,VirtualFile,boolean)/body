@@ -20,6 +20,12 @@
   final String[] pubParameters=calculatePubParameters(module.getProject(),pubspecYamlFile);
   if (pubParameters != null) {
     final GeneralCommandLine command=new GeneralCommandLine().withWorkDirectory(pubspecYamlFile.getParent().getPath());
+    if (FlutterUtil.isFlutterModule(module)) {
+      final String flutterRoot=FlutterUtil.getFlutterRoot(sdk);
+      if (flutterRoot != null) {
+        command.getEnvironment().put("FLUTTER_ROOT",flutterRoot);
+      }
+    }
     command.setExePath(pubFile.getPath());
     command.addParameters(pubParameters);
     doPerformPubAction(module,pubspecYamlFile,command,getTitle(pubspecYamlFile));
